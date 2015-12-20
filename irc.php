@@ -300,14 +300,15 @@ class observiumbot
     if (!$device){
       $irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "Error: Bad or Missing hostname, use .listdevices to show all devices.");
     } else {
-      $sql  = "SELECT * FROM `vlans_fdb`";
+      $sql  = "SELECT `vlans_fdb`.mac_address AS mac_address, GROUP_CONCAT(`vlans_fdb`.vlan_id SEPARATOR '|') AS vlan_id FROM `vlans_fdb`";
       $sql .= " LEFT JOIN `ports` ON `ports`.port_id = `vlans_fdb`.port_id AND ports.device_id = `vlans_fdb`.device_id";
-      $sql .= " WHERE ports.`ifName` = ? OR ports.`ifDescr` = ? AND `vlans_fdb`.device_id = ?";
+      $sql .= " WHERE (ports.`ifName` = ? OR ports.`ifDescr` = ?) AND `vlans_fdb`.device_id = ?";
+      $sql .= " GROUP BY mac_address";
 
       $fdb = dbFetchRows($sql, array($ifname, $ifname, $device['device_id']));
 
       foreach ($fdb as $mac) {
-        $message .= $sep . format_mac($mac["mac_address"]);
+        $message .= $sep . format_mac($mac["mac_address"]) . "(vlans [$mac[vlan_id]])";
         $sep = ", ";
       }
       $irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, $message);
