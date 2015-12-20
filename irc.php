@@ -21,6 +21,7 @@ $debug=0;
 
 include("includes/sql-config.inc.php");
 include_once("includes/polling/functions.inc.php");
+include_once("includes/common.inc.php");
 include_once("includes/discovery/functions.inc.php");
 include_once("Net/SmartIRC.php");
 
@@ -42,7 +43,7 @@ class observiumbot
   {
     global $config;
 
-    $irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "Commands: .help, .log, .status, .version, .down, .port, .device, .listdevices");
+    $irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "Commands: .help, .log, .status, .version, .down, .port, .device, .listdevices, .fdb");
 
     echo date("m-d-y H:i:s ");
     echo "HELP\n";
@@ -280,6 +281,40 @@ class observiumbot
     echo date("m-d-y H:i:s ");
     echo "STATUS\t\t$statustype\n";
   }
+
+  function fdb_info(&$irc, &$data)
+  {
+    global $config;
+    $hostname = $data->messageex[1];
+    if (count($data->messageex) >= 3){
+      $ifname = $data->messageex[2];
+    } else {
+      $irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "Error: Missing port name");
+    }
+
+    mysql_connect($config['db_host'],$config['db_user'],$config['db_pass']);
+    mysql_select_db($config['db_name']);
+
+    $device = dbFetchRow("SELECT * FROM `devices` WHERE `hostname` = ?",array($hostname));
+
+    if (!$device){
+      $irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "Error: Bad or Missing hostname, use .listdevices to show all devices.");
+    } else {
+      $sql  = "SELECT * FROM `vlans_fdb`";
+      $sql .= " LEFT JOIN `ports` ON `ports`.port_id = `vlans_fdb`.port_id AND ports.device_id = `vlans_fdb`.device_id";
+      $sql .= " WHERE ports.`ifName` = ? OR ports.`ifDescr` = ? AND `vlans_fdb`.device_id = ?";
+
+      $fdb = dbFetchRows($sql, array($ifname, $ifname, $device['device_id']));
+
+      foreach ($fdb as $mac) {
+        $message .= $sep . format_mac($mac["mac_address"]);
+        $sep = ", ";
+      }
+      $irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, $message);
+      echo "FDB\t\t$hostname\t$ifname\n";
+    }
+    mysql_close();
+  }
 }
 
 $bot = new observiumbot();
@@ -294,6 +329,7 @@ $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '!port', $bot, 'port_info');
 $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '!down', $bot, 'down_info');
 $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '!version', $bot, 'version_info');
 $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '!status', $bot, 'status_info');
+$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '!fdb', $bot, 'fdb_info');
 $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '!log', $bot, 'log_info');
 $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '!help', $bot, 'help_info');
 
