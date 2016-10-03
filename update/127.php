@@ -11,7 +11,7 @@
  *
  */
 
-echo ' Converting FDB count RRD ds fdb->value: ';
+echo 'Converting FDB count RRD ds fdb->value: ';
 
 include_once('includes/rrdtool.inc.php');
 
@@ -27,7 +27,5 @@ foreach (dbFetchRows("SELECT hostname FROM `device_graphs`,`devices` WHERE `devi
 }
 
 rrdtool_pipe_close($rrd_process, $rrd_pipes);
-
-echo(PHP_EOL);
 
 // EOF

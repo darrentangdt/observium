@@ -15,7 +15,7 @@
 
 if (!is_array($cache_storage['host-resources-mib']))
 {
-  $cache_storage['host-resources-mib'] = snmpwalk_cache_oid($device, "hrStorageEntry", NULL, "HOST-RESOURCES-MIB:HOST-RESOURCES-TYPES", mib_dirs());
+  $cache_storage['host-resources-mib'] = snmpwalk_cache_oid($device, "hrStorageEntry", NULL, "HOST-RESOURCES-MIB:HOST-RESOURCES-TYPES");
   if (OBS_DEBUG && count($cache_storage['host-resources-mib'])) { print_vars($cache_storage['host-resources-mib']); }
 }
 

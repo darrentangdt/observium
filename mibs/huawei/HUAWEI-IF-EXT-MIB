@@ -1,9 +1,9 @@
 -- ==================================================================
--- Copyright (C) 2014 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- 
 -- Description: HUAWEI Private Extended Interface MIB
 -- Reference:
--- Version: V2.55
+-- Version: V2.62
 -- History:
 --      V1.0 
 -- ==================================================================
@@ -38,7 +38,7 @@
     
     
         hwIFExtMib MODULE-IDENTITY 
-            LAST-UPDATED "201501052026Z"
+            LAST-UPDATED "201509060000Z"
             ORGANIZATION 
                 "Huawei Technologies Co.,Ltd."
             CONTACT-INFO 
@@ -49,10 +49,33 @@
                    Website: http://www.huawei.com
                    Email: support@huawei.com
                  "
+            DESCRIPTION
+               "V2.62 (1) add hwIfMonitorTxPauseFrameStatistics, hwIfMonitorTxPauseFrameHighThreshold, hwIfMonitorTxPauseFrameLowThreshold, hwIfMonitorTxPauseFrameInterval,
+                              hwIfMonitorTxPauseFrameRising, hwIfMonitorTxPauseFrameRisingResume;
+                      (2) modify spelling mistake (recieved to received) in description."
+                REVISION     "201509060000Z"
+            DESCRIPTION 
+               "V2.61 Update hwLogicIfType, add object-type lmpif(31),update  hwLoopbackBlock, change OBJECTS { ifDescr, hwNewIfTimeslot }."
+                REVISION     "201508060000Z"
+            DESCRIPTION 
+                "V2.60 Update the hwLinkDownReason, add from linkHearBeatDown to triggerDown."
+                REVISION     "201506290000Z"
+            DESCRIPTION 
+                "V2.59 Add Eth/Pos/Serial(PPP/HDLC)  Statistic "
+                REVISION     "201505140000Z"
+            DESCRIPTION 
+                "V2.58 Modify hwIFExtSwitchPortIndex SYNTAX"
+            REVISION     "201503272026Z"
+            DESCRIPTION 
+                "V2.57 Modify hwIfMonitorCrcErrorThreshold hwIfMonitorSdhErrorThreshold hwIfMonitorPauseFrameThreshold hwIfMonitorSymbolErrorThreshold SYNTAX"
+            REVISION     "201503262026Z"
+            DESCRIPTION 
+                "V2.56 hwLogicIfType add nve, vt, fcoe."
+            REVISION     "201502032026Z" 
             DESCRIPTION 
                 "Some attribute of interface extended content, information of 
                 interface IP, interface of trunk interface."
-	    REVISION     "201501052026Z" 
+            REVISION     "201501052026Z" 
             DESCRIPTION 
                  "V2.55 hwIfMonitorBadBytesErrorRising hwIfMonitorPauseFrameRising add hwIfMonitorName." 
             REVISION     "201412252026Z" 
@@ -91,22 +114,22 @@
             REVISION         "201402071900Z" 
             DESCRIPTION  
                 "add hwIfIpAddrTable" 
-            REVISION	 "201401261900Z"
+            REVISION     "201401261900Z"
             DESCRIPTION 
                 "Update hwTrunkSelectStatus, add trunkIndep(3)."
-            REVISION	 "201401181200Z"
+            REVISION     "201401181200Z"
             DESCRIPTION
                 "Update hwLogicIfType , add object-type globalVe(26), subGlobalVe(27)."
-           REVISION	 "201401161900Z"
+            REVISION     "201401161900Z"
             DESCRIPTION
                 "Update hwTrunkIfWorkingMode, modify object-type lacpStaticMode(3) to lacpMode(3) and add object-type lacpCompatibleMode(4)."
-            REVISION	 "201401131600Z"
+            REVISION     "201401131600Z"
             DESCRIPTION
-                "Update hwTrunkIfWorkingMode, modify object-type lacpMode(3) to lacpStaticMode(3); Update hwLogicIfType, add object-type subPosFr(25)."	
-            REVISION	 "201309051400Z"
+                "Update hwTrunkIfWorkingMode, modify object-type lacpMode(3) to lacpStaticMode(3); Update hwLogicIfType, add object-type subPosFr(25)." 
+            REVISION     "201309051400Z"
             DESCRIPTION
-                "Add hwLacpPartnerExpiredLoss."		
-            REVISION	 "201307021400Z"
+                "Add hwLacpPartnerExpiredLoss."     
+            REVISION     "201307021400Z"
             DESCRIPTION
                 "Add hwTrunkMapTable and hwIFExtSwitchPortIndex."
             REVISION     "201306081830Z"
@@ -509,13 +532,13 @@
             ::= { hwIFExtEntry 22 }
 		
          hwIFExtSwitchPortIndex OBJECT-TYPE   
-            SYNTAX  Integer32 (1..65535)      
+            SYNTAX  Integer32
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION 
                 "Number of layer2 interface port, a unique value,
                 for each port.It is recommended that values are assigned 
-                contiguously starting from 1. "
+                contiguously starting from 1. If the return value is -1, this interface is not a Layer 2 interface."
                 ::= { hwIFExtEntry 23 }
 
         hwIFExtSuppressStatusIPv6 OBJECT-TYPE
@@ -953,7 +976,7 @@ hwIfIpMethod OBJECT-TYPE
  
         hwIfIpAddrEntIfIndex OBJECT-TYPE
             SYNTAX     InterfaceIndex
-            MAX-ACCESS not-accessible
+            MAX-ACCESS accessible-for-notify
             STATUS     current
             DESCRIPTION
                 "The index value that uniquely identifies the interface to
@@ -964,7 +987,7 @@ hwIfIpMethod OBJECT-TYPE
 
         hwIfIpAddrEntAddr OBJECT-TYPE
             SYNTAX     IpAddress
-            MAX-ACCESS not-accessible
+            MAX-ACCESS accessible-for-notify
             STATUS     current
             DESCRIPTION
                 "The IP address to which this entry's addressing
@@ -1235,7 +1258,7 @@ hwIfIpMethod OBJECT-TYPE
 -- the least active-linknumber of the up port
         hwTrunkIndex OBJECT-TYPE
             SYNTAX Integer32
-            MAX-ACCESS not-accessible
+            MAX-ACCESS accessible-for-notify
             STATUS current
             DESCRIPTION
                 " The number of the Trunk interface "
@@ -1845,7 +1868,7 @@ hwIfIpMethod OBJECT-TYPE
 
         hwTrunkMemifIndex OBJECT-TYPE
             SYNTAX Integer32
-            MAX-ACCESS not-accessible
+            MAX-ACCESS accessible-for-notify
             STATUS current
             DESCRIPTION
                 "Trunk port index"
@@ -2139,7 +2162,7 @@ hwIfIpMethod OBJECT-TYPE
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
-            " The number of recieved Packets whose size over 1518 bytes "
+            " The number of received Packets whose size over 1518 bytes "
         ::= { hwIfEtherStatEntry 5 }
 
     
@@ -2149,7 +2172,7 @@ hwIfIpMethod OBJECT-TYPE
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
-            " The number of recieved Packets whose size over 1518 bytes "
+            " The number of received Packets whose size over 1518 bytes "
         ::= { hwIfEtherStatEntry 6 }
 
     
@@ -2159,7 +2182,7 @@ hwIfIpMethod OBJECT-TYPE
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
-            " The number of recieved Packets whose size over 1518 bytes "
+            " The number of received Packets whose size over 1518 bytes "
         ::= { hwIfEtherStatEntry 7 }
 
     
@@ -2169,7 +2192,7 @@ hwIfIpMethod OBJECT-TYPE
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
-            " The number of recieved Packets whose size over 1518 bytes "
+            " The number of received Packets whose size over 1518 bytes "
         ::= { hwIfEtherStatEntry 8 }
 
     
@@ -2179,7 +2202,7 @@ hwIfIpMethod OBJECT-TYPE
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
-            " The number of recieved Packets whose size over 1518 bytes "
+            " The number of received Packets whose size over 1518 bytes "
         ::= { hwIfEtherStatEntry 9 }
 
     
@@ -2189,7 +2212,7 @@ hwIfIpMethod OBJECT-TYPE
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
-            " The number of recieved Packets whose size over 1518 bytes "
+            " The number of received Packets whose size over 1518 bytes "
         ::= { hwIfEtherStatEntry 10 }
 
     
@@ -2198,7 +2221,7 @@ hwIfIpMethod OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved Packets whose size over 1518 bytes "
+                " The number of received Packets whose size over 1518 bytes "
             ::= { hwIfEtherStatEntry 11 }
 
         
@@ -2207,7 +2230,7 @@ hwIfIpMethod OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved Packets which have CRC checking errors "
+                " The number of received Packets which have CRC checking errors "
             ::= { hwIfEtherStatEntry 12 }
 
         
@@ -2216,7 +2239,7 @@ hwIfIpMethod OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved Packets whose length is over maximum length "
+                " The number of received Packets whose length is over maximum length "
             ::= { hwIfEtherStatEntry 13 }
 
         
@@ -2225,7 +2248,7 @@ hwIfIpMethod OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved Packets whose length is over maximum length 
+                " The number of received Packets whose length is over maximum length 
                 and wrong CRC checking "
             ::= { hwIfEtherStatEntry 14 }
 
@@ -2235,7 +2258,7 @@ hwIfIpMethod OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved Packets which have short size and wrong CRC checking  "
+                " The number of received Packets which have short size and wrong CRC checking  "
             ::= { hwIfEtherStatEntry 15 }
 
         
@@ -2244,7 +2267,7 @@ hwIfIpMethod OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved Packets which have short size but right CRC checking  "
+                " The number of received Packets which have short size but right CRC checking  "
             ::= { hwIfEtherStatEntry 16 }
 
         
@@ -2253,7 +2276,7 @@ hwIfIpMethod OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved Packets whose queue overflow "
+                " The number of received Packets whose queue overflow "
             ::= { hwIfEtherStatEntry 17 }
 
         
@@ -2262,7 +2285,7 @@ hwIfIpMethod OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved control Frames "
+                " The number of received control Frames "
             ::= { hwIfEtherStatEntry 18 }
 
         
@@ -2320,7 +2343,7 @@ hwIfIpMethod OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved Packets discarded for GBP full or back pressure discard "
+                " The number of received Packets discarded for GBP full or back pressure discard "
             ::= { hwIfEtherStatEntry 24 }
 
  
@@ -2329,7 +2352,7 @@ hwIfIpMethod OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved Packets which have frame alignment error "
+                " The number of received Packets which have frame alignment error "
             ::= { hwIfEtherStatEntry 25 }
 
 
@@ -2338,7 +2361,7 @@ hwIfIpMethod OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved Packets which have unknown symbols "
+                " The number of received Packets which have unknown symbols "
             ::= { hwIfEtherStatEntry 26 }
 
 
@@ -2347,7 +2370,7 @@ hwIfIpMethod OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved MAC control frames which have unknown opecode "
+                " The number of received MAC control frames which have unknown opecode "
             ::= { hwIfEtherStatEntry 27 }
 
 
@@ -2356,7 +2379,7 @@ hwIfIpMethod OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved frames whose actual length differs with 802.3 "
+                " The number of received frames whose actual length differs with 802.3 "
             ::= { hwIfEtherStatEntry 28 }
          
 
@@ -2439,7 +2462,9 @@ hwIfSdhStatTable OBJECT-TYPE
                 hwIfSdhStatOutUnderRunPkts
                     Counter64,
                 hwIfSdhIfStatReset
-                    INTEGER
+                      INTEGER,
+                hwIfSdhStatInOverRunPkts
+                    Counter64
              }
 
         hwIfSdhStatIfIndex OBJECT-TYPE
@@ -2455,7 +2480,7 @@ hwIfSdhStatTable OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved Packets which have CRC checking errors "
+                " The number of received Packets which have CRC checking errors "
             ::= { hwIfSdhStatEntry 2 } 
             
         hwIfSdhStatInShortPkts OBJECT-TYPE
@@ -2463,7 +2488,7 @@ hwIfSdhStatTable OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved Packets whose length is under minimal length "
+                " The number of received Packets whose length is under minimal length "
             ::= { hwIfSdhStatEntry 3 }
             
         hwIfSdhStatInLongPkts OBJECT-TYPE
@@ -2471,7 +2496,7 @@ hwIfSdhStatTable OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved Packets whose length is over maximum length "
+                " The number of received Packets whose length is over maximum length "
             ::= { hwIfSdhStatEntry 4 }
             
         hwIfSdhStatOutOverRunPkts OBJECT-TYPE
@@ -2502,6 +2527,13 @@ hwIfSdhStatTable OBJECT-TYPE
                 " Reset the Statistic information Counter "
             ::= { hwIfSdhStatEntry 7 }
  
+        hwIfSdhStatInOverRunPkts OBJECT-TYPE
+            SYNTAX Counter64
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                " The number of received Packets whose queue overflow "
+            ::= { hwIfSdhStatEntry 8 } 
 
         hwIfAtmStatTable OBJECT-TYPE
             SYNTAX SEQUENCE OF HwIfAtmStatEntry
@@ -2555,7 +2587,7 @@ hwIfSdhStatTable OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of good cells recieved "
+                " The number of good cells received "
             ::= { hwIfAtmStatEntry 2 } 
             
         hwIfAtmStatInIdleCells OBJECT-TYPE
@@ -2563,7 +2595,7 @@ hwIfSdhStatTable OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of idle cells recieved "
+                " The number of idle cells received "
             ::= { hwIfAtmStatEntry 3 }             
             
         hwIfAtmStatInCorrectedCells OBJECT-TYPE
@@ -2571,7 +2603,7 @@ hwIfSdhStatTable OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved cells whitch have been corrected. "
+                " The number of received cells whitch have been corrected. "
             ::= { hwIfAtmStatEntry 4 }
             
         hwIfAtmStatInUncorrectedCells OBJECT-TYPE
@@ -2579,7 +2611,7 @@ hwIfSdhStatTable OBJECT-TYPE
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                " The number of recieved cells whitch can not be corrected. "
+                " The number of received cells whitch can not be corrected. "
             ::= { hwIfAtmStatEntry 5 }
             
         hwIfAtmStatOutGoodCells OBJECT-TYPE
@@ -2610,6 +2642,67 @@ hwIfSdhStatTable OBJECT-TYPE
                 " Reset the Statistic information Counter "
             ::= { hwIfAtmStatEntry 8 }            
 
+        hwIfPPPHDLCStatTable OBJECT-TYPE
+            SYNTAX SEQUENCE OF HwIfPPPHDLCStatEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                " Serial Interface Statistic Table for PPP/HDLC "
+            ::= { hwIfStatistics 4 }
+
+        hwIfPPPHDLCStatEntry OBJECT-TYPE
+            SYNTAX HwIfPPPHDLCStatEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                " Entry of Serial Interface Statistic Table for PPP/HDLC "
+            INDEX { hwIfPPPHDLCStatIfIndex }
+            ::= { hwIfPPPHDLCStatTable 1 }
+
+        HwIfPPPHDLCStatEntry ::=
+            SEQUENCE { 
+                hwIfPPPHDLCStatIfIndex
+                    InterfaceIndex,
+                hwIfPPPHDLCStatInCRCPkts
+                    Counter64,
+                hwIfPPPHDLCStatInShortPkts
+                    Counter64,
+                hwIfPPPHDLCStatInLongPkts
+                    Counter64
+             }
+
+        hwIfPPPHDLCStatIfIndex OBJECT-TYPE
+            SYNTAX InterfaceIndex
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                " The index of serial interface "
+            ::= { hwIfPPPHDLCStatEntry 1 }
+            
+        hwIfPPPHDLCStatInCRCPkts OBJECT-TYPE
+            SYNTAX Counter64
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                " The number of received Packets which have CRC checking errors "
+            ::= { hwIfPPPHDLCStatEntry 2 } 
+            
+        hwIfPPPHDLCStatInShortPkts OBJECT-TYPE
+            SYNTAX Counter64
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                " The number of received Packets whose length is under minimal length "
+            ::= { hwIfPPPHDLCStatEntry 3 }
+            
+        hwIfPPPHDLCStatInLongPkts OBJECT-TYPE
+            SYNTAX Counter64
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                " The number of received Packets whose length is over maximum length "
+            ::= { hwIfPPPHDLCStatEntry 4 }
+
     hwIfMonitorObject OBJECT IDENTIFIER ::= { hwIFExtObjects 7 }
     
     hwIfMonitorThresholdTable OBJECT-TYPE
@@ -2635,13 +2728,13 @@ hwIfSdhStatTable OBJECT-TYPE
                         hwIfMonitorCrcErrorStatistics
                                  Counter64,
                         hwIfMonitorCrcErrorThreshold
-                                 Integer32,
+                                 Unsigned32,
                         hwIfMonitorCrcErrorInterval
                                  Integer32,
                         hwIfMonitorSdhErrorStatistics
                                  Counter64,
                         hwIfMonitorSdhErrorThreshold
-                                 Integer32,
+                                 Unsigned32,
                         hwIfMonitorSdhErrorInterval
                                  Integer32,
                         hwIfMonitorInputRate
@@ -2655,7 +2748,7 @@ hwIfSdhStatTable OBJECT-TYPE
                         hwIfMonitorPauseFrameStatistics
                                  Counter64,
                         hwIfMonitorPauseFrameThreshold
-                                 Integer32,
+                                 Unsigned32,
                         hwIfMonitorPauseFrameInterval
                                  Integer32,
                         hwIfMonitorDelayValue
@@ -2683,7 +2776,7 @@ hwIfSdhStatTable OBJECT-TYPE
                         hwIfMonitorSymbolErrorStatistics
                                  Counter64,
                         hwIfMonitorSymbolErrorThreshold
-                                 Integer32,
+                                 Unsigned32,
                         hwIfMonitorSymbolErrorInterval
                                  Integer32,
                         hwIfMonitorBadBytesErrorStatistics
@@ -2691,6 +2784,14 @@ hwIfSdhStatTable OBJECT-TYPE
                         hwIfMonitorBadBytesErrorThreshold
                                  Integer32,
                         hwIfMonitorBadBytesErrorInterval
+                                 Integer32,
+                        hwIfMonitorTxPauseFrameStatistics
+                                 Counter64,
+                        hwIfMonitorTxPauseFrameHighThreshold
+                                 Unsigned32,
+                        hwIfMonitorTxPauseFrameLowThreshold
+                                 Unsigned32,
+                        hwIfMonitorTxPauseFrameInterval
                                  Integer32
                 }
 
@@ -2711,7 +2812,7 @@ hwIfMonitorCrcErrorStatistics OBJECT-TYPE
         ::= { hwIfMonitorThresholdEntry 2 }
 
     hwIfMonitorCrcErrorThreshold OBJECT-TYPE
-        SYNTAX Integer32 (0..65535)
+        SYNTAX Unsigned32 (0..4294967295)
         MAX-ACCESS read-write
         STATUS current
         DESCRIPTION
@@ -2735,7 +2836,7 @@ hwIfMonitorSdhErrorStatistics OBJECT-TYPE
              ::= { hwIfMonitorThresholdEntry 5 }
 
     hwIfMonitorSdhErrorThreshold OBJECT-TYPE
-        SYNTAX Integer32 (0..65535)
+        SYNTAX Unsigned32 (0..4294967295)
         MAX-ACCESS read-write
         STATUS current
         DESCRIPTION
@@ -2790,7 +2891,7 @@ hwIfMonitorPauseFrameStatistics OBJECT-TYPE
              ::= { hwIfMonitorThresholdEntry 12 }  
              
 hwIfMonitorPauseFrameThreshold OBJECT-TYPE
-        SYNTAX Integer32 (0..65535)
+        SYNTAX Unsigned32 (0..4294967295)
         MAX-ACCESS read-write
         STATUS current
         DESCRIPTION
@@ -2901,7 +3002,7 @@ hwIfMonitorJitterThreshold OBJECT-TYPE
         ::= { hwIfMonitorThresholdEntry 26 }
 
     hwIfMonitorSymbolErrorThreshold OBJECT-TYPE
-        SYNTAX Integer32 (1..65535)
+        SYNTAX Unsigned32 (0..4294967295)
         MAX-ACCESS read-write
         STATUS current
         DESCRIPTION
@@ -2945,6 +3046,41 @@ hwIfMonitorBadBytesErrorInterval OBJECT-TYPE
         "Description."
     ::= { hwIfMonitorThresholdEntry 42 }
 
+-- 1.3.6.1.4.1.2011.5.25.41.1.7.1.1.43
+hwIfMonitorTxPauseFrameStatistics OBJECT-TYPE
+    SYNTAX Counter64
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "TX pause frame statistics value."
+    ::= { hwIfMonitorThresholdEntry 43 }
+
+-- 1.3.6.1.4.1.2011.5.25.41.1.7.1.1.44
+hwIfMonitorTxPauseFrameHighThreshold OBJECT-TYPE
+    SYNTAX Unsigned32 (0..4294967295)
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "TX pause frame high threshold, and 0 is an invalid value."
+    ::= { hwIfMonitorThresholdEntry 44 }
+
+-- 1.3.6.1.4.1.2011.5.25.41.1.7.1.1.45
+hwIfMonitorTxPauseFrameLowThreshold OBJECT-TYPE
+    SYNTAX Unsigned32 (0..4294967295)
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "TX pause frame low threshold, and 0 is an invalid value."
+    ::= { hwIfMonitorThresholdEntry 45 }
+
+-- 1.3.6.1.4.1.2011.5.25.41.1.7.1.1.46
+hwIfMonitorTxPauseFrameInterval OBJECT-TYPE
+    SYNTAX Integer32 (0..65535)
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "TX pause frame alarm interval time(unit is second), and 0 is an invalid value."
+    ::= { hwIfMonitorThresholdEntry 46 }
 
 hwIfMonitorGeneral OBJECT IDENTIFIER ::= { hwIFExtObjects 8 }
     
@@ -3438,7 +3574,11 @@ hwAdminVrrpMemberIf OBJECT IDENTIFIER ::= { hwIFExtObjects 9 }
                 mtunnel(24),
                 subPosFr(25),
                 globalVe(26),
-                subGlobalVe(27)
+                subGlobalVe(27),
+                nve(28),
+                vt(29),
+                fcoe(30),
+                lmpif(31)
                 }
             MAX-ACCESS read-create
             STATUS current
@@ -4087,7 +4227,7 @@ hwAdminVrrpMemberIf OBJECT IDENTIFIER ::= { hwIFExtObjects 9 }
 
         hwVTrunkIfIndex OBJECT-TYPE
             SYNTAX InterfaceIndex
-            MAX-ACCESS not-accessible
+            MAX-ACCESS accessible-for-notify
             STATUS current
             DESCRIPTION
                 " The IfIndex of the VTrunk interface."
@@ -4172,7 +4312,7 @@ hwAdminVrrpMemberIf OBJECT IDENTIFIER ::= { hwIFExtObjects 9 }
 
         hwVTrunkMemIfIndex OBJECT-TYPE
             SYNTAX Integer32
-            MAX-ACCESS not-accessible
+            MAX-ACCESS accessible-for-notify
             STATUS current
             DESCRIPTION
                 "VTrunk port index."
@@ -4437,7 +4577,9 @@ hwAdminVrrpMemberIf OBJECT IDENTIFIER ::= { hwIFExtObjects 9 }
                         crcErrorUp(38),                    -- crc error up
                         transceiverSpeedMismatch(39),      -- Tranceiver speed does not match the speed configured on the port
                         transceiverTypeMismatch(40),       -- The port does not support current tranceiver
-                        negotiationUnsupported(41)         -- Tranceiver does not support the negotiation configuration on the port
+                        negotiationUnsupported(41),         -- Tranceiver does not support the negotiation configuration on the port
+                        linkHeartBeatDown(42) ,        -- link heart beat down
+                        triggerDown(43)          -- The interface is trigger down
                 }
         MAX-ACCESS  accessible-for-notify
         STATUS      current
@@ -4562,7 +4704,7 @@ hwAdminVrrpMemberIf OBJECT IDENTIFIER ::= { hwIFExtObjects 9 }
                 ethTrunk(1),
                 ipTrunk(2)
                 }
-            MAX-ACCESS not-accessible
+            MAX-ACCESS accessible-for-notify
             STATUS current
             DESCRIPTION
                 " The type of the Trunk interface includes eth-trunk and ip-trunk.
@@ -4572,7 +4714,7 @@ hwAdminVrrpMemberIf OBJECT IDENTIFIER ::= { hwIFExtObjects 9 }
 			
 	hwTrunkMapID OBJECT-TYPE
             SYNTAX Integer32
-            MAX-ACCESS not-accessible
+            MAX-ACCESS accessible-for-notify
             STATUS current
             DESCRIPTION
                 " The identification of the Trunk interface.It may identify Trunk
@@ -4712,7 +4854,11 @@ OBJECTS{
         hwIfMonitorSymbolErrorInterval,
         hwIfMonitorBadBytesErrorStatistics,
         hwIfMonitorBadBytesErrorThreshold,
-        hwIfMonitorBadBytesErrorInterval 
+        hwIfMonitorBadBytesErrorInterval,
+        hwIfMonitorTxPauseFrameStatistics,
+        hwIfMonitorTxPauseFrameHighThreshold,
+        hwIfMonitorTxPauseFrameLowThreshold,
+        hwIfMonitorTxPauseFrameInterval
     }
     STATUS current
     DESCRIPTION
@@ -5068,7 +5214,7 @@ OBJECTS{
            ::=  {hwIFExtTraps 10}
         
      hwLoopbackBlock NOTIFICATION-TYPE
-            OBJECTS { hwIfName }
+           OBJECTS { ifDescr, hwNewIfTimeslot }
         STATUS current
         DESCRIPTION 
         "This notification indicates block state of the interface."
@@ -5440,7 +5586,23 @@ OBJECTS{
             DESCRIPTION 
                 "Description."
             ::= { hwMonitorNotifications 41 }
-            
+
+        -- 1.3.6.1.4.1.2011.5.25.41.4.42
+        hwIfMonitorTxPauseFrameRising NOTIFICATION-TYPE
+            OBJECTS { hwIfMonitorTxPauseFrameStatistics, hwIfMonitorTxPauseFrameHighThreshold, hwIfMonitorTxPauseFrameLowThreshold, hwIfMonitorTxPauseFrameInterval, hwIfMonitorName }
+            STATUS current
+            DESCRIPTION 
+                "The threshold crossing alert of TX PAUSE appears."
+            ::= { hwMonitorNotifications 42 }
+
+        -- 1.3.6.1.4.1.2011.5.25.41.4.43
+        hwIfMonitorTxPauseFrameRisingResume NOTIFICATION-TYPE
+            OBJECTS { hwIfMonitorTxPauseFrameStatistics, hwIfMonitorTxPauseFrameHighThreshold, hwIfMonitorTxPauseFrameLowThreshold, hwIfMonitorTxPauseFrameInterval, hwIfMonitorName }
+            STATUS current
+            DESCRIPTION 
+                "The threshold crossing alert of TX PAUSE disappears."
+            ::= { hwMonitorNotifications 43 }
+
         hwIFExtTrapConformance OBJECT IDENTIFIER ::= { hwIFExtMib 5 }
 
         
@@ -5481,7 +5643,9 @@ OBJECTS{
                     hwIfMonitorSymbolErrorRising,
                     hwIfMonitorSymbolErrorResume,
                     hwIfMonitorBadBytesErrorRising,
-                    hwIfMonitorBadBytesErrorResume 
+                    hwIfMonitorBadBytesErrorResume,
+                    hwIfMonitorTxPauseFrameRising,
+                    hwIfMonitorTxPauseFrameRisingResume
                  }
             STATUS current
             DESCRIPTION

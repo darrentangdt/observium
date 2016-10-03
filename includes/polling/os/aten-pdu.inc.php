@@ -13,7 +13,7 @@
 
 //ATEN-PE-CFG::modelName.0 = STRING: "PE8108G"
 //ATEN-PE-CFG::deviceFWversion.0 = STRING: "1.5.148"
-$hardware = snmp_get($device, "modelName.0",       "-Oqv", "ATEN-PE-CFG");
-$version  = snmp_get($device, "deviceFWversion.0", "-Oqv", "ATEN-PE-CFG");
+$hardware = snmp_get($device, 'modelName.0',       '-Oqv', 'ATEN-PE-CFG');
+$version  = snmp_get($device, 'deviceFWversion.0', '-Oqv', 'ATEN-PE-CFG');
 
 // EOF

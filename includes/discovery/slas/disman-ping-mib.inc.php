@@ -12,7 +12,6 @@
  */
 
 $mib = 'DISMAN-PING-MIB';
-echo("$mib ");
 
 $flags = OBS_SNMP_ALL ^ OBS_QUOTES_STRIP;
 
@@ -23,7 +22,6 @@ if (is_device_mib($device, 'JUNIPER-PING-MIB'))
   $vendor_mib = 'JUNIPER-PING-MIB';
   echo("$vendor_mib ");
   $mibs     = $mib . ':' . $vendor_mib;
-  $mib_dirs = mib_dirs('juniper');
 }
 else if (is_device_mib($device, 'HH3C-NQA-MIB'))
 {
@@ -31,12 +29,10 @@ else if (is_device_mib($device, 'HH3C-NQA-MIB'))
   $vendor_mib = 'HH3C-NQA-MIB';
   echo("$vendor_mib ");
   $mibs     = $mib . ':' . $vendor_mib;
-  $mib_dirs = mib_dirs('hh3c');
 } else {
   $mibs     = $mib;
-  $mib_dirs = mib_dirs();
 }
-$oids = snmpwalk_cache_twopart_oid($device, "pingCtlEntry", array(), $mibs, $mib_dirs, $flags);
+$oids = snmpwalk_cache_twopart_oid($device, "pingCtlEntry", array(), $mibs, NULL, $flags);
 //print_vars($oids);
 if ($GLOBALS['snmp_status'] === FALSE)
 {
@@ -64,7 +60,7 @@ foreach ($oids as $sla_owner => $entry2)
       'sla_mib'    => $mib,
       'sla_index'  => $sla_name, // FIXME. Here must be $sla_index, but migrate too hard
       'sla_owner'  => $sla_owner,
-      //'sla_tag'    => $entry['pingCtlTargetAddress'],
+      'sla_tag'    => $entry['pingCtlTargetAddress'],
       //'rtt_type'   => $entry['pingCtlType'],
       'sla_status' => $entry['pingCtlRowStatus'], // Possible: active, notInService, notReady, createAndGo, createAndWait, destroy
       'sla_graph'  => 'jitter', // Seems as all of this types support jitter graphs
@@ -84,11 +80,15 @@ foreach ($oids as $sla_owner => $entry2)
     $data['rtt_type'] = str_replace(array('ping', 'jnxPing', 'hh3cNqa'), '', $entry['pingCtlType']);
 
     // Tag / Target
-    $data['sla_tag'] = (isHexString($entry['pingCtlTargetAddress'])? hex2ip($entry['pingCtlTargetAddress']) : $entry['pingCtlTargetAddress']);
+    if (isHexString($entry['pingCtlTargetAddress']) ||
+        stripos($data['rtt_type'], 'Echo') !== FALSE)
+    {
+      $data['sla_tag'] = hex2ip($data['sla_tag']);
+    }
 
     // Limits
     $data['sla_limit_high']      = ($entry['pingCtlTimeOut'] > 0 ? $entry['pingCtlTimeOut'] * 1000 : 5000);
-    $data['sla_limit_high_warn'] = intval($data['sla_limit_high'] / 8);
+    $data['sla_limit_high_warn'] = intval($data['sla_limit_high'] / 5);
 
     /*
     // Migrate old indexes

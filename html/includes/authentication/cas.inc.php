@@ -59,7 +59,7 @@ function cas_authenticate($username, $password)
   } else {
     dbInsert(array('user' => $_SESSION['username'], 'address' => $_SERVER["REMOTE_ADDR"], 'result' => 'CAS: NOT found in DB'), 'authlog');
   }
-  session_logout();
+  //session_logout();
   return 0;
 }
 

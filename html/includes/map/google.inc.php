@@ -92,7 +92,7 @@
       // exclude last url column in the GeoChart
       view.setColumns([0, 1, 2, 3, 4, 5]);
 
-      var chart = new google.visualization.GeoChart(document.getElementById('chart_div'));
+      var chart = new google.visualization.GeoChart(document.getElementById('map'));
       google.visualization.events.addListener(chart, 'ready', onReady);
       function onReady() {
         google.visualization.events.addListener(chart, 'select', gotoLocation);

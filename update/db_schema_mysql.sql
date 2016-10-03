@@ -1,7 +1,6 @@
-
--- Generation Time: Dec 03, 2015 at 01:47 PM
--- Server version: 5.6.27-0ubuntu0.14.04.1
--- PHP Version: 5.5.9-1ubuntu4.14
+--
+-- Generation Time: Sep 30, 2016 at 04:23 PM
+--
 
 --
 -- Initial Observium DB schema for clean install
@@ -48,7 +47,7 @@ CREATE TABLE `accesspoints-state` (
   `numactbssid` tinyint(4) NOT NULL DEFAULT '0',
   `nummonbssid` tinyint(4) NOT NULL DEFAULT '0',
   `interference` tinyint(3) UNSIGNED NOT NULL
-) ENGINE=MEMORY DEFAULT CHARSET=latin1 COMMENT='Access Points';
+) ENGINE=MEMORY DEFAULT CHARSET=utf8 COMMENT='Access Points';
 
 -- --------------------------------------------------------
 
@@ -119,6 +118,7 @@ CREATE TABLE `alert_contacts` (
 
 CREATE TABLE `alert_contacts_assoc` (
   `aca_id` int(11) NOT NULL,
+  `aca_type` enum('alert','syslog') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'alert',
   `alert_checker_id` int(11) NOT NULL,
   `contact_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -137,7 +137,8 @@ CREATE TABLE `alert_log` (
   `message` text COLLATE utf8_unicode_ci,
   `entity_type` varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
   `entity_id` int(11) NOT NULL,
-  `log_type` enum('ALERT_NOTIFY','FAIL','FAIL_DELAYED','FAIL_SUPPRESSED','OK','RECOVER_NOTIFY','RECOVER_SUPPRESSED') COLLATE utf8_unicode_ci DEFAULT NULL
+  `log_type` enum('ALERT_NOTIFY','FAIL','FAIL_DELAYED','FAIL_SUPPRESSED','OK','RECOVER_NOTIFY','RECOVER_SUPPRESSED') COLLATE utf8_unicode_ci DEFAULT NULL,
+  `notified` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -203,6 +204,7 @@ CREATE TABLE `alert_tests` (
   `alert_name` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
   `alert_message` text COLLATE utf8_unicode_ci NOT NULL,
   `conditions` text CHARACTER SET utf8 NOT NULL,
+  `conditions_warn` text COLLATE utf8_unicode_ci,
   `and` tinyint(1) NOT NULL DEFAULT '1',
   `severity` enum('crit','err') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'crit',
   `delay` int(11) DEFAULT '0',
@@ -226,7 +228,9 @@ CREATE TABLE `applications` (
   `app_instance` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL,
   `app_state` varchar(32) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'UNKNOWN',
   `app_status` varchar(8) CHARACTER SET utf8 NOT NULL,
-  `app_name` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL
+  `app_name` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `app_lastpolled` int(11) NOT NULL DEFAULT '0',
+  `app_json` text COLLATE utf8_unicode_ci COMMENT 'JSON array of application data'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -251,6 +255,8 @@ CREATE TABLE `applications-state` (
 CREATE TABLE `authlog` (
   `id` int(11) NOT NULL,
   `datetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `mechanism` varchar(16) COLLATE utf8_unicode_ci NOT NULL,
+  `user_id` int(10) UNSIGNED NOT NULL,
   `user` text CHARACTER SET utf8 NOT NULL,
   `address` text CHARACTER SET utf8 NOT NULL,
   `user_agent` text CHARACTER SET utf8,
@@ -266,13 +272,13 @@ CREATE TABLE `authlog` (
 CREATE TABLE `bgpPeers` (
   `bgpPeer_id` int(11) NOT NULL,
   `device_id` int(11) NOT NULL,
-  `astext` varchar(64) CHARACTER SET utf8 NOT NULL,
+  `astext` varchar(255) CHARACTER SET utf8 NOT NULL,
   `reverse_dns` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `peer_device_id` int(10) UNSIGNED DEFAULT NULL,
   `bgpPeerIdentifier` varchar(39) CHARACTER SET utf8 NOT NULL,
   `bgpPeerRemoteAs` int(11) UNSIGNED NOT NULL,
-  `bgpPeerState` text CHARACTER SET utf8 NOT NULL,
-  `bgpPeerAdminStatus` text CHARACTER SET utf8 NOT NULL,
+  `bgpPeerState` varchar(32) CHARACTER SET utf8 NOT NULL DEFAULT '',
+  `bgpPeerAdminStatus` varchar(32) CHARACTER SET utf8 NOT NULL DEFAULT '',
   `bgpPeerLocalAddr` varchar(39) CHARACTER SET utf8 NOT NULL,
   `bgpPeerRemoteAddr` varchar(39) CHARACTER SET utf8 NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -300,7 +306,7 @@ CREATE TABLE `bgpPeers-state` (
   `bgpPeerOutTotalMessages_delta` int(11) DEFAULT NULL,
   `bgpPeerOutTotalMessages_rate` int(11) DEFAULT NULL,
   `bgpPeer_polled` int(11) DEFAULT NULL
-) ENGINE=MEMORY DEFAULT CHARSET=latin1;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -333,7 +339,7 @@ CREATE TABLE `bgpPeers_cbgp-state` (
   `AdvertisedPrefixes` int(11) DEFAULT NULL,
   `SuppressedPrefixes` int(11) DEFAULT NULL,
   `WithdrawnPrefixes` int(11) DEFAULT NULL
-) ENGINE=MEMORY DEFAULT CHARSET=latin1;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -387,6 +393,26 @@ CREATE TABLE `bill_data` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `bill_entities`
+--
+
+CREATE TABLE `bill_entities` (
+  `bill_ent_id` int(11) NOT NULL,
+  `bill_id` int(11) NOT NULL,
+  `entity_id` int(11) NOT NULL,
+  `bill_port_autoadded` tinyint(1) NOT NULL DEFAULT '0',
+  `bill_port_polled` int(11) NOT NULL,
+  `bill_port_period` int(11) NOT NULL,
+  `bill_port_counter_in` bigint(20) DEFAULT NULL,
+  `bill_port_delta_in` bigint(20) DEFAULT NULL,
+  `bill_port_counter_out` bigint(20) DEFAULT NULL,
+  `bill_port_delta_out` bigint(20) DEFAULT NULL,
+  `entity_type` varchar(20) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'port'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `bill_history`
 --
 
@@ -413,24 +439,6 @@ CREATE TABLE `bill_history` (
   `traf_total` bigint(20) NOT NULL,
   `pdf` longblob
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `bill_ports`
---
-
-CREATE TABLE `bill_ports` (
-  `bill_id` int(11) NOT NULL,
-  `port_id` int(11) NOT NULL,
-  `bill_port_autoadded` tinyint(1) NOT NULL DEFAULT '0',
-  `bill_port_polled` int(11) NOT NULL,
-  `bill_port_period` int(11) NOT NULL,
-  `bill_port_counter_in` bigint(20) DEFAULT NULL,
-  `bill_port_delta_in` bigint(20) DEFAULT NULL,
-  `bill_port_counter_out` bigint(20) DEFAULT NULL,
-  `bill_port_delta_out` bigint(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -533,12 +541,12 @@ CREATE TABLE `devices` (
   `ignore_until` datetime DEFAULT NULL,
   `asset_tag` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
   `disabled` tinyint(1) NOT NULL DEFAULT '0',
-  `uptime` bigint(20) DEFAULT NULL,
+  `uptime` int(11) UNSIGNED DEFAULT NULL,
+  `last_rebooted` int(10) UNSIGNED DEFAULT NULL,
   `force_discovery` tinyint(1) NOT NULL DEFAULT '0',
   `last_polled` timestamp NULL DEFAULT NULL,
   `last_discovered` timestamp NULL DEFAULT NULL,
-  `is_polling` tinyint(1) NOT NULL DEFAULT '0',
-  `is_discovering` tinyint(1) NOT NULL DEFAULT '0',
+  `last_alerter` timestamp NULL DEFAULT NULL,
   `last_polled_timetaken` double(5,2) DEFAULT NULL,
   `last_discovered_timetaken` double(5,2) DEFAULT NULL,
   `purpose` varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -731,7 +739,7 @@ CREATE TABLE `eventlog` (
 
 CREATE TABLE `groups` (
   `group_id` int(11) NOT NULL,
-  `entity_type` varchar(16) COLLATE utf8_unicode_ci NOT NULL,
+  `entity_type` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
   `group_name` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
   `group_descr` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
   `group_menu` tinyint(1) NOT NULL DEFAULT '0',
@@ -794,12 +802,23 @@ CREATE TABLE `hrDevice` (
 CREATE TABLE `ipsec_tunnels` (
   `tunnel_id` int(11) NOT NULL,
   `device_id` int(11) NOT NULL,
+  `tunnel_index` varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `tunnel_ike_index` varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
   `peer_port` int(11) NOT NULL,
   `peer_addr` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
   `local_addr` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
   `local_port` int(11) NOT NULL,
   `tunnel_name` varchar(96) COLLATE utf8_unicode_ci NOT NULL,
-  `tunnel_status` varchar(11) COLLATE utf8_unicode_ci NOT NULL
+  `tunnel_status` varchar(11) COLLATE utf8_unicode_ci NOT NULL,
+  `tunnel_ike_alive` varchar(8) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `tunnel_lifetime` int(11) DEFAULT NULL,
+  `tunnel_ike_lifetime` int(11) DEFAULT NULL,
+  `tunnel_json` text COLLATE utf8_unicode_ci,
+  `tunnel_endpoint` text COLLATE utf8_unicode_ci,
+  `tunnel_endhash` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `tunnel_added` int(11) DEFAULT NULL,
+  `mib` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `deleted` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -884,6 +903,44 @@ CREATE TABLE `juniAtmVp` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `lb_pools`
+--
+
+CREATE TABLE `lb_pools` (
+  `pool_id` int(11) NOT NULL,
+  `device_id` int(11) NOT NULL,
+  `pool_name` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
+  `pool_lb` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
+  `num_members` int(11) NOT NULL,
+  `active_members` int(11) NOT NULL,
+  `pool_conns` int(11) NOT NULL,
+  `pool_bps_in` int(11) NOT NULL,
+  `pool_bps_out` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `lb_pool_members`
+--
+
+CREATE TABLE `lb_pool_members` (
+  `member_id` int(11) NOT NULL,
+  `device_id` int(11) NOT NULL,
+  `member_name` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
+  `pool_name` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
+  `member_ip` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
+  `member_port` int(8) NOT NULL,
+  `member_state` varchar(8) COLLATE utf8_unicode_ci NOT NULL,
+  `member_enabled` varchar(16) COLLATE utf8_unicode_ci NOT NULL,
+  `member_conns` int(11) NOT NULL,
+  `member_bps_in` int(11) NOT NULL,
+  `member_bps_out` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `lb_virtuals`
 --
 
@@ -898,8 +955,8 @@ CREATE TABLE `lb_virtuals` (
   `virt_type` varchar(16) COLLATE utf8_unicode_ci NOT NULL,
   `virt_pool` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL,
   `virt_rules` varchar(256) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `virt_enabled` int(1) NOT NULL,
-  `virt_state` int(1) NOT NULL,
+  `virt_enabled` varchar(8) COLLATE utf8_unicode_ci NOT NULL,
+  `virt_state` varchar(16) COLLATE utf8_unicode_ci NOT NULL,
   `virt_conns` int(11) NOT NULL,
   `virt_bps_in` int(11) NOT NULL,
   `virt_bps_out` int(11) NOT NULL
@@ -969,7 +1026,7 @@ CREATE TABLE `mac_accounting-state` (
   `pkts_output_rate` int(11) DEFAULT NULL,
   `poll_time` int(11) DEFAULT NULL,
   `poll_period` int(11) DEFAULT NULL
-) ENGINE=MEMORY DEFAULT CHARSET=latin1;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -1006,7 +1063,7 @@ CREATE TABLE `mempools-state` (
   `mempool_used` bigint(16) NOT NULL,
   `mempool_free` bigint(16) NOT NULL,
   `mempool_total` bigint(16) NOT NULL
-) ENGINE=MEMORY DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -1070,7 +1127,7 @@ CREATE TABLE `neighbours` (
   `protocol` varchar(11) CHARACTER SET utf8 DEFAULT NULL,
   `remote_hostname` varchar(253) CHARACTER SET utf8 NOT NULL,
   `remote_port` varchar(128) CHARACTER SET utf8 NOT NULL,
-  `remote_platform` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `remote_platform` varchar(256) COLLATE utf8_unicode_ci DEFAULT NULL,
   `remote_version` text COLLATE utf8_unicode_ci,
   `remote_address` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -1170,13 +1227,59 @@ CREATE TABLE `netscaler_vservers` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `notifications_queue`
+--
+
+CREATE TABLE `notifications_queue` (
+  `notification_id` bigint(20) UNSIGNED NOT NULL,
+  `device_id` int(11) DEFAULT NULL,
+  `log_id` int(10) UNSIGNED NOT NULL,
+  `aca_type` enum('alert','syslog','web') NOT NULL,
+  `severity` tinyint(4) NOT NULL DEFAULT '6',
+  `endpoints` text NOT NULL,
+  `endpoints_result` text,
+  `message_tags` text NOT NULL,
+  `message_graphs` blob,
+  `notification_added` int(11) NOT NULL,
+  `notification_lifetime` int(11) NOT NULL DEFAULT '300',
+  `notification_entry` text,
+  `notification_locked` tinyint(1) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `observium_attribs`
 --
 
 CREATE TABLE `observium_attribs` (
-  `attrib_type` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `attrib_value` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT ''
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `attrib_type` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `attrib_value` text CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `observium_attribs`
+--
+
+INSERT INTO `observium_attribs` (`attrib_type`, `attrib_value`) VALUES
+('dbSchema', '310');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `observium_processes`
+--
+
+CREATE TABLE `observium_processes` (
+  `process_id` int(11) UNSIGNED NOT NULL,
+  `process_pid` int(11) NOT NULL,
+  `process_ppid` int(11) NOT NULL,
+  `process_uid` int(11) NOT NULL,
+  `process_command` text NOT NULL,
+  `process_name` varchar(32) NOT NULL,
+  `process_start` int(11) NOT NULL,
+  `device_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -1232,8 +1335,8 @@ CREATE TABLE `ospf_areas` (
 --
 
 CREATE TABLE `ospf_instances` (
-  `device_id` int(11) NOT NULL,
   `ospf_instance_id` int(11) NOT NULL,
+  `device_id` int(11) NOT NULL,
   `ospfRouterId` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
   `ospfAdminStat` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
   `ospfVersionNumber` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
@@ -1342,7 +1445,7 @@ CREATE TABLE `p2p_radios` (
 CREATE TABLE `packages` (
   `pkg_id` int(11) NOT NULL,
   `device_id` int(11) NOT NULL,
-  `name` varchar(64) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+  `name` varchar(96) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   `manager` varchar(16) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL DEFAULT '1',
   `status` tinyint(1) NOT NULL,
   `version` varchar(64) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
@@ -1375,13 +1478,13 @@ CREATE TABLE `ports` (
   `port_id` int(11) NOT NULL,
   `device_id` int(11) NOT NULL DEFAULT '0',
   `port_64bit` tinyint(1) DEFAULT NULL,
-  `port_label` varchar(255) DEFAULT NULL,
+  `port_label` varchar(128) DEFAULT NULL,
   `port_label_base` varchar(128) DEFAULT NULL,
-  `port_label_num` varchar(16) DEFAULT NULL,
-  `port_label_short` varchar(255) DEFAULT NULL,
-  `port_descr_type` varchar(255) DEFAULT NULL,
+  `port_label_num` varchar(64) DEFAULT NULL,
+  `port_label_short` varchar(96) DEFAULT NULL,
+  `port_descr_type` varchar(16) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
   `port_descr_descr` varchar(255) DEFAULT NULL,
-  `port_descr_circuit` varchar(255) DEFAULT NULL,
+  `port_descr_circuit` varchar(64) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
   `port_descr_speed` varchar(32) DEFAULT NULL,
   `port_descr_notes` varchar(255) DEFAULT NULL,
   `ifDescr` varchar(255) DEFAULT NULL,
@@ -1391,8 +1494,8 @@ CREATE TABLE `ports` (
   `ifConnectorPresent` varchar(12) DEFAULT NULL,
   `ifPromiscuousMode` varchar(12) DEFAULT NULL,
   `ifHighSpeed` int(11) DEFAULT NULL,
-  `ifOperStatus` varchar(16) DEFAULT NULL,
-  `ifAdminStatus` varchar(16) DEFAULT NULL,
+  `ifOperStatus` enum('testing','notPresent','dormant','down','lowerLayerDown','unknown','up','monitoring') CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
+  `ifAdminStatus` enum('down','up','testing') CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
   `ifDuplex` varchar(12) DEFAULT NULL,
   `ifMtu` int(11) DEFAULT NULL,
   `ifType` varchar(32) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -1403,20 +1506,49 @@ CREATE TABLE `ports` (
   `ifVlan` varchar(16) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
   `ifTrunk` varchar(8) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
   `ifVrf` int(16) DEFAULT NULL,
+  `encrypted` tinyint(1) NOT NULL DEFAULT '0',
   `ignore` tinyint(1) NOT NULL DEFAULT '0',
   `disabled` tinyint(1) NOT NULL DEFAULT '0',
   `detailed` tinyint(1) NOT NULL DEFAULT '0',
   `deleted` tinyint(1) NOT NULL DEFAULT '0',
-  `pagpOperationMode` varchar(32) DEFAULT NULL,
-  `pagpPortState` varchar(16) DEFAULT NULL,
-  `pagpPartnerDeviceId` varchar(48) DEFAULT NULL,
-  `pagpPartnerLearnMethod` varchar(16) DEFAULT NULL,
-  `pagpPartnerIfIndex` int(11) DEFAULT NULL,
-  `pagpPartnerGroupIfIndex` int(11) DEFAULT NULL,
-  `pagpPartnerDeviceName` varchar(128) DEFAULT NULL,
-  `pagpEthcOperationMode` varchar(16) DEFAULT NULL,
-  `pagpDeviceId` varchar(48) DEFAULT NULL,
-  `pagpGroupIfIndex` int(11) DEFAULT NULL
+  `ifInUcastPkts` bigint(20) UNSIGNED DEFAULT NULL,
+  `ifInUcastPkts_rate` int(11) UNSIGNED NOT NULL,
+  `ifOutUcastPkts` bigint(20) UNSIGNED DEFAULT NULL,
+  `ifOutUcastPkts_rate` int(11) UNSIGNED NOT NULL,
+  `ifInErrors` bigint(20) UNSIGNED DEFAULT NULL,
+  `ifInErrors_rate` smallint(5) UNSIGNED NOT NULL,
+  `ifOutErrors` bigint(20) UNSIGNED DEFAULT NULL,
+  `ifOutErrors_rate` smallint(5) UNSIGNED NOT NULL,
+  `ifOctets_rate` bigint(20) UNSIGNED NOT NULL,
+  `ifUcastPkts_rate` int(11) UNSIGNED NOT NULL,
+  `ifErrors_rate` smallint(5) UNSIGNED NOT NULL,
+  `ifInOctets` bigint(20) UNSIGNED DEFAULT NULL,
+  `ifInOctets_rate` bigint(20) UNSIGNED NOT NULL,
+  `ifOutOctets` bigint(20) UNSIGNED DEFAULT NULL,
+  `ifOutOctets_rate` bigint(20) UNSIGNED NOT NULL,
+  `ifInOctets_perc` tinyint(3) UNSIGNED NOT NULL,
+  `ifOutOctets_perc` tinyint(3) UNSIGNED NOT NULL,
+  `poll_time` int(11) UNSIGNED NOT NULL,
+  `poll_period` int(11) UNSIGNED NOT NULL,
+  `ifInErrors_delta` int(10) UNSIGNED NOT NULL,
+  `ifOutErrors_delta` int(10) UNSIGNED NOT NULL,
+  `ifInNUcastPkts` bigint(20) UNSIGNED DEFAULT NULL,
+  `ifInNUcastPkts_rate` int(11) UNSIGNED DEFAULT NULL,
+  `ifOutNUcastPkts` bigint(20) UNSIGNED DEFAULT NULL,
+  `ifOutNUcastPkts_rate` int(11) UNSIGNED DEFAULT NULL,
+  `ifInBroadcastPkts` bigint(20) UNSIGNED DEFAULT NULL,
+  `ifInBroadcastPkts_rate` int(11) UNSIGNED DEFAULT NULL,
+  `ifOutBroadcastPkts` bigint(20) UNSIGNED DEFAULT NULL,
+  `ifOutBroadcastPkts_rate` int(11) UNSIGNED DEFAULT NULL,
+  `ifInMulticastPkts` bigint(20) UNSIGNED DEFAULT NULL,
+  `ifInMulticastPkts_rate` int(11) UNSIGNED DEFAULT NULL,
+  `ifOutMulticastPkts` bigint(20) UNSIGNED DEFAULT NULL,
+  `ifOutMulticastPkts_rate` int(11) UNSIGNED DEFAULT NULL,
+  `port_mcbc` tinyint(1) DEFAULT NULL,
+  `ifInDiscards` bigint(20) UNSIGNED DEFAULT NULL,
+  `ifInDiscards_rate` int(11) UNSIGNED DEFAULT NULL,
+  `ifOutDiscards` bigint(20) UNSIGNED DEFAULT NULL,
+  `ifOutDiscards_rate` int(11) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -1428,31 +1560,25 @@ CREATE TABLE `ports` (
 CREATE TABLE `ports-state` (
   `port_id` int(11) UNSIGNED NOT NULL,
   `ifInUcastPkts` bigint(20) UNSIGNED NOT NULL,
-  `ifInUcastPkts_delta` int(20) UNSIGNED NOT NULL,
   `ifInUcastPkts_rate` int(11) UNSIGNED NOT NULL,
   `ifOutUcastPkts` bigint(20) UNSIGNED NOT NULL,
-  `ifOutUcastPkts_delta` int(20) UNSIGNED NOT NULL,
   `ifOutUcastPkts_rate` int(11) UNSIGNED NOT NULL,
   `ifInErrors` bigint(20) UNSIGNED NOT NULL,
-  `ifInErrors_delta` int(10) UNSIGNED NOT NULL,
   `ifInErrors_rate` smallint(5) UNSIGNED NOT NULL,
   `ifOutErrors` bigint(20) UNSIGNED NOT NULL,
-  `ifOutErrors_delta` int(10) UNSIGNED NOT NULL,
   `ifOutErrors_rate` smallint(5) UNSIGNED NOT NULL,
   `ifOctets_rate` bigint(20) UNSIGNED NOT NULL,
   `ifUcastPkts_rate` int(11) UNSIGNED NOT NULL,
   `ifErrors_rate` smallint(5) UNSIGNED NOT NULL,
   `ifInOctets` bigint(20) UNSIGNED NOT NULL,
-  `ifInOctets_delta` bigint(20) UNSIGNED NOT NULL,
   `ifInOctets_rate` bigint(20) UNSIGNED NOT NULL,
   `ifOutOctets` bigint(20) UNSIGNED NOT NULL,
-  `ifOutOctets_delta` bigint(20) UNSIGNED NOT NULL,
   `ifOutOctets_rate` bigint(20) UNSIGNED NOT NULL,
   `ifInOctets_perc` tinyint(3) UNSIGNED NOT NULL,
   `ifOutOctets_perc` tinyint(3) UNSIGNED NOT NULL,
   `poll_time` int(11) UNSIGNED NOT NULL,
   `poll_period` int(11) UNSIGNED NOT NULL
-) ENGINE=MEMORY DEFAULT CHARSET=latin1;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -1506,8 +1632,8 @@ CREATE TABLE `ports_cbqos` (
   `NoBufDropPkt` int(11) NOT NULL,
   `NoBufDropPkt_rate` int(11) NOT NULL,
   `cbqos_lastpolled` int(11) NOT NULL,
-  `policy_index` int(11) NOT NULL,
-  `object_index` int(11) NOT NULL,
+  `policy_index` int(11) UNSIGNED NOT NULL,
+  `object_index` int(11) UNSIGNED NOT NULL,
   `policy_name` varchar(64) NOT NULL,
   `object_name` varchar(64) NOT NULL
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8;
@@ -1545,6 +1671,26 @@ CREATE TABLE `ports_vlans` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `printersupplies`
+--
+
+CREATE TABLE `printersupplies` (
+  `supply_id` int(11) NOT NULL,
+  `device_id` int(11) NOT NULL DEFAULT '0',
+  `supply_type` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
+  `supply_index` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
+  `supply_mib` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
+  `supply_oid` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
+  `supply_descr` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
+  `supply_colour` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
+  `supply_capacity` int(11) NOT NULL,
+  `supply_value` int(11) NOT NULL,
+  `supply_capacity_oid` varchar(64) COLLATE utf8_unicode_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `processors`
 --
 
@@ -1576,7 +1722,7 @@ CREATE TABLE `processors-state` (
   `processor_id` int(11) NOT NULL,
   `processor_usage` int(11) NOT NULL,
   `processor_polled` int(11) NOT NULL
-) ENGINE=MEMORY DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci COMMENT='Processor Usage';
+) ENGINE=MEMORY DEFAULT CHARSET=utf8 COMMENT='Processor Usage';
 
 -- --------------------------------------------------------
 
@@ -1588,20 +1734,38 @@ CREATE TABLE `pseudowires` (
   `pseudowire_id` int(11) NOT NULL,
   `device_id` int(11) NOT NULL,
   `mib` varchar(128) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'CISCO-IETF-PW-MIB',
-  `pwIndex` int(11) UNSIGNED NOT NULL,
+  `pwIndex` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
   `pwID` int(11) NOT NULL,
+  `pwOutboundLabel` int(11) UNSIGNED NOT NULL,
+  `pwInboundLabel` int(11) UNSIGNED NOT NULL,
   `port_id` int(11) NOT NULL,
   `peer_device_id` int(11) DEFAULT NULL,
   `peer_addr` varchar(128) COLLATE utf8_unicode_ci NOT NULL,
-  `pwMplsPeerLdpID` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
   `peer_rdns` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `pwType` varchar(32) CHARACTER SET utf8 NOT NULL,
   `pwPsnType` varchar(32) CHARACTER SET utf8 NOT NULL,
-  `pwLocalIfMtu` int(11) NOT NULL,
-  `pwRemoteIfMtu` int(11) NOT NULL,
+  `pwLocalIfMtu` int(11) UNSIGNED DEFAULT NULL,
+  `pwRemoteIfMtu` int(11) UNSIGNED DEFAULT NULL,
   `pwDescr` varchar(128) CHARACTER SET utf8 NOT NULL,
-  `pwRemoteIfString` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL
+  `pwRemoteIfString` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `pwRowStatus` varchar(16) CHARACTER SET utf8 NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pseudowires-state`
+--
+
+CREATE TABLE `pseudowires-state` (
+  `pseudowire_id` int(11) UNSIGNED NOT NULL,
+  `pwOperStatus` varchar(16) NOT NULL,
+  `pwLocalStatus` varchar(16) NOT NULL,
+  `pwRemoteStatus` varchar(16) NOT NULL,
+  `pwUptime` int(11) UNSIGNED NOT NULL,
+  `event` enum('ok','warning','alert','ignore') NOT NULL,
+  `last_change` int(11) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -1628,11 +1792,11 @@ CREATE TABLE `sensors` (
   `sensor_limit_low` float DEFAULT NULL,
   `sensor_limit_low_warn` float DEFAULT NULL,
   `sensor_custom_limit` tinyint(1) NOT NULL DEFAULT '0',
-  `entPhysicalIndex` varchar(16) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `entPhysicalClass` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
   `entPhysicalIndex_measured` varchar(16) COLLATE utf8_unicode_ci DEFAULT NULL,
   `measured_class` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
   `measured_entity` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `entPhysicalIndex` varchar(16) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `entPhysicalClass` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
   `sensor_ignore` tinyint(1) NOT NULL DEFAULT '0',
   `sensor_disable` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -1646,11 +1810,11 @@ CREATE TABLE `sensors` (
 CREATE TABLE `sensors-state` (
   `sensor_id` int(11) NOT NULL,
   `sensor_value` float(14,5) DEFAULT NULL,
-  `sensor_event` enum('ok','warning','alert','ignore') CHARACTER SET utf8 NOT NULL,
-  `sensor_status` varchar(64) COLLATE latin1_general_ci NOT NULL,
+  `sensor_event` enum('ok','warning','alert','ignore') NOT NULL,
+  `sensor_status` varchar(64) NOT NULL,
   `sensor_polled` int(11) NOT NULL,
   `sensor_last_change` int(11) NOT NULL
-) ENGINE=MEMORY DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -1687,6 +1851,8 @@ CREATE TABLE `slas` (
   `sla_owner` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `sla_tag` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `sla_status` varchar(16) CHARACTER SET utf8 NOT NULL,
+  `sla_limit_high` int(11) NOT NULL DEFAULT '5000',
+  `sla_limit_high_warn` int(11) NOT NULL DEFAULT '625',
   `sla_graph` enum('echo','jitter') COLLATE utf8_unicode_ci DEFAULT NULL,
   `rtt_type` varchar(16) CHARACTER SET utf8 NOT NULL,
   `deleted` tinyint(1) NOT NULL DEFAULT '0'
@@ -1701,8 +1867,8 @@ CREATE TABLE `slas` (
 CREATE TABLE `slas-state` (
   `sla_id` int(11) NOT NULL,
   `rtt_value` decimal(11,2) NOT NULL,
-  `rtt_sense` varchar(32) NOT NULL,
-  `rtt_event` enum('ok','warning','alert','ignore') NOT NULL,
+  `rtt_sense` varchar(32) CHARACTER SET utf8 NOT NULL,
+  `rtt_event` enum('ok','warning','alert','ignore') CHARACTER SET utf8 NOT NULL,
   `rtt_unixtime` int(11) NOT NULL,
   `rtt_last_change` int(11) NOT NULL,
   `rtt_minimum` decimal(11,2) DEFAULT NULL,
@@ -1710,7 +1876,7 @@ CREATE TABLE `slas-state` (
   `rtt_stddev` decimal(11,3) DEFAULT NULL,
   `rtt_success` int(11) DEFAULT NULL,
   `rtt_loss` int(11) DEFAULT NULL
-) ENGINE=MEMORY DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -1792,7 +1958,7 @@ CREATE TABLE `storage` (
   `storage_deleted` tinyint(1) NOT NULL DEFAULT '0',
   `storage_warn_limit` int(11) DEFAULT NULL,
   `storage_crit_limit` int(11) DEFAULT NULL,
-  `storage_ignore` int(11) DEFAULT NULL
+  `storage_ignore` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1809,7 +1975,7 @@ CREATE TABLE `storage-state` (
   `storage_used` bigint(20) NOT NULL,
   `storage_free` bigint(20) NOT NULL,
   `storage_perc` int(11) NOT NULL
-) ENGINE=MEMORY DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -1819,12 +1985,13 @@ CREATE TABLE `storage-state` (
 
 CREATE TABLE `syslog` (
   `device_id` int(11) DEFAULT NULL,
+  `host` varchar(255) CHARACTER SET utf8 DEFAULT NULL COMMENT 'Hostname or IP received by syslog server',
   `facility` varchar(10) CHARACTER SET utf8 DEFAULT NULL,
   `priority` tinyint(4) NOT NULL DEFAULT '8',
   `level` tinyint(4) NOT NULL DEFAULT '8',
-  `tag` varchar(10) CHARACTER SET utf8 DEFAULT NULL,
+  `tag` varchar(32) CHARACTER SET utf8 DEFAULT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `program` varchar(32) CHARACTER SET utf8 DEFAULT NULL,
+  `program` varchar(64) CHARACTER SET utf8 DEFAULT NULL,
   `msg` text CHARACTER SET utf8,
   `seq` bigint(20) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -1832,19 +1999,48 @@ CREATE TABLE `syslog` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `toner`
+-- Table structure for table `syslog_alerts`
 --
 
-CREATE TABLE `toner` (
-  `toner_id` int(11) NOT NULL,
-  `device_id` int(11) NOT NULL DEFAULT '0',
-  `toner_index` int(11) NOT NULL,
-  `toner_type` varchar(64) CHARACTER SET utf8 NOT NULL,
-  `toner_oid` varchar(64) CHARACTER SET utf8 NOT NULL,
-  `toner_descr` varchar(64) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-  `toner_capacity` int(11) NOT NULL DEFAULT '0',
-  `toner_current` int(11) NOT NULL DEFAULT '0',
-  `toner_capacity_oid` varchar(64) CHARACTER SET utf8 DEFAULT NULL
+CREATE TABLE `syslog_alerts` (
+  `lal_id` int(11) NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `device_id` int(11) NOT NULL,
+  `la_id` int(11) NOT NULL,
+  `syslog_id` int(11) NOT NULL,
+  `message` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `program` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `sev` tinyint(4) NOT NULL DEFAULT '1',
+  `ack` tinyint(1) NOT NULL DEFAULT '0',
+  `notified` tinyint(1) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `syslog_rules`
+--
+
+CREATE TABLE `syslog_rules` (
+  `la_id` int(11) NOT NULL,
+  `la_name` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `la_descr` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `la_rule` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `la_severity` int(11) NOT NULL DEFAULT '8',
+  `la_disable` tinyint(1) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `syslog_rules_assoc`
+--
+
+CREATE TABLE `syslog_rules_assoc` (
+  `laa_id` int(11) NOT NULL,
+  `la_id` int(11) NOT NULL,
+  `entity_type` varchar(16) COLLATE utf8_unicode_ci NOT NULL,
+  `entity_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1877,7 +2073,7 @@ CREATE TABLE `ucd_diskio-state` (
   `diskIOWrites` int(11) NOT NULL,
   `diskIOWrites_rate` int(11) NOT NULL,
   `diskio_polled` int(11) NOT NULL
-) ENGINE=MEMORY DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -2132,13 +2328,6 @@ CREATE TABLE `wifi_wlans` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Dumping data for table `observium_attribs`
---
-
-INSERT INTO `observium_attribs` (`attrib_type`, `attrib_value`) VALUES
-('dbSchema', '252');
-
---
 -- Indexes for dumped tables
 --
 
@@ -2160,7 +2349,8 @@ ALTER TABLE `accesspoints-state`
 -- Indexes for table `alerts_maint`
 --
 ALTER TABLE `alerts_maint`
-  ADD PRIMARY KEY (`maint_id`);
+  ADD PRIMARY KEY (`maint_id`),
+  ADD KEY `maint_cache` (`maint_start`,`maint_end`);
 
 --
 -- Indexes for table `alerts_maint_assoc`
@@ -2205,7 +2395,8 @@ ALTER TABLE `alert_log`
 ALTER TABLE `alert_table`
   ADD PRIMARY KEY (`alert_table_id`),
   ADD UNIQUE KEY `alert_id_2` (`alert_test_id`,`entity_type`,`entity_id`),
-  ADD KEY `device_id` (`device_id`);
+  ADD KEY `device_id` (`device_id`),
+  ADD KEY `alert_cache` (`alert_table_id`,`alert_test_id`,`device_id`,`entity_type`,`entity_id`,`alert_status`);
 
 --
 -- Indexes for table `alert_table-state`
@@ -2225,7 +2416,6 @@ ALTER TABLE `alert_tests`
 --
 ALTER TABLE `applications`
   ADD PRIMARY KEY (`app_id`),
-  ADD UNIQUE KEY `unique` (`device_id`,`app_type`,`app_instance`),
   ADD UNIQUE KEY `dev_type_inst` (`device_id`,`app_type`,`app_instance`);
 
 --
@@ -2245,7 +2435,8 @@ ALTER TABLE `authlog`
 --
 ALTER TABLE `bgpPeers`
   ADD PRIMARY KEY (`bgpPeer_id`),
-  ADD KEY `device_id` (`device_id`);
+  ADD KEY `device_id` (`device_id`),
+  ADD KEY `bgp_cache` (`bgpPeer_id`,`device_id`,`bgpPeerState`,`bgpPeerAdminStatus`,`bgpPeerRemoteAs`);
 
 --
 -- Indexes for table `bgpPeers-state`
@@ -2280,18 +2471,19 @@ ALTER TABLE `bill_data`
   ADD KEY `bill_id` (`bill_id`,`timestamp`);
 
 --
+-- Indexes for table `bill_entities`
+--
+ALTER TABLE `bill_entities`
+  ADD PRIMARY KEY (`bill_ent_id`),
+  ADD UNIQUE KEY `bill_id_2` (`bill_id`,`entity_id`),
+  ADD KEY `bill_id` (`bill_id`);
+
+--
 -- Indexes for table `bill_history`
 --
 ALTER TABLE `bill_history`
   ADD PRIMARY KEY (`bill_hist_id`),
   ADD UNIQUE KEY `unique_index` (`bill_id`,`bill_datefrom`,`bill_dateto`),
-  ADD KEY `bill_id` (`bill_id`);
-
---
--- Indexes for table `bill_ports`
---
-ALTER TABLE `bill_ports`
-  ADD UNIQUE KEY `bill_id_2` (`bill_id`,`port_id`),
   ADD KEY `bill_id` (`bill_id`);
 
 --
@@ -2344,7 +2536,7 @@ ALTER TABLE `devices_locations`
 --
 ALTER TABLE `devices_mibs`
   ADD PRIMARY KEY (`mib_id`),
-  ADD KEY `mib` (`mib`,`table_name`,`oid`);
+  ADD KEY `mib` (`mib`(64),`table_name`(64),`oid`(64));
 
 --
 -- Indexes for table `devices_perftimes`
@@ -2441,7 +2633,7 @@ ALTER TABLE `hrDevice`
 --
 ALTER TABLE `ipsec_tunnels`
   ADD PRIMARY KEY (`tunnel_id`),
-  ADD UNIQUE KEY `unique_index` (`device_id`,`peer_addr`);
+  ADD UNIQUE KEY `unique_index` (`device_id`,`local_addr`,`peer_addr`,`tunnel_endhash`);
 
 --
 -- Indexes for table `ipv4_addresses`
@@ -2486,6 +2678,19 @@ ALTER TABLE `juniAtmVp`
   ADD KEY `port_id` (`port_id`);
 
 --
+-- Indexes for table `lb_pools`
+--
+ALTER TABLE `lb_pools`
+  ADD PRIMARY KEY (`pool_id`,`pool_name`);
+
+--
+-- Indexes for table `lb_pool_members`
+--
+ALTER TABLE `lb_pool_members`
+  ADD PRIMARY KEY (`member_id`,`pool_name`),
+  ADD KEY `device_id` (`device_id`);
+
+--
 -- Indexes for table `lb_virtuals`
 --
 ALTER TABLE `lb_virtuals`
@@ -2510,6 +2715,7 @@ ALTER TABLE `loadbalancer_vservers`
 ALTER TABLE `mac_accounting`
   ADD PRIMARY KEY (`ma_id`),
   ADD UNIQUE KEY `port_vlan_mac` (`port_id`,`vlan_id`,`mac`),
+  ADD KEY `device_id` (`device_id`),
   ADD KEY `device_ma` (`device_id`,`ma_id`);
 
 --
@@ -2536,7 +2742,6 @@ ALTER TABLE `mempools-state`
 --
 ALTER TABLE `munin_plugins`
   ADD PRIMARY KEY (`mplug_id`),
-  ADD UNIQUE KEY `UNIQUE` (`device_id`,`mplug_type`),
   ADD UNIQUE KEY `dev_mplug` (`device_id`,`mplug_type`),
   ADD KEY `device_id` (`device_id`);
 
@@ -2585,10 +2790,25 @@ ALTER TABLE `netscaler_vservers`
   ADD KEY `device_id` (`device_id`,`vsvr_name`);
 
 --
+-- Indexes for table `notifications_queue`
+--
+ALTER TABLE `notifications_queue`
+  ADD PRIMARY KEY (`notification_id`),
+  ADD KEY `aca_type` (`aca_type`);
+
+--
 -- Indexes for table `observium_attribs`
 --
 ALTER TABLE `observium_attribs`
   ADD PRIMARY KEY (`attrib_type`(50));
+
+--
+-- Indexes for table `observium_processes`
+--
+ALTER TABLE `observium_processes`
+  ADD PRIMARY KEY (`process_id`),
+  ADD KEY `pid` (`process_pid`,`process_name`,`device_id`),
+  ADD KEY `name` (`process_name`,`device_id`);
 
 --
 -- Indexes for table `oids`
@@ -2612,7 +2832,9 @@ ALTER TABLE `ospf_areas`
 -- Indexes for table `ospf_instances`
 --
 ALTER TABLE `ospf_instances`
-  ADD UNIQUE KEY `device_id` (`device_id`,`ospf_instance_id`);
+  ADD PRIMARY KEY (`ospf_instance_id`),
+  ADD UNIQUE KEY `device_id` (`device_id`),
+  ADD KEY `ospf_cache` (`device_id`,`ospfAdminStat`);
 
 --
 -- Indexes for table `ospf_nbrs`
@@ -2655,7 +2877,10 @@ ALTER TABLE `perf_times`
 ALTER TABLE `ports`
   ADD PRIMARY KEY (`port_id`),
   ADD UNIQUE KEY `device_ifIndex` (`device_id`,`ifIndex`),
-  ADD KEY `if_2` (`ifDescr`);
+  ADD KEY `if_2` (`ifDescr`),
+  ADD KEY `device_port` (`port_id`,`device_id`),
+  ADD KEY `port_cache` (`port_id`,`device_id`,`ignore`,`deleted`,`ifOperStatus`,`ifAdminStatus`),
+  ADD KEY `device_cache` (`device_id`,`disabled`,`deleted`);
 
 --
 -- Indexes for table `ports-state`
@@ -2691,6 +2916,13 @@ ALTER TABLE `ports_vlans`
   ADD UNIQUE KEY `unique` (`device_id`,`port_id`,`vlan`);
 
 --
+-- Indexes for table `printersupplies`
+--
+ALTER TABLE `printersupplies`
+  ADD PRIMARY KEY (`supply_id`),
+  ADD KEY `device_id` (`device_id`);
+
+--
 -- Indexes for table `processors`
 --
 ALTER TABLE `processors`
@@ -2709,7 +2941,14 @@ ALTER TABLE `processors-state`
 ALTER TABLE `pseudowires`
   ADD PRIMARY KEY (`pseudowire_id`),
   ADD KEY `port_id` (`port_id`),
-  ADD KEY `device_id` (`device_id`);
+  ADD KEY `device_id` (`device_id`),
+  ADD KEY `row_status` (`device_id`,`pwRowStatus`);
+
+--
+-- Indexes for table `pseudowires-state`
+--
+ALTER TABLE `pseudowires-state`
+  ADD PRIMARY KEY (`pseudowire_id`);
 
 --
 -- Indexes for table `sensors`
@@ -2718,7 +2957,8 @@ ALTER TABLE `sensors`
   ADD PRIMARY KEY (`sensor_id`),
   ADD KEY `sensor_host` (`device_id`),
   ADD KEY `sensor_class` (`sensor_class`),
-  ADD KEY `sensor_type` (`sensor_type`);
+  ADD KEY `sensor_type` (`sensor_type`),
+  ADD KEY `sensor_cache` (`sensor_id`,`device_id`,`sensor_class`,`sensor_type`,`sensor_ignore`,`sensor_disable`);
 
 --
 -- Indexes for table `sensors-state`
@@ -2753,7 +2993,7 @@ ALTER TABLE `slas-state`
 --
 ALTER TABLE `snmp_errors`
   ADD PRIMARY KEY (`error_id`),
-  ADD UNIQUE KEY `error_index` (`device_id`,`error_code`,`snmp_cmd`,`mib`(50),`oid`(50));
+  ADD UNIQUE KEY `error_index` (`device_id`,`error_code`,`snmp_cmd`,`mib`(50),`oid`(100));
 
 --
 -- Indexes for table `status`
@@ -2761,7 +3001,8 @@ ALTER TABLE `snmp_errors`
 ALTER TABLE `status`
   ADD PRIMARY KEY (`status_id`),
   ADD KEY `sensor_host` (`device_id`),
-  ADD KEY `sensor_type` (`status_type`);
+  ADD KEY `sensor_type` (`status_type`),
+  ADD KEY `status_cache` (`status_id`,`device_id`,`entPhysicalClass`,`status_ignore`,`status_disable`);
 
 --
 -- Indexes for table `status-state`
@@ -2795,11 +3036,24 @@ ALTER TABLE `syslog`
   ADD KEY `program_device` (`program`,`device_id`);
 
 --
--- Indexes for table `toner`
+-- Indexes for table `syslog_alerts`
 --
-ALTER TABLE `toner`
-  ADD PRIMARY KEY (`toner_id`),
-  ADD KEY `device_id` (`device_id`);
+ALTER TABLE `syslog_alerts`
+  ADD PRIMARY KEY (`lal_id`),
+  ADD KEY `device_id` (`device_id`),
+  ADD KEY `la_id` (`la_id`);
+
+--
+-- Indexes for table `syslog_rules`
+--
+ALTER TABLE `syslog_rules`
+  ADD PRIMARY KEY (`la_id`);
+
+--
+-- Indexes for table `syslog_rules_assoc`
+--
+ALTER TABLE `syslog_rules_assoc`
+  ADD PRIMARY KEY (`laa_id`);
 
 --
 -- Indexes for table `ucd_diskio`
@@ -2862,7 +3116,8 @@ ALTER TABLE `vminfo`
 --
 ALTER TABLE `vrfs`
   ADD PRIMARY KEY (`vrf_id`),
-  ADD KEY `device_id` (`device_id`);
+  ADD KEY `device_id` (`device_id`),
+  ADD KEY `vrf_cache` (`vrf_id`,`device_id`,`mplsVpnVrfRouteDistinguisher`);
 
 --
 -- Indexes for table `wifi_accesspoints`
@@ -2972,6 +3227,11 @@ ALTER TABLE `bgpPeers_cbgp`
 --
 ALTER TABLE `bills`
   MODIFY `bill_id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `bill_entities`
+--
+ALTER TABLE `bill_entities`
+  MODIFY `bill_ent_id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `bill_history`
 --
@@ -3098,6 +3358,16 @@ ALTER TABLE `ip_mac`
 ALTER TABLE `juniAtmVp`
   MODIFY `juniAtmVp_id` int(11) NOT NULL AUTO_INCREMENT;
 --
+-- AUTO_INCREMENT for table `lb_pools`
+--
+ALTER TABLE `lb_pools`
+  MODIFY `pool_id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `lb_pool_members`
+--
+ALTER TABLE `lb_pool_members`
+  MODIFY `member_id` int(11) NOT NULL AUTO_INCREMENT;
+--
 -- AUTO_INCREMENT for table `lb_virtuals`
 --
 ALTER TABLE `lb_virtuals`
@@ -3106,7 +3376,7 @@ ALTER TABLE `lb_virtuals`
 -- AUTO_INCREMENT for table `loadbalancer_rservers`
 --
 ALTER TABLE `loadbalancer_rservers`
-  MODIFY `rserver_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=514;
+  MODIFY `rserver_id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `loadbalancer_vservers`
 --
@@ -3158,6 +3428,16 @@ ALTER TABLE `netscaler_services_vservers`
 ALTER TABLE `netscaler_vservers`
   MODIFY `vsvr_id` int(11) NOT NULL AUTO_INCREMENT;
 --
+-- AUTO_INCREMENT for table `notifications_queue`
+--
+ALTER TABLE `notifications_queue`
+  MODIFY `notification_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `observium_processes`
+--
+ALTER TABLE `observium_processes`
+  MODIFY `process_id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+--
 -- AUTO_INCREMENT for table `oids`
 --
 ALTER TABLE `oids`
@@ -3167,6 +3447,11 @@ ALTER TABLE `oids`
 --
 ALTER TABLE `oids_assoc`
   MODIFY `oid_assoc_id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `ospf_instances`
+--
+ALTER TABLE `ospf_instances`
+  MODIFY `ospf_instance_id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `p2p_radios`
 --
@@ -3192,6 +3477,11 @@ ALTER TABLE `ports_cbqos`
 --
 ALTER TABLE `ports_vlans`
   MODIFY `port_vlan_id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `printersupplies`
+--
+ALTER TABLE `printersupplies`
+  MODIFY `supply_id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `processors`
 --
@@ -3238,10 +3528,20 @@ ALTER TABLE `storage`
 ALTER TABLE `syslog`
   MODIFY `seq` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 --
--- AUTO_INCREMENT for table `toner`
+-- AUTO_INCREMENT for table `syslog_alerts`
 --
-ALTER TABLE `toner`
-  MODIFY `toner_id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `syslog_alerts`
+  MODIFY `lal_id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `syslog_rules`
+--
+ALTER TABLE `syslog_rules`
+  MODIFY `la_id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `syslog_rules_assoc`
+--
+ALTER TABLE `syslog_rules_assoc`
+  MODIFY `laa_id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `ucd_diskio`
 --

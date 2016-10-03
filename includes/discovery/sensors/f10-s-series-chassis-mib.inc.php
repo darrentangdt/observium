@@ -18,16 +18,63 @@
 
 echo(" F10-S-SERIES-CHASSIS-MIB ");
 
-$oids = snmpwalk_cache_oid($device, "chStackUnitTemp",  array(), "F10-S-SERIES-CHASSIS-MIB", mib_dirs('force10'));
-$oids = snmpwalk_cache_oid($device, "chStackUnitSysType", $oids, "F10-S-SERIES-CHASSIS-MIB", mib_dirs('force10'));
+$units = array();
+
+$oids = snmpwalk_cache_oid($device, "chStackUnitTemp",       array(), "F10-S-SERIES-CHASSIS-MIB");
+$oids = snmpwalk_cache_oid($device, "chStackUnitStatus",       $oids, "F10-S-SERIES-CHASSIS-MIB");
+$oids = snmpwalk_cache_oid($device, "chStackUnitRowStatus",    $oids, "F10-S-SERIES-CHASSIS-MIB");
 
 foreach ($oids as $index => $entry)
 {
-  $descr = "Unit " . strval($index - 1) . " " . $entry['chStackUnitSysType'];
+  if (strlen($entry['chStackUnitRowStatus']) && $entry['chStackUnitRowStatus'] != 'active')
+  {
+    // Skip inactive Units
+    continue;
+  }
+
+  $descr = "Unit " . strval($index - 1);
+  $units[$index] = $descr; // Store Unit name for other sensors
+
   $oid   = ".1.3.6.1.4.1.6027.3.10.1.2.2.1.14.".$index;
   $value = $entry['chStackUnitTemp'];
 
   discover_sensor($valid['sensor'], 'temperature', $device, $oid, $index, 'ftos-sseries', $descr, 1, $value);
+
+  $oid_name = 'chStackUnitStatus';
+  $oid_num  = '.1.3.6.1.4.1.6027.3.10.1.2.2.1.8.'.$index;
+  $type     = 'chStackUnitStatus';
+  $value    = $entry[$oid_name];
+
+  discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr . ' Status', $value, array('entPhysicalClass' => 'device'));
+}
+
+$oids = snmpwalk_cache_oid($device, "chSysFanTrayOperStatus",   array(), "F10-S-SERIES-CHASSIS-MIB");
+$oids = snmpwalk_cache_oid($device, "chSysPowerSupplyOperStatus", $oids, "F10-S-SERIES-CHASSIS-MIB");
+
+foreach ($oids as $index => $entry)
+{
+  list($unit, $tray) = explode('.', $index);
+  if (!isset($units[$unit]))
+  {
+    // Skip inactive Units
+    continue;
+  }
+
+  $descr = $units[$unit];
+
+  $oid_name = 'chSysFanTrayOperStatus';
+  $oid_num  = '.1.3.6.1.4.1.6027.3.10.1.2.4.1.2.'.$index;
+  $type     = 'chSysOperStatus';
+  $value    = $entry[$oid_name];
+
+  discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr . ' Fan '. $tray, $value, array('entPhysicalClass' => 'fan'));
+
+  $oid_name = 'chSysPowerSupplyOperStatus';
+  $oid_num  = '.1.3.6.1.4.1.6027.3.10.1.2.3.1.2.'.$index;
+  $type     = 'chSysOperStatus';
+  $value    = $entry[$oid_name];
+
+  discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr . ' PowerSupply '. $tray, $value, array('entPhysicalClass' => 'powersupply'));
 }
 
 // DOM sensors
@@ -49,12 +96,12 @@ foreach ($oids as $index => $entry)
 //F10-S-SERIES-CHASSIS-MIB::chSysPortXfpTxPower.1.2 = INTEGER: -5.36 dB
 //F10-S-SERIES-CHASSIS-MIB::chSysPortXfpTxPower.13.1 = INTEGER: .00 dB
 
-$oids = snmpwalk_cache_oid($device, "chSysPortIfIndex",    array(), "F10-S-SERIES-CHASSIS-MIB", mib_dirs('force10'));
+$oids = snmpwalk_cache_oid($device, "chSysPortIfIndex",    array(), "F10-S-SERIES-CHASSIS-MIB");
 if (count($oids))
 {
-  $oids = snmpwalk_cache_oid($device, "chSysPortXfpRecvPower", $oids, "F10-S-SERIES-CHASSIS-MIB", mib_dirs('force10'));
-  $oids = snmpwalk_cache_oid($device, "chSysPortXfpTxPower",   $oids, "F10-S-SERIES-CHASSIS-MIB", mib_dirs('force10'));
-  $oids = snmpwalk_cache_oid($device, "chSysPortXfpRecvTemp",  $oids, "F10-S-SERIES-CHASSIS-MIB", mib_dirs('force10'));
+  $oids = snmpwalk_cache_oid($device, "chSysPortXfpRecvPower", $oids, "F10-S-SERIES-CHASSIS-MIB");
+  $oids = snmpwalk_cache_oid($device, "chSysPortXfpTxPower",   $oids, "F10-S-SERIES-CHASSIS-MIB");
+  $oids = snmpwalk_cache_oid($device, "chSysPortXfpRecvTemp",  $oids, "F10-S-SERIES-CHASSIS-MIB");
   if (OBS_DEBUG > 1) { print_vars($oids); }
 
   foreach ($oids as $index => $entry)

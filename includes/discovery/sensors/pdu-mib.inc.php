@@ -13,8 +13,6 @@
 
 // FIXME - maybe this one should also be using table walks instead of $outlet_index and $outletsuffix hacks. (but I don't have a device) -TL
 
-echo(" PDU-MIB ");
-
 /////////////////////////////////
 // Check for per-outlet polling
 $outlet_oids = snmp_walk($device, "outletIndex", "-Osqn", "PDU-MIB");

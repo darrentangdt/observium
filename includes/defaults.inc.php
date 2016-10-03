@@ -105,6 +105,8 @@ $config['snmp']['hide_auth']      = TRUE;    // If TRUE hide SNMPv1/2 community 
 $config['debug_port']['spikes']   = FALSE;   // Additional only spikes debug, written to /tmp/port_debug_spikes.txt
 $config['web_debug_unprivileged'] = FALSE;   // Allow show debug information for Unprivileged (userlevel < 7) users in Web UI
 
+$config['require_hostname']       = FALSE;   // If TRUE, devices must have valid resolvable hostname (in DNS or /etc/hosts)
+
 // Web Interface Settings
 
 #$config['base_url']        = "http://localhost/";    // Not recomend change this, only if autodetect wrong. Used in WUI
@@ -114,20 +116,23 @@ $config['mono_font']         = "DroidSansMono,DejaVuSansMono";
 $config['favicon']           = "images/observium-icon.png";
 $config['page_refresh']      = "300";     // Refresh the page every xx seconds, 0 to disable
 $config['front_page']        = "pages/front/default.php";
-$config['page_title_prefix'] = "Observium :: ";
+$config['page_title_prefix'] = "Observium";
+$config['page_title_suffix'] = "";
+$config['page_title_separator'] = ' - ';
 $config['timestamp_format']  = 'Y-m-d H:i:s';
 $config['date_format']       = 'Y-m-d';
-$config['page_gen']          = 1;
 $config['login_message']     = "Unauthorised access or use shall render the user liable to criminal and/or civil prosecution.";
 $config['login_remember_me'] = TRUE;     // Enable or disable the remember me feature.
 $config['web_mouseover']     = TRUE;     // Enable or disable mouseover popups.
 $config['web_mouseover_mobile'] = FALSE; // Enable mouseover popups on Mobile phones and tablets. Disabled by default.
-$config['web_show_disabled'] = FALSE;    // Show or not disabled devices on major pages.
+$config['web_show_disabled'] = TRUE;    // Show or not disabled devices on major pages.
 $config['web_pagesize']      = 100;      // Default pagesize for tables (items per page)
 
 $config['web_session_lifetime'] = 0;     // Default user sessions lifetime in seconds (0 - until browser restart)
 $config['web_session_ip']       = TRUE;  // Bind user sessions to his IP address
 $config['web_session_cidr']     = array(); // Allow user authorisation from certain IP ranges (if empty allow from any)
+
+$config['web_enable_showtech']	= FALSE;  // Enable display of 'show tech' menu option. Currently only for device entries.
 
 // Graphs Settings
 
@@ -147,8 +152,6 @@ $config['int_l2tp']                = 0;  // Enable L2TP Port Types
 $config['int_groups']              = array();  // Custom Interface Types
 
 $config['show_locations']          = 1;  // Enable Locations on menu
-$config['show_locations_dropdown'] = 1;  // Enable Locations dropdown on menu
-$config['show_services']           = 0;  // Enable Services on menu - do not enable
 $config['ports_page_default']      = "details"; // eg "details" or "basic"
 
 // PING Settings - Retries/Timeouts
@@ -159,7 +162,6 @@ $config['ports_page_default']      = "details"; // eg "details" or "basic"
 #$config['snmp']['timeout']    = 1;          // timeout in seconds
 #$config['snmp']['retries']    = 5;          // how many times to retry the query
 $config['snmp']['max-rep']    = FALSE;      // allow use of -Cr in snmpbulkwalk vastly increasing walk speed
-$config['snmp']['transports'] = array('udp', 'udp6', 'tcp', 'tcp6');
 $config['snmp']['version']    = "v2c";      // Default version to use
 
 // SNMPv1/2c default settings
@@ -174,6 +176,9 @@ $config['snmp']['v3'][0]['authalgo']   = "MD5";          // MD5 | SHA
 $config['snmp']['v3'][0]['cryptopass'] = "";             // Privacy (Encryption) Passphrase
 $config['snmp']['v3'][0]['cryptoalgo'] = "AES";          // AES | DES
 
+// Also ask devices for their supported MIBs
+$config['snmp']['snmp_sysorid']   = TRUE;
+
 // Autodiscovery Settings
 
 $config['autodiscovery']['xdp']            = TRUE; // Autodiscover hosts via discovery protocols (CDP, LLDP, FDP, AMAP and other)
@@ -185,6 +190,7 @@ $config['autodiscovery']['vmware']         = TRUE; // Autodiscover hosts found v
 $config['autodiscovery']['proxmox']        = FALSE; // Autodiscover hosts found via Proxmox VE agent app (beware timeouts during poller!)
 $config['autodiscovery']['ip_nets']        = array("127.0.0.0/8", "192.168.0.0/16", "10.0.0.0/8", "172.16.0.0/12");  // Networks to permit autodiscovery
 $config['autodiscovery']['ping_skip']      = FALSE; // Skip icmp echo checks during autodiscovery (beware timeouts during discovery!)
+$config['autodiscovery']['require_hostname']  = TRUE;   // If TRUE, devices must have valid resolvable hostname (in DNS or /etc/hosts)
 
 $config['discover_services']               = FALSE; // Autodiscover services via SNMP on devices of type "server"
 
@@ -229,7 +235,7 @@ $config['alerts']['disable']['all']        = FALSE;     // Disable all notificat
 // Poller wrapper settings
 #$config['poller-wrapper']['threads']       = 16;       // The number of poller threads that should run simultaneously. Default: CPU count x 2
 $config['poller-wrapper']['alerter']       = TRUE;      // Execute alerter.php after poller.php
-$config['poller-wrapper']['stats']         = FALSE;     // Enable poller wrapper statistics in RRD (can be seen at page http://your_observium/pollerlog/)
+$config['poller-wrapper']['stats']         = TRUE;      // Enable poller wrapper statistics in RRD (can be seen at page http://your_observium/pollerlog/)
 
 $config['uptime_warning']                  = "86400";   // Time in seconds to display a "Device Rebooted" Alert. 0 to disable warnings.
 
@@ -263,6 +269,17 @@ $config['amqp']['modules']['sensors']      = TRUE;
 $config['amqp']['modules']['processor']    = TRUE;
 $config['amqp']['modules']['mempools']     = TRUE;
 
+// Remote API keys (this options in definitions, here just copied for know which user editable)
+
+//$config['remote_api']['maps']['google']['enable']         = TRUE;
+//$config['remote_api']['maps']['google']['key']            = '';
+
+//$config['remote_api']['maps']['yandex']['enable']         = TRUE;
+//$config['remote_api']['maps']['yandex']['key']            = '';
+
+//$config['remote_api']['maps']['mapquest']['enable']       = TRUE;
+//$config['remote_api']['maps']['mapquest']['key']          = '';
+
 // Geocoding Configuration
 
 $config['geocoding']['enable']             = TRUE;                  // Enable Geocoding
@@ -272,7 +289,19 @@ $config['geocoding']['dns']                = FALSE;                 // Use DNS L
 $config['geocoding']['default']['lat']     =  "37.7463058";         // Default latitude
 $config['geocoding']['default']['lon']     =  "-25.6668573";        // Default longitude
 
-$config['location_menu_geocoded']          = TRUE;                    // Build location menu with geocoded data.
+// Location
+$config['location']['menu']['type'] = 'geocoded'; // geocoded, nested, plain
+$config['location']['menu']['nested_reversed'] = FALSE; // set to TRUE if your locations are most-to-least significant
+$config['location']['menu']['nested_split_char'] = ','; // splitting character for nested location hierarchy
+$config['location']['menu']['nested_max_depth'] = 4; // maximum levels in nested location hierarchy
+
+// Location Mapping
+// Use this feature to map ugly locations to pretty locations
+// Here KEY must exactly match to device sysLocation
+//$config['location']['map']['Under the Sink']          = "Under The Sink, The Office, London, UK";
+// Here KEY is regular expression
+//$config['location']['map_regexp']['/Under the Sink/'] = "Under The Sink, The Office, London, UK";
+//$config['location']['map_regexp']['/^$/']             = "Some Empty Location Rewrite";
 
 // Cosmetics
 
@@ -280,11 +309,9 @@ $config['rrdgraph_def_text']  = "-c BACK#EEEEEE00 -c SHADEA#EEEEEE00 -c SHADEB#E
 $config['rrdgraph_def_text'] .= " -c MGRID#FF9999 -c FRAME#5e5e5e -c ARROW#5e5e5e -R normal";
 $config['overlib_defaults']   = ",FGCOLOR,'#ffffff', BGCOLOR, '#e5e5e5', BORDER, 0, CELLPAD, 0, CAPCOLOR, '#555555', TEXTCOLOR, '#3e3e3e'";
 
+// FIXME, we still use this somewhere? :O
 $list_colour_a = "#ffffff";
 $list_colour_b = "#eeeeee";
-$list_colour_a_a = "#f9f9f9";
-$list_colour_a_b = "#f0f0f0";
-$list_colour_b_a = "#f0f0f0";
 $list_colour_b_b = "#e3e3e3";
 $list_highlight  = "#ffcccc";
 $warn_colour_a = "#ffeeee";
@@ -333,8 +360,8 @@ $config['frontpage']['syslog']['items']            = 25;           // Only show 
 $config['frontpage']['syslog']['priority']         = array('emerg','alert','crit','err','warning','notice'); // Show syslog entries only with this priorities (default: Notification)
 
 // Map overview settings
-$config['frontpage']['map']['api']                 = "google-mc";  // Set to google-mc if you have a lot of devices. (Allowed: google, google-mc)
-// Options for google-mc map api.
+$config['frontpage']['map']['api']                 = "carto";      // Set to google-mc if you have a lot of devices. (Allowed: carto, google, google-mc)
+// Options common for any map apis.
 $config['frontpage']['map']['center']['lat']       = "auto";       // Latitude center of map, default 'auto'
 $config['frontpage']['map']['center']['lng']       = "auto";       // Longitude center of map, default 'auto'
 $config['frontpage']['map']['zoom']                = "auto";       // Initial zoom level (2: min zoom, 10: max zoom),
@@ -344,8 +371,10 @@ $config['frontpage']['map']['region']              = "world";      // See https:
 $config['frontpage']['map']['resolution']          = "countries";  // Some region types such as US States (US-NY) require this to be changed to "provinces"
 $config['frontpage']['map']['dotsize']             = 10;           // Set the dotsize you want
 $config['frontpage']['map']['realworld']           = false;        // Enable/Disable the realworld view (blue/green), if disabled default map view
-$config['frontpage']['map']['height']              = 450;          // Default Google map height
+$config['frontpage']['map']['height']              = 400;          // Default Google map height
 $config['frontpage']['map']['clouds']              = false;         // Enable the clouds layer
+// Options for carto and other leaflet map api providers.
+$config['frontpage']['map']['tiles']               = 'carto-base-light';
 
 // Device status settings
 // Show the status messages you want
@@ -406,7 +435,6 @@ $config['enable_isis']                  = 1; // Enable ISIS session collection a
 $config['enable_eigrp']                 = 1; // Enable EIGRP session collection and display
 $config['enable_syslog']                = 0; // Enable Syslog
 $config['enable_vrfs']                  = 1; // Enable VRFs
-$config['enable_printers']              = 1; // Enable Printer support
 $config['enable_sla']                   = 1; // Enable SLA/RPM collection and display
 $config['enable_pseudowires']           = 1; // Enable Pseudowires
 
@@ -418,7 +446,7 @@ $config['enable_ports_junoseatmvp']     = 0; // Enable JunOSe ATM VC Discovery/P
 $config['enable_ports_adsl']            = 1; // Enable ADSL-LINE-MIB
 $config['enable_ports_poe']             = 0; // Enable PoE stats collection
 $config['enable_ports_fdbcount']        = 0; // Enable count of FDB per-port.
-#$config['enable_ports_separate_walk']   = 0; // NOT ENABLED, do not use this! Walk separate IF-MIB tables instead global ifEntry, ifXEntry
+$config['enable_ports_separate_walk']   = 0; // NOT ENABLED, do not use this! Walk separate IF-MIB tables instead global ifEntry, ifXEntry
 
 // Billing System Configuration
 
@@ -448,10 +476,6 @@ $config['nfsen_enable'] = 0;
 #$config['nfsen_rrds']   = "/var/nfsen/profiles-stat/live/";
 #$config['nfsen_suffix']   = "_yourdomain_com";
 
-// Location Mapping
-// Use this feature to map ugly locations to pretty locations
-#$config['location_map']['Under the Sink'] = "Under The Sink, The Office, London, UK";
-
 // Ignores & Allows
 // Has to be lowercase
 
@@ -467,8 +491,6 @@ $config['bad_if'][] = "container";
 $config['bad_if'][] = "async";
 $config['bad_if'][] = "plip";
 $config['bad_if'][] = "-physical";
-$config['bad_if'][] = "container";
-$config['bad_if'][] = "unrouted";
 $config['bad_if'][] = "bluetooth";
 $config['bad_if'][] = "isatap";
 $config['bad_if'][] = "ras";
@@ -477,6 +499,7 @@ $config['bad_if'][] = "span rp";
 $config['bad_if'][] = "span sp";
 $config['bad_if'][] = "sslvpn";
 $config['bad_if'][] = "pppoe-";
+$config['bad_if'][] = "ovs-system";
 #$config['bad_if'][] = "control plane";  // Example for cisco control plane
 
 $config['bad_if_regexp'][] = "/^ng[0-9]+$/";
@@ -505,6 +528,10 @@ $config['bad_iftype'][] = "shdsl";
 $config['bad_iftype'][] = "mpls";
 $config['bad_iftype'][] = "usb";        // Ignore USB pseudo interface (BSD)
 
+// Ignore ports based on ifAlias
+
+$config['bad_ifalias_regexp'] = array();
+
 // Ignore discover remote devices via discovery protocols (CDP, LLDP, FDP, AMAP and other)
 #$config['bad_xdp'][] = "badhost.donotwant";      // by hostname
 #$config['bad_xdp_regexp'][] = "/^SIP.*/";        // by hostname regex
@@ -523,7 +550,7 @@ $config['ignore_mount'][] = "/kern";
 $config['ignore_mount'][] = "/mnt/cdrom";
 $config['ignore_mount'][] = "/proc";
 $config['ignore_mount'][] = "/dev";
-$config['ignore_mount'][] = "/run/user/";
+$config['ignore_mount'][] = "/run";
 
 $config['ignore_mount_string'][] = "packages";
 $config['ignore_mount_string'][] = "devfs";
@@ -544,12 +571,18 @@ $config['ignore_mount_regexp'][] = '/UMA/';
 $config['ignore_mount_regexp'][] = '!/\.snapshot!';         // Netapp: dfFileSys.10:-->/vol/volssg2/.snapshot
 $config['ignore_mount_regexp'][] = '/dfc#\d+\-bootflash/';  // Cisco DFC bootflash is used for the crash files, always free
 $config['ignore_mount_regexp'][] = '/^DFC/';
+$config['ignore_mount_regexp'][] = '/^\/run\//';
 
 // Mempools ignore
 #$config['ignore_mempool'][] = 'EXAMPLE';
+#$config['ignore_mempool'][] = 'Cached Memory';
+#$config['ignore_mempool'][] = 'Shared Memory';
+#$config['ignore_mempool'][] = 'Physical Memory';
+
 #$config['ignore_mempool_string'][] = 'EXAMPLE';
 $config['ignore_mempool_regexp'][] = '/ - (reserved|image)$/';
 $config['ignore_mempool_regexp'][] = '/ \((reserved|image)\)$/';
+
 
 // Processors ignore
 #$config['ignore_processor'][] = 'EXAMPLE';
@@ -651,20 +684,36 @@ $config['auth_ldap_groupmemberattr'] = "memberUid";   // Use your unique attribu
 // RADIUS Authentication
 $config['auth_radius_server']  = array('127.0.0.1'); // RADIUS server list
 $config['auth_radius_port']    = 1812;               // Server port
-$config['auth_radius_secret']  = 'secret';           // RADIUS authentication secret
 $config['auth_radius_timeout'] = 5;                  // Timeout in seconds
 $config['auth_radius_retries'] = 2;                  // Number of retries to reconnect to RADIUS server
 
+$config['auth_radius_id']      = '';                 // RADIUS NAS Identifier (if empty, used local hostname)
+$config['auth_radius_nas_address'] = '';             // RADIUS NAS IP Address (if empty, used server ip address)
+$config['auth_radius_secret']  = 'secret';           // RADIUS authentication secret
+$config['auth_radius_method']  = 'PAP';              // Authentication method to use: PAP (default, unencrypted), CHAP (windows radius not supported), MSCHAPv1, MSCHAPv2
+
+// Assign user levels to certain RADIUS groups
+$config['auth_radius_groupmemberattr'] = 'Filter-Id';  // Attribute number or name containing the name of a group. Allowed: Filter-Id (11), Reply-Message (18)
+#$config['auth_radius_groups']['admin']['level']  = 10; // Full administrative access
+#$config['auth_radius_groups']['cto']['level']     = 7; // Global read access with secured info (ie rancid configs)
+#$config['auth_radius_groups']['pfy']['level']     = 5; // Global read access
+#$config['auth_radius_groups']['support']['level'] = 1; // Only login access, for access to devices/entities require bind entity permissions
+
 // Syslog Settings
 
-$config['syslog']['filter'][] = 'last message repeated';
-$config['syslog']['filter'][] = 'Connection from UDP: [';
-$config['syslog']['filter'][] = 'ipSystemStatsTable node ipSystemStatsOutFragOKs not implemented';
-$config['syslog']['filter'][] = 'diskio.c';  // Ignore some crappy stuff from SNMP daemon
-$config['syslog']['filter'][] = '/run/user/lightdm/gvfs: Permission denied';
-$config['syslog']['filter'][] = "Could not open output pipe '/dev/xconsole'";
+$config['syslog']['unknown_hosts']    = FALSE;       // Allow collect syslog messages from unknown hosts (Work in Progress)
+// Mapping (unknown) syslog hosts to device (id or hostname)
+//$config['syslog']['host_map']['localhost'] = 'my.device.name'; // device hostname/sysname
+//$config['syslog']['host_map']['127.0.0.1'] = 1;                // or device id
 
-$config['syslog']['fifo']  = FALSE;       // Set this to a FIFO to take input from FIFO
+$config['syslog']['filter'][]         = 'last message repeated';
+$config['syslog']['filter'][]         = 'Connection from UDP: [';
+$config['syslog']['filter'][]         = 'ipSystemStatsTable node ipSystemStatsOutFragOKs not implemented';
+$config['syslog']['filter'][]         = 'diskio.c';  // Ignore some crappy stuff from SNMP daemon
+$config['syslog']['filter'][]         = '/run/user/lightdm/gvfs: Permission denied';
+$config['syslog']['filter'][]         = "Could not open output pipe '/dev/xconsole'";
+
+$config['syslog']['fifo']             = FALSE;       // Set this to a FIFO to take input from FIFO
 
 // Realtime graph settings
 $config['realtime_interval'] = 2; // Default interval when not set in per-os definitions (seconds)
@@ -679,14 +728,15 @@ $config['realtime_interval'] = 2; // Default interval when not set in per-os def
  * NOTE, for month use CAPITAL 'M'
  * By default, age in numeric value are seconds
  */
-$config['housekeeping']['syslog']['age'] = 0;         // Maximum age of syslog entries; 0 to disable
-$config['housekeeping']['eventlog']['age'] = 0;       // Maximum age of event log entries; 0 to disable
-$config['housekeeping']['alertlog']['age'] = 0;       // Maximum age of alert log entries; 0 to disable
-$config['housekeeping']['authlog']['age'] = 0;        // Maximum age of authlog entries; 0 to disable
-$config['housekeeping']['deleted_ports']['age'] = 0;  // Maximum age of deleted ports before automatically purging; 0 to disable
-$config['housekeeping']['rrd']['age'] = 0;            // Maximum age of unused rrd files before automatically purging; 0 to disable
+
+$config['housekeeping']['syslog']['age'] = '1M';         // Maximum age of syslog entries; 0 to disable
+$config['housekeeping']['eventlog']['age'] = '6M';       // Maximum age of event log entries; 0 to disable
+$config['housekeeping']['alertlog']['age'] = '6M';       // Maximum age of alert log entries; 0 to disable
+$config['housekeeping']['authlog']['age'] = '1Y';        // Maximum age of authlog entries; 0 to disable
+$config['housekeeping']['deleted_ports']['age'] = '1M';  // Maximum age of deleted ports before automatically purging; 0 to disable
+$config['housekeeping']['rrd']['age'] = '3M';            // Maximum age of unused rrd files before automatically purging; 0 to disable
 $config['housekeeping']['rrd']['invalid'] = TRUE;     // Delete .rrd files that are not valid RRD files (eg created with a full disk)
-$config['housekeeping']['timing']['age'] = 0;         // Maximum age of timing (discovery and poll time) entries; 0 to disable
+$config['housekeeping']['timing']['age'] = '1M';         // Maximum age of timing (discovery and poll time) entries; 0 to disable
 
 // Virtualization
 
@@ -714,43 +764,6 @@ $config['wmi']['modules']['mssql']        = 0;
 $config['astext'][65332] = "Cymru FullBogon Feed";
 $config['astext'][65333] = "Cymru Bogon Feed";
 
-// List of MIB types. Needed to be able to enable/disable them in the webif.
-// FIXME webif can't disable this right now. Only is_device_mib() uses this array currently.
-// Bleh, adama, you add MIB definitions, but forgot about this config
-// MOVEME to includes/definitions/mibs.inc.php
-
-$config['mibs']['SNMPv2-MIB']['enable']                        = 1;
-$config['mibs']['IF-MIB']['enable']                            = 1;
-$config['mibs']['OSPF-MIB']['enable']                          = 1;
-$config['mibs']['EIGRP-MIB']['enable']                         = 1;
-$config['mibs']['CISCO-MAC-ACCOUNTING-MIB']['enable']          = 1;
-$config['mibs']['JUNIPER-MAC-MIB']['enable']                   = 1;
-$config['mibs']['IP-MIB']['enable']                            = 1;
-$config['mibs']['IPV6-MIB']['enable']                          = 1;
-$config['mibs']['CISCO-IETF-IP-MIB']['enable']                 = 1;
-$config['mibs']['BGP4-V2-MIB-JUNIPER']['enable']               = 1;
-$config['mibs']['FORCE10-BGP4-V2-MIB']['enable']               = 1;
-$config['mibs']['BGP4-MIB']['enable']                          = 1;
-$config['mibs']['CISCO-BGP4-MIB']['enable']                    = 1;
-$config['mibs']['CISCO-CEF-MIB']['enable']                     = 1;
-$config['mibs']['ENTITY-MIB']['enable']                        = 1;
-$config['mibs']['CISCO-ENTITY-SENSOR-MIB']['enable']           = 1;
-$config['mibs']['ENTITY-SENSOR-MIB']['enable']                 = 1;
-$config['mibs']['CISCO-IETF-PW-MPLS-MIB']['enable']            = 1;
-$config['mibs']['CISCO-RTTMON-MIB']['enable']                  = 1;
-$config['mibs']['MPLS-L3VPN-STD-MIB']['enable']                = 1;
-$config['mibs']['MPLS-VPN-MIB']['enable']                      = 1;
-$config['mibs']['FOUNDRY-SN-SWITCH-GROUP-MIB']['enable']       = 1;
-$config['mibs']['LLDP-MIB']['enable']                          = 1;
-$config['mibs']['BRIDGE-MIB']['enable']                        = 1;
-$config['mibs']['HOST-RESOURCES-MIB']['enable']                = 1;
-$config['mibs']['Juniper-UNI-ATM-MIB']['enable']               = 1;
-$config['mibs']['UCD-SNMP-MIB']['enable']                      = 1;
-$config['mibs']['UCD-DISKIO-MIB']['enable']                    = 1;
-$config['mibs']['Q-BRIDGE-MIB']['enable']                      = 1;
-$config['mibs']['VMWARE-VMINFO-MIB']['enable']                 = 1;
-$config['mibs']['EtherLike-MIB']['enable']                     = 1;
-
 // List of poller modules. Need to be in the array to be
 // considered for execution.
 // NOTE. Modules 'os', 'system' is base and run always.
@@ -771,7 +784,7 @@ $config['poller_modules']['ipSystemStats']                = 1;
 $config['poller_modules']['ports']                        = 1;
 $config['poller_modules']['bgp-peers']                    = 1;
 $config['poller_modules']['junose-atm-vp']                = 1;
-$config['poller_modules']['toner']                        = 1;
+$config['poller_modules']['printersupplies']              = 1;
 $config['poller_modules']['ucd-diskio']                   = 1;
 $config['poller_modules']['wifi']                         = 1;
 $config['poller_modules']['p2p-radios']                   = 1;
@@ -784,8 +797,10 @@ $config['poller_modules']['pseudowires']                  = 1;
 $config['poller_modules']['mac-accounting']               = 1;
 $config['poller_modules']['arista-software-ip-forwarding']= 1;
 $config['poller_modules']['cipsec-tunnels']               = 1;
+$config['poller_modules']['loadbalancer']                 = 1;
 $config['poller_modules']['cisco-cbqos']                  = 1;
 $config['poller_modules']['cisco-eigrp']                  = 1;
+$config['poller_modules']['netscaler-vsvr']               = 1;
 $config['poller_modules']['aruba-controller']             = 1;
 $config['poller_modules']['entity-physical']              = 1;
 $config['poller_modules']['applications']                 = 1;
@@ -801,18 +816,18 @@ $config['poller_modules']['wmi']                          = 0;
 $config['discovery_modules']['os']                        = 1;
 $config['discovery_modules']['ports']                     = 1;
 $config['discovery_modules']['ports-stack']               = 1;
+$config['discovery_modules']['vlans']                     = 1;
+$config['discovery_modules']['ip-addresses']              = 1;
 $config['discovery_modules']['processors']                = 1;
 $config['discovery_modules']['mempools']                  = 1;
-$config['discovery_modules']['ipv4-addresses']            = 1;
-$config['discovery_modules']['ipv6-addresses']            = 1;
 $config['discovery_modules']['inventory']                 = 1; // Inventory should be before sensors
+$config['discovery_modules']['printersupplies']           = 1; // Printer Supplies should be before sensors
 $config['discovery_modules']['sensors']                   = 1;
 $config['discovery_modules']['storage']                   = 1;
 $config['discovery_modules']['neighbours']                = 1;
 $config['discovery_modules']['arp-table']                 = 1;
 $config['discovery_modules']['junose-atm-vp']             = 1;
 $config['discovery_modules']['bgp-peers']                 = 1;
-$config['discovery_modules']['vlans']                     = 1;
 $config['discovery_modules']['mac-accounting']            = 1;
 $config['discovery_modules']['cisco-vrf']                 = 1;
 #$config['discovery_modules']['cisco-cef']                 = 1;
@@ -820,7 +835,6 @@ $config['discovery_modules']['sla']                       = 1;
 $config['discovery_modules']['pseudowires']               = 1;
 $config['discovery_modules']['virtual-machines']          = 1;
 $config['discovery_modules']['cisco-cbqos']               = 1;
-$config['discovery_modules']['toner']                     = 1;
 $config['discovery_modules']['ucd-diskio']                = 1;
 $config['discovery_modules']['wifi']                      = 1;
 $config['discovery_modules']['p2p-radios']                = 1;

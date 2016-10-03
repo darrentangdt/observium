@@ -11,10 +11,8 @@
  *
  */
 
-echo '<div class="box box-solid">';
 print_inventory($vars);
-echo '</div>';
 
-$page_title[] = "Inventory";
+register_html_title("Inventory");
 
 // EOF

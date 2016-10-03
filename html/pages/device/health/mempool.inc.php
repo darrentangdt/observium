@@ -16,23 +16,20 @@ if(device_permitted($device))
 
   // Only show aggregate graph if we have access to the entire device.
 
-  echo '<div class="box box-solid">';
-
-  echo('<table class="table table-condensed table-striped table-hover ">');
-
   $graph_title = nicecase($vars['metric']);
   $graph_array['type'] = "device_".$vars['metric'];
   $graph_array['device'] = $device['device_id'];
   $graph_array['legend'] = no;
 
-  echo('<tr><td>');
-  echo('<h3>' . $graph_title . '</h3>');
+  $box_args = array('title' => $graph_title,
+                    'header-border' => TRUE,
+                    );
+
+  echo generate_box_open($box_args); 
+
   print_graph_row($graph_array);
-  echo('</td></tr>');
-
-  echo('</table>');
-
-  echo '</div>';
+  
+  echo generate_box_close(); 
 
 }
 

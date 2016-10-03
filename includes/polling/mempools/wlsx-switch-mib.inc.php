@@ -15,10 +15,7 @@
 //WLSX-SWITCH-MIB::sysXMemoryUsed.1 = INTEGER: 412060
 //WLSX-SWITCH-MIB::sysXMemoryFree.1 = INTEGER: 1123840
 
-$mib = 'WLSX-SWITCH-MIB';
-echo(" $mib ");
-
-$mempool['used']   = snmp_get($device, "sysXMemoryUsed.1", "-OQUvs", $mib, mib_dirs('aruba'));
-$mempool['total']  = snmp_get($device, "sysXMemorySize.1", "-OQUvs", $mib, mib_dirs('aruba'));
+$mempool['used']   = snmp_get($device, 'sysXMemoryUsed.1', '-OQUvs', 'WLSX-SWITCH-MIB');
+$mempool['total']  = snmp_get($device, 'sysXMemorySize.1', '-OQUvs', 'WLSX-SWITCH-MIB');
 
 // EOF

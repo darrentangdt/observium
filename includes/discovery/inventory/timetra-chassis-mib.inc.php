@@ -11,8 +11,6 @@
  *
  */
 
-echo("TIMETRA-CHASSIS-MIB ");
-
 if (!isset($cache_discovery['timetra-chassis-mib']))
 {
   $cache_discovery['timetra-chassis-mib'] = snmpwalk_cache_twopart_oid($device, 'tmnxHwTable', NULL, 'TIMETRA-CHASSIS-MIB');

@@ -21,9 +21,9 @@ $procs = dbFetchRows($sql, array($device['device_id']));
 
 if ($config['os'][$device['os']]['processor_stacked'] == 1)
 {
-  include("includes/graphs/device/processor_stack.inc.php");
+  include($config['html_dir']."/includes/graphs/device/processor_stack.inc.php");
 } else {
-  include("includes/graphs/device/processor_separate.inc.php");
+  include($config['html_dir']."/includes/graphs/device/processor_separate.inc.php");
 }
 
 // EOF

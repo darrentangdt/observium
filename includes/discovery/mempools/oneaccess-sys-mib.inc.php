@@ -11,10 +11,7 @@
  *
  */
 
-$mib = 'ONEACCESS-SYS-MIB';
-echo("$mib ");
-
-$mempool_array = snmpwalk_cache_oid($device, "oacSysMemStatistics", array(), $mib, mib_dirs('oneaccess'));
+$mempool_array = snmpwalk_cache_oid($device, 'oacSysMemStatistics', array(), $mib);
 
 foreach ($mempool_array as $index => $entry)
 {
@@ -24,7 +21,7 @@ foreach ($mempool_array as $index => $entry)
     $used  = $entry['oacSysMemoryAllocated'];
     $total = $entry['oacSysMemoryTotal'];
     $descr = 'System Memory';
-    discover_mempool($valid['mempool'], $device, $index, $mib, $descr, 1, $total, $used);
+    discover_mempool($valid['mempool'], $device, $index, 'ONEACCESS-SYS-MIB', $descr, 1, $total, $used);
   }
 }
 

@@ -84,8 +84,9 @@ if (isset($options['h']))
       $doing = 'all';
       break;
     case 'new':
-      $where = 'AND (`last_discovered` IS NULL OR `last_discovered` = ? OR `force_discovery` = "1")';
+      $where = 'AND (`last_discovered` IS NULL OR `last_discovered` = ? OR `force_discovery` = ?)';
       $params[] = '0000-00-00 00:00:00';
+      $params[] = 1;
       $doing = 'new';
       break;
     case 'none':

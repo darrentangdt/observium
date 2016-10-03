@@ -8,11 +8,11 @@ IMPORTS
 
 rlEnv MODULE-IDENTITY
         LAST-UPDATED "200309210000Z"
-        ORGANIZATION ""
+        ORGANIZATION "Radlan Computer Communications Ltd."
         CONTACT-INFO
-                ""
+                "radlan.com"
         DESCRIPTION
-                "The private MIB module definition for environment."
+                "The private MIB module definition for environment of Radlan devices."
         REVISION "200309210000Z"
         DESCRIPTION
                 "Added this MODULE-IDENTITY clause."

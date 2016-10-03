@@ -12,23 +12,17 @@
  */
 
 $version = preg_replace("/(.+)\ version\ (.+)\ \(SN:\ (.+)\,\ (.+)\)/", "\\1||\\2||\\3||\\4", $poll_device['sysDescr']);
-list($hardware,$version,$serial,$features) = explode("||", $version);
+list($hardware,$version,$serial,$features) = explode('||', $version);
 
 $hardware = rewrite_junos_hardware($poll_device['sysObjectID']);
 
-$sessrrd  = "screenos_sessions.rrd";
+$snmpdata = snmp_get_multi($device, 'nsResSessAllocate.0 nsResSessMaxium.0 nsResSessFailed.0', '-OQUs', 'NETSCREEN-RESOURCE-MIB');
 
-$snmpdata = snmp_get_multi($device, "nsResSessAllocate.0 nsResSessMaxium.0 nsResSessFailed.0", "-OQUs", "NETSCREEN-RESOURCE-MIB", mib_dirs("netscreen"));
-$sessalloc = $snmpdata[0]['nsResSessAllocate'];
-$sessmax = $snmpdata[0]['nsResSessMaxium'];
-$sessfailed = $snmpdata[0]['nsResSessFailed'];
-
-rrdtool_create($device, $sessrrd, "\
-     DS:allocate:GAUGE:600:0:3000000 \
-     DS:max:GAUGE:600:0:3000000 \
-     DS:failed:GAUGE:600:0:1000 ");
-
-rrdtool_update($device, "$sessrrd", "N:$sessalloc:$sessmax:$sessfailed");
+rrdtool_update_ng($device, 'screenos-sessions', array(
+  'allocate' => $snmpdata[0]['nsResSessAllocate'],
+  'max'      => $snmpdata[0]['nsResSessMaxium'],
+  'failed'   => $snmpdata[0]['nsResSessFailed'],
+));
 
 $graphs['screenos_sessions'] = TRUE;
 

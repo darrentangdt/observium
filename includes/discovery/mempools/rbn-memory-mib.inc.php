@@ -11,14 +11,12 @@
  *
  */
 
-// RBN-MEMORY-MIB::rbnMemoryKBytesInUse.0
-// RBN-MEMORY-MIB::rbnMemoryFreeKBytes.0
+// RBN-MEMORY-MIB::rbnMemoryKBytesInUse.1
+// RBN-MEMORY-MIB::rbnMemoryFreeKBytes.1
 
-$mib = 'RBN-MEMORY-MIB';
-echo("$mib ");
-
-$used = snmp_get($device, ".1.3.6.1.4.1.2352.2.16.1.2.1.4.1", "-OvQ", $mib, mib_dirs());
-$free = snmp_get($device, ".1.3.6.1.4.1.2352.2.16.1.2.1.3.1", "-OvQ", $mib, mib_dirs());
+// FIXME should be oid names?
+$used = snmp_get($device, '.1.3.6.1.4.1.2352.2.16.1.2.1.4.1', '-OvQ', $mib);
+$free = snmp_get($device, '.1.3.6.1.4.1.2352.2.16.1.2.1.3.1', '-OvQ', $mib);
 
 if (is_numeric($free) && is_numeric($used))
 {
@@ -26,8 +24,9 @@ if (is_numeric($free) && is_numeric($used))
   $total     = $used + $free;
   //$total    *= $precision;
   //$used     *= $precision;
-  discover_mempool($valid['mempool'], $device, 0, $mib, "Memory", $precision, $total, $used); // Here wrong index, should be '1'
+  discover_mempool($valid['mempool'], $device, 0, 'RBN-MEMORY-MIB', 'Memory', $precision, $total, $used); // Here wrong index, should be '1'
 }
+
 unset($precision, $total, $used, $free);
 
 // EOF

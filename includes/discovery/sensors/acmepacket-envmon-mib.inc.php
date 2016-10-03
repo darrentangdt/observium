@@ -11,14 +11,12 @@
  *
  */
 
-echo(" ACMEPACKET-ENVMON-MIB ");
-
 // Temperatures:
-$oids = snmpwalk_cache_multi_oid($device, "apEnvMonTemperatureStatusValue", array(), "ACMEPACKET-ENVMON-MIB", mib_dirs('acme'));
+$oids = snmpwalk_cache_multi_oid($device, 'apEnvMonTemperatureStatusValue', array(), 'ACMEPACKET-ENVMON-MIB');
 
 foreach ($oids as $index => $entry)
 {
-  $descr = trim(snmp_get($device, "apEnvMonTemperatureStatusDescr.$index", "-Oqv", "ACMEPACKET-ENVMON-MIB", mib_dirs('acme')),'"');
+  $descr = snmp_get($device, 'apEnvMonTemperatureStatusDescr.$index', '-Oqv', 'ACMEPACKET-ENVMON-MIB');
 
   // remove some information from the temerature sensor description (including misspelling)
   $descr = preg_replace('/ \(degrees Cel[cs]ius\)/', '', $descr);
@@ -33,12 +31,12 @@ foreach ($oids as $index => $entry)
 }
 
 // Voltage
-$oids = snmpwalk_cache_multi_oid($device, "apEnvMonVoltageStatusValue", array(), "ACMEPACKET-ENVMON-MIB", mib_dirs('acme'));
+$oids = snmpwalk_cache_multi_oid($device, 'apEnvMonVoltageStatusValue', array(), 'ACMEPACKET-ENVMON-MIB');
 
 $scale = si_to_scale('milli');
 foreach ($oids as $index => $entry)
 {
-  $descr = trim(snmp_get($device, "apEnvMonVoltageStatusDescr.$index", "-Oqv", "ACMEPACKET-ENVMON-MIB", mib_dirs('acme')),'"');
+  $descr = snmp_get($device, "apEnvMonVoltageStatusDescr.$index", '-Oqv', 'ACMEPACKET-ENVMON-MIB');
 
   // remove some information from the voltage description
   $descr = preg_replace('/ \(millivolts\)/', '', $descr);
@@ -51,12 +49,12 @@ foreach ($oids as $index => $entry)
   }
 }
 
-// FAN:
-$oids = snmpwalk_cache_multi_oid($device, "apEnvMonFanState", array(), "ACMEPACKET-ENVMON-MIB", mib_dirs('acme'));
+// FAN
+$oids = snmpwalk_cache_multi_oid($device, 'apEnvMonFanState', array(), 'ACMEPACKET-ENVMON-MIB');
 
 foreach ($oids as $index => $entry)
 {
-  $descr = trim(snmp_get($device, "apEnvMonFanStatusDescr.$index", "-Oqv", "ACMEPACKET-ENVMON-MIB", mib_dirs('acme')),'"');
+  $descr = snmp_get($device, "apEnvMonFanStatusDescr.$index", '-Oqv', 'ACMEPACKET-ENVMON-MIB');
 
   // remove some information from the voltage description
   $descr = preg_replace('/ [Ss]peed/', '', $descr);
@@ -66,11 +64,11 @@ foreach ($oids as $index => $entry)
 }
 
 // Power
-$oids = snmpwalk_cache_multi_oid($device, "apEnvMonPowerSupplyState", array(), "ACMEPACKET-ENVMON-MIB", mib_dirs('acme'));
+$oids = snmpwalk_cache_multi_oid($device, 'apEnvMonPowerSupplyState', array(), 'ACMEPACKET-ENVMON-MIB');
 
 foreach ($oids as $index => $entry)
 {
-  $descr = trim(snmp_get($device, "apEnvMonPowerSupplyStatusDescr.$index", "-Oqv", "ACMEPACKET-ENVMON-MIB", mib_dirs('acme')),'"');
+  $descr = snmp_get($device, "apEnvMonPowerSupplyStatusDescr.$index", '-Oqv', 'ACMEPACKET-ENVMON-MIB');
   $oid   = ".1.3.6.1.4.1.9148.3.3.1.5.1.1.4.$index";
 
   discover_sensor($valid['sensor'], 'state', $device, $oid, "apEnvMonPowerSupplyState.$index", 'acme-env-state', $descr, NULL, $entry['apEnvMonPowerSupplyState'], array('entPhysicalClass' => 'power'));

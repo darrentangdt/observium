@@ -18,16 +18,6 @@ if (isset($port_stats[$port['ifIndex']]) && $port['ifType'] == "ethernetCsmacd")
 
     $this_port = &$port_stats[$port['ifIndex']];
 
-    $rrdfile = get_port_rrdfilename($port, "poe");
-
-    // FIXME CISCOSPECIFIC
-    $rrd_create .= " DS:PortPwrAllocated:GAUGE:600:0:U";
-    $rrd_create .= " DS:PortPwrAvailable:GAUGE:600:0:U";
-    $rrd_create .= " DS:PortConsumption:DERIVE:600:0:U";
-    $rrd_create .= " DS:PortMaxPwrDrawn:GAUGE:600:0:U ";
-
-    rrdtool_create($device, $rrdfile, $rrd_create);
-
     if ($config['statsd']['enable'] == TRUE)
     {
       foreach (array('cpeExtPsePortPwrAllocated', 'cpeExtPsePortPwrAvailable', 'cpeExtPsePortPwrConsumption', 'cpeExtPsePortMaxPwrDrawn') as $oid)
@@ -37,8 +27,12 @@ if (isset($port_stats[$port['ifIndex']]) && $port['ifType'] == "ethernetCsmacd")
       }
     }
 
-    $upd = "$polled:".$port['cpeExtPsePortPwrAllocated'].":".$port['cpeExtPsePortPwrAvailable'].":".$port['cpeExtPsePortPwrConsumption'].":".$port['cpeExtPsePortMaxPwrDrawn'];
-    $ret = rrdtool_update($device, "$rrdfile", $upd);
+    rrdtool_update_ng($device, 'port-poe', array(
+      'PortPwrAllocated' => $port['cpeExtPsePortPwrAllocated'],
+      'PortPwrAvailable' => $port['cpeExtPsePortPwrAvailable'],
+      'PortConsumption'  => $port['cpeExtPsePortPwrConsumption'],
+      'PortMaxPwrDrawn'  => $port['cpeExtPsePortMaxPwrDrawn'],
+    ), get_port_rrdindex($port));
 
     echo("PoE ");
   }

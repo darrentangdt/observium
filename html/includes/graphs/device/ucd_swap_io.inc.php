@@ -18,6 +18,6 @@ $ds_out = "value";
 
 $multiplier = 512;
 
-include("includes/graphs/generic_data.inc.php");
+include($config['html_dir']."/includes/graphs/generic_data.inc.php");
 
 ?>

@@ -12,10 +12,8 @@
  *
  */
 
-echo(" CISCO-VTP-MIB ");
-
 // Not sure why we check for VTP, but this data comes from that MIB, so...
-$vtpversion = snmp_get($device, "vtpVersion.0"  , "-OnvQ", "CISCO-VTP-MIB");
+$vtpversion = snmp_get($device, 'vtpVersion.0', '-OnvQ', 'CISCO-VTP-MIB');
 
 switch ($vtpversion)
 {
@@ -27,8 +25,8 @@ switch ($vtpversion)
   case 'two':
   case 'three':
     // FIXME - can have multiple VTP domains.
-    $vtpdomains = snmpwalk_cache_oid($device, "vlanManagementDomains", array(), "CISCO-VTP-MIB", mib_dirs('cisco'));
-    $vlans = snmpwalk_cache_twopart_oid($device, "vtpVlanEntry", array(), "CISCO-VTP-MIB", mib_dirs('cisco'));
+    $vtpdomains = snmpwalk_cache_oid($device, 'vlanManagementDomains', array(), 'CISCO-VTP-MIB');
+    $vlans = snmpwalk_cache_twopart_oid($device, 'vtpVlanEntry', array(), 'CISCO-VTP-MIB');
 
     foreach ($vtpdomains as $vtpdomain_id => $vtpdomain)
     {

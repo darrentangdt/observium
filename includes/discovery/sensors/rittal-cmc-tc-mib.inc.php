@@ -11,15 +11,17 @@
  *
  */
 
-echo " RITTAL-CMC-TC ";
+$mib = "RITTAL-CMC-TC-MIB";
 
-$sensorElements = array("Index","Type","Text","Value","SetHigh","SetLow","SetWarn");
+echo " $mib ";
+
+$sensorElements = array("Index","Type","Text","Value","SetHigh","SetLow","SetWarn","Status");
 
 $sensorTables = array(
-  array('prefix'=>'unit1Sensor','table'=>'cmcTcUnit1SensorTable','info'=>'.1.3.6.1.4.1.2606.4.2.3.2.0','valueOID'=>'.1.3.6.1.4.1.2606.4.2.3.5.2.1.5.'),
-  array('prefix'=>'unit2Sensor','table'=>'cmcTcUnit2SensorTable','info'=>'.1.3.6.1.4.1.2606.4.2.4.2.0','valueOID'=>'.1.3.6.1.4.1.2606.4.2.4.5.2.1.5.'),
-  array('prefix'=>'unit3Sensor','table'=>'cmcTcUnit3SensorTable','info'=>'.1.3.6.1.4.1.2606.4.2.5.2.0','valueOID'=>'.1.3.6.1.4.1.2606.4.2.5.5.2.1.5.'),
-  array('prefix'=>'unit4Sensor','table'=>'cmcTcUnit4SensorTable','info'=>'.1.3.6.1.4.1.2606.4.2.6.2.0','valueOID'=>'.1.3.6.1.4.1.2606.4.2.6.5.2.1.5.')
+  array('prefix'=>'unit1Sensor','table'=>'cmcTcUnit1SensorTable','info'=>'.1.3.6.1.4.1.2606.4.2.3.2.0','valueOID'=>'.1.3.6.1.4.1.2606.4.2.3.5.2.1.5.','statusOID'=>'.1.3.6.1.4.1.2606.4.2.3.5.2.1.4.'),
+  array('prefix'=>'unit2Sensor','table'=>'cmcTcUnit2SensorTable','info'=>'.1.3.6.1.4.1.2606.4.2.4.2.0','valueOID'=>'.1.3.6.1.4.1.2606.4.2.4.5.2.1.5.','statusOID'=>'.1.3.6.1.4.1.2606.4.2.4.5.2.1.4.'),
+  array('prefix'=>'unit3Sensor','table'=>'cmcTcUnit3SensorTable','info'=>'.1.3.6.1.4.1.2606.4.2.5.2.0','valueOID'=>'.1.3.6.1.4.1.2606.4.2.5.5.2.1.5.','statusOID'=>'.1.3.6.1.4.1.2606.4.2.5.5.2.1.4.'),
+  array('prefix'=>'unit4Sensor','table'=>'cmcTcUnit4SensorTable','info'=>'.1.3.6.1.4.1.2606.4.2.6.2.0','valueOID'=>'.1.3.6.1.4.1.2606.4.2.6.5.2.1.5.','statusOID'=>'.1.3.6.1.4.1.2606.4.2.6.5.2.1.4.'),
 );
 
 foreach ($sensorTables as $table)
@@ -30,16 +32,17 @@ foreach ($sensorTables as $table)
 
   foreach ($sensorElements as $element)
   {
-    $cache['rittal'][$tablename] = snmpwalk_cache_multi_oid($device, $tableprefix.$element, $cache['rittal'][$tablename],"RITTAL-CMC-TC-MIB");
+    $cache['rittal'][$tablename] = snmpwalk_cache_multi_oid($device, $tableprefix.$element, $cache['rittal'][$tablename],$mib);
   }
 
-  $unit_name = trim(snmp_get($device,$table['info'], "-Ovq", "RITTAL-CMC-TC-MIB"),'"');
+  $unit_name = trim(snmp_get($device,$table['info'], "-Ovq", $mib),'"');
 
   foreach ($cache['rittal'][$tablename] as $index => $entry)
   {
     $type = $entry[$tableprefix.'Type'];
     $name = $entry[$tableprefix.'Text'];
     $value = $entry[$tableprefix.'Value'];
+    $status = $entry[$tableprefix.'Status'];
 
     if ($type !="notAvail" && $type != NULL)
     {
@@ -89,6 +92,7 @@ foreach ($sensorTables as $table)
           $t = 'temperature';
           break;
         case 'totalKWPSM':
+        case 'totalKWhPSM':
         case 'kWPSM':
           $t = 'power';
           $scale = 100;
@@ -100,6 +104,8 @@ foreach ($sensorTables as $table)
           break;
         case 'valve':
           $t = 'load';
+          $low = 0.1;
+          $high = 100;
           break;
         case 'frequencyPSM':
           $t = 'frequency';
@@ -111,6 +117,21 @@ foreach ($sensorTables as $table)
         case 'heatflowRCT':
           $t = 'power';
           break;
+        case 'voltStatusPSM':
+        case 'ampStatusPSM':
+        case 'statusLCP':
+        case 'alarmRCT':
+        case 'warningRCT':
+        case 'lock':
+        case 'access':
+        case 'detACfirstAlarm':
+        case 'detACmainAlarm':
+        case 'detACfault':
+          $t = 'status';
+          break;
+
+        default:
+          continue;
       }
 
       $name = $unit_name . ' ' . $name;
@@ -120,7 +141,12 @@ foreach ($sensorTables as $table)
       if ($low  != 0) { $limits['limit_low'] = $low; }
       if ($warn != 0) { $limits['limit_warn_high'] = $warn; }
 
-      discover_sensor($valid['sensor'], $t, $device, $oid, "$tablename.$index", "Rittal-CMC-TC", $name, $scale, $value, $limits);
+      if($t == 'status'){
+        $oid = $table['statusOID'].$index;
+        discover_status($device, $oid, $index, "rittal-cmc-tc-state", $name, $status, array('entPhysicalClass' => 'status'));
+      } else {
+        discover_sensor($valid['sensor'], $t, $device, $oid, "$tablename.$index", "Rittal-CMC-TC", $name, $scale, $value, $limits);
+      }
     }
   }
 }

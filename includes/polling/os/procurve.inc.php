@@ -44,16 +44,16 @@ else if (preg_match('/^(?:HP|Hewlett-Packard Company) (?<hw>\w+) (?:(?:.*?(?<sw1
 
 if (!$version)
 {
-  $altversion = trim(snmp_get($device,"hpSwitchOsVersion.0", "-Oqv", "NETSWITCH-MIB", mib_dirs('hp')), '"');
+  $altversion = snmp_get($device,'hpSwitchOsVersion.0', '-Oqv', 'NETSWITCH-MIB');
   if ($altversion) { $version = $altversion; }
 }
 
 if (!$version)
 {
-  $altversion = trim(snmp_get($device,"snAgImgVer.0", "-Oqv", "HP-SN-AGENT-MIB", mib_dirs('hp')), '"');
+  $altversion = snmp_get($device,'snAgImgVer.0', '-Oqv', 'HP-SN-AGENT-MIB');
   if ($altversion) { $version = $altversion; }
 }
 
-$serial = trim(snmp_get($device, "hpHttpMgSerialNumber.0", "-Oqv", "SEMI-MIB", mib_dirs('hp')), '"');
+$serial = snmp_get($device, 'hpHttpMgSerialNumber.0', '-Oqv', 'SEMI-MIB');
 
 // EOF

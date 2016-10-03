@@ -11,11 +11,9 @@
  *
  */
 
-echo("ONEACCESS-SYS-MIB ");
-
 if (!isset($cache_discovery['oneaccess-sys-mib']))
 {
-  $cache_discovery['oneaccess-sys-mib'] = snmpwalk_cache_oid($device, 'oacExpIMSysHwComponentsTable', array(), 'ONEACCESS-SYS-MIB', mib_dirs('oneaccess'));
+  $cache_discovery['oneaccess-sys-mib'] = snmpwalk_cache_oid($device, 'oacExpIMSysHwComponentsTable', array(), 'ONEACCESS-SYS-MIB');
 }
 
 foreach ($cache_discovery['oneaccess-sys-mib'] as $index => $entry)

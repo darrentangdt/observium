@@ -60,11 +60,13 @@ function print_navbar($navbar)
 
   if (OBSERVIUM_EDITION == 'community' && isset($navbar['community']) && $navbar['community'] === FALSE)
   {
-    // Skip not exist features on community
+    // Skip nonexistant features on community edition
     return;
   }
 
   $id = strgen();
+  // Detect allowed screen ratio for current browser, cached!
+  $ua_info = detect_browser();
 
   ?>
 
@@ -141,7 +143,19 @@ function print_navbar($navbar)
           echo('<i class="'.$array['icon'].'"></i>&nbsp;');
           $array['text'] = '<span>'.$array['text'].'</span>'; // Added span for allow hide by class 'icon'
         }
-        if (isset($array['image'])) { echo('<img src="' . $array['image'] . '" alt="" /> '); }
+
+        if (isset($array['image']))
+        {
+          if (isset($array['image_2x']) && $ua_info['screen_ratio'] > 1)
+          {
+            // Add hidpi image set
+            $srcset = ' srcset="' . $array['image_2x'] . ' 2x"';
+          } else {
+            $srcset = '';
+          }
+          echo('<img src="' . $array['image'] . '"' . $srcset . ' alt="" /> ');
+        }
+
         echo($array['text'].'</a>');
         echo('</li>');
       } else {

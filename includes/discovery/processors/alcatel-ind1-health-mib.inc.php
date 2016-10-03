@@ -11,10 +11,7 @@
  *
  */
 
-// Hardcoded discovery of device CPU usage on Alcatel-Lucent Omniswitches.
 // NOTE. Because Alcatel changed their MIBs content (same oid names have different indexes), here used only numeric OIDs.
-
-echo("ALCATEL-IND1-HEALTH-MIB ");
 
 // Old AOS
 $descr = 'Device CPU';
@@ -23,7 +20,7 @@ $usage = snmp_get($device, $oid, '-OQUvs', 'ALCATEL-IND1-HEALTH-MIB', mib_dirs('
 
 if (is_numeric($usage))
 {
-  discover_processor($valid['processor'], $device, $oid, '0', 'aos-system', $descr, "1", $usage, NULL, NULL);
+  discover_processor($valid['processor'], $device, $oid, 0, 'aos-system', $descr, 1, $usage);
 }
 unset($usage);
 
@@ -33,7 +30,7 @@ $usage = snmp_get($device, $oid, '-OQUvs', 'ALCATEL-IND1-HEALTH-MIB', mib_dirs('
 
 if (is_numeric($usage))
 {
-  discover_processor($valid['processor'], $device, $oid, '0', 'aos-system', $descr, "1", $usage, NULL, NULL);
+  discover_processor($valid['processor'], $device, $oid, 0, 'aos-system', $descr, 1, $usage);
 }
 
 // EOF

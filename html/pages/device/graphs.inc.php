@@ -62,7 +62,8 @@ print_navbar($navbar);
 
 $graph_enable = $graphs_sections[$vars['group']];
 
-echo('<div class="box box-solid"><table class="table table-condensed table-striped table-hover ">');
+echo generate_box_open();
+echo('<table class="table table-condensed table-striped table-hover ">');
 
 if ($vars['group'] == "custom" && $graphs_sections['custom'])
 {
@@ -105,8 +106,9 @@ if ($vars['group'] == "custom" && $graphs_sections['custom'])
   }
 }
 
-echo('</table></div>');
+echo('</table>');
+echo generate_box_close();
 
-$page_title[] = "Graphs";
+register_html_title("Graphs");
 
 // EOF

@@ -11,9 +11,6 @@
  *
  */
 
-$mib = 'AIRESPACE-SWITCHING-MIB';
-echo("$mib ");
-
 //AIRESPACE-SWITCHING-MIB::agentFreeMemory.0 = 466732
 //AIRESPACE-SWITCHING-MIB::agentTotalMemory.0 = 1000952
 $free  = snmp_get($device, 'agentFreeMemory.0',  '-OQUvs', $mib);

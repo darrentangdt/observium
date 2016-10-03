@@ -1,9 +1,9 @@
 -- ============================================================================
--- Copyright (C) 2014 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- Description:  The mib is used for configuring the information of the VLAN, including
---               VLAN management,VLAN interface,VLAN aggregation and so on.
+--               VLAN management, VLAN interface, VLAN aggregation and so on.
 -- Reference:
--- Version:      V3.80
+-- Version:      V3.83
 --
 -- ============================================================================
 
@@ -23,7 +23,7 @@
                FROM SNMPv2-TC;
 
        hwVlan MODULE-IDENTITY
-           LAST-UPDATED "201412241000Z"
+           LAST-UPDATED "201508071000Z"
            ORGANIZATION
                "Huawei Technologies Co.,Ltd."
            CONTACT-INFO
@@ -38,13 +38,23 @@
                "The mib is used for configuring the information of the VLAN, including
                 VLAN management,VLAN interface,VLAN aggregation and so on."
 
-           -- Revision history
+           -- Revision history    
+           REVISION    "201508071000Z"
+           DESCRIPTION "V3.83, modified the value range and description of hwIPv6MTU."
+
+           REVISION    "201504130000Z"
+           DESCRIPTION "V3.82, modify the description of hwUpFlowAccountByte, hwDownFlowAccountByte, hwUpFlowAccountPacket, hwDownFlowAccountPacket,
+                        hwUpStreamPacket, hwDownStreamPacket, hwUpFlowAccountDiscardPacket, hwDownFlowAccountDiscardPacket."
+
+           REVISION    "201501221000Z"
+           DESCRIPTION "V3.81, Added hwCableIPv6SourceVerify in hwVlanSrvProfTable."
+           
            REVISION    "201412241000Z"
            DESCRIPTION "V3.80, Added hwMethNativeVlan in hwVlanMngObject."
 	   
            REVISION    "201412231000Z"
            DESCRIPTION "V3.79, modified the description of hwRegionPVCRowStatus, hwProfileRowStatus, hwVlanConnectRowStatus and hwDocsSrvVlanRowStatus."
-
+       
            REVISION    "201411241000Z"
            DESCRIPTION "V3.78, modified the description of hwVlanMethL2Forward."
                       
@@ -2172,13 +2182,15 @@
             ::= { hwVlanInterfaceEntry 13 }
 
        hwIPv6MTU OBJECT-TYPE
-           SYNTAX Integer32 (-1|1501..1560)
+           SYNTAX Integer32 (-1|1280..1499|1501..1560)
            MAX-ACCESS read-write
            STATUS current
            DESCRIPTION
                "Used to configure the maximum transmission unit of vlanif.If you set it on one vlanif,all the vlanif will
-                be configured.
-                Range: -1,1501-1560
+                be configured. For P300 device, the node can take effect on IPV4 and IPV6. For Saturn device, it only takes 
+                effect on IPV6.
+                Range: -1,1280-1499,1501-1560. For P300 device, the range is -1,1501-1560. For Saturn device, the range is
+                -1,1280-1499,1501-1560. 
                 Deafult:-1,this value means the MTU of vlanif is the default value(for example: 1500).
                "
            ::= { hwVlanInterfaceEntry 14 }
@@ -2188,7 +2200,8 @@
            MAX-ACCESS read-write
            STATUS current
            DESCRIPTION
-               "Used to configure the maximum transmission unit of vlanif.
+               "Used to configure the maximum transmission unit of vlanif. The node is only supported on Saturn device. It
+               only takes effect on IPV4.
                 Range: -1,1501-1560
                 Deafult:-1,this value means the MTU of vlanif is the default value(for example: 1500).
                "
@@ -2751,6 +2764,8 @@
              hwIgmpUserMaxVlanTag
                INTEGER,
              hwRouterRedirectReverse
+               INTEGER,
+             hwCableIPv6SourceVerify
                INTEGER,
              hwProfileRowStatus
                RowStatus
@@ -3646,11 +3661,11 @@
            STATUS current
            DESCRIPTION
                "Indicates VLAN-based Source Address Verification (SAV) function for CM configured policies. 
-               Options:
-               1. enable(1)  -indicates that the VLAN-based Source Address Verification for CM configured
-                              policies are enabled.
-               2. disable(2) -indicates that the VLAN-based Source Address Verification for CM configured
-                              policies are ignored.
+                Options:
+                1. enable(1)  -indicates that the VLAN-based Source Address Verification for CM configured
+                               policies are enabled.
+                2. disable(2) -indicates that the VLAN-based Source Address Verification for CM configured
+                               policies are ignored.
                "
            ::= { hwVlanSrvProfEntry 38 }
 
@@ -3781,6 +3796,26 @@
                 This leaf is optional for creating a VLAN service profile.
                "
            ::= { hwVlanSrvProfEntry 45 }
+
+       hwCableIPv6SourceVerify OBJECT-TYPE
+           SYNTAX INTEGER
+             {
+               enable(1),
+               disable(2)
+             }
+           MAX-ACCESS read-write
+           STATUS current
+           DESCRIPTION
+               "Indicates VLAN-based IPv6 Source Address Verification (SAV) function for CM configured policies. 
+                Options:
+                1. enable(1)  -indicates that the VLAN-based IPv6 Source Address Verification for CM configured
+                               policies are enabled.
+                2. disable(2) -indicates that the VLAN-based IPv6 Source Address Verification for CM configured
+                               policies are ignored.
+                This leaf is optional for creating a VLAN service profile.
+                Default: enable(1) 
+               "
+           ::= { hwVlanSrvProfEntry 46 }
 
        hwProfileRowStatus   OBJECT-TYPE
            SYNTAX RowStatus
@@ -4180,7 +4215,7 @@
            STATUS current
            DESCRIPTION
                "Indicates the number of upstream bytes of a VLAN.
-               "
+               '18446744073709551615' means invalid value."
            ::= { hwVlanFlowAccountEntry 2 }
 
        hwDownFlowAccountByte OBJECT-TYPE
@@ -4189,7 +4224,7 @@
            STATUS current
            DESCRIPTION
                "Indicates the number of downstream bytes of a VLAN.
-               "
+               '18446744073709551615' means invalid value."
            ::= { hwVlanFlowAccountEntry 3 }
 
        hwUpFlowAccountPacket OBJECT-TYPE
@@ -4198,7 +4233,7 @@
            STATUS current
            DESCRIPTION
                "Indicates the number of upstream packets of a VLAN.
-               "
+               '18446744073709551615' means invalid value."
            ::= { hwVlanFlowAccountEntry 4 }
 
        hwDownFlowAccountPacket OBJECT-TYPE
@@ -4207,7 +4242,7 @@
            STATUS current
            DESCRIPTION
                "Indicates the number of downstream packets of a VLAN.
-               "
+               '18446744073709551615' means invalid value."
            ::= { hwVlanFlowAccountEntry 5 }
 
        hwUpStreamPacket OBJECT-TYPE
@@ -4227,7 +4262,7 @@
                 the traffic statistics of the new VLAN are collected.
                 The system can collect the traffic statistics of
                 a maximum of 64 VLANs concurrently.
-               "
+               '18446744073709551615' means invalid value."
            ::= { hwVlanFlowAccountEntry 6 }
 
        hwDownStreamPacket OBJECT-TYPE
@@ -4244,7 +4279,7 @@
                 If a new index is specified in the second query, the traffic statistics of
                 the new VLAN are collected. The system can collect the traffic
                 statistics of a maximum of 64 VLANs concurrently.
-               "
+               '18446744073709551615' means invalid value."
            ::= { hwVlanFlowAccountEntry 7 }
 
        hwFlowAccountAdminStatus OBJECT-TYPE
@@ -4271,7 +4306,7 @@
            STATUS current
            DESCRIPTION
                "Indicates the number of upstream discarded packets of a VLAN.
-               "
+               '18446744073709551615' means invalid value."
            ::= { hwVlanFlowAccountEntry 9 }
 
        hwDownFlowAccountDiscardPacket OBJECT-TYPE
@@ -4280,7 +4315,7 @@
            STATUS current
            DESCRIPTION
                "Indicates the number of downstream discarded packets of a VLAN.
-               "
+               '18446744073709551615' means invalid value."
            ::= { hwVlanFlowAccountEntry 10 }
 
        hwVlanTrafficOccupiedTable OBJECT-TYPE

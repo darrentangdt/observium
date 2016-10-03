@@ -13,15 +13,15 @@
 
 if (is_device_mib($device, 'CISCO-CEF-MIB'))
 {
-  echo("Cisco CEF Switching Path: ");
+  echo('Cisco CEF Switching Path: ');
 
-  $cefs_query = dbFetchRows("SELECT * FROM `cef_switching` WHERE `device_id` = ?", array($device['device_id']));
+  $cefs_query = dbFetchRows('SELECT * FROM `cef_switching` WHERE `device_id` = ?', array($device['device_id']));
   foreach ($cefs_query as $ceftmp)
   {
-    $cef_id = $device['device_id']."-".$ceftmp['entPhysicalIndex']."-".$ceftmp['afi']."-".$ceftmp['cef_index'];
+    $cef_id = $device['device_id'].'-'.$ceftmp['entPhysicalIndex'].'-'.$ceftmp['afi'].'-'.$ceftmp['cef_index'];
     $cefs_db[$cef_id] = $ceftmp['cef_switching_id'];
   }
-  $cef_pfxs_query = dbFetchRows("SELECT * FROM `cef_prefix` WHERE `device_id` = ?", array($device['device_id']));
+  $cef_pfxs_query = dbFetchRows('SELECT * FROM `cef_prefix` WHERE `device_id` = ?', array($device['device_id']));
   foreach ($cef_pfxs_query as $pfx)
   {
     $cef_pfxs_db[$pfx['entPhysicalIndex']][$pfx['afi']] = $pfx['cef_pfx_id'];
@@ -34,21 +34,21 @@ if (is_device_mib($device, 'CISCO-CEF-MIB'))
     // Set retries to 0 for speedup first walking, only if previously polling also empty (DB empty)
     $device_context['snmp_retries'] = 0;
   }
-  $cefs = snmpwalk_cache_threepart_oid($device_context, "cefSwitchingStatsEntry", array(), "CISCO-CEF-MIB", mib_dirs(array("cisco")));
+  $cefs = snmpwalk_cache_threepart_oid($device_context, 'cefSwitchingStatsEntry', array(), 'CISCO-CEF-MIB');
   unset($device_context);
   if ($GLOBALS['snmp_status'])
   {
-    $cef_pfxs = snmpwalk_cache_twopart_oid($device, "cefFIBSummaryEntry", array(), "CISCO-CEF-MIB", mib_dirs(array("cisco")));
+    $cef_pfxs = snmpwalk_cache_twopart_oid($device, 'cefFIBSummaryEntry', array(), 'CISCO-CEF-MIB');
     if (!is_array($entity_array))
     {
-      echo("Caching OIDs: ");
+      echo('Caching OIDs: ');
       $entity_array = array();
-      echo(" entPhysicalDescr");
-      $entity_array = snmpwalk_cache_multi_oid($device, "entPhysicalDescr", $entity_array, "ENTITY-MIB");
-      echo(" entPhysicalName");
-      $entity_array = snmpwalk_cache_multi_oid($device, "entPhysicalName", $entity_array, "ENTITY-MIB");
-      echo(" entPhysicalModelName");
-      $entity_array = snmpwalk_cache_multi_oid($device, "entPhysicalModelName", $entity_array, "ENTITY-MIB");
+      echo(' entPhysicalDescr');
+      $entity_array = snmpwalk_cache_multi_oid($device, 'entPhysicalDescr', $entity_array, 'ENTITY-MIB');
+      echo(' entPhysicalName');
+      $entity_array = snmpwalk_cache_multi_oid($device, 'entPhysicalName', $entity_array, 'ENTITY-MIB');
+      echo(' entPhysicalModelName');
+      $entity_array = snmpwalk_cache_multi_oid($device, 'entPhysicalModelName', $entity_array, 'ENTITY-MIB');
     }
     $polled = time();
   }
@@ -56,7 +56,7 @@ if (is_device_mib($device, 'CISCO-CEF-MIB'))
 
   foreach ($cefs as $entity => $afis)
   {
-    $entity_name = $entity_array[$entity]['entPhysicalName'] ." - ".$entity_array[$entity]['entPhysicalModelName'];
+    $entity_name = $entity_array[$entity]['entPhysicalName'] .' - '.$entity_array[$entity]['entPhysicalModelName'];
     echo("\n$entity $entity_name\n");
     foreach ($afis as $afi => $paths)
     {
@@ -64,50 +64,38 @@ if (is_device_mib($device, 'CISCO-CEF-MIB'))
 
       // Do Per-AFI entity summary
 
-      $filename = "cef-pfx-".$entity."-".$afi.".rrd";
-
-      rrdtool_create($device, $filename, " \
-        DS:pfx:GAUGE:600:0:10000000 ");
-
       // FIXME -- memory tables
 
       if (!isset($cef_pfxs_db[$entity][$afi]))
       {
         dbInsert(array('device_id' => $device['device_id'], 'entPhysicalIndex' => $entity, 'afi' => $afi), 'cef_prefix');
-        echo("+");
+        echo('+');
       }
       unset($cef_pfxs_db[$entity][$afi]);
 
       $cef_pfx['update']['cef_pfx'] = $cef_pfxs[$entity][$afi]['cefFIBSummaryFwdPrefixes'];
       dbUpdate($cef_pfx['update'], 'cef_prefix', '`device_id` = ? AND `entPhysicalIndex` = ? AND `afi` = ?', array($device['device_id'], $entity, $afi));
 
-      $ret = rrdtool_update($device, "$filename", array($cef_pfxs[$entity][$afi]['cefFIBSummaryFwdPrefixes']));
+      rrdtool_update_ng($device, 'cisco-cef-pfx', array('pfx' => $cef_pfxs[$entity][$afi]['cefFIBSummaryFwdPrefixes']), "$entity-$afi");
 
-      print_vars($cef_pfxs[$entity][$afi]);
+      //print_vars($cef_pfxs[$entity][$afi]);
 
       // Do Per-path statistics
       foreach ($paths as $path => $cef_stat)
       {
-        echo(" | |-".$path.": ".$cef_stat['cefSwitchingPath']);
+        echo(' | |-'.$path.': '.$cef_stat['cefSwitchingPath']);
 
-        $cef_id = $device['device_id']."-".$entity."-".$afi."-".$path;
+        $cef_id = $device['device_id'].'-'.$entity.'-'.$afi.'-'.$path;
 
-        #if (dbFetchCell("SELECT COUNT(*) FROM `cef_switching` WHERE `device_id` = ? AND `entPhysicalIndex` = ? AND `afi` = ? AND `cef_index` = ?", array($device['device_id'], $entity, $afi, $path)) != "1")
+        #if (dbFetchCell('SELECT COUNT(*) FROM `cef_switching` WHERE `device_id` = ? AND `entPhysicalIndex` = ? AND `afi` = ? AND `cef_index` = ?', array($device['device_id'], $entity, $afi, $path)) != '1')
         if (!isset($cefs_db[$cef_id]))
         {
           dbInsert(array('device_id' => $device['device_id'], 'entPhysicalIndex' => $entity, 'afi' => $afi, 'cef_index' => $path, 'cef_path' => $cef_stat['cefSwitchingPath']), 'cef_switching');
-          echo("+");
+          echo('+');
         }
         unset($cefs_db[$cef_id]);
 
-        $cef_entry = dbFetchRow("SELECT * FROM `cef_switching` WHERE `device_id` = ? AND `entPhysicalIndex` = ? AND `afi` = ? AND `cef_index` = ?", array($device['device_id'], $entity, $afi, $path));
-
-        $filename = "cefswitching-".$entity."-".$afi."-".$path.".rrd";
-
-        rrdtool_create($device, $filename, " \
-          DS:drop:DERIVE:600:0:1000000 \
-          DS:punt:DERIVE:600:0:1000000 \
-          DS:hostpunt:DERIVE:600:0:1000000 ");
+        $cef_entry = dbFetchRow('SELECT * FROM `cef_switching` WHERE `device_id` = ? AND `entPhysicalIndex` = ? AND `afi` = ? AND `cef_index` = ?', array($device['device_id'], $entity, $afi, $path));
 
         // Copy HC to non-HC if they exist
         if (is_numeric($cef_stat['cefSwitchingHCDrop'])) { $cef_stat['cefSwitchingDrop'] = $cef_stat['cefSwitchingHCDrop']; }
@@ -127,10 +115,13 @@ if (is_device_mib($device, 'CISCO-CEF-MIB'))
 
         dbUpdate($cef_stat['update'], 'cef_switching', '`device_id` = ? AND `entPhysicalIndex` = ? AND `afi` = ? AND `cef_index` = ?', array($device['device_id'], $entity, $afi, $path));
 
-        $ret = rrdtool_update($device, "$filename", array($cef_stat['cefSwitchingDrop'], $cef_stat['cefSwitchingPunt'], $cef_stat['cefSwitchingPunt2Host']));
+        rrdtool_update_ng($device, 'cisco-cef-switching', array(
+          'drop'     => $cef_stat['cefSwitchingDrop'],
+          'punt'     => $cef_stat['cefSwitchingPunt'],
+          'hostpunt' => $cef_stat['cefSwitchingPunt2Host'],
+        ), "$entity-$afi-$path");
 
         echo(PHP_EOL);
-
       }
     }
   }
@@ -139,15 +130,15 @@ if (is_device_mib($device, 'CISCO-CEF-MIB'))
 
   foreach ($cefs_db as $cef_switching_id)
   {
-    dbDelete("cef_switching", "`cef_switching_id` =  ?", array($cef_switching_id));
-    echo("-");
+    dbDelete('cef_switching', '`cef_switching_id` =  ?', array($cef_switching_id));
+    echo('-');
   }
   foreach ($cef_pfxs_db as $afis)
   {
     foreach ($afis as $pfx_id)
     {
-      dbDelete("cef_prefix", "`cef_pfx_id` =  ?", array($pfx_id));
-      echo("-");
+      dbDelete('cef_prefix', '`cef_pfx_id` =  ?', array($pfx_id));
+      echo('-');
     }
   }
 

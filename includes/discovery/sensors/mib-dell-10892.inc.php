@@ -44,7 +44,7 @@
 if (strstr($device['hardware'], "Dell"))
 {
   $scale = 0.1;
-  $oids = snmp_walk($device, "temperatureProbeStateSettings", "-Osqn", "MIB-Dell-10892", mib_dirs('dell'));
+  $oids = snmp_walk($device, "temperatureProbeStateSettings", "-Osqn", 'MIB-Dell-10892');
 
   $oids = trim($oids);
   if ($oids) echo("Dell OMSA ");
@@ -66,19 +66,19 @@ if (strstr($device['hardware'], "Dell"))
         $lowwarnlimit_oid = ".1.3.6.1.4.1.674.10892.1.700.20.1.12.$temperature_id";
         $lowlimit_oid     = ".1.3.6.1.4.1.674.10892.1.700.20.1.13.$temperature_id";
 
-        $descr        = trim(snmp_get($device, $descr_oid, "-Oqv", "MIB-Dell-10892", mib_dirs('dell')),'"');
-        $temperature  = snmp_get($device, $temperature_oid, "-Oqv", "MIB-Dell-10892", mib_dirs('dell'));
-        $limits       = array('limit_high'      => snmp_get($device, $limit_oid,        "-Oqv", "MIB-Dell-10892", mib_dirs('dell')) * $scale,
-                              'limit_low'       => snmp_get($device, $lowlimit_oid,     "-Oqv", "MIB-Dell-10892", mib_dirs('dell')) * $scale,
-                              'limit_high_warn' => snmp_get($device, $warnlimit_oid,    "-Oqv", "MIB-Dell-10892", mib_dirs('dell')) * $scale,
-                              'limit_low_warn'  => snmp_get($device, $lowwarnlimit_oid, "-Oqv", "MIB-Dell-10892", mib_dirs('dell')) * $scale);
+        $descr        = trim(snmp_get($device, $descr_oid, "-Oqv", 'MIB-Dell-10892'),'"');
+        $temperature  = snmp_get($device, $temperature_oid, "-Oqv", 'MIB-Dell-10892');
+        $limits       = array('limit_high'      => snmp_get($device, $limit_oid,        "-Oqv", 'MIB-Dell-10892') * $scale,
+                              'limit_low'       => snmp_get($device, $lowlimit_oid,     "-Oqv", 'MIB-Dell-10892') * $scale,
+                              'limit_high_warn' => snmp_get($device, $warnlimit_oid,    "-Oqv", 'MIB-Dell-10892') * $scale,
+                              'limit_low_warn'  => snmp_get($device, $lowwarnlimit_oid, "-Oqv", 'MIB-Dell-10892') * $scale);
 
         discover_sensor($valid['sensor'], 'temperature', $device, $temperature_oid, $temperature_id, 'dell', $descr, $scale, $temperature, $limits);
       }
     }
   }
 
-  $oids = snmp_walk($device, "coolingDeviceStateSetting", "-Osqn", "MIB-Dell-10892", mib_dirs('dell'));
+  $oids = snmp_walk($device, "coolingDeviceStateSetting", "-Osqn", 'MIB-Dell-10892');
 
   $oids = trim($oids);
   if ($oids) echo("Dell OMSA ");
@@ -101,15 +101,15 @@ if (strstr($device['hardware'], "Dell"))
         $lowlimit_oid     = ".1.3.6.1.4.1.674.10892.1.700.12.1.13.$fanspeed_id";
         $subtype_oid      = ".1.3.6.1.4.1.674.10892.1.700.12.1.16.$fanspeed_id";
 
-        $subtype      = snmp_get($device, $subtype_oid, "-Oqv", "MIB-Dell-10892", mib_dirs('dell'));
-        if (strstr($subtype, "RPM")) # exclude on/off fans; 1rpm doesn't make much sense :)
+        $subtype      = snmp_get($device, $subtype_oid, "-Oqv", 'MIB-Dell-10892');
+        if (strstr($subtype, "RPM")) # exclude on/off fans; 1rpm doesn't make much sense :) FIXME they could be status sensors though!
         {
-          $descr        = trim(snmp_get($device, $descr_oid, "-Oqv", "MIB-Dell-10892", mib_dirs('dell')),'"');
-          $fanspeed     = snmp_get($device, $fanspeed_oid, "-Oqv", "MIB-Dell-10892", mib_dirs('dell'));
-          $limits       = array('limit_high'      => snmp_get($device, $limit_oid,        "-Oqv", "MIB-Dell-10892", mib_dirs('dell')),
-                                'limit_low'       => snmp_get($device, $lowlimit_oid,     "-Oqv", "MIB-Dell-10892", mib_dirs('dell')),
-                                'limit_high_warn' => snmp_get($device, $warnlimit_oid,    "-Oqv", "MIB-Dell-10892", mib_dirs('dell')),
-                                'limit_low_warn'  => snmp_get($device, $lowwarnlimit_oid, "-Oqv", "MIB-Dell-10892", mib_dirs('dell')));
+          $descr        = trim(snmp_get($device, $descr_oid, "-Oqv", 'MIB-Dell-10892'),'"');
+          $fanspeed     = snmp_get($device, $fanspeed_oid, "-Oqv", 'MIB-Dell-10892');
+          $limits       = array('limit_high'      => snmp_get($device, $limit_oid,        "-Oqv", 'MIB-Dell-10892'),
+                                'limit_low'       => snmp_get($device, $lowlimit_oid,     "-Oqv", 'MIB-Dell-10892'),
+                                'limit_high_warn' => snmp_get($device, $warnlimit_oid,    "-Oqv", 'MIB-Dell-10892'),
+                                'limit_low_warn'  => snmp_get($device, $lowwarnlimit_oid, "-Oqv", 'MIB-Dell-10892'));
 
           discover_sensor($valid['sensor'], 'fanspeed', $device, $fanspeed_oid, $fanspeed_id, 'dell', $descr, 1, $fanspeed, $limits);
         }

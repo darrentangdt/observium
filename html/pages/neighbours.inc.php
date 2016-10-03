@@ -44,12 +44,15 @@ foreach ($form_params as $param => $column)
 {
   foreach (dbFetchColumn('SELECT DISTINCT `' . $column . '` FROM `neighbours`' . $where) as $entry)
   {
-    $form_items[$param][$entry] = ($param == 'protocols' ? nicecase($entry) : escape_html($entry));
+    if (!empty($entry))
+    {
+      $form_items[$param][$entry] = ($param == 'protocols' ? nicecase($entry) : escape_html($entry));
+    }
   }
 }
 
 $form = array('type'  => 'rows',
-              'space' => '10px',
+              'space' => '5px',
               'submit_by_key' => TRUE,
               'url'   => generate_url($vars));
 $form['row'][0]['device']   = array(
@@ -68,13 +71,13 @@ $form['row'][0]['platform'] = array(
                                 'type'        => 'multiselect',
                                 'name'        => 'Platform',
                                 'width'       => '100%',
-                                'value'       => escape_html($vars['platform']),
+                                'value'       => $vars['platform'],
                                 'values'      => $form_items['platforms']);
 $form['row'][0]['version']  = array(
                                 'type'        => 'multiselect',
                                 'name'        => 'Version',
                                 'width'       => '100%',
-                                'value'       => escape_html($vars['version']),
+                                'value'       => $vars['version'],
                                 'values'      => $form_items['versions']);
 $form['row'][0]['remote_port_id'] = array(
                                 'type'        => 'select',
@@ -88,12 +91,6 @@ $form['row'][0]['search']   = array(
                                 //'name'        => 'Search',
                                 //'icon'        => 'icon-search',
                                 'right'       => TRUE);
-
-?>
-<div class="row">
-
-  <div class="col-xl-4 visible-xl">
-<?php
 
 $panel_form = array('type'          => 'rows',
                     'title'         => 'Search Neighbours',
@@ -110,13 +107,8 @@ $panel_form['row'][1]['version']        = $form['row'][0]['version'];
 $panel_form['row'][5]['remote_port_id'] = $form['row'][0]['remote_port_id'];
 $panel_form['row'][5]['search']         = $form['row'][0]['search'];
 
-print_form($panel_form);
-
-?>
-  </div>
-
-  <div class="col-xl-8">
-<?php
+// Register custom panel
+register_html_panel(generate_form($panel_form));
 
 echo '<div class="hidden-xl">';
 print_form($form);
@@ -127,6 +119,4 @@ unset($form, $panel_form, $form_items);
 $vars['pagination'] = 1;
 print_neighbours($vars);
 
-?>
-  </div>
-</div>
+// EOF

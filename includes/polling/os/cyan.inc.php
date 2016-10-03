@@ -49,7 +49,7 @@ CYAN-NODE-MIB::cyanNodeStreet.0 = STRING:
 CYAN-NODE-MIB::cyanNodeType.0 = INTEGER: cyanShelf8(10)
 */
 
-$data = snmp_get_multi($device, 'cyanNodeMfgSerialNumber.0', '-OQUs', 'CYAN-NODE-MIB', mib_dirs('cyan'));
+$data = snmp_get_multi($device, 'cyanNodeMfgSerialNumber.0', '-OQUs', 'CYAN-NODE-MIB');
 
 $serial  = $data[0]['cyanNodeMfgSerialNumber'];
 

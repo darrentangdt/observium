@@ -11,8 +11,6 @@
  *
  */
 
-echo(" ROOMALERT24E-MIB ");
-
 // ATTENTION! In the SNMP settings of the device, there is a checkbox called [ ] Use 2 digit SNMP.
 // If checked, values will be rounded; SNMP will return 20 for 20.4 degrees. If unchecked, values are *1000, so 2040 for 20.4 degrees.
 //
@@ -24,7 +22,7 @@ $scale = 1; // Start at 1 for 2 digits setting.
 // ROOMALERT24E-MIB::internal-humidity.0 = INTEGER: 36
 // or
 // ROOMALERT24E-MIB::internal-humidity.0 = INTEGER: 3446
-$oids = snmpwalk_cache_multi_oid($device, "humidity", array(), "ROOMALERT24E-MIB", mib_dirs('avtech'));
+$oids = snmpwalk_cache_multi_oid($device, "humidity", array(), "ROOMALERT24E-MIB");
 
 foreach ($oids as $index => $entry)
 {
@@ -39,7 +37,7 @@ foreach ($oids as $index => $entry)
 // Internal Temperature
 // ROOMALERT24E-MIB::internal-tempf.0 = INTEGER: 68
 // ROOMALERT24E-MIB::internal-tempc.0 = INTEGER: 20
-$oids = snmpwalk_cache_multi_oid($device, "internal-tempc", array(), "ROOMALERT24E-MIB", mib_dirs('avtech'));
+$oids = snmpwalk_cache_multi_oid($device, "internal-tempc", array(), "ROOMALERT24E-MIB");
 
 foreach ($oids as $index => $entry)
 {
@@ -69,7 +67,7 @@ foreach ($oids as $index => $entry)
 // ROOMALERT24E-MIB::digital-sen1-1.0 = INTEGER: 15
 // ROOMALERT24E-MIB::digital-sen1-2.0 = INTEGER: 59
 
-$oids = snmpwalk_cache_multi_oid($device, "digital", array(), "ROOMALERT24E-MIB", mib_dirs('avtech'));
+$oids = snmpwalk_cache_multi_oid($device, "digital", array(), "ROOMALERT24E-MIB");
 
 $index = 0;
 

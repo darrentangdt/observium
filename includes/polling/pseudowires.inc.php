@@ -13,11 +13,17 @@
 
 if (!$config['enable_pseudowires']) { return; } // Pseudowires disabled
 
+$pseudowires_db_count   = 0;
+$pseudowires_snmp_count = 0;
+
 // WARNING. Discovered all Pseudowires, but polled only 'active'
-$sql = "SELECT * FROM `pseudowires` LEFT JOIN `pseudowires-state` USING (`pseudowire_id`) WHERE `device_id` = ? AND `pwRowStatus` = 'active';";
+$sql = "SELECT * FROM `pseudowires` LEFT JOIN `pseudowires-state` USING (`pseudowire_id`) WHERE `device_id` = ?;"; // AND `pwRowStatus` = 'active';";
 //$sql = "SELECT * FROM `pseudowires` WHERE `device_id` = ? AND `pwRowStatus` = 'active';";
 foreach (dbFetchRows($sql, array($device['device_id'])) as $entry)
 {
+  $pseudowires_db_count++; // Fetch all entries for correct counting, but skip inactive/deleted
+  if ($entry['pwRowStatus'] != 'active') { continue; }
+
   $index = $entry['pwIndex'];
 
   $pseudowires_db[$entry['mib']][$index] = $entry;
@@ -40,7 +46,7 @@ foreach (array_keys($pseudowires_db) as $mib)
   $cache_pseudowires[$mib_lower] = array();
   foreach ($oids as $oid_type => $oid_entry)
   {
-    $cache_pseudowires[$mib_lower] = snmpwalk_cache_multi_oid($device, $oid_entry['oid'], $cache_pseudowires[$mib_lower], $mib, NULL, OBS_SNMP_ALL_NUMERIC);
+    $cache_pseudowires[$mib_lower] = snmpwalk_cache_multi_oid($device, $oid_entry['oid'], $cache_pseudowires[$mib_lower], $mib, NULL, OBS_SNMP_ALL_NUMERIC_INDEX);
     if ($oid_type == 'Uptime' && $GLOBALS['snmp_status'] === FALSE)
     {
       break;
@@ -52,6 +58,9 @@ foreach (array_keys($pseudowires_db) as $mib)
   {
     print_vars($cache_pseudowires[$mib_lower]);
   }
+
+  //pseudowires_db_count   += count(pseudowires_db[$mib_lower]);
+  $pseudowires_snmp_count += count($cache_pseudowires[$mib_lower]);
 
   foreach ($pseudowires_db[$mib] as $index => $pw)
   {
@@ -159,6 +168,13 @@ echo(PHP_EOL);
 
 $headers = array('%WpwID%n', '%WMIB%n', '%WType%n', '%WPsnType%n', '%WPeer%n', '%WOperStatus%n', '%WUptime%n');
 print_cli_table($table_rows, $headers);
+
+if ($pseudowires_db_count != $pseudowires_snmp_count)
+{
+  // Force rediscover Pseudowires
+  print_debug("Pseudowires total count for this device changed (DB: $pseudowires_db_count, SNMP: $pseudowires_snmp_count), force rediscover Pseudowires.");
+  force_discovery($device, 'pseudowires');
+}
 
 unset($pseudowires_db, $cache_pseudowires, $pseudowire_polled_time, $pw, $pw_poll, $pw_values, $pw_uptime, $oids, $metrics, $table_rows);
 

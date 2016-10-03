@@ -11,13 +11,15 @@
  *
  */
 
+// DOCME needs phpdoc block
+// TESTME needs unit testing
 function get_contact_by_id($contact_id)
 {
   if (is_numeric($contact_id))
   {
     $contact = dbFetchRow('SELECT * FROM `alert_contacts` WHERE `contact_id` = ?', array($contact_id));
   }
-  if (count($contact))
+  if (is_array($contact) && count($contact))
   {
     return $contact;
   } else {
@@ -25,13 +27,15 @@ function get_contact_by_id($contact_id)
   }
 }
 
+// DOCME needs phpdoc block
+// TESTME needs unit testing
 function get_alert_test_by_id($alert_test_id)
 {
   if (is_numeric($alert_test_id))
   {
     $alert_test = dbFetchRow('SELECT * FROM `alert_tests` WHERE `alert_test_id` = ?', array($alert_test_id));
   }
-  if (count($alert_test))
+  if (is_array($alert_test) && count($alert_test))
   {
     return $alert_test;
   } else {
@@ -173,7 +177,7 @@ function check_entity($entity_type, $entity, $data)
           if ($alert_args['alert_status'] != '3' || $alert_args['last_changed'] == '0')
           {
             $update_array['last_changed'] = time();
-            log_alert('Checks failed but alert suppressed by ['.implode($suppressed, ',').']', $device, $alert_info, 'FAIL_SUPPRESSED');
+            $log_id = log_alert('Checks failed but alert suppressed by ['.implode($suppressed, ',').']', $device, $alert_info, 'FAIL_SUPPRESSED');
           }
           $update_array['last_failed'] = time();
         }
@@ -188,7 +192,7 @@ function check_entity($entity_type, $entity, $data)
           if ($alert_args['alert_status'] != '0'  || $alert_args['last_changed'] == '0')
           {
             $update_array['last_changed'] = time(); $update_array['last_alerted'] = '0';
-            log_alert('Checks failed', $device, $alert_info, 'FAIL');
+            $log_id = log_alert('Checks failed', $device, $alert_info, 'FAIL');
           }
           $update_array['last_failed'] = time();
         } else {
@@ -201,7 +205,7 @@ function check_entity($entity_type, $entity, $data)
           if ($alert_args['alert_status'] != '2'  || $alert_args['last_changed'] == '0')
           {
             $update_array['last_changed'] = time();
-            log_alert('Checks failed but alert delayed', $device, $alert_info, 'FAIL_DELAYED');
+            $log_id = log_alert('Checks failed but alert delayed', $device, $alert_info, 'FAIL_DELAYED');
           }
           $update_array['last_failed'] = time();
         }
@@ -216,7 +220,7 @@ function check_entity($entity_type, $entity, $data)
         if ($alert_args['alert_status'] != '1' || $alert_args['last_changed'] == '0')
         {
           $update_array['last_changed'] = time();
-          log_alert('Checks succeeded', $device, $alert_info, 'OK');
+          $log_id = log_alert('Checks succeeded', $device, $alert_info, 'OK');
         }
         $update_array['last_ok'] = time();
 
@@ -244,22 +248,18 @@ function check_entity($entity_type, $entity, $data)
       if (TRUE)
       {
         // Write RRD data
-        $rrd = "alert-" . $alert_args['alert_table_id'] . ".rrd";
-
-        rrdtool_create ($device, $rrd, "DS:status:GAUGE:600:0:1 DS:code:GAUGE:600:-7:7");
-
         if ($update_array['alert_status'] == "1")
         {
           // Status is up
-          rrdtool_update($device, $rrd, "N:1:".$update_array['alert_status']);
+          rrdtool_update_ng($device, 'alert', array('status' => 1, 'code' => $update_array['alert_status']), $alert_args['alert_table_id']);
         } else {
-          rrdtool_update($device, $rrd, "N:0:".$update_array['alert_status']);
+          rrdtool_update_ng($device, 'alert', array('status' => 0, 'code' => $update_array['alert_status']), $alert_args['alert_table_id']);
         }
       }
-
     } else {
       $alert_output .= "%RAlert missing!%N";
     }
+
     $alert_output .=("] ");
   }
 
@@ -268,7 +268,6 @@ function check_entity($entity_type, $entity, $data)
   if ($entity_type == "device") { $cli_level = 1; } else { $cli_level = 3; }
 
   //print_cli_data("Checked Alerts", $alert_output, $cli_level);
-
 }
 
 /**
@@ -316,9 +315,9 @@ function cache_device_alert_table($device_id)
 {
   $alert_table = array();
 
-  $sql  = "SELECT *,`alert_table`.`alert_table_id` AS `alert_table_id` FROM  `alert_table`";
-  //$sql .= " LEFT JOIN  `alert_table-state` ON  `alert_table`.`alert_table_id` =  `alert_table-state`.`alert_table_id`";
-  $sql .= " WHERE  `device_id` =  ?";
+  $sql  = "SELECT * FROM  `alert_table`";
+  //$sql .= " LEFT JOIN `alert_table-state` USING(`alert_table_id`)";
+  $sql .= " WHERE `device_id` = ?";
 
   foreach (dbFetchRows($sql, array($device_id)) as $entry)
   {
@@ -409,7 +408,7 @@ function cache_alert_maintenance()
 
   $maints = dbFetchRows("SELECT * FROM `alerts_maint` WHERE `maint_start` < ? AND `maint_end` > ?", array($now, $now));
 
-  if (count($maints))
+  if (is_array($maints) && count($maints))
   {
 
     $return['count'] = count($maints);
@@ -604,9 +603,10 @@ function match_device($device, $attributes, $ignore = TRUE)
   // Short circuit this check if the device is either disabled or ignored.
   if ($ignore && ($device['disable'] == 1 || $device['ignore'] == 1)) { return FALSE; }
 
-  $sql   = "SELECT COUNT(*) FROM `devices`";
-  $sql  .= " WHERE `device_id` = ?";
-  $param = array($device['device_id']);
+  $query  = "SELECT COUNT(*) FROM `devices` AS d";
+  $join   = "";
+  $where  = " WHERE d.`device_id` = ?";
+  $params = array($device['device_id']);
 
   foreach ($attributes as $attrib)
   {
@@ -614,90 +614,95 @@ function match_device($device, $attributes, $ignore = TRUE)
     {
       case 'ge':
       case '>=':
-        $sql .= ' AND `' . $attrib['attrib'] . '` >= ?';
-        $param[] = $attrib['value'];
+        $where   .= ' AND d.`' . $attrib['attrib'] . '` >= ?';
+        $params[] = $attrib['value'];
         break;
       case 'le':
       case '<=':
-        $sql .= ' AND `' . $attrib['attrib'] . '` <= ?';
-        $param[] = $attrib['value'];
+        $where   .= ' AND d.`' . $attrib['attrib'] . '` <= ?';
+        $params[] = $attrib['value'];
         break;
       case 'gt':
       case 'greater':
       case '>':
-        $sql .= ' AND `' . $attrib['attrib'] . '` > ?';
-        $param[] = $attrib['value'];
+        $where   .= ' AND d.`' . $attrib['attrib'] . '` > ?';
+        $params[] = $attrib['value'];
         break;
       case 'lt':
       case 'less':
       case '<':
-        $sql .= ' AND `' . $attrib['attrib'] . '` < ?';
-        $param[] = $attrib['value'];
+        $where   .= ' AND d.`' . $attrib['attrib'] . '` < ?';
+        $params[] = $attrib['value'];
         break;
       case 'notequals':
       case 'isnot':
       case 'ne':
       case '!=':
-        $sql .= ' AND `' . $attrib['attrib'] . '` != ?';
-        $param[] = $attrib['value'];
+        $where   .= ' AND d.`' . $attrib['attrib'] . '` != ?';
+        $params[] = $attrib['value'];
         break;
       case 'equals':
       case 'eq':
       case 'is':
       case '==':
       case '=':
-        $sql .= ' AND `' . $attrib['attrib'] . '` = ?';
-        $param[] = $attrib['value'];
+        $where   .= ' AND d.`' . $attrib['attrib'] . '` = ?';
+        $params[] = $attrib['value'];
         break;
       case 'match':
       case 'matches':
         $attrib['value'] = str_replace('*', '%', $attrib['value']);
         $attrib['value'] = str_replace('?', '_', $attrib['value']);
-        $sql .= ' AND IFNULL(`' . $attrib['attrib'] . '`, "") LIKE ?';
-        $param[] = $attrib['value'];
+        $where   .= ' AND IFNULL(d.`' . $attrib['attrib'] . '`, "") LIKE ?';
+        $params[] = $attrib['value'];
         break;
       case 'notmatches':
       case 'notmatch':
       case '!match':
         $attrib['value'] = str_replace('*', '%', $attrib['value']);
         $attrib['value'] = str_replace('?', '_', $attrib['value']);
-        $sql .= ' AND IFNULL(`'. $attrib['attrib'] . '`, "") NOT LIKE ?';
-        $param[] = $attrib['value'];
+        $where   .= ' AND IFNULL(d.`'. $attrib['attrib'] . '`, "") NOT LIKE ?';
+        $params[] = $attrib['value'];
         break;
       case 'regexp':
       case 'regex':
-        $sql .= ' AND IFNULL(`' . $attrib['attrib'] . '`, "") REGEXP ?';
-        $param[] = $attrib['value'];
+        $where   .= ' AND IFNULL(d.`' . $attrib['attrib'] . '`, "") REGEXP ?';
+        $params[] = $attrib['value'];
         break;
       case 'notregexp':
       case 'notregex':
       case '!regexp':
       case '!regex':
-        $sql .= ' AND IFNULL(`' . $attrib['attrib'] . '`, "") NOT REGEXP ?';
-        $param[] = $attrib['value'];
+        $where   .= ' AND IFNULL(d.`' . $attrib['attrib'] . '`, "") NOT REGEXP ?';
+        $params[] = $attrib['value'];
         break;
       case 'in':
       case 'list':
-        $sql .= generate_query_values(explode(',', $attrib['value']), $attrib['attrib']);
+        $where   .= generate_query_values(explode(',', $attrib['value']), 'd.'.$attrib['attrib']);
         break;
       case '!in':
       case '!list':
       case 'notin':
       case 'notlist':
-        $sql .= generate_query_values(explode(',', $attrib['value']), $attrib['attrib'], '!=');
+        $where   .= generate_query_values(explode(',', $attrib['value']), 'd.'.$attrib['attrib'], '!=');
         break;
-      case 'include': // FIXME, what is this?
+      case 'include':
+      case 'includes':
         switch($attrib['attrib'])
         {
           case 'group':
-
-          break;
+            $join    .= " INNER JOIN `group_table` USING(`device_id`)";
+            $join    .= " INNER JOIN `groups`      USING(`group_id`)";
+            $where   .= " AND `group_name` = ?";
+            $params[] = $attrib['value'];
+            break;
         }
         break;
     }
   }
 
-  $device_count = dbFetchCell($sql, $param);
+  $query .= $join . $where;
+  $device_count = dbFetchCell($query, $params);
 
   if ($device_count == 0)
   {
@@ -785,7 +790,7 @@ function match_device_entities($device_id, $entity_attribs, $entity_type)
       case 'matches':
         $attrib['value'] = str_replace('*', '%', $attrib['value']);
         $attrib['value'] = str_replace('?', '_', $attrib['value']);
-        $sql .= 'AND IFNULL(`' . $attrib['attrib'] . '`, "") LIKE ?';
+        $sql .= ' AND IFNULL(`' . $attrib['attrib'] . '`, "") LIKE ?';
         $param[] = $attrib['value'];
         break;
       case 'notmatches':
@@ -905,7 +910,7 @@ function update_device_alert_table($device)
       // Check that the entity_type matches the one we're interested in.
       // echo("Matching $assoc_id (".$assoc['entity_type'].")");
 
-      list($entity_table, $entity_id_field, $entity_name_field) = entity_type_translate ($assoc['entity_type']);
+      list($entity_table, $entity_id_field, $entity_name_field) = entity_type_translate($assoc['entity_type']);
       $alert = $conditions['cond'][$assoc['alert_test_id']];
       $entities = match_device_entities($device['device_id'], $assoc['entity_attribs'], $assoc['entity_type']);
 
@@ -984,6 +989,9 @@ function process_alerts($device)
 {
   global $config, $alert_rules, $alert_assoc;
 
+  $pid_info = check_process_run($device); // This just clear stalled DB entries
+  add_process_info($device); // Store process info
+
   print_cli_heading($device['hostname'] . " [".$device['device_id']."]", 1);
 
   $alert_table = cache_device_alert_table($device['device_id']);
@@ -1007,10 +1015,10 @@ function process_alerts($device)
 
         alert_notifier($entry, "recovery");
 
-        log_alert('Recovery notification sent', $device, $entry, 'RECOVER_NOTIFY');
+        $log_id = log_alert('Recovery notification sent', $device, $entry, 'RECOVER_NOTIFY');
       } else {
         echo('Recovery suppressed.');
-        log_alert('Recovery notification suppressed', $device, $entry, 'RECOVER_SUPPRESSED');
+        $log_id = log_alert('Recovery notification suppressed', $device, $entry, 'RECOVER_SUPPRESSED');
       }
 
       $update_array['last_recovered'] = time();
@@ -1026,6 +1034,9 @@ function process_alerts($device)
       /// FIXME -- this should be configurable per-entity or per-checker
       if ((time() - $entry['last_alerted']) < $config['alerts']['interval'] && !isset($GLOBALS['spam'])) { $entry['suppress_alert'] = TRUE; }
 
+      // Don't re-alert if interval set to 0
+      if ($config['alerts']['interval'] == 0 && $entry['last_alerted'] != 0) { $entry['suppress_alert'] = TRUE; }
+
       // Check if alert has ignore_until set.
       if (is_numeric($entry['ignore_until']) && $entry['ignore_until'] > time()) { $entry['suppress_alert'] = TRUE; }
       // Check if alert has ignore_until_ok set.
@@ -1037,7 +1048,7 @@ function process_alerts($device)
 
         alert_notifier($entry, "alert");
 
-        log_alert('Alert notification sent', $device, $entry, 'ALERT_NOTIFY');
+        $log_id = log_alert('Alert notification sent', $device, $entry, 'ALERT_NOTIFY');
 
         $update_array['last_alerted'] = time();
         $update_array['has_alerted'] = 1;
@@ -1067,6 +1078,8 @@ function process_alerts($device)
   echo(PHP_EOL);
   print_cli_heading($device['hostname']. " [" . $device['device_id'] . "] completed notifications at " . date("Y-m-d H:i:s"), 1);
 
+  // Clean
+  del_process_info($device); // Remove process info
 }
 
 /**
@@ -1113,7 +1126,7 @@ function alert_notifier($entry, $type = "alert")
       foreach ($graph_array as $key => $val)
       {
         // Check to see if we need to do any substitution
-        if (substr($val, 0, 1) == "@")
+        if (substr($val, 0, 1) == '@')
         {
           $nval = substr($val, 1);
           //echo(" replaced " . $val . " with " . $entity[$nval] . " from entity. " . PHP_EOL . "<br />");
@@ -1122,16 +1135,17 @@ function alert_notifier($entry, $type = "alert")
       }
 
       $image_data_uri = generate_alert_graph($graph_array);
-      $image_url = generate_graph_url($graph_array);
+      $image_url      = generate_graph_url($graph_array);
 
       $graphs[] = array('label' => $graph_array['type'], 'type' => $graph_array['type'], 'url' => $image_url, 'data' => $image_data_uri);
 
       $graph_done[] = $graph_array['type'];
     }
 
+    unset($graph_array);
   }
 
-  if ($config['email']['graphs'] !== FALSE &&  count($graph_done) == 0 && is_array($config['entities'][$entry['entity_type']]['graph']))
+  if ($config['email']['graphs'] !== FALSE && count($graph_done) == 0 && is_array($config['entities'][$entry['entity_type']]['graph']))
   {
     // We can draw a graph for this type/metric pair!
 
@@ -1139,18 +1153,18 @@ function alert_notifier($entry, $type = "alert")
     foreach ($graph_array as $key => $val)
     {
       // Check to see if we need to do any substitution
-      if (substr($val,0,1)=="@")
+      if (substr($val, 0, 1) == '@')
       {
-        $nval = substr($val,1);
+        $nval = substr($val, 1);
         //echo(" replaced ".$val." with ". $entity[$nval] ." from entity. ".PHP_EOL."<br />");
         $graph_array[$key] = $entity[$nval];
       }
     }
 
-    //print_r($graph_array);
+    //print_vars($graph_array);
 
     $image_data_uri = generate_alert_graph($graph_array);
-    $image_url = generate_graph_url($graph_array);
+    $image_url      = generate_graph_url($graph_array);
 
     $graphs[] = array('label' => $graph_array['type'], 'type' => $graph_array['type'], 'url' => $image_url, 'data' => $image_data_uri);
 
@@ -1161,10 +1175,12 @@ function alert_notifier($entry, $type = "alert")
   foreach ($graphs as $graph)
   {
     $graphs_html .= '<h4>'.$graph['type'].'</h4>';
-    $graphs_html .= '<img src="'.$graph['data'].'"><br />';
+    $graphs_html .= '<a href="'.$graph['url'].'"><img src="'.$graph['data'].'"></a><br />';
   }
 
-  //print_r($graphs_html);
+  //print_vars($graphs);
+  //print_vars($graphs_html);
+  //print_vars($entry);
 
   $message_tags = array(
       'ALERT_STATE'     => ($entry['alert_status'] == '1' ? "RECOVER" : "ALERT"),
@@ -1174,13 +1190,14 @@ function alert_notifier($entry, $type = "alert")
       'ALERT_MESSAGE'   => $alert['alert_message'],
       'CONDITIONS'      => implode(PHP_EOL.'             ', $condition_array),
       'METRICS'         => implode(PHP_EOL.'             ', $metric_array),
-      'DURATION'        => ($entry['alert_status'] == '1' ? ( $entry['last_recovered'] > 0 ? formatUptime(time() - $entry['last_recovered'])." (".format_unixtime($entry['last_recovered']).")" : "Unknown")
+      'DURATION'        => ($entry['alert_status'] == '1' ? ( $entry['last_ok'] > 0 ? formatUptime(time() - $entry['last_ok'])." (".format_unixtime($entry['last_ok']).")" : "Unknown")
                                                           : ( $entry['last_ok'] > 0 ? formatUptime(time() - $entry['last_ok'])." (".format_unixtime($entry['last_ok']).")" : "Unknown")),
       'ENTITY_LINK'     => generate_entity_link($entry['entity_type'], $entry['entity_id'], $entity['entity_name']),
       'ENTITY_NAME'     => $entity['entity_name'],
       'ENTITY_TYPE'     => $alert['entity_type'],
-      'ENTITY_DESCRIPTION' => $entity['entity_descr'],
-      'ENTITY_GRAPHS'   => $graphs_html,
+      'ENTITY_DESCRIPTION'  => $entity['entity_descr'],
+      //'ENTITY_GRAPHS'       => $graphs_html,          // Predefined/embedded html images
+      'ENTITY_GRAPHS_ARRAY' => json_encode($graphs),  // Json encoded images array
       'DEVICE_HOSTNAME' => $device['hostname'],
       'DEVICE_LINK'     => generate_device_link($device),
       'DEVICE_HARDWARE' => $device['hardware'],
@@ -1191,25 +1208,132 @@ function alert_notifier($entry, $type = "alert")
 
   //logfile('debug.log', var_export($message, TRUE));
 
-  $title = alert_generate_subject($message_tags['ALERT_STATE'], $device, $alert, $entity);
+  $title = alert_generate_subject($device, $message_tags['ALERT_STATE'], $message_tags);
+  $message_tags['TITLE'] = $title;
 
   $alert_id = $entry['alert_test_id'];
 
   $notify_status = FALSE; // Set alert notify status to FALSE by default
 
-  // do not send alerts when the device is in either:
-  // ignore mode, disable_notify
-  if (!$device['ignore'] && !get_dev_attrib($device, 'disable_notify') && !$config['alerts']['disable']['all'])
+  $notification_type = 'alert';
+  $transports = get_alert_contacts($device, $alert_id, $notification_type);
+
+  if (!empty($transports))
+  {
+    // WARNING, alerts queue currently experimental
+    if (isset($config['alerts']['queue']) && isset($config['alerts']['queue']))
+    {
+      // Add notification to queue
+      $notification = array(
+        'device_id'             => $device['device_id'],
+        'log_id'                => $log_id,
+        'aca_type'              => $notification_type,
+        //'severity'              => 6,
+        'endpoints'             => json_encode($transports),
+        'message_graphs'        => $message_tags['ENTITY_GRAPHS_ARRAY'],
+        'notification_added'    => time(),
+        'notification_lifetime' => 300,                   // Lifetime in seconds
+        'notification_entry'    => json_encode($entry),   // Store full alert entry for use later if required (not sure that this needed)
+      );
+      $notification_message_tags    = $message_tags;
+      unset($notification_message_tags['ENTITY_GRAPHS_ARRAY']);
+      $notification['message_tags'] = json_encode($notification_message_tags);
+      $notification_id              = dbInsert($notification, 'notifications_queue');
+    } else {
+
+      // Use classic instant notifications send
+      $notification_count = 0;
+      foreach ($transports as $method => $endpoints)
+      {
+        if (isset($config['alerts']['disable'][$method]) && $config['alerts']['disable'][$method])
+        {
+          continue;
+        } // Skip if method disabled globally
+
+        foreach ($endpoints as $endpoint)
+        {
+          $method_include = $config['install_dir'] . "/includes/alerting/" . $method . ".inc.php";
+          if (is_file($method_include))
+          {
+            print_cli_data("Notifying", "[" . $method . "] " . $endpoint['contact_descr'] . ": ".$endpoint['contact_endpoint']);
+  
+            // Split out endpoint data as stored JSON in the database into array for use in transport
+            // The original string also remains available as the contact_endpoint key
+            foreach (json_decode($endpoint['contact_endpoint']) as $field => $value)
+            {
+              $endpoint[$field] = $value;
+            }
+
+            include($method_include);
+
+            // FIXME check success
+            // FIXME log notification + success/failure!
+            if ($notify_status['success'])
+            {
+              $notification_count++;
+            }
+          } else {
+            print_cli_data("Missing include", $method_include);
+          }
+        }
+      }
+
+      if ($notification_count)
+      {
+        dbUpdate(array('notified' => 1), 'alert_log', '`event_id` = ?', array($notification['log_id']));
+      }
+    }
+  }
+
+}
+
+// DOCME needs phpdoc block
+// TESTME needs unit testing
+function alert_generate_subject($device, $prefix, $message_tags)
+{
+  $subject = "$prefix: [" . $device['hostname'] . ']';
+
+  if ($message_tags['ENTITY_TYPE'])
+  {
+    $subject .= ' [' . $message_tags['ENTITY_TYPE'] . ']';
+  }
+  if ($message_tags['ENTITY_NAME'] && $message_tags['ENTITY_NAME'] != $device['hostname'])
+  {
+    $subject .= ' [' . $message_tags['ENTITY_NAME'] . ']';
+  }
+  $subject .= ' ' . $message_tags['ALERT_MESSAGE'];
+
+  return $subject;
+}
+
+/**
+ * Get contacts associated with selected notification type and alert ID
+ * Currently know notification types: alert, syslog
+ *
+ * @param array  $device   Common device array
+ * @param int    $alert_id Alert ID
+ * @param string $notification_type Used type for notifications
+ * @return array Array with transport -> endpoints lists
+ */
+function get_alert_contacts($device, $alert_id, $notification_type)
+{
+  if (!is_array($device))
+  {
+    $device = device_by_id_cache($device);
+  }
+
+  $transports = array();
+  if (!$device['ignore'] && !get_dev_attrib($device, 'disable_notify') && !$GLOBALS['config']['alerts']['disable']['all'])
   {
     // figure out which transport methods apply to an alert
-    $transports = array();
+
     $sql = "SELECT * FROM `alert_contacts`";
     $sql .= " WHERE `contact_disabled` = 0 AND `contact_id` IN";
-    $sql .= " (SELECT `contact_id` FROM `alert_contacts_assoc` WHERE `alert_checker_id` = ?);";
+    $sql .= " (SELECT `contact_id` FROM `alert_contacts_assoc` WHERE `aca_type` = ? AND `alert_checker_id` = ?);";
 
-    foreach (dbFetchRows($sql, array($alert_id)) as $entry)
+    foreach (dbFetchRows($sql, array($notification_type, $alert_id)) as $alert_entry)
     {
-      $transports[$entry['contact_method']][] = $entry;
+      $transports[$alert_entry['contact_method']][] = $alert_entry;
     }
 
     if (empty($transports))
@@ -1219,27 +1343,21 @@ function alert_notifier($entry, $type = "alert")
 
       $email = NULL;
 
-      if ($config['email']['default_only'])
+      if ($GLOBALS['config']['email']['default_only'])
       {
         // default only mail
-        $email = $config['email']['default'];
-      }
-      else
-      {
+        $email = $GLOBALS['config']['email']['default'];
+      } else {
         // default device contact
         if (get_dev_attrib($device, 'override_sysContact_bool'))
         {
           $email = get_dev_attrib($device, 'override_sysContact_string');
-        }
-        else
-        {
+        } else {
           if (parse_email($device['sysContact']))
           {
             $email = $device['sysContact'];
-          }
-          else
-          {
-            $email = $config['email']['default'];
+          } else {
+            $email = $GLOBALS['config']['email']['default'];
           }
         }
       }
@@ -1254,60 +1372,135 @@ function alert_notifier($entry, $type = "alert")
         }
       }
     }
+  }
 
-    if (!empty($transports))
+  return $transports;
+}
+
+function process_notifications($device = NULL, $types = NULL)
+{
+  global $config;
+
+  if (empty($types))
+  {
+    $types = array('alert', 'syslog');
+  }
+
+  $endpoints_result = array();
+
+  foreach ($types as $notification_type)
+  {
+    $sql = 'SELECT * FROM `notifications_queue` WHERE `aca_type` = ?';
+    $params = array($notification_type);
+
+    switch ($notification_type)
     {
+      case 'alert':
+      case 'syslog':
+        // Alerts/syslog required device_id
+        $sql     .= ' AND `device_id` = ?';
+        $params[] = $device['device_id'];
+        break;
+      case 'web':
+        // Currently not used
+        break;
+    }
 
-      foreach ($transports as $method => $endpoints)
+    foreach (dbFetchRows($sql, $params) as $notification)
+    {
+      // Recheck if current notification is locked
+      $locked = dbFetchCell('SELECT `notification_locked` FROM `notifications_queue` WHERE `notification_id` = ?', array($notification['notification_id'])); //ALTER TABLE `notifications_queue` ADD `notification_locked` BOOLEAN NOT NULL DEFAULT FALSE AFTER `notification_entry`;
+      if ($locked ||
+          $locked === NULL || $locked === FALSE) // If notification not exist or column 'notification_locked' not exist this query return NULL or (possible?) FALSE
       {
-        if (isset($config['alerts']['disable'][$method]) && $config['alerts']['disable'][$method])
-        {
-          continue;
-        } // Skip if method disabled globally
+        // Notification already processed by other alerter or has already been sent
+        continue;
+      } else {
+        // Lock current notification
+        dbUpdate(array('notification_locked' => 1), 'notifications_queue', '`notification_id` = ?', array($notification['notification_id']));
+      }
+      $notification_count = 0;
+      $transports = json_decode($notification['endpoints'], TRUE);
+      if (!empty($transports))
+      {
 
-        foreach ($endpoints as $endpoint)
+        $message_tags   = json_decode($notification['message_tags'], TRUE);
+        $message_graphs = json_decode($notification['message_graphs'], TRUE);
+        if (is_array($message_graphs) && count($message_graphs))
         {
-          $method_include = $config['install_dir'] . "/includes/alerting/" . $method . ".inc.php";
-          if (is_file($method_include))
+          $message_tags['ENTITY_GRAPHS_ARRAY'] = $message_graphs;
+        }
+        if (isset($message_tags['TIMESTAMP']) && empty($message_tags['DURATION']))
+        {
+          $message_tags['DURATION'] = formatUptime(time() - strtotime($message_tags['TIMESTAMP'])) . ' (' . $message_tags['TIMESTAMP'] . ')';
+        }
+        foreach ($transports as $method => $endpoints)
+        {
+          if (isset($GLOBALS['config']['alerts']['disable'][$method]) && $GLOBALS['config']['alerts']['disable'][$method])
           {
-            print_cli_data("Notifying", "[" . $method . "] " . $endpoint['contact_descr'] . ": ".$endpoint['contact_endpoint']);
+            $endpoints_result[$method] = 'disabled';
+            continue;
+          } // Skip if method disabled globally
 
-            // Split out endpoint data as stored JSON in the database into array for use in transport
-            // The original string also remains available as the contact_endpoint key
-            foreach (json_decode($endpoint['contact_endpoint']) as $field => $value)
+          foreach ($endpoints as $endpoint)
+          {
+            $method_include = $GLOBALS['config']['install_dir'] . '/includes/alerting/' . $method . '.inc.php';
+            if (is_file($method_include))
             {
-              $endpoint[$field] = $value;
+              print_cli_data("Notifying", "[" . $method . "] " . $endpoint['contact_descr'] . ": ".$endpoint['contact_endpoint']);
+
+              // Split out endpoint data as stored JSON in the database into array for use in transport
+              // The original string also remains available as the contact_endpoint key
+              foreach (json_decode($endpoint['contact_endpoint']) as $field => $value)
+              {
+                $endpoint[$field] = $value;
+              }
+
+              include($method_include);
+
+              // FIXME check success
+              // FIXME log notification + success/failure!
+              if ($notify_status['success'])
+              {
+                
+                $endpoints_result[$method] = 'ok';
+                $notification_count++;
+              } else {
+                $endpoints_result[$method] = 'false';
+              }
+            } else {
+              $endpoints_result[$method] = 'missing';
+              print_cli_data("Missing include", $method_include);
             }
-
-            include($method_include);
-
-            // FIXME check success
-            // FIXME log notification + success/failure!
-          } else {
-            print_cli_data("Missing include", $method_include);
           }
         }
       }
+
+      // Remove notification from queue,
+      // currently in any case, lifetime, added time and result status is ignored!
+      switch ($notification_type)
+      {
+        case 'alert':
+          if ($notification_count)
+          {
+            dbUpdate(array('notified' => 1), 'alert_log', '`event_id` = ?', array($notification['log_id']));
+          }
+          break;
+        case 'syslog':
+          if ($notification_count)
+          {
+            dbUpdate(array('notified' => 1), 'syslog_alerts', '`lal_id` = ?', array($notification['log_id']));
+          }
+          break;
+        case 'web':
+          // Currently not used
+          break;
+      }
+      dbDelete('notifications_queue', '`notification_id` = ?', array($notification['notification_id']));
     }
   }
 
-}
-
-// DOCME needs phpdoc block
-// TESTME needs unit testing
-function alert_generate_subject($prefix, $device, $alert, $entity)
-{
-  $subject = "$prefix: [" . $device['hostname'] . '] [' . $alert['entity_type'] . '] ';
-
-  if ($entity['entity_name'] != $device['hostname'])
-  {
-    // Don't add entity name if equal to hostname
-    $subject .= '[' . $entity['entity_name'].'] ';
-  }
-
-  $subject .= $alert['alert_message'];
-
-  return $subject;
+  return $endpoints_result;
 }
 
 // Use this function to write to the alert_log table

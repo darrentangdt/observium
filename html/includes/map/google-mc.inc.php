@@ -11,9 +11,10 @@
  *
  */
 
+  // Detect map center and zoom
   $where  = ' WHERE 1 ';
   $where .= generate_query_permitted(array('device'), array('hide_ignored' => TRUE));
-  //Detect map center
+
   if (!is_numeric($config['frontpage']['map']['center']['lat']) || !is_numeric($config['frontpage']['map']['center']['lng']))
   {
     $map_center = dbFetchRow('SELECT MAX(`location_lon`) AS `lng_max`, MIN(`location_lon`) AS `lng_min`,
@@ -24,7 +25,7 @@
     $config['frontpage']['map']['center']['lat'] = $map_center['lat'];
     $config['frontpage']['map']['center']['lng'] = $map_center['lng'];
 
-    //Also auto-zoom
+    // Auto-zoom
     if (!is_numeric($config['frontpage']['map']['zoom']))
     {
       $map_center['lat_size'] = abs($map_center['lat_max'] - $map_center['lat_min']);
@@ -43,7 +44,9 @@
     //r($map_center);
   } else {
     if (!is_numeric($config['frontpage']['map']['zoom'])) { $config['frontpage']['map']['zoom'] = 4; }
-  } ?>
+  }
+
+?>
 
   <script type='text/javascript' src='//www.google.com/jsapi'></script>
   <script type="text/javascript" src="js/google/markerclusterer.js"></script>
@@ -51,9 +54,9 @@
   <?php
   if ($config['frontpage']['map']['clouds'])
   {
-    echo '<script src="//maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=weather"></script>';
+    echo '<script src="//maps.googleapis.com/maps/api/js?v=3.exp&libraries=weather&key='.$config['remote_api']['maps']['google']['key'].'"></script>';
   } else {
-    echo '<script src="//maps.google.com/maps/api/js?sensor=false"></script>';
+    echo '<script src="//maps.google.com/maps/api/js?key='.$config['remote_api']['maps']['google']['key'].'"></script>';
   }
   ?>
 
@@ -204,7 +207,7 @@
   }
 
   var center_ = new google.maps.LatLng(<?php echo $config['frontpage']['map']['center']['lat']; ?>, <?php echo $config['frontpage']['map']['center']['lng']; ?>);
-  var map = new google.maps.Map(document.getElementById('chart_div'), {
+  var map = new google.maps.Map(document.getElementById('map'), {
     zoom: <?php echo $config['frontpage']['map']['zoom']?>,
     scrollwheel: false,
     streetViewControl: false,

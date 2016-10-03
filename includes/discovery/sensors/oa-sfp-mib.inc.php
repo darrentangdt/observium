@@ -11,13 +11,11 @@
  *
  */
 
-echo(" OA-SFP-MIB ");
-
-$oids = snmpwalk_cache_oid($device, "oaSfpDiagnosticTemperature", array(), "OA-SFP-MIB", mib_dirs('mrv'));
-$oids = snmpwalk_cache_oid($device, "oaSfpDiagnosticVcc",           $oids, "OA-SFP-MIB", mib_dirs('mrv'));
-$oids = snmpwalk_cache_oid($device, "oaSfpDiagnosticTxBias",        $oids, "OA-SFP-MIB", mib_dirs('mrv'));
-$oids = snmpwalk_cache_oid($device, "oaSfpDiagnosticTxPower",       $oids, "OA-SFP-MIB", mib_dirs('mrv'));
-$oids = snmpwalk_cache_oid($device, "oaSfpDiagnosticRxPower",       $oids, "OA-SFP-MIB", mib_dirs('mrv'));
+$oids = snmpwalk_cache_oid($device, 'oaSfpDiagnosticTemperature', array(), 'OA-SFP-MIB');
+$oids = snmpwalk_cache_oid($device, 'oaSfpDiagnosticVcc',           $oids, 'OA-SFP-MIB');
+$oids = snmpwalk_cache_oid($device, 'oaSfpDiagnosticTxBias',        $oids, 'OA-SFP-MIB');
+$oids = snmpwalk_cache_oid($device, 'oaSfpDiagnosticTxPower',       $oids, 'OA-SFP-MIB');
+$oids = snmpwalk_cache_oid($device, 'oaSfpDiagnosticRxPower',       $oids, 'OA-SFP-MIB');
 
 if (OBS_DEBUG > 1) { print_vars($oids); }
 
@@ -29,7 +27,7 @@ foreach ($oids as $index => $entry)
 
   if ($entry['oaSfpDiagnosticTemperature'] != 'empty')
   {
-    $descr = $xdescr. " DOM Temperature";
+    $descr = $xdescr. ' DOM Temperature';
     $scale = 0.1;
     $oid   = ".1.3.6.1.4.1.6926.1.18.1.1.3.1.3.$index";
     $value = intval($entry['oaSfpDiagnosticTemperature']);
@@ -41,7 +39,7 @@ foreach ($oids as $index => $entry)
 
   if ($entry['oaSfpDiagnosticVcc'] != 'empty')
   {
-    $descr = $xdescr . " SFP supply voltage";
+    $descr = $xdescr . ' SFP supply voltage';
     $scale = 0.0001;
     $oid   = ".1.3.6.1.4.1.6926.1.18.1.1.3.1.4.$index";
     $value = intval($entry['oaSfpDiagnosticVcc']);
@@ -53,7 +51,7 @@ foreach ($oids as $index => $entry)
 
   if ($entry['oaSfpDiagnosticTxBias'] != 'empty')
   {
-    $descr = $xdescr . " DOM Current";
+    $descr = $xdescr . ' DOM Current';
     $scale = si_to_scale('micro');
     $oid   = ".1.3.6.1.4.1.6926.1.18.1.1.3.1.5.$index";
     $value = intval($entry['oaSfpDiagnosticTxBias']);
@@ -65,7 +63,7 @@ foreach ($oids as $index => $entry)
 
   if ($entry['oaSfpDiagnosticRxPower'] != 'empty')
   {
-    $descr = $xdescr . " RX";
+    $descr = $xdescr . ' RX';
     $scale = 0.01;
     $oid   = ".1.3.6.1.4.1.6926.1.18.1.1.3.1.7.$index";
     $value = intval($entry['oaSfpDiagnosticRxPower']);
@@ -77,7 +75,7 @@ foreach ($oids as $index => $entry)
 
   if ($entry['oaSfpDiagnosticTxPower'] != 'empty')
   {
-    $descr = $xdescr . " TX";
+    $descr = $xdescr . ' TX';
     $scale = 0.01;
     $oid   = ".1.3.6.1.4.1.6926.1.18.1.1.3.1.6.$index";
     $value = intval($entry['oaSfpDiagnosticRxPower']);

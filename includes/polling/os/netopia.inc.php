@@ -20,4 +20,3 @@ if (preg_match('/(.*) (.*) (.*)/', $poll_device['sysDescr'], $matches))
 
 // EOF
 
-

@@ -19,6 +19,6 @@ $multiplier = 8;
 $ds_in = "bytes_read";
 $ds_out = "bytes_written";
 
-include("includes/graphs/generic_data.inc.php");
+include($config['html_dir']."/includes/graphs/generic_data.inc.php");
 
 // EOF

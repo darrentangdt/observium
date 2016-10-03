@@ -11,7 +11,7 @@
  *
  */
 
-$hardware = trim(snmp_get($device, "spManufName.0", "-OQv", "SPAGENT-MIB", mib_dirs('akcp')),'"');
-$hardware .= ' ' . trim(snmp_get($device, "spProductName.0", "-OQv", "SPAGENT-MIB", mib_dirs('akcp')),'" ');
+$hardware = snmp_get($device, 'spManufName.0', '-OQv', 'SPAGENT-MIB');
+$hardware .= ' ' . snmp_get($device, 'spProductName.0', '-OQv', 'SPAGENT-MIB');
 
 // EOF

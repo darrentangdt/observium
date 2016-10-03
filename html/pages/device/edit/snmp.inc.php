@@ -196,6 +196,7 @@ $form['row'][7]['snmp_authlevel'] = array(
                                                        'authNoPriv'   => 'authNoPriv',
                                                        'authPriv'     => 'authPriv'),
                                 'value'       => $device['snmp_authlevel']);
+
 $form['row'][8]['snmp_authname'] = array(
                                 'type'        => 'password',
                                 'fieldset'    => 'snmpv3',
@@ -203,6 +204,7 @@ $form['row'][8]['snmp_authname'] = array(
                                 'width'       => '250px',
                                 'readonly'    => $readonly,
                                 'value'       => escape_html($device['snmp_authname']));
+
 $form['row'][9]['snmp_authpass'] = array(
                                 'type'        => 'password',
                                 'fieldset'    => 'snmpv3',
@@ -211,6 +213,7 @@ $form['row'][9]['snmp_authpass'] = array(
                                 'readonly'    => $readonly,
                                 'show_password' => !$readonly,
                                 'value'       => escape_html($device['snmp_authpass'])); // FIXME. For passwords we should use filter instead escape!
+
 $form['row'][10]['snmp_authalgo'] = array(
                                 'type'        => 'select',
                                 'fieldset'    => 'snmpv3',
@@ -219,6 +222,7 @@ $form['row'][10]['snmp_authalgo'] = array(
                                 'readonly'    => $readonly,
                                 'values'      => array('MD5' => 'MD5', 'SHA' => 'SHA'),
                                 'value'       => $device['snmp_authalgo']);
+
 $form['row'][11]['snmp_cryptopass'] = array(
                                 'type'        => 'password',
                                 'fieldset'    => 'snmpv3',

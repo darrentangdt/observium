@@ -179,11 +179,13 @@ boxsPwrUsageHistoryUnitMaxSamples         OBJECT-TYPE
          STATUS      current
          DESCRIPTION
                      "Box Services Fan Entry"
-         INDEX { boxServicesFansIndex }
+         INDEX { boxServicesFanUnitIndex , boxServicesFansIndex }
          ::= { boxServicesFansTable 1 }
 
     BoxServicesFansEntry ::= SEQUENCE {
-	        boxServicesFansIndex
+          boxServicesFanUnitIndex
+              Unsigned32,
+	  boxServicesFansIndex
               Integer32,
           boxServicesFanItemType
               INTEGER,
@@ -194,6 +196,14 @@ boxsPwrUsageHistoryUnitMaxSamples         OBJECT-TYPE
           boxServicesFanDutyLevel
               Integer32
           }
+
+    boxServicesFanUnitIndex OBJECT-TYPE
+         SYNTAX      Unsigned32
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+                     "Unit index for an entry in the Box Services Fan Table"
+         ::= { boxServicesFansEntry 6 }
 
     boxServicesFansIndex OBJECT-TYPE
          SYNTAX      Integer32 (0..2147483647)
@@ -270,10 +280,12 @@ boxsPwrUsageHistoryUnitMaxSamples         OBJECT-TYPE
          STATUS      current
          DESCRIPTION
                      "Box Services Power Supply Entry"
-         INDEX { boxServicesPowSupplyIndex }
+         INDEX { boxServicesPowerSuppUnitIndex, boxServicesPowSupplyIndex }
          ::= { boxServicesPowSuppliesTable 1 }
 
     BoxServicesPowSuppliesEntry ::= SEQUENCE {
+          boxServicesPowerSuppUnitIndex
+              Unsigned32,
 	  boxServicesPowSupplyIndex
               Integer32,
           boxServicesPowSupplyItemType
@@ -281,6 +293,14 @@ boxsPwrUsageHistoryUnitMaxSamples         OBJECT-TYPE
           boxServicesPowSupplyItemState
               INTEGER
           }
+
+    boxServicesPowerSuppUnitIndex OBJECT-TYPE
+         SYNTAX      Unsigned32
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+                     "Unit index for an entry in the Box Services Power Supply Table"
+         ::= { boxServicesPowSuppliesEntry 4 }
 
     boxServicesPowSupplyIndex OBJECT-TYPE
          SYNTAX      Integer32 (0..2147483647)
@@ -319,8 +339,8 @@ boxsPwrUsageHistoryUnitMaxSamples         OBJECT-TYPE
          MAX-ACCESS  read-only
          STATUS      current
          DESCRIPTION
-                     "The status of power supply. nopower(4) - This state means the power supply is present but no AC is connected.
-                                                  incompatible(5) - This state is possible on boards capable of pluggable Power supplies"
+                     "The status of power supply. nopower(5) - This state means the power supply is present but no AC is connected.
+                                                  incompatible(7) - This state is possible on boards capable of pluggable Power supplies"
          ::= { boxServicesPowSuppliesEntry 3 }
 
 
@@ -437,7 +457,7 @@ boxsPwrUsageHistoryStackPowerConsumption         OBJECT-TYPE
           boxServicesTempSensorType
               INTEGER,
           boxServicesTempSensorState
-              INTEGER,
+              BoxsTemperatureStatus,
           boxServicesTempSensorTemperature
               Integer32
           }
@@ -476,14 +496,7 @@ boxsPwrUsageHistoryStackPowerConsumption         OBJECT-TYPE
 
 
     boxServicesTempSensorState OBJECT-TYPE
-             SYNTAX      INTEGER {
-                                  normal(1),
-                                  warning(2),
-                                  critical(3),
-                                  shutdown(4),
-                                  notpresent(5),
-                                  notoperational(6)
-                                 }
+         SYNTAX      BoxsTemperatureStatus 
          MAX-ACCESS  read-only
          STATUS      obsolete
          DESCRIPTION
@@ -527,7 +540,7 @@ boxsPwrUsageHistoryStackPowerConsumption         OBJECT-TYPE
 
     boxServicesTempUnitIndex OBJECT-TYPE
         SYNTAX      Unsigned32
-        MAX-ACCESS  not-accessible
+        MAX-ACCESS  read-only 
         STATUS      current
         DESCRIPTION
             "Unit index for an entry in the Box Services Temperature Unit Table"

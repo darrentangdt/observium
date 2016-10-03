@@ -23,17 +23,12 @@ if (count($drives))
 {
   $drives = array_sort_by($drives, 'storage_descr', SORT_ASC, SORT_STRING);
 
-?>
+  $box_args = array('title' => 'Storage', 
+                    'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => 'storage')), 
+                    'icon' => 'oicon-drive',
+                    ); 
+  echo generate_box_open($box_args);  
 
-  <div class="box box-solid">
-    <div class="box-header ">
-      <a href="<?php echo(generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => 'storage'))); ?>">
-        <i class="oicon-drive"></i><h3 class="box-title">Storage</h3>
-      </a>
-    </div>
-    <div class="box-body no-padding">
-
-<?php
   echo('<table class="table table-condensed table-striped">');
 
   foreach ($drives as $drive)
@@ -62,6 +57,7 @@ if (count($drives))
         }
       }
     }
+    if ($drive['storage_ignore']) { $skipdrive = TRUE; }
 
     if ($skipdrive) { continue; }
     $drive["storage_descr"] = preg_replace("/(.*), type: (.*), dev: (.*)/", "\\1", $drive["storage_descr"]); // '/mnt/Media, type: zfs, dev: Media'
@@ -88,7 +84,7 @@ if (count($drives))
 
     $overlib_content = generate_overlib_content($graph_array, $device['hostname'] . " - " . $drive['storage_descr']);
 
-    $graph_array['width'] = 80; $graph_array['height'] = 20; $graph_array['bg'] = 'ffffff00'; # the 00 at the end makes the area transparent.
+    $graph_array['width'] = 80; $graph_array['height'] = 20; $graph_array['bg'] = 'ffffff00';
 //    $graph_array['style'][] = 'margin-top: -6px';
 
     $minigraph =  generate_graph_tag($graph_array);
@@ -105,8 +101,7 @@ if (count($drives))
   }
 
   echo("</table>");
-  echo("</div>");
-  echo("</div>");
+  echo generate_box_close();
 }
 
 unset ($drive_rows);

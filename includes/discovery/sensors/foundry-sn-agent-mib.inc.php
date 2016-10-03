@@ -11,35 +11,33 @@
  *
  */
 
-echo(" FOUNDRY-SN-AGENT-MIB ");
-
 // FIXME This could do with a decent rewrite using SNMP multi functions, instead of trim() and str_replace() voodoo.
 
-$oids = trim(snmp_walk($device, "snAgentTempSensorDescr", "-Osqn", "FOUNDRY-SN-AGENT-MIB:FOUNDRY-SN-ROOT-MIB", mib_dirs('foundry')));
-$oids = str_replace(".1.3.6.1.4.1.1991.1.1.2.13.1.1.3.", "", $oids);
+$oids = trim(snmp_walk($device, 'snAgentTempSensorDescr', '-Osqn', 'FOUNDRY-SN-AGENT-MIB:FOUNDRY-SN-ROOT-MIB'));
+$oids = str_replace('.1.3.6.1.4.1.1991.1.1.2.13.1.1.3.', '', $oids);
 
 foreach (explode("\n", $oids) as $data)
 {
   $data = trim($data);
 
-  if ($data != "")
+  if ($data != '')
   {
-    list($oid) = explode(" ", $data);
+    list($oid) = explode(' ', $data);
     $temperature_oid  = ".1.3.6.1.4.1.1991.1.1.2.13.1.1.4.$oid";
     $descr_oid = ".1.3.6.1.4.1.1991.1.1.2.13.1.1.3.$oid";
-    $descr = snmp_get($device,$descr_oid,"-Oqv","");
-    $temperature = snmp_get($device,$temperature_oid,"-Oqv","");
+    $descr = snmp_get($device,$descr_oid,'-Oqv','');
+    $temperature = snmp_get($device,$temperature_oid,'-Oqv','');
 
-    if (!strstr($descr, "No") && !strstr($temperature, "No") && $descr != "" && $temperature != "0")
+    if (!strstr($descr, 'No') && !strstr($temperature, 'No') && $descr != '' && $temperature != 0)
     {
-      $descr = str_replace("\"", "", $descr);
-      $descr = str_replace("temperature", "", $descr);
-      $descr = str_replace("temperature", "", $descr);
-      $descr = str_replace("sensor", "Sensor", $descr);
-      $descr = str_replace("Line module", "Slot", $descr);
-      $descr = str_replace("Switch Fabric module", "Fabric", $descr);
-      $descr = str_replace("Active management module", "Mgmt Module", $descr);
-      $descr = str_replace("  ", " ", $descr);
+      $descr = str_replace('"', '', $descr);
+      $descr = str_replace('temperature', '', $descr);
+      $descr = str_replace('temperature', '', $descr);
+      $descr = str_replace('sensor', 'Sensor', $descr);
+      $descr = str_replace('Line module', 'Slot', $descr);
+      $descr = str_replace('Switch Fabric module', 'Fabric', $descr);
+      $descr = str_replace('Active management module', 'Mgmt Module', $descr);
+      $descr = str_replace('  ', ' ', $descr);
       $descr = trim($descr);
 
       $scale   = 0.5;
@@ -57,10 +55,10 @@ $stackable = 0;
 // Power Suplies
 
 // Stackable Switches
-foreach (array("snChasPwrSupply2Table") as $table)
+foreach (array('snChasPwrSupply2Table') as $table)
 {
   echo("$table ");
-  $cache['fnsnagent'] = snmpwalk_cache_multi_oid($device, $table, $cache['fnsnagent'], "FOUNDRY-SN-AGENT-MIB:FOUNDRY-SN-ROOT-MIB", mib_dirs('foundry'), OBS_SNMP_ALL_NUMERIC);
+  $cache['fnsnagent'] = snmpwalk_cache_multi_oid($device, $table, $cache['fnsnagent'], 'FOUNDRY-SN-AGENT-MIB:FOUNDRY-SN-ROOT-MIB', NULL, OBS_SNMP_ALL_NUMERIC_INDEX);
 }
 
 foreach ($cache['fnsnagent'] as $index => $entry)
@@ -77,10 +75,10 @@ if ($stackable == 0)
 {
   $cache['fnsnagent'] = array();
 
-  foreach (array("snChasPwrSupplyTable") as $table)
+  foreach (array('snChasPwrSupplyTable') as $table)
   {
     echo("$table ");
-    $cache['fnsnagent'] = snmpwalk_cache_multi_oid($device, $table, $cache['fnsnagent'], "FOUNDRY-SN-AGENT-MIB:FOUNDRY-SN-ROOT-MIB", mib_dirs('foundry'), OBS_SNMP_ALL_NUMERIC);
+    $cache['fnsnagent'] = snmpwalk_cache_multi_oid($device, $table, $cache['fnsnagent'], 'FOUNDRY-SN-AGENT-MIB:FOUNDRY-SN-ROOT-MIB', NULL, OBS_SNMP_ALL_NUMERIC_INDEX);
   }
 
   foreach ($cache['fnsnagent'] as $index => $entry)
@@ -98,10 +96,10 @@ $cache['fnsnagent'] = array();
 $stackable = 0;
 
 // Stackable Switches
-foreach (array("snChasFan2Table") as $table)
+foreach (array('snChasFan2Table') as $table)
 {
   echo("$table ");
-  $cache['fnsnagent'] = snmpwalk_cache_multi_oid($device, $table, $cache['fnsnagent'], "FOUNDRY-SN-AGENT-MIB:FOUNDRY-SN-ROOT-MIB", mib_dirs('foundry'), OBS_SNMP_ALL_NUMERIC);
+  $cache['fnsnagent'] = snmpwalk_cache_multi_oid($device, $table, $cache['fnsnagent'], 'FOUNDRY-SN-AGENT-MIB:FOUNDRY-SN-ROOT-MIB', NULL, OBS_SNMP_ALL_NUMERIC_INDEX);
 }
 
 foreach ($cache['fnsnagent'] as $index => $entry)
@@ -118,10 +116,10 @@ if ($stackable == 0)
 {
   $cache['fnsnagent'] = array();
 
-  foreach (array("snChasPwrSupplyTable") as $table)
+  foreach (array('snChasPwrSupplyTable') as $table)
   {
     echo("$table ");
-    $cache['fnsnagent'] = snmpwalk_cache_multi_oid($device, $table, $cache['fnsnagent'], "FOUNDRY-SN-AGENT-MIB:FOUNDRY-SN-ROOT-MIB", mib_dirs('foundry'), OBS_SNMP_ALL_NUMERIC);
+    $cache['fnsnagent'] = snmpwalk_cache_multi_oid($device, $table, $cache['fnsnagent'], 'FOUNDRY-SN-AGENT-MIB:FOUNDRY-SN-ROOT-MIB', NULL, OBS_SNMP_ALL_NUMERIC_INDEX);
   }
 
   foreach ($cache['fnsnagent'] as $index => $entry)

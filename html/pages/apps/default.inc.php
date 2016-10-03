@@ -11,14 +11,12 @@
  *
  */
 
-$graph_array['height']      = "100";
-$graph_array['width']       = "217";
 $graph_array['to']          = $config['time']['now'];
 $graph_array['from']        = $config['time']['day'];
-$graph_array_zoom           = $graph_array;
-$graph_array_zoom['height'] = "150";
-$graph_array_zoom['width']  = "400";
-$graph_array['legend']      = "no";
+//$graph_array_zoom           = $graph_array;
+//$graph_array_zoom['height'] = "150";
+//$graph_array_zoom['width']  = "400";
+//$graph_array['legend']      = "no";
 
 $app_devices = array();
 foreach (dbFetchRows("SELECT * FROM `applications` WHERE `app_type` = ? ".$GLOBALS['cache']['where']['devices_permitted'], array($vars['app'])) as $app)
@@ -30,16 +28,32 @@ foreach (dbFetchRows("SELECT * FROM `applications` WHERE `app_type` = ? ".$GLOBA
 }
 $app_devices = array_sort_by($app_devices, 'hostname', SORT_ASC, SORT_STRING);
 
+//echo generate_box_open();
+
+//echo '<table class="table table-hover table-condensed table-striped ">';
+
+foreach ($app_devices as $app_device)
+{
+
 echo generate_box_open();
 
 echo '<table class="table table-hover table-condensed table-striped ">';
 
-foreach ($app_devices as $app_device)
-{
-  print_device_row($app_device);
+  print_device_row($app_device, NULL, array('tab' => 'apps', 'app' => $app['app_type']));
 
   echo '<tr><td colspan="6">';
 
+  $graph_array['id']     = $app_device['app_id'];
+  $graph_array['types']  = array();
+  $graph_array['legend'] = "no";
+
+  foreach ($config['app'][$vars['app']]['top'] as $graph_type)
+  {
+    $graph_array['types'][] = "application_".$vars['app']."_".$graph_type;
+  }
+  print_graph_summary_row($graph_array);
+
+  /*
   foreach ($config['app'][$vars['app']]['top'] as $graph_type)
   {
     $graph_array['type']      = "application_".$vars['app']."_".$graph_type;
@@ -47,21 +61,22 @@ foreach ($app_devices as $app_device)
     $graph_array_zoom['type'] = "application_".$vars['app']."_".$graph_type;
     $graph_array_zoom['id']   = $app_device['app_id'];
 
-    // $link = generate_url(array('device' => $app_device['device_id'], 'tab' => 'apps','app' => $vars['app'], 'page' => 'device'));
-    //$link = generate_url(array('page' => 'graphs', 'id' => $graph_array['id'], 'type' => $graph_array['type'], 'from' => $graph_array['from'], 'to' => $graph_array['to']));
-    //echo(overlib_link($link, generate_graph_tag($graph_array), generate_graph_tag($graph_array_zoom),  NULL));
-
-    echo '<h4>' . nicecase($graph_type) . '</h4>';
-
+    echo '<h3>' . nicecase($graph_type) . '</h3>';
     print_graph_row($graph_array);
   }
+  */
 
   echo '</td>';
   echo '</tr>';
+
+  echo '</table>';
+
+  echo generate_box_close();
+
 }
 
-echo '</table>';
+//echo '</table>';
 
-echo generate_box_close();
+//echo generate_box_close();
 
 // EOF

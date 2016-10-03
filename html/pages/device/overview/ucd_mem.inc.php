@@ -11,16 +11,13 @@
  *
  */
 
-?>
-    <div class="box box-solid">
-      <div class="box-header ">
-        <a href="<?php echo(generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => 'mempool'))); ?>">
-           <i class="oicon-memory"></i><h3 class="box-title">Memory</h3>
-        </a>
-      </div>
-      <div class="box-body no-padding">
+$box_args = array('title' => 'Memory',
+                  'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => 'mempool')),
+                  'icon' => 'oicon-memory',
+                  );
 
-<?php
+echo generate_box_open($box_args);
+
 $mem_used_total = $device_state['ucd_mem']['mem_total'] - $device_state['ucd_mem']['mem_avail'];
 $mem_used       = $mem_used_total - ($device_state['ucd_mem']['mem_cached'] + $device_state['ucd_mem']['mem_buffer']);
 
@@ -138,9 +135,8 @@ $percentage_bar['bars'][0] = array('percent' => $swap_perc, 'colour' => '#356AA0
 
 </table>
 
-    </div>
-  </div>
-
 <?php
+
+echo generate_box_close();
 
 // EOF

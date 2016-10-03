@@ -7,11 +7,11 @@ RADLAN-rndApplications DEFINITIONS ::= BEGIN
 IMPORTS
     rnd                                                     FROM RADLAN-MIB
     InterfaceIndexOrZero, InterfaceIndex, ifIndex           FROM IF-MIB
-    DisplayString                                           FROM SNMPv2-TC-v1
+    TEXTUAL-CONVENTION,
+    DisplayString, RowStatus, TruthValue                    FROM SNMPv2-TC
     Unsigned32, Counter32, IpAddress,
     MODULE-IDENTITY, OBJECT-TYPE                            FROM SNMPv2-SMI
-    RowStatus, TruthValue,
-    TEXTUAL-CONVENTION                                      FROM SNMPv2-TC;
+    InetAddressType, InetAddress                            FROM INET-ADDRESS-MIB;
 
 rndApplications  MODULE-IDENTITY
                  LAST-UPDATED "200406010000Z"
@@ -751,11 +751,84 @@ rlMibTreeEntry OBJECT-TYPE
      ::= {rlMibTreeEntry 5 }
 
 
+rlMibInstances OBJECT IDENTIFIER ::= {rndMidLevelManagement 11 }
+
+rlMibTableInstancesInfoTable OBJECT-TYPE
+   SYNTAX SEQUENCE OF RlMibTableInstancesInfoEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+    "A table for retreiving information on the current instances in a requested MIB table."
+   ::= {rlMibInstances 1 }
+
+
+rlMibTableInstancesInfoEntry OBJECT-TYPE
+   SYNTAX RlMibTableInstancesInfoEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+       "A row with index rlMibTableInstancesInfoTableName = 'xTable' contains
+        information on current instances in 'xTable'."
+   INDEX { IMPLIED rlMibTableInstancesInfoTableName }
+   ::= {rlMibTableInstancesInfoTable 1 }
+
+   RlMibTableInstancesInfoEntry ::= SEQUENCE {
+
+     rlMibTableInstancesInfoTableName       DisplayString,
+     rlMibTableInstancesInfoNumOfInstances  INTEGER
+}
+
+
+rlMibTableInstancesInfoTableName OBJECT-TYPE
+   SYNTAX DisplayString(SIZE(1..160))
+   MAX-ACCESS     not-accessible
+   STATUS         current
+   DESCRIPTION
+       "The name of the MIB table (for examle: snmpCommunityTable)"
+     ::= {rlMibTableInstancesInfoEntry 1 }
+
+rlMibTableInstancesInfoNumOfInstances OBJECT-TYPE
+   SYNTAX         INTEGER
+   MAX-ACCESS     read-only
+   STATUS         current
+   DESCRIPTION
+       "Get operation on this object will retreive the current number of instances
+        in the MIB table specified by the index rlMibTableInstancesInfoTableName."
+     ::= {rlMibTableInstancesInfoEntry 2 }
+
 -- Obsolete
 -- rsIpZeroHopRouting  OBJECT IDENTIFIER ::= { rndApplications 3}
 
 
 rsPingMIB OBJECT IDENTIFIER ::= { rndApplications 4} -- NEW Group
+
+--------------------------------------------------------------------------------
+-- rsPingTable
+--------------------------------------------------------------------------------
+
+--
+-- Textual Conventions
+--
+
+PingCompletionStatus ::= TEXTUAL-CONVENTION
+    STATUS       current
+    DESCRIPTION  "If all the echo request packets in this sequence have been
+                 responded by valid echo responses, this object is set to ok.
+                 Otherwise this status indicates the problem. bad-reply-data indicates
+                 that the reply data is not equal to the response data."
+   SYNTAX INTEGER {
+                 ok(1),
+                 timeout(2),
+                 net-unreachable(3),
+                 host-unreachable(4),
+                 protocol-unreachable(5),
+                 time-to-live-exceeded(6),
+                 reassembly-time-exceeded(7),
+                 unable-to-send(8),
+                 bad-reply-data(9),
+                 incomplete(10)
+                 }
+
 rsPingTable OBJECT-TYPE
     SYNTAX SEQUENCE OF RsPingEntry
     MAX-ACCESS  not-accessible
@@ -799,7 +872,7 @@ RsPingEntry ::= SEQUENCE {
     rsPingMinReturnTime    INTEGER,
     rsPingAvgReturnTime    INTEGER,
     rsPingMaxReturnTime    INTEGER,
-    rsPingCompletionStatus INTEGER,
+    rsPingCompletionStatus PingCompletionStatus,
     rsPingTimeStamp        DisplayString,
     rsPingEntryStatus      RowStatus
     }
@@ -932,18 +1005,7 @@ rsPingMaxReturnTime OBJECT-TYPE
     ::= { rsPingEntry 11 }
 
 rsPingCompletionStatus OBJECT-TYPE
-    SYNTAX INTEGER {
-       ok(1),
-       timeout(2),
-       net-unreachable(3),
-       host-unreachable(4),
-       protocol-unreachable(5),
-       time-to-live-exceeded(6),
-       reassembly-time-exceeded(7),
-       unable-to-send(8),
-       bad-reply-data(9),
-       incomplete(10)
-       }
+    SYNTAX         PingCompletionStatus
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
@@ -971,6 +1033,204 @@ rsPingEntryStatus OBJECT-TYPE
     DESCRIPTION
         "The status of this table entry."
     ::= { rsPingEntry 14 }
+
+--------------------------------------------------------------------------------
+-- rsPingInetTable
+--------------------------------------------------------------------------------
+
+-- For IPv6 support
+-- Must replace old rsPingTable MIB
+
+rsPingInetTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF RsPingInetEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of ping request entries."
+    ::= { rsPingMIB 2 }
+
+rsPingInetEntry OBJECT-TYPE
+    SYNTAX      RsPingInetEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A ping request entry.
+
+        A management station wishing to create an entry should
+        first generate a pseudo-random serial number to be used
+        as the index to this sparse table. It must also create in the same
+        PDU the associated instance of the address object. It should also
+        modify in the same PDU the default values for the other configuration
+        objects if the defaults are not appropriate.
+
+        Once the sequence completes, the management station should
+        retrieve the values of the status objects of interest, and
+        should then delete the entry.  In order to prevent old
+        entries from clogging the table, entries will be aged out,
+        but an entry will never be deleted within 5 minutes of
+        completing."
+    INDEX { rsPingInetAddressType, rsPingInetAddress }
+    ::= { rsPingInetTable 1 }
+
+RsPingInetEntry ::= SEQUENCE {
+    rsPingInetAddressType      InetAddressType,
+    rsPingInetAddress          InetAddress,
+    rsPingInetPacketCount      INTEGER,
+    rsPingInetPacketSize       INTEGER,
+    rsPingInetPacketTimeout    INTEGER,
+    rsPingInetDelay            INTEGER,
+    rsPingInetTrapOnCompletion TruthValue,
+    rsPingInetSentPackets      Counter32,
+    rsPingInetReceivedPackets  Counter32,
+    rsPingInetMinReturnTime    INTEGER,
+    rsPingInetAvgReturnTime    INTEGER,
+    rsPingInetMaxReturnTime    INTEGER,
+    rsPingInetCompletionStatus PingCompletionStatus,
+    rsPingInetTimeStamp        DisplayString,
+    rsPingInetEntryStatus      RowStatus,
+    rsPingInetSourceAddr       InetAddress
+    }
+
+rsPingInetAddressType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "The address type of the device to be pinged.
+                Once an instance of this object is created, its
+                value can not be changed."
+    ::= { rsPingInetEntry 1 }
+
+rsPingInetAddress OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "The address of the device to be pinged.
+                Once an instance of this object is created, its
+                value can not be changed."
+    ::= { rsPingInetEntry 2 }
+
+rsPingInetPacketCount OBJECT-TYPE
+    SYNTAX      INTEGER(1..2147483647)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Specifies the number of ping packets to send to the target
+                in this sequence."
+    ::= { rsPingInetEntry 3 }
+
+ rsPingInetPacketSize OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Specifies the size of ping packets to send to the target
+                in this sequence.  The lower and upper boundaries of this
+                object are implementation dependent."
+    ::= { rsPingInetEntry 4 }
+
+rsPingInetPacketTimeout OBJECT-TYPE
+    SYNTAX      INTEGER(0..3600000)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Specifies the amount of time (in milliseconds) to wait for a response to a
+                transmitted packet before declaring the packet 'dropped.'"
+    ::= { rsPingInetEntry 5 }
+
+rsPingInetDelay OBJECT-TYPE
+    SYNTAX      INTEGER(0..3600000)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Specifies the minimum amount of time (in milliseconds) to wait before sending
+                the next packet in a sequence after receiving a response.
+                The actual delay may be greater due to internal task scheduling."
+    ::= { rsPingInetEntry 6 }
+
+rsPingInetTrapOnCompletion OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Specifies whether or not a rsPingCompletion trap should
+                 be issued on completion of the sequence of pings.  If such a
+                 trap is desired, the NMS should ensure that the community table
+                 contains an instance specified by the NMSs IP address with
+                 rndCommunityTrapsEnable = trapsEnable."
+    ::= { rsPingInetEntry 7 }
+
+rsPingInetSentPackets OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The number of ping packets that have been sent to the target
+                in this sequence."
+    ::= { rsPingInetEntry 8 }
+
+rsPingInetReceivedPackets OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The number of ping packets that have been received from the
+                target in this sequence."
+    ::= { rsPingInetEntry 9 }
+
+rsPingInetMinReturnTime OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The minimum round trip time (in milliseconds) of all the packets that have
+                been sent in this sequence. The value returned to a GET request
+                is meaningless if no ping response in a sequence has been received yet."
+    ::= { rsPingInetEntry 10 }
+
+rsPingInetAvgReturnTime OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The average round trip time (in milliseconds) of all the packets that have
+                been sent in this sequence.The value returned to a GET request
+                is meaningless if no ping response in a sequence has been received yet."
+    ::= { rsPingInetEntry 11 }
+
+rsPingInetMaxReturnTime OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The maximum round trip time (in milliseconds) of all the packets that have
+                been sent in this sequence.The value returned to a GET request
+                is meaningless if no ping response in a sequence has been received yet."
+    ::= { rsPingInetEntry 12 }
+
+rsPingInetCompletionStatus OBJECT-TYPE
+    SYNTAX      PingCompletionStatus
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If all the echo request packets in this sequence have been
+                responded by valid echo responses, this object is set to ok.
+                Otherwise this status indicates the problem. bad-reply-data indicates
+                that the reply data is not equal to the response data."
+    ::= { rsPingInetEntry 13 }
+
+rsPingInetTimeStamp OBJECT-TYPE
+    SYNTAX      DisplayString(SIZE(19))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The time-stamp indicating the time and date of creation or last
+                update of this request. The format of the time-stamp is
+                dd/mm/yyyy hh:mm:ss"
+    ::= { rsPingInetEntry 14 }
+
+rsPingInetEntryStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "The status of this table entry."
+    ::= { rsPingInetEntry 15 }
+
+rsPingInetSourceAddr OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "The status of this table entry."
+    ::= { rsPingInetEntry 16 }
+
+--------------------------------------------------------------------------------
 
 rsPowerSupplyRedundacy OBJECT IDENTIFIER ::= { rndApplications 5} -- NEW Group
 rsPowerSupplyRedundacyTable   OBJECT-TYPE

@@ -7,7 +7,7 @@
  *
  * @package    observium
  * @subpackage poller
- * @copyright  (C) 2006-2015 Adam Armstrong
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
  *
  */
 
@@ -58,13 +58,19 @@ if ($device['os'] == "netscaler")
   foreach ($sv_db as $sv) { $svs_db[$sv['vsvr_name']][$sv['svc_name']] = $sv; $svs_exist[$sv['sv_id']] = array('vsvr_name' => $sv['vsvr_name'], 'svc_name' => $sv['svc_name']); }
   if (OBS_DEBUG) { print_vars($svs_db); }
 
-  $svc_vsvrs = snmp_walk_parser($device, "vserverServiceEntry", 3, "NS-ROOT-MIB", mib_dirs('citrix'));
+  $svc_vsvrs = snmp_walk_parser($device, "vserverServiceEntry", 3, "NS-ROOT-MIB");
   foreach ($svc_vsvrs as $vserver => $svs)
   {
     foreach ($svs as $service => $sv)
     {
+      // Fixing a citrix bug, vsvrServiceEntityType always returns 0
+      if (strpos($sv["vsvrServiceFullName"], "?") === false)
+      {
+        $sv['vsvrServiceEntityType'] = "service";
+      } else {
+        $sv['vsvrServiceEntityType'] = "serviceGroupMember";
+      }
       echo(str_pad($vserver, 25) . " | " . str_pad($service,25) . " | " .  str_pad($sv['vsvrServiceEntityType'],16) ." | ". str_pad($sv['serviceWeight'],16));
-
       if (is_array($svs_db[$vserver][$service]))
       {
         /// FIXME Update Code
@@ -98,7 +104,7 @@ if ($device['os'] == "netscaler")
                         'vsvrTotalPktsSent','vsvrTotalSynsRecvd','vsvrTotMiss','vsvrTotHits','vsvrTotSpillOvers','vsvrTotalClients');
 
   $oids = array_merge($oids_gauge, $oids_counter);
-  unset($snmpstring, $rrdupdate, $snmpdata, $snmpdata_cmd, $rrd_create);
+  unset($snmpstring, $rrd_update, $snmpdata, $snmpdata_cmd, $rrd_create);
 
   foreach ($oids_gauge as $oid)
   {
@@ -112,7 +118,7 @@ if ($device['os'] == "netscaler")
     $rrd_create .= " DS:$oid_ds:COUNTER:600:U:100000000000";
   }
 
-  $vsvr_array = snmpwalk_cache_oid($device, "vserverEntry", array(), "NS-ROOT-MIB", mib_dirs('citrix'));
+  $vsvr_array = snmpwalk_cache_oid($device, "vserverEntry", array(), "NS-ROOT-MIB");
 
   $vsvr_db    = dbFetchRows("SELECT * FROM `netscaler_vservers` WHERE `device_id` = ?", array($device['device_id']));
   foreach ($vsvr_db as $vsvr) { $vsvrs[$vsvr['vsvr_name']] = $vsvr; }
@@ -134,15 +140,15 @@ if ($device['os'] == "netscaler")
     {
       $vsvr_exist[$vsvr['vsvrName']] = 1;
       $rrd_file = "netscaler-vsvr-".$vsvr['vsvrName'].".rrd";
-      $rrdupdate = "N";
+      $rrd_update = "N";
 
       foreach ($oids as $oid)
       {
         if (is_numeric($vsvr[$oid]))
         {
-          $rrdupdate .= ":".$vsvr[$oid];
+          $rrd_update .= ":".$vsvr[$oid];
         } else {
-          $rrdupdate .= ":U";
+          $rrd_update .= ":U";
         }
       }
 
@@ -161,14 +167,16 @@ if ($device['os'] == "netscaler")
        echo(" U");
 
        // Check Alerts
-       check_entity('netscaler_vsvr', $vsvrs[$vsvr['vsvrName']], array('vsvr_state' => $vsvr['vsvrState'],
+       check_entity('netscalervsvr', $vsvrs[$vsvr['vsvrName']], array('vsvr_state' => $vsvr['vsvrState'],
+                                                                       'vsvr_conn_client' => $vsvr['vsvrCurClntConnections'],
+                                                                       'vsvr_conn_server' => $vsvr['vsvrCurSrvrConnections'],
                                                                        'vsvr_bps_in' => $vsvr['vsvrRxBytesRate'],
                                                                        'vsvr_bps_out' => $vsvr['vsvrTxBytesRate']));
 
      }
 
      rrdtool_create($device, $rrd_file, $rrd_create);
-     rrdtool_update($device, $rrd_file, $rrdupdate);
+     rrdtool_update($device, $rrd_file, $rrd_update);
 
      echo("\n");
     }
@@ -256,7 +264,7 @@ if ($device['os'] == "netscaler")
 
 ##  $oids = array_merge($oids_gauge, $oids_counter);
 
-  unset($snmpstring, $rrdupdate, $snmpdata, $snmpdata_cmd, $rrd_create);
+  unset($snmpstring, $rrd_update, $snmpdata, $snmpdata_cmd, $rrd_create);
 
   foreach ($oids as $oid)
   {
@@ -271,7 +279,7 @@ if ($device['os'] == "netscaler")
     }
   }
 
-  $svc_array = snmpwalk_cache_oid($device, "serviceEntry", array(), "NS-ROOT-MIB", mib_dirs('citrix'));
+  $svc_array = snmpwalk_cache_oid($device, "serviceEntry", array(), "NS-ROOT-MIB");
 
   $svc_db    = dbFetchRows("SELECT * FROM `netscaler_services` WHERE `device_id` = ?", array($device['device_id']));
   foreach ($svc_db as $svc) { $svcs[$svc['svc_name']] = $svc; }
@@ -292,16 +300,16 @@ if ($device['os'] == "netscaler")
     {
       $svc_exist[$svc['svcServiceName']] = 1;
       $rrd_file = "nscaler-svc-".$svc['svcServiceName'].".rrd";
-      $rrdupdate = "N";
+      $rrd_update = "N";
 
       foreach ($oids as $oid)
       {
         list($oid, $type) = explode(":", $oid);
         if (is_numeric($svc[$oid]))
         {
-          $rrdupdate .= ":".$svc[$oid];
+          $rrd_update .= ":".$svc[$oid];
         } else {
-          $rrdupdate .= ":U";
+          $rrd_update .= ":U";
         }
       }
 
@@ -320,12 +328,20 @@ if ($device['os'] == "netscaler")
        echo(" U");
 
        // Check Alerts
-       check_entity('netscaler_svc', $svcs[$svc['svcServiceName']], array('svc_state' => $svc['svcState'], 'svc_bps_in' => $svc['svcRxBytesRate'], 'svc_bps_out' => $svc['svcTxBytesRate']));
+       check_entity('netscalersvc', $svcs[$svc['svcServiceName']],
+                                     array('svc_state' => $svc['svcState'],
+                                           'svc_conn_active' => $svc['svcActiveConn'],
+                                           'svc_trans_active' => $svc['svcActiveTransactions'],
+                                           'svc_trans_avgtime' => $svc['svcAvgTransactionTime'],
+                                           'svc_svr_avgttfb' => $svc['svcAvgSvrTTFB'],
+                                           'svc_conn_client' => $svc['svcCurClntConnections'],
+                                           'svc_bps_in' => $svc['svcRxBytesRate'],
+                                           'svc_bps_out' => $svc['svcTxBytesRate']));
 
      }
 
      rrdtool_create($device, $rrd_file, $rrd_create);
-     rrdtool_update($device, $rrd_file, $rrdupdate);
+     rrdtool_update($device, $rrd_file, $rrd_update);
 
      echo("\n");
     }
@@ -334,16 +350,120 @@ if ($device['os'] == "netscaler")
 
   if (OBS_DEBUG && count($svc_exist)) { print_vars($svc_exist); }
 
-  foreach ($svcs as $db_name => $db_id)
+  foreach ($svcs as $db_name => $db_svc)
   {
     if (!$svc_exist[$db_name])
     {
-      echo("-".$db_name);
-      dbDelete('netscaler_services', "`svc_id` =  ?", array($db_id));
+      echo("-". $db_name ."\n");
+      dbDelete('netscaler_services', "`svc_id` =  ?", array($db_svc['svc_id']));
     }
   }
 
   echo("\n");
+
+  echo("Netscaler ServiceGroupMembers\n");
+
+  $oids = array('svcGrpMemberActiveConn:G','svcGrpMemberActiveTransactions:G','svcGrpMemberAvgTransactionTime:G',
+                'svcGrpMemberEstablishedConn:C', 'svcGrpMemberSurgeCount:C', 'svcGrpMemberTotalRequests:C', 'svcGrpMemberTotalRequestBytes:C',
+                'svcGrpMemberTotalResponses:C', 'svcGrpMemberTotalResponseBytes:C', 'svcGrpMemberTotalPktsRecvd:C', 'svcGrpMemberTotalPktsSent:C', 'svcGrpMemberTotalSynsRecvd:C',
+                'svcGrpMemberTotalClients:C', 'svcGrpMemberTotalServers:C', 'svcGrpMemberAvgSvrTTFB:G', 'svcGrpMemberCurClntConnections:G', 'svcGrpMembertotalJsTransactions:C',
+                'svcGrpMemberdosQDepth:C');
+
+  unset($snmpstring, $rrd_update, $snmpdata, $snmpdata_cmd, $rrd_create);
+
+  foreach ($oids as $oid)
+  {
+    list($oid, $type) = explode(":", $oid);
+    if ($type == "G")
+    {
+      $oid_ds = truncate(str_replace("svcGrpMember", "", $oid), 19, '');
+      $rrd_create .= " DS:$oid_ds:GAUGE:600:U:100000000000";
+    } elseif ($type == "C") {
+      $oid_ds = truncate(str_replace("svcGrpMember", "", $oid), 19, '');
+      $rrd_create .= " DS:$oid_ds:COUNTER:600:U:100000000000";
+    }
+  }
+
+  $svcgrpmem_array = snmpwalk_cache_oid($device, "serviceGroupMemberEntry", array(), "NS-ROOT-MIB");
+
+ $svcgrpmem_db    = dbFetchRows("SELECT * FROM `netscaler_servicegroupmembers` WHERE `device_id` = ?", array($device['device_id']));
+ foreach ($svcgrpmem_db as $svcgrpmem) { $svcgrpmems[$svcgrpmem['svc_name']] = $svcgrpmem; }
+  if (OBS_DEBUG) { print_vars($svcgrpmems); }
+
+  foreach ($svcgrpmem_array as $index => $svcgrpmem)
+  {
+    // Use svcGrpMemberFullName when it exists.
+    /// This is cosmetic only, retain svcGrpMemberName for indexing !
+    if (isset($svcgrpmem['svcGrpMemberFullName']))
+    {
+      $x = explode("?", $svcgrpmem['svcGrpMemberFullName']);
+      $svcgrpmem['label'] = $x[1];
+    } else {
+      $svcgrpmem['label'] = $svcgrpmem['svcGrpMemberName'];
+    }
+
+    if (isset($svcgrpmem['svcGrpMemberName']))
+    {
+      $svcgrpmem_exist[$svcgrpmem['svcGrpMemberName']] = 1;
+      $rrd_file = "nscaler-svcgrpmem-".$svcgrpmem['svcGrpMemberName'].".rrd";
+      $rrd_update = "N";
+
+      foreach ($oids as $oid)
+      {
+        list($oid, $type) = explode(":", $oid);
+        if (is_numeric($svcgrpmem[$oid]))
+        {
+          $rrd_update .= ":".$svcgrpmem[$oid];
+        } else {
+          $rrd_update .= ":U";
+        }
+      }
+
+      echo(str_pad($svcgrpmem['svcGrpMemberName'], 25) . " | " . str_pad($svcgrpmem['svcGrpMemberServiceType'],15) . " | " .  str_pad($svcgrpmem['svcGrpMemberState'],12) ." | ". str_pad($svcgrpmem['svcGrpMemberPrimaryIPAddress'],16) ." | ". str_pad($svcgrpmem['svcGrpMemberPrimaryPort'],5));
+      echo(" | " . str_pad($svcgrpmem['svcGrpMemberRequestRate'],8) . " | " . str_pad($svcgrpmem['svcGrpMemberRxBytesRate']."B/s", 8)." | ". str_pad($svcgrpmem['svcGrpMemberTxBytesRate']."B/s", 8));
+
+      $db_update = array('svc_label' => $svcgrpmem['label'], 'svc_fullname' => $svcgrpmem['svcGrpMemberFullName'], 'svc_ip' => $svcgrpmem['svcGrpMemberPrimaryIPAddress'], 'svc_port' => $svcgrpmem['svcGrpMemberPrimaryPort'], 'svc_state' => $svcgrpmem['svcGrpMemberState'], 'svc_type' => $svcgrpmem['svcGrpMemberType'],
+                         'svc_req_rate' => $svcgrpmem['svcGrpMemberRequestRate'], 'svc_bps_in' => $svcgrpmem['svcGrpMemberRxBytesRate'], 'svc_bps_out' => $svcgrpmem['svcGrpMemberTxBytesRate']);
+
+     if (!is_array($svcgrpmems[$svcgrpmem['svcGrpMemberName']]))
+     {
+       $db_insert = array_merge(array('device_id' => $device['device_id'], 'svc_name' => $svcgrpmem['svcGrpMemberName']), $db_update);
+       $svcgrpmem_id = dbInsert($db_insert, 'netscaler_servicegroupmembers'); echo(" +");
+     } else {
+       $updated  = dbUpdate($db_update, 'netscaler_servicegroupmembers', '`svc_id` = ?', array($svcgrpmems[$svcgrpmem['svcGrpMemberName']]['svc_id']));
+       echo(" U");
+
+       // Check Alerts
+       check_entity('netscalersvcgrpmem', $svcgrpmems[$svcgrpmem['svcGrpMemberName']],
+                                           array('svc_state'         => $svcgrpmem['svcGrpMemberState'],
+                                                 'svc_conn_active'   => $svcgrpmem['svcGrpMemberActiveConn'],
+                                                 'svc_trans_active'  => $svcgrpmem['svcGrpMemberActiveTransactions'],
+                                                 'svc_trans_avgtime' => $svcgrpmem['svcGrpMemberAvgTransactionTime'],
+                                                 'svc_svr_avgttfb'   => $svcgrpmem['svcGrpMemberAvgSvrTTFB'],
+                                                 'svc_conn_client'   => $svcgrpmem['svcGrpMemberCurClntConnections'],
+                                                 'svc_bps_in'        => $svcgrpmem['svcGrpMemberRxBytesRate'],
+                                                 'svc_bps_out'       => $svcgrpmem['svcGrpMemberTxBytesRate']));
+
+     }
+
+     rrdtool_create($device, $rrd_file, $rrd_create);
+     rrdtool_update($device, $rrd_file, $rrd_update);
+
+     echo("\n");
+    }
+
+  }
+
+  if (OBS_DEBUG && count($svcgrpmem_exist)) { print_vars($svcgrpmem_exist); }
+
+  foreach ($svcgrpmems as $db_name => $db_svcgrp)
+  {
+    if (!$svcgrpmem_exist[$db_name])
+    {
+      echo("-".$db_name ."\n");
+      dbDelete('netscaler_servicegroupmembers', "`svc_id` =  ?", array($db_svcgrp['svc_id']));
+    }
+  }
 
   /// End Netscaler
 }

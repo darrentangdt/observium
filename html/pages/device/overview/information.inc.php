@@ -11,11 +11,7 @@
  *
  */
 
-?>
-    <div class="box box-solid hidden-xl">
-      <div class="box-body no-padding">
-
-<?php
+echo generate_box_open(array('box-class' => 'hidden-xl'));
 
 if ($device['os'] == "ios") { formatCiscoHardware($device); } // FIXME or do this in a general function for all OS types with a switch($device['os']) ?
 
@@ -116,6 +112,6 @@ if ($device['uptime'])
 }
 
 echo("</table>");
-echo("</div></div>");
+echo generate_box_close();
 
 // EOF

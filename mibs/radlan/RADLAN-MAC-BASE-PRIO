@@ -7,8 +7,7 @@ RADLAN-MAC-BASE-PRIO DEFINITIONS ::= BEGIN
 IMPORTS
     OBJECT-TYPE                                 FROM SNMPv2-SMI
     rnd                                         FROM RADLAN-MIB
-    MacAddress                                  FROM SNMPv2-TC
-    RowStatus                                   FROM RADLAN-SNMPv2;
+    MacAddress, RowStatus                       FROM SNMPv2-TC;
 
 rlMacBasePrio OBJECT IDENTIFIER ::= { rnd 101 }
 

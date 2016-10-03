@@ -12,10 +12,8 @@
  */
 
 // Supply
-echo(" TRAPEZE-NETWORKS-SYSTEM-MIB ");
-
 $sensor_state_type = "trapeze-state";
-$oids = snmpwalk_cache_oid($device, 'trpzSysPowerSupplyEntry', array(), 'TRAPEZE-NETWORKS-SYSTEM-MIB', mib_dirs('trapeze'));
+$oids = snmpwalk_cache_oid($device, 'trpzSysPowerSupplyEntry', array(), 'TRAPEZE-NETWORKS-SYSTEM-MIB');
 
 foreach ($oids as $index => $entry)
 {

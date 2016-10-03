@@ -18,52 +18,74 @@ function print_storage_table($vars)
     $graph_type = "storage_usage";
 
     $sql  = "SELECT *, `storage`.`storage_id` AS `storage_id` FROM `storage`";
-    $sql .= " LEFT JOIN `storage-state` ON `storage`.storage_id = `storage-state`.storage_id";
+    $sql .= " LEFT JOIN `storage-state` USING(`storage_id`)";
     $sql .= ' WHERE 1' . generate_query_permitted(array('device'));
 
     // Build query
-    foreach($vars as $var => $value) {
-        switch ($var) {
-            case "group":
-            case "group_id":
-                $values = get_group_entities($value);
-                $sql .= generate_query_values($values, 'storage.storage_id');
-                break;
-            case "device":
-            case "device_id":
-                $sql .= generate_query_values($value, 'storage.device_id');
-                break;
+    if (!isset($vars['ignored'])) { $vars['ignored'] = 0; }
+    foreach($vars as $var => $value)
+    {
+      switch ($var) {
+        case "group":
+        case "group_id":
+          $values = get_group_entities($value);
+          $sql .= generate_query_values($values, 'storage.storage_id');
+          break;
+        case "device":
+        case "device_id":
+          $sql .= generate_query_values($value, 'storage.device_id');
+          break;
+        case 'ignored':
+          $sql .= generate_query_values($value, 'storage.storage_ignore');
+          break;
 
-        }
+      }
     }
 
     $storages = array();
     foreach (dbFetchRows($sql) as $storage)
     {
-        if (isset($cache['devices']['id'][$storage['device_id']]))
-        {
-            $storage['hostname']       = $cache['devices']['id'][$storage['device_id']]['hostname'];
-            $storage['html_row_class'] = $cache['devices']['id'][$storage['device_id']]['html_row_class'];
-            $storages[] = $storage;
-        }
+      if (isset($cache['devices']['id'][$storage['device_id']]))
+      {
+        $storage['hostname']       = $cache['devices']['id'][$storage['device_id']]['hostname'];
+        $storage['html_row_class'] = $cache['devices']['id'][$storage['device_id']]['html_row_class'];
+        $storages[] = $storage;
+      }
+    }
+
+    // Sorting
+    // FIXME. Sorting can be as function, but in must before print_table_header and after get table from db
+    switch ($vars['sort_order'])
+    {
+      case 'desc':
+        $sort_order = SORT_DESC;
+        $sort_neg   = SORT_ASC;
+        break;
+      case 'reset':
+        unset($vars['sort'], $vars['sort_order']);
+        // no break here
+      default:
+        $sort_order = SORT_ASC;
+        $sort_neg   = SORT_DESC;
     }
     switch($vars['sort'])
     {
-        case 'usage':
-            $storages = array_sort_by($storages, 'storage_perc', SORT_DESC, SORT_NUMERIC, 'hostname', SORT_ASC, SORT_STRING);
-            break;
-        case 'mountpoint':
-            $storages = array_sort_by($storages, 'storage_descr', SORT_DESC, SORT_STRING, 'hostname', SORT_ASC, SORT_STRING);
-            break;
-        case 'size':
-        case 'free':
-        case 'used':
-            $storages = array_sort_by($storages, 'storage_'.$vars['sort'], SORT_DESC, SORT_NUMERIC, 'hostname', SORT_ASC, SORT_STRING);
-            break;
-        default:
-            $storages = array_sort_by($storages, 'hostname', SORT_ASC, SORT_STRING, 'storage_descr', SORT_ASC, SORT_STRING);
-            break;
+      case 'usage':
+        $storages = array_sort_by($storages, 'storage_perc', $sort_neg, SORT_NUMERIC);
+        break;
+      case 'mountpoint':
+        $storages = array_sort_by($storages, 'storage_descr', $sort_order, SORT_STRING);
+        break;
+      case 'size':
+      case 'free':
+      case 'used':
+        $storages = array_sort_by($storages, 'storage_'.$vars['sort'], $sort_neg, SORT_NUMERIC);
+        break;
+      default:
+        $storages = array_sort_by($storages, 'hostname', $sort_order, SORT_STRING, 'storage_descr', $sort_order, SORT_STRING);
+        break;
     }
+
     $storages_count = count($storages);
 
     // Pagination
@@ -84,11 +106,11 @@ function print_storage_table($vars)
     foreach ($storages as $storage)
     {
 
-        print_storage_row($storage, $vars);
+      print_storage_row($storage, $vars);
 
     }
 
-    echo("</table>");
+    echo("</tbody></table>");
 
     echo generate_box_close();
 
@@ -98,25 +120,33 @@ function print_storage_table($vars)
 
 function print_storage_table_header($vars)
 {
-
-    if ($vars['view'] == "graphs" || isset($vars['graph'])) { $stripe_class = "table-striped-two"; } else { $stripe_class = "table-striped"; }
-
-    echo('<table class="table '.$stripe_class.' table-condensed ">');
-    echo('  <thead>');
-    echo('    <tr>');
-    echo('      <th class="state-marker"></th>');
-    echo('      <th style="width: 1px;"></th>');
-    if($vars['page'] != "device") { echo('      <th style="width: 250px;"><a href="'. generate_url($vars, array('sort' => 'hostname')).'">Device</a></th>'); }
-    echo('      <th><a href="'. generate_url($vars, array('sort' => 'mountpoint')).'">Mountpoint</a></th>');
-    echo('      <th width="100"><a href="'. generate_url($vars, array('sort' => 'size')).'">Size</a></th>');
-    echo('      <th width="100"><a href="'. generate_url($vars, array('sort' => 'used')).'">Used</a></th>');
-    echo('      <th width="100"><a href="'. generate_url($vars, array('sort' => 'free')).'">Free</a></th>');
-    echo('      <th width="100"</th>');
-    echo('      <th style="width: 200px;"><a href="'. generate_url($vars, array('sort' => 'usage')).'">Usage %</a></th>');
-    echo('    </tr>');
-    echo('  </thead>');
-
+  if ($vars['view'] == "graphs" || isset($vars['graph']))
+  {
+    $table_class = OBS_CLASS_TABLE_STRIPED_TWO;
+  } else {
+    $table_class = OBS_CLASS_TABLE_STRIPED;
   }
+
+  echo('<table class="' . $table_class . '">' . PHP_EOL);
+  $cols = array(
+                    array(NULL, 'class="state-marker"'),
+    'device'     => array('Device', 'style="width: 250px;"'),
+    'mountpoint' => array('Mountpoint'),
+    'size'       => array('Size', 'style="width: 100px;"'),
+    'used'       => array('Used', 'style="width: 100px;"'),
+    'free'       => array('Free', 'style="width: 100px;"'),
+                    array('', 'style="width: 100px;"'),
+    'usage'      => array('Usage %', 'style="width: 200px;"'),
+  );
+
+  if ($vars['page'] == "device")
+  {
+    unset($cols['device']);
+  }
+
+  echo(get_table_header($cols, $vars));
+  echo('<tbody>' . PHP_EOL);
+}
 
 function print_storage_row($storage, $vars) {
 
@@ -146,7 +176,7 @@ function generate_storage_row($storage, $vars) {
 
   $overlib_content = generate_overlib_content($graph_array, $storage['hostname'] . ' - ' . $storage['storage_descr']);
 
-  $graph_array['width'] = 80; $graph_array['height'] = 20; $graph_array['bg'] = 'ffffff00'; # the 00 at the end makes the area transparent.
+  $graph_array['width'] = 80; $graph_array['height'] = 20; $graph_array['bg'] = 'ffffff00';
   $graph_array['from'] = $config['time']['day'];
   $mini_graph =  generate_graph_tag($graph_array);
 
@@ -156,11 +186,15 @@ function generate_storage_row($storage, $vars) {
 
   $background = get_percentage_colours($storage['storage_perc']);
 
-  $storage['row_class'] = $background['class'];
+  if ($storage['storage_ignore'])
+  {
+    $storage['row_class'] = 'suppressed';
+  } else {
+    $storage['row_class'] = $background['class'];
+  }
 
   $row .= '<tr class="ports ' . $storage['row_class'] . '">
-          <td class="state-marker"></td>
-          <td width="1px"></td>';
+          <td class="state-marker"></td>';
 
   if ($vars['page'] != "device" && $vars['popup'] != TRUE) { $row .= '<td class="entity">' . generate_device_link($storage) . '</td>'; }
 
@@ -170,7 +204,7 @@ function generate_storage_row($storage, $vars) {
       <td>'.$free.'</td>
       <td>'.overlib_link($link_graph, $mini_graph, $overlib_content).'</td>
       <td><a href="'.$link_graph.'">
-        '.print_percentage_bar (400, 20, $storage['storage_perc'], $storage['storage_perc'].'%', "ffffff", $background['left'], 100-$storage['storage_perc']."%" , "ffffff", $background['right']).'
+        ' . print_percentage_bar(400, 20, $storage['storage_perc'], $storage['storage_perc'].'%', "ffffff", $background['left'], 100-$storage['storage_perc']."%" , "ffffff", $background['right']).'
         </a>
       </td>
     </tr>

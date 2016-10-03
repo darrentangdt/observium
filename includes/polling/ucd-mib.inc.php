@@ -45,7 +45,7 @@ if (is_device_mib($device, 'UCD-SNMP-MIB'))
   #UCD-SNMP-MIB::ssRawSwapIn.0 = Counter32: 602002
   #UCD-SNMP-MIB::ssRawSwapOut.0 = Counter32: 937422
 
-  $ss = snmpwalk_cache_oid($device, "systemStats", array(), "UCD-SNMP-MIB", mib_dirs());
+  $ss = snmpwalk_cache_oid($device, "systemStats", array(), "UCD-SNMP-MIB");
   if ($GLOBALS['snmp_status'])
   {
     $ss = $ss[0]; // Insert Nazi joke here.
@@ -150,7 +150,7 @@ if (is_device_mib($device, 'UCD-SNMP-MIB'))
          DS:buffered:GAUGE:600:0:10000000000 \
          DS:cached:GAUGE:600:0:10000000000 ";
 
-    $snmpdata = snmpwalk_cache_oid($device, "mem", array(), "UCD-SNMP-MIB", mib_dirs());
+    $snmpdata = snmpwalk_cache_oid($device, "mem", array(), "UCD-SNMP-MIB");
     if (is_array($snmpdata[0]))
     {
       foreach (array_keys($snmpdata[0]) as $key)
@@ -190,7 +190,7 @@ if (is_device_mib($device, 'UCD-SNMP-MIB'))
     #UCD-SNMP-MIB::laLoadInt.2 = INTEGER: 429
     #UCD-SNMP-MIB::laLoadInt.3 = INTEGER: 479
 
-    $load_raw = snmpwalk_cache_oid($device, "laLoadInt", array(), "UCD-SNMP-MIB", mib_dirs());
+    $load_raw = snmpwalk_cache_oid($device, "laLoadInt", array(), "UCD-SNMP-MIB");
 
     // Check to see that the 5-min OID is actually populated before we make the rrd
     if (is_numeric($load_raw[2]['laLoadInt']))

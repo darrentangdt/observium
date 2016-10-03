@@ -1,9 +1,9 @@
 -- =================================================================
--- Copyright (c) 2004-2014 Hangzhou H3C Tech. Co., Ltd.  All rights reserved.
+-- Copyright (c) 2004-2015 Hangzhou H3C Tech. Co., Ltd.  All rights reserved.
 --
 -- Description: description of entity extend properties.
 -- Reference:
--- History V3.1
+-- History V3.2
 -- V1.0 Created by weixinzhe, Thursday, April 22, 2004 at 18:26:02
 -- V1.1 modified by yelinhui, add hh3cEntityExtMacAddress
 -- V1.2 modified by panxidong, add hh3cEntityExtErrorStatus
@@ -77,6 +77,8 @@
 --      Added trap nodes hh3cEntityExtVoltageNormal, hh3cEntityExtVoltageTooLow,
 --      hh3cEntityExtVoltageLower, hh3cEntityExtVoltageHigher and
 --      hh3cEntityExtVoltageTooHigh by fangliwen 08502.
+-- V3.2 2015-01-12
+--      Added trap nodes hh3cEntityExtSFPAlarmOnEx, hh3cEntityExtSFPAlarmOffEx by fangliwen 08502.
 -- =================================================================
 HH3C-ENTITY-EXT-MIB DEFINITIONS ::= BEGIN
 
@@ -98,7 +100,7 @@ HH3C-ENTITY-EXT-MIB DEFINITIONS ::= BEGIN
             FROM HCNUM-TC;
 
     hh3cEntityExtend MODULE-IDENTITY
-        LAST-UPDATED "201111260000Z"
+        LAST-UPDATED "201501120000Z"
         ORGANIZATION
             "Hangzhou H3C Technologies Co., Ltd."
         CONTACT-INFO
@@ -1609,6 +1611,36 @@ HH3C-ENTITY-EXT-MIB DEFINITIONS ::= BEGIN
             fatal high threshold."
         ::= { hh3cEntityExtTrapsPrefix 41 }
 
+    hh3cEntityExtSFPAlarmOnEx NOTIFICATION-TYPE
+        OBJECTS {
+            hh3cEntityExtPhysicalIndex,
+            entPhysicalName,
+            hh3cEntityExtAdminStatus,
+            hh3cEntityExtAlarmLight,
+            hh3cEntityExtErrorStatus
+            }
+        STATUS current
+        DESCRIPTION
+            "The trap is generated when the SFP module fails
+            or runs abnormally for some particular reason.
+            This trap is used to replace hh3cEntityExtSFPAlarmOn."
+        ::= { hh3cEntityExtTrapsPrefix 42 }
+
+    hh3cEntityExtSFPAlarmOffEx NOTIFICATION-TYPE
+        OBJECTS {
+            hh3cEntityExtPhysicalIndex,
+            entPhysicalName,
+            hh3cEntityExtAdminStatus,
+            hh3cEntityExtAlarmLight,
+            hh3cEntityExtErrorStatus
+            }
+        STATUS current
+        DESCRIPTION
+            "The trap is generated when the SFP module is restored to
+            normal status.
+            This trap is used to replace hh3cEntityExtSFPAlarmOff."
+        ::= { hh3cEntityExtTrapsPrefix 43 }
+
     hh3cEntityExtTrapDescription OBJECT-TYPE
         SYNTAX      SnmpAdminString (SIZE (0..255))
         MAX-ACCESS  accessible-for-notify
@@ -1777,7 +1809,9 @@ HH3C-ENTITY-EXT-MIB DEFINITIONS ::= BEGIN
                 hh3cEntityExtVoltageTooLow,
                 hh3cEntityExtVoltageLower,
                 hh3cEntityExtVoltageHigher,
-                hh3cEntityExtVoltageTooHigh
+                hh3cEntityExtVoltageTooHigh,
+                hh3cEntityExtSFPAlarmOnEx,
+                hh3cEntityExtSFPAlarmOffEx
                 }
         STATUS current
         DESCRIPTION

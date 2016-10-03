@@ -82,6 +82,7 @@
         DESCRIPTION
             "The Global MAC authenticate. Enable this before you want to enable
              other interfaces MAC authentication. "
+        DEFVAL { disable }
         ::= { hwMacAuthenObjects 1 }
     
             
@@ -96,6 +97,7 @@
         STATUS current
         DESCRIPTION
             "Specify MAC authentication mode config."
+        DEFVAL { macAddressWithoutHyphen }
         ::= { hwMacAuthenObjects 2 }
     
             
@@ -132,6 +134,7 @@
         STATUS current
         DESCRIPTION
             "Specify timer configuration."
+        DEFVAL { 300 }
         ::= { hwMacAuthenObjects 6 }
     
             
@@ -141,6 +144,7 @@
         STATUS current
         DESCRIPTION
             "Specify timer configuration."
+        DEFVAL { 60 }
         ::= { hwMacAuthenObjects 7 }    
        
         
@@ -150,6 +154,7 @@
         STATUS current
         DESCRIPTION
             "Specify timer configuration."
+        DEFVAL { 30 }
         ::= { hwMacAuthenObjects 8 }    
     
     
@@ -159,6 +164,7 @@
         STATUS current
         DESCRIPTION
             "Specify timer configuration of guest vlan reauthentication. "
+        DEFVAL { 30 }
         ::= { hwMacAuthenObjects 9 }  
    
             
@@ -289,6 +295,7 @@
         STATUS current
         DESCRIPTION
             "The type of global password. "
+        DEFVAL { simple }
         ::= { hwMacAuthenObjects 11 }  
     
 --

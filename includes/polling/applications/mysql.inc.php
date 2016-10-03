@@ -15,12 +15,8 @@ if (!empty($agent_data['app']['mysql']))
 {
   $app_id = discover_app($device, 'mysql');
 
-  $data = explode("\n",$agent_data['app']['mysql']);
-
-  $rrd_filename = "app-mysql-$app_id.rrd";
-
   $map = array();
-  foreach ($data as $str)
+  foreach (explode("\n",$agent_data['app']['mysql']) as $str)
   {
     list($key, $value) = explode(":", $str);
     $map[$key] = trim($value);
@@ -28,6 +24,7 @@ if (!empty($agent_data['app']['mysql']))
 
   // General Stats
   $mapping = array(
+    // DS => Agent field
     'IDBLBSe' => 'cr',
     'IBLFh' => 'ct',
     'IBLWn' => 'cu',
@@ -111,99 +108,18 @@ if (!empty($agent_data['app']['mysql']))
   );
 
   $values = array();
-  foreach ($mapping as $key)
+  foreach ($mapping as $key => $value)
   {
-    $values[] = isset($map[$key]) ? $map[$key] : -1;
+    $values[$key] = $map[$value];
   }
 
-  rrdtool_create($device, $rrd_filename, " \
-      DS:IDBLBSe:GAUGE:600:0:125000000000 \
-      DS:IBLFh:DERIVE:600:0:125000000000 \
-      DS:IBLWn:DERIVE:600:0:125000000000 \
-      DS:SRows:DERIVE:600:0:125000000000 \
-      DS:SRange:DERIVE:600:0:125000000000 \
-      DS:SMPs:DERIVE:600:0:125000000000 \
-      DS:SScan:DERIVE:600:0:125000000000 \
-      DS:IBIRd:DERIVE:600:0:125000000000 \
-      DS:IBIWr:DERIVE:600:0:125000000000 \
-      DS:IBILg:DERIVE:600:0:125000000000 \
-      DS:IBIFSc:DERIVE:600:0:125000000000 \
-      DS:IDBRDd:DERIVE:600:0:125000000000 \
-      DS:IDBRId:DERIVE:600:0:125000000000 \
-      DS:IDBRRd:DERIVE:600:0:125000000000 \
-      DS:IDBRUd:DERIVE:600:0:125000000000 \
-      DS:IBRd:DERIVE:600:0:125000000000 \
-      DS:IBCd:DERIVE:600:0:125000000000 \
-      DS:IBWr:DERIVE:600:0:125000000000 \
-      DS:TLIe:DERIVE:600:0:125000000000 \
-      DS:TLWd:DERIVE:600:0:125000000000 \
-      DS:IBPse:GAUGE:600:0:125000000000 \
-      DS:IBPDBp:GAUGE:600:0:125000000000 \
-      DS:IBPFe:GAUGE:600:0:125000000000 \
-      DS:IBPMps:GAUGE:600:0:125000000000 \
-      DS:TOC:GAUGE:600:0:125000000000 \
-      DS:OFs:GAUGE:600:0:125000000000 \
-      DS:OTs:GAUGE:600:0:125000000000 \
-      DS:OdTs:COUNTER:600:0:125000000000 \
-      DS:IBSRs:DERIVE:600:0:125000000000 \
-      DS:IBSWs:DERIVE:600:0:125000000000 \
-      DS:IBOWs:DERIVE:600:0:125000000000 \
-      DS:QCs:GAUGE:600:0:125000000000 \
-      DS:QCeFy:GAUGE:600:0:125000000000 \
-      DS:MaCs:GAUGE:600:0:125000000000 \
-      DS:MUCs:GAUGE:600:0:125000000000 \
-      DS:ACs:DERIVE:600:0:125000000000 \
-      DS:AdCs:DERIVE:600:0:125000000000 \
-      DS:TCd:GAUGE:600:0:125000000000 \
-      DS:Cs:DERIVE:600:0:125000000000 \
-      DS:IBTNx:DERIVE:600:0:125000000000 \
-      DS:KRRs:DERIVE:600:0:125000000000 \
-      DS:KRs:DERIVE:600:0:125000000000 \
-      DS:KWR:DERIVE:600:0:125000000000 \
-      DS:KWs:DERIVE:600:0:125000000000 \
-      DS:QCQICe:DERIVE:600:0:125000000000 \
-      DS:QCHs:DERIVE:600:0:125000000000 \
-      DS:QCIs:DERIVE:600:0:125000000000 \
-      DS:QCNCd:DERIVE:600:0:125000000000 \
-      DS:QCLMPs:DERIVE:600:0:125000000000 \
-      DS:CTMPDTs:DERIVE:600:0:125000000000 \
-      DS:CTMPTs:DERIVE:600:0:125000000000 \
-      DS:CTMPFs:DERIVE:600:0:125000000000 \
-      DS:IBIIs:DERIVE:600:0:125000000000 \
-      DS:IBIMRd:DERIVE:600:0:125000000000 \
-      DS:IBIMs:DERIVE:600:0:125000000000 \
-      DS:IBILog:DERIVE:602:0:125000000000 \
-      DS:IBISc:DERIVE:602:0:125000000000 \
-      DS:IBIFLg:DERIVE:600:0:125000000000 \
-      DS:IBFBl:DERIVE:600:0:125000000000 \
-      DS:IBIIAo:DERIVE:600:0:125000000000 \
-      DS:IBIAd:DERIVE:600:0:125000000000 \
-      DS:IBIAe:DERIVE:600:0:125000000000 \
-      DS:SFJn:DERIVE:600:0:125000000000 \
-      DS:SFRJn:DERIVE:600:0:125000000000 \
-      DS:SRe:DERIVE:600:0:125000000000 \
-      DS:SRCk:DERIVE:600:0:125000000000 \
-      DS:SSn:DERIVE:600:0:125000000000 \
-      DS:SQs:DERIVE:600:0:125000000000 \
-      DS:BRd:DERIVE:600:0:125000000000 \
-      DS:BSt:DERIVE:600:0:125000000000 \
-      DS:CDe:DERIVE:600:0:125000000000 \
-      DS:CIt:DERIVE:600:0:125000000000 \
-      DS:CISt:DERIVE:600:0:125000000000 \
-      DS:CLd:DERIVE:600:0:125000000000 \
-      DS:CRe:DERIVE:600:0:125000000000 \
-      DS:CRSt:DERIVE:600:0:125000000000 \
-      DS:CSt:DERIVE:600:0:125000000000 \
-      DS:CUe:DERIVE:600:0:125000000000 \
-      DS:CUMi:DERIVE:600:0:125000000000 ");
-
-  rrdtool_update($device, $rrd_filename, "N:" . implode(':', $values));
+  rrdtool_update_ng($device, 'mysql', $values, $app_id);
 
   // Process state statistics
 
-  $mysql_status_rrd = "app-mysql-$app_id-status.rrd";
-
+  // Derr, not sure what the key part of the array is for, apart from some documentation, as d* is passed from agent into RRD.
   $mapping_status = array(
+    // Something something => RRD DS & Agent field
     'State_closing_tables'       => 'd2',
     'State_copying_to_tmp_table' => 'd3',
     'State_end'                  => 'd4',
@@ -219,18 +135,18 @@ if (!empty($agent_data['app']['mysql']))
     'State_updating'             => 'de',
     'State_writing_to_net'       => 'df',
     'State_none'                 => 'dg',
-    'State_other'                => 'dh'
+    'State_other'                => 'dh',
   );
 
-  $values = array(); $rrd_create = "";
-  foreach ($mapping_status as $desc => $id)
+  $valuesb = array();
+  foreach ($mapping_status as $key => $value)
   {
-    $values[] = (isset($map[$id]) ? $map[$id] : -1);
-    $rrd_create .= " DS:".$id.":GAUGE:600:0:125000000000";
+    $valuesb[$value] = $map[$value];
   }
 
-  rrdtool_create($device, $mysql_status_rrd, " ".$rrd_create." ");
-  rrdtool_update($device, $mysql_status_rrd, "N:" . implode(':', $values));
+  update_application($app_id, array_merge($values, $valuesb));
+
+  rrdtool_update_ng($device, 'mysql-status', $valuesb, $app_id);
 }
 
 // EOF

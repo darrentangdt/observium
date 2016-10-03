@@ -1,10 +1,11 @@
+
 CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 
 	  -- SUBTREE: 1.3.6.1.4.1.2620.1
 	  -- iso.org.dod.internet.private.enterprises.checkpoint.products
 
           IMPORTS
-                  MODULE-IDENTITY, OBJECT-TYPE, Integer32, Unsigned32, IpAddress, NOTIFICATION-TYPE, enterprises
+                  MODULE-IDENTITY, OBJECT-TYPE, Integer32, Unsigned32, IpAddress, Counter32, NOTIFICATION-TYPE, enterprises
                       	FROM SNMPv2-SMI
                   OBJECT-GROUP
                       	FROM SNMPv2-CONF    
@@ -36,7 +37,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	dtps            OBJECT IDENTIFIER ::= { products 9 }
 	ls              OBJECT IDENTIFIER ::= { products 11 }
 	vsx             OBJECT IDENTIFIER ::= { products 16 }
-	smartDefense    OBJECT IDENTIFIER ::= { products 17 }
+	smartDefense    OBJECT IDENTIFIER ::= { products 17 }	
 	avi 			OBJECT IDENTIFIER ::= { products 24 } 	
 	eventiaAnalyzer	OBJECT IDENTIFIER ::= { products 25 } 
 	uf    			OBJECT IDENTIFIER ::= { products 29 }
@@ -52,7 +53,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	sxl				OBJECT IDENTIFIER ::= { products 36 } 	 
 
 	vsxVsSupported OBJECT-TYPE
-              SYNTAX  Integer32
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION
@@ -60,7 +61,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
               ::= {vsx 11 }
 
 	vsxVsConfigured OBJECT-TYPE
-              SYNTAX  Integer32
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION
@@ -68,7 +69,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
               ::= {vsx 12 }
 
 	vsxVsInstalled OBJECT-TYPE
-              SYNTAX  Integer32
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION
@@ -97,9 +98,9 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
      VsxStatusEntry ::=
               SEQUENCE {
                  vsxStatusVSId
-                      Unsigned32,
+                      Counter32,
                  vsxStatusVRId
-                      Unsigned32,
+                      Counter32,
                  vsxStatusVsName 
                       DisplayString,
                  vsxStatusVsType
@@ -115,11 +116,11 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
                  vsxStatusHAState
                       DisplayString,
                  vsxStatusVSWeight
-                      Integer32
+                      Counter32
               }
               
       vsxStatusVSId OBJECT-TYPE
-            SYNTAX  Unsigned32
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -127,7 +128,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { vsxStatusEntry 1 }
 
       vsxStatusVRId OBJECT-TYPE
-            SYNTAX  Unsigned32
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -191,7 +192,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { vsxStatusEntry 9 }
 
       vsxStatusVSWeight OBJECT-TYPE
-            SYNTAX  Integer32
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -220,61 +221,61 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
      VsxStatusCPUUsageEntry ::=
               SEQUENCE {
 				vsxStatusCPUUsage1sec
-                      INTEGER,
+                      Counter32,
 				vsxStatusCPUUsage10sec
-                      INTEGER,
+                      Counter32,
 				vsxStatusCPUUsage1min
-                      INTEGER,
+                      Counter32,
 				vsxStatusCPUUsage1hr
-                      INTEGER,
+                      Counter32,
 				vsxStatusCPUUsage24hr
-                      INTEGER,
+                      Counter32,
 				vsxStatusCPUUsageVSId
-                      Integer32
+                      Counter32
                       }
 
       vsxStatusCPUUsage1sec OBJECT-TYPE
-              SYNTAX  INTEGER (0..100)
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION
-                      "CPU usage (%) in the last 1 second, avaraged for all cores"
+                      "CPU usage (%) in the last 1 second, averaged for all cores"
               ::= { vsxStatusCPUUsageEntry 1 } 
 
       vsxStatusCPUUsage10sec OBJECT-TYPE
-              SYNTAX  INTEGER (0..100)
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION
-                      "CPU usage (%) in the last 10 seconds, avaraged for all cores"
+                      "CPU usage (%) in the last 10 seconds, averaged for all cores"
               ::= { vsxStatusCPUUsageEntry 2 } 
 
       vsxStatusCPUUsage1min OBJECT-TYPE
-              SYNTAX  INTEGER (0..100)
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION
-                      "CPU usage (%) in the last 1 minute, avaraged for all cores"
+                      "CPU usage (%) in the last 1 minute, averaged for all cores"
               ::= { vsxStatusCPUUsageEntry 3 } 
 
       vsxStatusCPUUsage1hr OBJECT-TYPE
-              SYNTAX  INTEGER (0..100)
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION
-                      "CPU usage (%) in the last 1 hour, avaraged for all cores"
+                      "CPU usage (%) in the last 1 hour, averaged for all cores"
               ::= { vsxStatusCPUUsageEntry 4 } 
 
       vsxStatusCPUUsage24hr OBJECT-TYPE
-              SYNTAX  INTEGER (0..100)
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION
-                      "CPU usage (%) in the last 24 hours, avaraged for all cores"
+                      "CPU usage (%) in the last 24 hours, averaged for all cores"
               ::= { vsxStatusCPUUsageEntry 5 } 
 
       vsxStatusCPUUsageVSId OBJECT-TYPE
-              SYNTAX  Integer32
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION
@@ -304,13 +305,13 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
      VsxCountersEntry ::=
               SEQUENCE {
                  vsxCountersVSId
-                      INTEGER,
+                      Counter32,
                  vsxCountersConnNum
-                      INTEGER,
+                      Counter32,
                  vsxCountersConnPeakNum
-                      INTEGER,
+                      Counter32,
                  vsxCountersConnTableLimit 
-                      INTEGER,
+                      Counter32,
                  vsxCountersPackets
                       DisplayString,
                  vsxCountersDroppedTotal
@@ -328,11 +329,11 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
                  vsxCountersLoggedTotal
                       DisplayString,
                  vsxCountersIsDataValid
-                      INTEGER
+                      Counter32
               }
               
       vsxCountersVSId OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -340,7 +341,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { vsxCountersEntry 1 }   
 
       vsxCountersConnNum OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -348,7 +349,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { vsxCountersEntry 2 }   
             
       vsxCountersConnPeakNum OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -356,7 +357,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { vsxCountersEntry 3 } 
 
       vsxCountersConnTableLimit OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -428,14 +429,13 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { vsxCountersEntry 12 } 
 
       vsxCountersIsDataValid OBJECT-TYPE
-            SYNTAX  INTEGER {
-                       invalid(0),
-                       valid(1)
-                    }
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
-                    "Data validity indicator"
+                    "Data validity indicator 
+					 invalid(0)
+					 valid(1)"
             ::= { vsxCountersEntry 13 } 
 
 
@@ -916,7 +916,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
               ::= { fw 3 }
 
 	  fwAccepted OBJECT-TYPE
-              SYNTAX  INTEGER
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION
@@ -924,7 +924,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
               ::= { fw 4 }
 
 	  fwRejected OBJECT-TYPE
-              SYNTAX  INTEGER
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION
@@ -932,7 +932,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
               ::= { fw 5 }
 
 	  fwDropped OBJECT-TYPE
-              SYNTAX  INTEGER
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION
@@ -940,7 +940,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
               ::= { fw 6 }
 
 	  fwLogged OBJECT-TYPE
-              SYNTAX  INTEGER
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION
@@ -980,7 +980,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
               ::= { fw 11 }
 
 	  fwSICTrustState OBJECT-TYPE
-              SYNTAX  DisplayString (SIZE (0..255))
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION
@@ -1027,7 +1027,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
               ::= { fw 23 }
 
 	  fwKernelBuild OBJECT-TYPE
-              SYNTAX  INTEGER
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION
@@ -1050,7 +1050,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	  		          "Policy install time"
 	  		  ::= { fwPolicyStat 2 }
       fwNumConn OBJECT-TYPE
-	  		  SYNTAX  INTEGER
+	  		  SYNTAX  Counter32
 	  		  MAX-ACCESS read-only
 	  		  STATUS  current
 	  		  DESCRIPTION
@@ -1058,7 +1058,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	  		  ::= { fwPolicyStat 3 }
 	  		  
 	  fwPeakNumConn OBJECT-TYPE
-	  		  SYNTAX  INTEGER
+	  		  SYNTAX  Counter32
 	  		  MAX-ACCESS read-only
 	  		  STATUS  current
 	  		  DESCRIPTION
@@ -1073,7 +1073,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			   ::= { fwPolicyStat 5 }        
 
       fwConnTableLimit OBJECT-TYPE
-	  		  SYNTAX  INTEGER
+	  		  SYNTAX  Counter32
 	  		  MAX-ACCESS read-only
 	  		  STATUS  current
 	  		  DESCRIPTION
@@ -1092,33 +1092,33 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
       FwIfEntry ::=
               SEQUENCE {
                  fwIfIndex
-                      Unsigned32,
+                      Counter32,
                  fwIfName
                       DisplayString,
                  fwAcceptPcktsIn
-                      INTEGER,
+                      Counter32,
                  fwAcceptPcktsOut 
-                      INTEGER,
+                      Counter32,
                  fwAcceptBytesIn
-                      INTEGER,
+                      Counter32,
                  fwAcceptBytesOut
-                      INTEGER,
+                      Counter32,
                  fwDropPcktsIn
-				      INTEGER,
+                      Counter32,
      		     fwDropPcktsOut
-     		          INTEGER,
+                      Counter32,
                  fwRejectPcktsIn
-				      INTEGER,  
+                      Counter32,
 				 fwRejectPcktsOut
-				      INTEGER,
+                      Counter32,
 				 fwLogIn
-				      INTEGER,
+                      Counter32,
 				 fwLogOut
-                      INTEGER
+                      Counter32
               }
               
       fwIfIndex OBJECT-TYPE
-            SYNTAX  Unsigned32
+            SYNTAX Counter32 
             MAX-ACCESS read-only
             STATUS  current      
             DESCRIPTION ""
@@ -1132,28 +1132,28 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwIfEntry 2 } 
             
       fwAcceptPcktsIn OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION ""
             ::= { fwIfEntry 5 }   
             
       fwAcceptPcktsOut OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION ""
             ::= { fwIfEntry 6 } 
 
 	  fwAcceptBytesIn OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION ""
             ::= { fwIfEntry 7 } 
 
 	  fwAcceptBytesOut OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION ""
@@ -1161,14 +1161,14 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 
 
       fwDropPcktsIn OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION ""
             ::= { fwIfEntry 9 } 
           
       fwDropPcktsOut OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION ""
@@ -1176,28 +1176,28 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 
 
       fwRejectPcktsIn OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION ""
             ::= { fwIfEntry 11 }   
             
       fwRejectPcktsOut OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION ""
             ::= { fwIfEntry 12 } 
             
       fwLogIn OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION ""
             ::= { fwIfEntry 13 } 
             
       fwLogOut OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION ""
@@ -1237,7 +1237,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 
 	  
 	  fwHmem-block-size	 OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1245,7 +1245,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 1 } 
 
 	  fwHmem-requested-bytes  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1253,7 +1253,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 2 } 
 
 	  fwHmem-initial-allocated-bytes  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1261,7 +1261,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 3 } 
 
 	  fwHmem-initial-allocated-blocks OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1269,7 +1269,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 4 } 
 
 	  fwHmem-initial-allocated-pools  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1277,7 +1277,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 5 } 
 
 	  fwHmem-current-allocated-bytes OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1285,7 +1285,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 6 } 
 
 	  fwHmem-current-allocated-blocks OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1293,7 +1293,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 7 } 
 
 	  fwHmem-current-allocated-pools  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1301,7 +1301,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 8 } 
 
 	  fwHmem-maximum-bytes  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1309,7 +1309,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 9 } 
 		
 	  fwHmem-maximum-pools  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1317,7 +1317,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 10 } 
 		
 	  fwHmem-bytes-used  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1325,7 +1325,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 11 } 
 		
 	  fwHmem-blocks-used  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1333,7 +1333,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 12 } 
 		
 	  fwHmem-bytes-unused  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1341,7 +1341,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 13 } 
 		
 	  fwHmem-blocks-unused  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1349,7 +1349,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 14 } 
 		
 	  fwHmem-bytes-peak  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1357,7 +1357,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 15 } 
 		
 	  fwHmem-blocks-peak  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1365,7 +1365,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 16 } 
 		
 	  fwHmem-bytes-internal-use  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1373,7 +1373,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 17 } 
 
 	  fwHmem-number-of-items  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1381,7 +1381,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 18 } 
 	
 	  fwHmem-alloc-operations OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1389,7 +1389,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 19 } 
 	
 	  fwHmem-free-operations OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1397,7 +1397,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 20 } 
 	
 	  fwHmem-failed-alloc  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1405,7 +1405,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem 21 } 
 		
 	  fwHmem-failed-free  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1414,7 +1414,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 		
 		
 	  fwKmem-system-physical-mem  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1422,7 +1422,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwKmem 1 } 
 
 	  fwKmem-available-physical-mem  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1430,7 +1430,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwKmem 2 } 
 
 	  fwKmem-aix-heap-size  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1438,7 +1438,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwKmem 3 } 
 
 	  fwKmem-bytes-used  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1446,7 +1446,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwKmem 4 } 
 	
 	  fwKmem-blocking-bytes-used  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1454,7 +1454,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwKmem 5 } 
 
 	  fwKmem-non-blocking-bytes-used  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1462,7 +1462,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwKmem 6 } 
 
 	  fwKmem-bytes-unused  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1470,7 +1470,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwKmem 7 } 
 
 	  fwKmem-bytes-peak  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1478,7 +1478,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwKmem 8 } 
 
 	  fwKmem-blocking-bytes-peak  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1486,7 +1486,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwKmem 9 } 
 
 	  fwKmem-non-blocking-bytes-peak  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1494,7 +1494,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwKmem 10 } 
 
 	  fwKmem-bytes-internal-use  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1502,7 +1502,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwKmem 11 } 
 
 	  fwKmem-number-of-items  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1510,7 +1510,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwKmem 12 } 
 
 	  fwKmem-alloc-operations  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1518,7 +1518,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwKmem 13 } 
 
 	  fwKmem-free-operations  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1526,7 +1526,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwKmem 14 } 
 
 	  fwKmem-failed-alloc  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1534,7 +1534,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwKmem 15 } 
 
 	  fwKmem-failed-free  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1542,7 +1542,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwKmem 16 } 
 
 	  fwInspect-packets  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1550,7 +1550,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwInspect 1 } 
 
 	  fwInspect-operations  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1558,7 +1558,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwInspect 2 } 
 
 	  fwInspect-lookups  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1566,7 +1566,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwInspect 3 } 
 
 	  fwInspect-record  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1574,7 +1574,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwInspect 4 } 
 
 	  fwInspect-extract  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1582,7 +1582,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwInspect 5 } 
             
       fwCookies-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1590,7 +1590,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwCookies 1 } 
             
 	  fwCookies-allocfwCookies-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1598,7 +1598,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwCookies 2 } 
 
 	  fwCookies-freefwCookies-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1606,7 +1606,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwCookies 3 } 
 
 	  fwCookies-dupfwCookies-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1614,7 +1614,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwCookies 4 } 
 
 	  fwCookies-getfwCookies-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1622,7 +1622,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwCookies 5 } 
 
 	  fwCookies-putfwCookies-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1630,7 +1630,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwCookies 6 } 
 
 	  fwCookies-lenfwCookies-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1638,7 +1638,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwCookies 7 } 
 
 	  fwChains-alloc  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1646,7 +1646,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwChains 1 }
             
       fwChains-free  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1654,7 +1654,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwChains 2 } 
             
       fwFrag-fragments  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1662,7 +1662,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwFragments 1 }   
             
       fwFrag-expired  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1670,7 +1670,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwFragments 2 }   
             
       fwFrag-packets  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1678,7 +1678,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwFragments 3 }  
 
       fwUfpHitRatio  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1686,7 +1686,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwUfp 1 }   
 
       fwUfpInspected  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1694,7 +1694,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwUfp 2 }   
 
       fwUfpHits  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1702,7 +1702,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwUfp 3 }   
 
       fwSS-http-pid  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1710,7 +1710,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 1 }   
 
       fwSS-http-proto  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1734,7 +1734,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 4 }   
 
       fwSS-http-max-avail-socket  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1742,7 +1742,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 5 }   
 
       fwSS-http-socket-in-use-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1750,7 +1750,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 6 }   
 
       fwSS-http-socket-in-use-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1758,7 +1758,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 7 }   
 
       fwSS-http-socket-in-use-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1766,7 +1766,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 8 }   
 
       fwSS-http-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1774,7 +1774,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 9 }   
 
       fwSS-http-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1782,7 +1782,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 10 }   
 
       fwSS-http-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1790,7 +1790,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 11 }   
 
       fwSS-http-auth-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1798,7 +1798,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 12 }   
 
       fwSS-http-auth-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1806,7 +1806,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 13 }   
 
       fwSS-http-auth-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1814,7 +1814,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 14 }   
 
       fwSS-http-accepted-sess  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1822,7 +1822,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 15 }   
 
       fwSS-http-rejected-sess  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1830,7 +1830,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 16 }   
 
       fwSS-http-auth-failures  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1838,7 +1838,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 17 }   
 
       fwSS-http-ops-cvp-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1846,7 +1846,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 18 }   
 
       fwSS-http-ops-cvp-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1854,7 +1854,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 19 }   
 
       fwSS-http-ops-cvp-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1862,7 +1862,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 20 }   
 
       fwSS-http-ops-cvp-rej-sess  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1870,7 +1870,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 21 }   
 
       fwSS-http-ssl-encryp-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1878,7 +1878,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 22 }   
 
       fwSS-http-ssl-encryp-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1886,7 +1886,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 23 }   
 
       fwSS-http-ssl-encryp-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1894,7 +1894,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 24 }   
 
       fwSS-http-transp-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1902,7 +1902,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 25 }   
 
       fwSS-http-transp-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1910,7 +1910,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 26 }   
 
       fwSS-http-transp-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1918,7 +1918,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 27 }   
 
       fwSS-http-proxied-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1926,7 +1926,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 28 }   
 
       fwSS-http-proxied-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1934,7 +1934,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 29 }   
 
       fwSS-http-proxied-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1942,7 +1942,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 30 }   
 
       fwSS-http-tunneled-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1950,7 +1950,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 31 }   
 
       fwSS-http-tunneled-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1958,7 +1958,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 32 }   
 
       fwSS-http-tunneled-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1966,7 +1966,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 33 }   
 
       fwSS-http-ftp-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1974,7 +1974,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 34 }   
 
       fwSS-http-ftp-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1982,7 +1982,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 35 }   
 
       fwSS-http-ftp-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -1998,7 +1998,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 37 }   
 
       fwSS-http-is-alive  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2006,7 +2006,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 38 }   
                                  
       fwSS-http-blocked-cnt  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2014,7 +2014,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 39 }  	 
 
       fwSS-http-blocked-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2022,7 +2022,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 40 }  	 
 
       fwSS-http-scanned-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2030,7 +2030,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 41 }  	 
 
       fwSS-http-blocked-by-file-type  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2038,7 +2038,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 42 }  	 
 
       fwSS-http-blocked-by-size-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2046,7 +2046,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 43 }  	 
 
       fwSS-http-blocked-by-archive-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2054,7 +2054,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 44 }  	 
             
       fwSS-http-blocked-by-internal-error  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2063,7 +2063,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	  		        
 
       fwSS-http-passed-cnt  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2071,7 +2071,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 46 }  	 
             
       fwSS-http-passed-by-file-type  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2080,7 +2080,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 47 }  	 
           
       fwSS-http-passed-by-size-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2089,7 +2089,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 48 }  	 
 
       fwSS-http-passed-by-archive-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2098,7 +2098,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 49 }  	 
 
       fwSS-http-passed-by-internal-error  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2107,7 +2107,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 50 }  	 
 
       fwSS-http-passed-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2115,7 +2115,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 51 }  	 
 
       fwSS-http-blocked-by-AV-settings  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2126,7 +2126,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 52 }  
             	 
       fwSS-http-passed-by-AV-settings  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2137,7 +2137,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 53 }  	 
 
       fwSS-http-blocked-by-URL-filter-category  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2145,7 +2145,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 54 }  	 
 
       fwSS-http-blocked-by-URL-block-list  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2154,7 +2154,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 55 }  	 
 
       fwSS-http-passed-by-URL-allow-list  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2163,7 +2163,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 56 }  	 
                                          
       fwSS-http-passed-by-URL-filter-category  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2171,7 +2171,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-http 57 }                                             
                                  
       fwSS-ftp-pid  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2179,7 +2179,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 1 }   
 
       fwSS-ftp-proto  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2203,7 +2203,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 4 }   
 
       fwSS-ftp-max-avail-socket  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2211,7 +2211,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 5 }   
 
       fwSS-ftp-socket-in-use-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2219,7 +2219,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 6 }   
 
       fwSS-ftp-socket-in-use-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2227,7 +2227,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 7 }   
 
       fwSS-ftp-socket-in-use-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2235,7 +2235,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 8 }   
 
       fwSS-ftp-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2243,7 +2243,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 9 }   
 
       fwSS-ftp-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2251,7 +2251,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 10 }   
 
       fwSS-ftp-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2259,7 +2259,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 11 }   
 
       fwSS-ftp-auth-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2267,7 +2267,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 12 }   
 
       fwSS-ftp-auth-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2275,7 +2275,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 13 }   
 
       fwSS-ftp-auth-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2283,7 +2283,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 14 }   
 
       fwSS-ftp-accepted-sess  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2291,7 +2291,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 15 }   
 
       fwSS-ftp-rejected-sess  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2299,7 +2299,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 16 }   
 
       fwSS-ftp-auth-failures  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2307,7 +2307,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 17 }   
 
       fwSS-ftp-ops-cvp-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2315,7 +2315,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 18 }   
 
       fwSS-ftp-ops-cvp-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2323,7 +2323,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 19 }   
 
       fwSS-ftp-ops-cvp-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2331,7 +2331,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 20 }   
 
       fwSS-ftp-ops-cvp-rej-sess  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2347,7 +2347,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 22 }   
 
       fwSS-ftp-is-alive  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2355,7 +2355,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 23 }   
 
       fwSS-ftp-blocked-cnt  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2363,7 +2363,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 24 }  	 
 
       fwSS-ftp-blocked-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2371,7 +2371,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 25 }  	 
 
       fwSS-ftp-scanned-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2379,7 +2379,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 26 }  	 
 
       fwSS-ftp-blocked-by-file-type  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2387,7 +2387,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 27 }  	 
 
       fwSS-ftp-blocked-by-size-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2395,7 +2395,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 28 }  	 
 
       fwSS-ftp-blocked-by-archive-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2403,7 +2403,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 29 }  	 
             
       fwSS-ftp-blocked-by-internal-error  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2412,7 +2412,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	  		        
 
       fwSS-ftp-passed-cnt  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2420,7 +2420,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 31 }  	 
             
       fwSS-ftp-passed-by-file-type  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2429,7 +2429,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 32 }  	 
           
       fwSS-ftp-passed-by-size-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2438,7 +2438,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 33 }  	 
 
       fwSS-ftp-passed-by-archive-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2447,7 +2447,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 34 }  	 
 
       fwSS-ftp-passed-by-internal-error  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2456,7 +2456,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 35 }  	 
 
       fwSS-ftp-passed-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2464,7 +2464,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 36 }  	 
 
       fwSS-ftp-blocked-by-AV-settings  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2475,7 +2475,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 37 }  
             	 
       fwSS-ftp-passed-by-AV-settings  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2486,7 +2486,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ftp 38 }  	                                         
                                         
       fwSS-telnet-pid  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2494,7 +2494,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-telnet 1 }   
 
       fwSS-telnet-proto  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2518,7 +2518,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-telnet 4 }   
 
       fwSS-telnet-max-avail-socket  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2526,7 +2526,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-telnet 5 }   
 
       fwSS-telnet-socket-in-use-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2534,7 +2534,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-telnet 6 }   
 
       fwSS-telnet-socket-in-use-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2542,7 +2542,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-telnet 7 }   
 
       fwSS-telnet-socket-in-use-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2550,7 +2550,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-telnet 8 }   
 
       fwSS-telnet-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2558,7 +2558,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-telnet 9 }   
 
       fwSS-telnet-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2566,7 +2566,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-telnet 10 }   
 
       fwSS-telnet-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2574,7 +2574,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-telnet 11 }   
 
       fwSS-telnet-auth-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2582,7 +2582,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-telnet 12 }   
 
       fwSS-telnet-auth-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2590,7 +2590,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-telnet 13 }   
 
       fwSS-telnet-auth-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2598,7 +2598,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-telnet 14 }   
 
       fwSS-telnet-accepted-sess  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2606,7 +2606,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-telnet 15 }   
 
       fwSS-telnet-rejected-sess  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2614,7 +2614,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-telnet 16 }   
 
       fwSS-telnet-auth-failures  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2630,7 +2630,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-telnet 18 }   
 
       fwSS-telnet-is-alive  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2638,7 +2638,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-telnet 19 }   
 
       fwSS-rlogin-pid  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2646,7 +2646,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-rlogin 1 }   
 
       fwSS-rlogin-proto  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2670,7 +2670,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-rlogin 4 }   
 
       fwSS-rlogin-max-avail-socket  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2678,7 +2678,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-rlogin 5 }   
 
       fwSS-rlogin-socket-in-use-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2686,7 +2686,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-rlogin 6 }   
 
       fwSS-rlogin-socket-in-use-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2694,7 +2694,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-rlogin 7 }   
 
       fwSS-rlogin-socket-in-use-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2702,7 +2702,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-rlogin 8 }   
 
       fwSS-rlogin-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2710,7 +2710,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-rlogin 9 }   
 
       fwSS-rlogin-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2718,7 +2718,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-rlogin 10 }   
 
       fwSS-rlogin-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2726,7 +2726,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-rlogin 11 }   
 
       fwSS-rlogin-auth-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2734,7 +2734,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-rlogin 12 }   
 
       fwSS-rlogin-auth-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2742,7 +2742,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-rlogin 13 }   
 
       fwSS-rlogin-auth-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2750,7 +2750,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-rlogin 14 }   
 
       fwSS-rlogin-accepted-sess  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2758,7 +2758,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-rlogin 15 }   
 
       fwSS-rlogin-rejected-sess  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2766,7 +2766,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-rlogin 16 }   
 
       fwSS-rlogin-auth-failures  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2782,7 +2782,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-rlogin 18 }   
 
       fwSS-rlogin-is-alive  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2790,7 +2790,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-rlogin 19 }   
 
       fwSS-ufp-ops-ufp-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2798,7 +2798,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ufp 1 }   
 
       fwSS-ufp-ops-ufp-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2806,7 +2806,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ufp 2 }   
 
       fwSS-ufp-ops-ufp-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2814,7 +2814,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ufp 3 }  
             
       fwSS-ufp-ops-ufp-rej-sess  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2830,7 +2830,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ufp 5 }   
 
       fwSS-ufp-is-alive  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2838,7 +2838,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-ufp 6 }   
 
       fwSS-smtp-pid  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2846,7 +2846,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 1 }   
 
       fwSS-smtp-proto  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2870,7 +2870,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 4 }   
 
       fwSS-smtp-max-avail-socket  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2878,7 +2878,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 5 }   
 
       fwSS-smtp-socket-in-use-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2886,7 +2886,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 6 }   
 
       fwSS-smtp-socket-in-use-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2894,7 +2894,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 7 }   
 
       fwSS-smtp-socket-in-use-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2902,7 +2902,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 8 }   
 
       fwSS-smtp-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2910,7 +2910,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 9 }   
 
       fwSS-smtp-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2918,7 +2918,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 10 }   
 
       fwSS-smtp-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2926,7 +2926,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 11 }   
 
       fwSS-smtp-auth-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2934,7 +2934,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 12 }   
 
       fwSS-smtp-auth-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2942,7 +2942,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 13 }   
 
       fwSS-smtp-auth-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2950,7 +2950,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 14 }   
 
       fwSS-smtp-accepted-sess  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2958,7 +2958,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 15 }   
 
       fwSS-smtp-rejected-sess  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2966,7 +2966,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 16 }   
 
       fwSS-smtp-auth-failures  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2974,7 +2974,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 17 }   
 
       fwSS-smtp-mail-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2982,7 +2982,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 18 }   
 
       fwSS-smtp-mail-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2990,7 +2990,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 19 }   
 
       fwSS-smtp-mail-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -2998,7 +2998,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 20 }   
 
       fwSS-smtp-outgoing-mail-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3006,7 +3006,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 21 }   
 
       fwSS-smtp-outgoing-mail-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3014,7 +3014,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 22 }   
 
       fwSS-smtp-outgoing-mail-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3022,7 +3022,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 23 }   
 
       fwSS-smtp-max-mail-on-conn  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3030,7 +3030,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 24 }   
 
       fwSS-smtp-total-mails  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3046,7 +3046,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 26 }   
 
       fwSS-smtp-is-alive  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3054,7 +3054,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 27 }   
 
       fwSS-smtp-blocked-cnt  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3062,7 +3062,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 28 }  	 
 
       fwSS-smtp-blocked-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3070,7 +3070,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 29 }  	 
 
       fwSS-smtp-scanned-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3078,7 +3078,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 30 }  	 
 
       fwSS-smtp-blocked-by-file-type  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3086,7 +3086,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 31 }  	 
 
       fwSS-smtp-blocked-by-size-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3094,7 +3094,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 32 }  	 
 
       fwSS-smtp-blocked-by-archive-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3102,7 +3102,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 33 }  	 
             
       fwSS-smtp-blocked-by-internal-error  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3111,7 +3111,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	  		        
 
       fwSS-smtp-passed-cnt  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3119,7 +3119,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 35 }  	 
             
       fwSS-smtp-passed-by-file-type  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3128,7 +3128,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 36 }  	 
           
       fwSS-smtp-passed-by-size-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3137,7 +3137,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 37 }  	 
 
       fwSS-smtp-passed-by-archive-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3146,7 +3146,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 38 }  	 
 
       fwSS-smtp-passed-by-internal-error  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3155,7 +3155,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 39 }  	 
 
       fwSS-smtp-passed-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3163,7 +3163,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 40 }  	 
 
       fwSS-smtp-blocked-by-AV-settings  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3174,7 +3174,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-smtp 41 }  
             	 
       fwSS-smtp-passed-by-AV-settings  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3186,7 +3186,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 
 
       fwSS-POP3-pid  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3194,7 +3194,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 1 }   
 
       fwSS-POP3-proto  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3218,7 +3218,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 4 }   
 
       fwSS-POP3-max-avail-socket  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3226,7 +3226,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 5 }   
 
       fwSS-POP3-socket-in-use-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3234,7 +3234,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 6 }   
 
       fwSS-POP3-socket-in-use-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3242,7 +3242,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 7 }   
 
       fwSS-POP3-socket-in-use-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3250,7 +3250,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 8 }   
 
       fwSS-POP3-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3258,7 +3258,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 9 }   
 
       fwSS-POP3-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3266,7 +3266,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 10 }   
 
       fwSS-POP3-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3274,7 +3274,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 11 }   
 
       fwSS-POP3-auth-sess-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3282,7 +3282,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 12 }   
 
       fwSS-POP3-auth-sess-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3290,7 +3290,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 13 }   
 
       fwSS-POP3-auth-sess-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3298,7 +3298,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 14 }   
 
       fwSS-POP3-accepted-sess  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3306,7 +3306,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 15 }   
 
       fwSS-POP3-rejected-sess  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3314,7 +3314,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 16 }   
 
       fwSS-POP3-auth-failures  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3322,7 +3322,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 17 }   
 
       fwSS-POP3-mail-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3330,7 +3330,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 18 }   
 
       fwSS-POP3-mail-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3338,7 +3338,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 19 }   
 
       fwSS-POP3-mail-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3346,7 +3346,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 20 }   
 
       fwSS-POP3-outgoing-mail-max  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3354,7 +3354,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 21 }   
 
       fwSS-POP3-outgoing-mail-curr  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3362,7 +3362,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 22 }   
 
       fwSS-POP3-outgoing-mail-count  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3370,7 +3370,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 23 }   
 
       fwSS-POP3-max-mail-on-conn  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3378,7 +3378,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 24 }   
 
       fwSS-POP3-total-mails  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3394,7 +3394,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 26 }   
 
       fwSS-POP3-is-alive  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3402,7 +3402,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 27 }                                 
 
       fwSS-POP3-blocked-cnt  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3410,7 +3410,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 28 }  	 
 
       fwSS-POP3-blocked-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3418,7 +3418,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 29 }  	 
 
       fwSS-POP3-scanned-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3426,7 +3426,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 30 }  	 
 
       fwSS-POP3-blocked-by-file-type  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3434,7 +3434,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 31 }  	 
 
       fwSS-POP3-blocked-by-size-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3442,7 +3442,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 32 }  	 
 
       fwSS-POP3-blocked-by-archive-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3450,7 +3450,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 33 }  	 
             
       fwSS-POP3-blocked-by-internal-error  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3459,7 +3459,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	  		        
 
       fwSS-POP3-passed-cnt  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3467,7 +3467,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 35 }  	 
             
       fwSS-POP3-passed-by-file-type  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3476,7 +3476,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 36 }  	 
           
       fwSS-POP3-passed-by-size-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3485,7 +3485,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 37 }  	 
 
       fwSS-POP3-passed-by-archive-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3494,7 +3494,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 38 }  	 
 
       fwSS-POP3-passed-by-internal-error  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3503,7 +3503,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 39 }  	 
 
       fwSS-POP3-passed-total  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3511,7 +3511,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 40 }  	 
 
       fwSS-POP3-blocked-by-AV-settings  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3522,7 +3522,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 41 }  
             	 
       fwSS-POP3-passed-by-AV-settings  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3533,7 +3533,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-POP3 42 }  	                         
                         
       fwSS-total-blocked-by-av  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3541,7 +3541,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-av-total 1 }  	                         
       
       fwSS-total-blocked  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3549,7 +3549,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-av-total 2 }  	                         
       
       fwSS-total-scanned  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3557,7 +3557,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-av-total 3 }  	                         
       
       fwSS-total-blocked-by-file-type  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3565,7 +3565,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-av-total 4 }  	   
             
       fwSS-total-blocked-by-size-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3573,7 +3573,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-av-total 5 }  	
 
       fwSS-total-blocked-by-archive-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3581,7 +3581,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-av-total 6 }  	
             
       fwSS-total-blocked-by-interal-error  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3589,7 +3589,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-av-total 7 }  	
             
        fwSS-total-passed-by-av  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3597,7 +3597,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-av-total 8 }  	
             
       fwSS-total-passed-by-file-type  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3605,7 +3605,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-av-total 9 }  	   
             
       fwSS-total-passed-by-size-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3613,7 +3613,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-av-total 10 }  	
 
       fwSS-total-passed-by-archive-limit  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3621,7 +3621,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-av-total 11 }  	
             
       fwSS-total-passed-by-interal-error  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3629,7 +3629,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-av-total 12 }
               	                                                                                   
       fwSS-total-passed  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3637,7 +3637,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-av-total 13 }
             
 	  fwSS-total-blocked-by-av-settings  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3645,7 +3645,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-av-total 14 }  
             
       fwSS-total-passed-by-av-settings  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3653,7 +3653,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwSS-av-total 15 }                
                 
       fwConnectionsStatConnectionsTcp  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3661,7 +3661,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwConnectionsStat 1 }
 
       fwConnectionsStatConnectionsUdp  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3669,7 +3669,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwConnectionsStat 2 }
                 
       fwConnectionsStatConnectionsIcmp  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3677,7 +3677,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwConnectionsStat 3 }
 
       fwConnectionsStatConnectionsOther  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3685,7 +3685,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwConnectionsStat 4 }      
 
       fwConnectionsStatConnections  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3693,7 +3693,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwConnectionsStat 5 }   
 
       fwConnectionsStatConnectionRate  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3726,7 +3726,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem64 3 } 
 
 	  fwHmem64-initial-allocated-blocks OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3734,7 +3734,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem64 4 } 
 
 	  fwHmem64-initial-allocated-pools  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3750,7 +3750,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem64 6 } 
 
 	  fwHmem64-current-allocated-blocks OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3758,7 +3758,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem64 7 } 
 
 	  fwHmem64-current-allocated-pools  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3774,7 +3774,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem64 9 } 
 		
 	  fwHmem64-maximum-pools  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3790,7 +3790,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem64 11 } 
 		
 	  fwHmem64-blocks-used  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3806,7 +3806,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem64 13 } 
 		
 	  fwHmem64-blocks-unused  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3822,7 +3822,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem64 15 } 
 		
 	  fwHmem64-blocks-peak  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3830,7 +3830,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem64 16 } 
 		
 	  fwHmem64-bytes-internal-use  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3846,7 +3846,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem64 18 } 
 	
 	  fwHmem64-alloc-operations OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3854,7 +3854,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem64 19 } 
 	
 	  fwHmem64-free-operations OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3862,7 +3862,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem64 20 } 
 	
 	  fwHmem64-failed-alloc  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3870,7 +3870,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwHmem64 21 } 
 		
 	  fwHmem64-failed-free  OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3897,31 +3897,35 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
       FwNetIfEntry ::=
               SEQUENCE {                               
                  fwNetIfIndex
-                      Unsigned32,
+                      Counter32, 
                  fwNetIfName
                       DisplayString,
                  fwNetIfIPAddr
-					  INTEGER,
+					  IpAddress,
 				 fwNetIfNetmask
-					  INTEGER,
+					  IpAddress,
 	             fwNetIfFlags
-					  INTEGER,					  
+					  Counter32,					  
                  fwNetIfPeerName 
                       DisplayString,
                  fwNetIfRemoteIp
-                      INTEGER,
+                     IpAddress, 
 				 fwNetIfTopology
-                      INTEGER,     
+                      Counter32,     
 				 fwNetIfProxyName 
                       DisplayString,
 				 fwNetIfSlaves 
                       DisplayString,
                  fwNetIfPorts
-                 	  DisplayString
+                 	  DisplayString,
+		fwNetIfIPV6Addr 
+                      DisplayString,
+                 fwNetIfIPV6AddrLen
+                 	  Counter32					  
               }
               
       fwNetIfIndex OBJECT-TYPE
-            SYNTAX  Unsigned32
+            SYNTAX Counter32 
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION ""
@@ -3936,7 +3940,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwNetIfEntry 2 } 
             
       fwNetIfIPAddr OBJECT-TYPE
-            SYNTAX  INTEGER 
+            SYNTAX  IpAddress 
             MAX-ACCESS read-only
             STATUS  current 
             DESCRIPTION
@@ -3944,7 +3948,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwNetIfEntry 3 }   
             
       fwNetIfNetmask OBJECT-TYPE
-            SYNTAX  INTEGER 
+            SYNTAX  IpAddress 
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3952,7 +3956,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwNetIfEntry 4 } 
 
 	  fwNetIfFlags OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current 
             DESCRIPTION
@@ -3976,7 +3980,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 
 
       fwNetIfRemoteIp OBJECT-TYPE
-            SYNTAX  INTEGER     
+            SYNTAX  IpAddress
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -3984,7 +3988,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwNetIfEntry 7 } 
 
       fwNetIfTopology OBJECT-TYPE
-            SYNTAX  INTEGER
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION
@@ -4014,6 +4018,22 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             DESCRIPTION      
             		"Given an interface which is a port in a bridge, list all its siblings interfaces. The interfaces are separated by a single space."
             ::= { fwNetIfEntry 11 }     
+            
+      fwNetIfIPV6Addr OBJECT-TYPE
+            SYNTAX  DisplayString
+            MAX-ACCESS read-only
+            STATUS  current
+            DESCRIPTION
+                        " IPv6 Address given in an hexa format ."
+            ::= { fwNetIfEntry 12 }
+
+      fwNetIfIPV6AddrLen OBJECT-TYPE
+            SYNTAX  Counter32
+            MAX-ACCESS read-only
+            STATUS  current
+            DESCRIPTION
+                        "IPv6 Address length"
+            ::= { fwNetIfEntry 13 }
             
       fwLSConn    OBJECT IDENTIFIER ::= { fw 30 }
             
@@ -4054,7 +4074,23 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             STATUS  current
             DESCRIPTION
 	  		        "Writing logs localy, To log servers(0), Local configured (1) Local due to connectivity(2) Local due to high rate(3)"
-            ::= { fwLSConn 5 } 			
+            ::= { fwLSConn 5 } 	
+
+	  fwLocalLoggingWriteRate  OBJECT-TYPE
+            SYNTAX  Counter32
+            MAX-ACCESS read-only
+            STATUS  current
+            DESCRIPTION
+	  		        "Local Logging Writing Rate"
+            ::= { fwLSConn 6 } 
+
+	  fwLoggingHandlingRate  OBJECT-TYPE
+            SYNTAX  Counter32
+            MAX-ACCESS read-only
+            STATUS  current
+            DESCRIPTION
+	  		        "Total Logging Handling Rate (Local writing and Sending to Log Server)"
+            ::= { fwLSConn 7 } 			
 			   
 	  fwLSConnEntry OBJECT-TYPE
 	          SYNTAX  FwLSConnEntry
@@ -4067,17 +4103,19 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
       FwLSConnEntry ::=
               SEQUENCE {                               
                  fwLSConnIndex
-                      Unsigned32,
+                      Counter32,
                  fwLSConnName
                       DisplayString,
                  fwLSConnState
-					  INTEGER,
+					  Counter32,
 				 fwLSConnStateDesc
-					  DisplayString
+					  DisplayString,
+				fwLSConnSendRate
+                      Counter32
               }
               
       fwLSConnIndex OBJECT-TYPE
-            SYNTAX  Unsigned32
+            SYNTAX  Counter32
             MAX-ACCESS read-only
             STATUS  current
             DESCRIPTION ""
@@ -4092,7 +4130,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             ::= { fwLSConnEntry 2 } 
             
       fwLSConnState OBJECT-TYPE
-            SYNTAX  INTEGER 
+            SYNTAX  Counter32 
             MAX-ACCESS read-only
             STATUS  current 
             DESCRIPTION
@@ -4106,6 +4144,14 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
             DESCRIPTION
 	  		        "Description of connectivity state with the log server"
             ::= { fwLSConnEntry 4 }
+			
+      fwLSConnSendRate OBJECT-TYPE
+            SYNTAX  Counter32 
+            MAX-ACCESS read-only
+            STATUS  current
+            DESCRIPTION
+	  		        "Logs Sending Rate to the Log Server"
+            ::= { fwLSConnEntry 5 }
 
 	fwSXLGroup OBJECT IDENTIFIER ::= { sxl 1 }
 
@@ -4555,7 +4601,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	        ::= { cpvIpsecStatistics 20 }	
 	        
      cpvFwzEncapsEncPkts OBJECT-TYPE
-	        SYNTAX  INTEGER
+	        SYNTAX  DisplayString
 	        MAX-ACCESS read-only
 	        STATUS  current
 	        DESCRIPTION
@@ -4563,7 +4609,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	        ::= { cpvFwzStatistics 1 }
       
      cpvFwzEncapsDecPkts OBJECT-TYPE
-	        SYNTAX  INTEGER
+	        SYNTAX  DisplayString
 	        MAX-ACCESS read-only
 	        STATUS  current
 	        DESCRIPTION
@@ -4588,7 +4634,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	
 		
 	 cpvFwzEncapsEncErrs OBJECT-TYPE
-	        SYNTAX  INTEGER
+	        SYNTAX DisplayString 
 	        MAX-ACCESS read-only
 	        STATUS  current
 	        DESCRIPTION
@@ -4596,7 +4642,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	        ::= { cpvFwzErrors 1 }
 
      cpvFwzEncapsDecErrs OBJECT-TYPE
-	        SYNTAX  INTEGER
+	        SYNTAX  DisplayString
 	        MAX-ACCESS read-only
 	        STATUS  current
 	        DESCRIPTION
@@ -4636,7 +4682,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	        ::= { cpvHwAccelGeneral 2 }  
        
      cpvHwAccelDriverMajorVer OBJECT-TYPE
-	        SYNTAX  INTEGER
+	        SYNTAX  Counter32
 	        MAX-ACCESS read-only
 	        STATUS  current
 	        DESCRIPTION
@@ -4644,7 +4690,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	        ::= { cpvHwAccelGeneral 3 }  
 
      cpvHwAccelDriverMinorVer OBJECT-TYPE
-	        SYNTAX  INTEGER
+	        SYNTAX  Counter32
 	        MAX-ACCESS read-only
 	        STATUS  current
 	        DESCRIPTION
@@ -4839,7 +4885,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	        ::= { cpvIKEerrors 3 } 
 
      cpvIPsecNICsNum OBJECT-TYPE
-	        SYNTAX  INTEGER
+	        SYNTAX  Counter32
 	        MAX-ACCESS read-only
 	        STATUS  current
 	        DESCRIPTION
@@ -5309,7 +5355,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
       HaIfEntry ::=
       		SEQUENCE {
       			haIfIndex		
-		          	Unsigned32,
+		          	Counter32,
 		        haIfName
 		        	DisplayString,
 		        haIP
@@ -5317,7 +5363,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 		        haStatus
 		          	DisplayString,
 		        haVerified
-		          	INTEGER,
+		          	Counter32,
                 haTrusted
                   	INTEGER,
                 haShared
@@ -5325,7 +5371,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	         } 
 	         
 	 haIfIndex OBJECT-TYPE
-              SYNTAX  Unsigned32
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION ""
@@ -5353,7 +5399,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
               ::= { haIfEntry 4 }         
      
      haVerified OBJECT-TYPE
-              SYNTAX  INTEGER
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION ""
@@ -5392,7 +5438,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
       HaProblemEntry ::=
       		SEQUENCE {
       			haProblemIndex		
-		          	INTEGER,
+		          	Counter32,
 		        haProblemName
 		        	DisplayString,
 		        haProblemStatus
@@ -5400,13 +5446,13 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 		        haProblemPriority
 		          	INTEGER,
                 haProblemVerified
-                  	INTEGER,
+                  	Counter32,
                 haProblemDescr
          		  	DisplayString
 	         } 
 	         
 	 haProblemIndex OBJECT-TYPE
-              SYNTAX  INTEGER
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION ""
@@ -5434,7 +5480,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
               ::= { haProblemEntry 4 }         
                                  
      haProblemVerified OBJECT-TYPE
-              SYNTAX  INTEGER
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION ""
@@ -5464,16 +5510,16 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 
      HaClusterIpEntry ::=
       	      SEQUENCE {
-      	            haClusterIpIndex Unsigned32,
+      	            haClusterIpIndex Counter32,
 		    haClusterIpIfName DisplayString,
-		    haClusterIpAddr INTEGER,
-		    haClusterIpNetMask INTEGER,
-                    haClusterIpMemberNet INTEGER,
-                    haClusterIpMemberNetMask INTEGER
+      	            haClusterIpAddr IpAddress,
+      	            haClusterIpNetMask IpAddress,
+                    haClusterIpMemberNet IpAddress,
+                    haClusterIpMemberNetMask IpAddress
               } 
 
      haClusterIpIndex OBJECT-TYPE
-              SYNTAX  Unsigned32
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
 	      DESCRIPTION
@@ -5490,7 +5536,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 
      
      haClusterIpAddr OBJECT-TYPE
-              SYNTAX  INTEGER
+              SYNTAX  IpAddress
               MAX-ACCESS read-only
               STATUS  current
 	      DESCRIPTION
@@ -5498,7 +5544,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
               ::= { haClusterIpEntry 3 } 
      
      haClusterIpNetMask OBJECT-TYPE
-              SYNTAX  INTEGER
+              SYNTAX  IpAddress
               MAX-ACCESS read-only
               STATUS  current
 	      DESCRIPTION
@@ -5506,7 +5552,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
               ::= { haClusterIpEntry 4 } 
      
      haClusterIpMemberNet OBJECT-TYPE
-              SYNTAX  INTEGER
+              SYNTAX  IpAddress
               MAX-ACCESS read-only
               STATUS  current
 	      DESCRIPTION
@@ -5514,7 +5560,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
               ::= { haClusterIpEntry 5 } 
      
      haClusterIpMemberNetMask OBJECT-TYPE
-              SYNTAX  INTEGER
+              SYNTAX  IpAddress
               MAX-ACCESS read-only
               STATUS  current
 	      DESCRIPTION
@@ -5591,6 +5637,8 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	  svnMem64       OBJECT IDENTIFIER ::= { svnPerf 4 }
 	  svnRoutingModify OBJECT IDENTIFIER ::= { svn 9 }
           svnLogDaemon	 OBJECT IDENTIFIER ::= { svn 11 }
+		  
+	  svnUpdatesInfo OBJECT IDENTIFIER ::= { svn 20 }
 
      svnProdName OBJECT-TYPE
 	  		  SYNTAX  DisplayString (SIZE (0..255))
@@ -5616,6 +5664,162 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	        	   "Minor version"
 	        ::= { svn 3 }
 	        
+	 svnUpdatesInfoBuild OBJECT-TYPE
+	  		  SYNTAX  Counter32
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION
+					 "Deployment agent build number"
+			  ::= { svnUpdatesInfo 1 }
+			  
+	 svnUpdatesInfoStatus OBJECT-TYPE
+	  		  SYNTAX  DisplayString (SIZE (0..255))
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION
+					 "Deployment agent status"
+			  ::= { svnUpdatesInfo 2 }
+			
+	 svnUpdatesInfoConnection OBJECT-TYPE
+	  		  SYNTAX  DisplayString (SIZE (0..255))
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION
+					 "Cloud connection"
+			  ::= { svnUpdatesInfo 3 }
+			  
+	 svnUpdatesInfoAvailablePackages OBJECT-TYPE
+	  		  SYNTAX  Counter32
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION
+					 "Available packages count"
+			  ::= { svnUpdatesInfo 4 }
+			  
+	 svnUpdatesInfoAvailableRecommended OBJECT-TYPE
+	  		  SYNTAX  Counter32
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION
+					 "Available recommended packages count"
+			  ::= { svnUpdatesInfo 5 }
+			
+	 svnUpdatesInfoAvailableHotfixes OBJECT-TYPE
+	  		  SYNTAX  Counter32
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION
+					 "Available hotfixes count"
+			  ::= { svnUpdatesInfo 6 }
+			
+	
+	   updatesInstalledTable OBJECT-TYPE
+	          SYNTAX  SEQUENCE OF  UpdatesInstalledEntry
+			  MAX-ACCESS  not-accessible
+			  STATUS  current
+  			  DESCRIPTION "Installed updates table. This feature is supported only on gaia"
+			  ::= { svnUpdatesInfo 7 } 
+			  
+	  updatesInstalledEntry OBJECT-TYPE 
+	          SYNTAX UpdatesInstalledEntry
+			  MAX-ACCESS  not-accessible
+			  STATUS  current 
+			  DESCRIPTION ""
+			  INDEX   { updatesInstalledIndex }
+			  ::= { updatesInstalledTable 1 } 
+			  
+	  UpdatesInstalledEntry ::= 
+	          SEQUENCE {
+				updatesInstalledIndex 
+				      Unsigned32,
+				updatesInstalledName
+				      DisplayString,
+				updatesInstalledType      
+					  DisplayString
+			  } 
+	       
+	  updatesInstalledIndex OBJECT-TYPE
+	  		 SYNTAX  Unsigned32
+			 MAX-ACCESS read-only
+			 STATUS  current
+			 DESCRIPTION ""
+    	     ::= { updatesInstalledEntry 1 }     
+    	     
+	  updatesInstalledName OBJECT-TYPE
+	  		 SYNTAX  DisplayString (SIZE (0..255))
+			 MAX-ACCESS read-only
+			 STATUS  current
+			 DESCRIPTION
+	       	   "Installed package name"
+	       ::= { updatesInstalledEntry 2 }   
+	       
+	  updatesInstalledType OBJECT-TYPE
+	  		 SYNTAX  DisplayString (SIZE (0..255))
+			 MAX-ACCESS read-only
+			 STATUS  current
+			 DESCRIPTION
+	       	   "Installed package type"
+	       ::= { updatesInstalledEntry 3 } 
+	
+	updatesRecommendedTable OBJECT-TYPE
+	          SYNTAX  SEQUENCE OF  UpdatesRecommendedEntry
+			  MAX-ACCESS  not-accessible
+			  STATUS  current
+  			  DESCRIPTION "Recommended updates table. This feature is supported only on gaia"
+			  ::= { svnUpdatesInfo 8 } 
+			  
+	  updatesRecommendedEntry OBJECT-TYPE 
+	          SYNTAX UpdatesRecommendedEntry
+			  MAX-ACCESS  not-accessible
+			  STATUS  current 
+			  DESCRIPTION ""
+			  INDEX   { updatesRecommendedIndex }
+			  ::= { updatesRecommendedTable 1 } 
+			  
+	  UpdatesRecommendedEntry ::= 
+	          SEQUENCE {
+				updatesRecommendedIndex 
+				      Unsigned32,
+				updatesRecommendedName
+				      DisplayString,
+				updatesRecommendedType      
+					  DisplayString,
+				updatesRecommendedStatus
+					  DisplayString
+			  } 
+	       
+	  updatesRecommendedIndex OBJECT-TYPE
+	  		 SYNTAX  Unsigned32
+			 MAX-ACCESS read-only
+			 STATUS  current
+			 DESCRIPTION ""
+    	     ::= { updatesRecommendedEntry 1 }     
+    	     
+	  updatesRecommendedName OBJECT-TYPE
+	  		 SYNTAX  DisplayString (SIZE (0..255))
+			 MAX-ACCESS read-only
+			 STATUS  current
+			 DESCRIPTION
+	       	   "Recommended package name"
+	       ::= { updatesRecommendedEntry 2 }   
+	       
+	  updatesRecommendedType OBJECT-TYPE
+	  		 SYNTAX  DisplayString (SIZE (0..255))
+			 MAX-ACCESS read-only
+			 STATUS  current
+			 DESCRIPTION
+	       	   "Recommended package type"
+	       ::= { updatesRecommendedEntry 3 }
+
+	  updatesRecommendedStatus OBJECT-TYPE
+	  		 SYNTAX  DisplayString (SIZE (0..255))
+			 MAX-ACCESS read-only
+			 STATUS  current
+			 DESCRIPTION
+	       	   "Recommended package status"
+	       ::= { updatesRecommendedEntry 4 }		   
+			
+	
 	  svnVersion OBJECT-TYPE
 	  		  SYNTAX  DisplayString (SIZE (0..255))
 			  MAX-ACCESS read-only
@@ -5625,7 +5829,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			  ::= { svnInfo 1 }
 
 	  svnBuild OBJECT-TYPE
-	  		  SYNTAX  INTEGER
+	  		  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION
@@ -5712,8 +5916,16 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 					 "Appliance Product Name"
 			  ::= { svnApplianceInfo 7 }
 
+	  svnApplianceSeriesString OBJECT-TYPE
+	  		  SYNTAX  DisplayString (SIZE (0..255))
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION
+					 "Appliance Series String"
+			  ::= { svnApplianceInfo 10 }
+			  
 	  memTotalVirtual OBJECT-TYPE
-			  SYNTAX  INTEGER
+			  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION
@@ -5725,7 +5937,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			  ::= { svnMem 1 }
 
 	  memActiveVirtual OBJECT-TYPE
-			  SYNTAX  INTEGER
+			  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION
@@ -5737,7 +5949,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			  ::= { svnMem 2 }
 
 	  memTotalReal OBJECT-TYPE
-			  SYNTAX  INTEGER
+			  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION
@@ -5749,7 +5961,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			  ::= { svnMem 3 }
 
 	  memActiveReal OBJECT-TYPE
-			  SYNTAX  INTEGER
+			  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION
@@ -5761,7 +5973,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			  ::= { svnMem 4 }
 
 	  memFreeReal OBJECT-TYPE
-			  SYNTAX  INTEGER
+			  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION
@@ -5797,7 +6009,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			  ::= { svnMem 7 }
 
 	  procUsrTime OBJECT-TYPE
-			  SYNTAX  INTEGER
+			  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION
@@ -5805,7 +6017,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			  ::= { svnProc 1 }
 
 	  procSysTime OBJECT-TYPE
-			  SYNTAX  INTEGER
+			  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION
@@ -5813,7 +6025,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			  ::= { svnProc 2 }
 
 	  procIdleTime OBJECT-TYPE
-			  SYNTAX  INTEGER
+			  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION
@@ -5837,7 +6049,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			  ::= { svnProc 5 }
 
 	  procInterrupts OBJECT-TYPE
-			  SYNTAX  INTEGER
+			  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION
@@ -5845,7 +6057,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			  ::= { svnProc 6 }
 
 	  procNum OBJECT-TYPE
-			  SYNTAX  INTEGER
+			  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION
@@ -5973,45 +6185,45 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 
 	  MultiProcEntry ::=
 			  SEQUENCE {
-				multiProcIndex		Unsigned32,
-				multiProcUserTime	INTEGER,
-				multiProcSystemTime	INTEGER,
-				multiProcIdleTime	INTEGER,
-				multiProcUsage		INTEGER,
+				multiProcIndex		Counter32,
+				multiProcUserTime	Counter32,
+				multiProcSystemTime	Counter32,
+				multiProcIdleTime	Counter32,
+				multiProcUsage		Counter32,
 				multiProcRunQueue	INTEGER,
-				multiProcInterrupts	INTEGER
+				multiProcInterrupts	Counter32
 			  }
 
 	  multiProcIndex OBJECT-TYPE
-			  SYNTAX  Unsigned32
+			  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION ""
 			  ::= { multiProcEntry 1 }  
 
 	  multiProcUserTime OBJECT-TYPE
-			  SYNTAX  INTEGER
+			  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION ""
 			  ::= { multiProcEntry 2 }  
 
 	  multiProcSystemTime OBJECT-TYPE
-			  SYNTAX  INTEGER
+			  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION ""
 			  ::= { multiProcEntry 3 }  
 
 	  multiProcIdleTime OBJECT-TYPE
-			  SYNTAX  INTEGER
+			  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION ""
 			  ::= { multiProcEntry 4 }  
 
 	  multiProcUsage OBJECT-TYPE
-			  SYNTAX  INTEGER
+			  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION ""
@@ -6025,7 +6237,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			  ::= { multiProcEntry 6 }  
 
 	  multiProcInterrupts OBJECT-TYPE
-			  SYNTAX  INTEGER
+			  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION ""
@@ -6048,7 +6260,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 
 	  MultiDiskEntry ::=
 			  SEQUENCE {
-				multiDiskIndex		Unsigned32,
+				multiDiskIndex		Counter32,
 				multiDiskName		DisplayString,
 				multiDiskSize		DisplayString,
 				multiDiskUsed		DisplayString,
@@ -6059,7 +6271,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			  }
 
 	  multiDiskIndex OBJECT-TYPE
-			  SYNTAX  Unsigned32
+			  SYNTAX  Counter32
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION ""
@@ -6136,7 +6348,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	  RaidVolumeEntry ::= 
 	          SEQUENCE {
 	            raidVolumeIndex
-	                  Unsigned32,  
+	                  INTEGER,  
 	          	raidVolumeID
 	          		  INTEGER,
 	          	raidVolumeType
@@ -6150,11 +6362,11 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 				raidVolumeFlags  
 				      INTEGER,
 				raidVolumeSize  
-				      INTEGER
+				      Counter32
 			  }
 			  
 	 raidVolumeIndex OBJECT-TYPE
-	  		  SYNTAX  Unsigned32
+	  		  SYNTAX  INTEGER (0..100)
 			  MAX-ACCESS read-only
 			  STATUS  current
 			  DESCRIPTION ""
@@ -6215,7 +6427,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	       ::= { raidVolumeEntry 7 } 
 
 	  raidVolumeSize OBJECT-TYPE
-	  		 SYNTAX  INTEGER
+	  		 SYNTAX  Counter32
 			 MAX-ACCESS read-only
 			 STATUS  current
 			 DESCRIPTION
@@ -6240,7 +6452,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	  RaidDiskEntry ::= 
 	          SEQUENCE {  
 	          	raidDiskIndex
-	          		  Unsigned32,
+	          		  INTEGER,
 	          	raidDiskVolumeID
 	          		  INTEGER,
 				raidDiskID 
@@ -6262,11 +6474,11 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 				raidDiskSyncState
 				      INTEGER,
 				raidDiskSize
-				      INTEGER
+				      Counter32
 			  }   
 			  
 	  raidDiskIndex OBJECT-TYPE
-	  		 SYNTAX  Unsigned32
+	  		 SYNTAX  INTEGER (0..100)
 			 MAX-ACCESS read-only
 			 STATUS  current
 			 DESCRIPTION ""
@@ -6357,7 +6569,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	       ::= { raidDiskEntry 11 }    
 	       
 	  raidDiskSize OBJECT-TYPE
-	  		 SYNTAX  INTEGER
+	  		 SYNTAX  Counter32
 			 MAX-ACCESS read-only
 			 STATUS  current
 			 DESCRIPTION
@@ -6382,7 +6594,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	  TempertureSensorEntry ::= 
 	          SEQUENCE {
 				tempertureSensorIndex 
-				      Unsigned32,
+				      INTEGER,
 				tempertureSensorName
 				      DisplayString,
 				tempertureSensorValue      
@@ -6396,7 +6608,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			  } 
 	       
 	  tempertureSensorIndex OBJECT-TYPE
-	  		 SYNTAX  Unsigned32
+	  		 SYNTAX  INTEGER (0..100)
 			 MAX-ACCESS read-only
 			 STATUS  current
 			 DESCRIPTION ""
@@ -6460,7 +6672,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	  FanSpeedSensorEntry ::= 
 	          SEQUENCE {
 				fanSpeedSensorIndex 
-				      Unsigned32,
+				      INTEGER,
 				fanSpeedSensorName
 				      DisplayString,
 				fanSpeedSensorValue      
@@ -6474,7 +6686,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			  }  
 		       
 	  fanSpeedSensorIndex OBJECT-TYPE
-	  		 SYNTAX  Unsigned32
+	  		 SYNTAX  INTEGER (0..100)
 			 MAX-ACCESS read-only
 			 STATUS  current
 			 DESCRIPTION ""
@@ -6538,7 +6750,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	  VoltageSensorEntry ::= 
 	          SEQUENCE {
 				voltageSensorIndex 
-				      Unsigned32,
+				      INTEGER,
 				voltageSensorName
 				      DisplayString,
 				voltageSensorValue      
@@ -6552,7 +6764,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			  }  
 		       
 	  voltageSensorIndex OBJECT-TYPE
-	  		 SYNTAX  Unsigned32
+	  		 SYNTAX  INTEGER (0..100)
 			 MAX-ACCESS read-only
 			 STATUS  current
 			 DESCRIPTION ""
@@ -6616,13 +6828,13 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	  PowerSupplyEntry ::= 
 	          SEQUENCE {
 				powerSupplyIndex 
-				      Unsigned32, 
+				      INTEGER, 
 				powerSupplyStatus
 				      DisplayString
 			  }  
 		       
 	  powerSupplyIndex OBJECT-TYPE
-	  		 SYNTAX  Unsigned32
+	  		 SYNTAX  INTEGER (0..100)
 			 MAX-ACCESS read-only
 			 STATUS  current
 			 DESCRIPTION ""
@@ -6654,7 +6866,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	  RoutingEntry ::= 
 	          SEQUENCE {
 				routingIndex 
-				      Unsigned32,
+				     Counter32, 
 				routingDest
 				      IpAddress,
 				routingMask      
@@ -6666,7 +6878,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			  }
 
       routingIndex OBJECT-TYPE
-              SYNTAX  Unsigned32
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION ""
@@ -6701,7 +6913,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
               ::= { routingEntry 5 }
               
       svnSysTime OBJECT-TYPE
-      		  SYNTAX  INTEGER
+      		  SYNTAX  Counter32
       		  MAX-ACCESS read-only 
       		  STATUS  current
 	          DESCRIPTION
@@ -6773,7 +6985,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	          ::= { svnLogDaemon 1 }
 
       svnSysStartTime OBJECT-TYPE
-      		  SYNTAX  INTEGER
+      		  SYNTAX  Counter32
 		  MAX-ACCESS read-only
 		  STATUS  current
 		  DESCRIPTION
@@ -6795,7 +7007,613 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	        DESCRIPTION
 	        	   "Web UI port (0 - Not supported)"
 	        ::= { svn 15 }
+	
+		-- Platforms
+	
+	svnPlatformInfo	  OBJECT IDENTIFIER ::= { svn 123 }
+	
+	supportedPlatforms   OBJECT IDENTIFIER ::= { svnPlatformInfo 1 }
+	
+	checkPointUTM-1450 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"UTM-1 450"
+		::= { supportedPlatforms 1 }
 
+	checkPointUTM-11050 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"UTM-1 1050"
+		::= { supportedPlatforms 2 }
+
+	checkPointUTM-12050 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"UTM-1 2050"
+		::= { supportedPlatforms 3 }
+
+	checkPointUTM-1130 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"UTM-1 130"
+		::= { supportedPlatforms 4 }
+
+	checkPointUTM-1270 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"UTM-1 270"
+		::= { supportedPlatforms 5 }
+
+	checkPointUTM-1570 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"UTM-1 570"
+		::= { supportedPlatforms 6 }
+
+	checkPointUTM-11070 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"UTM-1 1070"
+		::= { supportedPlatforms 7 }
+
+	checkPointUTM-12070 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"UTM-1 2070"
+		::= { supportedPlatforms 8 }
+
+	checkPointUTM-13070 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"UTM-1 3070"
+		::= { supportedPlatforms 9 }
+
+	checkPointPower-15070 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Power-1 5070"
+		::= { supportedPlatforms 10 }
+
+	checkPointPower-19070 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Power-1 9070"
+		::= { supportedPlatforms 11 }
+
+	checkPointPower-111000 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Power-1 11000"
+		::= { supportedPlatforms 12 }
+
+	checkPointSmart-15 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Smart-1 5"
+		::= { supportedPlatforms 13 }
+
+	checkPointSmart-125 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Smart-1 25"
+		::= { supportedPlatforms 14 }
+
+	checkPointSmart-150 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Smart-1 50"
+		::= { supportedPlatforms 15 }
+
+	checkPointSmart-1150 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Smart-1 150"
+		::= { supportedPlatforms 16 }
+
+	checkPointIP150 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"IP150"
+		::= { supportedPlatforms 17 }
+
+	checkPointIP280 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"IP280"
+		::= { supportedPlatforms 18 }
+
+	checkPointIP290 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"IP290"
+		::= { supportedPlatforms 19 }
+
+	checkPointIP390 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"IP390"
+		::= { supportedPlatforms 20 }
+
+	checkPointIP560 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"IP560"
+		::= { supportedPlatforms 21 }
+
+	checkPointIP690 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"IP690"
+		::= { supportedPlatforms 22 }
+
+	checkPointIP1280 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"IP1280"
+		::= { supportedPlatforms 23 }
+
+	checkPointIP2450 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"IP2450"
+		::= { supportedPlatforms 24 }
+
+	checkPointUNIVERGEUnifiedWall1000 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"UNIVERGE UnifiedWall 1000"
+		::= { supportedPlatforms 25 }
+
+	checkPointUNIVERGEUnifiedWall2000 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"UNIVERGE UnifiedWall 2000"
+		::= { supportedPlatforms 26 }
+
+	checkPointUNIVERGEUnifiedWall4000 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"UNIVERGE UnifiedWall 4000"
+		::= { supportedPlatforms 27 }
+
+	checkPointUNIVERGEUnifiedWall100 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"UNIVERGE UnifiedWall 100"
+		::= { supportedPlatforms 28 }
+
+	checkPointDLP-19571 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"DLP-1 9571"
+		::= { supportedPlatforms 29 }
+
+	checkPointDLP-12571 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"DLP-1 2571"
+		::= { supportedPlatforms 30 }
+
+	checkPointIPS-12076 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"IPS-1 2076"
+		::= { supportedPlatforms 31 }
+
+	checkPointIPS-15076 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"IPS-1 5076"
+		::= { supportedPlatforms 32 }
+
+	checkPointIPS-19076 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"IPS-1 9076"
+		::= { supportedPlatforms 33 }
+
+	checkPoint2200 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Check Point 2200"
+		::= { supportedPlatforms 34 }
+
+	checkPoint4200 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Check Point 4200"
+		::= { supportedPlatforms 35 }
+
+	checkPoint4400 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Check Point 4400"
+		::= { supportedPlatforms 36 }
+
+	checkPoint4600 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Check Point 4600"
+		::= { supportedPlatforms 37 }
+
+	checkPoint4800 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Check Point 4800"
+		::= { supportedPlatforms 38 }
+
+	checkPointTE250 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Check Point TE250"
+		::= { supportedPlatforms 39 }
+
+	checkPoint12200 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Check Point 12200"
+		::= { supportedPlatforms 40 }
+
+	checkPoint12400 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Check Point 12400"
+		::= { supportedPlatforms 41 }
+
+	checkPoint12600 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Check Point 12600"
+		::= { supportedPlatforms 42 }
+
+	checkPointTE1000 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Check Point TE1000"
+		::= { supportedPlatforms 43 }
+
+	checkPoint13500 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Check Point 13500"
+		::= { supportedPlatforms 44 }
+
+	checkPoint21400 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Check Point 21400"
+		::= { supportedPlatforms 45 }
+
+	checkPoint21600 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Check Point 21600"
+		::= { supportedPlatforms 46 }
+
+	checkPoint21700 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Check Point 21700"
+		::= { supportedPlatforms 47 }
+
+	checkPointVMware OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"VMware"
+		::= { supportedPlatforms 48 }
+
+	checkPointOpenServer OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Open Server"
+		::= { supportedPlatforms 49 }
+
+	checkPointSmart-1205 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Smart-1 205"
+		::= { supportedPlatforms 50 }
+
+	checkPointSmart-1210 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Smart-1 210"
+		::= { supportedPlatforms 51 }
+
+	checkPointSmart-1225 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Smart-1 225"
+		::= { supportedPlatforms 52 }
+
+	checkPointSmart-13050 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Smart-1 3050"
+		::= { supportedPlatforms 53 }
+
+	checkPointSmart-13150 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Smart-1 3150"
+		::= { supportedPlatforms 54 }
+
+	checkPoint13800 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Check Point 13800"
+		::= { supportedPlatforms 55 }
+
+	checkPoint21800 OBJECT-TYPE
+		SYNTAX  DisplayString (SIZE (0..255))
+		MAX-ACCESS  read-only
+		STATUS  current
+		DESCRIPTION
+			"Check Point 21800"
+		::= { supportedPlatforms 56 }
+		
+
+      svnLicensing OBJECT IDENTIFIER ::= { svn 18 }
+      
+      licensingTable OBJECT-TYPE
+			  SYNTAX  SEQUENCE OF  LicensingEntry
+			  MAX-ACCESS  not-accessible
+			  STATUS  current
+			  DESCRIPTION ""
+			  ::= { svnLicensing 1 }
+
+	  licensingEntry OBJECT-TYPE
+			  SYNTAX LicensingEntry
+			  MAX-ACCESS  not-accessible
+			  STATUS  current 
+			  DESCRIPTION ""
+			  INDEX   { licensingIndex }
+			  ::= { licensingTable 1 }
+			  
+	  LicensingEntry ::=
+			  SEQUENCE {
+				licensingIndex			Unsigned32,
+				licensingID				Unsigned32,
+				licensingBladeName		DisplayString,
+				licensingState			DisplayString,
+				licensingExpirationDate	Unsigned32,
+				licensingImpact			DisplayString,
+				licensingBladeActive	INTEGER,
+				licensingTotalQuota		INTEGER,
+				licensingUsedQuota		INTEGER
+			  }
+
+	  licensingIndex OBJECT-TYPE
+			  SYNTAX  Unsigned32
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION ""
+			  ::= { licensingEntry 1 }  
+	
+      licensingID OBJECT-TYPE
+			  SYNTAX  Unsigned32
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION ""
+			  ::= { licensingEntry 2 } 
+			  	
+	  licensingBladeName OBJECT-TYPE
+			  SYNTAX  DisplayString
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION ""
+			  ::= { licensingEntry 3 }  
+
+	  licensingState OBJECT-TYPE
+			  SYNTAX  DisplayString
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION ""
+			  ::= { licensingEntry 4 }  
+
+	  licensingExpirationDate OBJECT-TYPE
+			  SYNTAX  Unsigned32
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION ""
+			  ::= { licensingEntry 5 }  
+
+	  licensingImpact OBJECT-TYPE
+			  SYNTAX  DisplayString
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION ""
+			  ::= { licensingEntry 6 }  
+
+	  licensingBladeActive OBJECT-TYPE
+			  SYNTAX  INTEGER
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION ""
+			  ::= { licensingEntry 7 }
+			  
+	  licensingTotalQuota OBJECT-TYPE
+			  SYNTAX  INTEGER
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION ""
+			  ::= { licensingEntry 8 }
+			  
+	  licensingUsedQuota OBJECT-TYPE
+			  SYNTAX  INTEGER
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION ""
+			  ::= { licensingEntry 9 }
+			  
+	  licensingAssetInfo        OBJECT IDENTIFIER ::= { svnLicensing 2 }
+	  
+	  licensingAssetAccountId OBJECT-TYPE
+			  SYNTAX  DisplayString
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION ""
+			  ::= { licensingAssetInfo 1 } 
+			  
+	  licensingAssetPackageDescription OBJECT-TYPE
+			  SYNTAX  DisplayString
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION ""
+			  ::= { licensingAssetInfo 2 } 
+	
+	  licensingAssetContainerCK OBJECT-TYPE
+			  SYNTAX  DisplayString
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION ""
+			  ::= { licensingAssetInfo 3 } 
+			  
+	  licensingAssetContainerSKU OBJECT-TYPE
+			  SYNTAX  DisplayString
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION ""
+			  ::= { licensingAssetInfo 4 } 
+			  
+	  licensingAssetSupportLevel OBJECT-TYPE
+		 	  SYNTAX  DisplayString
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION ""
+			  ::= { licensingAssetInfo 5 } 
+			  
+	  licensingAssetSupportExpiration OBJECT-TYPE
+			  SYNTAX  DisplayString
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION ""
+			  ::= { licensingAssetInfo 6 } 
+			  
+	  licensingAssetActivationStatus OBJECT-TYPE
+			  SYNTAX  DisplayString
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION ""
+			  ::= { licensingAssetInfo 7 } 	  
+			  
+	  svnConnectivity OBJECT-TYPE
+	  		  SYNTAX  INTEGER
+			  MAX-ACCESS read-only
+			  STATUS  current
+			  DESCRIPTION
+	        	   "User Center connectivity"
+			  ::= { svn 19 }
               
        -- the svn interface table and stats
        
@@ -6819,9 +7637,9 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	  SvnNetIfTableEntry ::= 
 	          SEQUENCE {
 				svnNetIfIndex 
-				      Unsigned32,
+				      Counter32,
 				svnNetIfVsid
-				      INTEGER,
+				      Counter32,
 				svnNetIfName      
 					  DisplayString,
 				svnNetIfAddress  
@@ -6829,7 +7647,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 				svnNetIfMask
 				      IpAddress,
 				svnNetIfMTU
-				      INTEGER,
+				      Counter32,
 				svnNetIfState
 				      INTEGER,
 				svnNetIfMAC
@@ -6841,14 +7659,14 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 			  }
 
       svnNetIfIndex OBJECT-TYPE
-              SYNTAX  Unsigned32
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION ""
               ::= { svnNetIfTableEntry 1 }  
               
       svnNetIfVsid OBJECT-TYPE
-      		  SYNTAX  INTEGER
+      		  SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION ""
@@ -6876,7 +7694,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
               ::= { svnNetIfTableEntry 5 }
               
        svnNetIfMTU OBJECT-TYPE
-      		  SYNTAX  INTEGER
+      		  SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION ""
@@ -6928,7 +7746,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
       VSRoutingEntry ::= 
 	          SEQUENCE {
 				vsRoutingIndex 
-				      Unsigned32,
+				      Counter32,
 				vsRoutingDest
 				      IpAddress,
 				vsRoutingMask      
@@ -6938,11 +7756,11 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 				vsRoutingIntrfName
 				      DisplayString,
 				vsRoutingVsId
-				      INTEGER
+				      Counter32
 			  }
 
       vsRoutingIndex OBJECT-TYPE
-              SYNTAX  Unsigned32
+              SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION ""
@@ -6977,14 +7795,14 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
               ::= { vsRoutingEntry 5 }      
 
       vsRoutingVsId OBJECT-TYPE
-      	      SYNTAX  INTEGER
+      	      SYNTAX  Counter32
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION ""
               ::= { vsRoutingEntry 6 }      
 
       svnStatCode OBJECT-TYPE
-      		  SYNTAX  INTEGER
+      		  SYNTAX  Counter32
       		  MAX-ACCESS read-only 
       		  STATUS  current
 	          DESCRIPTION
@@ -7128,8 +7946,189 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
               MAX-ACCESS read-only
               STATUS  current
               DESCRIPTION ""
-              ::= { mgConnectedClientsEntry 5 }     
+              ::= { mgConnectedClientsEntry 5 }   
+	
+	  mgLogServerInfo  OBJECT IDENTIFIER ::= { mngmt 14 }
+	  
+	  mgLSLogReceiveRate OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "MGMT Log Server Log Receive Rate"
+			  ::= { mgLogServerInfo 1 }
+			  
+	  mgLSLogReceiveRatePeak OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "MGMT Log Server Log Receive Rate Peak"
+			  ::= { mgLogServerInfo 2 } 	
+
+	  mgLSLogReceiveRate10Min OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "MGMT Log Server Log Receive Rate (Last 10 Minutes)"
+			  ::= { mgLogServerInfo 3 }
+			  
+	  mgConnectedGatewaysTable OBJECT-TYPE	  
+              SYNTAX  SEQUENCE OF  MgLsConnectedGatewaysEntry
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Connected Gateways Table"
+			  ::= { mgLogServerInfo 4 }
+			  
+	  mgConnectedGatewaysEntry OBJECT-TYPE 
+	          SYNTAX MgLsConnectedGatewaysEntry
+			  MAX-ACCESS  not-accessible
+			  STATUS  current 
+			  DESCRIPTION ""
+			  INDEX   { mglsGWIndex }
+			  ::= { mgConnectedGatewaysTable 1 } 
+
+	  MgLsConnectedGatewaysEntry ::= 
+	          SEQUENCE {
+				mglsGWIndex 
+				      Unsigned32,
+				mglsGWIP
+				      DisplayString,
+				mglsGWState      
+					  DisplayString,
+				mglsGWLastLoginTime  
+				      DisplayString,
+				mglsGWLogReceiveRate
+				      Unsigned32 
+			  }
+
+      mglsGWIndex OBJECT-TYPE
+              SYNTAX  Unsigned32
+              MAX-ACCESS read-only
+              STATUS  current
+              DESCRIPTION ""
+              ::= { mgConnectedGatewaysEntry 1 } 
               
+      mglsGWIP OBJECT-TYPE
+              SYNTAX  DisplayString
+              MAX-ACCESS read-only
+              STATUS  current
+              DESCRIPTION ""
+              ::= { mgConnectedGatewaysEntry 2 } 
+              
+      mglsGWState OBJECT-TYPE
+              SYNTAX  DisplayString
+              MAX-ACCESS read-only
+              STATUS  current
+              DESCRIPTION ""
+              ::= { mgConnectedGatewaysEntry 3 }
+              
+      mglsGWLastLoginTime OBJECT-TYPE
+              SYNTAX  DisplayString
+              MAX-ACCESS read-only
+              STATUS  current
+              DESCRIPTION ""
+              ::= { mgConnectedGatewaysEntry 4 } 
+              
+      mglsGWLogReceiveRate OBJECT-TYPE
+              SYNTAX  Unsigned32
+              MAX-ACCESS read-only
+              STATUS  current
+              DESCRIPTION ""
+              ::= { mgConnectedGatewaysEntry 5 }  			  
+              
+	  mgIndexerInfo  OBJECT IDENTIFIER ::= { mgLogServerInfo 5 }
+	  
+	  mgIndexerInfoTotalReadLogs OBJECT-TYPE	  
+              SYNTAX  DisplayString
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Total Read Logs"
+			  ::= { mgIndexerInfo 1 }			  
+
+	  mgIndexerInfoTotalUpdatesAndLogsIndexed OBJECT-TYPE	  
+              SYNTAX  DisplayString
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Total Updates and Logs Indexed"
+			  ::= { mgIndexerInfo 2 }
+			  
+	  mgIndexerInfoTotalReadLogsErrors OBJECT-TYPE	  
+              SYNTAX  DisplayString
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Total Read Logs Errors"
+			  ::= { mgIndexerInfo 3 }
+
+	  mgIndexerInfoTotalUpdatesAndLogsIndexedErrors OBJECT-TYPE	  
+              SYNTAX  DisplayString
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Total Updates and Logs Indexed Errors"
+			  ::= { mgIndexerInfo 4 }
+
+	  mgIndexerInfoUpdatesAndLogsIndexedRate OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Updates and Logs Indexed Rate"
+			  ::= { mgIndexerInfo 5 }
+
+	  mgIndexerInfoReadLogsRate OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Read Logs Rate"
+			  ::= { mgIndexerInfo 6 }
+
+	  mgIndexerInfoUpdatesAndLogsIndexedRate10min OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Updates and Logs Indexed Rate (10 min)"
+			  ::= { mgIndexerInfo 7 }
+
+	  mgIndexerInfoReadLogsRate10min OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Read Logs Rate  (10 min)"
+			  ::= { mgIndexerInfo 8 }
+
+	  mgIndexerInfoUpdatesAndLogsIndexedRate60min OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Updates and Logs Indexed Rate (60 min)"
+			  ::= { mgIndexerInfo 9 }
+
+	  mgIndexerInfoReadLogsRate60min OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Read Logs Rate (60 min)"
+			  ::= { mgIndexerInfo 10 }
+
+
+	  mgIndexerInfoUpdatesAndLogsIndexedRatePeak OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Updates and Logs Indexed Rate Peak"
+			  ::= { mgIndexerInfo 11 }
+
+	  mgIndexerInfoReadLogsRatePeak OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Read Logs Rate Peak"
+			  ::= { mgIndexerInfo 12 }			  
+			  
+	  mgIndexerInfoReadLogsDelay OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Read Logs Delay"
+			  ::= { mgIndexerInfo 13 }			  
+			  
       mgStatCode OBJECT-TYPE
       		  SYNTAX  INTEGER
       		  MAX-ACCESS read-only 
@@ -7154,6 +8153,13 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	        	   "Status long description"
       		  ::= { mngmt 103 }
       		  
+	  mgLSLogReceiveRate1Hour OBJECT-TYPE	  
+		  SYNTAX  Unsigned32
+		  MAX-ACCESS  not-accessible
+		  STATUS  current  
+		  DESCRIPTION "MGMT Log Server Log Receive Rate (Last Hour)"
+		  ::= { mgLogServerInfo 6 }
+			  
       -- the WAM Status
 	  -- Overall statistics and state
 	       
@@ -7343,7 +8349,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
       		  ::= { dtps 3 }
       		  
       dtpsLicensedUsers OBJECT-TYPE
-      		  SYNTAX  INTEGER
+      		  SYNTAX  Counter32
       		  MAX-ACCESS read-only 
       		  STATUS  current
 	          DESCRIPTION
@@ -7351,7 +8357,7 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
       		  ::= { dtps 4 }
 
       dtpsConnectedUsers OBJECT-TYPE
-      		  SYNTAX  INTEGER
+      		  SYNTAX  Counter32
       		  MAX-ACCESS read-only 
       		  STATUS  current
 	          DESCRIPTION
@@ -7424,7 +8430,159 @@ CHECKPOINT-MIB DEFINITIONS ::= BEGIN
 	          DESCRIPTION
 	        	   "Log Server is alive"
       		  ::= { ls 5 }
+			  
+	  lsLoggingInfo  OBJECT IDENTIFIER ::= { ls 14 }
+	  
+	  lsLogReceiveRate OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Log Server Log Receive Rate"
+			  ::= { lsLoggingInfo 1 }
+			  
+	  lsLogReceiveRatePeak OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Log Server Log Receive Rate Peak"
+			  ::= { lsLoggingInfo 2 } 	
 
+	  lsLogReceiveRate10Min OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Log Server Log Receive Rate (Last 10 Minutes)"
+			  ::= { lsLoggingInfo 3 } 			  
+			  
+	  lsConnectedGatewaysTable OBJECT-TYPE	  
+              SYNTAX  SEQUENCE OF  LsConnectedGatewaysEntry
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Connected Gateways Table"
+			  ::= { lsLoggingInfo 4 }
+			  
+	  lsConnectedGatewaysEntry OBJECT-TYPE 
+	          SYNTAX LsConnectedGatewaysEntry
+			  MAX-ACCESS  not-accessible
+			  STATUS  current 
+			  DESCRIPTION ""
+			  INDEX   { lsGWIndex }
+			  ::= { lsConnectedGatewaysTable 1 } 
+			  
+	  LsConnectedGatewaysEntry ::= 
+	          SEQUENCE {
+				lsGWIndex 
+				      Unsigned32,
+				lsGWIP
+				      DisplayString,
+				lsGWState      
+					  DisplayString,
+				lsGWLastLoginTime  
+				      DisplayString,
+				lsGWLogReceiveRate
+				      Unsigned32 
+			  }
+			  
+      lsGWIndex OBJECT-TYPE
+              SYNTAX  Unsigned32
+              MAX-ACCESS read-only
+              STATUS  current
+              DESCRIPTION ""
+              ::= { lsConnectedGatewaysEntry 1 } 
+              
+      lsGWIP OBJECT-TYPE
+              SYNTAX  DisplayString
+              MAX-ACCESS read-only
+              STATUS  current
+              DESCRIPTION ""
+              ::= { lsConnectedGatewaysEntry 2 } 
+              
+      lsGWState OBJECT-TYPE
+              SYNTAX  DisplayString
+              MAX-ACCESS read-only
+              STATUS  current
+              DESCRIPTION ""
+              ::= { lsConnectedGatewaysEntry 3 }
+              
+      lsGWLastLoginTime OBJECT-TYPE
+              SYNTAX  DisplayString
+              MAX-ACCESS read-only
+              STATUS  current
+              DESCRIPTION ""
+              ::= { lsConnectedGatewaysEntry 4 } 
+              
+      lsGWLogReceiveRate OBJECT-TYPE
+              SYNTAX  Unsigned32
+              MAX-ACCESS read-only
+              STATUS  current
+              DESCRIPTION ""
+              ::= { lsConnectedGatewaysEntry 5 }  
+
+	  lsIndexerInfo  OBJECT IDENTIFIER ::= { lsLoggingInfo 5 }
+	  
+	  lsIndexerInfoTotalReadLogs OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Total Read Logs"
+			  ::= { lsIndexerInfo 1 }			  
+
+	  lsIndexerInfoTotalUpdatesAndLogsIndexed OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Total Updates and Logs Indexed"
+			  ::= { lsIndexerInfo 2 }
+			  
+	  lsIndexerInfoTotalReadLogsErrors OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Total Read Logs Errors"
+			  ::= { lsIndexerInfo 3 }
+
+	  lsIndexerInfoTotalUpdatesAndLogsIndexedErrors OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Total Updates and Logs Indexed Errors"
+			  ::= { lsIndexerInfo 4 }
+
+	  lsIndexerInfoUpdatesAndLogsIndexedRate OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Updates and Logs Indexed Rate"
+			  ::= { lsIndexerInfo 5 }
+
+	  lsIndexerInfoReadLogsRate OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Read Logs Rate"
+			  ::= { lsIndexerInfo 6 }
+
+	  lsIndexerInfoUpdatesAndLogsIndexedRatePeak OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Updates and Logs Indexed Rate Peak"
+			  ::= { lsIndexerInfo 7 }
+
+	  lsIndexerInfoReadLogsRatePeak OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Read Logs Rate Peak"
+			  ::= { lsIndexerInfo 8 }
+			  
+	  lsLogReceiveRate1Hour OBJECT-TYPE	  
+              SYNTAX  Unsigned32
+			  MAX-ACCESS  not-accessible
+			  STATUS  current  
+			  DESCRIPTION "Log Server Log Receive Rate (Last Hour)"
+			  ::= { lsLoggingInfo 6 } 			  
+			  
       lsStatCode OBJECT-TYPE
       		  SYNTAX  INTEGER
       		  MAX-ACCESS read-only 

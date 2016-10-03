@@ -1,9 +1,9 @@
 --===========================================================
--- Copyright (c) 2004-2013 Hangzhou H3C Tech. Co., Ltd.  All rights reserved.
+-- Copyright (c) 2004-2015 Hangzhou H3C Tech. Co., Ltd.  All rights reserved.
 --
 -- Description:  Transceiver MIB
 -- Reference:  IF-MIB
--- Version:  V1.4
+-- Version:  V1.5
 -- History:
 -- V1.0 created by liuhongxu and zoudian.
 --   Initial version 2006-01-10
@@ -23,8 +23,10 @@
 --   hh3cTransceiverPwrOutHiWarn, hh3cTransceiverPwrOutLoWarn, hh3cTransceiverRcvPwrHiAlarm,
 --   hh3cTransceiverRcvPwrLoAlarm, hh3cTransceiverRcvPwrHiWarn, hh3cTransceiverRcvPwrLoWarn,
 --   hh3cTransceiverErrors
--- V1.4 2012-06-06 Updated by chenyixian
+-- V1.4 2013-06-06 Updated by chenyixian
 --   Add hh3cTransceiverChannelTable to transceiver channel statistics.
+-- V1.5 2014-08-11 Updated by SongHao
+--   Add hh3cTransceiverVendorOUI and hh3cTransceiverRevisionNumber.
 --=================================================================
 HH3C-TRANSCEIVER-INFO-MIB DEFINITIONS ::= BEGIN
 IMPORTS
@@ -38,7 +40,7 @@ IMPORTS
         FROM HH3C-OID-MIB;
 
     hh3cTransceiver MODULE-IDENTITY
-        LAST-UPDATED "201307231650Z"
+        LAST-UPDATED "201408111050Z"
         ORGANIZATION
             "Hangzhou H3C Technologies Co., Ltd."
         CONTACT-INFO
@@ -49,10 +51,32 @@ IMPORTS
         DESCRIPTION
             "The objects in this MIB module are used to display the
             information of transceiver on interface."
-        REVISION "201307231650Z"
+        REVISION "201408111050Z"
         DESCRIPTION
-            " Add hh3cTransceiverChannelTable."
-        REVISION "200912291650Z"
+            "Add hh3cTransceiverVendorOUI and hh3cTransceiverRevisionNumber."
+        REVISION "201306060000Z"
+        DESCRIPTION
+            "Add hh3cTransceiverChannelTable to transceiver channel statistics."
+        REVISION "201206060000Z"
+        DESCRIPTION
+            "Add the objects of hh3cTransceiverTempHiAlarm, hh3cTransceiverTempLoAlarm,
+            hh3cTransceiverTempHiWarn, hh3cTransceiverTempLoWarn, hh3cTransceiverVccHiAlarm,
+            hh3cTransceiverVccLoAlarm, hh3cTransceiverVccHiWarn, hh3cTransceiverVccLoWarn,
+            hh3cTransceiverBiasHiAlarm, hh3cTransceiverBiasLoAlarm, hh3cTransceiverBiasHiWarn,
+            hh3cTransceiverBiasLoWarn, hh3cTransceiverPwrOutHiAlarm, hh3cTransceiverPwrOutLoAlarm,
+            hh3cTransceiverPwrOutHiWarn, hh3cTransceiverPwrOutLoWarn, hh3cTransceiverRcvPwrHiAlarm,
+            hh3cTransceiverRcvPwrLoAlarm, hh3cTransceiverRcvPwrHiWarn, hh3cTransceiverRcvPwrLoWarn,
+            hh3cTransceiverErrors."
+        REVISION "200912290000Z"
+        DESCRIPTION
+            "Add the objects of hh3cTransceiverDiagnostic, hh3cTransceiverCurTXPower,
+            hh3cTransceiverMaxTXPower, hh3cTransceiverMinTXPower, hh3cTransceiverCurRXPower,
+            hh3cTransceiverMaxRXPower, hh3cTransceiverMinRXPower, hh3cTransceiverTemperature,
+            hh3cTransceiverVoltage, hh3cTransceiverBiasCurrent."
+        REVISION "200606080000Z"
+        DESCRIPTION
+            "Change description of hh3cTransceiverWaveLength."
+        REVISION "200601100000Z"
         DESCRIPTION
             "The initial revision of this MIB module."
             ::= { hh3cCommon 70 }
@@ -64,7 +88,7 @@ IMPORTS
         MAX-ACCESS not-accessible
         STATUS current
         DESCRIPTION
-            "This table show the information of transceiver on interface."
+            "This table shows transceiver information on an interface."
         ::= { hh3cTransceiverInfoAdm 1 }
 
     hh3cTransceiverInfoEntry OBJECT-TYPE
@@ -115,7 +139,9 @@ IMPORTS
             hh3cTransceiverRcvPwrLoAlarm     Integer32,
             hh3cTransceiverRcvPwrHiWarn      Integer32,
             hh3cTransceiverRcvPwrLoWarn      Integer32,
-            hh3cTransceiverErrors            BITS
+            hh3cTransceiverErrors            BITS,
+            hh3cTransceiverVendorOUI         OCTET STRING,
+            hh3cTransceiverRevisionNumber    OCTET STRING
         }
 
     hh3cTransceiverHardwareType OBJECT-TYPE
@@ -182,7 +208,7 @@ IMPORTS
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
-            "The maximal distance which the interface could transmit,
+            "The maximum distance which the interface can transmit,
             measured in meter."
         ::= { hh3cTransceiverInfoEntry 7 }
 
@@ -191,7 +217,7 @@ IMPORTS
         MAX-ACCESS  read-only
         STATUS      current
         DESCRIPTION
-            "Indicating the digital diagnostic monitoring function ."
+            "Indicating the digital diagnostic monitoring function."
         ::= { hh3cTransceiverInfoEntry 8 }
 
     hh3cTransceiverCurTXPower OBJECT-TYPE
@@ -199,7 +225,7 @@ IMPORTS
         MAX-ACCESS  read-only
         STATUS      current
         DESCRIPTION
-            "Indicating the current transmitted power .
+            "Indicating the current transmitted power.
             The unit is in hundredths of dBM."
         ::= { hh3cTransceiverInfoEntry 9 }
 
@@ -208,7 +234,7 @@ IMPORTS
         MAX-ACCESS  read-only
         STATUS      current
         DESCRIPTION
-            "Indicating the maximal transmitted power .
+            "Indicating the maximum transmitted power.
             The unit is in hundredths of dBM."
         ::= { hh3cTransceiverInfoEntry 10 }
 
@@ -217,7 +243,7 @@ IMPORTS
         MAX-ACCESS  read-only
         STATUS      current
         DESCRIPTION
-            "Indicating the minimal transmitted power .
+            "Indicating the minimum transmitted power.
             The unit is in hundredths of dBM."
         ::= { hh3cTransceiverInfoEntry 11 }
 
@@ -226,7 +252,7 @@ IMPORTS
         MAX-ACCESS  read-only
         STATUS      current
         DESCRIPTION
-            "Indicating the current received power .
+            "Indicating the current received power.
             The unit is in hundredths of dBM."
         ::= { hh3cTransceiverInfoEntry 12 }
 
@@ -235,7 +261,7 @@ IMPORTS
         MAX-ACCESS  read-only
         STATUS      current
         DESCRIPTION
-            "Indicating the maximal received power .
+            "Indicating the maximum received power.
             The unit is in hundredths of dBM."
         ::= { hh3cTransceiverInfoEntry 13 }
 
@@ -244,7 +270,7 @@ IMPORTS
         MAX-ACCESS  read-only
         STATUS      current
         DESCRIPTION
-            "Indicating the minimal received power .
+            "Indicating the minimum received power.
             The unit is in hundredths of dBM."
         ::= { hh3cTransceiverInfoEntry 14 }
 
@@ -262,7 +288,7 @@ IMPORTS
         MAX-ACCESS  read-only
         STATUS      current
         DESCRIPTION
-            "Indicating the current voltage .
+            "Indicating the current voltage.
             The unit is in hundredths of V"
         ::= { hh3cTransceiverInfoEntry 16 }
 
@@ -271,7 +297,7 @@ IMPORTS
         MAX-ACCESS  read-only
         STATUS      current
         DESCRIPTION
-            "Indicating the current bias electric current .
+            "Indicating the current bias electric current.
             The unit is in hundredths of mA"
         ::= { hh3cTransceiverInfoEntry 17 }
 
@@ -515,6 +541,23 @@ IMPORTS
              RX loss of signal(16)
              Unused(17-31)"
         ::= { hh3cTransceiverInfoEntry 38 }
+
+    hh3cTransceiverVendorOUI OBJECT-TYPE
+        SYNTAX OCTET STRING (SIZE (0..255))
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+            "Vendor OUI of the interface."
+        ::= { hh3cTransceiverInfoEntry 39 }
+
+    hh3cTransceiverRevisionNumber OBJECT-TYPE
+        SYNTAX OCTET STRING (SIZE (0..255))
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+            "Revision number of the interface."
+        ::= { hh3cTransceiverInfoEntry 40 }
+
 
 -- Transceiver Channel Table
 

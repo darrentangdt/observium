@@ -46,6 +46,6 @@ $colours   = "mixed-10c";
 $nototal   = 1;
 $unit_text = "Workers";
 
-include("includes/graphs/generic_multi_simplex_separated.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_simplex_separated.inc.php");
 
 // EOF

@@ -20,12 +20,12 @@ $data = array("username" => $endpoint['username'], "channel" => $endpoint['chann
   //"text" => $title
   );
 
-$data['attachments'][] = array('fallback' => $title,
-                               //'pretext' => "Observium Alert Notification",
-                               'title' => $title,
+$data['attachments'][] = array('fallback'   => $message_tags['TITLE'],
+                               //'pretext'    => "Observium Alert Notification",
+                               'title'      => $message_tags['TITLE'],
                                'title_link' => $message_tags['ALERT_URL'],
-                               //'text' => simple_template('slack_text.tpl', $message_tags, array('is_file' => TRUE)),
-                               'fields' => array(array('title' => 'Device', 'value' => $message_tags['DEVICE_HOSTNAME'] ." (".$message_tags['DEVICE_OS'].")", 'short' => TRUE),
+                               //'text'       => simple_template('slack_text.tpl', $message_tags, array('is_file' => TRUE)),
+                               'fields' => array(array('title' => 'Device/Location', 'value' => $message_tags['DEVICE_HOSTNAME'] ." (".$message_tags['DEVICE_OS'].")".PHP_EOL.$message_tags['DEVICE_LOCATION'], 'short' => TRUE),
                                                  array('title' => 'Entity', 'value' => $message_tags['ENTITY_TYPE'] ." / ". $message_tags['ENTITY_NAME'] . (isset($message_tags['ENTITY_DESCRIPTION']) ? '
 '.$message_tags['ENTITY_DESCRIPTION'] : ''), 'short' => TRUE),
                                                  array('title' => 'Alert Message/Duration',  'value'  => $message_tags['ALERT_MESSAGE'].PHP_EOL.$message_tags['DURATION'], 'short' => TRUE),

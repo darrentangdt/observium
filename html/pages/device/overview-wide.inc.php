@@ -64,7 +64,7 @@ if (is_array($entity_state['group']['c6kxbar']))
   include("overview/c6kxbar.inc.php");
 }
 
-include("overview/toner.inc.php");
+include("overview/printersupplies.inc.php");
 include("overview/sensors.inc.php");
 
 echo("</div>");

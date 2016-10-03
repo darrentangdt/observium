@@ -7,13 +7,13 @@ RADLAN-UDP DEFINITIONS ::= BEGIN
 IMPORTS
     rnd                                                     FROM RADLAN-MIB
     ipAddrEntry                                             FROM IP-MIB
-    rip2IfConfEntry                                         FROM RFC1389-MIB
     ipCidrRouteEntry,ipCidrRouteDest,
     ipCidrRouteMask, ipCidrRouteTos, ipCidrRouteNextHop     FROM IP-FORWARD-MIB
-    DisplayString                                           FROM SNMPv2-TC-v1
     Unsigned32, Integer32, Counter32, IpAddress,
     MODULE-IDENTITY, OBJECT-TYPE                            FROM SNMPv2-SMI
-    RowStatus, TruthValue, TEXTUAL-CONVENTION               FROM SNMPv2-TC;
+    DisplayString, RowStatus, TruthValue,
+    TEXTUAL-CONVENTION                                      FROM SNMPv2-TC
+    InetAddress,InetAddressType                             FROM INET-ADDRESS-MIB;
 
 rsUDP MODULE-IDENTITY
       LAST-UPDATED "200406010000Z"
@@ -113,6 +113,74 @@ rsUdpRelayMibVersion  OBJECT-TYPE
    DESCRIPTION
         "Mib version. The current version is 1."
    ::= {rsUDP 2}
+
+rlUdpSessionTable  OBJECT-TYPE
+    SYNTAX  SEQUENCE OF RlUdpSessionEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "This table contains the udp sessions information"
+    ::= {rsUDP 3}
+
+rlUdpSessionEntry  OBJECT-TYPE
+    SYNTAX     RlUdpSessionEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+         " The row definition for this table."
+    INDEX { rlUdpSessionLocalAddrType,
+            rlUdpSessionLocalAddr,
+            rlUdpSessionLocalPort,
+            rlUdpSessionAppInst}
+   ::= {rlUdpSessionTable 1}
+
+RlUdpSessionEntry  ::= SEQUENCE {
+    rlUdpSessionLocalAddrType           InetAddressType,
+    rlUdpSessionLocalAddr               InetAddress,
+    rlUdpSessionLocalPort               INTEGER,
+    rlUdpSessionAppInst                 INTEGER,
+    rlUdpSessionAppName                 DisplayString
+}
+
+rlUdpSessionLocalAddrType  OBJECT-TYPE
+    SYNTAX     InetAddressType
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "The type of the rlUdpSessionLocalAddress address"
+    ::= { rlUdpSessionEntry 1 }
+
+rlUdpSessionLocalAddr OBJECT-TYPE
+    SYNTAX     InetAddress
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "The UDP port session number."
+    ::= {rlUdpSessionEntry 2}
+
+rlUdpSessionLocalPort OBJECT-TYPE
+    SYNTAX     INTEGER
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "The UDP port local IP address."
+    ::= {rlUdpSessionEntry 3}
+
+rlUdpSessionAppInst OBJECT-TYPE
+    SYNTAX     INTEGER (0..65535)
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "The instance ID for the application on the port (for future use)."
+    ::= {rlUdpSessionEntry 4}
+
+rlUdpSessionAppName OBJECT-TYPE
+    SYNTAX     DisplayString (SIZE(0..12))
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+        "The name of the application that created the session."
+    ::= {rlUdpSessionEntry 5}
 
 END
 

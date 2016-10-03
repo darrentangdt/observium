@@ -12,11 +12,10 @@
  */
 
 $graph = 'firewall_sessions_ipv4'; // Current graph
-$graphs[$graph] = FALSE;           // Disable graph by default
 
 if (!isset($graphs_db[$graph]) || $graphs_db[$graph] === TRUE)
 {
-  $session_count = snmp_get($device, ".1.3.6.1.4.1.9.9.147.1.2.2.2.1.5.40.6", "-OQUvs", "CISCO-FIREWALL-MIB", mib_dirs("cisco"));
+  $session_count = snmp_get($device, ".1.3.6.1.4.1.9.9.147.1.2.2.2.1.5.40.6", "-OQUvs", "CISCO-FIREWALL-MIB");
 
   if (is_numeric($session_count))
   {

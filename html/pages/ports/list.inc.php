@@ -29,15 +29,15 @@ foreach ($ports as $p)
 }
 $where = ' WHERE `ports`.`port_id` IN (' . implode(',', $port_ids) . ') ';
 
-$select = "`ports`.*, `ports-state`.*, `ports`.`port_id` AS `port_id`";
+$select = "`ports`.*, `ports`.`port_id` AS `port_id`";
 #$select = "*,`ports`.`port_id` as `port_id`";
 
 include($config['html_dir']."/includes/port-sort-select.inc.php");
 
 $sql  = "SELECT ".$select;
 $sql .= " FROM `ports`";
-$sql .= " INNER JOIN `devices` ON `ports`.`device_id` = `devices`.`device_id`";
-$sql .= " LEFT JOIN `ports-state` ON `ports`.`port_id` = `ports-state`.`port_id`";
+$sql .= " INNER JOIN `devices` USING (`device_id`)";
+//$sql .= " LEFT JOIN `ports-state` USING (`port_id`)";
 $sql .= " ".$where;
 
 unset($ports);
@@ -49,38 +49,23 @@ include($config['html_dir']."/includes/port-sort.inc.php");
 
 // End populating ports array
 
-echo '<div class="box box-solid">';
-echo('<table class="table table-striped  table-hover table-condensed">');
-echo('  <thead>');
+echo generate_box_open();
+echo '<table class="' . OBS_CLASS_TABLE_STRIPED . ' table-hover">' . PHP_EOL;
 
-echo('<tr class="entity">');
-echo('      <th class="state-marker"></th>'.PHP_EOL);
-echo('      <th style="width: 1px;"></th>'.PHP_EOL);
+$cols = array(
+                     array(NULL, 'class="state-marker"'),
+                     array(NULL, 'style="width: 1px;"'),                   
+  'device'        => array('Device', 'style="width: 200px;"'),
+  'port'          => array('Port', 'style="width: 350px;"'),    
+  'traffic'       => array('Traffic', 'style="width: 100px;"'),
+  'traffic_perc'  => array('Traffic %', 'style="width: 90px;"'),
+  'packets'       => array('Packets', 'style="width: 90px;"'),
+  'speed'         => array('Speed', 'style="width: 90px;"'),    
+                     array('MAC Address', 'style="width: 150px;"'),
+);
 
-$cols = array( array('head' => 'Device',      'sort' => 'device',       'width' => 250),
-               array('head' => 'Port',        'sort' => 'port',         'width' => 350),
-               array('head' => 'Traffic',     'sort' => 'traffic',      'width' => 100),
-               array('head' => 'Traffic %',   'sort' => 'traffic_perc', 'width' => 90),
-               array('head' => 'Packets',     'sort' => 'packets',      'width' => 90),
-               array('head' => 'Speed',       'sort' => 'speed',        'width' => 90),
-               array('head' => 'MAC Address', 'sort' => 'mac',          'width' => 150)
-              );
-
-foreach ($cols as $col)
-{
-  echo('<th');
-  if (is_numeric($col['width'])) { echo(' style="width: '.$col['width'].';"'); }
-  echo('>');
-  if ($vars['sort'] == $col['sort'])
-  {
-    echo($col['head'].' *');
-  } else {
-    echo('<a href="'. generate_url($vars, array('sort' => $col['sort'])).'">'.$col['head'].'</a>');
-  }
-  echo("</th>");
-}
-
-echo("      </tr></thead>");
+echo get_table_header($cols, $vars);
+echo '<tbody>' . PHP_EOL;
 
 $ports_disabled = 0; $ports_down = 0; $ports_up = 0; $ports_total = 0;
 foreach ($ports as $port)
@@ -91,9 +76,8 @@ foreach ($ports as $port)
 
 }
 
-echo('</table>');
-
-echo '</div>';
+echo '</tbody></table>';
+echo generate_box_close();
 
 echo pagination($vars, $ports_count);
 

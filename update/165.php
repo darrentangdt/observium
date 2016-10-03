@@ -11,7 +11,7 @@
  *
  */
 
-echo(" Adding MIN RRA to very old RRD files:" . PHP_EOL);
+echo("Adding MIN RRA to very old RRD files:" . PHP_EOL);
 
 $graphdata['hr_processes'] = 'hr_processes.rrd';
 $graphdata['hr_users'] = 'hr_users.rrd';

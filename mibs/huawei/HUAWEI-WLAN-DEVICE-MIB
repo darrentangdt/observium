@@ -1,9 +1,9 @@
 --  ============================================================================
--- Copyright (C) 2010 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- Description:  The mib is used to manage AP on AC, include AP device notify, AP type, 
 --               AP profile, AP whiltelist, AP region, AP objects etc.
 -- Reference:  
--- Version: V1.13
+-- Version: V1.15
 -- 
 -- ============================================================================
 -- Module definition
@@ -32,7 +32,7 @@
 --       Module identity
 		-- 1.3.6.1.4.1.2011.6.139.2
 		hwWlanDevice MODULE-IDENTITY 
-            LAST-UPDATED "201412161010Z"		-- December  16, 2014 at 10:10 GMT
+            LAST-UPDATED  "201506182010Z"		-- June  18, 2015 at 19:13 GMT
 			ORGANIZATION 
 				"Huawei Technologies Co.,Ltd."
 			CONTACT-INFO 
@@ -43,6 +43,12 @@
 				   Website: http://www.huawei.com
 				   Email: support@huawei.com
 				  "
+                                                                   DESCRIPTION 
+				"Huawei AP device management mib."
+			REVISION "201506182010Z"		-- June  18, 2015 at 19:13 GMT
+			DESCRIPTION 
+				"Modify the range of hwApProfileMaxUserNum."
+			REVISION "201501202010Z"		-- January  20, 2015 at 20:10 GMT			
 			DESCRIPTION 
 				"Huawei AP device management mib."
 			REVISION "201412161010Z"		-- December  16, 2014 at 10:10 GMT
@@ -2077,7 +2083,7 @@
 		
 		-- 1.3.6.1.4.1.2011.6.139.2.3.1.1.30
 		hwApProfileMaxUserNum OBJECT-TYPE
-			SYNTAX Integer32 (1..128)
+			SYNTAX Integer32 (1..256)
 			MAX-ACCESS read-create
 			STATUS current
 			DESCRIPTION
@@ -12355,8 +12361,8 @@
 			::= { hwWlanDeviceObjectGroups 7 }
 
                  hwAcGroup OBJECT-GROUP
-			OBJECTS { hwMemAcIndex, hwAcIpVersion, hwAcIPv4Address, hwAcIPv6Address, hwAcState, 
-				hwAcRowStatus, hwMobilityGroupName, hwMobilityGroupMemberList, hwMobilityGroupStatus,hwMobilityGroupMemberOpcode, 
+			OBJECTS { hwAcIpVersion, hwAcIPv4Address, hwAcIPv6Address, hwAcState, 
+				hwAcRowStatus, hwMobilityGroupMemberList, hwMobilityGroupStatus,hwMobilityGroupMemberOpcode, 
 				hwMobilityGroupMemberIndex}
 			STATUS current
 			DESCRIPTION 
@@ -12369,9 +12375,3 @@
 --
 -- HUAWEI-WLAN-DEVICE-MIB.mib
 --
-
-
-
-
-
-

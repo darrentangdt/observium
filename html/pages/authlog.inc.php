@@ -19,62 +19,63 @@ if ($_SESSION['userlevel'] < 10)
   return;
 }
 
-  $userlist = array();
-  foreach (dbFetchColumn('SELECT DISTINCT `user` FROM `authlog` WHERE `user` != ?;', array('')) as $user)
-  {
-    $userlist[$user] = ($user === '' ? '<Anonymous>' : $user);
-  }
-  ksort($userlist);
-  $form = array('type'  => 'rows',
-                //'space' => '5px',
-                //'brand' => NULL,
-                //'class' => 'box box-solid',
-                'submit_by_key' => TRUE);
-                //'url'   => generate_url($vars)); // Use POST in authlog search
-  // Row
-  $form['row'][0]['user'] = array(
-                                  'type'        => 'multiselect',
-                                  'name'        => 'Select Users',
-                                  'width'       => '100%',
-                                  'value'       => $vars['user'],
-                                  'values'      => $userlist);
-  $form['row'][0]['result'] = array(
-                                  'type'        => 'multiselect',
-                                  'name'        => 'Action',
-                                  'width'       => '100%',
-                                  'value'       => $vars['result'],
-                                  'values'      => array('Logged In' => array('name' =>'Logon', 'class' => ''),
-                                                         'Logged Out' => array('name' =>'Logout', 'class' => ''),
-                                                         'Authentication Failure' => array('name' =>'Failed', 'class' => '')));
-  $form['row'][0]['address'] = array(
-                                  'type'        => 'text',
-                                  'name'        => 'Address',
-                                  'placeholder' => TRUE,
-                                  'width'       => '100%',
-                                  'value'       => $vars['address']);
-  //$form['row'][0]['date'] = array(
-  //                                'type'        => 'datetime',
-  //                                'name'        => 'Date',
-  //                                //'min'     => dbFetchCell('SELECT `datetime` FROM `authlog`' . $where . ' ORDER BY `datetime` LIMIT 0,1;'),
-  //                                //'max'     => dbFetchCell('SELECT `datetime` FROM `authlog`' . $where . ' ORDER BY `datetime` DESC LIMIT 0,1;'),
-  //                                'to'          => $vars['date_to'],
-  //                                'from'        => $vars['date_from']);
-  // Search button pull-rigth
-  $form['row'][0]['search']   = array(
-                                  'type'        => 'submit',
-                                  //'name'        => 'Search',
-                                  //'icon'        => 'icon-search',
-                                  'right'       => TRUE,
-                                  );
+$userlist = array();
+foreach (dbFetchColumn('SELECT DISTINCT `user` FROM `authlog` WHERE `user` != ?;', array('')) as $user)
+{
+  $userlist[$user] = ($user === '' ? '<Anonymous>' : $user);
+}
 
-  print_form($form);
-  unset($form, $userlist);
+ksort($userlist);
+$form = array('type'  => 'rows',
+              //'space' => '5px',
+              //'brand' => NULL,
+              //'class' => 'box box-solid',
+              'submit_by_key' => TRUE);
+              //'url'   => generate_url($vars)); // Use POST in authlog search
+// Row
+$form['row'][0]['user'] = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'Select Users',
+                                'width'       => '100%',
+                                'value'       => $vars['user'],
+                                'values'      => $userlist);
+$form['row'][0]['result'] = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'Action',
+                                'width'       => '100%',
+                                'value'       => $vars['result'],
+                                'values'      => array('Logged In' => array('name' =>'Logon', 'class' => ''),
+                                                       'Logged Out' => array('name' =>'Logout', 'class' => ''),
+                                                       'Authentication Failure' => array('name' =>'Failed', 'class' => '')));
+$form['row'][0]['address'] = array(
+                                'type'        => 'text',
+                                'name'        => 'Address',
+                                'placeholder' => TRUE,
+                                'width'       => '100%',
+                                'value'       => $vars['address']);
+//$form['row'][0]['date'] = array(
+//                                'type'        => 'datetime',
+//                                'name'        => 'Date',
+//                                //'min'     => dbFetchCell('SELECT `datetime` FROM `authlog`' . $where . ' ORDER BY `datetime` LIMIT 0,1;'),
+//                                //'max'     => dbFetchCell('SELECT `datetime` FROM `authlog`' . $where . ' ORDER BY `datetime` DESC LIMIT 0,1;'),
+//                                'to'          => $vars['date_to'],
+//                                'from'        => $vars['date_from']);
+// Search button pull-rigth
+$form['row'][0]['search']   = array(
+                                'type'        => 'submit',
+                                //'name'        => 'Search',
+                                //'icon'        => 'icon-search',
+                                'right'       => TRUE,
+                                );
 
-  // Pagination
-  $vars['pagination'] = TRUE;
+print_form($form);
+unset($form, $userlist);
 
-  print_authlog($vars);
+// Pagination
+$vars['pagination'] = TRUE;
 
-  $page_title[] = 'Authlog';
+print_authlog($vars);
+
+register_html_title('Authlog');
 
 // EOF

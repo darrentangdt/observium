@@ -21,11 +21,11 @@ if (preg_match('/Alvarion\ -\ (?<hardware>[\w\ ]+),\ Version:\ (?<version>[\d\.]
   $hardware = trim($matches['hardware']);
   $version  = $matches['version'];
 } else {
-  $hardware = trim(snmp_get($device, "brzLighteOemProjectNameString.0", "-OQv", "ALVARION-DOT11-WLAN-TST-MIB", mib_dirs('alvarion')),'" ');
-  $version  = trim(snmp_get($device, "brzaccVLMainVersionNumber.0",     "-OQv", "ALVARION-DOT11-WLAN-MIB",     mib_dirs('alvarion')),'" ');
+  $hardware = trim(snmp_get($device, 'brzLighteOemProjectNameString.0', '-OQv', 'ALVARION-DOT11-WLAN-TST-MIB'),'" ');
+  $version  = trim(snmp_get($device, 'brzaccVLMainVersionNumber.0',     '-OQv', 'ALVARION-DOT11-WLAN-MIB'    ),'" ');
 }
 
-$unit_type = snmp_get($device, "brzaccVLUnitType.0", "-OQv", "ALVARION-DOT11-WLAN-MIB", mib_dirs('alvarion'));
+$unit_type = snmp_get($device, 'brzaccVLUnitType.0', '-OQv', 'ALVARION-DOT11-WLAN-MIB');
 $features  = rewrite_breeze_type($unit_type);
 
 // EOF

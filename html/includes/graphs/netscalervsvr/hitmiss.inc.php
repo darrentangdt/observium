@@ -11,24 +11,24 @@
  *
  */
 
-$oids = array('TotMiss', 'TotHits');
+$oids = array('TotMiss' => 'Misses', 'TotHits' => 'Hits');
 
 $i = 0;
 
-foreach ($oids as $oid)
+foreach ($oids as $oid => $descr)
 {
   $oid_ds = truncate($oid, 19, '');
   $rrd_list[$i]['filename'] = $rrd_filename;
-  $rrd_list[$i]['descr'] = $oid;
+  $rrd_list[$i]['descr'] = $descr;
   $rrd_list[$i]['ds'] = $oid_ds;
   $i++;
 }
 
 $colours   = "mixed";
 $nototal   = 1;
-$unit_text = "";
+$unit_text = "Hit/Miss";
 $simple_rrd = 1;
 
-include("includes/graphs/generic_multi_simplex_separated.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_simplex_separated.inc.php");
 
 ?>

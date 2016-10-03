@@ -33,6 +33,6 @@ if (is_file($mailscanner_rrd))
   $rrd_filename = $mailscanner_rrd;
 }
 
-include("includes/graphs/generic_duplex.inc.php");
+include($config['html_dir']."/includes/graphs/generic_duplex.inc.php");
 
 // EOF

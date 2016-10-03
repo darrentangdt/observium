@@ -72,6 +72,6 @@ $colour_line_out = "000099";
 $colour_area_in = "CDEB8B";
 $colour_area_out = "C3D9FF";
 
-include("includes/graphs/generic_multi_bits_separated.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_bits_separated.inc.php");
 
 ?>

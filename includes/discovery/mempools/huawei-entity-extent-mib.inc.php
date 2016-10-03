@@ -12,15 +12,13 @@
  */
 
 // Huawei VRP  mempools
-$mib = 'HUAWEI-ENTITY-EXTENT-MIB';
-echo("$mib ");
 
-$mempool_array = snmpwalk_cache_multi_oid($device, "hwEntityMemUsage", NULL, $mib, mib_dirs('huawei'));
+$mempool_array = snmpwalk_cache_multi_oid($device, "hwEntityMemUsage", array(), $mib);
 
 if (is_array($mempool_array))
 {
-  $mempool_array = snmpwalk_cache_multi_oid($device, "hwEntityMemSize",  $mempool_array, $mib, mib_dirs('huawei'));
-  $mempool_array = snmpwalk_cache_multi_oid($device, "ENTITY-MIB::entPhysicalName",$mempool_array, $mib, mib_dirs('huawei'));
+  $mempool_array = snmpwalk_cache_multi_oid($device, "hwEntityMemSize", $mempool_array, $mib);
+  $mempool_array = snmpwalk_cache_multi_oid($device, "entPhysicalName", $mempool_array, 'ENTITY-MIB');
   foreach ($mempool_array as $index => $entry)
   {
     if (is_numeric($entry['hwEntityMemUsage']) && $entry['hwEntityMemSize'] > 0 )
@@ -31,11 +29,12 @@ if (is_array($mempool_array))
       {
         $total = $entry['hwEntityMemSize'];
         $used  = $total * $percent / 100;
-        discover_mempool($valid['mempool'], $device, $index, $mib, $descr, 1, $total, $used);
+        discover_mempool($valid['mempool'], $device, $index, 'HUAWEI-ENTITY-EXTENT-MIB', $descr, 1, $total, $used);
       }
     }
   }
 }
+
 unset ($mempool_array, $index, $descr, $total, $used, $percent);
 
 // EOF

@@ -1,9 +1,19 @@
 <?php
+
+/**
+ * Observium
+ *
+ *   This file is part of Observium.
+ *
+ * @package    observium
+ * @subpackage poller
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ *
+ */
+
 if (!empty($agent_data['app']['kamailio']))
 {
-  $rrd_filename = "app-kamailio-".$app['app_id'].".rrd";
-
-  unset($data);
+  $app_id = discover_app($device, 'kamailio');
 
   $key_trans_table = array(
     'core:bad_URIs_rcvd' => 'corebadURIsrcvd',
@@ -83,19 +93,18 @@ if (!empty($agent_data['app']['kamailio']))
     'usrloc:registered_users' => 'usrlocregusers',
   );
 
-  foreach ($key_trans_table as $key => $value){
-    $data[$value] = 0;
-  }
+  $data = array();
 
-  $lines = explode("\n", $agent_data['app']['kamailio']);
-  foreach ($lines as $line)
+  foreach (explode("\n", $agent_data['app']['kamailio']) as $line)
   {
     list($key, $val) = explode("=", $line);
     $key = trim($key);
 
-    if(substr($key, 0, 6) == 'usrloc'){
+    if (substr($key, 0, 6) == 'usrloc')
+    {
       $tmp = substr($key, strpos($key, '-') + 1);
-      switch($tmp){
+      switch($tmp)
+      {
         case 'contacts':
         case 'expires':
         case 'users':
@@ -104,103 +113,17 @@ if (!empty($agent_data['app']['kamailio']))
       }
     }
 
-    if(isset($key_trans_table[$key])){
-      $data[$key_trans_table[$key]] = (int) trim($val);
-    }else{
-      if($debug) {
-        echo "nick - key is not : $key\n";
-      }
+    if (isset($key_trans_table[$key]))
+    {
+      $data[$key_trans_table[$key]] = (int)trim($val);
+    } else {
+      print_debug("nick - key is not : $key");
     }
   }
 
-  rrdtool_create($device, $rrd_filename, "\
-    DS:corebadURIsrcvd:COUNTER:600:0:125000000000 \
-    DS:corebadmsghdr:COUNTER:600:0:125000000000 \
-    DS:coredropreplies:COUNTER:600:0:125000000000 \
-    DS:coredroprequests:COUNTER:600:0:125000000000 \
-    DS:coreerrreplies:COUNTER:600:0:125000000000 \
-    DS:coreerrrequests:COUNTER:600:0:125000000000 \
-    DS:corefwdreplies:COUNTER:600:0:125000000000 \
-    DS:corefwdrequests:COUNTER:600:0:125000000000 \
-    DS:corercvreplies:COUNTER:600:0:125000000000 \
-    DS:corercvrequests:COUNTER:600:0:125000000000 \
-    DS:coreunsupportedmeth:COUNTER:600:0:125000000000 \
-    DS:dnsfaileddnsrequest:COUNTER:600:0:125000000000 \
-    DS:mysqldrivererrors:COUNTER:600:0:125000000000 \
-    DS:registraraccregs:COUNTER:600:0:125000000000 \
-    DS:registrardefexpire:GAUGE:600:0:125000000000 \
-    DS:registrardefexpirer:GAUGE:600:0:125000000000 \
-    DS:registrarmaxcontact:GAUGE:600:0:125000000000 \
-    DS:registrarmaxexpires:GAUGE:600:0:125000000000 \
-    DS:registrarrejregs:COUNTER:600:0:125000000000 \
-    DS:shmemfragments:GAUGE:600:0:125000000000 \
-    DS:shmemfreesize:GAUGE:600:0:125000000000 \
-    DS:shmemmaxusedsize:GAUGE:600:0:125000000000 \
-    DS:shmemrealusedsize:GAUGE:600:0:125000000000 \
-    DS:shmemtotalsize:GAUGE:600:0:125000000000 \
-    DS:shmemusedsize:GAUGE:600:0:125000000000 \
-    DS:siptracetracedrepl:COUNTER:600:0:125000000000 \
-    DS:siptracetracedreq:COUNTER:600:0:125000000000 \
-    DS:sl1xxreplies:COUNTER:600:0:125000000000 \
-    DS:sl200replies:COUNTER:600:0:125000000000 \
-    DS:sl202replies:COUNTER:600:0:125000000000 \
-    DS:sl2xxreplies:COUNTER:600:0:125000000000 \
-    DS:sl300replies:COUNTER:600:0:125000000000 \
-    DS:sl301replies:COUNTER:600:0:125000000000 \
-    DS:sl302replies:COUNTER:600:0:125000000000 \
-    DS:sl3xxreplies:COUNTER:600:0:125000000000 \
-    DS:sl400replies:COUNTER:600:0:125000000000 \
-    DS:sl401replies:COUNTER:600:0:125000000000 \
-    DS:sl403replies:COUNTER:600:0:125000000000 \
-    DS:sl404replies:COUNTER:600:0:125000000000 \
-    DS:sl407replies:COUNTER:600:0:125000000000 \
-    DS:sl408replies:COUNTER:600:0:125000000000 \
-    DS:sl483replies:COUNTER:600:0:125000000000 \
-    DS:sl4xxreplies:COUNTER:600:0:125000000000 \
-    DS:sl500replies:COUNTER:600:0:125000000000 \
-    DS:sl5xxreplies:COUNTER:600:0:125000000000 \
-    DS:sl6xxreplies:COUNTER:600:0:125000000000 \
-    DS:slfailures:COUNTER:600:0:125000000000 \
-    DS:slreceivedACKs:COUNTER:600:0:125000000000 \
-    DS:slsenterrreplies:COUNTER:600:0:125000000000 \
-    DS:slsentreplies:COUNTER:600:0:125000000000 \
-    DS:slxxxreplies:COUNTER:600:0:125000000000 \
-    DS:tcpconreset:GAUGE:600:0:125000000000 \
-    DS:tcpcontimeout:GAUGE:600:0:125000000000 \
-    DS:tcpconnectfailed:GAUGE:600:0:125000000000 \
-    DS:tcpconnectsuccess:GAUGE:600:0:125000000000 \
-    DS:tcpcurrentopenedcon:GAUGE:600:0:125000000000 \
-    DS:tcpcurrentwrqsize:GAUGE:600:0:125000000000 \
-    DS:tcpestablished:GAUGE:600:0:125000000000 \
-    DS:tcplocalreject:GAUGE:600:0:125000000000 \
-    DS:tcppassiveopen:GAUGE:600:0:125000000000 \
-    DS:tcpsendtimeout:GAUGE:600:0:125000000000 \
-    DS:tcpsendqfull:GAUGE:600:0:125000000000 \
-    DS:tmx2xxtransactions:COUNTER:600:0:125000000000 \
-    DS:tmx3xxtransactions:COUNTER:600:0:125000000000 \
-    DS:tmx4xxtransactions:COUNTER:600:0:125000000000 \
-    DS:tmx5xxtransactions:COUNTER:600:0:125000000000 \
-    DS:tmx6xxtransactions:COUNTER:600:0:125000000000 \
-    DS:tmxUACtransactions:COUNTER:600:0:125000000000 \
-    DS:tmxUAStransactions:COUNTER:600:0:125000000000 \
-    DS:tmxinusetransaction:GAUGE:600:0:125000000000 \
-    DS:tmxlocalreplies:COUNTER:600:0:125000000000 \
-    DS:usrlocloccontacts:GAUGE:600:0:125000000000 \
-    DS:usrloclocexpires:COUNTER:600:0:125000000000 \
-    DS:usrloclocusers:GAUGE:600:0:125000000000 \
-    DS:usrlocregusers:GAUGE:600:0:125000000000");
+  update_application($app_id, $data);
 
-  if($debug) {
-    echo "nick - data: " . print_r($data, true) . "\n";
-  }
-
-  $rrd_update = 'N';
-  foreach ($data as $param => $value)
-  {
-    $rrd_update .= ':'.$value;
-  }
-
-  rrdtool_update($device, $rrd_filename, $rrd_update);
+  rrdtool_update_ng($device, 'kamailio', $data, $app_id);
 }
 
 // EOF

@@ -19,9 +19,9 @@
  * Autoloader for Classes used in Observium
  *
  */
-function __autoload($class_name)
+function observium_autoload($class_name)
 {
-
+  //var_dump($class_name);
   $base_dir    = $GLOBALS['config']['install_dir'] . '/libs/';
 
   $class_array = explode('\\', $class_name);
@@ -29,7 +29,7 @@ function __autoload($class_name)
   switch ($class_array[0])
   {
     case 'cli':
-      include_once $base_dir . 'cli/cli.php'; // Cli classes required base functions
+      include_once($base_dir . 'cli/cli.php'); // Cli classes required base functions
       break;
     default:
       if (is_file($base_dir . 'pear/' . $class_file))
@@ -53,7 +53,7 @@ function __autoload($class_name)
   $status = is_file($full_path);
   if ($status)
   {
-    $status = include_once $full_path;
+    $status = include_once($full_path);
   }
   if (OBS_DEBUG > 1)
   {
@@ -61,6 +61,8 @@ function __autoload($class_name)
   }
   return $status;
 }
+// Register autoload function
+spl_autoload_register('observium_autoload');
 
 // DOCME needs phpdoc block
 // TESTME needs unit testing
@@ -138,6 +140,10 @@ function get_obs_attrib($attrib_type)
   }
 }
 
+/**
+ * Generate and store Unique ID for current system. Store in DB at first run.
+ * @return string Unique system ID
+ */
 function get_unique_id()
 {
   if (!isset($GLOBALS['cache']['unique_id']))
@@ -265,10 +271,11 @@ function get_dir_size($directory)
 {
   $size = 0;
 
-  foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory)) as $file)
+  foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory), RecursiveIteratorIterator::LEAVES_ONLY, RecursiveIteratorIterator::CATCH_GET_CHILD) as $file)
   {
     if ($file->getFileName() != '..') { $size += $file->getSize(); }
   }
+
   return $size;
 }
 
@@ -417,9 +424,136 @@ function logfile($filename, $string = NULL)
     }
   }
 
-  $string = '[' . date('Y/m/d H:i:s O') . '] ' . basename($argv[0]) . '(' . getmypid() . '): ' . trim($string) . PHP_EOL;
+  //$string = '[' . date('Y/m/d H:i:s O') . '] ' . basename($argv[0]) . '(' . getmypid() . '): ' . trim($string) . PHP_EOL;
+  $string = '[' . date('Y/m/d H:i:s O') . '] ' . basename($_SERVER['SCRIPT_FILENAME']) . '(' . getmypid() . '): ' . trim($string) . PHP_EOL;
   fputs($fd, $string);
   fclose($fd);
+}
+
+/**
+ * Get used system versions
+ * @return	array
+ */
+function get_versions()
+{
+  if (isset($GLOBALS['cache']['versions']))
+  {
+    // Already cached
+    return $GLOBALS['cache']['versions'];
+  }
+  $versions = array(); // Init
+
+  // Local system OS version
+  if (is_executable($GLOBALS['config']['install_dir'].'/scripts/distro'))
+  {
+    $os = explode('|', external_exec($GLOBALS['config']['install_dir'].'/scripts/distro'), 5);
+    $versions['os_system']         = $os[0];
+    $versions['os_version']        = $os[1];
+    $versions['os_arch']           = $os[2];
+    $versions['os_distro']         = $os[3];
+    $versions['os_distro_version'] = $os[4];
+    $versions['os_text']           = $os[0].' '.$os[1].' ['.$os[2].'] ('.$os[3].' '.$os[4].')';
+  }
+
+  // PHP
+  $php_version = PHP_VERSION;
+  $versions['php_full'] = $php_version;
+  $versions['php_version'] = PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION;
+  // PHP OPcache
+  $versions['php_opcache'] = FALSE;
+  if (extension_loaded('Zend OPcache'))
+  {
+    $opcache = ini_get('opcache.enable');
+    $php_version  .= ' (OPcache: ';
+    if ($opcache && is_cli() && ini_get('opcache.enable_cli')) // CLI
+    {
+      $php_version  .= 'ENABLED)';
+      $versions['php_opcache'] = 'ENABLED';
+    }
+    else if ($opcache && !is_cli()) // WUI
+    {
+      $php_version  .= 'ENABLED)';
+      $versions['php_opcache'] = 'ENABLED';
+    } else {
+      $php_version  .= 'DISABLED)';
+      $versions['php_opcache'] = 'DISABLED';
+    }
+  }
+  $versions['php_text'] = $php_version;
+
+  // Python
+  $python_version  = str_replace('Python ', '', external_exec('/usr/bin/env python --version 2>&1'));
+  $versions['python_version'] = $python_version;
+  $versions['python_text']    = $python_version;
+
+  // MySQL
+  $mysql_client    = dbClientInfo();
+  if (preg_match('/(\d+\.[\d\w\.\-]+)/', $mysql_client, $matches))
+  {
+    $mysql_client  = $matches[1];
+  }
+  $versions['mysql_client']  = $mysql_client;
+  $mysql_version   = dbFetchCell("SELECT version();");
+  $versions['mysql_full']    = $mysql_version;
+  list($versions['mysql_version']) = explode('-', $mysql_version);
+  $mysql_version  .= ' (extension: ' . OBS_DB_EXTENSION . ' ' . $mysql_client . ')';
+  $versions['mysql_text']    = $mysql_version;
+
+  // SNMP
+  if (is_executable($GLOBALS['config']['snmpget']))
+  {
+    $snmp_version  = str_replace(' version:', '', external_exec($GLOBALS['config']['snmpget'] . " --version 2>&1"));
+  } else {
+    $snmp_version  = 'not found';
+  }
+  $versions['snmp_version'] = str_replace('NET-SNMP ', '', $snmp_version);
+  $versions['snmp_text']    = $snmp_version;
+
+  // RRDtool
+  if (is_executable($GLOBALS['config']['rrdtool']))
+  {
+    list(,$rrdtool_version) = explode(' ', external_exec($GLOBALS['config']['rrdtool'] . ' --version | head -n1'));
+    $versions['rrdtool_version'] = $rrdtool_version;
+
+    if (strlen($GLOBALS['config']['rrdcached']))
+    {
+      $rrdcached_exec = str_replace('rrdtool', 'rrdcached', $GLOBALS['config']['rrdtool']);
+      if (!is_executable($rrdcached_exec))
+      {
+        $rrdcached_exec = '/usr/bin/env rrdcached -h';
+      }
+      list(,$versions['rrdcached_version']) = explode(' ', external_exec($rrdcached_exec . ' -h | head -n1'));
+      $rrdtool_version .= ' (rrdcached ' . $versions['rrdcached_version'] . ': ' . $GLOBALS['config']['rrdcached'] . ')';
+    }
+  } else {
+    $rrdtool_version = 'not found';
+    $versions['rrdtool_version'] = $rrdtool_version;
+  }
+  $versions['rrdtool_text'] = $rrdtool_version;
+
+  // Apache (or any http used?)
+  if (is_cli())
+  {
+    $http_version  = external_exec('/usr/bin/env apache2 -v | awk \'/Server version:/ {print $3}\'');
+    if (!$http_version)
+    {
+      $http_version = external_exec('/usr/bin/env httpd -v | awk \'/Server version:/ {print $3}\'');
+    }
+    if (empty($http_version))
+    {
+      $http_version  = 'not found';
+    }
+    $versions['http_full']    = $http_version;
+  } else {
+    $versions['http_full']    = $_SERVER['SERVER_SOFTWARE'];
+  }
+  $versions['http_version'] = str_replace('Apache/', '', $versions['http_full']);
+  $versions['http_text']    = $versions['http_version'];
+
+  $GLOBALS['cache']['versions'] = $versions;
+  //print_vars($GLOBALS['cache']['versions']);
+
+  return $versions;
 }
 
 /**
@@ -429,55 +563,22 @@ function logfile($filename, $string = NULL)
  */
 function print_versions()
 {
-  if (is_executable($GLOBALS['config']['install_dir'].'/scripts/distro'))
-  {
-    $os = explode('|', external_exec($GLOBALS['config']['install_dir'].'/scripts/distro'), 5);
-    $os_version = $os[0].' '.$os[1].' ['.$os[2].'] ('.$os[3].' '.$os[4].')';
-  }
-  $php_version     = phpversion();
-  $python_version  = str_replace("Python ", "", external_exec('/usr/bin/env python --version 2>&1'));
-  $mysql_client    = dbClientInfo();
-  if (preg_match('/(\d+\.[\d\w\.\-]+)/', $mysql_client, $matches))
-  {
-    $mysql_client  = $matches[1];
-  }
-  $mysql_version   = dbFetchCell("SELECT version();");
-  $mysql_version  .= ' (extension: ' . OBS_DB_EXTENSION . ' ' . $mysql_client . ')';
-  if (is_executable($GLOBALS['config']['snmpget']))
-  {
-    $snmp_version  = str_replace(" version:", "", external_exec($GLOBALS['config']['snmpget'] . " --version 2>&1"));
-  } else {
-    $snmp_version  = 'not found';
-  }
-  if (is_executable($GLOBALS['config']['rrdtool']))
-  {
-    $rrdtool_version = implode(" ",array_slice(explode(" ",external_exec($GLOBALS['config']['rrdtool'] . " --version |head -n1")), 1, 1));
-    if (strlen($GLOBALS['config']['rrdcached']))
-    {
-      $rrdtool_version .= ' (rrdcached: ' . $GLOBALS['config']['rrdcached'] . ')';
-    }
-  } else {
-    $rrdtool_version = 'not found';
-  }
+  get_versions();
+
+  $os_version      = $GLOBALS['cache']['versions']['os_text'];
+  $php_version     = $GLOBALS['cache']['versions']['php_text'];
+  $python_version  = $GLOBALS['cache']['versions']['python_text'];
+  $mysql_version   = $GLOBALS['cache']['versions']['mysql_text'];
+  $snmp_version    = $GLOBALS['cache']['versions']['snmp_text'];
+  $rrdtool_version = $GLOBALS['cache']['versions']['rrdtool_text'];
+  $http_version    = $GLOBALS['cache']['versions']['http_text'];
 
   if (is_cli())
   {
     $timezone      = get_timezone();
     //print_vars($timezone);
-    
-    $http_version  = external_exec('/usr/bin/env apache2 -v | awk \'/Server version:/ {print $3}\'');
-    if (!$http_version)
-    {
-      $http_version = external_exec('/usr/bin/env httpd -v | awk \'/Server version:/ {print $3}\'');
-    }
-    if ($http_version)
-    {
-      $http_version  = str_replace("Apache/", "", $http_version);
-    } else {
-      $http_version  = 'not found';
-    }
 
-    $mysql_mode    = dbFetchCell("SELECT @@sql_mode;");
+    $mysql_mode    = dbFetchCell("SELECT @@SESSION.sql_mode;");
     $mysql_charset = dbShowVariables('SESSION', "LIKE 'character_set_connection'");
 
     echo(PHP_EOL);
@@ -508,15 +609,10 @@ function print_versions()
     echo(PHP_EOL);
 
   } else {
-    $http_version    = str_replace("Apache/", "", $_SERVER['SERVER_SOFTWARE']);
     $observium_date  = format_unixtime(strtotime(OBSERVIUM_DATE), 'jS F Y');
-
+    
+    echo generate_box_open(array('title' => 'Version Information'));
     echo('
-  <div class="box box-solid">
-    <div class="box-header">
-      <h3 class="box-title">Version Information</h3>
-    </div>
-    <div class="box-content">
         <table class="table table-striped table-condensed-more">
           <tbody>
             <tr><td><b>'.escape_html(OBSERVIUM_PRODUCT).'</b></td><td>'.escape_html(OBSERVIUM_VERSION).' ('.escape_html($observium_date).')</td></tr>
@@ -528,9 +624,8 @@ function print_versions()
             <tr><td><b>SNMP</b></td><td>'.escape_html($snmp_version).'</td></tr>
             <tr><td><b>RRDtool</b></td><td>'.escape_html($rrdtool_version).'</td></tr>
           </tbody>
-        </table>
-    </div>
-  </div>'.PHP_EOL);
+        </table>'.PHP_EOL);
+    echo generate_box_close();
   }
 }
 
@@ -570,6 +665,7 @@ function print_vars($vars)
       {
         $trace = defined('DEBUG_BACKTRACE_IGNORE_ARGS') ? debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) : debug_backtrace();
         ref::config('Backtrace', $trace); // pass original backtrace
+        ref::config('showStringMatches',  FALSE);
       } else {
         ref::config('showBacktrace',      FALSE);
         ref::config('showResourceInfo',   FALSE);
@@ -761,7 +857,7 @@ function deviceUptime($device, $format="long")
 function formatUptime($uptime, $format = "long")
 {
   $uptime = (int)$uptime;
-  if ($uptime === 0) { return '0s'; }
+  if ($uptime <= 0) { return '0s'; }
 
   $up['y'] = floor($uptime / 31536000);
   $up['d'] = floor($uptime % 31536000 / 86400);
@@ -836,15 +932,18 @@ function get_timezone()
   if (!isset($cache['timezone']))
   {
     $timezone = array();
-    //$timezone['system'] = external_exec('date "+%:z"');                          // return '+04:00'
-    $timezone['mysql'] = dbFetchCell('SELECT TIMEDIFF(NOW(), UTC_TIMESTAMP);'); // return '04:00:00'
+    $timezone['system'] = external_exec('date "+%:z"');                         // return '+03:00'
+    $timezone['mysql'] = dbFetchCell('SELECT TIMEDIFF(NOW(), UTC_TIMESTAMP);'); // return '03:00:00'
     if ($timezone['mysql'][0] != '-')
     {
       $timezone['mysql'] = '+'.$timezone['mysql'];
     }
-    $timezone['mysql']       = preg_replace('/:00$/', '', $timezone['mysql']);  // convert to '+04:00'
+    $timezone['mysql']       = preg_replace('/:00$/', '', $timezone['mysql']);  // convert to '+03:00'
     $timezone['php']         = date('P');                                       // return '+03:00'
     $timezone['php_abbr']    = date('T');                                       // return 'MSK'
+    $timezone['php_name']    = date('e');                                       // return 'Europe/Moscow'
+    $timezone['php_daylight'] = date('I');                                      // return '0'
+
     foreach (array('php', 'mysql') as $entry)
     {
       $sign = $timezone[$entry][0];
@@ -957,7 +1056,8 @@ function external_exec($command, $timeout = NULL)
 {
   global $exec_status;
 
-  $exec_status = array('command' => $command);
+  $exec_status = array('command'   => $command,
+                       'exitdelay' => 0);
   if (is_numeric($timeout) && $timeout > 0)
   {
     $timeout_usec = $timeout * 1000000;
@@ -978,7 +1078,7 @@ function external_exec($command, $timeout = NULL)
   if (OBS_DEBUG > 0)
   {
     $debug_command = $command;
-    if (OBS_DEBUG < 2 && $GLOBALS['config']['snmp']['hide_auth'] && preg_match("/snmp(?:bulk)?(?:get|walk)\s+(?:-(?:t|r|Cr)['\d\s]+){0,3}-v[123]c?\s+/", $command))
+    if (OBS_DEBUG < 2 && $GLOBALS['config']['snmp']['hide_auth'] && preg_match("/snmp(bulk)?(get|walk)(\s+-(t|r|Cr)['\d\s]+){0,3}(\s+-Cc)?\s+-v[123]c?\s+/", $command))
     {
       // Hide snmp auth params from debug cmd out,
       // for help users who want send debug output to developers
@@ -1034,7 +1134,7 @@ function external_exec($command, $timeout = NULL)
         {
           // Very rare situation, seems as next proc_get_status() bug
           if (!isset($status_fix)) { $status_fix = $status; }
-          if (OBS_DEBUG > 1) { print_debug("Wrong process status! Try fix.."); }
+          if (OBS_DEBUG > 1) { print_debug("Wrong process status! Issue in proc_get_status(), see: https://bugs.php.net/bug.php?id=69014"); }
         } else {
           //var_dump($status);
           break;
@@ -1055,8 +1155,16 @@ function external_exec($command, $timeout = NULL)
     if ($status['running'])
     {
       // Fix sometimes wrong status, wait for 10 milliseconds
-      usleep(10000);
-      $status = proc_get_status($process);
+      $delay      = 0;
+      $delay_step = 10000;  // 10ms
+      $delay_max  = 300000; // 300ms
+      while ($status['running'] && $delay < $delay_max)
+      {
+        usleep($delay_step);
+        $status = proc_get_status($process);
+        $delay += $delay_step;
+      }
+      $exec_status['exitdelay'] = intval($delay / 1000); // Convert to ms
     }
     else if (isset($status_fix))
     {
@@ -1081,8 +1189,12 @@ function external_exec($command, $timeout = NULL)
 
   if (OBS_DEBUG > 0)
   {
-    print_message('EXITCODE['.($exec_status['exitcode'] !== 0 ? '%r' : '%g').$exec_status['exitcode'].'%n]'.PHP_EOL.
+    print_message('CMD EXITCODE['.($exec_status['exitcode'] !== 0 ? '%r' : '%g').$exec_status['exitcode'].'%n]'.PHP_EOL.
                   'CMD RUNTIME['.($runtime > 7 ? '%r' : '%g').round($runtime, 4).'s%n]', 'console');
+    if ($exec_status['exitdelay'] > 0)
+    {
+      print_message("CMD EXITDELAY[%r".$exec_status['exitdelay']."ms%n]", 'console', FALSE);
+    }
     print_message("STDOUT[\n".$stdout."\n]", 'console', FALSE);
     if ($exec_status['exitcode'] && $exec_status['stderr'])
     {
@@ -1095,6 +1207,194 @@ function external_exec($command, $timeout = NULL)
 }
 
 /**
+ * Get information about process by it identifier (pid)
+ *
+ * @param int     $pid    The process identifier.
+ * @param boolean $stats  If true, additionally show cpu/memory stats
+ * @return array          Array with information about process, If process not found, return FALSE
+ */
+function get_pid_info($pid, $stats = FALSE)
+{
+  $pid = intval($pid);
+  if ($pid < 1)
+  {
+    print_debug("Incorrect PID passed");
+    //trigger_error("PID ".$pid." doesn't exists", E_USER_WARNING);
+    return FALSE;
+  }
+
+  if ($stats)
+  {
+    // Add CPU/Mem stats
+    $options = 'pid,ppid,uid,gid,pcpu,pmem,vsz,rss,tty,stat,time,lstart,args';
+  } else {
+    $options = 'pid,ppid,uid,gid,tty,stat,time,lstart,args';
+  }
+
+  $ps = external_exec('/bin/ps -ww -o '.$options.' -p '.$pid);
+  $ps = explode("\n", rtrim($ps));
+
+  if ($GLOBALS['exec_status']['exitcode'] === 127)
+  {
+    print_debug("/bin/ps command not found, not possible to get process info.");
+    return NULL;
+  }
+  else if ($GLOBALS['exec_status']['exitcode'] !== 0 || count($ps) < 2)
+  {
+    print_debug("PID ".$pid." doesn't exists");
+    //trigger_error("PID ".$pid." doesn't exists", E_USER_WARNING);
+    return FALSE;
+  }
+
+  // "  PID  PPID   UID   GID %CPU %MEM    VSZ   RSS TT       STAT     TIME                  STARTED COMMAND" 
+  // "14675 10250  1000  1000  0.0  0.2 194640 11240 pts/4    S+   00:00:00 Mon Mar 21 14:48:08 2016 php ./test_pid.php"
+  //
+  // "  PID  PPID   UID   GID TT       STAT     TIME                  STARTED COMMAND"
+  // "14675 10250  1000  1000 pts/4    S+   00:00:00 Mon Mar 21 14:48:08 2016 php ./test_pid.php"
+  //print_vars($ps);
+
+  $timezone = get_timezone(); // Get system timezone info, for correct started time conversion
+
+  // Parse output
+  $keys = preg_split("/\s+/", $ps[0], -1, PREG_SPLIT_NO_EMPTY);
+  $entries = preg_split("/\s+/", $ps[1], count($keys) - 1, PREG_SPLIT_NO_EMPTY);
+  $started = preg_split("/\s+/", array_pop($entries), 6, PREG_SPLIT_NO_EMPTY);
+  $command = array_pop($started);
+
+  $started[]    = str_replace(':', '', $timezone['system']); // Add system TZ to started time
+  $started_rfc  = array_shift($started) . ', ';
+  $started_rfc .= implode(' ', $started); // Reimplode and convert to RFC2822 started date 'Sun, Mar 20 18:01:53 2016 +0300'
+  $entries[] = $started_rfc;
+
+  $entries[] = $command; // Readd command
+  //print_vars($entries);
+  //print_vars($started);
+
+  $pid_info = array();
+  foreach ($keys as $i => $key)
+  {
+    $pid_info[$key] = $entries[$i];
+  }
+  $pid_info['STARTED_UNIX'] = strtotime($pid_info['STARTED']);
+  //print_vars($pid_info);
+
+  return $pid_info;
+}
+
+/**
+ * Add information about process into DB
+ *
+ * @param string $process_name Process identicator
+ * @param array  $device       Device array
+ * @param int    $pid          PID for process. If empty used current PHP process ID
+ * @return int                 DB id for inserted row
+ */
+function add_process_info($device, $pid = NULL)
+{
+  global $argv;
+
+  // Check if device_id passed instead array
+  if (is_numeric($device))
+  {
+    $device = array('device_id' => $device);
+  }
+  if (!is_numeric($pid))
+  {
+    $pid = getmypid();
+  }
+  $pid_info = get_pid_info($pid);
+
+  if (is_array($pid_info))
+  {
+    $process_name = basename($argv[0]);
+    if ($process_name == 'poller.php' || $process_name == 'alerter.php')
+    {
+      // Try detect parent poller wrapper
+      $parent_info = $pid_info;
+      do
+      {
+        $found = FALSE;
+        $parent_info = get_pid_info($parent_info['PPID']);
+        if (strpos($parent_info['COMMAND'], $process_name) !== FALSE)
+        {
+          $found = TRUE;
+        }
+        else if (strpos($parent_info['COMMAND'], 'poller-wrapper.py') !== FALSE)
+        {
+          $pid_info['PPID'] = $parent_info['PID'];
+        }
+      } while ($found);
+    }
+    $update_array = array(
+      'process_pid'     => $pid,
+      'process_name'    => $process_name,
+      'process_ppid'    => $pid_info['PPID'],
+      'process_uid'     => $pid_info['UID'],
+      'process_command' => $pid_info['COMMAND'],
+      'process_start'   => $pid_info['STARTED_UNIX'],
+      'device_id'       => $device['device_id']
+    );
+    return dbInsert($update_array, 'observium_processes');
+  }
+  print_debug("Process info not added for PID: $pid");
+}
+
+function del_process_info($device, $pid = NULL)
+{
+  global $argv;
+
+  // Check if device_id passed instead array
+  if (is_numeric($device))
+  {
+    $device = array('device_id' => $device);
+  }
+  if (!is_numeric($pid))
+  {
+    $pid = getmypid();
+  }
+
+  return dbDelete('observium_processes', '`process_pid` = ? AND `process_name` = ? AND `device_id` = ?', array($pid, basename($argv[0]), $device['device_id']));
+}
+
+function check_process_run($device, $pid = NULL)
+{
+  global $argv;
+
+  $process_name = basename($argv[0]);
+  $check = FALSE;
+
+  // Check if device_id passed instead array
+  if (is_numeric($device))
+  {
+    $device = array('device_id' => $device);
+  }
+
+  $query  = 'SELECT * FROM `observium_processes` WHERE `process_name` = ? AND `device_id` = ?';
+  $params = array($process_name, $device['device_id']);
+  if (is_numeric($pid))
+  {
+    $query .= ' AND `process_pid` = ?';
+    $params[] = intval($pid);
+  }
+
+  foreach (dbFetchRows($query, $params) as $process)
+  {
+    // We found processes in DB, check if it exist on system
+    $pid_info = get_pid_info($process['process_pid']);
+    if (is_array($pid_info) && strpos($pid_info['COMMAND'], $process_name) !== FALSE)
+    {
+      // Process still running
+      $check = array_merge($pid_info, $process);
+    } else {
+      // Remove stalled DB entries
+      dbDelete('observium_processes', '`process_id` = ?', array($process['process_id']));
+    }
+  }
+
+  return $check;
+}
+
+/**
  * Determine array is associative or sequential?
  *
  * @param array
@@ -1102,7 +1402,7 @@ function external_exec($command, $timeout = NULL)
  */
 function is_array_assoc($array)
 {
-  return ($array !== array_values($array));
+  return (is_array($array) && $array !== array_values($array));
 }
 
 // DOCME needs phpdoc block
@@ -1451,7 +1751,7 @@ function check_extension_exists($extension, $text = FALSE, $fatal = FALSE)
     'mysql'    => 'mysql_connect',
     'mysqli'   => 'mysqli_connect',
     'mbstring' => 'mb_detect_encoding',
-    'mcrypt'   => 'mcrypt_encrypt',
+    'mcrypt'   => 'mcrypt_encrypt', // FIXME, in php7.1 mcrypt will be removed
     'posix'    => 'posix_isatty',
     'session'  => 'session_name',
     'svn'      => 'svn_log'
@@ -1564,12 +1864,13 @@ function get_port_by_id($port_id)
 {
   if (is_numeric($port_id))
   {
-    $port = dbFetchRow("SELECT * FROM `ports` LEFT JOIN `ports-state` ON `ports`.`port_id` = `ports-state`.`port_id`  WHERE `ports`.`port_id` = ?", array($port_id));
+    //$port = dbFetchRow("SELECT * FROM `ports` LEFT JOIN `ports-state` ON `ports`.`port_id` = `ports-state`.`port_id`  WHERE `ports`.`port_id` = ?", array($port_id));
+    $port = dbFetchRow("SELECT * FROM `ports`  WHERE `ports`.`port_id` = ?", array($port_id));
   }
 
   if (is_array($port))
   {
-    $port['port_id'] = $port_id; // It corrects the situation, when `ports-state` is empty
+    //$port['port_id'] = $port_id; // It corrects the situation, when `ports-state` is empty
     humanize_port($port);
     return $port;
   }
@@ -2110,8 +2411,10 @@ function del_dev_attrib($device, $attrib_type)
 
 // DOCME needs phpdoc block
 // Return cached MIBs array available for device (from os definitions)
+// By default includes sysORID-supplied MIBs unless check_sysORID is false
+// When requesting list without sysORID, result will NOT be cached
 // MOVEME to includes/functions.inc.php
-function get_device_mibs($device)
+function get_device_mibs($device, $check_sysORID = TRUE, $mibs_order = NULL)
 {
   global $config, $cache;
 
@@ -2123,33 +2426,99 @@ function get_device_mibs($device)
     $device_id = $device['device_id'];
   }
 
-  if (!(isset($cache['devices']['mibs'][$device_id]) && is_array($cache['devices']['mibs'][$device_id])))
+  // Set custom mibs order
+  $mibs_order_default = array('model', 'os', 'group', 'default');
+  if      (empty($mibs_order))
+  {
+    // Default order: per-model mibs (if model set) -> os mibs -> os group mibs -> default mibs
+    $mibs_order = $mibs_order_default;
+  }
+  else if (!is_array($mibs_order))
+  {
+    // Order can passed as string with comma: 'model,os,group,default'
+    $mibs_order = explode(',', $mibs_order);
+  }
+
+  // Check if custom order used, than set first from passed argument, second from default
+  if ($mibs_order_custom = $mibs_order !== $mibs_order_default)
+  {
+    // Set first from passed argument, second
+    $mibs_order = array_unique(array_merge($mibs_order, $mibs_order_default));
+  }
+
+  // Cache main device MIBs list
+  if (!isset($cache['devices']['mibs'][$device_id]))
   {
     $mibs = array();
-    if (isset($config['os'][$device['os']]['model']))
+    foreach ($mibs_order as $order)
     {
-      $model       = $config['os'][$device['os']]['model'];
-      $sysObjectID = (preg_match('/^\.\d[\d\.]+$/', $device['sysObjectID']) ? $device['sysObjectID'] : 'WRONG_ID');
-      krsort($config['model'][$model]); // Resort array by key with high to low order!
-      foreach ($config['model'][$model] as $key => $entry)
+      switch ($order)
       {
-        if (isset($entry['mibs']) && strpos($sysObjectID, $key) === 0)
-        {
-          $mibs = array_merge($mibs, (array)$entry['mibs']);
+        case 'model':
+          if (isset($config['os'][$device['os']]['model']))
+          {
+            $model       = $config['os'][$device['os']]['model'];
+            $sysObjectID = (preg_match('/^\.\d[\d\.]+$/', $device['sysObjectID']) ? $device['sysObjectID'] : 'WRONG_ID');
+            krsort($config['model'][$model]); // Resort array by key with high to low order!
+
+            foreach ($config['model'][$model] as $key => $entry)
+            {
+              if (isset($entry['mibs']) && strpos($sysObjectID, $key) === 0)
+              {
+                $mibs = array_merge($mibs, (array)$entry['mibs']);
+                break;
+              }
+            }
+          }
           break;
-        }
+        case 'os':
+          $mibs = array_merge((array)$mibs, (array)$config['os'][$device['os']]['mibs']);
+          break;
+        case 'group':
+          $mibs = array_merge((array)$mibs, (array)$config['os_group'][$config['os'][$device['os']]['group']]['mibs']);
+          break;
+        case 'default':
+          $mibs = array_merge((array)$mibs, (array)$config['os']['default']['mibs']);
+          break;
       }
     }
-    $mibs = array_unique(array_merge((array)$mibs, (array)$config['os'][$device['os']]['mibs'],
-                                     (array)$config['os_group'][$config['os'][$device['os']]['group']]['mibs'],
-                                     (array)$config['os']['default']['mibs']));
-    // Blacklisted MIBs
+    $mibs = array_unique($mibs);
+
+    //$mibs = array_unique(array_merge((array)$mibs, (array)$config['os'][$device['os']]['mibs'],
+    //                                 (array)$config['os_group'][$config['os'][$device['os']]['group']]['mibs'],
+    //                                 (array)$config['os']['default']['mibs']));
+
+    // Remove blacklisted MIBs from array
     $mibs = array_diff($mibs, get_device_mibs_blacklist($device));
 
     $cache['devices']['mibs'][$device_id] = $mibs;
+  } else {
+    $mibs = $cache['devices']['mibs'][$device_id];
   }
 
-  return $cache['devices']['mibs'][$device_id];
+  // Add and cache sysORID supplied MIBs if any
+  if ($check_sysORID)
+  {
+    if (!isset($cache['devices']['mibs_sysORID'][$device_id]))
+    {
+      $sysORID = json_decode(get_entity_attrib('device', $device, 'sysORID'), TRUE);
+      if (is_array($sysORID))
+      {
+        // Leave only not exist in main MIBs and blacklist
+        $sysORID = array_diff($sysORID, get_device_mibs_blacklist($device), (array)$cache['devices']['mibs'][$device_id]);
+      } else {
+        $sysORID = array(); // Leave empty
+      }
+      $cache['devices']['mibs_sysORID'][$device_id] = $sysORID;
+    }
+    // Attach sysORID MIBs
+    $mibs = array_merge((array)$cache['devices']['mibs'][$device_id], (array)$cache['devices']['mibs_sysORID'][$device_id]);
+  }
+
+  // Do not cache MIBs if custom order used
+  if ($mibs_order_custom) { unset($cache['devices']['mibs'][$device_id]); }
+
+  return $mibs;
 }
 
 /**
@@ -2169,14 +2538,16 @@ function get_device_mibs_blacklist(array $device)
 // Check if MIB available and permitted for device
 // if $check_permissions is TRUE, check permissions by config option $config['mibs'][$mib]
 // and from the enable/disable panel in the device configuration in the web interface
+// if $check_sysORID is TRUE, we fetch the device's supplied list as well - should only be FALSE in the sysORID code
 // DOCME needs phpdoc block
 // TESTME needs unit testing
 // MOVEME to includes/functions.inc.php
-function is_device_mib($device, $mib, $check_permissions = TRUE)
+function is_device_mib($device, $mib, $check_permissions = TRUE, $check_sysORID = TRUE)
 {
   global $config;
 
-  $mib_permitted = in_array($mib, get_device_mibs($device)); // Check if mib available for device
+  $mib_permitted = in_array($mib, get_device_mibs($device, $check_sysORID)); // Check if mib available for device
+
   if ($check_permissions && $mib_permitted && (!isset($config['mibs'][$mib]['enable']) || $config['mibs'][$mib]['enable']))
   {
     // Check if MIB permitted by config
@@ -2196,7 +2567,7 @@ function is_device_mib($device, $mib, $check_permissions = TRUE)
 
 // DOCME needs phpdoc block
 // TESTME needs unit testing
-function formatRates($value, $round = '2', $sf = '3')
+function formatRates($value, $round = 2, $sf = 3)
 {
    $value = format_si($value, $round, $sf) . "bps";
    return $value;
@@ -2204,7 +2575,7 @@ function formatRates($value, $round = '2', $sf = '3')
 
 // DOCME needs phpdoc block
 // TESTME needs unit testing
-function formatStorage($value, $round = '2', $sf = '3')
+function formatStorage($value, $round = 2, $sf = 3)
 {
    $value = format_bi($value, $round, $sf) . 'B';
    return $value;
@@ -2212,7 +2583,7 @@ function formatStorage($value, $round = '2', $sf = '3')
 
 // DOCME needs phpdoc block
 // TESTME needs unit testing
-function format_si($value, $round = '2', $sf = '3')
+function format_si($value, $round = 2, $sf = 3)
 {
   if ($value < "0")
   {
@@ -2235,12 +2606,12 @@ function format_si($value, $round = '2', $sf = '3')
 
   if ($neg) { $value = $value * -1; }
 
-  return format_number_short(round($value, $round),$sf).$ext;
+  return format_number_short(round($value, $round), $sf).$ext;
 }
 
 // DOCME needs phpdoc block
 // TESTME needs unit testing
-function format_bi($value, $round = '2', $sf = '3')
+function format_bi($value, $round = 2, $sf = 3)
 {
   if ($value < "0")
   {
@@ -2258,7 +2629,7 @@ function format_bi($value, $round = '2', $sf = '3')
 
 // DOCME needs phpdoc block
 // TESTME needs unit testing
-function format_number($value, $base = '1000', $round=2, $sf=3)
+function format_number($value, $base = '1000', $round = 2, $sf = 3)
 {
   if ($base == '1000')
   {
@@ -2266,6 +2637,35 @@ function format_number($value, $base = '1000', $round=2, $sf=3)
   } else {
     return format_bi($value, $round, $sf);
   }
+}
+
+// DOCME needs phpdoc block
+// TESTME needs unit testing
+function format_value($value, $format = '', $round = 2, $sf = 3)
+{
+  switch (strtolower($format))
+  {
+    case 'si':
+    case '1000':
+      $value = format_si($value, $round, $sf);
+      break;
+    case 'bi':
+    case '1024':
+      $value = format_bi($value, $round, $sf);
+      break;
+
+    case 'time':
+      $value = formatUptime($value);
+      break;
+    default:
+      if (is_numeric($value))
+      {
+        $value = sprintf("%01.{$round}f", $value);
+        $value = preg_replace(array('/\.0+$/', '/(\.\d)0+$/'), '\1', $value);
+      }
+  }
+
+  return $value;
 }
 
 /**
@@ -2303,6 +2703,15 @@ function is_valid_hostname($hostname)
 }
 
 // get $host record from /etc/hosts
+// FIXME Maybe replace the below thing with exec'ing getent? this makes hosts from LDAP and other NSS sources work as well.
+//
+//   tom@magic:~$ getent ahostsv4 magic.powersource.cx
+//   195.160.166.161 STREAM magic.powersource.cx
+//   tom@magic:~$ getent hosts magic.powersource.cx
+//   2001:67c:5c:100::c3a0:a6a1 magic.powersource.cx
+//
+// Possibly, as above, not ideal for v4/v6 things though... but I'm not sure what the below code does for a v4 or v6 host (or both)
+//
 // DOCME needs phpdoc block
 // TESTME needs unit testing
 function ipFromEtcHosts($host)
@@ -2435,7 +2844,7 @@ function gethostbyaddr6($ip)
 
 // DOCME needs phpdoc block
 // TESTME needs unit testing
-// DEPRECATED
+// CLEANME DEPRECATED
 function add_service($device, $service, $descr)
 {
   $insert = array('device_id' => $device['device_id'], 'service_ip' => $device['hostname'], 'service_type' => $service,
@@ -2446,8 +2855,8 @@ function add_service($device, $service, $descr)
 
 // DOCME needs phpdoc block
 // TESTME needs unit testing
-// MOVEME to includes/functions.inc.php
-function get_port_rrdfilename($port, $suffix = NULL, $fullpath = FALSE)
+// MOVEME to includes/rrdtool.inc.php
+function get_port_rrdindex($port)
 {
   global $config;
 
@@ -2463,16 +2872,28 @@ function get_port_rrdfilename($port, $suffix = NULL, $fullpath = FALSE)
     $this_port_identifier = strtolower(str_replace("/", "-", $port['ifName']));
   }
 
+  return $this_port_identifier;
+}
+
+// CLEANME DEPRECATED
+function get_port_rrdfilename($port, $suffix = NULL, $fullpath = FALSE)
+{
+  $this_port_identifier = get_port_rrdindex($port);
+
   if ($suffix == "")
   {
     $filename = "port-" . $this_port_identifier . ".rrd";
-  }
-  else
-  {
+  } else {
     $filename = "port-" . $this_port_identifier . "-" . $suffix . ".rrd";
   }
 
-  return ($fullpath ? get_rrd_path($device, $filename) : $filename);
+  if ($fullpath)
+  {
+    $device   = device_by_id_cache($port['device_id']);
+    $filename = get_rrd_path($device, $filename);
+  }
+
+  return $filename;
 }
 
 // DOCME needs phpdoc block
@@ -2513,11 +2934,25 @@ function get_http_request($request, $context = array(), $rate_limit = FALSE)
     $ok = FALSE;
     $GLOBALS['response_headers'] = array('code' => '408', 'status' => 'Request Timeout');
   }
+  else if (!ini_get('allow_url_fopen'))
+  {
+    print_debug('HTTP requests disabled, since PHP config option "allow_url_fopen" set to off. Please enable this option in your PHP config.');
+    $ok = FALSE;
+    $GLOBALS['response_headers'] = array('code' => '501', 'status' => 'Not Implemented');
+  }
+  else if (preg_match('/^https/i', $request) && !check_extension_exists('openssl'))
+  {
+    // Check if Secure requests allowed, but ssl extensin not exist
+    print_debug(__FUNCTION__.'() wants to connect with https but https is not enabled on this server. Please check your PHP settings, the openssl extension must exist and be enabled.');
+    logfile(__FUNCTION__.'() wants to connect with https but https is not enabled on this server. Please check your PHP settings, the openssl extension must exist and be enabled.');
+    $ok = FALSE;
+    $GLOBALS['response_headers'] = array('code' => '501', 'status' => 'HTTPS Method Not Implemented');
+  }
 
-  if ($rate_limit && is_numeric($rate_limit) && $rate_limit >= 0)
+  if ($ok && $rate_limit && is_numeric($rate_limit) && $rate_limit >= 0)
   {
     // Check limit rates to this domain (per/day)
-    if (preg_match('/^https?:\/\/([\w\.]+[\w\-\.]*(:\d+)?)/', $request, $matches))
+    if (preg_match('/^https?:\/\/([\w\.]+[\w\-\.]*(:\d+)?)/i', $request, $matches))
     {
       $date    = format_unixtime($config['time']['now'], 'Y-m-d');
       $domain  = $matches[0]; // base domain (with http(s)): https://test-me.com/ -> https://test-me.com
@@ -2976,6 +3411,100 @@ function unit_string_to_numeric($str, $unit_base = NULL)
   $multiplier = pow($base, $power);
 
   return (float)($matches[1] * $multiplier);
+}
+
+/**
+ * Generate Unique ID from string, based on crc32b hash. This ID unique for specific string and not changed over next call.
+ *
+ * @param string $string String
+ * @return int Unique ID
+ */
+function string_to_id($string)
+{
+  return hexdec(hash("crc32b", $string));
+}
+
+/**
+ * Convert value of sensor from known unit to defined SI unit (used in poller/discovery)
+ *
+ * @param float|string $value Value in non standard unit
+ * @param string       $unit Unit name/symbol
+ * @param string       $type Type of value (optional, if same unit can used for multiple types)
+ * @return float|string Value converted to standard (SI) unit
+ */
+function value_to_si($value, $unit, $type = NULL)
+{
+  if (!is_numeric($value)) { return $value; } // Just return original value if not numeric
+
+  switch (strtolower($unit))
+  {
+    case 'f':
+    case 'fahrenheit':
+      $si_value = ($value - 32) * (5/9);
+
+      $type  = 'temperature';
+      $from  = $value    . ' Fahrenheit';
+      $to    = $si_value . ' Celsius';
+      break;
+
+    case 'k':
+    case 'kelvin':
+      $si_value = $value - 273.15;
+
+      $type  = 'temperature';
+      $from  = $value    . ' Kelvin';
+      $to    = $si_value . ' Celsius';
+      break;
+
+    case 'c':
+    case 'celsius':
+      // not convert, just keep correct value
+      $type  = 'temperature';
+      break;
+
+    case 'psi':
+      // https://en.wikipedia.org/wiki/Pounds_per_square_inch
+      // 1 psi ~ 6894.757 Pa
+      $si_value = $value * 6894.757;
+
+      $type  = 'pressure';
+      $from  = $value    . ' psi';
+      $to    = $si_value . ' Pa';
+      break;
+
+  }
+
+  if (isset($si_value))
+  {
+    print_debug('Converted '.strtoupper($type).' value: '.$from.' -> '.$to);
+    return $si_value;
+  }
+
+  return $value; // Fallback original value
+}
+
+/**
+ * Convert Fahrenheit -> Celsius
+ *
+ * @param float|string $fahrenheit Temperature value in Fahrenheit unit
+ * @return float|string Temperature value in Celsius unit
+ */
+function f2c($fahrenheit)
+{
+  return value_to_si($fahrenheit, 'F');
+}
+
+/**
+ * Convert Celsius -> Fahrenheit
+ *
+ * @param float|string $fahrenheit Temperature value in Celsius unit
+ * @return float|string Temperature value in Fahrenheit unit
+ */
+// TESTME needs unit testing (seems as unused function)
+function c2f($celsius)
+{
+  if (is_numeric($celsius)) { return $celsius * (9/5) + 32; }
+  else                      { return $celsius; }
 }
 
 /**

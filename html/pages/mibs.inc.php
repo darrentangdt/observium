@@ -81,8 +81,8 @@ print_message("This page allows you to globally disable individual MIBs. This co
     <tr>
       <th>Module</th>
       <th>Description</th>
-      <th style="width: 100px;">Status</th>
-      <th style="width: 100px;"></th>
+      <th style="width: 60px;">Status</th>
+      <th></th>
     </tr>
   </thead>
   <tbody>
@@ -96,7 +96,7 @@ foreach ($mibs as $mib => $data)
 
   echo('<tr><td><strong>'.$mib.'</strong></td>');
 
-  if (isset($config['mibs'][$mib])) { $descr = $config['mibs'][$mib]['descr']; } else { $descr = '';
+  if (isset($config['mibs'][$mib])) { $descr = $config['mibs'][$mib]['descr']; } else { $descr = ''; }
 
 /*
 echo('<pre>
@@ -106,27 +106,51 @@ $config[\'mibs\'][ $mib ][\'mib_dir\'] = "";
 $config[\'mibs\'][ $mib ][\'descr\']   = "";
 
 </pre>');
-
 */
-}
 
   echo '<td>'.$descr.'</td>';
 
   echo '<td>';
-  if ($attrib_set && $obs_attribs['mib_'.$mib] == 0)
+
+  $readonly = FALSE;
+  $btn_value = '';
+  $btn_tooltip = '';
+  if (isset($config['mibs'][$mib]['enable']) && !$config['mibs'][$mib]['enable'])
   {
-    $attrib_status = '<span class="label label-danger">disabled</span>'; $toggle = 'Enable';
-    $btn_class = 'btn-success'; $btn_toggle = 'value="Toggle"';
+    $attrib_status = '<span class="label label-danger">disabled</span>';
+    $toggle        = 'Config';
+    $btn_class     = '';
+    $btn_tooltip   = 'Disabled in config.php, see: <mark>$config[\'mibs\'][\'' . $mib . '\'][\'enable\']</mark>';
+    $readonly      = TRUE;
+  }
+  else if ($attrib_set && $obs_attribs['mib_'.$mib] == 0)
+  {
+    $attrib_status = '<span class="label label-danger">disabled</span>';
+    $toggle        = 'Enable';
+    $btn_class     = 'btn-success';
+    $btn_value     = 'Toggle';
   } else {
-    $attrib_status = '<span class="label label-success">enabled</span>'; $toggle = "Disable"; $btn_class = "btn-danger";
+    $attrib_status = '<span class="label label-success">enabled</span>';
+    $toggle        = 'Disable';
+    $btn_class     = 'btn-danger';
   }
 
   echo($attrib_status.'</td><td>');
 
-  echo('<form id="toggle_mib" name="toggle_mib" style="margin: 0px;" method="post" action="">
-  <input type="hidden" name="toggle_mib" value="'.$mib.'">
-  <button type="submit" class="btn btn-mini '.$btn_class.'" name="Submit" '.$btn_toggle.'>'.$toggle.'</button>
-</form>');
+  $form = array('id'    => 'toggle_mib',
+                'type'  => 'simple');
+  // Elements
+  $form['row'][0]['toggle_mib']  = array('type'     => 'hidden',
+                                         'value'    => $mib);
+  $form['row'][0]['submit']      = array('type'     => 'submit',
+                                         'name'     => $toggle,
+                                         'class'    => 'btn-mini '.$btn_class,
+                                         'icon'     => '',
+                                         'tooltip'  => $btn_tooltip,
+                                         'right'    => TRUE,
+                                         'readonly' => $readonly,
+                                         'value'    => $btn_value);
+  print_form($form); unset($form);
 
   echo('</td></tr>');
 }

@@ -15,10 +15,9 @@
 
 if ($config['autodiscovery']['ospf'] != FALSE)
 {
-
   echo("OSPF Neighbours: \n");
 
-  $ips = snmpwalk_values($device, "ospfNbrIpAddr", array(), "OSPF-MIB", mib_dirs());
+  $ips = snmpwalk_values($device, "ospfNbrIpAddr", array(), "OSPF-MIB");
 
   foreach ($ips as $ip)
   {

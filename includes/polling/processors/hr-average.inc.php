@@ -13,7 +13,7 @@
 
 $hrDevice_oids = array('hrDeviceType', 'hrDeviceDescr', 'hrProcessorLoad');
 unset($hrDevice_array);
-foreach ($hrDevice_oids as $oid) { $hrDevice_array = snmpwalk_cache_oid($device, $oid, $hrDevice_array, "HOST-RESOURCES-MIB:HOST-RESOURCES-TYPES", mib_dirs()); }
+foreach ($hrDevice_oids as $oid) { $hrDevice_array = snmpwalk_cache_oid($device, $oid, $hrDevice_array, 'HOST-RESOURCES-MIB:HOST-RESOURCES-TYPES'); }
 
 $hr_cpus = 0; $hr_total = 0;
 
@@ -23,22 +23,22 @@ if (is_array($hrDevice_array))
   {
     if (!isset($entry['hrDeviceType']) && is_numeric($entry['hrProcessorLoad']))
     {
-      $entry['hrDeviceType']  = "hrDeviceProcessor";
+      $entry['hrDeviceType']  = 'hrDeviceProcessor';
       $entry['hrDeviceIndex'] = $index;
     }
-    elseif ($entry['hrDeviceType'] == "hrDeviceOther" && is_numeric($entry['hrProcessorLoad']) && preg_match('/^cpu[0-9]+:/', $entry['hrDeviceDescr']))
+    elseif ($entry['hrDeviceType'] == 'hrDeviceOther' && is_numeric($entry['hrProcessorLoad']) && preg_match('/^cpu[0-9]+:/', $entry['hrDeviceDescr']))
     {
       // Workaround bsnmpd reporting CPUs as hrDeviceOther (fuck you, FreeBSD.)
-      $entry['hrDeviceType'] = "hrDeviceProcessor";
+      $entry['hrDeviceType'] = 'hrDeviceProcessor';
     }
-    if ($entry['hrDeviceType'] == "hrDeviceProcessor")
+    if ($entry['hrDeviceType'] == 'hrDeviceProcessor')
     {
 
       $usage = $entry['hrProcessorLoad'];
 
-      if ($device['os'] == "arista_eos" && $index == "1") { unset($entry['hrDeviceDescr']); }
+      if ($device['os'] == 'arista_eos' && $index == 1) { unset($entry['hrDeviceDescr']); }
 
-      if (is_numeric($usage) && $entry['hrDeviceDescr'] != "An electronic chip that makes the computer work.")
+      if (is_numeric($usage) && $entry['hrDeviceDescr'] != 'An electronic chip that makes the computer work.')
       {
         $hr_cpus++; $hr_total += $usage;
       }

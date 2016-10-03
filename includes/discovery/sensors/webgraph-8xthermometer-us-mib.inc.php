@@ -11,8 +11,6 @@
  *
  */
 
-echo(" WebGraph-8xThermometer-US-MIB ");
-
 // FIXME, rewrite!
 
 $oids = snmp_walk($device, ".1.3.6.1.4.1.5040.1.2.6.3.2.1.1.1", "-Osqn", "us_an8graph_mib_130.mib");

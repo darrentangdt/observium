@@ -54,6 +54,6 @@ echo "</table>";
 
 echo generate_box_close();
 
-$page_title[] = "VLANs";
+register_html_title("VLANs");
 
 // EOF

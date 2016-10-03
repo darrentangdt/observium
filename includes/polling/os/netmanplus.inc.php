@@ -12,6 +12,6 @@
  */
 
 // Uses UPS-MIB
-include("includes/polling/os/ups-mib.inc.php");
+include('includes/polling/os/ups-mib.inc.php');
 
 // EOF

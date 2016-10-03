@@ -22,25 +22,25 @@ $db_stats = array('insert'    => 0, 'insert_sec'    => 0,
                   'fetchrows' => 0, 'fetchrows_sec' => 0,
                   'fetchcol'  => 0, 'fetchcol_sec'  => 0);
 
-// Include DB api. Default mysql, recommended mysqli
+// Include DB api. Default and recommended mysqli, legacy mysql
 switch (OBS_DB_EXTENSION)
 {
-  case 'mysqli':
-    if (@function_exists('mysqli_connect'))
-    {
-      require($config['install_dir'] . '/includes/db/mysqli.inc.php');
-    } else {
-      print_error('ERROR. PHP mysqli extension not exist. Execution is stopped.');
-      exit(2);
-    }
-    break;
   case 'mysql':
-  default:
     if (@function_exists('mysql_connect'))
     {
       require($config['install_dir'] . '/includes/db/mysql.inc.php');
     } else {
-      print_error('ERROR. PHP mysql extension not exist. Execution is stopped.');
+      echo('ERROR. PHP mysql extension not exist. Execution is stopped.' . PHP_EOL);
+      exit(2);
+    }
+    break;
+  case 'mysqli':
+  default:
+    if (@function_exists('mysqli_connect'))
+    {
+      require($config['install_dir'] . '/includes/db/mysqli.inc.php');
+    } else {
+      echo('ERROR. PHP mysqli extension not exist. Execution is stopped.' . PHP_EOL);
       exit(2);
     }
 }

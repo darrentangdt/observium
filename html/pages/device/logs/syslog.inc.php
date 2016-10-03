@@ -11,57 +11,77 @@
  *
  */
 
-unset($search, $priorities, $programs, $timestamp_min, $timestamp_max);
+$where = ' WHERE 1 ' . generate_query_values($device['device_id'], 'device_id');
 
-$timestamp_min = dbFetchCell('SELECT `timestamp` FROM `syslog` WHERE `device_id` = ? ORDER BY `timestamp` LIMIT 0,1;', array($vars['device']));
+$timestamp_min = dbFetchCell('SELECT `timestamp` FROM `syslog` '.$where.' ORDER BY `timestamp` LIMIT 0,1;');
 if ($timestamp_min)
 {
-  $timestamp_max = dbFetchCell('SELECT `timestamp` FROM `syslog` WHERE `device_id` = ? ORDER BY `timestamp` DESC LIMIT 0,1;', array($vars['device']));
+  $timestamp_max = dbFetchCell('SELECT `timestamp` FROM `syslog` '.$where.' ORDER BY `timestamp` DESC LIMIT 0,1;');
 
-  //Message field
-  $search[] = array('type'    => 'text',
-                    'name'    => 'Message',
-                    'id'      => 'message',
-                    'width'   => '130px',
-                    'value'   => $vars['message']);
-  //Priority field
-  //$priorities[''] = 'All Priorities';
-  foreach ($config['syslog']['priorities'] as $p => $priority)
-  {
-    if ($p > 7) { continue; }
-    $priorities[$p] = ucfirst($priority['name']);
-  }
-  $search[] = array('type'    => 'multiselect',
-                    'name'    => 'Priorities',
-                    'id'      => 'priority',
-                    'width'   => '160px',
-                    'subtext' => TRUE,
-                    'value'   => $vars['priority'],
-                    'values'  => $priorities);
-  //Program field
-  //$programs[''] = 'All Programs';
-  foreach (dbFetchColumn('SELECT `program` FROM `syslog` IGNORE INDEX (`program`) WHERE `device_id` = ? GROUP BY `program`;', array($vars['device'])) as $program)
-  {
-    $program = ($program != '' ? $program : OBS_VAR_UNSET);
-    $programs[$program] = $program;
-  }
-  $search[] = array('type'    => 'multiselect',
-                    'name'    => 'Programs',
-                    'id'      => 'program',
-                    'width'   => '160px',
-                    'value'   => $vars['program'],
-                    'values'  => $programs);
-  $search[] = array('type'    => 'newline',
-                    'hr'      => TRUE);
-  $search[] = array('type'    => 'datetime',
-                    'id'      => 'timestamp',
-                    'presets' => TRUE,
-                    'min'     => $timestamp_min,
-                    'max'     => $timestamp_max,
-                    'from'    => $vars['timestamp_from'],
-                    'to'      => $vars['timestamp_to']);
+  // Note, this form have more complex grid and class elements for responsive datetime field
+  $form = array('type'          => 'rows',
+                'space'         => '5px',
+                'submit_by_key' => TRUE,
+                'url'           => generate_url($vars));
 
-  print_search($search, 'Syslog');
+  // Message field
+  $form['row'][0]['message'] = array(
+                                'type'        => 'text',
+                                'name'        => 'Message',
+                                'placeholder' => 'Message',
+                                'width'       => '100%',
+                                'div_class'   => 'col-lg-4 col-md-6 col-sm-6',
+                                'value'       => $vars['message']);
+
+  // Priority field
+  $form_filter = dbFetchColumn('SELECT DISTINCT `priority` FROM `syslog`' . $where);
+  $form_items['priorities'] = generate_form_values('syslog', $form_filter, 'priorities');
+  $form['row'][0]['priority'] = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'Priorities',
+                                'width'       => '100%',
+                                'div_class'   => 'col-lg-1 col-md-2 col-sm-2',
+                                'subtext'     => TRUE,
+                                'value'       => $vars['priority'],
+                                'values'      => $form_items['priorities']);
+
+  // Program field
+  $form_filter = dbFetchColumn('SELECT DISTINCT `program` FROM `syslog` IGNORE INDEX (`program`)' . $where);
+  $form_items['programs'] = generate_form_values('syslog', $form_filter, 'programs');
+  $form['row'][0]['program'] = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'Programs',
+                                'width'       => '100%',
+                                'div_class'   => 'col-lg-1 col-md-2 col-sm-2',
+                                'size'        => '15',
+                                'value'       => $vars['program'],
+                                'values'      => $form_items['programs']);
+
+  // Datetime field
+  $form['row'][0]['timestamp'] = array(
+                                'type'        => 'datetime',
+                                'div_class'   => 'col-lg-5 col-md-7 col-sm-10',
+                                'presets'     => TRUE,
+                                'min'         => $timestamp_min,
+                                'max'         => $timestamp_max,
+                                'from'        => $vars['timestamp_from'],
+                                'to'          => $vars['timestamp_to']);
+  // Second row with timestamp for md and sm
+  //$form['row_options'][1]  = array('class' => 'hidden-lg hidden-xs');
+  //$form['row'][1]['timestamp'] = $form['row'][0]['timestamp'];
+  //$form['row'][1]['timestamp']['div_class'] = 'text-nowrap col-md-7 col-sm-8';
+
+  // search button
+  $form['row'][0]['search']   = array(
+                                'type'        => 'submit',
+                                //'name'        => 'Search',
+                                //'icon'        => 'icon-search',
+                                'div_class'   => 'col-lg-1 col-md-5 col-sm-2',
+                                //'grid'        => 1,
+                                'right'       => TRUE);
+
+  print_form($form);
+  unset($form, $form_items, $form_devices);
 
   // Pagination
   $vars['pagination'] = TRUE;
@@ -76,6 +96,6 @@ Check that the syslog daemon and Observium configuration options are set correct
 See <a href="'.OBSERVIUM_URL.'/wiki/Category:Documentation" target="_blank">documentation</a> and <a href="'.OBSERVIUM_URL.'/wiki/Configuration_Options#Syslog_Settings" target="_blank">configuration options</a> for more information.');
 }
 
-$page_title[] = 'Syslog';
+register_html_title('Syslog');
 
 // EOF

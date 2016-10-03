@@ -1,9 +1,9 @@
 -- ==================================================================
--- Copyright (C) 2002 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- 
 -- Description: HUAWEI MSTP MIB
 -- Reference:
--- Version:     V2.06
+-- Version:     V2.07
 -- History:     2008-06-14  MSTP Process
 -- History:     2008-10-08  MSTP Process- v3     
 -- History:     2009-3-01  MSTP Process- v4
@@ -37,7 +37,7 @@
         
         
                 hwMstp MODULE-IDENTITY
-                        LAST-UPDATED "201408140000Z"
+                        LAST-UPDATED "201505291000Z"
                         ORGANIZATION
                                 "Huawei Technologies Co.,Ltd."
                         CONTACT-INFO
@@ -52,6 +52,9 @@
                                 "This module include the information about MSTP protocol in the bridge.
                                 The information can be read and some of them can be set."
                         
+                        REVISION    "201505291000Z"
+                        DESCRIPTION "Add for: hwMstpProFlushCapability."
+
                         REVISION     "201408140000Z"
                         DESCRIPTION  "Add table node for port count trap. 
 	                                Add for : hwMstpPortCountUpperThreshold
@@ -1157,7 +1160,9 @@
                                 hwMstpProRowStatus
                                         RowStatus,
                                 hwMstpProTcGuardInterval
-                                        Integer32
+                                        Integer32,
+                               hwMstpProFlushCapability
+                                        HwMSTPEnabledStatus
                                 
                          }
 
@@ -1450,7 +1455,15 @@
                                 "The value is the tc-protection interval time. 
                                 If the value is set 0, the tc guard interval value is euqal to the hello time."
                         ::= { hwMstpProEntry 31 }
-                
+
+                hwMstpProFlushCapability OBJECT-TYPE
+                        SYNTAX HwMSTPEnabledStatus
+                        MAX-ACCESS read-create
+                        STATUS current
+                        DESCRIPTION
+                                "Whether FLUSH capability is enabled or not on a MSTP process."
+                        DEFVAL { disabled }
+                        ::= { hwMstpProEntry 32 }
                 
                 
                 hwMstpPortBindTable OBJECT-TYPE

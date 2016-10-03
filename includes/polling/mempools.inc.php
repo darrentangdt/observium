@@ -21,9 +21,8 @@ $sql .= " WHERE `device_id` = ?";
 
 foreach (dbFetchRows($sql, array($device['device_id'])) as $mempool)
 {
-  $mempool_rrd = "mempool-" . $mempool['mempool_mib'] . "-" . $mempool['mempool_index'] . ".rrd";
-
-  $file = $config['install_dir']."/includes/polling/mempools/".$mempool['mempool_mib'].".inc.php";
+  $mib_lower = strtolower($mempool['mempool_mib']);
+  $file = $config['install_dir']."/includes/polling/mempools/".$mib_lower.".inc.php";
 
   if (is_file($file))
   {
@@ -32,6 +31,7 @@ foreach (dbFetchRows($sql, array($device['device_id'])) as $mempool)
 
     include($file);
   } else {
+    force_discovery($device, 'mempools');
     continue;
   }
 
@@ -55,6 +55,13 @@ foreach (dbFetchRows($sql, array($device['device_id'])) as $mempool)
     $mempool['total'] *= $mempool['mempool_precision'];
     $mempool['used']   = $mempool['total'] * $mempool['perc'] / 100;
   }
+  else if (isset($mempool['used']) && isset($mempool['free']))
+  {
+    $mempool['used']  *= $mempool['mempool_precision'];
+    $mempool['free']  *= $mempool['mempool_precision'];
+    $mempool['total']  = $mempool['used'] + $mempool['free'];
+    $mempool['perc']   = round($mempool['used'] / $mempool['total'] * 100, 2);
+  }
   else if (isset($mempool['perc']))
   {
     $mempool['total']  = 100;
@@ -74,8 +81,7 @@ foreach (dbFetchRows($sql, array($device['device_id'])) as $mempool)
     StatsD::gauge(str_replace(".", "_", $device['hostname']).'.'.'mempool'.'.'.$mempool['mempool_mib'] . "." . $mempool['mempool_index'].".free", $mempool['free']);
   }
 
-  rrdtool_create($device, $mempool_rrd, " DS:used:GAUGE:600:0:U DS:free:GAUGE:600:0:U ");
-  rrdtool_update($device, $mempool_rrd,"N:".$mempool['used'].":".$mempool['free']);
+  rrdtool_update_ng($device, 'mempool', array('used' => $mempool['used'], 'free' => $mempool['free']), $mempool['mempool_mib'] . "-" . $mempool['mempool_index']);
 
   if (!is_numeric($mempool['mempool_polled'])) { dbInsert(array('mempool_id' => $mempool['mempool_id']), 'mempools-state'); }
 

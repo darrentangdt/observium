@@ -1,7 +1,7 @@
 <?php
 
 $scale_min = 0;
-include("includes/graphs/common.inc.php");
+include($config['html_dir']."/includes/graphs/common.inc.php");
 
 $colour_area     = "EEEEEE";
 $colour_line     = "36393D";
@@ -9,12 +9,7 @@ $colour_area_max = "FFEE99";
 $graph_max       = 0;
 $unit_text       = "Seconds";
 
-$lighttpd_rrd   = $config['rrd_dir'] . "/" . $device['hostname'] . "/app-lighttpd-".$app['app_id'].".rrd";
-
-if (is_file($lighttpd_rrd))
-{
-  $rrd_filename = $lighttpd_rrd;
-}
+$rrd_filename = get_rrd_path($device, "app-lighttpd-".$app['app_id']);
 
 $ds = "uptime";
 
@@ -34,4 +29,5 @@ $rrd_options   .= " GPRINT:cuptime:LAST:%6.2lf";
 $rrd_options   .= " GPRINT:cuptime:AVERAGE:%6.2lf";
 $rrd_options   .= " GPRINT:cuptime:MAX:%6.2lf";
 $rrd_options   .= " GPRINT:cuptime:AVERAGE:%6.2lf\\n";
-?>
+
+// EOF

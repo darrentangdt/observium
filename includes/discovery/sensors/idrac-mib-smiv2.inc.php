@@ -28,14 +28,12 @@ IDRAC-MIB-SMIv2::coolingDeviceProbeCapabilities.1.1 = INTEGER: 0
 IDRAC-MIB-SMIv2::coolingDeviceFQDD.1.1 = STRING: "Fan.Embedded.1"
 **/
 
-echo(" IDRAC-MIB-SMIv2 ");
-
 $oids = array ('coolingDeviceStatus', 'coolingDeviceReading', 'coolingDeviceLocationName', 'coolingDeviceLowerNonCriticalThreshold', 'coolingDeviceLowerCriticalThreshold');
 
 $data = array();
 foreach ($oids as $oid)
 {
-  $data = snmpwalk_cache_twopart_oid($device, $oid, $data, 'IDRAC-MIB-SMIv2', mib_dirs('dell'));
+  $data = snmpwalk_cache_twopart_oid($device, $oid, $data, 'IDRAC-MIB-SMIv2');
 }
 
 foreach ($data as $index_a => $entries)
@@ -43,13 +41,13 @@ foreach ($data as $index_a => $entries)
   foreach ($entries as $index_b => $entry)
   {
 
-    $index = $index_a.".".$index_b;
+    $index = $index_a.'.'.$index_b;
     $descr = $entry['coolingDeviceLocationName'];
 
     // Add the numerical sensor
     if (isset($entry['coolingDeviceReading']))
     {
-      $oid = ".1.3.6.1.4.1.674.10892.5.4.700.12.1.6.".$index;
+      $oid = ".1.3.6.1.4.1.674.10892.5.4.700.12.1.6.$index";
       $options = array();
 
       if (isset($entry['coolingDeviceLowerNonCriticalThreshold'])) { $options['warn_low']   = $entry['coolingDeviceLowerNonCriticalThreshold']; }
@@ -65,7 +63,7 @@ foreach ($data as $index_a => $entries)
     if (isset($entry['coolingDeviceStatus']))
     {
       $options = array();
-      $oid   = ".1.3.6.1.4.1.674.10892.5.4.700.12.1.5.".$index;
+      $oid   = ".1.3.6.1.4.1.674.10892.5.4.700.12.1.5.$index";
     }
 
   }
@@ -94,7 +92,7 @@ $oids = array ('temperatureProbeStatus', 'temperatureProbeReading', 'temperature
 $data = array();
 foreach ($oids as $oid)
 {
-  $data = snmpwalk_cache_twopart_oid($device, $oid, $data, 'IDRAC-MIB-SMIv2', mib_dirs('dell'));
+  $data = snmpwalk_cache_twopart_oid($device, $oid, $data, 'IDRAC-MIB-SMIv2');
 }
 
 foreach ($data as $index_a => $entries)
@@ -102,12 +100,12 @@ foreach ($data as $index_a => $entries)
   foreach ($entries as $index_b => $entry)
   {
 
-    $index = $index_a.".".$index_b;
+    $index = $index_a.'.'.$index_b;
     $descr = $entry['temperatureProbeLocationName'];
 
     if (isset($entry['temperatureProbeReading']))
     {
-      $oid = ".1.3.6.1.4.1.674.10892.5.4.700.20.1.6.".$index;
+      $oid = ".1.3.6.1.4.1.674.10892.5.4.700.20.1.6.$index";
       $options = array();
 
       if (isset($entry['temperatureProbeLowerNonCriticalThreshold'])) { $options['warn_low']   = $entry['temperatureProbeLowerNonCriticalThreshold']; }
@@ -140,17 +138,15 @@ $oids = array ('voltageProbeStatus', 'voltageProbeReading', 'temperatureProbeLoc
 $data = array();
 foreach ($oids as $oid)
 {
-  $data = snmpwalk_cache_twopart_oid($device, $oid, $data, 'IDRAC-MIB-SMIv2', mib_dirs('dell'));
+  $data = snmpwalk_cache_twopart_oid($device, $oid, $data, 'IDRAC-MIB-SMIv2');
 }
 
 foreach ($data as $index_a => $entries)
 {
   foreach ($entries as $index_b => $entry)
   {
-
-    $index = $index_a.".".$index_b;
+    $index = $index_a.'.'.$index_b;
     $descr = $entry['voltageProbeLocationName'];
-
   }
 }
 

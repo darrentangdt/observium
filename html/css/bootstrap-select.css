@@ -1,18 +1,48 @@
 /*!
- * Bootstrap-select v1.7.3 (http://silviomoreto.github.io/bootstrap-select)
+ * Bootstrap-select v1.10.0 (http://silviomoreto.github.io/bootstrap-select)
  *
- * Copyright 2013-2015 bootstrap-select
+ * Copyright 2013-2016 bootstrap-select
  * Licensed under MIT (https://github.com/silviomoreto/bootstrap-select/blob/master/LICENSE)
  */
 
+select.bs-select-hidden,
+select.selectpicker {
+  display: none !important;
+}
 .bootstrap-select {
   /* width: 220px \0; /*IE9 and below*/
-  width: 191px\0; /*Changed to fit Observium*/
+  width: 191px \0; /*Changed to fit Observium*/
 }
 .bootstrap-select > .dropdown-toggle {
   width: 100%;
   padding-right: 25px;
   line-height: 20px; /*Added to fit Observium*/
+  z-index: 1;
+}
+.bootstrap-select > .dropdown-toggle.bs-placeholder,
+.bootstrap-select > .dropdown-toggle.bs-placeholder:hover,
+.bootstrap-select > .dropdown-toggle.bs-placeholder:focus,
+.bootstrap-select > .dropdown-toggle.bs-placeholder:active {
+  /* color: #999; */
+  color: #555555; /*Changed to fit Observium*/
+}
+.bootstrap-select > select {
+  position: absolute !important;
+  bottom: 0;
+  left: 50%;
+  display: block !important;
+  width: 0.5px !important;
+  height: 100% !important;
+  padding: 0 !important;
+  opacity: 0 !important;
+  border: none;
+}
+.bootstrap-select > select.mobile-device {
+  top: 0;
+  left: 0;
+  display: block !important;
+  width: 100% !important;
+  z-index: 2;
 }
 .has-error .bootstrap-select .dropdown-toggle,
 .error .bootstrap-select .dropdown-toggle {
@@ -97,7 +127,7 @@
 }
 .bootstrap-select.btn-group .dropdown-menu {
   min-width: 100%;
-  max-width: 500px; /* Added by Observium developers */
+  max-width: 500px; /*Added to fit Observium*/
   -webkit-box-sizing: border-box;
      -moz-box-sizing: border-box;
           box-sizing: border-box;
@@ -241,6 +271,7 @@
 }
 .bs-actionsbox .btn-group button {
   width: 50%;
+  padding: 2px 4px; /*Added to fit Observium*/
 }
 .bs-donebutton {
   float: left;
@@ -259,18 +290,5 @@
   margin-bottom: 0;
   width: 100%;
   float: none;
-}
-select.bs-select-hidden,
-select.selectpicker {
-  display: none !important;
-}
-select.mobile-device {
-  position: absolute !important;
-  top: 0;
-  left: 0;
-  display: block !important;
-  width: 100%;
-  height: 100% !important;
-  opacity: 0;
 }
 /*# sourceMappingURL=bootstrap-select.css.map */

@@ -17,14 +17,12 @@ $mib = 'HOST-RESOURCES-MIB';
 
 if (!isset($cache_discovery['host-resources-mib']))
 {
-  $cache_discovery['host-resources-mib'] = snmpwalk_cache_oid($device, "hrStorageEntry", NULL, "HOST-RESOURCES-MIB:HOST-RESOURCES-TYPES", mib_dirs());
-  if (OBS_DEBUG && count($cache_discovery['host-resources-mib'])) { print_vars($cache_discovery['host-resources-mib']); }
+  $cache_discovery['host-resources-mib'] = snmpwalk_cache_oid($device, "hrStorageEntry", array(), "HOST-RESOURCES-MIB:HOST-RESOURCES-TYPES");
+  if (OBS_DEBUG > 1 && count($cache_discovery['host-resources-mib'])) { print_vars($cache_discovery['host-resources-mib']); }
 }
 
 if (count($cache_discovery['host-resources-mib']))
 {
-  echo(" $mib ");
-
   foreach ($cache_discovery['host-resources-mib'] as $index => $storage)
   {
     $hc = 0;
@@ -52,11 +50,35 @@ if (count($cache_discovery['host-resources-mib']))
       case 'nwhrStorageUnclaimedMemory':
         $deny = TRUE;
         break;
+      case 'hrStorageRemovableDisk':
+        if (isset($config['ignore_mount_removable']) && $config['ignore_mount_removable'])
+        {
+          $deny = TRUE;
+          print_debug("skip(removable)");
+        }
+        break;
+      case 'hrStorageNetworkDisk':
+        if (isset($config['ignore_mount_network'])   && $config['ignore_mount_network'])
+        {
+          $deny = TRUE;
+          print_debug("skip(network)");
+        }
+        break;
+      case 'hrStorageCompactDisc':
+        if (isset($config['ignore_mount_optical'])   && $config['ignore_mount_optical'])
+        {
+          $deny = TRUE;
+          print_debug("skip(cd)");
+        }
+        break;
+
     }
 
-    if (isset($config['ignore_mount_removable']) && $config['ignore_mount_removable'] && $fstype == "hrStorageRemovableDisk") { $deny = TRUE; print_debug("skip(removable)"); }
-    if (isset($config['ignore_mount_network'])   && $config['ignore_mount_network']   && $fstype == "hrStorageNetworkDisk")   { $deny = TRUE; print_debug("skip(network)"); }
-    if (isset($config['ignore_mount_optical'])   && $config['ignore_mount_optical']   && $fstype == "hrStorageCompactDisc")   { $deny = TRUE; print_debug("skip(cd)"); }
+    // Another 'hack' for isilon devices with very big array size
+    if ($descr == '/ifs' && is_device_mib($device, 'ISILON-MIB'))
+    {
+      $deny = TRUE; // Remove from polling by HOST-RESOURCES-MIB
+    }
 
     if (!$deny)
     {
@@ -75,7 +97,7 @@ if (count($cache_discovery['host-resources-mib']))
           if (isset($dsk['dskTotalLow']))
           {
             $dsk['units'] = 1024;
-            $dsk['size'] = $dsk['dskTotalHigh'] * 4294967296 + $dsk['dskTotalLow'];
+            $dsk['size'] = snmp_size64_high_low($dsk['dskTotalHigh'], $dsk['dskTotalLow']);
             $dsk['size'] *= $dsk['units'];
             if (($dsk['size'] - $size) > $units)
             {
@@ -88,7 +110,7 @@ if (count($cache_discovery['host-resources-mib']))
               $descr  = $dsk['dskPath'];
               $units  = $dsk['units'];
               $size   = $dsk['size'];
-              $used   = $dsk['dskUsedHigh']  * 4294967296 + $dsk['dskUsedLow'];
+              $used   = snmp_size64_high_low($dsk['dskUsedHigh'], $dsk['dskUsedLow']);
               $used  *= $units;
             }
           }
@@ -99,7 +121,7 @@ if (count($cache_discovery['host-resources-mib']))
 
     if (!$deny && is_numeric($index))
     {
-      discover_storage($valid['storage'], $device, $index, $fstype, $mib, $descr, $units, $size, $used, $hc);
+      discover_storage($valid['storage'], $device, $index, $fstype, $mib, $descr, $units, $size, $used, array('storage_hc' => $hc));
     }
 
     unset($deny, $fstype, $descr, $size, $used, $units, $path, $dsk, $hc);
@@ -109,7 +131,6 @@ else if (count($cache_discovery['ucd-snmp-mib']))
 {
   // Discover 'UCD-SNMP-MIB' if 'HOST-RESOURCES-MIB' empty.
   $mib = 'UCD-SNMP-MIB';
-  echo(" $mib ");
 
   foreach ($cache_discovery['ucd-snmp-mib'] as $index => $dsk)
   {
@@ -123,9 +144,9 @@ else if (count($cache_discovery['ucd-snmp-mib']))
     if (isset($dsk['dskTotalLow']))
     {
       $hc = 1;
-      $size  = $dsk['dskTotalHigh'] * 4294967296 + $dsk['dskTotalLow'];
+      $size  = snmp_size64_high_low($dsk['dskTotalHigh'], $dsk['dskTotalLow']);
       $size *= $units;
-      $used  = $dsk['dskUsedHigh']  * 4294967296 + $dsk['dskUsedLow'];
+      $used  = snmp_size64_high_low($dsk['dskUsedHigh'], $dsk['dskUsedLow']);
       $used *= $units;
     } else {
       $size  = $dsk['dskTotal'] * $units;
@@ -134,7 +155,7 @@ else if (count($cache_discovery['ucd-snmp-mib']))
 
     if (!$deny && is_numeric($index))
     {
-      discover_storage($valid['storage'], $device, $index, $fstype, $mib, $descr, $units, $size, $used, $hc);
+      discover_storage($valid['storage'], $device, $index, $fstype, $mib, $descr, $units, $size, $used, array('storage_hc' => $hc));
     }
     unset($deny, $fstype, $descr, $size, $used, $units, $hc);
   }

@@ -16,34 +16,33 @@
 <div class="col-md-12">
 
 <?php
-unset($search, $devices_array);
 
-//$devices_array[''] = 'All Devices';
-// Select the devices only in the wifi_sessions table
-foreach (dbFetchRows('SELECT `device_id` FROM `wifi_sessions` GROUP BY `device_id`;') as $data)
-{
-  $device_id = $data['device_id'];
-  if ($cache['devices']['id'][$device_id]['hostname'])
-  {
-    $devices_array[$device_id] = $cache['devices']['id'][$device_id]['hostname'];
-  }
-}
-natcasesort($devices_array);
+$form_devices = dbFetchColumn('SELECT DISTINCT `device_id` FROM `wifi_sessions`;');
+$form_items['devices'] = generate_form_values('device', $form_devices);
+
+$form = array('type'  => 'rows',
+              //'space' => '5px',
+              'submit_by_key' => TRUE,
+              'url'   => 'search/search=dot1x/');
 //Device field
-$search[] = array('type'    => 'multiselect',
-                  'name'    => 'Device',
-                  'id'      => 'device_id',
-                  'width'   => '130px',
-                  'value'   => $vars['device_id'],
-                  'values'  => $devices_array);
+$form['row'][0]['device_id'] = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'Device',
+                                'width'       => '100%',
+                                'grid'        => 3,
+                                'value'       => $vars['device_id'],
+                                'groups'      => array('', 'UP', 'DOWN', 'DISABLED'), // This is optgroup order for values (if required)
+                                'values'      => $form_items['devices']);
 //Search by field
-$search[] = array('type'    => 'select',
-                  'name'    => 'Search By',
-                  'id'      => 'searchby',
-                  'width'   => '120px',
-                  'onchange' => "$('#address').prop('placeholder', $('#searchby option:selected').text())",
-                  'value'   => $vars['searchby'],
-                  'values'  => array('mac' => 'MAC Address', 'ip' => 'IP Address', 'username' => 'Username'));
+$form['row'][0]['searchby'] = array(
+                                'type'        => 'select',
+                                'name'        => 'Search By',
+                                'width'       => '100%',
+                                'grid'        => 2,
+                                'onchange'    => "$('#address').prop('placeholder', $('#searchby option:selected').text())",
+                                'value'       => $vars['searchby'],
+                                'values'      => array('mac' => 'MAC Address', 'ip' => 'IP Address', 'username' => 'Username'));
+
 if ($vars['searchby'] == 'mac')
 {
   $name = 'MAC Address';
@@ -56,22 +55,33 @@ else if ($vars['searchby'] == 'ip')
 }
 
 //Address field
-$search[] = array('type'    => 'text',
-                  'name'    => $name,
-                  'id'      => 'address',
-                  'placeholder' => TRUE,
-                  'submit_by_key' => TRUE,
-                  'width'   => '200px',
-                  'value'   => $vars['address']);
+$form['row'][0]['address']  = array(
+                                'type'        => 'text',
+                                'name'        => $name,
+                                'width'       => '100%',
+                                'grid'        => 4,
+                                'placeholder' => TRUE,
+                                'submit_by_key' => TRUE,
+                                'value'       => escape_html($vars['address']));
 
-print_search($search, '802.1x', NULL, 'search/search=dot1x/');
+// search button
+$form['row'][0]['search']   = array(
+                                'type'        => 'submit',
+                                'grid'        => 3,
+                                //'name'        => 'Search',
+                                //'icon'        => 'icon-search',
+                                'value'       => 'dot1x',
+                                'right'       => TRUE);
+
+print_form($form);
+unset($form, $form_items, $form_devices);
 
 // Pagination
 $vars['pagination'] = TRUE;
 
 print_dot1xtable($vars);
 
-$page_title[] = '.1x Session Search';
+register_html_title('.1x Session Search');
 
 ?>
 

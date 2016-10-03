@@ -1,9 +1,9 @@
 -- ==================================================================
--- Copyright (C) 2007 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- 
 -- Description:  HUAWEI mac flapping management MIB
 -- Reference:
--- Version: V2.14
+-- Version: V2.16
 -- History:
 -- ==================================================================
 
@@ -32,7 +32,7 @@ IMPORTS
         FROM SNMPv2-SMI;                         
         
     hwMFlpMIB MODULE-IDENTITY 
-            LAST-UPDATED "201412230000Z"
+            LAST-UPDATED "201507170000Z"
             ORGANIZATION
                   "Huawei Technologies Co.,Ltd."
             CONTACT-INFO 
@@ -45,6 +45,10 @@ IMPORTS
                    "
             DESCRIPTION 
                   "Mac flapping management MIB."
+            REVISION     "201507170000Z"
+            DESCRIPTION  "Fix the errors."
+            REVISION     "201507140000Z"
+            DESCRIPTION  "Add Objects to hwMflpNewAlarm."
             REVISION     "201412230000Z"
             DESCRIPTION  "Add Objects to hwMflpLinkBlkedIfName."
             REVISION     "201403150000Z"
@@ -449,7 +453,31 @@ IMPORTS
                 DESCRIPTION
                     "This object indicates the enable sign of MFLP notification."
                 DEFVAL { disable }
-                ::= { hwMflpGeneralObjects 1 }                
+                ::= { hwMflpGeneralObjects 1 }   
+
+        hwMflpBdId OBJECT-TYPE
+                SYNTAX Unsigned32
+                MAX-ACCESS accessible-for-notify
+                STATUS current
+                DESCRIPTION
+                    "The BdId of mac flapping, only used for trap."
+                ::= { hwMflpGeneralObjects 2 } 	
+        hwMflpIfName OBJECT-TYPE
+                SYNTAX DisplayString
+                MAX-ACCESS accessible-for-notify
+                STATUS current
+                DESCRIPTION
+                    "The interface name of mac flapping, only used for trap."
+                ::= { hwMflpGeneralObjects 3 } 
+
+        hwMflpAlarmReason OBJECT-TYPE
+                SYNTAX DisplayString
+                MAX-ACCESS accessible-for-notify
+                STATUS current
+                DESCRIPTION
+                    "The alarm reason of mac flapping, only used for trap."
+                ::= { hwMflpGeneralObjects 4 } 	 
+
 
 --           
 -- MFLP MIB Trap Definitions
@@ -565,8 +593,36 @@ IMPORTS
             STATUS current
             DESCRIPTION 
                 "This notification indicates alarm only when loop resumed."
-            ::= { hwMflpMIBTraps 16 }     
-                            
+            ::= { hwMflpMIBTraps 16 } 
+
+        hwMflpBdAlarm NOTIFICATION-TYPE
+            OBJECTS { hwMflpBdId, hwMflpIfName, hwMflpIfName, hwMflpIfName, hwMflpAlarmReason}
+            STATUS current
+            DESCRIPTION 
+                "This notification indicates alarm only when loop existed in bd."
+            ::= { hwMflpMIBTraps 17 } 
+        
+        hwMflpBdAlarmResume NOTIFICATION-TYPE
+            OBJECTS { hwMflpBdId, hwMflpIfName, hwMflpIfName, hwMflpIfName, hwMflpAlarmReason}
+            STATUS current
+            DESCRIPTION 
+                "This notification indicates alarm only when loop existed in bd."
+            ::= { hwMflpMIBTraps 18 } 
+
+        hwMflpBdPeriodicTrap NOTIFICATION-TYPE
+            OBJECTS { hwMflpBdId, hwMflpIfName, hwMflpIfName, hwMflpIfName, hwMflpAlarmReason}
+            STATUS current
+            DESCRIPTION 
+                "This notification only for bd mac flapping periodic send."
+            ::= { hwMflpMIBTraps 19 } 
+        
+        hwMflpVlanLoopPeriodicTrap NOTIFICATION-TYPE
+            OBJECTS { hwMflpVlanId, hwMflpVlanCfgPreIfName, hwMflpVlanCfgIfName,hwMflpVlanCfgIfName, hwMflpVlanCfgAlarmReason }
+            STATUS current
+            DESCRIPTION 
+                "This notification only for vlan mac flapping periodic send."
+            ::= { hwMflpMIBTraps 20 }  
+                         
 -- IEEE 802.1Q MIB - Conformance Information
 
 hwMflpConformance OBJECT IDENTIFIER ::= { hwMFlpMIB 4 }
@@ -632,7 +688,7 @@ hwMflpVsiCfgGroup OBJECT-GROUP
     ::= { hwMflpGroups 2 }   
     
 hwMflpTrapEnableGroup OBJECT-GROUP
-    OBJECTS { hwMflpTrapEnable }
+    OBJECTS { hwMflpTrapEnable,  hwMflpBdId, hwMflpIfName, hwMflpAlarmReason}
         STATUS current
         DESCRIPTION 
             "The Mflp trap enable group."
@@ -655,7 +711,11 @@ hwMflpTrapGroup NOTIFICATION-GROUP
         hwMflpVlanLoopAlarm,
         hwMflpVlanLoopAlarmResume,
 	hwMflpDefaultAlarm,
-	hwMflpDefaultResume
+	hwMflpDefaultResume,
+        hwMflpBdAlarm,
+        hwMflpBdAlarmResume,
+        hwMflpBdPeriodicTrap,
+        hwMflpVlanLoopPeriodicTrap
         }
         STATUS current
         DESCRIPTION 

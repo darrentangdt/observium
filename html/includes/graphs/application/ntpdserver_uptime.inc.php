@@ -29,7 +29,7 @@ if (is_file($ntpdserver_rrd))
   $rrd_filename = $ntpdserver_rrd;
 }
 
-include("includes/graphs/common.inc.php"); /// FIXME. duplicated
+include($config['html_dir']."/includes/graphs/common.inc.php"); /// FIXME. duplicated
 
 $rrd_options   .= " DEF:uptime=".$rrd_filename.":uptime:AVERAGE";
 $rrd_options   .= " CDEF:cuptime=uptime,86400,/";

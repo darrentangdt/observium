@@ -11,13 +11,11 @@
  *
  */
 
-echo("FOUNDRY-SN-AGENT-MIB ");
-
-$snChasProductType = snmp_get($device, 'snChasProductType.0', '-OQv', 'FOUNDRY-SN-AGENT-MIB', mib_dirs('foundry'));
+$snChasProductType = snmp_get($device, 'snChasProductType.0', '-OQv', 'FOUNDRY-SN-AGENT-MIB');
 
 if ($snChasProductType)
 {
-  $snChasSerNum = snmp_get($device, 'snChasSerNum.0', '-OQv', 'FOUNDRY-SN-AGENT-MIB', mib_dirs('foundry'));
+  $snChasSerNum = snmp_get($device, 'snChasSerNum.0', '-OQv', 'FOUNDRY-SN-AGENT-MIB');
 
   // Insert chassis as index 1, everything hangs off of this.
   $system_index = 1;
@@ -35,7 +33,7 @@ if ($snChasProductType)
   discover_inventory($valid['inventory'], $device, $system_index, $inventory[$system_index], 'foundry-sn-agent-mib');
 
   // Now fetch data for the rest of the hardware in the chassis
-  $data = snmpwalk_cache_oid($device, 'snAgentBrdTable', array(), 'FOUNDRY-SN-AGENT-MIB', mib_dirs('foundry'));
+  $data = snmpwalk_cache_oid($device, 'snAgentBrdTable', array(), 'FOUNDRY-SN-AGENT-MIB');
 
   $relPos = 0;
 

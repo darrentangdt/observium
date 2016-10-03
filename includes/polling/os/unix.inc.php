@@ -17,7 +17,7 @@ switch ($device['os'])
   case 'endian':
   case 'openwrt':
   case 'ddwrt':
-    list(,,$version) = explode (" ", $poll_device['sysDescr']);
+    list(,,$version) = explode (' ', $poll_device['sysDescr']);
 
     $kernel = $version;
 
@@ -29,8 +29,8 @@ switch ($device['os'])
         $hw = ($agent_data['dmi']['system-manufacturer'] ? $agent_data['dmi']['system-manufacturer'] . ' ' : '') . $agent_data['dmi']['system-product-name'];
 
         // Clean up "Dell Computer Corporation" and "Intel Corporation"
-        $hw = str_replace(" Computer Corporation", "", $hw);
-        $hw = str_replace(" Corporation", "", $hw);
+        $hw = str_replace(' Computer Corporation', '', $hw);
+        $hw = str_replace(' Corporation', '', $hw);
       }
 
       // If these exclude lists grow any further we should move them to definitions...
@@ -61,11 +61,11 @@ switch ($device['os'])
     // Use agent virt-what data if available
     if (isset($agent_data['virt']['what']))
     {
-      if (isset($config['virt-what'][$agent_data['virt']['what']]))
+      // We cycle through every line here, the previous one is overwritten.
+      // This is OK, as virt-what prints general-to-specific order and we want most specific.
+      foreach (explode("\n", $agent_data['virt']['what']) as $virtwhat)
       {
-        // We cycle through every line here, the previous one is overwritten.
-        // This is OK, as virt-what prints general-to-specific order and we want most specific.
-        foreach (explode("\n", $agent_data['virt']['what']) as $virtwhat)
+        if (isset($config['virt-what'][$virtwhat]))
         {
           $hw = $config['virt-what'][$virtwhat];
         }
@@ -84,26 +84,23 @@ switch ($device['os'])
     if (!$hw)
     {
       // Detect Dell hardware via OpenManage SNMP
-      $hw = trim(snmp_get($device, "chassisModelName.1", "-Oqv", "MIB-Dell-10892", mib_dirs('dell')),'" ');
+      $hw = snmp_get($device, 'chassisModelName.1', '-Oqv', 'MIB-Dell-10892');
 
       if ($hw)
       {
-        $hw        = "Dell " . $hw;
-        $serial    = trim(snmp_get($device, "chassisServiceTagName.1", "-Oqv", "MIB-Dell-10892", mib_dirs('dell')),'" ');
-        $asset_tag = trim(snmp_get($device, "chassisAssetTagName.1", "-Oqv", "MIB-Dell-10892", mib_dirs('dell')),'" ');
-      }
-    }
+        $hw        = 'Dell ' . $hw;
+        $serial    = snmp_get($device, 'chassisServiceTagName.1', '-Oqv', 'MIB-Dell-10892');
+        $asset_tag = snmp_get($device, 'chassisAssetTagName.1', '-Oqv', 'MIB-Dell-10892');
+      } else {
+        // Detect HP hardware via hp-snmp-agents
+        $hw = snmp_get($device, 'cpqSiProductName.0', '-Oqv', 'CPQSINFO-MIB');
 
-    if (!$hw)
-    {
-      // Detect HP hardware via hp-snmp-agents
-      $hw = trim(snmp_get($device, "cpqSiProductName.0", "-Oqv", "CPQSINFO-MIB", mib_dirs('hp')),'" ');
-
-      if ($hw)
-      {
-        $hw        = "HP " . $hw;
-        $serial    = trim(snmp_get($device, "cpqSiSysSerialNum.0", "-Oqv", "CPQSINFO-MIB", mib_dirs('hp')),'" ');
-        $asset_tag = trim(snmp_get($device, "cpqSiAssetTag.0", "-Oqv", "CPQSINFO-MIB", mib_dirs('hp')),'" ');
+        if ($hw)
+        {
+          $hw        = 'HP ' . $hw;
+          $serial    = snmp_get($device, 'cpqSiSysSerialNum.0', '-Oqv', 'CPQSINFO-MIB');
+          $asset_tag = snmp_get($device, 'cpqSiAssetTag.0', '-Oqv', 'CPQSINFO-MIB');
+        }
       }
     }
 
@@ -118,15 +115,15 @@ switch ($device['os'])
       $version = $matches[1] . $matches[2] . $matches[3] . $matches[4];
     }
 
-    $hardware_model = snmp_get($device, "aixSeMachineType.0", "-Oqv", "IBM-AIX-MIB");
+    $hardware_model = snmp_get($device, 'aixSeMachineType.0', '-Oqv', 'IBM-AIX-MIB');
     if ($hardware_model)
     {
-      $hardware_model = trim(str_replace("\"", "", $hardware_model));
-      list(,$hardware_model) = explode(",", $hardware_model);
+      $hardware_model = trim(str_replace('"', '', $hardware_model));
+      list(,$hardware_model) = explode(',', $hardware_model);
 
-      $serial = snmp_get($device, "aixSeSerialNumber.0", "-Oqv", "IBM-AIX-MIB");
-      $serial = trim(str_replace("\"", "", $serial));
-      list(,$serial) = explode(",", $serial);
+      $serial = snmp_get($device, 'aixSeSerialNumber.0', '-Oqv', 'IBM-AIX-MIB');
+      $serial = trim(str_replace('"', '', $serial));
+      list(,$serial) = explode(',', $serial);
 
       $hardware .= " ($hardware_model)";
     }
@@ -139,34 +136,34 @@ switch ($device['os'])
     break;
 
   case 'dragonfly':
-    list(,,$version,,,$features) = explode (" ", $poll_device['sysDescr']);
+    list(,,$version,,,$features) = explode (' ', $poll_device['sysDescr']);
     $hardware = rewrite_unix_hardware($poll_device['sysDescr']);
     break;
 
   case 'netbsd':
-    list(,,$version,,,$features) = explode (" ", $poll_device['sysDescr']);
-    $features = str_replace("(", "", $features);
-    $features = str_replace(")", "", $features);
+    list(,,$version,,,$features) = explode (' ', $poll_device['sysDescr']);
+    $features = str_replace('(', '', $features);
+    $features = str_replace(')', '', $features);
     $hardware = rewrite_unix_hardware($poll_device['sysDescr']);
     break;
 
   case 'openbsd':
   case 'solaris':
   case 'opensolaris':
-    list(,,$version,$features) = explode (" ", $poll_device['sysDescr']);
-    $features = str_replace("(", "", $features);
-    $features = str_replace(")", "", $features);
+    list(,,$version,$features) = explode (' ', $poll_device['sysDescr']);
+    $features = str_replace('(', '', $features);
+    $features = str_replace(')', '', $features);
     $hardware = rewrite_unix_hardware($poll_device['sysDescr']);
     break;
 
   case 'darwin':
-    list(,,$version) = explode (" ", $poll_device['sysDescr']);
+    list(,,$version) = explode (' ', $poll_device['sysDescr']);
     $hardware = rewrite_unix_hardware($poll_device['sysDescr']);
     break;
 
   case 'monowall':
   case 'pfsense':
-    list(,,$version,,, $kernel) = explode(" ", $poll_device['sysDescr']);
+    list(,,$version,,, $kernel) = explode(' ', $poll_device['sysDescr']);
     $distro = $device['os'];
     $hardware = rewrite_unix_hardware($poll_device['sysDescr']);
     break;
@@ -192,7 +189,7 @@ switch ($device['os'])
       $version = $matches[1];
     }
 
-    $data = snmp_get_multi($device, 'ipsoChassisMBType.0 ipsoChassisMBRevNumber.0 ipsoChassisSerialNumber.0', '-OQUs', 'NOKIA-IPSO-SYSTEM-MIB', mib_dirs('checkpoint'));
+    $data = snmp_get_multi($device, 'ipsoChassisMBType.0 ipsoChassisMBRevNumber.0 ipsoChassisSerialNumber.0', '-OQUs', 'NOKIA-IPSO-SYSTEM-MIB');
     if (isset($data[0]))
     {
       $hw = $data[0]['ipsoChassisMBType'] . ' rev ' . $data[0]['ipsoChassisMBRevNumber'];
@@ -206,7 +203,7 @@ switch ($device['os'])
     // EMBEDDED-NGX-MIB::swHardwareType.0 = "SBox-200-B"
     // EMBEDDED-NGX-MIB::swLicenseProductName.0 = "Safe@Office 500, 25 nodes"
     // EMBEDDED-NGX-MIB::swFirmwareRunning.0 = "8.2.26x"
-    $data = snmp_get_multi($device, 'swHardwareVersion.0 swHardwareType.0 swLicenseProductName.0 swFirmwareRunning.0', '-OQUs', 'EMBEDDED-NGX-MIB', mib_dirs('checkpoint'));
+    $data = snmp_get_multi($device, 'swHardwareVersion.0 swHardwareType.0 swLicenseProductName.0 swFirmwareRunning.0', '-OQUs', 'EMBEDDED-NGX-MIB');
     if (isset($data[0]))
     {
       list($hw) = explode(',', trim($data[0]['swLicenseProductName'], '" '));
@@ -226,15 +223,15 @@ if (isset($agent_data['distro']) && isset($agent_data['distro']['SCRIPTVER']))
 } else {
 
   // Distro "extend" support
-  $os_data = trim(snmp_get($device, ".1.3.6.1.4.1.2021.7890.1.3.1.1.6.100.105.115.116.114.111", "-Oqv", "UCD-SNMP-MIB", mib_dirs()),'" ');
+  $os_data = trim(snmp_get($device, '.1.3.6.1.4.1.2021.7890.1.3.1.1.6.100.105.115.116.114.111', '-Oqv', 'UCD-SNMP-MIB'),'" ');
 
   if (!$os_data) // No "extend" support, try "exec" support
   {
-    $os_data = trim(snmp_get($device, ".1.3.6.1.4.1.2021.7890.1.101.1", "-Oqv", "UCD-SNMP-MIB", mib_dirs()),'" ');
+    $os_data = trim(snmp_get($device, '.1.3.6.1.4.1.2021.7890.1.101.1', '-Oqv', 'UCD-SNMP-MIB'),'" ');
   }
 
   // Disregard data if we're just getting an error.
-  if (!$os_data || strpos($os_data, "/usr/bin/distro") !== FALSE)
+  if (!$os_data || strpos($os_data, '/usr/bin/distro') !== FALSE)
   {
     unset($os_data);
   }
@@ -244,7 +241,7 @@ if (isset($agent_data['distro']) && isset($agent_data['distro']['SCRIPTVER']))
     list($osname,$kernel,$arch,$distro,$distro_ver) = explode('|', $os_data, 5);
   } else {
     // Old distro, not supported now: "Ubuntu 12.04"
-    list($distro, $distro_ver) = explode(" ", $os_data);
+    list($distro, $distro_ver) = explode(' ', $os_data);
   }
 }
 

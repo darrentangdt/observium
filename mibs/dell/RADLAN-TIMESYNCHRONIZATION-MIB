@@ -2,7 +2,7 @@ RADLAN-TIMESYNCHRONIZATION-MIB DEFINITIONS ::= BEGIN
 
 IMPORTS
     rnd                                         FROM RADLAN-MIB
-    TruthValue                                  FROM RADLAN-SNMPv2
+    TruthValue                                  FROM SNMPv2-TC
     DisplayString                               FROM SNMPv2-TC
     Unsigned32, Integer32, IpAddress            FROM SNMPv2-SMI
     MODULE-IDENTITY, OBJECT-TYPE                FROM SNMPv2-SMI
@@ -10,9 +10,9 @@ IMPORTS
 
 rlTimeSynchronization MODULE-IDENTITY
       LAST-UPDATED "200408030024Z"
-      ORGANIZATION ""
+      ORGANIZATION "Radlan Computer Communication Ltd."
       CONTACT-INFO
-              ""
+              "radlan.com"
       DESCRIPTION
               "The MIB module describes the private MIB for SNTP & TIME definitions."
       REVISION     "200311230024Z"
@@ -48,7 +48,7 @@ NTPSignedTimeValue ::= TEXTUAL-CONVENTION
         STATUS       current
         DESCRIPTION  "The time in seconds that could represent signed
                       quantities like time delay with respect to some
-                      source.  This textual-convention is specific
+                      source.  This textual-convention is specific to RADLAN
                       implementation of NTP where 32-bit integers are used
                       for such quantities.  The signed integer part is in
                       the first 16 bits and the fraction part is in the
@@ -71,6 +71,23 @@ NTPStratum ::= TEXTUAL-CONVENTION
 -- ----------------------------------------------------------------------
 -- Global TimeSyncMethod
 -- ----------------------------------------------------------------------
+
+RlTimeSyncMethod  ::= TEXTUAL-CONVENTION
+   STATUS current
+   DESCRIPTION    "Method to be used for time synchronization in the device."
+   SYNTAX INTEGER { none(1),
+                    sntp(2),
+                    ntp(3)
+                  }
+
+RlDaylightSavingTimeMode  ::= TEXTUAL-CONVENTION
+   STATUS current
+   DESCRIPTION    "Daylight Saving Time - Recurring/Date/None."
+   SYNTAX INTEGER {
+                    recurring(1),
+                    date(2),
+                    none(3)
+                  }
 
 rlTimeSyncMibVersion OBJECT-TYPE
         SYNTAX      INTEGER
@@ -101,11 +118,7 @@ rndTimeSyncManagedDateTime  OBJECT-TYPE
         ::= { rlTimeSyncMethodMode 4 }
 
 rlTimeSyncMethod OBJECT-TYPE
-        SYNTAX      INTEGER {
-                       none(1),
-                       sntp(2),
-                       ntp(3)
-                    }
+        SYNTAX      RlTimeSyncMethod
         MAX-ACCESS  read-write
         STATUS      current
         DESCRIPTION "Method to be used for time synchronization in the device."
@@ -120,18 +133,14 @@ rlTimeZone OBJECT-TYPE
         ::=  {rlTimeSyncMethodMode 6 }
 
 rlTimeZoneCode OBJECT-TYPE
-        SYNTAX      DisplayString (SIZE(0..4))
+        SYNTAX      DisplayString (SIZE(0..16))
         MAX-ACCESS  read-write
         STATUS      current
         DESCRIPTION "Code definition for current TimeZone."
         ::=  {rlTimeSyncMethodMode 7 }
 
 rlDaylightSavingTimeMode OBJECT-TYPE
-        SYNTAX      INTEGER {
-                       recurring(1),
-                       date(2),
-                       none(3)
-                    }
+        SYNTAX      RlDaylightSavingTimeMode
         MAX-ACCESS  read-write
         STATUS      current
         DESCRIPTION "Daylight Saving Time - Recurring/Date/None."
@@ -180,7 +189,7 @@ rlDaylightSavingTimeOffset OBJECT-TYPE
         ::= { rlTimeSyncMethodMode 11 }
 
 rlDaylightSavingTimeCode OBJECT-TYPE
-        SYNTAX      DisplayString (SIZE(0..4))
+        SYNTAX      DisplayString (SIZE(0..16))
         MAX-ACCESS  read-write
         STATUS      current
         DESCRIPTION "Code definition for current Daylight Saving Time."
@@ -193,6 +202,161 @@ rlTZDSTOffset OBJECT-TYPE
         DESCRIPTION "Local Time Zone and Daylight Saving Time offset
                      in seconds."
         ::= { rlTimeSyncMethodMode 13 }
+
+rlTimeZoneName OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE(0..16))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Human readable string describing Local Time Zone and Daylight Saving Time."
+        ::=  {rlTimeSyncMethodMode 14 }
+
+--
+-- TimeZone table
+--
+
+-- TimeZone table aimed to replace next mibs:
+--    rlTimeSyncMethod
+--    rlTimeZone
+--    rlTimeZoneCode
+--    rlDaylightSavingTimeMode
+--    rlDaylightSavingTimeStart
+--    rlDaylightSavingTimeEnd
+--    rlDaylightSavingTimeOffset
+--    rlDaylightSavingTimeCode
+--    rlTZDSTOffset
+--    rlTimeZoneName
+-- Table consist of only one entry (with index = 1) and each field corresponding
+-- to one of this MIB scalars.
+
+rlTimeZoneTable  OBJECT-TYPE
+  SYNTAX  SEQUENCE OF RlTimeZoneEntry
+  MAX-ACCESS    not-accessible
+  STATUS        current
+  DESCRIPTION   "TimeZone information."
+  ::= { rlTimeSyncMethodMode 15 }
+
+rlTimeZoneEntry OBJECT-TYPE
+   SYNTAX      RlTimeZoneEntry
+   MAX-ACCESS  not-accessible
+   STATUS      current
+   DESCRIPTION        "The row definition for this table."
+   INDEX { rlTimeZoneIndex }
+::= { rlTimeZoneTable 1 }
+
+RlTimeZoneEntry ::= SEQUENCE {
+    rlTimeZoneIndex                     INTEGER,
+    rlTimeZoneTimeSyncMethod            RlTimeSyncMethod,
+    rlTimeZoneTimeZoneOffset            DisplayString (SIZE(1..6)),
+    rlTimeZoneTimeZoneCode              DisplayString (SIZE(0..16)),
+    rlTimeZoneDaylightSavingTimeMode    RlDaylightSavingTimeMode,
+    rlTimeZoneDaylightSavingTimeStart   OCTET STRING (SIZE(14)),
+    rlTimeZoneDaylightSavingTimeEnd     OCTET STRING (SIZE(14)),
+    rlTimeZoneDaylightSavingTimeOffset  Integer32,
+    rlTimeZoneDaylightSavingTimeCode    DisplayString (SIZE(0..16)),
+    rlTimeZoneTZDSTOffset               INTEGER,
+    rlTimeZoneTimeZoneName              DisplayString (SIZE(0..16))
+}
+
+rlTimeZoneIndex OBJECT-TYPE
+    SYNTAX      INTEGER (1)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Entry index. Sinse only one entry exist, always must be 1."
+    ::= { rlTimeZoneEntry 1 }
+
+rlTimeZoneTimeSyncMethod OBJECT-TYPE
+    SYNTAX      RlTimeSyncMethod
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Method to be used for time synchronization in the device."
+    DEFVAL      { none }
+    ::= { rlTimeZoneEntry 2 }
+
+rlTimeZoneTimeZoneOffset OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE(1..6))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Offset from Greenwich time (format [+/-]hh:mm)."
+    ::= { rlTimeZoneEntry 3 }
+
+rlTimeZoneTimeZoneCode OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE(0..16))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Code definition for current TimeZone."
+   ::= { rlTimeZoneEntry 4 }
+
+rlTimeZoneDaylightSavingTimeMode OBJECT-TYPE
+    SYNTAX      RlDaylightSavingTimeMode
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Daylight Saving Time - Recurring/Date/None."
+    DEFVAL      { none }
+   ::= { rlTimeZoneEntry 5 }
+
+rlTimeZoneDaylightSavingTimeStart OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(14))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Daylight Saving Time start date.
+                 In recurring mode: week wday month hh:mm
+                 In date mode:      month day year hh:mm
+                 week:  0-6  (0=First, 6=Last)
+                 wday:  1-7  (Sunday-Saturday)
+                 month: 1-12 (January-December)
+                 day:   1-31
+                 year:  0-99 (2000-2099)
+                 hh:    0-23 (hours)
+                 mm:    0-59 (minutes)"
+   ::= { rlTimeZoneEntry 6 }
+
+rlTimeZoneDaylightSavingTimeEnd OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(14))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Daylight Saving Time end date.
+                 In recurring mode: week wday month hh:mm
+                 In date mode:      month day year hh:mm
+                 week:  0-6  (0=First, 6=Last)
+                 wday:  1-7  (Sunday-Saturday)
+                 month: 1-12 (January-December)
+                 day:   1-31
+                 year:  0-99 (2000-2099)
+                 hh:    0-23 (hours)
+                 mm:    0-59 (minutes)"
+   ::= { rlTimeZoneEntry 7 }
+
+rlTimeZoneDaylightSavingTimeOffset OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Daylight Saving Time - The number of minutes to add to
+                 the clock during summer time."
+    DEFVAL      { 60 }
+    ::= { rlTimeZoneEntry 8 }
+
+rlTimeZoneDaylightSavingTimeCode OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE(0..16))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Code definition for current Daylight Saving Time."
+   ::= { rlTimeZoneEntry 9 }
+
+rlTimeZoneTZDSTOffset OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Local Time Zone and Daylight Saving Time offset in seconds."
+   ::= { rlTimeZoneEntry 10 }
+
+rlTimeZoneTimeZoneName OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE(0..16))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Human readable string describing Local Time Zone and Daylight Saving Time."
+    ::= { rlTimeZoneEntry 11 }
+
+
 
 -- ----------------------------------------------------------------------
 -- SNTP/NTP client configuration parameters

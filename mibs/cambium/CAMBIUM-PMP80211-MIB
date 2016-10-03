@@ -29,13 +29,15 @@ pmpMibTree MODULE-IDENTITY
 cambium				 OBJECT IDENTIFIER ::= { enterprises 17713 }
 
 cambiumPmp80211SystemStatus	 OBJECT IDENTIFIER ::= { pmpMibTree 1 }
-cambiumGeneralStatus OBJECT IDENTIFIER ::= { cambiumPmp80211SystemStatus 1 }
-cambiumRFStatus		 OBJECT IDENTIFIER ::= { cambiumPmp80211SystemStatus 2 }
-cambiumGPSStatus	 OBJECT IDENTIFIER ::= { cambiumPmp80211SystemStatus 3 }
-cambiumLinkStatus	 OBJECT IDENTIFIER ::= { cambiumPmp80211SystemStatus 4 }
-cambiumAcsStatus	 OBJECT IDENTIFIER ::= { cambiumPmp80211SystemStatus 5 }
-cambiumMcastStatus	 OBJECT IDENTIFIER ::= { cambiumPmp80211SystemStatus 6 }
-cambiumDhcpStatus	 OBJECT IDENTIFIER ::= { cambiumPmp80211SystemStatus 7 }
+cambiumGeneralStatus	 OBJECT IDENTIFIER ::= { cambiumPmp80211SystemStatus 1 }
+cambiumRFStatus			 OBJECT IDENTIFIER ::= { cambiumPmp80211SystemStatus 2 }
+cambiumGPSStatus		 OBJECT IDENTIFIER ::= { cambiumPmp80211SystemStatus 3 }
+cambiumLinkStatus		 OBJECT IDENTIFIER ::= { cambiumPmp80211SystemStatus 4 }
+cambiumAcsStatus		 OBJECT IDENTIFIER ::= { cambiumPmp80211SystemStatus 5 }
+cambiumMcastStatus		 OBJECT IDENTIFIER ::= { cambiumPmp80211SystemStatus 6 }
+cambiumDhcpStatus		 OBJECT IDENTIFIER ::= { cambiumPmp80211SystemStatus 7 }
+cambiumLicenseInfo	 OBJECT IDENTIFIER ::= { cambiumPmp80211SystemStatus 8 }
+cambiumRadiusVSAStatus	 OBJECT IDENTIFIER ::= { cambiumPmp80211SystemStatus 9 }
 cambiumPmp80211SystemMonitoring	 OBJECT IDENTIFIER ::= { pmpMibTree 2 }
 cambiumPerformanceMonitoring   OBJECT IDENTIFIER ::= { cambiumPmp80211SystemMonitoring 1 }
 cambiumRealTimeStatsMonitoring	OBJECT IDENTIFIER ::= { cambiumPmp80211SystemMonitoring 2 }
@@ -59,7 +61,6 @@ wirelessPrefList	 OBJECT IDENTIFIER ::= { wireless 3 }
 wirelessMIRList		 OBJECT IDENTIFIER ::= { wireless 4 }
 wirelessRadius		 OBJECT IDENTIFIER ::= { wireless 5 }
 wirelessRadiusServerList  OBJECT IDENTIFIER ::= { wireless 6 }
-
 wirelessRadiusCertificateList  OBJECT IDENTIFIER ::= { wireless 7 }
 wirelessRadiusCertificateListRow1  OBJECT IDENTIFIER ::= { wirelessRadiusCertificateList 1 }
 wirelessRadiusCertificateListRow2  OBJECT IDENTIFIER ::= { wirelessRadiusCertificateList 2 }
@@ -76,6 +77,7 @@ dlkm                 OBJECT IDENTIFIER ::= { cambiumpmp80211SystemConfiguration 
 routing				 OBJECT IDENTIFIER ::= { cambiumpmp80211SystemConfiguration 16 }
 cambiumDeviceAgent	 OBJECT IDENTIFIER ::= { cambiumpmp80211SystemConfiguration 20 }
 upnpd                OBJECT IDENTIFIER ::= { cambiumpmp80211SystemConfiguration 21 }
+lldpd                OBJECT IDENTIFIER ::= { cambiumpmp80211SystemConfiguration 23 }
 mgmtVLAN			 OBJECT IDENTIFIER ::= { network 4 }
 dataVLAN			 OBJECT IDENTIFIER ::= { network 5 }
 mcastVLAN			 OBJECT IDENTIFIER ::= { network 15 }
@@ -192,7 +194,7 @@ cambiumEffectiveCountryCode OBJECT-TYPE
 		::= { cambiumGeneralStatus 8 }
 
 cambiumEffectiveAntennaGain OBJECT-TYPE
-		SYNTAX	   Integer32 (0..30)
+		SYNTAX	   Integer32 (0..40)
 		MAX-ACCESS read-only
 		STATUS	   current
 		DESCRIPTION
@@ -1311,6 +1313,58 @@ dhcpServerStaticHostTable  OBJECT-TYPE
 		"Table for DHCP static MAC to IP"
 	::= { cambiumDhcpStatus 5 }
 
+cambLicenseVersion OBJECT-TYPE
+		SYNTAX	   DisplayString (SIZE(0|1))
+		MAX-ACCESS read-only
+		STATUS	   current
+		DESCRIPTION
+		"Device Operational Lincense Version
+		Device Allocation: AP, SM"
+		::= { cambiumLicenseInfo 1 }
+
+cambLicenseSMcntUnlock OBJECT-TYPE
+		SYNTAX	   DisplayString (SIZE(0|1))
+		MAX-ACCESS read-only
+		STATUS	   current
+		DESCRIPTION
+		"Full Capacity AP feature unlock, based on information from
+		 Operational Lincense
+		Device Allocation: AP, SM"
+		::= { cambiumLicenseInfo 2 }
+
+cambLicenseMACaddr OBJECT-TYPE
+		SYNTAX	   DisplayString (SIZE(0|17))
+		MAX-ACCESS read-only
+		STATUS	   current
+		DESCRIPTION
+		"Device Operational Lincense MAC address
+		Device Allocation: AP, SM"
+		::= { cambiumLicenseInfo 3 }
+
+cambLicenseCountry OBJECT-TYPE
+		SYNTAX	   DisplayString (SIZE(0|1..2))
+		MAX-ACCESS read-only
+		STATUS	   current
+		DESCRIPTION
+		"Country Code for ETSI locked device, based on information from
+		 Operational Lincense
+		Device Allocation: AP, SM"
+		::= { cambiumLicenseInfo 4 }
+
+cambLicenseStatus OBJECT-TYPE
+		SYNTAX	   Integer32 (0..4)
+		MAX-ACCESS read-only
+		STATUS	   current
+		DESCRIPTION
+		"Device Operational Lincense Status:
+		 0 - Unknown
+		 1 - License Valid
+		 2 - Validation procedure was not provided
+		 3 - Validation Fail
+		 4 - License not valid for current device
+		Device Allocation: AP, SM"
+		::= { cambiumLicenseInfo 5 }
+
 dhcpServerStaticHostEntry OBJECT-TYPE
 	SYNTAX	   DhcpServerStaticHostEntry
 	MAX-ACCESS not-accessible
@@ -1361,6 +1415,164 @@ dhcpServerLeaseTable  OBJECT-TYPE
 		DESCRIPTION
 				"DHCP Assigned IP Address Table"
 		::= { cambiumDhcpStatus 6 }
+
+networkRadiusVSAmgmtVLANVID  OBJECT-TYPE
+	SYNTAX	   Integer32 (0|1..4095)
+	MAX-ACCESS read-only
+	STATUS	   current
+	DESCRIPTION
+		"VSA Management VLAN ID"
+	::= { cambiumRadiusVSAStatus 1 }
+
+networkRadiusVSAmgmtVLANVP  OBJECT-TYPE
+	SYNTAX	   Integer32 (0|1..7)
+	MAX-ACCESS read-only
+	STATUS	   current
+	DESCRIPTION
+		"VSA Management VLAN VP"
+	::= { cambiumRadiusVSAStatus 2 }
+
+networkRadiusVSAdataVLANVID  OBJECT-TYPE
+	SYNTAX	   Integer32 (0|1..4095)
+	MAX-ACCESS read-only
+	STATUS	   current
+	DESCRIPTION
+		"VSA Data VLAN ID"
+	::= { cambiumRadiusVSAStatus 3 }
+
+networkRadiusVSAdataVLANVP  OBJECT-TYPE
+	SYNTAX	   Integer32 (0|1..7)
+	MAX-ACCESS read-only
+	STATUS	   current
+	DESCRIPTION
+		"VSA Data VLAN VP"
+	::= { cambiumRadiusVSAStatus 4 }
+
+networkRadiusVSAmgmtIFVID  OBJECT-TYPE
+	SYNTAX	   Integer32 (0|1..4095)
+	MAX-ACCESS read-only
+	STATUS	   current
+	DESCRIPTION
+		"VSA Separate Management Interface VLAN ID"
+	::= { cambiumRadiusVSAStatus 5 }
+
+networkRadiusVSAmgmtIFVP  OBJECT-TYPE
+	SYNTAX	   Integer32 (0|1..7)
+	MAX-ACCESS read-only
+	STATUS	   current
+	DESCRIPTION
+		"VSA Separate Management Interface VLAN VP"
+	::= { cambiumRadiusVSAStatus 6 }
+
+networkRadiusVSAmcastVLANVID  OBJECT-TYPE
+	SYNTAX	   Integer32 (0|1..4095)
+	MAX-ACCESS read-only
+	STATUS	   current
+	DESCRIPTION
+		"VSA Multicast VLAN ID"
+	::= { cambiumRadiusVSAStatus 7 }
+
+networkRadiusVSAmembershipVLANTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF NetworkRadiusVSAmembershipVLANEntry
+	MAX-ACCESS not-accessible
+	STATUS     current
+	DESCRIPTION
+		"VSA Membership VLAN Table"
+	INDEX   { networkRadiusVSAmembershipVLANIndex }
+        ::= { cambiumRadiusVSAStatus 10 }
+
+networkRadiusVSAmembershipVLANEntry OBJECT-TYPE
+	SYNTAX	   NetworkRadiusVSAmembershipVLANEntry
+	MAX-ACCESS not-accessible
+	STATUS	   current
+	DESCRIPTION
+		"VSA Membership VLAN Table Rule Entry"
+	INDEX	{ networkRadiusVSAmembershipVLANIndex }
+	::= { networkRadiusVSAmembershipVLANTable 1 }
+
+NetworkRadiusVSAmembershipVLANEntry ::= SEQUENCE {
+	networkRadiusVSAmembershipVLANIndex
+		Integer32,
+	networkRadiusVSAmembershipVLANVIDBegin
+		Integer32,
+	networkRadiusVSAmembershipVLANVIDEnd
+		Integer32
+}
+
+networkRadiusVSAmembershipVLANIndex  OBJECT-TYPE
+	SYNTAX	  Integer32 (0..16)
+	MAX-ACCESS read-only
+	STATUS	   current
+	DESCRIPTION
+		"VSA Membership VLAN Table Entry Index"
+		::= { networkRadiusVSAmembershipVLANEntry 1 }
+
+networkRadiusVSAmembershipVLANVIDBegin  OBJECT-TYPE
+	SYNTAX	   Integer32 (0|1..4095)
+	MAX-ACCESS read-only
+	STATUS	   current
+	DESCRIPTION
+		"VSA Membership VLAN Table Entry VLAN ID Begin"
+	::= { networkRadiusVSAmembershipVLANEntry 2 }
+
+networkRadiusVSAmembershipVLANVIDEnd  OBJECT-TYPE
+	SYNTAX	   Integer32 (0|1..4095)
+	MAX-ACCESS read-only
+	STATUS	   current
+	DESCRIPTION
+		"VSA Membership VLAN Table Entry VLAN ID End"
+	::= { networkRadiusVSAmembershipVLANEntry 3 }
+
+networkRadiusVSAmappingVLANTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF NetworkRadiusVSAmappingVLANEntry
+	MAX-ACCESS not-accessible
+	STATUS     current
+	DESCRIPTION
+		"VSA Mapping VLAN Table Rule Entry"
+	INDEX   { networkRadiusVSAmappingVLANIndex }
+	::= { cambiumRadiusVSAStatus 20 }
+
+networkRadiusVSAmappingVLANEntry  OBJECT-TYPE
+	SYNTAX	   NetworkRadiusVSAmappingVLANEntry
+	MAX-ACCESS not-accessible
+	STATUS	   current
+	DESCRIPTION
+		"VSA Mapping VLAN Table Rule Entry"
+	INDEX	{ networkRadiusVSAmappingVLANIndex }
+	::= { networkRadiusVSAmappingVLANTable 1 }
+
+NetworkRadiusVSAmappingVLANEntry ::= SEQUENCE {
+	networkRadiusVSAmappingVLANIndex
+		Integer32,
+	networkRadiusVSAmappingVLANCVLAN
+		Integer32,
+	networkRadiusVSAmappingVLANSVLAN
+		Integer32
+}
+
+networkRadiusVSAmappingVLANIndex  OBJECT-TYPE
+	SYNTAX	  Integer32 (0..16)
+	MAX-ACCESS read-only
+	STATUS	   current
+	DESCRIPTION
+		"VSA Mapping VLAN Table Entry Index"
+		::= { networkRadiusVSAmappingVLANEntry 1 }
+
+networkRadiusVSAmappingVLANCVLAN  OBJECT-TYPE
+	SYNTAX	   Integer32 (0|1..4095)
+	MAX-ACCESS read-only
+	STATUS	   current
+	DESCRIPTION
+		"VSA Mapping VLAN Table C-VLAN ID"
+	::= { networkRadiusVSAmappingVLANEntry 2 }
+
+networkRadiusVSAmappingVLANSVLAN  OBJECT-TYPE
+	SYNTAX	   Integer32 (0|1..4095)
+	MAX-ACCESS read-only
+	STATUS	   current
+	DESCRIPTION
+		"VSA Mapping VLAN Table S-VLAN ID"
+	::= { networkRadiusVSAmappingVLANEntry 3 }
 
 dhcpServerLeaseEntry OBJECT-TYPE
 	SYNTAX	   DhcpServerLeaseEntry
@@ -1476,7 +1688,8 @@ CambiumAPConnectedSTAEntry ::= SEQUENCE {
 	connectedSTAMcastGRP3	   IpAddress,
 	connectedSTAMcastGRP4	   IpAddress,
 	connectedSTASessionTime	   DisplayString,
-	connectedSTADLRateMbps	   DisplayString
+	connectedSTADLRateMbps	   DisplayString,
+	connectedSTADistance       Integer32
 }
 
 connectedSTAMAC OBJECT-TYPE
@@ -1747,6 +1960,15 @@ connectedSTADLRateMbps OBJECT-TYPE
 		Device Allocation: AP"
 	::= { cambiumAPConnectedSTAEntry 28 }
 
+connectedSTADistance OBJECT-TYPE
+	SYNTAX	   Integer32
+	MAX-ACCESS read-only
+	STATUS	   current
+	DESCRIPTION
+		"STA distnce to AP
+		Device Allocation: AP"
+	::= { cambiumAPConnectedSTAEntry 29 }
+
 cambiumAPBridgeTable OBJECT-TYPE
 	SYNTAX	   SEQUENCE OF CambiumAPBridgeEntry
 	MAX-ACCESS not-accessible
@@ -1909,6 +2131,24 @@ cambiumSTADropReason OBJECT-TYPE
 			"String with SM's drop reason
 			 Device Allocation: AP"
 	::= { cambiumRFStatus 61 }
+
+cambiumNetworkEntryFailureSTAMAC OBJECT-TYPE
+	SYNTAX	   DisplayString (SIZE(17))
+	MAX-ACCESS read-only
+	STATUS	   current
+	DESCRIPTION
+			"String with rejected SM's MAC 
+			 Device Allocation: AP "
+	::= { cambiumRFStatus 62 }
+
+cambiumNetworkEntryFailureReason OBJECT-TYPE
+	SYNTAX	   DisplayString (SIZE(0..64))
+	MAX-ACCESS read-only
+	STATUS	   current
+	DESCRIPTION
+			"String with SM's reject reason
+			 Device Allocation: AP "
+	::= { cambiumRFStatus 63 }	
 
 connectedSTATXCapacity OBJECT-TYPE
 	SYNTAX	   Integer32 (0..100)
@@ -2084,7 +2324,9 @@ cambiumLANStatus OBJECT-TYPE
 		MAX-ACCESS read-only
 		STATUS	   current
 		DESCRIPTION
-		"LAN Status:
+		"Use the RFC-1213 ifTable to view the physical port status. 
+		This attribute indicates the Linux driver status of the port.
+		LAN Status:
 			0 - Down,
 			1 - Up,
 			2 - Disabled
@@ -2250,7 +2492,9 @@ cambiumLAN2Status OBJECT-TYPE
 		MAX-ACCESS read-only
 		STATUS	   current
 		DESCRIPTION
-		"2nd LAN Status:
+		"Use the RFC-1213 ifTable to view the physical port status.
+		This attribute indicates the Linux driver status of the port.
+		2nd LAN Status:
 			0 - Down,
 			1 - Up,
 			2 - Disabled
@@ -4611,6 +4855,28 @@ networkNATPMP OBJECT-TYPE
                 Device Allocation: SM"
         ::= { upnpd 2 }
 
+networkLLDP OBJECT-TYPE
+        SYNTAX     Integer32 (0|1)
+        MAX-ACCESS read-write
+        STATUS     current
+        DESCRIPTION
+                "Enable LLDP
+                0 - Disable,
+                1 - Enable
+                Device Allocation: AP,SM"
+        ::= { lldpd 1 }
+
+networkLLDPMode OBJECT-TYPE
+        SYNTAX     Integer32 (1|2)
+        MAX-ACCESS read-write
+        STATUS     current
+        DESCRIPTION
+                "LLDP mode
+				1 - receive and transmit LLDPDU
+				2 - only receive LLDPDU
+                Device Allocation: AP,SM"
+        ::= { lldpd 2 }
+
 snmpReadOnlyCommunity  OBJECT-TYPE
 	SYNTAX	   DisplayString
 	MAX-ACCESS read-write
@@ -4781,7 +5047,7 @@ systemConfigDeviceName	OBJECT-TYPE
 systemConfigETSILicense	 OBJECT-TYPE
 		SYNTAX	   DisplayString (SIZE(0..128))
 		MAX-ACCESS read-write
-		STATUS	   current
+		STATUS	   obsolete
 		DESCRIPTION
 		"ETSI Country Code. 
 		Set the country code using license key on AP. Visit Cambium Webserver
@@ -4889,10 +5155,10 @@ systemConfigSMLockBit  OBJECT-TYPE
         MAX-ACCESS read-only
         STATUS     current
         DESCRIPTION
-		" SM Lock Bit
+		"SM Lock Bit
                 This bit indicates if the AP is locked for Maximum SM registrations support.
-                If the bit is set then A maximum of 10 SMs can be registered to an AP.
-                        0 - No limitation, up to 120 SM registrations are supported ,
+                If the bit is set then maximum of 10 SMs can be registered on the AP.
+                        0 - No limitation, up to 120 SM registrations are supported,
                         1 - AP is tiered with 10 SM registrations
                 Device Allocation: AP"
         DEFVAL  { 0 }
@@ -4903,9 +5169,10 @@ systemConfigSMLimit  OBJECT-TYPE
         MAX-ACCESS read-only
         STATUS     current
         DESCRIPTION
-                "SM Registrations limit.
-		Indicates the maximum number of SMs that can be registered to an AP
-                Device Allocation: AP"
+		"SM Registrations limit, based on Operational License content.
+		Indicates the maximum number of SMs with could be registered to an AP.
+		Valid only in TDD mode if device is AP Lite.
+		Device Allocation: AP"
         DEFVAL  { 0 }
         ::= { systemConfig 13 }
 		
@@ -4932,13 +5199,26 @@ systemConfigLockedCC OBJECT-TYPE
 	::= { systemConfig 16 }
 
 systemConfigMinAntGain OBJECT-TYPE
-	SYNTAX	   Integer32 (0..30)
+	SYNTAX	   Integer32 (0..40)
 	MAX-ACCESS read-only
 	STATUS	   current
 	DESCRIPTION
 		"Return Minimum allowed Antenna Gain.
 		Device Allocation: AP, SM"
 	::= { systemConfig 17 }
+
+systemConfigOperationalLicense OBJECT-TYPE
+	SYNTAX	   DisplayString (SIZE(0..128))
+	MAX-ACCESS read-write
+	STATUS	   current
+	DESCRIPTION
+		"Device Operational License. 
+		Set Operational License on AP to extend basic functionality. 
+		Visit Cambium Webserver to get the license key. ETSI country code and 
+		maximum SMs count value will be set on AP if the key validation pass.
+		License is required on locked devices only.
+		Device Allocation: AP"
+	::= { systemConfig 18 }
 
 systemNtpServerIPMode OBJECT-TYPE 
 	SYNTAX	   Integer32 (1|2)
@@ -5105,7 +5385,7 @@ wirelessInterfaceTXPower  OBJECT-TYPE
 	::= { wirelessInterface 6 }
 
 wirelessInterfaceTDDAntennaGain	 OBJECT-TYPE
-	SYNTAX	   Integer32 (0..30)
+	SYNTAX	   Integer32 (0..40)
 	MAX-ACCESS read-write
 	STATUS	   current
 	DESCRIPTION 
@@ -5125,7 +5405,7 @@ wirelessInterfaceTDDRatio  OBJECT-TYPE
 			3 - 30/70,
 			4 - Flexible
 		Device Allocation: AP"
-	DEFVAL	{ 1 }
+	DEFVAL	{ 4 }
 	::= { wirelessInterface 9 }
 
 wirelessInterfaceTPCTRL	 OBJECT-TYPE
@@ -5273,8 +5553,6 @@ wirelessMaximumSTA	OBJECT-TYPE
 		STATUS	   current
 		DESCRIPTION
 		"Maximum Number of SM
-		Is Not used for Enhanced PTP and
-		PTP modes.
 		Device Allocation: AP"
 		DEFVAL	{ 60 }
 		::= { wirelessInterface 23 }
@@ -5304,7 +5582,10 @@ wirelessRadiusGUIUserAuth  OBJECT-TYPE
 	MAX-ACCESS read-write
 	STATUS	   current
 	DESCRIPTION 
-		"GUI User Authentication Option
+		"SM GUI User Authentication Option
+			0 - Device Local Only
+			1 - Remote RADIUS Server Only
+			2 - Remote RADIUS Server and Fallback to Local
 		Device Allocation: AP"
 	DEFVAL	{ 0 }
 	::= { wirelessRadius 3 }
@@ -5315,6 +5596,9 @@ wirelessRadiusCurrentGUIUserAuth  OBJECT-TYPE
 	STATUS	   current
 	DESCRIPTION 
 		"Current GUI User Authentication Option
+			0 - Device Local Only
+			1 - Remote RADIUS Server Only
+			2 - Remote RADIUS Server and Fallback to Local
 		Device Allocation: SM"
 	::= { wirelessRadius 4 }
 	
@@ -5366,6 +5650,19 @@ wirelessRadiusPassword	OBJECT-TYPE
 		Device Allocation: SM"
 	DEFVAL	{ "cambium" }
 	::= { wirelessRadius 9 }
+
+useMACAddressAsWirelessRadiusUsername  OBJECT-TYPE
+	SYNTAX	   Integer32 (0|1|2)
+	MAX-ACCESS read-write
+	STATUS	   current
+	DESCRIPTION 
+		"For using an Ethernet MAC address instead of RADIUS username
+		0 - Off (default),
+		1 - using ':' as format,
+		2 - using '-' as format
+		Device Allocation: SM"
+	DEFVAL	{ 0 }
+	::= { wirelessRadius 10 }
 
 wirelessRadiusServerTable  OBJECT-TYPE
 		SYNTAX SEQUENCE OF WirelessRadiusServerEntry
@@ -6037,7 +6334,7 @@ apWiFiDLCTSMode  OBJECT-TYPE
                         0 - Disabled,
                         1 - Enabled
                 Device Allocation: AP"
-                DEFVAL  { 0 }
+                DEFVAL  { 1 }
                 ::= { wirelessInterface 62 }
 
 apWiFiULCTSRTSMode  OBJECT-TYPE
@@ -6049,7 +6346,7 @@ apWiFiULCTSRTSMode  OBJECT-TYPE
                         0 - Disabled,
                         1 - Enabled
                 Device Allocation: AP"
-                DEFVAL  { 0 }
+                DEFVAL  { 1 }
                 ::= { wirelessInterface 63 }
 
 apWiFiRTSThreshold  OBJECT-TYPE
@@ -6061,6 +6358,86 @@ apWiFiRTSThreshold  OBJECT-TYPE
                 Device Allocation: AP, SM"
                 DEFVAL  { 2346 }
                 ::= { wirelessInterface 64 }
+
+wirelessMACFilter  OBJECT-TYPE
+		SYNTAX     Integer32 (0|1)
+		MAX-ACCESS read-write
+		STATUS     current
+		DESCRIPTION
+		"Enable/Disable MAC list filter
+			0 - Disabled,
+			1 - Enabled
+		Device Allocation: AP"
+		DEFVAL  { 0 }
+		::= { wirelessInterface 70 }
+
+wirelessMACFilterPolicy  OBJECT-TYPE
+		SYNTAX     Integer32 (1|2)
+		MAX-ACCESS read-write
+		STATUS     current
+		DESCRIPTION
+		"Permit/Prevent policy for MAC list
+			1 - Prevent
+			2 - Permit
+		Device Allocation: AP"
+		DEFVAL  { 1 }
+		::= { wirelessInterface 71 }
+		
+wirelessMACFilterTable	 OBJECT-TYPE
+	SYNTAX SEQUENCE OF WirelessMACFilterEntry
+	MAX-ACCESS not-accessible
+	STATUS	   current
+	DESCRIPTION 
+		"Table for MAC filter list
+		Device Allocation: AP"
+	::= { wirelessInterface 72 }
+
+wirelessMACFilterEntry	 OBJECT-TYPE
+	SYNTAX	WirelessMACFilterEntry
+	MAX-ACCESS not-accessible
+	STATUS	   current
+	DESCRIPTION 
+		"L2 ACL Table Entry
+		Device Allocation: AP"
+	INDEX	{ wirelessMACFilterIndex }
+	::= { wirelessMACFilterTable 1 }
+	
+WirelessMACFilterEntry ::= SEQUENCE {
+	wirelessMACFilterIndex
+		Integer32,
+	wirelessFilterMAC
+		DisplayString,
+	wirelessFilterInfo
+		DisplayString
+}
+
+wirelessMACFilterIndex  OBJECT-TYPE
+		SYNTAX	   Integer32 (0..128)
+		MAX-ACCESS read-write
+		STATUS	   current
+		DESCRIPTION
+		"MAC filter list table Index(equal max STA)
+		Table Entry is cleared if Index is set to zero
+		Device Allocation: AP"
+		::= { wirelessMACFilterEntry 1 }
+
+wirelessFilterMAC	 OBJECT-TYPE
+		SYNTAX	   DisplayString (SIZE(0|1..128))
+		MAX-ACCESS read-write
+		STATUS	   current
+		DESCRIPTION
+		"MAC of SM for filter table
+		Device Allocation: AP"
+		::= { wirelessMACFilterEntry 2 }
+		
+wirelessFilterInfo	 OBJECT-TYPE
+		SYNTAX	   DisplayString (SIZE(0|1..128))
+		MAX-ACCESS read-write
+		STATUS	   current
+		DESCRIPTION
+		"Description for MAC in the filter table
+		Device Allocation: AP"
+		::= { wirelessMACFilterEntry 3 }
 
 l2FirewallEnable  OBJECT-TYPE
 		SYNTAX	   Integer32 (0|1)
@@ -6694,7 +7071,9 @@ PortForwardingEntry ::= SEQUENCE {
 		portForwardingTableEntryWLANPortEnd
 				Integer32,
 		portForwardingTableEntryLANIP
-				IpAddress
+				IpAddress,
+		portForwardingTableEntryWLANPortMappedBegin
+				Integer32
 }
 
 portForwardingTableEntryIndex  OBJECT-TYPE
@@ -6746,6 +7125,119 @@ portForwardingTableEntryLANIP  OBJECT-TYPE
 		"Port Forwarding LAN IP Address
 		Device Allocation: SM"
 		::= { portForwardingEntry 5 }
+
+portForwardingTableEntryWLANPortMappedBegin  OBJECT-TYPE
+		SYNTAX     Integer32 (0..65535)
+		MAX-ACCESS read-write
+		STATUS     current
+		DESCRIPTION
+		"Port Forwarding Mapped Port number
+		Device Allocation: SM"
+		::= { portForwardingEntry 6 }
+
+portForwardingSepMangIPEntryEnable  OBJECT-TYPE
+                SYNTAX     Integer32 (0|1)
+                MAX-ACCESS read-write
+                STATUS     current
+                DESCRIPTION     
+                "SM Separate Management IP Port Forwarding feature:
+                        0 - Disable,
+                        1 - Enable
+                Device Allocation: SM"
+                ::= { portForwarding 3 }
+
+portForwardingSepMangIPTable      OBJECT-TYPE
+                SYNTAX SEQUENCE OF PortForwardingSepMangIPEntry
+                MAX-ACCESS not-accessible
+                STATUS     current
+                DESCRIPTION
+                "SM Separate Management IP Port Forwarding Rules Table
+                Device Allocation: SM"
+                ::= { portForwarding 4 }
+
+portForwardingSepMangIPEntry      OBJECT-TYPE
+                SYNTAX  PortForwardingSepMangIPEntry
+                MAX-ACCESS not-accessible
+                STATUS     current
+                DESCRIPTION
+                "SM Separate Management IP Port Forwarding Table Rule Entry
+                Device Allocation: SM"
+                INDEX   { portForwardingSepMangIPTableEntryIndex }
+                ::= { portForwardingSepMangIPTable 1 }
+
+PortForwardingSepMangIPEntry ::= SEQUENCE {
+                portForwardingSepMangIPTableEntryIndex
+                                Integer32,
+                portForwardingSepMangIPTableEntryProtocol
+                                Integer32,
+                portForwardingSepMangIPTableEntryWLANPortBegin
+                                Integer32,
+                portForwardingSepMangIPTableEntryWLANPortEnd
+                                Integer32,
+                portForwardingSepMangIPTableEntryLANIP
+                                IpAddress,
+		portForwardingSepMangIPTableEntryWLANPortMappedBegin
+				Integer32
+}
+
+portForwardingSepMangIPTableEntryIndex  OBJECT-TYPE
+                SYNTAX     Integer32 (0..16)
+                MAX-ACCESS read-write
+                STATUS     current
+                DESCRIPTION
+                "SM Separate Management IP Port Forwarding Table Entry Index
+                Table Entry is cleared if Index is set to zero
+                Device Allocation: SM"
+                ::= { portForwardingSepMangIPEntry 1 }
+
+portForwardingSepMangIPTableEntryProtocol  OBJECT-TYPE
+                SYNTAX     Integer32 (0|1|2|3)
+                MAX-ACCESS read-write
+                STATUS     current
+                DESCRIPTION
+                "SM Separate Management IP Port Forwarding Table Entry Rule Protocol:
+                        0 - Clear Rule,
+                        1 - UDP,
+                        2 - TCP,
+                        3 - UDP+TCP
+                Device Allocation: SM"
+                ::= { portForwardingSepMangIPEntry 2 }
+
+portForwardingSepMangIPTableEntryWLANPortBegin  OBJECT-TYPE
+                SYNTAX     Integer32 (0..65535)
+                MAX-ACCESS read-write
+                STATUS     current
+                DESCRIPTION
+                "SM Separate Management IP Port Forwarding WLAN Port Start number
+                Device Allocation: SM"
+                ::= { portForwardingSepMangIPEntry 3 }
+
+portForwardingSepMangIPTableEntryWLANPortEnd      OBJECT-TYPE
+                SYNTAX     Integer32 (0..65535)
+                MAX-ACCESS read-write
+                STATUS     current
+                DESCRIPTION
+                "SM Separate Management IP Port Forwarding WLAN Port End number
+                Device Allocation: SM"
+                ::= { portForwardingSepMangIPEntry 4 }
+
+portForwardingSepMangIPTableEntryLANIP  OBJECT-TYPE
+                SYNTAX     IpAddress
+                MAX-ACCESS read-write
+                STATUS     current
+                DESCRIPTION
+                "SM Separate Management IP Port Forwarding LAN IP Address
+                Device Allocation: SM"
+                ::= { portForwardingSepMangIPEntry 5 }
+
+portForwardingSepMangIPTableEntryWLANPortMappedBegin  OBJECT-TYPE
+                SYNTAX     Integer32 (0..65535)
+                MAX-ACCESS read-write
+                STATUS     current
+                DESCRIPTION
+                "SM Separate Management IP Port Forwarding Mapped Port number
+                Device Allocation: SM"
+                ::= { portForwardingSepMangIPEntry 6 }
 
 staticRoutesEnableMain	 OBJECT-TYPE
 		SYNTAX		Integer32 (0|1)
@@ -7319,7 +7811,7 @@ cambiumpmp80211APListUpdateStatus  OBJECT-TYPE
 		::= { cambiumpmp80211SystemActions 12 }
 
 cambiumpmp80211SoftwareUpdateError  OBJECT-TYPE
-        SYNTAX     Integer32 (0..16)
+        SYNTAX     Integer32 (0..22)
         MAX-ACCESS read-only
         STATUS     current
         DESCRIPTION
@@ -7335,13 +7827,18 @@ cambiumpmp80211SoftwareUpdateError  OBJECT-TYPE
 		8 - Board SKU is not supported for this firmware
 		9 - Can't read firmware version, upgrade is impossible
 		10 - Down-grade not supported for 802.11 driver
-		11 - Down-grade below 2.3.1 is not supported for Tiered-AP device
+		11 - Down-grade below 2.3.1 is not supported for AP Lite device
 		12 - Down-grade not supported for non SM TDD mode
 		13 - Down-grade below 2.4.2 not supported for Ironman/Ironland board type
 		14 - Down-grade below 2.5.0 not supported for AP WiFi
 		15 - Down-grade below 2.4.3 not supported for Reset Via Power Sequence
 		16 - Down-grade below 2.4.3 not supported for Particular Country Locked device
-		17 - General error code
+		17 - Down-grade below 2.5.0 not supported for 2.5ms mode
+		18 - Down-grade below 2.5.2 not supported for Use MAC Address as EAP-TTLS Username
+		19 - Down-grade below 2.6.0 not supported for 5/10Mhz BW for WiFi & ePTP mode
+		20 - Down-grade below 2.6.0 not supported for Separate Management IP Port Forwarding
+		21 - General error. Device has no free memory
+		22 - General error code
                 Device Allocation: AP, SM"
         ::= { cambiumpmp80211SystemActions 13 }
 
@@ -7639,6 +8136,16 @@ cambiumForceTabUpdAPAlias OBJECT-TYPE
 		Device Allocation: AP, SM"
 		::= { cambiumpmp80211SystemActions 45 }
 
+cambiumForceTabUpdPortFwSepMangIP  OBJECT-TYPE
+        SYNTAX     Integer32 (1)
+        MAX-ACCESS read-write
+        STATUS     current
+        DESCRIPTION
+        "Force update Separate Management IP Port Forwarding table,
+                1 - Force action
+        Device Allocation: SM"
+        ::= { cambiumpmp80211SystemActions 46 }
+
 cambiumpmp80211SoftwareUpdateStatusTrap NOTIFICATION-TYPE
 	OBJECTS { 
 		cambiumpmp80211SoftwareUpdateError, 
@@ -7769,6 +8276,17 @@ cambiumpmpETSIframeSkipTrap NOTIFICATION-TYPE
 		"To much frame skipped due to CCA.
 		Device Allocation: AP"
 		::= { cambiumpmp80211SystemTraps 14 }
+
+cambiumpmp80211NetworkEntryFailureTrap NOTIFICATION-TYPE
+		OBJECTS { cambiumNetworkEntryFailureSTAMAC, cambiumNetworkEntryFailureReason }
+		STATUS	   current
+		DESCRIPTION
+		"SM rejected trap. Trap obtains info about the latest rejected SM. Trap string
+		is contained an information string with rejected reason and MAC of 
+		rejected SM. Trap message for a host is consisted of cambiumNetworkEntryFailureSTAMAC and 
+		cambiumNetworkEntryFailureReason objects.
+		Device Allocation: AP"
+		::= { cambiumpmp80211SystemTraps 15 }		
 
 cambiumLinkTestDuration	 OBJECT-TYPE
 	SYNTAX	   Integer32 (2|4|6|8|10|12|14|16|18|20)

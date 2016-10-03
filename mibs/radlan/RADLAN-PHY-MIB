@@ -8,8 +8,8 @@ IMPORTS
     OBJECT-TYPE, MODULE-IDENTITY                FROM SNMPv2-SMI
     ifIndex                                     FROM IF-MIB
     TimeStamp, DisplayString                    FROM SNMPv2-TC
-    rnd                                         FROM RADLAN-MIB
-    TEXTUAL-CONVENTION                          FROM SNMPv2-TC;
+    TruthValue, TEXTUAL-CONVENTION              FROM SNMPv2-TC
+    rnd                                         FROM RADLAN-MIB;
 
    rlPhy MODULE-IDENTITY
       LAST-UPDATED "200209300024Z"  -- September 30, 2002
@@ -56,7 +56,8 @@ RlPhyTestType ::= TEXTUAL-CONVENTION
         rlPhyTestTableCablePairSkew1(21),
         rlPhyTestTableCablePairSkew2(22),
         rlPhyTestTableCablePairSkew3(23),
-        rlPhyTestTableCablePairSkew4(24)
+        rlPhyTestTableCablePairSkew4(24),
+        rlPhyTestTableSFPEepromQualified(25)
     }
 
 rlPhyTest OBJECT IDENTIFIER ::= { rlPhy 1 }

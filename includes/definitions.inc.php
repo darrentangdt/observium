@@ -23,39 +23,44 @@ putenv('LC_ALL=C');
 // Use default charset UTF-8
 ini_set('default_charset', 'UTF-8');
 
-// Flags (mostly used in snmp and network functions)
+// Flags (mostly used in snmp and network functions, only 2^bit)
 // Bits 0-3 common flags
-define('OBS_QUOTES_STRIP',   1); // Strip ALL quotes from string
-define('OBS_QUOTES_TRIM',    2); // Trim quotes only from begin/end of string
-define('OBS_ESCAPE',         4); // Escape strings or output
-#define('OBS_',               8); // Reserved
+define('OBS_QUOTES_STRIP',         1); // Strip ALL quotes from string
+define('OBS_QUOTES_TRIM',          2); // Trim quotes only from begin/end of string
+define('OBS_ESCAPE',               4); // Escape strings or output
+#define('OBS_',                    8); // Reserved
 
-// Bits 4-7 snmp flags
-define('OBS_SNMP_NUMERIC',  16); // Use numeric index
-define('OBS_SNMP_CONCAT',   32); // Concatinate multiline snmp variable
-define('OBS_SNMP_ENUM',     64); // Don't enumerate SNMP values
-define('OBS_SNMP_HEX',     128); // Force HEX output
-//define('OBS_SNMP_ALL',         OBS_QUOTES_TRIM | OBS_QUOTES_STRIP | OBS_SNMP_CONCAT); // Set of common snmp options
-define('OBS_SNMP_ALL',         OBS_QUOTES_TRIM | OBS_QUOTES_STRIP); // Set of common snmp options
-define('OBS_SNMP_ALL_HEX',     OBS_SNMP_ALL | OBS_SNMP_HEX);        // Set of common snmp options forcing HEX output
-define('OBS_SNMP_ALL_ENUM',    OBS_SNMP_ALL | OBS_SNMP_ENUM);       // Set of common snmp options without enumerating values
-define('OBS_SNMP_ALL_NUMERIC', OBS_SNMP_ALL | OBS_SNMP_NUMERIC);    // Set of common snmp options with numeric indexes
+// Bits 4-11 snmp flags
+define('OBS_SNMP_NUMERIC',        16); // Use numeric OIDs  (-On)
+define('OBS_SNMP_NUMERIC_INDEX',  32); // Use numeric index (-Ob)
+define('OBS_SNMP_CONCAT',         64); // Concatinate multiline snmp variable (newline chars removed)
+define('OBS_SNMP_ENUM',          128); // Don't enumerate SNMP values
+define('OBS_SNMP_HEX',           256); // Force HEX output
+#define('OBS_SNMP_',             512); // Reserved
+#define('OBS_SNMP_',            1024); // Reserved
+#define('OBS_SNMP_',            2048); // Reserved
 
-// Bits 8-11 network flags
-define('OBS_DNS_A',        256); // Use only IPv4 dns queries
-define('OBS_DNS_AAAA',     512); // Use only IPv6 dns queries
+define('OBS_SNMP_ALL',               OBS_QUOTES_TRIM | OBS_QUOTES_STRIP);    // Set of common snmp options
+define('OBS_SNMP_ALL_MULTILINE',     OBS_QUOTES_TRIM | OBS_SNMP_CONCAT);     // Set of common snmp options with concatinate multiline snmp variable
+define('OBS_SNMP_ALL_HEX',           OBS_SNMP_ALL | OBS_SNMP_HEX);           // Set of common snmp options forcing HEX output
+define('OBS_SNMP_ALL_ENUM',          OBS_SNMP_ALL | OBS_SNMP_ENUM);          // Set of common snmp options without enumerating values
+define('OBS_SNMP_ALL_NUMERIC',       OBS_SNMP_ALL | OBS_SNMP_NUMERIC);       // Set of common snmp options with numeric OIDs
+define('OBS_SNMP_ALL_NUMERIC_INDEX', OBS_SNMP_ALL | OBS_SNMP_NUMERIC_INDEX); // Set of common snmp options with numeric indexes
+
+// Bits 12-15 network flags
+define('OBS_DNS_A',             4096); // Use only IPv4 dns queries
+define('OBS_DNS_AAAA',          8192); // Use only IPv6 dns queries
 define('OBS_DNS_ALL',  OBS_DNS_A | OBS_DNS_AAAA); // Use both IPv4/IPv6 dns queries
-define('OBS_PING_SKIP',   1024); // Skip device isPingable checks
-#define('OBS_',            2048); // Reserved
-
-// Bits 12-15 reserved
+define('OBS_PING_SKIP',        16384); // Skip device isPingable checks
+#define('OBS_',                32768); // Reserved
 
 // Bits 16- permissions flags
-define('OBS_PERMIT_ACCESS',  65536); // Can access (ie: logon)
-define('OBS_PERMIT_READ',   131072); // Can read basic data
-define('OBS_PERMIT_SECURE', 262144); // Can read secure data
-define('OBS_PERMIT_EDIT',   524288); // Can edit
-define('OBS_PERMIT_ALL', OBS_PERMIT_ACCESS | OBS_PERMIT_READ | OBS_PERMIT_SECURE | OBS_PERMIT_EDIT); // Permit all
+define('OBS_PERMIT_ACCESS',    65536); // Can access (ie: logon)
+define('OBS_PERMIT_READ',     131072); // Can read basic data
+define('OBS_PERMIT_SECURE',   262144); // Can read secure data
+define('OBS_PERMIT_EDIT',     524288); // Can edit
+define('OBS_PERMIT_ADMIN',   1048576); // Can add/remove
+define('OBS_PERMIT_ALL', OBS_PERMIT_ACCESS | OBS_PERMIT_READ | OBS_PERMIT_SECURE | OBS_PERMIT_EDIT | OBS_PERMIT_ADMIN); // Permit all
 
 // Set QUIET
 define('OBS_QUIET', isset($options['q']));
@@ -153,6 +158,7 @@ if (is_file($config['install_dir'].'/includes/definitions/definitions.dat'))
 
 $definition_files = array('os',           // OS definitions
                           'graphtypes',   // Graph Type definitions
+                          'rrdtypes',     // RRD Type definitions
                           'entities',     // Entity type definitions
                           'rewrites',     // Rewriting array definitions
                           'mibs',         // MIB definitions
@@ -174,8 +180,8 @@ foreach ($definition_files as $file)
     include($file);
   }
 }
-unset($definition_files, $file); // Clean
 
+unset($definition_files, $file); // Clean
 
 // Alert Graphs
 ## FIXME - this is ugly
@@ -197,77 +203,86 @@ $config['alert_graphs']['storage']['storage_perc']  = array('type' => 'storage_u
 // Device Types
 
 $i = (is_array($config['device_types']) ? count($config['device_types']) : 0); // Allow config.php-set device_types to exist
-$config['device_types'][$i]['text'] = 'Servers';
-$config['device_types'][$i]['type'] = 'server';
-$config['device_types'][$i]['icon'] = 'oicon-server';
+
+$config['device_types'][$i]['text']  = 'Servers';           // Rack mounted or tower or remote used servers
+$config['device_types'][$i]['type']  = 'server';
+$config['device_types'][$i]['icon']  = 'oicon-server';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Workstations';
+$config['device_types'][$i]['text'] = 'Workstations';       // PC
 $config['device_types'][$i]['type'] = 'workstation';
 $config['device_types'][$i]['icon'] = 'oicon-computer';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Network';
+$config['device_types'][$i]['text'] = 'Network';            // Switches, routers
 $config['device_types'][$i]['type'] = 'network';
 $config['device_types'][$i]['icon'] = 'oicon-network-hub';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Wireless';
+$config['device_types'][$i]['text'] = 'Wireless';           // Wireless network devices (also see radio type)
 $config['device_types'][$i]['type'] = 'wireless';
 $config['device_types'][$i]['icon'] = 'oicon-wi-fi-zone';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Firewalls';
+$config['device_types'][$i]['text'] = 'Firewalls';          // Firewall specific devices/servers
 $config['device_types'][$i]['type'] = 'firewall';
 $config['device_types'][$i]['icon'] = 'oicon-wall-brick';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Power';
+$config['device_types'][$i]['text'] = 'Security';           // Security appliance, DDoS protection, etc
+$config['device_types'][$i]['type'] = 'security';
+$config['device_types'][$i]['icon'] = 'oicon-shield';
+
+$i++;
+$config['device_types'][$i]['text'] = 'Power';              // UPS, PDU, outlets
 $config['device_types'][$i]['type'] = 'power';
 $config['device_types'][$i]['icon'] = 'oicon-plug';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Environment';
+$config['device_types'][$i]['text'] = 'Environment';        // Environment sensor devices (also conditioners)
 $config['device_types'][$i]['type'] = 'environment';
 $config['device_types'][$i]['icon'] = 'oicon-water';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Load Balancers';
+$config['device_types'][$i]['text'] = 'Load Balancers';     // Load balancer servers
 $config['device_types'][$i]['type'] = 'loadbalancer';
 $config['device_types'][$i]['icon'] = 'oicon-arrow-split';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Video';
-$config['device_types'][$i]['type'] = 'video';
-$config['device_types'][$i]['icon'] = 'oicon-surveillance-camera';
+$config['device_types'][$i]['text'] = 'Communication';      // Video/VoIP/Text communication server
+$config['device_types'][$i]['type'] = 'communication';
+$config['device_types'][$i]['icon'] = 'oicon-mails-stack';
 
 $i++;
-$config['device_types'][$i]['text'] = 'VoIP';
+$config['device_types'][$i]['text'] = 'VoIP';               // VoIP phones
 $config['device_types'][$i]['type'] = 'voip';
 $config['device_types'][$i]['icon'] = 'oicon-telephone';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Storage';
+$config['device_types'][$i]['text'] = 'Video';              // Webcams, video record devices
+$config['device_types'][$i]['type'] = 'video';
+$config['device_types'][$i]['icon'] = 'oicon-surveillance-camera';
+
+$i++;
+$config['device_types'][$i]['text'] = 'Storage';            // NAS
 $config['device_types'][$i]['type'] = 'storage';
 $config['device_types'][$i]['icon'] = 'oicon-database';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Management';
+$config['device_types'][$i]['text'] = 'Management';         // IPMI, IP-KVM and other management (ie serial console)
 $config['device_types'][$i]['type'] = 'management';
 $config['device_types'][$i]['icon'] = 'oicon-service-bell'; // FIXME. I really not know what icon better
 
 $i++;
-$config['device_types'][$i]['text'] = 'Radio';
+$config['device_types'][$i]['text'] = 'Radio';              // Radio transmit devices (not same as wireless!)
 $config['device_types'][$i]['type'] = 'radio';
 $config['device_types'][$i]['icon'] = 'oicon-transmitter';
 
-if (isset($config['enable_printers']) && $config['enable_printers'])
-{
-  $i++;
-  $config['device_types'][$i]['text'] = 'Printers';
-  $config['device_types'][$i]['type'] = 'printer';
-  $config['device_types'][$i]['icon'] = 'oicon-printer-color';
-}
+$i++;
+$config['device_types'][$i]['text'] = 'Printers';           // Printers and print servers
+$config['device_types'][$i]['type'] = 'printer';
+$config['device_types'][$i]['icon'] = 'oicon-printer-color';
+unset($i);
 
 // SLA colours
 
@@ -276,19 +291,22 @@ $config['sla']['loss_value'] = array(0, 2, 4, 6, 8, 10, 15, 20, 25, 40, 50, 100)
 
 // Syslog colour and name translation
 
-$config['syslog']['priorities']['0'] = array('name' => 'emergency',     'color' => '#D94640');
-$config['syslog']['priorities']['1'] = array('name' => 'alert',         'color' => '#D94640');
-$config['syslog']['priorities']['2'] = array('name' => 'critical',      'color' => '#D94640');
-$config['syslog']['priorities']['3'] = array('name' => 'error',         'color' => '#E88126');
-$config['syslog']['priorities']['4'] = array('name' => 'warning',       'color' => '#F2CA3F');
-$config['syslog']['priorities']['5'] = array('name' => 'notification',  'color' => '#107373');
-$config['syslog']['priorities']['6'] = array('name' => 'informational', 'color' => '#499CA6');
-$config['syslog']['priorities']['7'] = array('name' => 'debugging',     'color' => '#5AA637');
+$config['syslog']['priorities']['0'] = array('name' => 'emergency',     'color' => '#D94640', 'label-class' => 'error');
+$config['syslog']['priorities']['1'] = array('name' => 'alert',         'color' => '#D94640', 'label-class' => 'error');
+$config['syslog']['priorities']['2'] = array('name' => 'critical',      'color' => '#D94640', 'label-class' => 'error');
+$config['syslog']['priorities']['3'] = array('name' => 'error',         'color' => '#E88126', 'label-class' => 'error');
+$config['syslog']['priorities']['4'] = array('name' => 'warning',       'color' => '#F2CA3F', 'label-class' => 'warning');
+$config['syslog']['priorities']['5'] = array('name' => 'notification',  'color' => '#107373', 'label-class' => 'suppressed');
+$config['syslog']['priorities']['6'] = array('name' => 'informational', 'color' => '#499CA6', 'label-class' => 'primary');
+$config['syslog']['priorities']['7'] = array('name' => 'debugging',     'color' => '#5AA637', 'label-class' => 'success');
 
 for ($i = 8; $i < 16; $i++)
 {
-  $config['syslog']['priorities'][$i] = array('name' => 'other',        'color' => '#D2D8F9');
+  $config['syslog']['priorities'][$i] = array('name' => 'other',        'color' => '#D2D8F9', 'label-class' => 'disabled');
 }
+
+// Possible transports for net-snmp, used for enumeration in several functions
+$config['snmp']['transports'] = array('udp', 'udp6', 'tcp', 'tcp6');
 
 // 'count' is min total errors count, after which autodisable this MIB/oid pair
 // 'rate' is min total rate (per poll), after which autodisable this MIB/oid pair
@@ -296,35 +314,45 @@ for ($i = 8; $i < 16; $i++)
 $config['snmp']['errorcodes'][0]    = array('reason' => 'OK',
                                             'msg'    => '');
 // Non critical
-$config['snmp']['errorcodes'][1]    = array('reason' => 'Empty output',     // exitcode = 0, but not have any data
-                                            'count'  => 288,                // 288 with rate 1/poll ~ 1 day
+$config['snmp']['errorcodes'][1]    = array('reason' => 'Empty response',           // exitcode = 0, but not have any data
+                                            'count'  => 288,                        // 288 with rate 1/poll ~ 1 day
                                             'rate'   => 0.9,
                                             'msg'    => '');
-$config['snmp']['errorcodes'][2]    = array('reason' => 'Not completed',    // Snmp output return correct data, but stopped by some reason (timeout, network error)
+$config['snmp']['errorcodes'][2]    = array('reason' => 'Request not completed',    // Snmp output return correct data, but stopped by some reason (timeout, network error)
                                             'msg'    => '');
-$config['snmp']['errorcodes'][3]    = array('reason' => 'Too long',         // Not empty output, but exitcode = 1 and runtime > 10
+$config['snmp']['errorcodes'][3]    = array('reason' => 'Too long response',        // Not empty output, but exitcode = 1 and runtime > 10
                                             'msg'    => '');
-$config['snmp']['errorcodes'][900]  = array('reason' => 'isSNMPable',       // Device up/down test, not used for counting
+$config['snmp']['errorcodes'][4]    = array('reason' => 'Too big max-repetition in GETBULK', // Not empty output, but exitcode = 2 and stderr "Reason: (tooBig)"
+                                            'count'  => 2880,                       // 2880 with rate 1/poll ~ 10 day
+                                            'rate'   => 0.9,
                                             'msg'    => '');
-$config['snmp']['errorcodes'][998]  = array('reason' => 'MIB/oid disabled', // MIB or oid disabled
+
+$config['snmp']['errorcodes'][900]  = array('reason' => 'isSNMPable',               // Device up/down test, not used for counting
                                             'msg'    => '');
-$config['snmp']['errorcodes'][999]  = array('reason' => 'Unknown',          // Some unidentified error
-                                            'count'  => 288,                // 288 with rate 1.95/poll ~ 12 hours
+$config['snmp']['errorcodes'][996]  = array('reason' => 'MIB or oid not found',     // MIB module or oid not found in specified dirs
+                                            'msg'    => '');
+$config['snmp']['errorcodes'][997]  = array('reason' => 'Wrong .index in mibs dir', // This is common net-snmp bug, require delete all .index files
+                                            'msg'    => '');
+$config['snmp']['errorcodes'][998]  = array('reason' => 'MIB or oid disabled',      // MIB or oid disabled
+                                            'msg'    => '');
+$config['snmp']['errorcodes'][999]  = array('reason' => 'Unknown',                  // Some unidentified error
+                                            'count'  => 288,                        // 288 with rate 1.95/poll ~ 12 hours
                                             'rate'   => 0.9,
                                             'msg'    => '');
 // Critical, can autodisable
-$config['snmp']['errorcodes'][1000] = array('reason' => 'SNMP error',       // Any critical error in snmp output, which not return useful data
-                                            'count'  => 70,                 // errors in every poll run, disable after ~ 6 hours
+$config['snmp']['errorcodes'][1000] = array('reason' => 'Failed response',          // Any critical error in snmp output, which not return useful data
+                                            'count'  => 70,                         // errors in every poll run, disable after ~ 6 hours
                                             'rate'   => 0.9,
                                             'msg'    => '');
-$config['snmp']['errorcodes'][1001] = array('reason' => 'SNMP auth error',  // Snmp auth errors
-                                            'count'  => 25,                 // errors in every poll run, disable after ~ 1.5 hour
+$config['snmp']['errorcodes'][1001] = array('reason' => 'Authentication failure',   // Snmp auth errors
+                                            'count'  => 25,                         // errors in every poll run, disable after ~ 1.5 hour
                                             'rate'   => 0.9,
                                             'msg'    => '');
-$config['snmp']['errorcodes'][1002] = array('reason' => 'Timeout',          // Cmd exit by timeout
-                                            'count'  => 25,                 // errors in every poll run, disable after ~ 1.5 hour
+$config['snmp']['errorcodes'][1002] = array('reason' => 'Request timeout',          // Cmd exit by timeout
+                                            'count'  => 25,                         // errors in every poll run, disable after ~ 1.5 hour
                                             'rate'   => 0.9,
                                             'msg'    => '');
+
 
 // Routing types
 
@@ -353,7 +381,7 @@ $config['ipmi']['interfaces']['open']    = array('text' => 'Linux OpenIPMI Inter
 $config['toner']['cyan']    = array('cyan');
 $config['toner']['magenta'] = array('magenta');
 $config['toner']['yellow']  = array('yellow', 'giallo', 'gul');
-$config['toner']['black']   = array('black', 'preto', 'nero');
+$config['toner']['black']   = array('black', 'preto', 'nero', 'svart');
 
 // Nicer labels for the SLA types
 $config['sla_type_labels']['echo'] = 'ICMP ping';
@@ -406,7 +434,7 @@ $config['rancid']['os_map']['ironware']   = 'foundry';
 $config['rancid']['os_map']['procurve']   = 'hp';
 $config['rancid']['os_map']['pixos']      = 'cisco';
 $config['rancid']['os_map']['junos']      = 'juniper';
-$config['rancid']['os_map']['nxos'] 	  = 'cisco-nx';
+$config['rancid']['os_map']['nxos']           = 'cisco-nx';
 $config['rancid']['os_map']['opengear']   = 'opengear';
 $config['rancid']['os_map']['routeros']   = 'mikrotik';
 $config['rancid']['os_map']['screenos']   = 'netscreen';
@@ -428,12 +456,12 @@ define('OBS_DB_LINK', 'observium_link'); // Global variable name for DB link ide
 $config['db_extension'] = strtolower($config['db_extension']);
 switch ($config['db_extension'])
 {
-  case 'mysqli':
+  case 'mysql':
     define('OBS_DB_EXTENSION', $config['db_extension']);
     break;
-  case 'mysql':
+  case 'mysqli':
   default:
-    define('OBS_DB_EXTENSION', 'mysql');
+    define('OBS_DB_EXTENSION', 'mysqli');
 }
 require_once($config['install_dir'] . "/includes/db.inc.php");
 
@@ -474,26 +502,37 @@ $config['user_level']     = array(); // Init this array, for do not allow overri
 $config['user_level'][0]  = array('permission' => 0,
                                   'name'       => 'Disabled',
                                   'subtext'    => 'This user disabled',
+                                  'notes'      => 'User complete can\'t login and use any services. Use it to block access for specific users, but not delete from DB.',
                                   'row_class'  => 'disabled',
                                   'icon'       => 'oicon-user--minus');
 $config['user_level'][1]  = array('permission' => OBS_PERMIT_ACCESS,
                                   'name'       => 'Normal User',
                                   'subtext'    => 'This user has read access to individual entities',
-                                  'row_class'  => '',
+                                  'notes'      => 'User can\'t see or edit anything by default. Can only see devices and entities specifically permitted.',
+                                  'row_class'  => 'default',
                                   'icon'       => 'oicon-user--plus');
 $config['user_level'][5]  = array('permission' => OBS_PERMIT_ACCESS | OBS_PERMIT_READ,
                                   'name'       => 'Global Read',
                                   'subtext'    => 'This user has global read access',
+                                  'notes'      => 'User can see all devices and entities with some security and configuration data masked, such as passwords.',
                                   'row_class'  => 'suppressed',
                                   'icon'       => 'oicon-user-business');
 $config['user_level'][7]  = array('permission' => OBS_PERMIT_ACCESS | OBS_PERMIT_READ | OBS_PERMIT_SECURE,
-                                  'name'       => 'Secure Global Read',
+                                  'name'       => 'Global Secure Read',
                                   'subtext'    => 'This user has global read access with secured info',
-                                  'row_class'  => 'recovery',
+                                  'notes'      => 'User can see all devices and entities without any information being masked, including device configuration (supplied by e.g. RANCID).',
+                                  'row_class'  => 'warning',
+                                  'icon'       => 'oicon-user-business');
+$config['user_level'][8]  = array('permission' => OBS_PERMIT_ACCESS | OBS_PERMIT_READ | OBS_PERMIT_SECURE | OBS_PERMIT_EDIT,
+                                  'name'       => 'Global Secure Read / Limited Write',
+                                  'subtext'    => 'This user has secure global read access with scheduled maintenence read/write.',
+                                  'notes'      => 'User can see all devices and entities without any information being masked, including device configuration (supplied by e.g. RANCID). User can also add, edit and remove scheduled maintenance, group, contacts.',
+                                  'row_class'  => 'warning',
                                   'icon'       => 'oicon-user-business');
 $config['user_level'][10] = array('permission' => OBS_PERMIT_ALL,
                                   'name'       => 'Administrator',
                                   'subtext'    => 'This user has full administrative access',
+                                  'notes'      => 'User can see and edit all devices and entities. This includes adding and removing devices, bills and users.',
                                   'row_class'  => 'success',
                                   'icon'       => 'oicon-user-detective');
 
@@ -522,27 +561,31 @@ $config['time']['sixmonth']   = $config['time']['now'] - 16070400; //time() - (6
 $config['time']['year']       = $config['time']['now'] - 31536000; //time() - (365 * 24 * 60 * 60);
 $config['time']['twoyear']    = $config['time']['now'] - 63072000; //time() - (2 * 365 * 24 * 60 * 60);
 
+$config['printersupplies']['types'] = array(
+  'toner', 'tonerCartridge', 'wasteToner', 'ink', 'inkCartridge', 'wasteInk',
+  'opc', 'transferUnit', 'cleanerUnit', 'fuser', 'developer', 'other'
+);
+
 // Tables to clean up when deleting a device.
 // FIXME. Need simple way for fetch list tables with column 'device_id', like 'SHOW TABLES'
 $config['device_tables'] = array(
-  'accesspoints', 'alert_log', 'alert_table', 'applications', 'bgpPeers', 'bgpPeers_cbgp',
+  'accesspoints', 'alert_log', 'alert_table', 'syslog_alerts', 'applications', 'bgpPeers', 'bgpPeers_cbgp',
   'cef_prefix', 'cef_switching', 'devices_mibs', 'devices_locations', 'devices_perftimes',
   'device_graphs', 'eigrp_ports', 'entPhysical', 'eventlog', 'hrDevice', 'ipsec_tunnels',
   'loadbalancer_rservers', 'loadbalancer_vservers', 'mempools', 'munin_plugins', 'netscaler_services',
   'netscaler_services_vservers', 'netscaler_vservers', 'ospf_areas', 'ospf_instances',
   'ospf_nbrs', 'ospf_ports', 'packages', 'ports', 'ports_stack', 'ports_vlans', 'processors',
-  'pseudowires', 'sensors', 'status', 'services', 'slas', 'storage', 'syslog', 'toner',
+  'pseudowires', 'sensors', 'status', 'services', 'slas', 'storage', 'syslog', 'printersupplies',
   'ucd_diskio', 'vlans', 'vlans_fdb', 'vminfo', 'vrfs', 'wifi_accesspoints', 'wifi_sessions',
-  'group_table', 'p2p_radios', 'oids_assoc', 'lb_virtuals',
+  'group_table', 'p2p_radios', 'oids_assoc', 'lb_virtuals', 'observium_processes',
   'devices' // always leave the table devices as last
 );
-
 
 // Generate proper device types
 
 // $config['device_types'][$i]['type'] = 'management';
 
-foreach ($config['device_types'] AS $device_order => $device_type)
+foreach ($config['device_types'] as $device_order => $device_type)
 {
   $config['devicetypes'][$device_type['type']] = $device_type;
   $config['devicetypes'][$device_type['type']]['order'] = $device_order;
@@ -570,9 +613,12 @@ $config['obsolete_config'][] = array('old' => 'email_smtp_password', 'new' => 'e
 $config['obsolete_config'][] = array('old' => 'discovery_modules->cisco-pw', 'new' => 'discovery_modules->pseudowires', 'info' => 'changed since r6205');
 $config['obsolete_config'][] = array('old' => 'discovery_modules->discovery-protocols', 'new' => 'discovery_modules->neighbours', 'info' => 'changed since r6744');
 $config['obsolete_config'][] = array('old' => 'search_modules',      'new' => 'wui->search_modules', 'info' => 'changed since r7463');
+$config['obsolete_config'][] = array('old' => 'discovery_modules->ipv4-addresses', 'new' => 'discovery_modules->ip-addresses', 'info' => 'changed since r7565');
+$config['obsolete_config'][] = array('old' => 'discovery_modules->ipv6-addresses', 'new' => 'discovery_modules->ip-addresses', 'info' => 'changed since r7565');
+$config['obsolete_config'][] = array('old' => 'location_map',        'new' => 'location->map',       'info' => 'changed since r8021');
 
 // Here whitelist of base definitions keys which can be overridden by config.php file
 // Note, this required only for override already exist definitions, for additions not required
-$config['definitions_whitelist'] = array('os', 'rancid', 'geo_api', 'search_modules', 'rewrites', 'nicecase', 'wui');
+$config['definitions_whitelist'] = array('os', 'mibs', 'device_types', 'rancid', 'remote_api', 'geo_api', 'search_modules', 'rewrites', 'nicecase', 'wui');
 
 // End of includes/definitions.inc.php

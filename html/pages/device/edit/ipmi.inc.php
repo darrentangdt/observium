@@ -53,6 +53,11 @@ if ($vars['editing'])
   }
 }
 
+if (!file_exists($config['ipmitool']))
+{
+  print_warning("The ipmitool binary was not found at the configured path (" . $config['ipmitool'] . "). IPMI polling will not work.");
+}
+
 $ipmi_userlevels = array();
 foreach ($config['ipmi']['userlevels'] as $type => $descr)
 {
@@ -64,65 +69,65 @@ foreach ($config['ipmi']['interfaces'] as $type => $descr)
   $ipmi_interfaces[$type] = array('name' => $descr['text']);
 }
 
-      $form = array('type'      => 'horizontal',
-                    'id'        => 'edit',
-                    //'space'     => '20px',
-                    'title'     => 'IPMI Settings',
-                    //'icon'      => 'oicon-gear',
-                    //'class'     => 'box box-solid',
-                    'fieldset'  => array('edit' => ''),
-                    );
+$form = array('type'      => 'horizontal',
+              'id'        => 'edit',
+              //'space'     => '20px',
+              'title'     => 'IPMI Settings',
+              //'icon'      => 'oicon-gear',
+              //'class'     => 'box box-solid',
+              'fieldset'  => array('edit' => ''),
+              );
 
-      $form['row'][0]['editing']   = array(
-                                      'type'        => 'hidden',
-                                      'value'       => 'yes');
-      $form['row'][1]['ipmi_hostname'] = array(
-                                      'type'        => 'text',
-                                      'name'        => 'IPMI Hostname',
-                                      'width'       => '250px',
-                                      'readonly'    => $readonly,
-                                      'value'       => escape_html(get_dev_attrib($device, 'ipmi_hostname')));
-      $form['row'][2]['ipmi_port'] = array(
-                                      'type'        => 'text',
-                                      'name'        => 'IPMI Port',
-                                      'width'       => '250px',
-                                      'readonly'    => $readonly,
-                                      'value'       => escape_html(get_dev_attrib($device, 'ipmi_port')));
-      $form['row'][3]['ipmi_username'] = array(
-                                      'type'        => 'text',
-                                      'name'        => 'IPMI Username',
-                                      'width'       => '250px',
-                                      'readonly'    => $readonly,
-                                      'value'       => escape_html(get_dev_attrib($device, 'ipmi_username')));
-      $form['row'][4]['ipmi_password'] = array(
-                                      'type'        => 'password',
-                                      'name'        => 'IPMI Password',
-                                      'width'       => '250px',
-                                      'readonly'    => $readonly,
-                                      'show_password' => !$readonly,
-                                      'value'       => escape_html(get_dev_attrib($device, 'ipmi_password')));
-      $form['row'][5]['ipmi_userlevel'] = array(
-                                      'type'        => 'select',
-                                      'name'        => 'IPMI Userlevel',
-                                      'width'       => '250px',
-                                      'readonly'    => $readonly,
-                                      'values'      => $ipmi_userlevels,                                      
-                                      'value'       => escape_html(get_dev_attrib($device, 'ipmi_userlevel')));
-      $form['row'][6]['ipmi_interface'] = array(
-                                      'type'        => 'select',
-                                      'name'        => 'IPMI Interface',
-                                      'width'       => '250px',
-                                      'readonly'    => $readonly,
-                                      'values'      => $ipmi_interfaces,                                
-                                      'value'       => escape_html(get_dev_attrib($device, 'ipmi_interface')));
-      $form['row'][7]['submit']    = array(
-                                      'type'        => 'submit',
-                                      'name'        => 'Save Changes',
-                                      'icon'        => 'icon-ok icon-white',
-                                      'class'       => 'btn-primary',
-                                      'readonly'    => $readonly,
-                                      'value'       => 'save');
-      print_form($form);
-      unset($form);
+$form['row'][0]['editing'] = array(
+                                'type'        => 'hidden',
+                                'value'       => 'yes');
+$form['row'][1]['ipmi_hostname'] = array(
+                                'type'        => 'text',
+                                'name'        => 'IPMI Hostname',
+                                'width'       => '250px',
+                                'readonly'    => $readonly,
+                                'value'       => escape_html(get_dev_attrib($device, 'ipmi_hostname')));
+$form['row'][2]['ipmi_port'] = array(
+                                'type'        => 'text',
+                                'name'        => 'IPMI Port',
+                                'width'       => '250px',
+                                'readonly'    => $readonly,
+                                'value'       => escape_html(get_dev_attrib($device, 'ipmi_port')));
+$form['row'][3]['ipmi_username'] = array(
+                                'type'        => 'text',
+                                'name'        => 'IPMI Username',
+                                'width'       => '250px',
+                                'readonly'    => $readonly,
+                                'value'       => escape_html(get_dev_attrib($device, 'ipmi_username')));
+$form['row'][4]['ipmi_password'] = array(
+                                'type'        => 'password',
+                                'name'        => 'IPMI Password',
+                                'width'       => '250px',
+                                'readonly'    => $readonly,
+                                'show_password' => !$readonly,
+                                'value'       => escape_html(get_dev_attrib($device, 'ipmi_password')));
+$form['row'][5]['ipmi_userlevel'] = array(
+                                'type'        => 'select',
+                                'name'        => 'IPMI Userlevel',
+                                'width'       => '250px',
+                                'readonly'    => $readonly,
+                                'values'      => $ipmi_userlevels,                                      
+                                'value'       => escape_html(get_dev_attrib($device, 'ipmi_userlevel')));
+$form['row'][6]['ipmi_interface'] = array(
+                                'type'        => 'select',
+                                'name'        => 'IPMI Interface',
+                                'width'       => '250px',
+                                'readonly'    => $readonly,
+                                'values'      => $ipmi_interfaces,                                
+                                'value'       => escape_html(get_dev_attrib($device, 'ipmi_interface')));
+$form['row'][7]['submit'] = array(
+                                'type'        => 'submit',
+                                'name'        => 'Save Changes',
+                                'icon'        => 'icon-ok icon-white',
+                                'class'       => 'btn-primary',
+                                'readonly'    => $readonly,
+                                'value'       => 'save');
+print_form($form);
+unset($form);
 
 // EOF

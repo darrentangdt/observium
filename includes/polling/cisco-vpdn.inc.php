@@ -20,27 +20,28 @@
 #CISCO-VPDN-MGMT-MIB::cvpdnSystemClearSessions.0 = INTEGER: none(1)
 
 // FIXME. Candidate for migrate to graphs module with table_collect()
+// ^ will need to be able to set $graphs[], not sure this is possible yet?
 if (is_device_mib($device, 'CISCO-VPDN-MGMT-MIB'))
 {
-  $data = snmpwalk_cache_oid($device, "cvpdnSystemEntry", NULL, "CISCO-VPDN-MGMT-MIB", mib_dirs('cisco'));
+  $data = snmpwalk_cache_oid($device, "cvpdnSystemEntry", NULL, "CISCO-VPDN-MGMT-MIB");
 
   foreach ($data as $type => $vpdn)
   {
-    $rrd_filename = "vpdn-".$type.".rrd";
-
-    if (is_file($rrd_filename) || $vpdn['cvpdnSystemTunnelTotal'] || $vpdn['cvpdnSystemSessionTotal'])
+    if ($vpdn['cvpdnSystemTunnelTotal'] || $vpdn['cvpdnSystemSessionTotal'])
     {
-      rrdtool_create($device, $rrd_filename, " DS:tunnels:GAUGE:600:0:U DS:sessions:GAUGE:600:0:U DS:denied:COUNTER:600:0:100000" );
-
-      rrdtool_update($device, $rrd_filename, array($vpdn['cvpdnSystemTunnelTotal'], $vpdn['cvpdnSystemSessionTotal'], $vpdn['cvpdnSystemDeniedUsersTotal']));
-
+      rrdtool_update_ng($device, 'cisco-vpdn', array(
+        'tunnels'  => $vpdn['cvpdnSystemTunnelTotal'],
+        'sessions' => $vpdn['cvpdnSystemSessionTotal'],
+        'denied'   => $vpdn['cvpdnSystemDeniedUsersTotal'],
+      ), $type);
+                  
       $graphs['vpdn_sessions_'.$type]   = TRUE;
       $graphs['vpdn_tunnels_'.$type]   = TRUE;
 
       echo(" Cisco VPDN ($type) ");
     }
   }
-  unset($data, $vpdn, $type, $rrd_filename);
+  unset($data, $vpdn, $type);
 }
 
 // EOF

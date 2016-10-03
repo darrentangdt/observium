@@ -108,12 +108,13 @@ if ($templates_export)
                                     'type'        => 'text',
                                     'name'        => 'Filename',
                                     'value'       => $templates_filename . '.xml',
-                                    //'div_class'   => 'col-md-6',
+                                    'grid_xs'     => 8,
                                     'width'       => '100%',
                                     'placeholder' => TRUE);
     // Save as human formatted XML
     $form['row'][0]['formatted'] = array(
                                     'type'        => 'select',
+                                    'grid_xs'     => 4,
                                     'value'       => (class_exists('DOMDocument') ? 'yes' : 'no'),
                                     'values'      => array('yes' => 'Formatted',
                                                            'no'  => 'Unformatted'));
@@ -241,9 +242,9 @@ foreach ($alert_check as $check)
 
   // Print the count of entities this alert applies to and a popup containing a list and Print breakdown of entities by status.
   // We assume each row here is going to be two lines, so we just <br /> them.
-  echo '<td>';
+  echo '<td style="text-align: right;">';
   #echo overlib_link('#', count($entities), $entities_content,  NULL));
-  echo '<b>', $check['num_entities'], '</b>';
+  echo '<span class="label">', $check['num_entities'], '</span>';
   echo '<br />';
   echo $check['status_numbers'];
   echo '</td>';

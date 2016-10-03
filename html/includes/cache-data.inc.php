@@ -12,7 +12,7 @@
  */
 
 // Time our cache filling.
-$cache_start = microtime(true);
+$cache_start = utime();
 
 // Devices
 $devices = array('count'    => 0,
@@ -31,16 +31,10 @@ $cache['devices'] = array('id'        => array(),
 // This means device_by_id_cache actually never has to do any queries by itself, it'll always get the
 // cached version when running from the web interface. From the commandline obviously we'll need to fetch
 // the data per-device. We pre-fetch the graphs list as well, much faster than a query per device obviously.
-if (get_db_version() >= 186)
-{
-  // FIXME. remove check db_version in r7000
-  $graphs_array = dbFetchRows("SELECT * FROM `device_graphs` FORCE INDEX (`graph`) ORDER BY `graph`;");
-} else {
-  $graphs_array = dbFetchRows("SELECT * FROM `device_graphs` ORDER BY `graph`;");
-}
+$graphs_array = dbFetchRows("SELECT * FROM `device_graphs` FORCE INDEX (`graph`) ORDER BY `graph`;");
+
 foreach ($graphs_array as $graph)
 {
-
   // Cache this per device_id so we can assign it to the correct (cached) device in the for loop below
   if ($graph['enabled'])
   {
@@ -52,9 +46,8 @@ $cache['graphs'] = array(); // All permitted graphs
 // Cache scheduled maintenance currently active
 $cache['maint'] = cache_alert_maintenance();
 
-if ($GLOBALS['config']['geocoding']['enable'] && get_db_version() >= 169)
+if ($GLOBALS['config']['geocoding']['enable'])
 {
-  // FIXME. remove check db_version in r7000
   $devices_array = dbFetchRows("SELECT * FROM `devices` LEFT JOIN `devices_locations` USING (`device_id`) ORDER BY `hostname`;");
 } else {
   $devices_array = dbFetchRows("SELECT * FROM `devices` ORDER BY `hostname`;");
@@ -283,20 +276,25 @@ $where_devices_ignored = '';
 if (isset($cache['devices']['ignored']) && count($cache['devices']['ignored']) > 0)
 {
   $cache['ports']['device_ignored'] = dbFetchColumn("SELECT `port_id` FROM `ports` WHERE 1 " . $where_permitted . $where_hide . generate_query_values($cache['devices']['ignored'], 'device_id'));
-  $where_devices_ignored  = " OR `device_id` IN (".implode(',', $cache['devices']['ignored']).")";
+  $where_hide  .= generate_query_values($cache['devices']['ignored'], 'device_id', '!=');
+  $where_devices_ignored = generate_query_values($cache['devices']['ignored'], 'device_id');
 }
 
 // Ports poll disabled
 $cache['ports']['poll_disabled'] = dbFetchColumn("SELECT `port_id` FROM `ports` WHERE 1 " . $where_permitted . $where_hide . " AND `disabled` = '1'");
 
 // Ports ignored
-$cache['ports']['ignored'] = dbFetchColumn("SELECT `port_id` FROM `ports` WHERE 1 " . $where_permitted . $where_hide . " AND (`ignore` = '1'" . $where_devices_ignored . ")");
+$cache['ports']['ignored'] = dbFetchColumn("SELECT `port_id` FROM `ports` WHERE 1 " . $where_permitted . $where_hide . " AND (`ignore` = '1')");
 $ports['ignored']          = count($cache['ports']['ignored']);
+
+// r("SELECT `port_id` FROM `ports` WHERE 1 " . $where_permitted . $where_hide . " AND (`ignore` = '1'" . $where_devices_ignored . ")");
+//r($cache['ports']['ignored']);
 
 $where_hide      .= " AND `ignore` = 0";
 
 // Ports errored
-$cache['ports']['errored'] = dbFetchColumn("SELECT `port_id` FROM `ports` LEFT JOIN `ports-state` USING(`port_id`) WHERE 1 " . $where_permitted . $where_hide . " AND `ifAdminStatus` = 'up' AND (`ifOperStatus` = 'up' OR `ifOperStatus` = 'testing') AND (`ifOutErrors_delta` > 0 OR `ifInErrors_delta` > 0)");
+$cache['ports']['errored'] = dbFetchColumn("SELECT `port_id` FROM `ports` WHERE 1 " . $where_permitted . $where_hide . " AND `ifAdminStatus` = 'up' AND (`ifOperStatus` = 'up' OR `ifOperStatus` = 'testing') AND (`ifOutErrors_delta` > 0 OR `ifInErrors_delta` > 0)");
+//$cache['ports']['errored'] = dbFetchColumn("SELECT `port_id` FROM `ports` LEFT JOIN `ports-state` USING(`port_id`) WHERE 1 " . $where_permitted . $where_hide . " AND `ifAdminStatus` = 'up' AND (`ifOperStatus` = 'up' OR `ifOperStatus` = 'testing') AND (`ifOutErrors_delta` > 0 OR `ifInErrors_delta` > 0)");
 $ports['errored']          = count($cache['ports']['errored']);
 
 // Ports counts
@@ -421,10 +419,50 @@ foreach ($status_array as $status)
   }
 }
 
+// Alerts
+
+  $query = 'SELECT `alert_status` FROM `alert_table`';
+  $query .= ' WHERE 1' . generate_query_permitted(array('alert'));
+
+  $alert_entries = dbFetchRows($query);
+  $cache['alert_entries'] = array('count'    => count($alert_entries),
+                                  'up'       => 0,
+                                  'down'     => 0,
+                                  'unknown'  => 0,
+                                  'delay'    => 0,
+                                  'suppress' => 0);
+
+  foreach ($alert_entries as $alert_table_id => $alert_entry)
+  {
+    switch ($alert_entry['alert_status'])
+    {
+      case '0':
+        ++$cache['alert_entries']['down'];
+        break;
+      case '1':
+        ++$cache['alert_entries']['up'];
+        break;
+      case '2':
+        ++$cache['alert_entries']['delay'];
+        break;
+      case '3':
+        ++$cache['alert_entries']['suppress'];
+        break;
+      case '-1': // FIXME, what mean status '-1'?
+      default:
+        ++$cache['alert_entries']['unknown'];
+    }
+  }
+
+
 // Routing
 // BGP
 if (isset($config['enable_bgp']) && $config['enable_bgp'])
 {
+  // Init variables to 0
+  $routing['bgp']['internal'] = 0; $routing['bgp']['external'] = 0; $routing['bgp']['count'] = 0;
+  $routing['bgp']['up'] = 0; $routing['bgp']['down'] = 0;
+
   $routing['bgp']['last_seen'] = $config['time']['now'];
   foreach (dbFetchRows('SELECT `device_id`,`bgpPeer_id`,`bgpPeerState`,`bgpPeerAdminStatus`,`bgpPeerRemoteAs` FROM `bgpPeers`;') as $bgp)
   {
@@ -491,8 +529,9 @@ if (isset($config['enable_ospf']) && $config['enable_ospf'])
 // Common permission sql query
 //r(range_to_list($cache['devices']['permitted']));
 //unset($cache['devices']['permitted']);
-$cache['where']['devices_permitted'] = generate_query_permitted(array('device'));
-$cache['where']['ports_permitted']   = generate_query_permitted(array('port'));
+//$cache['where']['devices_ports_permitted'] = generate_query_permitted(array('device', 'port'));
+$cache['where']['devices_permitted']       = generate_query_permitted(array('device'));
+$cache['where']['ports_permitted']         = generate_query_permitted(array('port'));
 
 // CEF
 $routing['cef']['count'] = count(dbFetchColumn("SELECT `cef_switching_id` FROM `cef_switching` WHERE 1 ".$cache['where']['devices_permitted']." GROUP BY `device_id`, `afi`;"));
@@ -525,17 +564,17 @@ if ($config['poller_modules']['wifi'] || $config['discovery_modules']['wifi'])
 {
   $cache['wifi_sessions']['count'] = dbFetchCell("SELECT COUNT(*) FROM `wifi_sessions` WHERE 1 ".$cache['where']['devices_permitted']);
 }
-if ($config['poller_modules']['toner'] || $config['discovery_modules']['toner'])
+if ($config['poller_modules']['printersupplies'] || $config['discovery_modules']['printersupplies'])
 {
-  $cache['toner']['count'] = dbFetchCell("SELECT COUNT(*) FROM `toner` WHERE 1 ".$cache['where']['devices_permitted']);
+  $cache['printersupplies']['count'] = dbFetchCell("SELECT COUNT(*) FROM `printersupplies` WHERE 1 ".$cache['where']['devices_permitted']);
 }
 
 $cache['neighbours']['count'] = dbFetchCell("SELECT COUNT(*) FROM `neighbours` WHERE `active` = 1 "  . $cache['where']['ports_permitted']);
 $cache['sla']['count']        = dbFetchCell("SELECT COUNT(*) FROM `slas` WHERE `deleted` = 0 "       . $cache['where']['devices_permitted']);
 $cache['p2pradios']['count']  = dbFetchCell("SELECT COUNT(*) FROM `p2p_radios` WHERE `deleted` = 0 " . $cache['where']['devices_permitted']);
+$cache['vm']['count']         = dbFetchCell("SELECT COUNT(*) FROM `vminfo` WHERE 1 "                 . $cache['where']['devices_permitted']);
 
-$cache_end  = microtime(true);
-$cache_time = number_format($cache_end - $cache_start, 3);
+$cache_time = utime() - $cache_start;
 
 // Clean arrays (from DB queries)
 unset($devices_array, $ports_array, $sensors_array, $status_array, $graphs_array, $device_graphs);

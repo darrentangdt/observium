@@ -21,7 +21,7 @@ include($config['html_dir'] . "/includes/authenticate.inc.php");
 
 if (!$_SESSION['authenticated']) { echo('<li class="nav-header">Session expired, please log in again!</li>'); exit; }
 
-$vars = get_vars();
+$vars = get_vars('GET');
 
 if (strlen($vars['field']) && $vars['cache'] != 'no' && isset($_SESSION['cache']['options_' . $vars['field']]))
 {
@@ -31,6 +31,7 @@ if (strlen($vars['field']) && $vars['cache'] != 'no' && isset($_SESSION['cache']
 } else {
   $query  = '';
   $params = array();
+  //print_vars($vars);
   switch ($vars['field'])
   {
     case 'ipv4_network':
@@ -38,7 +39,14 @@ if (strlen($vars['field']) && $vars['cache'] != 'no' && isset($_SESSION['cache']
       list($ip_version)  = explode('_', $vars['field']);
       $query_permitted   = generate_query_permitted('ports');
       $network_permitted = dbFetchColumn('SELECT DISTINCT(`' . $ip_version . '_network_id`) FROM `' . $ip_version . '_addresses` WHERE 1' . $query_permitted);
-      $query = 'SELECT `' . $ip_version . '_network` FROM `' . $ip_version . '_networks` WHERE 1 ' . generate_query_values($network_permitted, $ip_version . '_network_id') . ' ORDER BY `' . $ip_version . '_network`;';
+      $query = 'SELECT `' . $ip_version . '_network` FROM `' . $ip_version . '_networks` WHERE 1 ' . generate_query_values($network_permitted, $ip_version . '_network_id');
+      if (strlen($vars['query']))
+      {
+        $query .= ' AND `' . $ip_version . '_network` LIKE ?';
+        $params[] = '%' . $vars['query'] . '%';
+      }
+      $query .= ' ORDER BY `' . $ip_version . '_network`;';
+      //print_vars($query);
       break;
     case 'ifspeed':
       $query_permitted   = generate_query_permitted('ports');

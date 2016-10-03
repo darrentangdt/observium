@@ -18,14 +18,15 @@ if ($_SESSION['userlevel'] < 10)
   return;
 }
 
-$page_title[] = "Delete devices";
+register_html_title("Delete devices");
 
 if (is_numeric($vars['id']))
 {
   $device = device_by_id_cache($vars['id']);
-  if ($device && $vars['confirm'])
+  $confirm = array('confirm', 'yes', 'on', '1');
+  if ($device && in_array($vars['confirm'], $confirm))
   {
-    $delete_rrd = ($vars['deleterrd'] == 'confirm') ? TRUE : FALSE;
+    $delete_rrd = in_array($vars['deleterrd'], $confirm);
     print_message(delete_device($vars['id'], $delete_rrd), 'console');
     //echo('<div class="btn-group ">
     //        <button type="button" class="btn btn-default"><a href="/"><i class="oicon-globe-model"></i> Overview</a></button>

@@ -129,12 +129,12 @@ DellStatus                  ::= INTEGER {
 -------------------------------------------------------------------------------
 
 DellRemoteAccessType                    ::= INTEGER {
-    remoteAccessTypeIsOther(1),          -- the type is not one of the following:
-    remoteAccessTypeIsUnknown(2),        -- remote access type is unknown
-    remoteAccessTypeIsDRACIII(3),        -- remote access type is DRAC III
+    remoteAccessTypeIsOther(1),         -- the type is not one of the following:
+    remoteAccessTypeIsUnknown(2),       -- remote access type is unknown
+    remoteAccessTypeIsDRACIII(3),       -- remote access type is DRAC III
     remoteAccessTypeIsERA(4),            -- remote access type is ERA
     remoteAccessTypeIsDRAC4(5),          -- remote access type is DRAC4
-    remoteAccessTypeIsDRAC5(6)           -- remote access type is DRAC5
+    remoteAccessTypeIsDRAC5(6)          -- remote access type is DRAC5
 }
 DellRemoteAccessControlCapabilities     ::= INTEGER {
     -- If set to 0 (zero) the object has no capabilities

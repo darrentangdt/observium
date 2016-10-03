@@ -13,6 +13,6 @@
  */
 
 $hardware = $poll_device['sysDescr'];
-$serial   = snmp_get($device, 'cpqSiSysSerialNum.0', '-OQv', 'CPQSINFO-MIB', mib_dirs('hp'));
+$serial   = snmp_get($device, 'cpqSiSysSerialNum.0', '-OQv', 'CPQSINFO-MIB');
 
 // EOF

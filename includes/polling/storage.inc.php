@@ -22,10 +22,7 @@ $sql .= " WHERE `device_id` = ?";
 
 foreach (dbFetchRows($sql, array($device['device_id'])) as $storage)
 {
-  $storage_rrd  = "storage-" . $storage['storage_mib'] . "-" . $storage['storage_descr'] . ".rrd";
   $storage_size = $storage['storage_size']; // Memo old size
-
-  rrdtool_create($device, $storage_rrd, " DS:used:GAUGE:600:0:U DS:free:GAUGE:600:0:U ");
 
   $file = $config['install_dir']."/includes/polling/storage/".$storage['storage_mib'].".inc.php";
   if (is_file($file))
@@ -46,8 +43,6 @@ foreach (dbFetchRows($sql, array($device['device_id'])) as $storage)
 
   $hc = ($storage['storage_hc'] ? ' (HC)' : '');
 
-  // print_message("Storage ". $storage['storage_descr'] . ': '.$percent.'%%'.$hc);
-
   // Update StatsD/Carbon
   if ($config['statsd']['enable'] == TRUE)
   {
@@ -56,7 +51,7 @@ foreach (dbFetchRows($sql, array($device['device_id'])) as $storage)
   }
 
   // Update RRD
-  rrdtool_update($device, $storage_rrd, "N:".$storage['used'].":".$storage['free']);
+  rrdtool_update_ng($device, 'storage', array('used' => $storage['used'], 'free' => $storage['free']), $storage['storage_mib'] . "-" . $storage['storage_descr']);
 
   if (!is_numeric($storage['storage_polled']))
   {

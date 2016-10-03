@@ -17,6 +17,9 @@ if ($_SESSION['userlevel'] < 10)
   return;
 }
 
+  register_html_resource('js', 'clipboard.min.js');
+  register_html_resource('script', 'new Clipboard("#clipboard");');
+
   // Load SQL config into $database_config
   load_sqlconfig($database_config);
 
@@ -42,19 +45,13 @@ if ($_SESSION['userlevel'] < 10)
       if ($vars['section'] == 'all')
       {
         // When printing all, also print the section name
-        echo('  <div class="box box-solid"><div class="box-header"><h3 class="box-title">' . $config_sections[$section]['text'] . '</h3></div></div>' . PHP_EOL);
+        echo generate_box_open(array('title' => $config_sections[$section]['text'], 'header-border' => TRUE));
+        echo generate_box_close();
       }
 
       foreach ($subdata as $subsection => $vardata)
       {
-        echo '<div class="box box-solid">';
-
-        // Print subsection name
-        echo('<div class="box-header with-border">' . PHP_EOL);
-        echo('  <h3 class="box-title">' . $subsection . '</h3>' . PHP_EOL);
-        echo('</div>' . PHP_EOL);
-
-        echo('<div class="box-content no-padding">' . PHP_EOL);
+        echo generate_box_open(array('title' => $subsection, 'header-border' => TRUE));
         echo('  <table class="table table-striped table-condensed" style="">' . PHP_EOL);
 
         $cols = array(
@@ -101,24 +98,25 @@ if ($_SESSION['userlevel'] < 10)
           }
 
           $htmlname = str_replace('|','__',$varname); // JQuery et al don't like the pipes a lot, replace once here in temporary variable
+          $confname = '$config[\'' . implode("']['",explode('|',$varname)) . '\']';
 
-          echo('  <tr class="' . $linetype . '">' . PHP_EOL);
+          echo('  <tr class="' . $linetype . ' vertical-align">' . PHP_EOL);
           echo('    <td class="state-marker"></td>');
           echo('    <td style="width: 5px;"></td>');
           echo('    <td><strong style="color: #0a5f7f;">' . $variable['name'] . '</strong>');
           echo('<br /><i><small>' . escape_html($variable['shortdesc']) . '</small></i>' . PHP_EOL);
           echo('      </td>' . PHP_EOL);
-          echo('      <td style="vertical-align:middle;        white-space: nowrap;">' . PHP_EOL);
+          echo('      <td class="text-nowrap">' . PHP_EOL);
           echo('<div class="pull-right">');
           if ($locked)
           {
             echo(generate_tooltip_link(NULL, '<i class="oicon-lock-warning"></i>', 'This setting is locked because it has been set in your <strong>config.php</strong> file.'));
             echo '&nbsp;';
           }
-          echo(generate_tooltip_link(NULL, '<i class="oicon-question"></i>', 'Variable name to use in <strong>config.php</strong>: $config[\'' . implode("']['",explode('|',$varname)) . '\']'));
+          echo(generate_tooltip_link(NULL, '<i id="clipboard" class="oicon-question" data-clipboard-text="'.$confname.'"></i>', 'Variable name to use in <strong>config.php</strong>: ' . $confname));
           echo('      </div>' . PHP_EOL);
           echo('      </td>'. PHP_EOL);
-          echo('      <td style="vertical-align:middle">' . PHP_EOL);
+          echo('      <td>' . PHP_EOL);
 
           // Split enum|foo|bar into enum  foo|bar
           list($vartype, $varparams) = explode('|', $variable['type'], 2);
@@ -158,6 +156,7 @@ if ($_SESSION['userlevel'] < 10)
           switch ($vartype)
           {
             case 'bool':
+            case 'boolean':
               echo('      <div>' . PHP_EOL);
               $item = array('id'       => $htmlname,
                             'size'     => 'small',
@@ -216,8 +215,18 @@ if ($_SESSION['userlevel'] < 10)
                 }
               }
               break;
-            case 'array':
-             // FIXME ...
+            case 'enum-freeinput':
+              $item = array('id'       => $htmlname,
+                            'type'     => 'tags',
+                            //'title'    => 'Any',
+                            'width'    => '150px',
+                            'readonly' => $readonly,
+                            'disabled' => (bool)$locked,
+                            'onchange' => 'switchDesc(\'' . $htmlname . '\')',
+                            'placeholder' => $variable['example'] ? 'Example: ' .$variable['example'] : FALSE,
+                            'values'   => $params,
+                            'value'    => $content);
+              echo(generate_form_element($item));
               break;
             case 'password':
             case 'string':
@@ -228,12 +237,14 @@ if ($_SESSION['userlevel'] < 10)
                             'type'     => 'text',
                             'readonly' => $readonly,
                             'disabled' => (bool)$locked,
-                            'placeholder' => escape_html($content),
+                            'placeholder' => TRUE,
                             'value'    => escape_html($content));
               if ($vartype == 'password')
               {
                 $item['type'] = 'password';
                 $item['show_password'] = 1;
+              } else {
+                $item['placeholder'] = $variable['example'] ? 'Example: ' .$variable['example'] : escape_html($content);
               }
               echo(generate_form_element($item));
               //echo('         <input name="' . $htmlname . '" style="width: 500px" type="text" ' . ($locked ? 'disabled="1" ' : '') . 'value="' . escape_html($content) . '" />' . PHP_EOL);
@@ -243,7 +254,7 @@ if ($_SESSION['userlevel'] < 10)
           echo('        <input type="hidden" name="varset_' . $htmlname . '" />' . PHP_EOL);
           echo('      </div>' . PHP_EOL);
           echo('    </td>' . PHP_EOL);
-          echo('    <td style="vertical-align:middle">' . PHP_EOL);
+          echo('    <td>' . PHP_EOL);
           echo('      <div class="pull-right">' . PHP_EOL);
           $item = array('id'       => $htmlname . '_custom',
                         'size'     => 'small',
@@ -264,9 +275,7 @@ if ($_SESSION['userlevel'] < 10)
         }
 
         echo('  </table>' . PHP_EOL);
-        echo '</div>';
-        echo '</div>';
-
+        echo generate_box_close();
       }
       //echo('  <br />' . PHP_EOL);
     }
@@ -285,7 +294,7 @@ if ($_SESSION['userlevel'] < 10)
   $item = array('id'          => 'submit',
                 'name'        => 'Save Changes',
                 'class'       => 'btn-primary',
-                //'right'       => TRUE,
+                'right'       => TRUE,
                 'icon'        => 'icon-ok oicon-white',
                 'value'       => 'save');
   echo(generate_form_element($item, 'submit'));

@@ -12,10 +12,9 @@
  */
 
 // FIXME. I complete not sure that this work correctly
-$mib = 'DKSF-50-11-X-X-X';
 
-$cache_discovery[$mib]['smoke'] = snmpwalk_cache_multi_oid($device, 'npSmokeTable', array(), $mib);
-foreach ($cache_discovery[$mib]['smoke'] as $index => $entry)
+$cache_discovery['DKSF-50-11-X-X-X']['smoke'] = snmpwalk_cache_multi_oid($device, 'npSmokeTable', array(), 'DKSF-50-11-X-X-X');
+foreach ($cache_discovery['DKSF-50-11-X-X-X']['smoke'] as $index => $entry)
 {
   if ($entry['npSmokePower'] == 'off') { continue; }
 
@@ -29,8 +28,8 @@ foreach ($cache_discovery[$mib]['smoke'] as $index => $entry)
   }
 }
 
-$cache_discovery[$mib]['loop'] = snmpwalk_cache_multi_oid($device, 'npCurLoopTable', array(), $mib);
-foreach ($cache_discovery[$mib]['loop'] as $index => $entry)
+$cache_discovery['DKSF-50-11-X-X-X']['loop'] = snmpwalk_cache_multi_oid($device, 'npCurLoopTable', array(), 'DKSF-50-11-X-X-X');
+foreach ($cache_discovery['DKSF-50-11-X-X-X']['loop'] as $index => $entry)
 {
   if ($entry['npCurLoopPower'] == 'off' || $entry['npCurLoopStatus'] == 'notPowered') { continue; }
 
@@ -73,8 +72,8 @@ foreach ($cache_discovery[$mib]['loop'] as $index => $entry)
   }
 }
 
-$cache_discovery[$mib]['temphum'] = snmpwalk_cache_multi_oid($device, 'npRelHumTable', array(), $mib);
-foreach ($cache_discovery[$mib]['temphum'] as $index => $entry)
+$cache_discovery['DKSF-50-11-X-X-X']['temphum'] = snmpwalk_cache_multi_oid($device, 'npRelHumTable', array(), 'DKSF-50-11-X-X-X');
+foreach ($cache_discovery['DKSF-50-11-X-X-X']['temphum'] as $index => $entry)
 {
   // Temperature
   $descr = ($entry['npRelHumMemo'] ? $entry['npRelHumMemo'] : 'Temperature '.$index);
@@ -99,8 +98,8 @@ foreach ($cache_discovery[$mib]['temphum'] as $index => $entry)
   }
 }
 
-$cache_discovery[$mib]['thermo'] = snmpwalk_cache_multi_oid($device, 'npThermoTable', array(), $mib);
-foreach ($cache_discovery[$mib]['thermo'] as $index => $entry)
+$cache_discovery['DKSF-50-11-X-X-X']['thermo'] = snmpwalk_cache_multi_oid($device, 'npThermoTable', array(), 'DKSF-50-11-X-X-X');
+foreach ($cache_discovery['DKSF-50-11-X-X-X']['thermo'] as $index => $entry)
 {
   // Temperature
   $descr = ($entry['npThermoMemo'] ? $entry['npThermoMemo'] : 'Thermo '.$index);
@@ -114,8 +113,8 @@ foreach ($cache_discovery[$mib]['thermo'] as $index => $entry)
   }
 }
 
-$cache_discovery[$mib]['io'] = snmpwalk_cache_multi_oid($device, 'npIoTable', array(), $mib);
-foreach ($cache_discovery[$mib]['io'] as $index => $entry)
+$cache_discovery['DKSF-50-11-X-X-X']['io'] = snmpwalk_cache_multi_oid($device, 'npIoTable', array(), 'DKSF-50-11-X-X-X');
+foreach ($cache_discovery['DKSF-50-11-X-X-X']['io'] as $index => $entry)
 {
   if ($entry['npIoLevelIn'] == '0') { continue; }
 
@@ -126,11 +125,11 @@ foreach ($cache_discovery[$mib]['io'] as $index => $entry)
   discover_sensor($valid['sensor'], 'counter', $device, $oid, "npIoPulseCounter.$index", 'dskf-mib', $descr, 1, $value);
 }
 
-if (OBS_DEBUG > 1 && count($cache_discovery[$mib]))
+if (OBS_DEBUG > 1 && count($cache_discovery['DKSF-50-11-X-X-X']))
 {
-  print_vars($cache_discovery[$mib]);
+  print_vars($cache_discovery['DKSF-50-11-X-X-X']);
 }
 
-unset($cache_discovery[$mib]);
+unset($cache_discovery['DKSF-50-11-X-X-X']);
 
 // EOF

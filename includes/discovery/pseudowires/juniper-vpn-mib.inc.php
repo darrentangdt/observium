@@ -11,50 +11,48 @@
  *
  */
 
-$mib = "JUNIPER-VPN-MIB";
 $flags = OBS_SNMP_ALL ^ OBS_QUOTES_STRIP;
 
-echo("$mib ");
-
-$pws = snmpwalk_cache_threepart_oid($device, "jnxVpnPwRowStatus", array(), $mib, NULL, $flags);
+$pws = snmpwalk_cache_threepart_oid($device, "jnxVpnPwRowStatus", array(), 'JUNIPER-VPN-MIB', NULL, $flags);
 if ($GLOBALS['snmp_status'] === FALSE)
 {
   return;
 }
 
-  $pws = snmpwalk_cache_threepart_oid($device, "jnxVpnPwAssociatedInterface", $pws, $mib, NULL, $flags);
-
-  $pws = snmpwalk_cache_threepart_oid($device, "jnxVpnPwLocalSiteId",      $pws, $mib, NULL, $flags); // pwID
-  $pws = snmpwalk_cache_threepart_oid($device, "jnxVpnPwTunnelName",       $pws, $mib, NULL, $flags); // pwDescr
-  $pws = snmpwalk_cache_threepart_oid($device, "jnxVpnPwTunnelType",       $pws, $mib, NULL, $flags); // pwPsnType
-  $pws = snmpwalk_cache_threepart_oid($device, "jnxVpnRemotePeIdAddrType", $pws, $mib, NULL, $flags); // pwPeerAddrType
-  $pws = snmpwalk_cache_threepart_oid($device, "jnxVpnRemotePeIdAddress",  $pws, $mib, NULL, $flags); // pwPeerAddr
-  //$pws = snmpwalk_cache_oid($device, "pwLocalIfMtu",     $pws, $mib, mib_dirs());
-  //$pws = snmpwalk_cache_oid($device, "pwRemoteIfMtu",    $pws, $mib, mib_dirs());
-  $pws = snmpwalk_cache_threepart_oid($device, "jnxVpnPwRemoteSiteId",     $pws, $mib, NULL, $flags); // pwMplsPeerLdpID
+  $pws = snmpwalk_cache_threepart_oid($device, 'jnxVpnPwAssociatedInterface', $pws, 'JUNIPER-VPN-MIB', NULL, $flags);
+  $pws = snmpwalk_cache_threepart_oid($device, 'jnxVpnPwLocalSiteId',         $pws, 'JUNIPER-VPN-MIB', NULL, $flags); // pwID
+  $pws = snmpwalk_cache_threepart_oid($device, 'jnxVpnPwTunnelName',          $pws, 'JUNIPER-VPN-MIB', NULL, $flags); // pwDescr
+  $pws = snmpwalk_cache_threepart_oid($device, 'jnxVpnPwTunnelType',          $pws, 'JUNIPER-VPN-MIB', NULL, $flags); // pwPsnType
+  $pws = snmpwalk_cache_threepart_oid($device, 'jnxVpnRemotePeIdAddrType',    $pws, 'JUNIPER-VPN-MIB', NULL, $flags); // pwPeerAddrType
+  $pws = snmpwalk_cache_threepart_oid($device, 'jnxVpnRemotePeIdAddress',     $pws, 'JUNIPER-VPN-MIB', NULL, $flags); // pwPeerAddr
+  //$pws = snmpwalk_cache_oid($device, 'pwLocalIfMtu',     $pws, 'JUNIPER-VPN-MIB');
+  //$pws = snmpwalk_cache_oid($device, 'pwRemoteIfMtu',    $pws, 'JUNIPER-VPN-MIB');
+  $pws = snmpwalk_cache_threepart_oid($device, 'jnxVpnPwRemoteSiteId',        $pws, 'JUNIPER-VPN-MIB', NULL, $flags); // pwMplsPeerLdpID
 
   if (OBS_DEBUG > 1)
   {
-    echo("PWS_WALK: ".count($pws)."\n"); print_vars($pws);
+    echo('PWS_WALK: '.count($pws)."\n"); print_vars($pws);
   }
 
   foreach ($pws as $pw_type => $entry)
   {
     foreach ($entry as $pw_name => $entry2)
     {
-      foreach ($entry2 as $pw_id => $pw)
+      foreach ($entry2 as $pw_ifIndex => $pw)
       {
         //if (strlen($pw['jnxVpnPwRowStatus']) && $pw['jnxVpnPwRowStatus'] != 'active') { continue; } // Skip inactive (active, notinService, notReady, createAndGo, createAndWait, destroy)
 
         // Get full index
-        $pw_index = snmp_translate('jnxVpnPwRowStatus.'.$pw_type.'."'.$pw_name.'".'.$pw_id, $mib);
+        $pw_index = snmp_translate('jnxVpnPwRowStatus.'.$pw_type.'."'.$pw_name.'".'.$pw_ifIndex, 'JUNIPER-VPN-MIB');
         $pw_index = str_replace('.1.3.6.1.4.1.2636.3.26.1.4.1.4.', '', $pw_index);
 
-        $peer_addr_type = $pw['jnxVpnRemotePeIdAddrType'];
-        if ($peer_addr_type == "ipv4" || $peer_addr_type == "ipv6") { $peer_addr = hex2ip($pw['jnxVpnRemotePeIdAddress']); }
+        $peer_addr         = hex2ip($pw['jnxVpnRemotePeIdAddress']);
+        $peer_addr_version = get_ip_version($peer_addr);
+        $peer_addr_type    = $pw['jnxVpnRemotePeIdAddrType'];
 
-        if (get_ip_version($peer_addr))
+        if ($peer_addr_version)
         {
+          $peer_addr_type = 'ipv' . $peer_addr_version; // Override address type, because snmp sometime return incorrect
           $peer_rdns = gethostbyaddr6($peer_addr); // PTR name
           if ($peer_addr_type == 'ipv6')
           {
@@ -72,6 +70,10 @@ if ($GLOBALS['snmp_status'] === FALSE)
         }
         if (empty($remote_device)) { $remote_device = array('NULL'); }
 
+        if (!is_numeric($pw['jnxVpnPwAssociatedInterface']) || $pw['jnxVpnPwAssociatedInterface'] <= 0)
+        {
+          $pw['jnxVpnPwAssociatedInterface'] = $pw_ifIndex;
+        }
         $port = get_port_by_index_cache($device, $pw['jnxVpnPwAssociatedInterface']);
 
         if (is_numeric($port['port_id']))
@@ -83,14 +85,14 @@ if ($GLOBALS['snmp_status'] === FALSE)
 
         $pws_new = array(
           'device_id'        => $device['device_id'],
-          'mib'              => $mib,
+          'mib'              => 'JUNIPER-VPN-MIB',
           'port_id'          => $if_id,
           'peer_device_id'   => $remote_device,
           'peer_addr'        => $peer_addr,
           'peer_rdns'        => $peer_rdns,
           'pwIndex'          => $pw_index,
           'pwType'           => $pw_type,
-          'pwID'             => $pw_id,
+          'pwID'             => $pw['jnxVpnPwLocalSiteId'],
           'pwOutboundLabel'  => $pw['jnxVpnPwLocalSiteId'],
           'pwInboundLabel'   => $pw['jnxVpnPwRemoteSiteId'],
           'pwPsnType'        => ($pw['jnxVpnPwTunnelType'] ? $pw['jnxVpnPwTunnelType'] : 'unknown'),
@@ -102,9 +104,9 @@ if ($GLOBALS['snmp_status'] === FALSE)
         );
         if (OBS_DEBUG > 1) { print_vars($pws_new); }
 
-        if (!empty($pws_cache['pws_db'][$mib][$pw_index]))
+        if (!empty($pws_cache['pws_db']['JUNIPER-VPN-MIB'][$pw_index]))
         {
-          $pws_old = $pws_cache['pws_db'][$mib][$pw_index];
+          $pws_old = $pws_cache['pws_db']['JUNIPER-VPN-MIB'][$pw_index];
           $pseudowire_id = $pws_old['pseudowire_id'];
           if (empty($pws_old['peer_device_id']))
           {
@@ -133,7 +135,7 @@ if ($GLOBALS['snmp_status'] === FALSE)
           $GLOBALS['module_stats'][$module]['added']++; //echo("+");
         }
 
-        $valid['pseudowires'][$mib][$pseudowire_id] = $pseudowire_id;
+        $valid['pseudowires']['JUNIPER-VPN-MIB'][$pseudowire_id] = $pseudowire_id;
       }
     }
   }

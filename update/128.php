@@ -11,7 +11,7 @@
  *
  */
 
-echo ' Rename old storage RRDs and DB: ';
+echo 'Rename old storage RRDs and DB: ';
 
 // Update storage table
 dbQuery("ALTER TABLE `storage` CHANGE `storage_mib` `storage_mib` VARCHAR(64);");
@@ -33,7 +33,5 @@ foreach (dbFetchRows("SELECT `hostname`, `storage_id`, `storage_mib`, `storage_d
   dbUpdate(array('storage_mib' => $new_mib), 'storage', '`storage_id` = ?', array($entry['storage_id']));
   echo('.');
 }
-
-echo(PHP_EOL);
 
 // EOF

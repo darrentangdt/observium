@@ -22,21 +22,21 @@ if ($_SESSION['userlevel'] <= 7)
 // User level 8-9 only can see config
 $readonly = $_SESSION['userlevel'] < 10;
 
-  $page_title[] = "Delete service";
+register_html_title("Delete service");
 
-  if ($vars['delsrv'] && !$readonly)
-  {
-    include($config['html_dir']."/includes/service-delete.inc.php");
+if ($vars['delsrv'] && !$readonly)
+{
+  include($config['html_dir']."/includes/service-delete.inc.php");
 
-    if ($updated) { print_success("Service Deleted!"); }
-  }
+  if ($updated) { print_success("Service Deleted!"); }
+}
 
-  foreach (dbFetchRows("SELECT * FROM `services` AS S, `devices` AS D WHERE S.device_id = D.device_id ORDER BY hostname") as $device)
-  {
-    $servicesform .= "<option value='" . $device['service_id'] . "'>" . $device['service_id'] .  "." . $device['hostname'] . " - " . $device['service_type'] .  "</option>";
-  }
+foreach (dbFetchRows("SELECT * FROM `services` AS S, `devices` AS D WHERE S.device_id = D.device_id ORDER BY hostname") as $device)
+{
+  $servicesform .= "<option value='" . $device['service_id'] . "'>" . $device['service_id'] .  "." . $device['hostname'] . " - " . $device['service_type'] .  "</option>";
+}
 
-  echo("
+echo("
 <h4>Delete Service</h4>
 <form id='addsrv' name='addsrv' method='post' action=''>
   <input type=hidden name='delsrv' value='yes'>

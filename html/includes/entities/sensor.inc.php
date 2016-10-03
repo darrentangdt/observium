@@ -29,43 +29,20 @@ function humanize_sensor(&$sensor)
   if ($sensor['humanized']) { return; }
 
   $sensor['sensor_symbol'] = $GLOBALS['config']['sensor_types'][$sensor['sensor_class']]['symbol'];
-  $sensor['state_class'] = ''; //'text-success';
+  $sensor['sensor_format'] = strval($GLOBALS['config']['sensor_types'][$sensor['sensor_class']]['format']);
+  $sensor['state_class']   = ''; //'text-success';
 
   // Generate "pretty" thresholds
   if (is_numeric($sensor['sensor_limit_low']))
   {
-    switch ($sensor['sensor_class']) // Same set as in humanize_sensor()
-    {
-      case 'frequency':
-      case 'voltage':
-      case 'current':
-      case 'apower':
-      case 'rpower':
-      case 'power':
-        $sensor_threshold_low = format_si($sensor['sensor_limit_low']) . $sensor['sensor_symbol'];
-        break;
-      default:
-        $sensor_threshold_low = $sensor['sensor_limit_low'] . $sensor['sensor_symbol'];
-    }
+    $sensor_threshold_low = format_value($sensor['sensor_limit_low'], $sensor['sensor_format']) . $sensor['sensor_symbol'];
   } else {
     $sensor_threshold_low = "&infin;";
   }
 
   if (is_numeric($sensor['sensor_limit_low_warn']))
   {
-    switch ($sensor['sensor_class']) // Same set as in humanize_sensor()
-    {
-      case 'frequency':
-      case 'voltage':
-      case 'current':
-      case 'apower':
-      case 'rpower':
-      case 'power':
-        $sensor_warn_low = format_si($sensor['sensor_limit_low_warn']) . $sensor['sensor_symbol'];
-        break;
-      default:
-        $sensor_warn_low = $sensor['sensor_limit_low_warn'] . $sensor['sensor_symbol'];
-    }
+    $sensor_warn_low = format_value($sensor['sensor_limit_low_warn'], $sensor['sensor_format']) . $sensor['sensor_symbol'];
   } else {
     $sensor_warn_low = NULL;
   }
@@ -74,38 +51,14 @@ function humanize_sensor(&$sensor)
 
   if (is_numeric($sensor['sensor_limit']))
   {
-    switch ($sensor['sensor_class']) // Same set as in humanize_sensor()
-    {
-      case 'frequency':
-      case 'voltage':
-      case 'current':
-      case 'apower':
-      case 'rpower':
-      case 'power':
-        $sensor_threshold_high = format_si($sensor['sensor_limit']) . $sensor['sensor_symbol'];
-        break;
-      default:
-        $sensor_threshold_high = $sensor['sensor_limit'] . $sensor['sensor_symbol'];
-    }
+    $sensor_threshold_high = format_value($sensor['sensor_limit'], $sensor['sensor_format']) . $sensor['sensor_symbol'];
   } else {
     $sensor_threshold_high = "&infin;";
   }
 
   if (is_numeric($sensor['sensor_limit_warn']))
   {
-    switch ($sensor['sensor_class']) // Same set as in humanize_sensor()
-    {
-      case 'frequency':
-      case 'voltage':
-      case 'current':
-      case 'apower':
-      case 'rpower':
-      case 'power':
-        $sensor_warn_high = format_si($sensor['sensor_limit_warn']) . $sensor['sensor_symbol'];
-        break;
-      default:
-        $sensor_warn_high = $sensor['sensor_limit_warn'] . $sensor['sensor_symbol'];
-    }
+    $sensor_warn_high = format_value($sensor['sensor_limit_warn'], $sensor['sensor_format']) . $sensor['sensor_symbol'];
   } else {
     $sensor_wanr_high = "&infin;";
   }
@@ -121,26 +74,7 @@ function humanize_sensor(&$sensor)
     $sensor['human_value'] = 'NaN';
     $sensor['sensor_symbol'] = '';
   } else {
-    switch ($sensor['sensor_class'])
-    {
-      case 'frequency':
-      case 'voltage':
-      case 'current':
-      case 'apower':
-      case 'rpower':
-      case 'power':
-        $sensor['human_value'] = format_si($sensor['sensor_value']); // format_si so value get translated to kX,MX
-        break;
-      //case 'runtime':
-      //  $sensor['human_value'] = formatUptime($sensor['sensor_value']);
-      //  break;
-      //case 'fanspeed':
-      //  $sensor['human_value'] = sprintf("%01.0f", $sensor['sensor_value']);
-      //  break;
-      default:
-        $sensor['human_value'] = sprintf("%01.2f", $sensor['sensor_value']);
-        $sensor['human_value'] = preg_replace(array('/\.00$/', '/(\.\d)0$/'), '\1', $sensor['human_value']);
-    }
+    $sensor['human_value'] = format_value($sensor['sensor_value'], $sensor['sensor_format']);
   }
 
   switch ($sensor['sensor_event'])
@@ -163,7 +97,7 @@ function humanize_sensor(&$sensor)
       $sensor['row_class']   = 'ignored';
       break;
     default:
-      $sensor['state_class'] = 'label label-info';
+      $sensor['state_class'] = 'label label-primary';
       // $sensor['row_class']   = NULL;
   }
 
@@ -350,7 +284,7 @@ function generate_sensor_row($sensor, $vars)
   $graph_array['type']   = "sensor_graph";
   $graph_array['width']  = 80;
   $graph_array['height'] = 20;
-  $graph_array['bg']     = 'ffffff00'; # the 00 at the end makes the area transparent.
+  $graph_array['bg']     = 'ffffff00';
   $graph_array['from']   = $config['time']['day'];
 
   if ($sensor['sensor_event'] && is_numeric($sensor['sensor_value']))

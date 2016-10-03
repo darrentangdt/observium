@@ -1,8 +1,8 @@
 -- =============================================================================================================
--- Copyright (C) 2014 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- Description: The HUAWEI-IPV6-MIB provides information about IPv6.         
 -- Reference:   
--- Version: V2.01   
+-- Version: V2.02   
 -- ==============================================================================================================
 HUAWEI-IPV6-MIB DEFINITIONS ::= BEGIN
 
@@ -31,7 +31,7 @@ HUAWEI-IPV6-MIB DEFINITIONS ::= BEGIN
             FROM SNMPv2-SMI;
             
     hwIpv6Mib MODULE-IDENTITY
-        LAST-UPDATED "201406300000Z"
+        LAST-UPDATED "201508060000Z"
         ORGANIZATION
            "Huawei Technologies Co.,Ltd."
         CONTACT-INFO
@@ -46,6 +46,9 @@ HUAWEI-IPV6-MIB DEFINITIONS ::= BEGIN
             "The MIB module for entities implementing the IPv6
              protocol."
 --  Revision history
+        REVISION     "201508060000Z"
+        DESCRIPTION  "V2.02, modify the max-access of hwIpv6GlobalAddrAddress." 
+
         REVISION     "201406300000Z"
         DESCRIPTION  "V2.01, modify the description.
 		              add nodes hwIpv6ProductAn, hwIpv6ProductAnTraps, hwIpv6AlarmTrapsPrefix and hwDadIPv6ConflictTrap." 
@@ -239,7 +242,7 @@ HUAWEI-IPV6-MIB DEFINITIONS ::= BEGIN
         
     hwIpv6GlobalAddrAddress OBJECT-TYPE
         SYNTAX    Ipv6Address  
-        MAX-ACCESS read-create
+        MAX-ACCESS read-only
         STATUS     current
         DESCRIPTION
          "This object specifies the global or EUI IPv6 address on the interface."

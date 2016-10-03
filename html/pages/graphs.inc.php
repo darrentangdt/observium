@@ -67,7 +67,7 @@ if (!$auth)
   ## Not all things here have a device (multiple-port graphs or location graphs)
   //if (!is_array($device))
   //{
-  //  print_error('<h3 class="box-title">No valid device specified</h4>
+  //  print_error('<h4>No valid device specified</h4>
   //                  A valid device was not specified in the URL. Please retype and try again.');
   //  break;
   //}
@@ -146,7 +146,7 @@ if (!$auth)
 
   // Start form for the custom range.
 
-  echo '<div class="box box-solid" style="padding-bottom: 5px;">';
+  echo generate_box_open(array('box-style' => 'padding-bottom: 5px;'));
 
   $thumb_array = array('sixhour' => '6 Hours',
                        'day' => '24 Hours',
@@ -186,18 +186,29 @@ if (!$auth)
   $graph_array['height'] = "300";
   $graph_array['width']  = $graph_width;
 
-  print_optionbar_end();
+  echo generate_box_close();
 
-  $search = array();
-  $search[] = array('type'    => 'datetime',
-                    'id'      => 'timestamp',
-                    'presets' => TRUE,
-                    'min'     => '2007-04-03 16:06:59',  // Hehe, who will guess what this date/time means? --mike
-                                                         // First commit! Though Observium was already 7 months old by that point. --adama
-                    'max'     => date('Y-m-d 23:59:59'), // Today
-                    'from'    => date('Y-m-d H:i:s', $vars['from']),
-                    'to'      => date('Y-m-d H:i:s', $vars['to']));
+  $form = array('type'          => 'rows',
+                'space'         => '5px',
+                'submit_by_key' => TRUE,
+                'url'           => 'graphs'.generate_url($vars));
 
+  // Datetime Field
+  $form['row'][0]['timestamp'] = array(
+                              'type'        => 'datetime',
+                              'grid'        => 10,
+                              'grid_xs'     => 10,
+                              //'width'       => '70%',
+                              //'div_class'   => 'text-nowrap col-sm-push-0', // Too hard, will fix later
+                              //'div_class'   => 'col-lg-10 col-md-10 col-sm-10 col-xs-10',
+                              'presets'     => TRUE,
+                              'min'         => '2007-04-03 16:06:59',  // Hehe, who will guess what this date/time means? --mike
+                                                                       // First commit! Though Observium was already 7 months old by that point. --adama
+                              'max'         => date('Y-m-d 23:59:59'), // Today
+                              'from'        => date('Y-m-d H:i:s', $vars['from']),
+                              'to'          => date('Y-m-d H:i:s', $vars['to']));
+
+  $search_grid = 2;
   if ($type == "port")
   {
     if ($subtype == "bits")
@@ -208,26 +219,44 @@ if (!$auth)
         $speed = intval(unit_string_to_numeric($entry, 1000));
         $speed_list[$entry] = formatRates($speed, 4, 4);
       }
-      $search[] = array('type'    => 'select',          // Type
-                        'name'    => 'Scale',           // Displayed title for item
-                        'id'      => 'scale',           // Item id and name
-                        'width'   => '200px',
-                        'value'   => (isset($vars['scale']) ? $vars['scale'] : $config['graphs']['ports_scale_default']),
-                        'values'  => $speed_list);
+      $form['row'][0]['scale'] = array(
+                                'type'    => 'select',          // Type
+                                'name'    => 'Scale',           // Displayed title for item
+                                'grid'        => 2,
+                                'width'   => '100%',
+                                'value'   => (isset($vars['scale']) ? $vars['scale'] : $config['graphs']['ports_scale_default']),
+                                'values'  => $speed_list);
+      //reduce timestamp element grid sizes
+      $form['row'][0]['timestamp']['grid'] -= 2;
     }
     if (in_array($subtype, array('bits', 'percent', 'upkts', 'pktsize')))
     {
-      $search[] = array('type'    => 'select',
-                        'name'    => 'Graph style',
-                        'id'      => 'style',
-                        'width'   => '200px',
-                        'value'   => (isset($vars['style']) ? $vars['style'] : $config['graphs']['style']),
-                        'values'  => array('default' => 'Default', 'mrtg' => 'MRTG'));
+      $form['row'][0]['style'] = array(
+                                'type'    => 'select',
+                                'name'    => 'Graph style',
+                                'grid'        => 2,
+                                'width'   => '100%',
+                                'value'   => (isset($vars['style']) ? $vars['style'] : $config['graphs']['style']),
+                                'values'  => array('default' => 'Default', 'mrtg' => 'MRTG'));
+      //reduce timestamp element grid sizes
+      $form['row'][0]['timestamp']['grid'] -= 1;
+      unset($form['row'][0]['timestamp']['grid_xs']);
+      $search_grid = 1;
     }
   }
 
-  print_search($search, NULL, 'update', 'graphs'.generate_url($vars));
-  unset($search, $speed_list, $speed);
+  // Update button
+  $form['row'][0]['update']   = array(
+                              'type'        => 'submit',
+                              //'name'        => 'Search',
+                              //'icon'        => 'icon-search',
+                              //'div_class'   => 'col-lg-2 col-md-2 col-sm-2 col-xs-2',
+                              'grid'        => $search_grid,
+                              'grid_xs'     => ($search_grid > 1 ? $search_grid : 12),
+                              'right'       => TRUE);
+
+  print_form($form);
+  unset($form, $speed_list, $speed, $search_grid);
 
 // Run the graph to get data array out of it
 
@@ -472,67 +501,42 @@ LINE1:d95thout#aa0000';
 
   echo generate_graph_js_state($graph_array);
 
-  echo('<div class="box box-solid">');
-  echo(generate_graph_tag($graph_array));
-  echo("</div>");
+  echo generate_box_open();
+  echo generate_graph_tag($graph_array);
+  echo generate_box_close();
 
-  if (isset($graph_return['descr']))
+  if (!empty($graph_return['descr']))
   {
-
-    print_optionbar_start();
-    echo('<div style="float: left; width: 30px;">
-          <div style="margin: auto auto;">
-            <i class="oicon-information"></i>
-          </div>
-          </div>');
+    echo generate_box_open(array('title' => 'Description', 'padding' => TRUE));
     echo($graph_return['descr']);
-    print_optionbar_end();
+    echo generate_box_close();
   }
 
-#print_vars($graph_return);
+  #print_vars($graph_return);
 
   if (isset($vars['showcommand']))
   {
-?>
-
-  <div class="box box-solid">
-    <div class="box-header with-border">
-      <h3 class="box-title">Performance &amp; Output</h3>
-    </div>
-    <div class="box-body">
-      <?php echo("RRDTool Output: ".$return."<br />"); ?>
-      <?php echo("<p>Total time: ".$graph_return['total_time']." | RRDtool time: ".$graph_return['rrdtool_time']."s</p>"); ?>
-    </div>
-  </div>
-
-  <div class="box box-solid">
-    <div class="box-header with-border">
-      <h3 class="box-title">RRDTool Command</h3>
-    </div>
-    <div class="box-body">
-      <?php echo($graph_return['cmd']); ?>
-    </div>
-  </div>
-
-  <div class="box box-solid">
-    <div class="box-header with-border">
-      <h3 class="box-title">RRDTool Files Used</h3>
-    </div>
-    <div class="box-body">
-      <?php
-        if (is_array($graph_return['rrds']))
-        {
-          foreach ($graph_return['rrds'] as $rrd)
-          {
-            echo("$rrd <br />");
-          }
-        } else {
-            echo("No RRD information returned. This may be because the graph module doesn't yet return this data. <br />");
-        }
-      ?>
-    </div>
-  </div>
-<?php
+    echo generate_box_open(array('title' => 'Performance &amp; Output', 'padding' => TRUE));
+    echo("RRDTool Output: " .$graph_return['output']."<br />
+          RRDtool Runtime: ".number_format($graph_return['runtime'], 3)."s |
+          Total time: "     .number_format($graph_return['total'], 3)."s");
+    echo generate_box_close();
+    
+    echo generate_box_open(array('title' => 'RRDTool Command', 'padding' => TRUE));
+    echo $graph_return['command'];
+    echo generate_box_close();
+    
+    echo generate_box_open(array('title' => 'RRDTool Files Used', 'padding' => TRUE));
+    if (is_array($graph_return['rrds']))
+    {
+      foreach ($graph_return['rrds'] as $rrd)
+      {
+        echo "$rrd <br />";
+      }
+    } else {
+        echo "No RRD information returned. This may be because the graph module doesn't yet return this data. <br />";
+    }
+    echo generate_box_close();
   }
 
 // EOF

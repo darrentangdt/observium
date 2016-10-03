@@ -11,7 +11,7 @@
  *
  */
 
-include("includes/graphs/common.inc.php");
+include($config['html_dir']."/includes/graphs/common.inc.php");
 
 $scale_min    = 0;
 $colours      = "mixed";
@@ -34,6 +34,6 @@ $rrd_list[$i]['descr']    = 'Slave Zones';
 $rrd_list[$i]['ds']       = 'zoneSlave';
 $rrd_list[$i]['colour']   = $config['graph_colours'][$colours][$i % count($config['graph_colours'][$colours])];
 
-include("includes/graphs/generic_multi_line.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_line.inc.php");
 
 // EOF

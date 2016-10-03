@@ -16,38 +16,47 @@
 <div class="col-md-12">
 
 <?php
-unset($search, $devices_array);
 
-//$devices_array[''] = 'All Devices';
-foreach ($cache['devices']['hostname'] as $hostname => $device_id)
-{
-  if ($cache['devices']['id'][$device_id]['disabled'] && !$config['web_show_disabled']) { continue; }
-  $devices_array[$device_id] = $hostname;
-}
-//Device field
-$search[] = array('type'    => 'multiselect',
-                  'name'    => 'Devices',
-                  'id'      => 'device_id',
-                  'width'   => '160px',
-                  'value'   => $vars['device_id'],
-                  'values'  => $devices_array);
-//Interface field
-$search[] = array('type'    => 'select',
-                  'name'    => 'Interface',
-                  'id'      => 'interface',
-                  'width'   => '160px',
-                  'value'   => $vars['interface'],
-                  'values'  => array('' => 'All Interfaces', 'Loopback%' => 'Loopbacks', 'Vlan%' => 'Vlans'));
-//MAC address field
-$search[] = array('type'    => 'text',
-                  'name'    => 'MAC Address',
-                  'id'      => 'address',
-                  'width'   => '200px',
-                  'placeholder' => TRUE,
-                  'submit_by_key' => TRUE,
-                  'value'   => $vars['address']);
+$form_items['devices'] = generate_form_values('device');
 
-print_search($search, 'MAC Addresses', NULL, 'search/search=mac/');
+$form = array('type'  => 'rows',
+              'space' => '5px',
+              'submit_by_key' => TRUE,
+              'url'   => 'search/search=mac/');
+$form['row'][0]['device_id'] = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'Device',
+                                'width'       => '100%',
+                                'value'       => $vars['device_id'],
+                                'groups'      => array('', 'UP', 'DOWN', 'DISABLED'), // This is optgroup order for values (if required)
+                                'values'      => $form_items['devices']);
+
+$form['row'][0]['interface'] = array(
+                                'type'        => 'select',
+                                'name'        => 'Interfaces',
+                                'width'       => '100%',
+                                'value'       => $vars['interface'],
+                                'values'      => array('' => 'All Interfaces', 'Loopback' => 'Loopbacks', 'Vlan' => 'Vlans'));
+
+$form['row'][0]['address']  = array(
+                                'type'        => 'text',
+                                'name'        => 'MAC Address',
+                                'width'       => '100%',
+                                'grid'        => 4,
+                                'placeholder' => TRUE,
+                                'submit_by_key' => TRUE,
+                                'value'       => escape_html($vars['address']));
+// search button
+$form['row'][0]['search']   = array(
+                                'type'        => 'submit',
+                                'grid'        => 4,
+                                //'name'        => 'Search',
+                                //'icon'        => 'icon-search',
+                                'value'       => 'mac',
+                                'right'       => TRUE);
+
+print_form($form);
+unset($form, $form_items);
 
 // Pagination
 $vars['pagination'] = TRUE;
@@ -55,7 +64,7 @@ $vars['pagination'] = TRUE;
 // Print MAC addresses
 print_mac_addresses($vars);
 
-$page_title[] = 'MAC addresses';
+register_html_title('MAC addresses');
 
 ?>
 

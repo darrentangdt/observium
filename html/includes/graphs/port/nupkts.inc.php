@@ -43,6 +43,6 @@ $colours_out = 'oranges';
 
 $args['nototal'] = 1; $print_total = 0; $nototal = 1;
 
-include("includes/graphs/generic_multi_separated.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_separated.inc.php");
 
 ?>

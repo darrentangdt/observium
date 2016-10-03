@@ -39,6 +39,32 @@ class IncludesSnmpTest extends PHPUnit_Framework_TestCase
   }
 
   /**
+  * @dataProvider providerSnmpMib2MibDir
+  */
+  public function testSnmpMib2MibDir($result, $mib)
+  {
+    global $config;
+
+    $config['mib_dir'] = '/opt/observium/mibs';
+
+    $this->assertSame($result, snmp_mib2mibdirs($mib));
+  }
+
+  public function providerSnmpMib2MibDir()
+  {
+    $results = array(
+      // Basic
+      array('/opt/observium/mibs/rfc:/opt/observium/mibs/net-snmp', 'HOST-RESOURCES-MIB'),
+      array('/opt/observium/mibs/rfc:/opt/observium/mibs/net-snmp', 'HOST-RESOURCES-MIB:HOST-RESOURCES-TYPES'),
+      array('/opt/observium/mibs/rfc:/opt/observium/mibs/net-snmp:/opt/observium/mibs/cisco', 'ENTITY-MIB:CISCO-ENTITY-VENDORTYPE-OID-MIB'),
+      array('/opt/observium/mibs/rfc:/opt/observium/mibs/net-snmp:/opt/observium/mibs/cisco:/opt/observium/mibs/broadcom', 'ENTITY-MIB:CISCO-ENTITY-VENDORTYPE-OID-MIB:FASTPATH-SWITCHING-MIB'),
+      // Unknown
+      array('/opt/observium/mibs', 'HOST-RESOURCES'),
+    );
+    return $results;
+  }
+
+  /**
   * @dataProvider providerSnmpDewrap32bit
   */
   public function testSnmpDewrap32bit($result, $value)

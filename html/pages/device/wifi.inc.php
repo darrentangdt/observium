@@ -35,7 +35,7 @@ if ($vars['view'] == "accesspoint") { $navbar['options']['accesspoints']['class'
 print_navbar($navbar);
 unset($navbar);
 
-$page_title[] = "Wifi";
+register_html_title("Wifi");
 
 print_warning("Please be aware that the WiFi section is currently under development and is subject to change and breakage.");
 

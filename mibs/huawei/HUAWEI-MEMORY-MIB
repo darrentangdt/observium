@@ -1,9 +1,9 @@
 -- =================================================================
--- Copyright (C) 2001,2002 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2001-2014 by  HUAWEI TECHNOLOGIES. All rights reserved.
 --
 -- Description: the huawei memory mib from huawei-device-mib
 -- Reference:
--- Version:     V1.0
+-- Version:     V1.00
 -- History:
 --    
 -- =================================================================
@@ -23,20 +23,24 @@ HUAWEI-MEMORY-MIB DEFINITIONS ::= BEGIN
             FROM HCNUM-TC;
 
     hwMemoryDev MODULE-IDENTITY
-        LAST-UPDATED "200212290900Z"
+        LAST-UPDATED "201407260000Z"
         ORGANIZATION
-            "HAUWEI MIB Standard community
-             "
+            "Huawei Technologies Co.,Ltd."
         CONTACT-INFO
-            "
-            ADDR: HUAWEI TECHNOLOGY CO.,LTD,SHEZHEN CHINA
-            Tel: 86-755-26540808
-            "
+            "Huawei Industrial Base
+            Bantian, Longgang
+            Shenzhen 518129
+            People's Republic of China
+            Website: http://www.huawei.com
+            Email: support@huawei.com
+            " 
         DESCRIPTION
             "
             This mib module defines the memory information. NMS can query memory
             utilization statistics from device by the mib.
-            "                        
+            " 
+        REVISION     "201407260000Z"
+        DESCRIPTION  "V1.00, initial version."	    
         ::= { hwDev 5 }            
     
     hwMemoryDevTable OBJECT-TYPE
@@ -91,7 +95,7 @@ HUAWEI-MEMORY-MIB DEFINITIONS ::= BEGIN
                 CounterBasedGauge64,
             hwMemoryDevFree64
                 CounterBasedGauge64
-            }
+         }
 
     hwMemoryDevModuleIndex OBJECT-TYPE
         --SYNTAX Integer32 (1..65535)

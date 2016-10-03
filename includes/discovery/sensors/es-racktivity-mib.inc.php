@@ -20,9 +20,7 @@
 // pFirmwareID.1.0 = STRING: RTF0038
 // pHardwareID.1.0 = STRING: RTH0050
 
-echo(" ES-RACKTIVITY-MIB ");
-
-$oids = snmpwalk_cache_twopart_oid($device, "eMasterTable", array(), 'ES-RACKTIVITY-MIB', mib_dirs('racktivity'));
+$oids = snmpwalk_cache_twopart_oid($device, 'eMasterTable', array(), 'ES-RACKTIVITY-MIB');
 
 foreach ($oids as $modIndex => $module_entry)
 {
@@ -38,8 +36,9 @@ foreach ($oids as $modIndex => $module_entry)
     $scale   = 0.1;
     $oid     = ".1.3.6.1.4.1.34097.9.77.1.1.11.$modIndex.$index";
 
-    $options = array('limit_high'      => (isset($entry['mMaxTemperatureWarning']) ? $entry['mMaxTemperatureWarning'] - 273.15 : NULL), // Convert Kelvin limit to Celsius
-                     'limit_low'       => (isset($entry['mMinTemperatureWarning']) ? $entry['mMinTemperatureWarning'] - 273.15 : NULL), // Convert Kelvin limit to Celsius
+    // FIXME, limits without scale?
+    $options = array('limit_high'      => (isset($entry['mMaxTemperatureWarning']) ? $entry['mMaxTemperatureWarning'] : NULL),
+                     'limit_low'       => (isset($entry['mMinTemperatureWarning']) ? $entry['mMinTemperatureWarning'] : NULL),
                      'sensor_unit'     => 'K',
                     );
 
@@ -50,7 +49,7 @@ foreach ($oids as $modIndex => $module_entry)
   }
 }
 
-$oids = snmpwalk_cache_twopart_oid($device, "ePowerTable", array(), 'ES-RACKTIVITY-MIB', mib_dirs('racktivity'));
+$oids = snmpwalk_cache_twopart_oid($device, 'ePowerTable', array(), 'ES-RACKTIVITY-MIB');
 
 // mTemperature.1.0 = Gauge32: 310.2 K
 // mMinTemperatureWarning.1.0 = Gauge32: 273.2 K
@@ -60,8 +59,9 @@ $value   = $entry['mTemperature'];
 $scale   = 0.01;
 $oid     = ".1.3.6.1.4.1.34097.9.77.1.1.11.$modIndex.$index";
 
-$options = array('limit_high'      => (isset($entry['mMaxTemperatureWarning']) ? $entry['mMaxTemperatureWarning'] - 273.15 : NULL), // Convert Kelvin limit to Celsius
-                 'limit_low'       => (isset($entry['mMinTemperatureWarning']) ? $entry['mMinTemperatureWarning'] - 273.15 : NULL), // Convert Kelvin limit to Celsius
+// FIXME, limits without scale?
+$options = array('limit_high'      => (isset($entry['mMaxTemperatureWarning']) ? $entry['mMaxTemperatureWarning'] : NULL),
+                 'limit_low'       => (isset($entry['mMinTemperatureWarning']) ? $entry['mMinTemperatureWarning'] : NULL),
                  'sensor_unit'     => 'K',
                 );
 
@@ -70,7 +70,7 @@ if ($value != 0)
   discover_sensor($valid['sensor'], 'temperature', $device, $oid, "mTemperature.$modIndex.$index", 'es-racktivity-mib', $descr, $scale, $value / $scale, $options);
 }
 
-$oids = snmpwalk_cache_twopart_oid($device, "ePowerTable", array(), 'ES-RACKTIVITY-MIB', mib_dirs('racktivity'));
+$oids = snmpwalk_cache_twopart_oid($device, 'ePowerTable', array(), 'ES-RACKTIVITY-MIB');
 
 if (OBS_DEBUG > 1) { print_vars($oids); }
 
@@ -99,6 +99,7 @@ foreach ($oids as $modIndex => $module_entry)
     $scale   = 0.01;
     $oid     = ".1.3.6.1.4.1.34097.9.80.1.1.4.$modIndex.$index";
 
+    // FIXME, limits without scale?
     $options = array('limit_high'      => (isset($entry['pMaxVoltageWarning']) ? $entry['pMaxVoltageWarning'] : NULL),
                      'limit_low'       => (isset($entry['pMinVoltageWarning']) ? $entry['pMinVoltageWarning'] : NULL),
                     );
@@ -115,8 +116,9 @@ foreach ($oids as $modIndex => $module_entry)
     $scale   = 0.1;
     $oid     = ".1.3.6.1.4.1.34097.9.80.1.1.11.$modIndex.$index";
 
-    $options = array('limit_high'      => (isset($entry['pMaxTemperatureWarning']) ? $entry['pMaxTemperatureWarning'] - 273.15 : NULL), // Convert Kelvin limit to Celsius
-                     'limit_low'       => (isset($entry['pMinTemperatureWarning']) ? $entry['pMinTemperatureWarning'] - 273.15 : NULL), // Convert Kelvin limit to Celsius
+    // FIXME, limits without scale?
+    $options = array('limit_high'      => (isset($entry['pMaxTemperatureWarning']) ? $entry['pMaxTemperatureWarning'] : NULL),
+                     'limit_low'       => (isset($entry['pMinTemperatureWarning']) ? $entry['pMinTemperatureWarning'] : NULL),
                      'sensor_unit'     => 'K',
                     );
 
@@ -147,6 +149,7 @@ foreach ($oids as $modIndex => $module_entry)
     $scale   = 0.001;
     $oid     = ".1.3.6.1.4.1.34097.9.80.1.1.53.$modIndex.$index";
 
+    // FIXME, limits without scale?
     $options = array('limit_high'      => (isset($entry['pMaxBigPowerWarning']) ? $entry['pMaxBigPowerWarning'] : NULL),
                      'limit_low'       => (isset($entry['pMinBigPowerWarning']) ? $entry['pMinBigPowerWarning'] : NULL),
                     );

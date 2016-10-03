@@ -17,14 +17,16 @@
  *  VMWARE-SYSTEM-MIB::vmwProdName.0 = STRING: VMware ESXi
  *  VMWARE-SYSTEM-MIB::vmwProdVersion.0 = STRING: 4.1.0
  *  VMWARE-SYSTEM-MIB::vmwProdBuild.0 = STRING: 348481
+ *  VMWARE-SYSTEM-MIB::vmwProdUpdate.0 = STRING: 2
  *
  *  version:   ESXi 4.1.0
  *  features:  build-348481
  */
 
-$data   = snmp_get_multi($device, "VMWARE-SYSTEM-MIB::vmwProdName.0 VMWARE-SYSTEM-MIB::vmwProdVersion.0 VMWARE-SYSTEM-MIB::vmwProdBuild.0", "-OQUs", "+VMWARE-ROOT-MIB:VMWARE-SYSTEM-MIB", mib_dirs("vmware"));
-$version  = preg_replace("/^VMware /", "", $data[0]["vmwProdName"]) . " " . $data[0]["vmwProdVersion"];
-$features = "build-" . $data[0]["vmwProdBuild"];
+$data     = snmp_get_multi($device, 'vmwProdName.0 vmwProdVersion.0 vmwProdBuild.0 vmwProdUpdate.0', '-OQUs', 'VMWARE-SYSTEM-MIB');
+$update   = ($data[0]['vmwProdUpdate'] ? ' U' . $data[0]['vmwProdUpdate'] : ''); // Only add update info if update > 0
+$version  = preg_replace('/^VMware /', '', $data[0]['vmwProdName']) . ' ' . $data[0]['vmwProdVersion'] . $update;
+$features = 'build-' . $data[0]['vmwProdBuild'];
 
 if (is_array($entPhysical))
 {

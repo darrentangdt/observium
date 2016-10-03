@@ -116,6 +116,6 @@ echo '</table>';
 
 echo generate_box_close();
 
-$page_title[] = "CollectD";
+register_html_title("CollectD");
 
 // EOF

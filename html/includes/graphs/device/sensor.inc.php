@@ -35,6 +35,6 @@ $colours ='mixed-10c';
 $nototal = 1;
 $scale_rigid = FALSE;
 
-include("includes/graphs/generic_multi_line.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_line.inc.php");
 
 // EOF

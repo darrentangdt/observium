@@ -11,7 +11,6 @@
  *
  */
 
-echo(" PACKETFLUX-MIB ");
 
 //.1.3.6.1.4.1.32050.2.1.27.1.0 = 0
 //.1.3.6.1.4.1.32050.2.1.27.1.1 = 1
@@ -57,7 +56,7 @@ echo(" PACKETFLUX-MIB ");
 //.1.3.6.1.4.1.32050.2.1.27.6.6 = -1000
 
 $index_analog = '.1.3.6.1.4.1.32050.2.1.27';
-$packetflux_analog = snmpwalk_numericoids($device, $index_analog, array(), 'SNMPv2', mib_dirs());
+$packetflux_analog = snmpwalk_numericoids($device, $index_analog, array(), 'SNMPv2');
 
 $oids_analog[0] = array('class' => 'temperature', 'scale' => 0.1);
 $oids_analog[1] = array('class' => 'voltage',     'scale' => 0.0001);

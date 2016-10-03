@@ -11,16 +11,13 @@
  *
  */
 
-$mib = 'CISCO-FLASH-MIB';
-echo(" $mib ");
-
 // CISCO-FLASH-MIB::ciscoFlashDevicesSupported.0 = Gauge32: 7
-$ciscoFlashDevicesSupported = snmp_get($device, "ciscoFlashDevicesSupported.0", "-Ovq", $mib, mib_dirs('cisco')); // Number of Flash devices supported by the system
+$ciscoFlashDevicesSupported = snmp_get($device, "ciscoFlashDevicesSupported.0", "-Ovq", 'CISCO-FLASH-MIB'); // Number of Flash devices supported by the system
 
 if ((int)$ciscoFlashDevicesSupported > 0)
 {
-  $ciscoFlashDeviceTable = snmpwalk_cache_oid($device, 'ciscoFlashDeviceTable', NULL, $mib . ':OLD-CISCO-CHASSIS-MIB', mib_dirs('cisco'));
-  //$ciscoFlashDeviceTable = snmpwalk_cache_oid($device, 'ciscoFlashDeviceName', NULL, $mib . ':OLD-CISCO-CHASSIS-MIB', mib_dirs('cisco'));
+  $ciscoFlashDeviceTable = snmpwalk_cache_oid($device, 'ciscoFlashDeviceTable', NULL, 'CISCO-FLASH-MIB:OLD-CISCO-CHASSIS-MIB');
+  //$ciscoFlashDeviceTable = snmpwalk_cache_oid($device, 'ciscoFlashDeviceName', NULL, 'CISCO-FLASH-MIB:OLD-CISCO-CHASSIS-MIB');
 
   if ($GLOBALS['snmp_status'])
   {
@@ -43,7 +40,7 @@ if ((int)$ciscoFlashDevicesSupported > 0)
     //$oids = array('ciscoFlashDeviceDescr', 'ciscoFlashDeviceRemovable', 'ciscoFlashDevicePartitions', 'ciscoFlashDeviceSizeExtended');
     //foreach ($oids as $oid)
     //{
-    //  $ciscoFlashDeviceTable = snmpwalk_cache_oid($device_tmp, $oid, $ciscoFlashDeviceTable, $mib . ':OLD-CISCO-CHASSIS-MIB', mib_dirs('cisco'));
+    //  $ciscoFlashDeviceTable = snmpwalk_cache_oid($device_tmp, $oid, $ciscoFlashDeviceTable, 'CISCO-FLASH-MIB:OLD-CISCO-CHASSIS-MIB');
     //  if ($oid == 'ciscoFlashDeviceSizeExtended')
     //  {
     //    $has_hc = $GLOBALS['snmp_status'];
@@ -53,8 +50,8 @@ if ((int)$ciscoFlashDevicesSupported > 0)
 
     sleep(5); // Yes, really.. sleep here, because cisco freeze
 
-    //$ciscoFlashPartitionTable = snmpwalk_cache_twopart_oid($device_tmp, 'ciscoFlashPartitionTable', NULL, $mib, mib_dirs('cisco'));
-    $ciscoFlashPartitionTable = snmpwalk_cache_twopart_oid($device_tmp, 'ciscoFlashPartitionName', NULL, $mib, mib_dirs('cisco'));
+    //$ciscoFlashPartitionTable = snmpwalk_cache_twopart_oid($device_tmp, 'ciscoFlashPartitionTable', NULL, 'CISCO-FLASH-MIB');
+    $ciscoFlashPartitionTable = snmpwalk_cache_twopart_oid($device_tmp, 'ciscoFlashPartitionName', NULL, 'CISCO-FLASH-MIB');
     /*
     if ($has_hc)
     {
@@ -65,20 +62,22 @@ if ((int)$ciscoFlashDevicesSupported > 0)
     foreach ($oids as $oid)
     {
       sleep(3); // Yes, really.. sleep here, because cisco freeze
-      $ciscoFlashPartitionTable = snmpwalk_cache_twopart_oid($device_tmp, $oid, $ciscoFlashPartitionTable, $mib, mib_dirs('cisco'));
+      $ciscoFlashPartitionTable = snmpwalk_cache_twopart_oid($device_tmp, $oid, $ciscoFlashPartitionTable, 'CISCO-FLASH-MIB');
     }
     */
     if (OBS_DEBUG > 1 && count($ciscoFlashPartitionTable)) { print_vars($ciscoFlashPartitionTable); }
 
+    /* Now this module run as last, sleep and disable mib not required
     if ($GLOBALS['snmp_error_code'] == 1002)
     {
       // We get timeout error here, f* cisco with your shit ;)
       // Additional sleep here and completely disable this mib now, for do not use it next time...
       sleep(5);
-      set_entity_attrib('device', $device, 'mib_' . $mib, "0"); /// FIXME. Note for myself, replace later with set_device_mibs_disabled(), not released yet
-      log_event('Note, polling/discovery by MIB "' . $mib . '" disabled, due to produced many Timeout errors. You can enable it again in device "Properties -> MIBs" page.', $device, 'device', $device['device_id'], 'warning');
+      set_entity_attrib('device', $device, 'mib_' . 'CISCO-FLASH-MIB', "0"); /// FIXME. Note for myself, replace later with set_device_mibs_disabled(), not released yet
+      log_event('Note, polling/discovery by MIB "' . 'CISCO-FLASH-MIB' . '" disabled, due to produced many Timeout errors. You can enable it again in device "Properties -> MIBs" page.', $device, 'device', $device['device_id'], 'warning');
     }
     sleep(5); // Yes, really.. sleep here, because cisco freeze and next discovery module return empty
+    */
   }
 
   foreach ($ciscoFlashDeviceTable as $flash_index => $flash)
@@ -137,8 +136,8 @@ if ((int)$ciscoFlashDevicesSupported > 0)
       // FIXME. Skip based on ciscoFlashPartitionStatus: readOnly, runFromFlash, readWrite
       //if ($partition['ciscoFlashPartitionStatus'] != 'readWrite') { continue; }
 
-      //discover_storage($valid['storage'], $device, $index, $fstype, $mib, $descr, 1, $size, $used, $hc);
-      discover_storage($valid['storage'], $device, $index, $fstype, $mib, $descr, 1, 1, 0, $hc); // Fake size/used - updated later by poller
+      //discover_storage($valid['storage'], $device, $index, $fstype, 'CISCO-FLASH-MIB', $descr, 1, $size, $used, array('storage_hc' => $hc));
+      discover_storage($valid['storage'], $device, $index, $fstype, 'CISCO-FLASH-MIB', $descr, 1, 1, 0, array('storage_hc' => $hc)); // Fake size/used - updated later by poller
     }
   }
 }

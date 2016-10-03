@@ -11,7 +11,8 @@
  *
  */
 
-$version  = trim(snmp_get($device, "swFirmwareVersion.0", "-Ovq", 'SW-MIB', mib_dirs('brocade')),'"');
+$version  = snmp_get($device, 'swFirmwareVersion.0', '-Ovq', 'SW-MIB');
+$version  = ltrim($version, 'v');
 $hardware = $entPhysical['entPhysicalDescr'];
 $serial   = $entPhysical['entPhysicalSerialNum'];
 

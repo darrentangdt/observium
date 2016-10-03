@@ -1,9 +1,9 @@
 -- ==================================================================
--- Copyright (C) 2007 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- 
 -- Description: HUAWEI-OSPFV3-MIB.mib, The HUAWEI-OSPFV3-MIB provides information about OSPFv3
 -- Reference: draft-ietf-ospf-ospfv3-mib-11
--- Version:    V1.0
+-- Version:    V2.12
 -- History:
 -- ==================================================================
 
@@ -29,7 +29,7 @@
                     FROM OSPF-MIB; 
     
     hwOspfv3 MODULE-IDENTITY 
-            LAST-UPDATED "200706122000Z" 
+            LAST-UPDATED "201505031110Z" 
         ORGANIZATION 
                  "Huawei Technologies Co.,Ltd."
             CONTACT-INFO 
@@ -47,7 +47,13 @@
                   RFC draft-ietf-ospf-ospfv3-mib-11;  
                   see the RFC itself for full legal 
                   notices." 
-    
+ 
+             REVISION "201505031110Z"
+             DESCRIPTION "Added hwOspfv3IntraAreaRouterIdConflictRecovered to indicates process id" 
+                              
+             REVISION "201504031110Z"
+             DESCRIPTION "Added hwOspfv3IntraAreaRouterIdConflictRecovered to indicates the routerid conflict recovered" 
+            
              REVISION "200706122100Z" 
              DESCRIPTION -- RFC Editor assigns RFC xxxx 
                  "Initial version, published as RFC xxxx" 
@@ -381,6 +387,7 @@
                This object is persistent, and when written, the
                entity SHOULD save the change to non-volatile
                storage."
+           DEFVAL { 100000 }    
            ::= { hwOspfv3GeneralGroup 18 }
 
     -- The OSPFv3 Area Data Structure contains information 
@@ -491,6 +498,7 @@
                 "The total number of area border routers 
                 reachable within this area. This is initially zero, 
                 and is calculated in each SPF Pass." 
+            DEFVAL { 0 } 
             ::= { hwOspfv3AreaEntry 4 } 
  
     hwOspfv3AreaAsBdrRtrCount OBJECT-TYPE 
@@ -502,6 +510,7 @@
                 routers reachable within this area. This is 
                 initially zero, and is calculated in each SPF 
                 Pass." 
+            DEFVAL { 0 }               
             ::= { hwOspfv3AreaEntry 5 } 
  
     hwOspfv3AreaScopeLsaCount OBJECT-TYPE 
@@ -512,6 +521,7 @@
                 "The total number of Area-Scope link state  
                 advertisements in this area's link state  
                 database." 
+             DEFVAL { 0 }                 
             ::= { hwOspfv3AreaEntry 6 } 
  
     hwOspfv3AreaScopeLsaCksumSum OBJECT-TYPE 
@@ -2455,7 +2465,36 @@
         DESCRIPTION
             "Neighbor state change reason."
         ::= { hwOspfv3NotificationEntry 6 }           
-                               
+    
+    hwOspfv3ProcessId OBJECT-TYPE
+            SYNTAX Integer32 (1..65535)
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The process ID indicates the OSPFv3 process number. The value ranges from 1 to 65535."
+            ::= { hwOspfv3NotificationEntry 7 }
+            
+    hwOspfv3AreaIdIndex OBJECT-TYPE
+            SYNTAX          HWOspfv3AreaIdTc 
+            MAX-ACCESS      read-only 
+            STATUS          current 
+            DESCRIPTION 
+                "A 32-bit integer uniquely identifying an area. 
+                Area ID 0 is used for the OSPFv3 backbone." 
+            ::= { hwOspfv3NotificationEntry 8 }
+                  
+     hwOspfv3NewRouterId OBJECT-TYPE
+            SYNTAX         HWOspfv3RouterIdTc 
+            MAX-ACCESS     read-only 
+            STATUS         current 
+            DESCRIPTION
+                "A 32-bit integer uniquely identifying the 
+                router in the Autonomous System. To ensure 
+                uniqueness, this may default to the value of 
+                one of the router's IPv4 host addresses, 
+                represented as a 32-bit unsigned integer, 
+                if IPv4 is configured on the router." 
+            ::= { hwOspfv3NotificationEntry 9 }                           
     -- Notification definitions  
  
    hwOspfv3VirtIfStateChange NOTIFICATION-TYPE 
@@ -2676,7 +2715,14 @@
             When this notification is received, all the keys must be reset
             to avoid the possibility of replay attacks." 
         ::= { hwOspfv3Notifications 14 }                  
-    
+
+   hwOspfv3IntraAreaRouterIdConflictRecovered NOTIFICATION-TYPE 
+        OBJECTS { hwOspfv3ProcessId, hwOspfv3AreaIdIndex, hwOspfv3RouterId, hwOspfv3NewRouterId }  
+        STATUS       current 
+        DESCRIPTION 
+           "The object is used to monitor router ID conflict recovery in an intra area." 
+        ::= { hwOspfv3Notifications 15 } 
+            
     -- conformance information 
  
     hwOspfv3Groups      OBJECT IDENTIFIER ::= { hwOspfv3Conformance 1 } 
@@ -3180,7 +3226,10 @@
                             hwOspfv3PacketSrc, 
                             hwOspfv3IfName,
                             hwOspfv3IfStateChgReason,
-                            hwOspfv3NbrStateChgReason                            
+                            hwOspfv3NbrStateChgReason,
+                            hwOspfv3ProcessId,
+                            hwOspfv3AreaIdIndex,
+                            hwOspfv3NewRouterId                            
                             } 
             STATUS          current 
             DESCRIPTION 
@@ -3203,7 +3252,8 @@
                             hwOspfv3VirtNbrRestartHelperStatusChange,
                             hwOspfv3NssaTranslatorStatusChange,
                             hwOspfv3LastAuthKeyExpiry,
-                            hwOspfv3AuthSequenceNumWrap
+                            hwOspfv3AuthSequenceNumWrap,
+                            hwOspfv3IntraAreaRouterIdConflictRecovered
                             } 
             STATUS          current 
             DESCRIPTION 

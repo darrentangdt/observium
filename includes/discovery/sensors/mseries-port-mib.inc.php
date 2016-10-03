@@ -44,13 +44,11 @@ MSERIES-PORT-MIB::smartPortLowPowerAlarmThreshold.12 = INTEGER: -50
 
 */
 
-echo(' MSERIES-PORT-MIB ');
-
 $oids = array();
 $todo = array ('smartPortName', 'smartPortPower', 'smartPortHighPowerAlarmThreshold', 'smartPortLowPowerAlarmThreshold', 'smartPortStatus');
 foreach ($todo as $table)
 {
-  $oids = snmpwalk_cache_oid($device, $table, $oids, 'MSERIES-PORT-MIB', mib_dirs('smartoptics'));
+  $oids = snmpwalk_cache_oid($device, $table, $oids, 'MSERIES-PORT-MIB');
 }
 
 $pwr_pfx    = ".1.3.6.1.4.1.30826.1.3.1.2.1.1.5";

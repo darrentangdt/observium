@@ -15,9 +15,9 @@ echo(" SAF-IPRADIO ");
 
 // Getting Radios
 
-$radios_snmp = snmpwalk_cache_oid($device, "radioTable", array(), "SAF-IPRADIO", mib_dirs('saf'));
-$radios_snmp = snmpwalk_cache_oid($device, "ModemEntry", $radios_snmp, "SAF-IPRADIO", mib_dirs('saf'));
-$radios_snmp = snmpwalk_cache_oid($device, "modemStatistics", $radios_snmp, "SAF-IPRADIO", mib_dirs('saf'));
+$radios_snmp = snmpwalk_cache_oid($device, "radioTable", array(), "SAF-IPRADIO");
+$radios_snmp = snmpwalk_cache_oid($device, "ModemEntry", $radios_snmp, "SAF-IPRADIO");
+$radios_snmp = snmpwalk_cache_oid($device, "modemStatistics", $radios_snmp, "SAF-IPRADIO");
 
 // Goes through the SNMP radio data
 foreach ($radios_snmp as $radio_index => $radio)

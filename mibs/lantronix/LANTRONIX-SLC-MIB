@@ -1,12 +1,13 @@
 LANTRONIX-SLC-MIB DEFINITIONS ::= BEGIN
 
--- This MIB defines the management information for Lantronix SecureLinx
--- Console Managers.  
+-- This MIB defines the management information for Lantronix Secure 
+-- Console Managers and Advanced Console Managers.  
 
 IMPORTS
-    MODULE-IDENTITY, OBJECT-TYPE, IpAddress, NOTIFICATION-TYPE
+    MODULE-IDENTITY, OBJECT-TYPE, 
+    Integer32, Unsigned32, IpAddress, NOTIFICATION-TYPE, TimeTicks
         FROM SNMPv2-SMI
-    TEXTUAL-CONVENTION
+    TEXTUAL-CONVENTION, MacAddress
         FROM SNMPv2-TC
     Ipv6Address
         FROM IPV6-TC
@@ -14,16 +15,75 @@ IMPORTS
         FROM LANTRONIX-MIB;
 
 slc MODULE-IDENTITY
-    LAST-UPDATED "200912090000Z"
+    LAST-UPDATED "201604170000Z"
     ORGANIZATION "Lantronix, Inc."
     CONTACT-INFO "Lantronix Technical Support
-                  15353 Barranca Parkway
-                  Irvine, CA 92618 USA
-                  +1 800 422-7044
+                  167 Technology Drive 
+                  Irvine, CA 92618 USA 
+                  +1 800 526-8766 
                   snmp@lantronix.com"
-    DESCRIPTION  "MIB module for managing Lantronix SecureLinx Console Managers"
+    DESCRIPTION  "MIB module for managing Lantronix Secure Console Managers 
+                  and Advanced Console Managers"
 
     -- revision history
+
+    REVISION     "201604170000Z"  -- April 17, 2016
+    DESCRIPTION  "Added slc*IPv6 objects for new IPv6-related support, 
+                  added slcNetEthIfMacAddress, slcServSysRPMLogSize, 
+                  slcServSysOtherLogSize, slcServSSHDSAKeys, 
+                  slcDevPortCfgMinimizeLatency, slcDevPortCfgTelnetSoftIAC, 
+                  slcDevPortCfgSendTermString, slcDevPortCfgTerminationString, 
+                  slcDevPortCfgPowerManagementSeq, slcDevPortCfgPowerSupplies, 
+                  slcDevPortCfgToggleDTR, slcDevPortCfgTokenAction,
+                  slcDevPortCfgTokenSendString, slcDevPortCfgTokenPowerSupply, 
+                  slcDevPortCfgTokenPowerAction, and slcDevRPM section."
+
+    REVISION     "201502240000Z"  -- February 24, 2015
+    DESCRIPTION  "Added slcServSSHTimeoutDataDirection, 
+                  slcServTelnetTimeoutDataDirection, slcDevPortCfgUSBVBUS,  
+                  slcDevPortCfgAssertDTR, slcDevPortCfgPortType, 
+                  slcDevPortCfgTelnetTimeoutDataDirection, 
+                  slcDevPortCfgSSHTimeoutDataDirection, 
+                  slcDevPortCfgTCPTimeoutDataDirection, 
+                  slcDevPortCfgIdleTimeoutMessage, 
+                  slcDevPortCfgNumberOfSessionsMessage, and
+                  slcSystemWebServer."
+
+    REVISION     "201407100000Z"  -- July 10, 2014
+    DESCRIPTION  "Added slcNetSecurityFIPSMode, slcDevPortCfgDevPrompt, 
+                  slcDevPortCfgDevNumOutlets, slcDevPortCfgDevNumExpOutlets, 
+                  slcDevIntModem section, slcEventSDCardAction, and 
+                  slcEventNoDialToneAlarm."
+
+    REVISION     "201312060000Z"  -- December 06, 2013
+    DESCRIPTION  "Added slcDevPortCfgReversePinout."
+
+    REVISION     "201302200000Z"  -- February 20, 2013
+    DESCRIPTION  "Added slcNetVPN section, slcServSNMPv1v2, slcServSNMPNMS2, 
+                  slcServSiteDialbackRetries, slcAuthLDAPUserFilter, 
+                  slcAuthLDAPGroupFilter, slcAuthLDAPGroupMembershipAttr, 
+                  slcAuthLDAPGroupMembershipDN, slcAuthRADIUSUseVSA, 
+                  slcAuthGroups section, slcDevConGroup, 
+                  slcDevPortCfgDialbackRetries, slcDevPortCfgGroup, 
+                  slcDevPortCfgIPMask, slcPCCardCfgDialbackRetries, 
+                  slcPCCardCfgGroup, slcDevUSBCfgDialbackRetries, 
+                  slcDevUSBCfgDialtoneCheck, slcDevUSBCfgGroup, 
+                  slcSystemModelString, slcSystemWebGroup, 
+                  slcSystemWebInterface, slcSystemInternalTempLow, 
+                  slcSystemInternalTempHigh, slcSystemCalibrateTemp, 
+                  slcSystemWebBanner, slcDevPortErrorStatus, and 
+                  slcEventDevicePortError."
+
+    REVISION     "201004070000Z"  -- April 7, 2010
+    DESCRIPTION  "Added slcDevPortCfgCHAPAuthLocalUsers, slcDevPortCfgUseSites,
+                  slcPCCardCfgCHAPAuthLocalUsers, slcPCCardCfgUseSites, 
+                  slcDevUSBCfgCHAPAuthLocalUsers, slcDevUSBCfgUseSites, and 
+                  the slcServSite section."
+
+    REVISION     "201001190000Z"  -- January 19, 2010
+    DESCRIPTION  "Added slcDevPortCfgUSBState, slcDevPortCfgUSBLogTo, 
+                  slcDevPortCfgUSBMaxFiles, slcDevPortCfgUSBMaxSize, 
+                  slcDevUSB section and slcEventUSBAction."
 
     REVISION     "200912090000Z"  -- December 9, 2009
     DESCRIPTION  "Added slcNetEthIfMTU, slcNetEthIPv6, slcNetEthBonding, 
@@ -204,7 +264,8 @@ UserGroup ::= TEXTUAL-CONVENTION
     SYNTAX      INTEGER {
         default(1),
         power(2),
-        administrators(3)
+        administrators(3),
+        custom(4)
     }
 
 UserRights ::= TEXTUAL-CONVENTION
@@ -213,21 +274,46 @@ UserRights ::= TEXTUAL-CONVENTION
                  rights associated with it.  The string is a comma-separated 
                  list of rights:
                    ad - full administrative rights
+                   do - Device Ports operations
                    dp - configure Device Ports
                    dr - Diagnostics and Reports
                    dt - configure Date and Time
                    fc - manage Firmware and Configurations
                    lu - configure Local Users
+                   md - configure Internal Modem
                    nt - configure Networking
                    pc - configure PC Card
                    ra - configure Remote Authentication
+                   rp - manage Remote Power Managers
                    rs - Reboot or Shutdown the SLC
+                   sd - manage SD Card
                    sk - configure SSH Keys
-                   sn - configure SLC Network
+                   sn - configure Secure Ltx Network
                    sv - configure Services
+                   ub - configure USB Devices
                    um - configure User Menus
                    wb - Web Access"
     SYNTAX      OCTET STRING (SIZE (0..255))
+
+TimeoutDataDirection ::= TEXTUAL-CONVENTION
+    STATUS      current
+    DESCRIPTION "The direction of data used to determine if a connection has 
+                 timed out."
+    SYNTAX INTEGER {
+        incomingNetwork(1),
+        outgoingNetwork(2),
+        bothDirections(3)
+    }
+
+RPMTowerIndex ::= TEXTUAL-CONVENTION
+    STATUS      current
+    DESCRIPTION "The unique identifier for an RPM tower or unit."
+    SYNTAX      Integer32 (1..2)
+
+RPMOutletIndex ::= TEXTUAL-CONVENTION
+    STATUS      current
+    DESCRIPTION "The unique identifier for an RPM outlet."
+    SYNTAX      Integer32 (1..60)
 
 
 -- Groups in slc
@@ -269,7 +355,8 @@ slcNetEthIfEntry OBJECT-TYPE
     MAX-ACCESS  not-accessible
     STATUS      current
     DESCRIPTION 
-        "An entry with the attributes for each Ethernet interface."
+        "An entry with the attributes for each Ethernet interface.  Ethernet 
+         Port Eth1 is always index 1, and Eth2 is always index 2."
     INDEX       { slcNetEthIfIndex }
     ::= { slcNetEthIfTable 1 }
 
@@ -278,8 +365,9 @@ SlcNetEthIfEntry ::= SEQUENCE {
     slcNetEthIfSource           INTEGER,
     slcNetEthIfMode             INTEGER,
     slcNetEthIfIPv6Addr         Ipv6Address,
-    slcNetEthIfIPv6PrefixLength INTEGER (0..128),
-    slcNetEthIfMTU              Integer32
+    slcNetEthIfIPv6PrefixLength INTEGER,
+    slcNetEthIfMTU              Integer32,
+    slcNetEthIfMacAddress       MacAddress
 }
 
 slcNetEthIfIndex OBJECT-TYPE
@@ -299,10 +387,12 @@ slcNetEthIfSource OBJECT-TYPE
 
 slcNetEthIfMode OBJECT-TYPE
     SYNTAX      INTEGER { autoNegotiate(1), 
-                          10mbitHalfDuplex(2), 
-                          10mbitFullDuplex(3), 
-                          100mbitHalfDuplex(4),
-                          100mbitFullDuplex(5)
+                          halfDuplex10mbit(2),
+                          fullDuplex10mbit(3),
+                          halfDuplex100mbit(4),
+                          fullDuplex100mbit(5),
+                          halfDuplex1000mbit(6),
+                          fullDuplex1000mbit(7)
                         }
     MAX-ACCESS  read-only
     STATUS      current
@@ -330,11 +420,19 @@ slcNetEthIfMTU OBJECT-TYPE
     DESCRIPTION "The Maximum Transmission Unit for the Ethernet interface."
     ::= { slcNetEthIfEntry 6 }
 
+slcNetEthIfMacAddress OBJECT-TYPE
+    SYNTAX      MacAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The MAC Address for the Ethernet interface."
+    ::= { slcNetEthIfEntry 7 }
+
 slcNetEthGateway OBJECT-TYPE
     SYNTAX      IpAddress
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The gateway for routing non-Eth1 and non-Eth2 network traffic."
+    DESCRIPTION "The gateway for routing non-Eth1 and non-Eth2 network IPv4 
+                 traffic."
     ::= { slcNetEth 3 }
 
 slcNetEthGatewayPrecedence OBJECT-TYPE
@@ -379,21 +477,21 @@ slcNetEthDNS1 OBJECT-TYPE
     SYNTAX      IpAddress
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The IP Address of DNS server #1."
+    DESCRIPTION "The IPv4 Address of DNS server #1."
     ::= { slcNetEth 9 }
 
 slcNetEthDNS2 OBJECT-TYPE
     SYNTAX      IpAddress
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The IP Address of DNS server #2."
+    DESCRIPTION "The IPv4 Address of DNS server #2."
     ::= { slcNetEth 10 }
 
 slcNetEthDNS3 OBJECT-TYPE
     SYNTAX      IpAddress
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The IP Address of DNS server #3."
+    DESCRIPTION "The IPv4 Address of DNS server #3."
     ::= { slcNetEth 11 }
 
 slcNetEthDomain OBJECT-TYPE
@@ -422,7 +520,7 @@ slcNetEthPingIPAddress OBJECT-TYPE
     ::= { slcNetEth 14 }
 
 slcNetEthPingInterface OBJECT-TYPE
-    SYNTAX      INTEGER { ethernet1(1), ethernet(2) }
+    SYNTAX      INTEGER { ethernet1(1), ethernet2(2) }
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The Ethernet interface used to determine if the alternate 
@@ -431,6 +529,7 @@ slcNetEthPingInterface OBJECT-TYPE
 
 slcNetEthPingDelay OBJECT-TYPE
     SYNTAX      Integer32 (1..250)
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The delay, in seconds, between pings used to determine if the 
@@ -448,9 +547,8 @@ slcNetEthPingFailed OBJECT-TYPE
 slcNetEthBonding OBJECT-TYPE
     SYNTAX      INTEGER { disabled(1), 
                           activeBackup(2),
-                          8023adLayer2(3), 
-                          8023adLayer34(4), 
-                          adaptiveLoadBalancing(5) }
+                          aggregation(3), 
+                          adaptiveLoadBalancing(4) }
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The Ethernet network redundancy/load balancing setting."
@@ -463,6 +561,43 @@ slcNetEthIPv6 OBJECT-TYPE
     DESCRIPTION "If enabled, IPv6 is enabled."
     ::= { slcNetEth 19 }
 
+slcNetEthGatewayIPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The default gateway for routing non-Eth1 and non-Eth2 IPv6 
+                 network traffic."
+    ::= { slcNetEth 20 }
+
+slcNetEthDNS1IPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv6 Address of DNS server #1."
+    ::= { slcNetEth 21 }
+
+slcNetEthDNS2IPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv6 Address of DNS server #2."
+    ::= { slcNetEth 22 }
+
+slcNetEthDNS3IPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv6 Address of DNS server #3."
+    ::= { slcNetEth 23 }
+
+slcNetEthPreferIPv4DNS OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, IPv4 DNS records will be preferred when DNS 
+                 hostname lookups are performed. Otherwise IPv6 records will 
+                 be preferred (when IPv6 is enabled)."
+    ::= { slcNetEth 24 }
 
 slcNetFirewall      OBJECT IDENTIFIER ::= { slcNetwork 2 }
 
@@ -479,14 +614,15 @@ slcNetFirewallReject OBJECT-TYPE
     STATUS      obsolete
     DESCRIPTION "If enabled, returns a 'connection denied' message on blocked 
                  ports.  If disabled, ignores attempts to connect to a blocked 
-                 port."
+                 port.  This object is deprecated."
     ::= { slcNetFirewall 2 }
 
 slcNetFirewallPing OBJECT-TYPE
     SYNTAX      EnabledState
     MAX-ACCESS  read-only
     STATUS      obsolete
-    DESCRIPTION "If enabled, the SLC is invisible to pings."
+    DESCRIPTION "If enabled, the SLC is invisible to pings.  This object is 
+                deprecated."
     ::= { slcNetFirewall 3 }
 
 slcNetFirewallSSH OBJECT-TYPE
@@ -494,7 +630,8 @@ slcNetFirewallSSH OBJECT-TYPE
     MAX-ACCESS  read-only
     STATUS      obsolete
     DESCRIPTION "If enabled, the SSH port is open.  If disabled, the SSH 
-                 port is blocked to network traffic."
+                 port is blocked to network traffic.  This object is 
+                 deprecated."
     ::= { slcNetFirewall 4 }
 
 slcNetFirewallTelnet OBJECT-TYPE
@@ -502,7 +639,8 @@ slcNetFirewallTelnet OBJECT-TYPE
     MAX-ACCESS  read-only
     STATUS      obsolete
     DESCRIPTION "If enabled, the Telnet port is open.  If disabled, the Telnet 
-                 port is blocked to network traffic."
+                 port is blocked to network traffic.  This object is 
+                 deprecated."
     ::= { slcNetFirewall 5 }
 
 slcNetFirewallHTTP OBJECT-TYPE
@@ -510,7 +648,8 @@ slcNetFirewallHTTP OBJECT-TYPE
     MAX-ACCESS  read-only
     STATUS      obsolete
     DESCRIPTION "If enabled, the HTTP port is open.  If disabled, the HTTP 
-                 port is blocked to network traffic."
+                 port is blocked to network traffic.  This object is 
+                 deprecated."
     ::= { slcNetFirewall 6 }
 
 slcNetFirewallHTTPS OBJECT-TYPE
@@ -518,7 +657,8 @@ slcNetFirewallHTTPS OBJECT-TYPE
     MAX-ACCESS  read-only
     STATUS      obsolete
     DESCRIPTION "If enabled, the HTTPS port is open.  If disabled, the HTTPS 
-                 port is blocked to network traffic."
+                 port is blocked to network traffic.  This object is 
+                 deprecated."
     ::= { slcNetFirewall 7 }
 
 slcNetFirewallSMBCIFS OBJECT-TYPE
@@ -526,7 +666,8 @@ slcNetFirewallSMBCIFS OBJECT-TYPE
     MAX-ACCESS  read-only
     STATUS      obsolete
     DESCRIPTION "If enabled, the SMBCIFS port is open.  If disabled, the 
-                 SMBCIFS port is blocked to network traffic."
+                 SMBCIFS port is blocked to network traffic.  This object is 
+                 deprecated."
     ::= { slcNetFirewall 8 }
 
 slcNetFirewallRulesetNumber OBJECT-TYPE
@@ -641,21 +782,25 @@ slcNetFirewallMappingIfac OBJECT-TYPE
                           ethernet2(2), 
                           upperPCCard(3),
                           lowerPCCard(4),
-                          devicePort(5) }
+                          devicePort(5),
+                          usbPort(6),
+                          internalModem(7) }
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The interface which has an IP Filter Ruleset assigned to it.  
-                 If the interface is devicePort, slcNetFirewallMappingIfacId 
-                 defines which Device Port (with an attached modem) the Ruleset 
-                 is assigned to."
+                 If the interface is devicePort or usbPort, 
+                 slcNetFirewallMappingIfacId defines which Device Port or USB 
+                 Port (with an attached modem) the Ruleset is assigned to."
     ::= { slcNetFirewallMappingEntry 2 }
 
 slcNetFirewallMappingIfacId OBJECT-TYPE
     SYNTAX      Integer32 (0..48)
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The identifier for a Device Port, if slcNetFirewallMappingIfac 
-                 equals devicePort(5).  Otherwise equals zero."
+    DESCRIPTION "The identifier for a Device Port if slcNetFirewallMappingIfac 
+                 equals devicePort(5), or the identifier for a USB Port if
+                 slcNetFirewallMappingIfac equals usbPort.  Otherwise equals 
+                 zero."
     ::= { slcNetFirewallMappingEntry 3 }
 
 slcNetFirewallMappingRuleset OBJECT-TYPE
@@ -751,6 +896,201 @@ slcNetRouteStaticGateway OBJECT-TYPE
     DESCRIPTION "The gateway for the static route."
     ::= { slcNetRouteStaticEntry 4 }
 
+slcNetVPN       OBJECT IDENTIFIER ::= { slcNetwork 4 }
+
+slcNetVPNTunnel OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, the SLC is configured to initiate a VPN tunnel."
+    ::= { slcNetVPN 1 }
+
+slcNetVPNStatus OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A string giving the current status of the VPN tunnel."
+    ::= { slcNetVPN 2 }
+
+slcNetVPNName OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(0..20))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The name of the VPN tunnel."
+    ::= { slcNetVPN 3 }
+
+slcNetVPNEthPort OBJECT-TYPE
+    SYNTAX      INTEGER { ethernet1(1), ethernet2(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The Ethernet interface used for the VPN tunnel."
+    ::= { slcNetVPN 4 }
+
+slcNetVPNRemoteHost OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IP Address of the host on the remote side of the tunnel."
+    ::= { slcNetVPN 5 }
+
+slcNetVPNRemoteId OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(0..20))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "How the remote host should be identified for authentication."
+    ::= { slcNetVPN 6 }
+
+slcNetVPNRemoteHop OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If the remote host is behind a gateway, this specifies the 
+                 IP Address of the gateway's public network interface." 
+    ::= { slcNetVPN 7 }
+
+slcNetVPNRemoteSubnet OBJECT-TYPE
+    SYNTAX      OCTET STRING 
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "One or more subnets behind the remote host, expressed in 
+                 CIDR notation (IP Address/mask bits).  Multiple subnets are 
+                 separated by a comma."
+    ::= { slcNetVPN 8 }
+
+slcNetVPNLocalId OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(0..20))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "How the SLC should be identified for authentication."
+    ::= { slcNetVPN 9 }
+
+slcNetVPNLocalHop OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If the SLC is behind a gateway, this specifies the 
+                 IP Address of the gateway's public network interface." 
+    ::= { slcNetVPN 10 }
+
+slcNetVPNLocalSubnet OBJECT-TYPE
+    SYNTAX      OCTET STRING 
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "One or more subnets behind the SLC, expressed in 
+                 CIDR notation (IP Address/mask bits).  Multiple subnets are 
+                 separated by a comma."
+    ::= { slcNetVPN 11 }
+
+slcNetVPNIKENegotiation OBJECT-TYPE
+    SYNTAX      INTEGER { main(1), aggressive(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The type of mode used by the SLC and the remote host for the 
+                 IKE protocol, which exchanges security options between two 
+                 hosts which want to communicate via IPSec."
+    ::= { slcNetVPN 12 }
+
+slcNetVPNIKEEncryption OBJECT-TYPE
+    SYNTAX      INTEGER { any(1), tripledes(2), aes(3) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The type of encryption used for IKE negotiation."
+    ::= { slcNetVPN 13 }
+
+slcNetVPNIKEAuthentication OBJECT-TYPE
+    SYNTAX      INTEGER { any(1), sha1(2), md5(3) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The type of authentication used for IKE negotiation."
+    ::= { slcNetVPN 14 }
+
+slcNetVPNIKEDHGroup OBJECT-TYPE
+    SYNTAX      INTEGER { any(1), dhg2(2), dhg5(3) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The type of Diffie-Hellman Group used for IKE negotiation."
+    ::= { slcNetVPN 15 }
+
+slcNetVPNESPEncryption OBJECT-TYPE
+    SYNTAX      INTEGER { any(1), tripledes(2), aes(3) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The type of encryption used for encrypting data sent through 
+                 the tunnel."
+    ::= { slcNetVPN 16 }
+
+slcNetVPNESPAuthentication OBJECT-TYPE
+    SYNTAX      INTEGER { any(1), sha1(2), md5(3) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The type of authentication used for authenticating data sent 
+                 through the VPN tunnel."
+    ::= { slcNetVPN 17 }
+
+slcNetVPNESPDHGroup OBJECT-TYPE
+    SYNTAX      INTEGER { any(1), dhg2(2), dhg5(3) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The type of Diffie-Hellman Group used for the key exchange 
+                 for data sent through the tunnel."
+    ::= { slcNetVPN 18 }
+
+slcNetVPNAuthentication OBJECT-TYPE
+    SYNTAX      INTEGER { rsaPublicKey(1), preSharedKey(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The type of authentication used by the host on each side of 
+                 the tunnel to verify the identify of the other host."
+    ::= { slcNetVPN 19 }
+
+slcNetVPNPerfectForwardSecrecy OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "When a new IPSec SA is negotiated after the IPSec SA lifetime 
+                 expires, a new Diffie-Hellman key exchange can be performed 
+                 to generate a new session key to be used to encrypt the data 
+                 being sent through the tunnel. If this is enabled, it provides 
+                 greater security, since the old session keys are destroyed."
+    ::= { slcNetVPN 20 }
+
+slcNetVPNModeConfigClient OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If this is enabled, the SLC can receive network configuration 
+                 from the remote host. This allows the remote host to assign 
+                 an IP address/netmask to the SLC side of the VPN tunnel."
+    ::= { slcNetVPN 21 }
+
+slcNetVPNXAUTHClient OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If this is enabled, the SLC will send authentication 
+                 credentials to the remote host if they are requested. 
+                 XAUTH, or Extended Authentication, can be used as an 
+                 additional security measure on top of the Pre-Shared Key 
+                 or RSA Public Key."
+    ::= { slcNetVPN 22 }
+
+slcNetVPNXAUTHClientLogin OBJECT-TYPE
+    SYNTAX      OCTET STRING 
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If slcNetVPNXAUTHClientLogin is enabled, this is the login 
+                 used for authentication."
+    ::= { slcNetVPN 23 }
+
+slcNetSecurity  OBJECT IDENTIFIER ::= { slcNetwork 5 }
+
+slcNetSecurityFIPSMode OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, the SLC is running in FIPS mode."
+    ::= { slcNetSecurity 1 }
+
 
 -- 
 -- Services Group
@@ -786,24 +1126,43 @@ slcServNTPServer OBJECT-TYPE
     SYNTAX      IpAddress
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The IP Address of the local or public NTP server."
+    DESCRIPTION "The IPv4 Address of the local or public NTP server."
     ::= { slcServNTP 4 }
 
 slcServNTPLocalServer2 OBJECT-TYPE
     SYNTAX      IpAddress
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The IP Address of the 2nd local NTP server, if slcServNTPPoll 
-                 is set to local."
+    DESCRIPTION "The IPv4 Address of the 2nd local NTP server."
     ::= { slcServNTP 5 }
 
 slcServNTPLocalServer3 OBJECT-TYPE
     SYNTAX      IpAddress
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The IP Address of the 3rd local NTP server, if slcServNTPPoll 
-                 is set to local."
+    DESCRIPTION "The IPv4 Address of the 3rd local NTP server."
     ::= { slcServNTP 6 }
+
+slcServNTPServerIPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv6 Address of the local NTP server."
+    ::= { slcServNTP 7 }
+
+slcServNTPLocalServer2IPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv6 Address of the 2nd local NTP server."
+    ::= { slcServNTP 8 }
+
+slcServNTPLocalServer3IPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv6 Address of the 3rd local NTP server."
+    ::= { slcServNTP 9 }
 
 
 slcServSyslog       OBJECT IDENTIFIER ::= { slcServices 2 }
@@ -854,15 +1213,49 @@ slcServSysRemoteServer OBJECT-TYPE
     SYNTAX      IpAddress
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The IP Address of the remote Syslog Server."
+    DESCRIPTION "The IPv4 Address of the remote Syslog Server."
     ::= { slcServSyslog 7 }
 
 slcServSysRemoteServer2 OBJECT-TYPE
     SYNTAX      IpAddress
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The IP Address of the secondary remote Syslog Server."
+    DESCRIPTION "The IPv4 Address of the secondary remote Syslog Server."
     ::= { slcServSyslog 8 }
+
+slcServSysRemoteServerIPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv6 Address of the remote Syslog Server."
+    ::= { slcServSyslog 9 }
+
+slcServSysRemoteServer2IPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv6 Address of the secondary remote Syslog Server."
+    ::= { slcServSyslog 10 }
+
+slcServSysRPMLogSize OBJECT-TYPE
+    SYNTAX      Integer32 (5..40)
+    UNITS       "Kilobytes"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The maximum size in Kilobytes that RPM logs can grow to 
+                 before they are pruned.  When the file is pruned, it will
+                 be pruned to 50% of the RPM Log Size."
+    ::= { slcServSyslog 11 }
+
+slcServSysOtherLogSize OBJECT-TYPE
+    SYNTAX      Integer32 (5..40)
+    UNITS       "Kilobytes"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The maximum size in Kilobytes that all logs other than RPM 
+                 logs can grow to before they are pruned.  When the file is 
+                 pruned, it will be pruned to 50% of the RPM Log Size."
+    ::= { slcServSyslog 12 }
 
 slcServAuditLog     OBJECT IDENTIFIER ::= { slcServices 3 }
 
@@ -875,6 +1268,7 @@ slcServAuditState OBJECT-TYPE
 
 slcServAuditSize OBJECT-TYPE
     SYNTAX      Integer32 (5..500)
+    UNITS       "Kilobytes"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The maximum size of the audit login in Kilobytes."
@@ -908,6 +1302,7 @@ slcServSSHState OBJECT-TYPE
 
 slcServSSHTimeout OBJECT-TYPE
     SYNTAX      Integer32 (0..30)
+    UNITS       "minutes"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The timeout (in minutes) for SSH connections.  A value 
@@ -936,6 +1331,23 @@ slcServSSHV1Incoming OBJECT-TYPE
     DESCRIPTION "If enabled, incoming SSH version 1 connections are allowed."
     ::= { slcServSSH 5 }
 
+slcServSSHTimeoutDataDirection OBJECT-TYPE
+    SYNTAX      TimeoutDataDirection
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If slcServSSHTimeout is enabled, this setting indicates the 
+                 direction of data used to determine if the connection has 
+                 timed out."
+    ::= { slcServSSH 6 }
+
+slcServSSHDSAKeys OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, SSH will support DSA keys for incoming and 
+                 outgoing connections."
+    ::= { slcServSSH 7 }
+
 
 slcServTelnet       OBJECT IDENTIFIER ::= { slcServices 5 }
 
@@ -948,6 +1360,7 @@ slcServTelnetState OBJECT-TYPE
 
 slcServTelnetTimeout OBJECT-TYPE
     SYNTAX      Integer32 (0..30)
+    UNITS       "minutes"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The timeout (in minutes) for Telnet connections.  A value 
@@ -968,6 +1381,15 @@ slcServTelnetTelnetOut OBJECT-TYPE
     STATUS      current
     DESCRIPTION "If enabled, allows outgoing Telnet connections."
     ::= { slcServTelnet 4 }
+
+slcServTelnetTimeoutDataDirection OBJECT-TYPE
+    SYNTAX      TimeoutDataDirection
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If slcServTelnetTimeout is enabled, this setting indicates 
+                 the direction of data used to determine if the connection 
+                 has timed out."
+    ::= { slcServTelnet 5 }
 
 
 slcServSNMP         OBJECT IDENTIFIER ::= { slcServices 6 }
@@ -990,7 +1412,7 @@ slcServSNMPNMS OBJECT-TYPE
     SYNTAX      IpAddress
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The IP Address of the Network Management System (NMS)."
+    DESCRIPTION "The IPv4 Address of the Network Management System (NMS)."
     ::= { slcServSNMP 3 }
 
 slcServSNMPLocation OBJECT-TYPE
@@ -1060,7 +1482,7 @@ slcServSNMPv3Security OBJECT-TYPE
     ::= { slcServSNMP 12 }
 
 slcServSNMPv3Authentication OBJECT-TYPE
-    SYNTAX      INTEGER { MD5(1), SHA(2) }
+    SYNTAX      INTEGER { md5(1), sha(2) }
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "When slcServSNMPv3Security is set to authNoEncrypt or 
@@ -1068,13 +1490,41 @@ slcServSNMPv3Authentication OBJECT-TYPE
     ::= { slcServSNMP 13 }
 
 slcServSNMPv3Encryption OBJECT-TYPE
-    SYNTAX      INTEGER { DES(1), AES(2) }
+    SYNTAX      INTEGER { des(1), aes(2) }
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "When slcServSNMPv3Security is set to authEncrypt, the type 
                  of encryption used."
     ::= { slcServSNMP 14 }
 
+slcServSNMPv1v2 OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, SNMP version 1 and version 2 (which use the 
+                 Read-Only and Read-Write Communities) is enabled."
+    ::= { slcServSNMP 15 }
+
+slcServSNMPNMS2 OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv4 Address of the 2nd Network Management System (NMS)."
+    ::= { slcServSNMP 16 }
+
+slcServSNMPNMSIPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv6 Address of the Network Management System (NMS)."
+    ::= { slcServSNMP 17 }
+
+slcServSNMPNMS2IPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv6 Address of the 2nd Network Management System (NMS)."
+    ::= { slcServSNMP 18 }
 
 slcServSMTP         OBJECT IDENTIFIER ::= { slcServices 7 }
 
@@ -1359,7 +1809,7 @@ slcServWebTermDeployment OBJECT-TYPE
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The method used to launch the Java Terminal for Web SSH and 
-                 Web Telnet."
+                 Web Telnet. This object is deprecated."
     ::= { slcServWebTerm 1 }
 
 slcServWebTermBufSize OBJECT-TYPE
@@ -1368,6 +1818,252 @@ slcServWebTermBufSize OBJECT-TYPE
     STATUS      current
     DESCRIPTION "The number of lines in the Java Terminal buffer."
     ::= { slcServWebTerm 2 }
+
+
+slcServSite    OBJECT IDENTIFIER ::= { slcServices 14 }
+
+slcServSiteNumber OBJECT-TYPE
+    SYNTAX      Integer32 (0..20)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The number of entries in the Sites table."
+    ::= { slcServSite 1 }
+
+-- Sites table
+
+slcServSiteTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF SlcServSiteEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Table of Sites.  The number of entries is given by the 
+                 value of slcServSiteNumber."
+    ::= { slcServSite 2 }
+
+slcServSiteEntry OBJECT-TYPE
+    SYNTAX      SlcServSiteEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "An entry containing a Site, used for connections on a 
+                 Device Port or PC Card/USB modem."
+    INDEX       { slcServSiteIndex }
+    ::= { slcServSiteTable 1 }
+
+SlcServSiteEntry ::= SEQUENCE {
+    slcServSiteIndex                        Integer32,
+    slcServSiteName                         OCTET STRING,
+    slcServSitePort                         INTEGER,
+    slcServSitePortId                       Integer32,
+    slcServSiteLoginHost                    OCTET STRING,
+    slcServSiteCHAPSecret                   OCTET STRING,
+    slcServSiteTimeout                      Integer32,
+    slcServSiteLocalIP                      IpAddress,
+    slcServSiteRemoteIP                     IpAddress,
+    slcServSiteStaticRouteIP                IpAddress,
+    slcServSiteStaticRouteMask              IpAddress,
+    slcServSiteStaticRouteGateway           IpAddress,
+    slcServSiteDialoutNum                   OCTET STRING,
+    slcServSiteDialoutLogin                 OCTET STRING,
+    slcServSiteDialback                     EnabledState,
+    slcServSiteDialbackNum                  OCTET STRING,
+    slcServSiteDialbackDelay                Integer32,
+    slcServSiteIdleTimeout                  Integer32,
+    slcServSiteRestartDelay                 Integer32,
+    slcServSiteCBCPServerAllowNoCallback    EnabledState,
+    slcServSiteNATState                     EnabledState,
+    slcServSiteDialbackRetries              Integer32
+}
+
+slcServSiteIndex OBJECT-TYPE
+    SYNTAX      Integer32 (1..50)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Reference index for each Site."
+    ::= { slcServSiteEntry 1 }
+
+slcServSiteName OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The unique name assigned to the Site."
+    ::= { slcServSiteEntry 2 }
+
+slcServSitePort OBJECT-TYPE
+    SYNTAX      INTEGER { none(1),
+                          devicePort(2), 
+                          upperPCCard(3),
+                          lowerPCCard(4),
+                          usbPort(5),
+                          internalModem(6) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The port the Site is assigned to.  If the port is devicePort 
+                 or usbPort, slcServSitePortId defines which Device Port or USB 
+                 Port (with an attached modem) the port is assigned to."
+    ::= { slcServSiteEntry 3 }
+
+slcServSitePortId OBJECT-TYPE
+    SYNTAX      Integer32 (0..48)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The identifier for a Device Port if slcServSitePort equals 
+                 devicePort(1), or the identifier for a USB Port if 
+                 slcServSitePort equals usbPort(5).  Otherwise equals zero."
+    ::= { slcServSiteEntry 4 }
+
+slcServSiteLoginHost OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For PPP or text authentication on dialin, the user login or 
+                 CHAP host to use for authentication.  If authentication is 
+                 successful, the rest of the site parameters will be used for 
+                 the connection."
+    ::= { slcServSiteEntry 5 }
+
+slcServSiteCHAPSecret OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For PPP authentication on dialin, the CHAP secret to use for 
+                 authentication."
+    ::= { slcServSiteEntry 6 }
+
+slcServSiteTimeout OBJECT-TYPE
+    SYNTAX      Integer32 (0..30)
+    UNITS       "minutes"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The timeout (in minutes) for text connections.  A value 
+                 of 0 indicates that timeouts are disabled."
+    ::= { slcServSiteEntry 7 }
+
+slcServSiteLocalIP OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For PPP connections, the local IP Address - all zeros if it 
+                 should be negotiated."
+    ::= { slcServSiteEntry 8 }
+
+slcServSiteRemoteIP OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For PPP connections, the remote IP Address - all zeros if it 
+                 should be negotiated."
+    ::= { slcServSiteEntry 9 }
+
+slcServSiteStaticRouteIP OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For Dial-on-Demand PPP connections, the static route 
+                 IP Address for the remote network."
+    ::= { slcServSiteEntry 10 }
+
+slcServSiteStaticRouteMask OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For Dial-on-Demand PPP connections, the static route 
+                 subnet mask for the remote network."
+    ::= { slcServSiteEntry 11 }
+
+slcServSiteStaticRouteGateway OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For Dial-on-Demand PPP connections, the static route 
+                 gateway for the remote network."
+    ::= { slcServSiteEntry 12 }
+
+slcServSiteDialoutNum OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The phone number to use for dial-out connections."
+    ::= { slcServSiteEntry 13 }
+
+slcServSiteDialoutLogin OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(1..32))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For dial-out connections, the login to use for authenticating 
+                 to the remote peer; or on dial-in, the login to use if the 
+                 remote peer requests authentication (for example, a two way 
+                 CHAP handshake)."
+    ::= { slcServSiteEntry 14 }
+
+slcServSiteDialback OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, the site has permission to use modem dialback."
+    ::= { slcServSiteEntry 15 }
+
+slcServSiteDialbackNum OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The phone number to use for dial-back connections."
+    ::= { slcServSiteEntry 16 }
+
+slcServSiteDialbackDelay OBJECT-TYPE
+    SYNTAX      Integer32 
+    UNITS       "seconds"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For Dial-back, specifies the delay between the dial-in and 
+                 dial-out portion of the dialing sequence."
+    ::= { slcServSiteEntry 17 }
+
+slcServSiteIdleTimeout OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "seconds"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The timeout (in seconds) for dial-in and dial-on-demand PPP 
+                 connections.  If no traffic is received for the PPP connection 
+                 in the time defined by the idle timeout, the PPP connection 
+                 will be terminated.  A value of 0 indicates that timeouts are 
+                 disabled."
+    ::= { slcServSiteEntry 18 }
+
+slcServSiteRestartDelay OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "seconds"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The delay (in seconds) to wait before restarting dial-out or 
+                 dial-on-demand PPP connections."
+    ::= { slcServSiteEntry 19 }
+
+slcServSiteCBCPServerAllowNoCallback OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, the SLC will allow the PPP peer to select the 
+                 No Callback option during CBCP negotiation."
+    ::= { slcServSiteEntry 20 }
+
+slcServSiteNATState OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, use NAT (Network Address Translation) to allow 
+                 dial-in and dial-back users to access the network connected 
+                 to Eth1 and Eth2."
+    ::= { slcServSiteEntry 21 }
+
+slcServSiteDialbackRetries OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For Dial-back, specifies the number of times the SLC will 
+                 retry the dial-out portion of the dialing sequence if the 
+                 first attempt to dial-out fails."
+    ::= { slcServSiteEntry 22 }
+
 
 
 --
@@ -1403,7 +2099,7 @@ slcAuthLocalUserEntry OBJECT-TYPE
 
 SlcAuthLocalUserEntry ::= SEQUENCE {
     slcAuthLocalUserIndex   Integer32,
-    slcAuthLocalUserLogin   OCTET STRING (SIZE(0..32)),
+    slcAuthLocalUserLogin   OCTET STRING,
     slcAuthLocalUserUID     Unsigned32,
     slcAuthLocalUserListenPorts OCTET STRING,
     slcAuthLocalUserDataPorts   OCTET STRING,
@@ -1412,7 +2108,7 @@ SlcAuthLocalUserEntry ::= SEQUENCE {
     slcAuthLocalUserBreakSeq    OCTET STRING,
     slcAuthLocalUserMenu        OCTET STRING,
     slcAuthLocalUserDialback    EnabledState,
-    slcAuthLocalUserDialbackNum OCTET STRING
+    slcAuthLocalUserDialbackNum OCTET STRING,
     slcAuthLocalUserGroup       UserGroup,
     slcAuthLocalUserRights      UserRights,
     slcAuthLocalUserPwdExpires  EnabledState,
@@ -1446,24 +2142,24 @@ slcAuthLocalUserListenPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which the Local User has 
-                 permission to access via 'connect listen'."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which the Local 
+                 User has permission to access via 'connect listen'."
     ::= { slcAuthLocalUserEntry 4 }
 
 slcAuthLocalUserDataPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which the Local User has 
-                 permission to access via 'connect direct'."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which the Local 
+                 User has permission to access via 'connect direct'."
     ::= { slcAuthLocalUserEntry 5 }
 
 slcAuthLocalUserClearPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which the Local User has 
-                 permission to clear."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which the Local 
+                 User has permission to clear."
     ::= { slcAuthLocalUserEntry 6 }
 
 slcAuthLocalUserEscapeSeq OBJECT-TYPE
@@ -1597,6 +2293,7 @@ slcAuthLocalReuseHistory OBJECT-TYPE
 
 slcAuthLocalPasswordLifetime OBJECT-TYPE
     SYNTAX      Integer32 (1..365)
+    UNITS       "days"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The number of days until a password expires."
@@ -1604,6 +2301,7 @@ slcAuthLocalPasswordLifetime OBJECT-TYPE
 
 slcAuthLocalWarningPeriod OBJECT-TYPE
     SYNTAX      Integer32 (0..90)
+    UNITS       "days"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The number of days before a password expires that a local 
@@ -1622,6 +2320,7 @@ slcAuthLocalMaxLoginAttempts OBJECT-TYPE
 
 slcAuthLocalLockoutPeriod OBJECT-TYPE
     SYNTAX      Integer32 (0..90)
+    UNITS       "minutes"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The number of minutes the locked-out user must wait before 
@@ -1733,24 +2432,26 @@ slcAuthNISListenPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which users authenticated 
-                 via NIS have permission to access via 'connect listen'."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which users 
+                 authenticated via NIS have permission to access via 
+                 'connect listen'."
     ::= { slcAuthNIS 12 }
 
 slcAuthNISDataPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which users authenticated 
-                 via NIS have permission to access via 'connect direct'."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which users 
+                 authenticated via NIS have permission to access via 
+                 'connect direct'."
     ::= { slcAuthNIS 13 }
 
 slcAuthNISClearPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which users authenticated 
-                 via NIS have permission to clear."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which users 
+                 authenticated via NIS have permission to clear."
     ::= { slcAuthNIS 14 }
 
 slcAuthNISSlave4 OBJECT-TYPE
@@ -1819,7 +2520,7 @@ slcAuthLDAPServer OBJECT-TYPE
     SYNTAX      IpAddress
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The IP Address of the LDAP server."
+    DESCRIPTION "The IPv4 Address of the LDAP server."
     ::= { slcAuthLDAP 3 }
 
 slcAuthLDAPBase OBJECT-TYPE
@@ -1879,24 +2580,26 @@ slcAuthLDAPListenPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which users authenticated 
-                 via LDAP have permission to access via 'connect listen'."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which users 
+                 authenticated via LDAP have permission to access via 
+                 'connect listen'."
     ::= { slcAuthLDAP 11 }
 
 slcAuthLDAPDataPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which users authenticated 
-                 via LDAP have permission to access via 'connect direct'."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which users 
+                 authenticated via LDAP have permission to access via 
+                 'connect direct'."
     ::= { slcAuthLDAP 12 }
 
 slcAuthLDAPClearPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which users authenticated 
-                 via LDAP have permission to clear."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which users 
+                 authenticated via LDAP have permission to clear."
     ::= { slcAuthLDAP 13 }
 
 slcAuthLDAPEncrypt OBJECT-TYPE
@@ -1954,6 +2657,59 @@ slcAuthLDAPDialbackNum OBJECT-TYPE
     DESCRIPTION "The dialback number defined for LDAP users." 
     ::= { slcAuthLDAP 20 }
 
+slcAuthLDAPUserFilter OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The attribute used by the LDAP server for user logins."
+    ::= { slcAuthLDAP 21 }
+
+slcAuthLDAPGroupFilter OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The objectclass used by the LDAP server for groups."
+    ::= { slcAuthLDAP 22 }
+
+slcAuthLDAPGroupMembershipAttr OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The attribute used by the LDAP server for group membership. 
+                 This attribute may be use to search for a name (ie, msmith) 
+                 or a Distinguished Name 
+                 (ie, uid=msmith,ou=People,dc=lantronix,dc=com)."
+    ::= { slcAuthLDAP 23 }
+
+slcAuthLDAPGroupMembershipDN OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, the string given by slcAuthLDAPGroupMembershipAttr 
+                 is a Distinguished Name (DN).  Otherwise the string is a name."
+    ::= { slcAuthLDAP 24 }
+
+slcAuthLDAPServer2 OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv4 Address of the secondary/backup LDAP server."
+    ::= { slcAuthLDAP 25 }
+
+slcAuthLDAPServerIPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv6 Address of the LDAP server."
+    ::= { slcAuthLDAP 26 }
+
+slcAuthLDAPServer2IPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv6 Address of the secondary/backup LDAP server."
+    ::= { slcAuthLDAP 27 }
+
 
 slcAuthRADIUS   OBJECT IDENTIFIER ::= { slcAuth 4 }
 
@@ -1974,6 +2730,7 @@ slcAuthRADIUSOrder OBJECT-TYPE
 
 slcAuthRADIUSTimeout OBJECT-TYPE
     SYNTAX      Integer32 (0..30)
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The RADIUS Timeout in seconds.  A value of 0 indicates 
@@ -2000,7 +2757,8 @@ slcAuthRADIUSServerEntry OBJECT-TYPE
 SlcAuthRADIUSServerEntry ::= SEQUENCE {
     slcAuthRADIUSServerIndex    Integer32,
     slcAuthRADIUSServer         IpAddress,
-    slcAuthRADIUSPort           Integer32 (0..65535)
+    slcAuthRADIUSPort           Integer32,
+    slcAuthRADIUSServerIPv6     Ipv6Address
 }
 
 slcAuthRADIUSServerIndex OBJECT-TYPE
@@ -2014,7 +2772,7 @@ slcAuthRADIUSServer OBJECT-TYPE
     SYNTAX      IpAddress
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The IP Address of the RADIUS server."
+    DESCRIPTION "The IPv4 Address of the RADIUS server."
     ::= { slcAuthRADIUSServerEntry 2 }
 
 slcAuthRADIUSPort OBJECT-TYPE
@@ -2023,6 +2781,13 @@ slcAuthRADIUSPort OBJECT-TYPE
     STATUS      current
     DESCRIPTION "The RADIUS Server TCP Port Number."
     ::= { slcAuthRADIUSServerEntry 3 }
+
+slcAuthRADIUSServerIPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv6 Address of the RADIUS server."
+    ::= { slcAuthRADIUSServerEntry 4 }
 
 slcAuthRADIUSGroup OBJECT-TYPE
     SYNTAX      UserGroup
@@ -2053,24 +2818,26 @@ slcAuthRADIUSListenPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which users authenticated 
-                 via RADIUS have permission to access via 'connect listen'."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which users 
+                 authenticated via RADIUS have permission to access via 
+                 'connect listen'."
     ::= { slcAuthRADIUS 8 }
 
 slcAuthRADIUSDataPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which users authenticated 
-                 via RADIUS have permission to access via 'connect direct'."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which users 
+                 authenticated via RADIUS have permission to access via 
+                 'connect direct'."
     ::= { slcAuthRADIUS 9 }
 
 slcAuthRADIUSClearPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which users authenticated 
-                 via RADIUS have permission to clear."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which users 
+                 authenticated via RADIUS have permission to clear."
     ::= { slcAuthRADIUS 10 }
 
 slcAuthRADIUSEscapeSeq OBJECT-TYPE
@@ -2103,6 +2870,15 @@ slcAuthRADIUSDialbackNum OBJECT-TYPE
     STATUS      current
     DESCRIPTION "The dialback number defined for RADIUS users." 
     ::= { slcAuthRADIUS 14 }
+
+slcAuthRADIUSUseVSA OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, the SLC will obtain remote user attributes 
+                 (group/permissions and port access) from the RADIUS server 
+                 via the Vendor-Specific Attribute (VSA)."
+    ::= { slcAuthRADIUS 15 }
 
 
 slcAuthKerberos OBJECT IDENTIFIER ::= { slcAuth 5 }
@@ -2140,7 +2916,7 @@ slcAuthKerbKDCIP OBJECT-TYPE
     SYNTAX      IpAddress
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The IP Address of the Kerberos Key Distribution Server."
+    DESCRIPTION "The IPv4 Address of the Kerberos Key Distribution Server."
     ::= { slcAuthKerberos 5 }
 
 slcAuthKerbKDCPort OBJECT-TYPE
@@ -2186,24 +2962,26 @@ slcAuthKerbListenPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which users authenticated 
-                 via Kerberos have permission to access via 'connect listen'."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which users 
+                 authenticated via Kerberos have permission to access via 
+                 'connect listen'."
     ::= { slcAuthKerberos 11 }
 
 slcAuthKerbDataPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which users authenticated 
-                 via Kerberos have permission to access via 'connect direct'."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which users 
+                 authenticated via Kerberos have permission to access via 
+                 'connect direct'."
     ::= { slcAuthKerberos 12 }
 
 slcAuthKerbClearPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which users authenticated 
-                 via Kerberos have permission to clear."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which users 
+                 authenticated via Kerberos have permission to clear."
     ::= { slcAuthKerberos 13 }
 
 slcAuthKerbEscapeSeq OBJECT-TYPE
@@ -2237,6 +3015,13 @@ slcAuthKerbDialbackNum OBJECT-TYPE
     DESCRIPTION "The dialback number defined for Kerberos users." 
     ::= { slcAuthKerberos 17 }
 
+slcAuthKerbKDCIPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv6 Address of the Kerberos Key Distribution Server."
+    ::= { slcAuthKerberos 18 }
+
 
 slcAuthTACACS   OBJECT IDENTIFIER ::= { slcAuth 6 }
 
@@ -2259,7 +3044,7 @@ slcAuthTACACSServer OBJECT-TYPE
     SYNTAX      IpAddress
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The IP Address of the first TACACS server."
+    DESCRIPTION "The IPv4 Address of the first TACACS server."
     ::= { slcAuthTACACS 3 }
 
 slcAuthTACACSEncrypt OBJECT-TYPE
@@ -2299,38 +3084,40 @@ slcAuthTACACSListenPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which users authenticated 
-                 via TACACS have permission to access via 'connect listen'."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which users 
+                 authenticated via TACACS have permission to access via 
+                 'connect listen'."
     ::= { slcAuthTACACS 8 }
 
 slcAuthTACACSDataPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which users authenticated 
-                 via TACACS have permission to access via 'connect direct'."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which users 
+                 authenticated via TACACS have permission to access via 
+                 'connect direct'."
     ::= { slcAuthTACACS 9 }
 
 slcAuthTACACSClearPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which users authenticated 
-                 via TACACS have permission to clear."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which users 
+                 authenticated via TACACS have permission to clear."
     ::= { slcAuthTACACS 10 }
 
 slcAuthTACACSServer2 OBJECT-TYPE
     SYNTAX      IpAddress
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The IP Address of the second TACACS server."
+    DESCRIPTION "The IPv4 Address of the second TACACS server."
     ::= { slcAuthTACACS 11 }
 
 slcAuthTACACSServer3 OBJECT-TYPE
     SYNTAX      IpAddress
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The IP Address of the third TACACS server."
+    DESCRIPTION "The IPv4 Address of the third TACACS server."
     ::= { slcAuthTACACS 12 }
 
 slcAuthTACACSEscapeSeq OBJECT-TYPE
@@ -2364,6 +3151,36 @@ slcAuthTACACSDialbackNum OBJECT-TYPE
     DESCRIPTION "The dialback number defined for TACACS users." 
     ::= { slcAuthTACACS 16 }
 
+slcAuthTACACSAuthService OBJECT-TYPE
+    SYNTAX      INTEGER { pppPAP(1), pppCHAP(2), asciiLogin(3) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The type of service used to pass the authentications tokens 
+                 (e.g., login and password) between the SLC and the TACACS+ 
+                 server."
+    ::= { slcAuthTACACS 17 }
+
+slcAuthTACACSServerIPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv6 Address of the first TACACS server."
+    ::= { slcAuthTACACS 18 }
+
+slcAuthTACACSServer2IPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv6 Address of the second TACACS server."
+    ::= { slcAuthTACACS 19 }
+
+slcAuthTACACSServer3IPv6 OBJECT-TYPE
+    SYNTAX      Ipv6Address
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The IPv6 Address of the third TACACS server."
+    ::= { slcAuthTACACS 20 }
+
 
 slcAuthRemote   OBJECT IDENTIFIER ::= { slcAuth 7 }
 
@@ -2394,7 +3211,7 @@ slcAuthRemoteUserEntry OBJECT-TYPE
 
 SlcAuthRemoteUserEntry ::= SEQUENCE {
     slcAuthRemoteUserIndex    Integer32,
-    slcAuthRemoteUserLogin    OCTET STRING (SIZE(0..32)),
+    slcAuthRemoteUserLogin    OCTET STRING,
     slcAuthRemoteUserGroup    UserGroup,
     slcAuthRemoteUserRights   UserRights,
     slcAuthRemoteUserListenPorts OCTET STRING,
@@ -2440,24 +3257,24 @@ slcAuthRemoteUserListenPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which the Remote User has 
-                 permission to access via 'connect listen'."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which the Remote 
+                 User has permission to access via 'connect listen'."
     ::= { slcAuthRemoteUserEntry 5 }
 
 slcAuthRemoteUserDataPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which the Remote User has 
-                 permission to access via 'connect direct'."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which the Remote 
+                 User has permission to access via 'connect direct'."
     ::= { slcAuthRemoteUserEntry 6 }
 
 slcAuthRemoteUserClearPorts OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The Device Ports and PC Card slots which the Remote User has 
-                 permission to clear."
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which the Remote 
+                 User has permission to clear."
     ::= { slcAuthRemoteUserEntry 7 }
 
 slcAuthRemoteUserEscapeSeq OBJECT-TYPE
@@ -2517,6 +3334,134 @@ slcAuthRemoteAuthListOnly OBJECT-TYPE
                  authenticated if they are listed in the remote user list."
     ::= { slcAuthRemote 3 }
 
+slcAuthGroups   OBJECT IDENTIFIER ::= { slcAuth 8 }
+
+slcAuthGroupsNumber OBJECT-TYPE
+    SYNTAX      Integer32 (0..20)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The number of entries in the Groups table."
+    ::= { slcAuthGroups 1 }
+
+-- Groups table
+
+slcAuthGroupsTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF SlcAuthGroupEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Table of Groups entries.  The number of entries 
+                 is given by the value of slcAuthGroupsNumber."
+    ::= { slcAuthGroups 2 }
+
+slcAuthGroupEntry OBJECT-TYPE
+    SYNTAX      SlcAuthGroupEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "An entry containing a Remote User and its attributes."
+    INDEX       { slcAuthGroupIndex }
+    ::= { slcAuthGroupsTable 1 }
+
+SlcAuthGroupEntry ::= SEQUENCE {
+    slcAuthGroupIndex    Integer32,
+    slcAuthGroupName     OCTET STRING,
+    slcAuthGroupRights   UserRights,
+    slcAuthGroupListenPorts OCTET STRING,
+    slcAuthGroupDataPorts   OCTET STRING,
+    slcAuthGroupClearPorts  OCTET STRING,
+    slcAuthGroupEscapeSeq   OCTET STRING,
+    slcAuthGroupBreakSeq    OCTET STRING,
+    slcAuthGroupMenu        OCTET STRING,
+    slcAuthGroupDialback    EnabledState,
+    slcAuthGroupDialbackNum OCTET STRING
+}
+
+slcAuthGroupIndex OBJECT-TYPE
+    SYNTAX      Integer32 (1..128)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Reference index for each Group."
+    ::= { slcAuthGroupEntry 1 }
+
+slcAuthGroupName OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(0..20))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The name for the Group."
+    ::= { slcAuthGroupEntry 2 }
+
+slcAuthGroupRights OBJECT-TYPE
+    SYNTAX      UserRights
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The rights assigned to the Group."
+    ::= { slcAuthGroupEntry 3 }
+
+slcAuthGroupListenPorts OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which the Group 
+                 has permission to access via 'connect listen'."
+    ::= { slcAuthGroupEntry 4 }
+
+slcAuthGroupDataPorts OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which the Group 
+                 has permission to access via 'connect direct'."
+    ::= { slcAuthGroupEntry 5 }
+
+slcAuthGroupClearPorts OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The Device Ports and PC Card slots/USB ports which the Group 
+                 has permission to clear."
+    ::= { slcAuthGroupEntry 6 }
+
+slcAuthGroupEscapeSeq OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The character sequence which the Group uses to terminate 
+                 connections to Device Ports."
+    ::= { slcAuthGroupEntry 7 }
+
+slcAuthGroupBreakSeq OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The character sequence which the Group uses to send a 
+                 break sequence."
+    ::= { slcAuthGroupEntry 8 }
+
+slcAuthGroupMenu OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The custom user menu defined for the Group.  If this is 
+                 empty, there is no menu defined for the Group.  The menu 
+                 name is followed by a slash '/' character and either a 'y' if 
+                 the menu is automatically displayed at login, or a 'n' if it 
+                 is not automatically displayed at login."
+    ::= { slcAuthGroupEntry 9 }
+
+slcAuthGroupDialback OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION 
+        "If enabled, the Group has permission to use modem dialback."
+    ::= { slcAuthGroupEntry 10 }
+
+slcAuthGroupDialbackNum OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The dialback number defined for the Group." 
+    ::= { slcAuthGroupEntry 11 }
+
 
 --
 -- Devices Group
@@ -2563,6 +3508,7 @@ slcDevConFlowControl OBJECT-TYPE
 
 slcDevConTimeout OBJECT-TYPE
     SYNTAX      Integer32 (0..30)
+    UNITS       "minutes"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The timeout (in minutes) for logins to the Console Port.  
@@ -2585,6 +3531,13 @@ slcDevConNumberShowLines OBJECT-TYPE
     DESCRIPTION "If slcDevConShowLines is enabled, the number of lines that 
                  are displayed upon connecting to the Console Port."
     ::= { slcDevConsolePort 8 }
+
+slcDevConGroup OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The group or groups that may access the Console Port."
+    ::= { slcDevConsolePort 9 }
 
 
 slcDevDevicePorts   OBJECT IDENTIFIER ::= { slcDevices 2 }
@@ -2663,7 +3616,7 @@ slcDevGlobalMaxDirect OBJECT-TYPE
 slcDevPortConfig    OBJECT IDENTIFIER ::= { slcDevDevicePorts 2 }
 
 slcDevPortCfgNumber OBJECT-TYPE
-    SYNTAX      Integer32 ( 8 | 16 | 32 | 48 )
+    SYNTAX      Integer32 ( 8 | 16 | 24 | 32 | 40 | 48 )
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION 
@@ -2709,8 +3662,8 @@ SlcDevPortCfgEntry ::= SEQUENCE {
     slcDevPortCfgIP                 IpAddress,
 -- Data (serial) settings
     slcDevPortCfgBaud               Integer32,
-    slcDevPortCfgDataBits           INTEGER,
-    slcDevPortCfgStopBits           INTEGER,
+    slcDevPortCfgDataBits           Integer32,
+    slcDevPortCfgStopBits           Integer32,
     slcDevPortCfgParity             INTEGER,
     slcDevPortCfgFlowControl        INTEGER,
     slcDevPortCfgLogins             EnabledState,
@@ -2725,7 +3678,6 @@ SlcDevPortCfgEntry ::= SEQUENCE {
     slcDevPortCfgCHAPHost           OCTET STRING,
     slcDevPortCfgInitScript         OCTET STRING,
     slcDevPortCfgTimeout            Integer32,
-    slcDevPortCfgInitScript         OCTET STRING,
     slcDevPortCfgDialoutNum         OCTET STRING,
     slcDevPortCfgDialoutLogin       OCTET STRING,
     slcDevPortCfgDialbackMode       INTEGER,     
@@ -2785,7 +3737,39 @@ SlcDevPortCfgEntry ::= SEQUENCE {
     slcDevPortCfgTCPTimeout         Integer32,
     slcDevPortCfgCBCPClientType     INTEGER,
     slcDevPortCfgCBCPServerAllowNoCallback EnabledState,
-    slcDevPortCfgDialbackDelay      Integer32
+    slcDevPortCfgDialbackDelay      Integer32,
+    slcDevPortCfgUSBState           EnabledState,
+    slcDevPortCfgUSBLogTo           Integer32,     
+    slcDevPortCfgUSBMaxFiles        Integer32,
+    slcDevPortCfgUSBMaxSize         Integer32,
+    slcDevPortCfgCHAPAuthLocalUsers EnabledState,
+    slcDevPortCfgUseSites           EnabledState,
+    slcDevPortCfgDialbackRetries    Integer32,
+    slcDevPortCfgGroup              OCTET STRING,
+    slcDevPortCfgIPMask             IpAddress,
+    slcDevPortCfgDevPrompt          OCTET STRING,
+    slcDevPortCfgDevNumOutlets      Integer32,
+    slcDevPortCfgDevNumExpOutlets   Integer32,
+    slcDevPortCfgReversePinout      EnabledState,
+    slcDevPortCfgUSBVBUS            EnabledState,
+    slcDevPortCfgAssertDTR          EnabledState,
+    slcDevPortCfgPortType           INTEGER,     
+    slcDevPortCfgTelnetTimeoutDataDirection TimeoutDataDirection,
+    slcDevPortCfgSSHTimeoutDataDirection    TimeoutDataDirection,
+    slcDevPortCfgTCPTimeoutDataDirection    TimeoutDataDirection,
+    slcDevPortCfgIdleTimeoutMessage EnabledState,
+    slcDevPortCfgNumberOfSessionsMessage    EnabledState,
+    slcDevPortCfgMinimizeLatency  EnabledState,
+    slcDevPortCfgTelnetSoftIAC    EnabledState,
+    slcDevPortCfgSendTermString     EnabledState,
+    slcDevPortCfgTerminationString  OCTET STRING,
+    slcDevPortCfgPowerManagementSeq OCTET STRING,
+    slcDevPortCfgPowerSupplies      OCTET STRING,
+    slcDevPortCfgToggleDTR          EnabledState,
+    slcDevPortCfgTokenAction        OCTET STRING,
+    slcDevPortCfgTokenSendString    OCTET STRING,
+    slcDevPortCfgTokenPowerSupply   OCTET STRING,
+    slcDevPortCfgTokenPowerAction   INTEGER
 }
 
 slcDevPortId OBJECT-TYPE
@@ -2810,10 +3794,14 @@ slcDevPortCfgDevice OBJECT-TYPE
                           slp8Exp16(5), 
                           slp16Exp8(6), 
                           slp16Exp16(7), 
-                          sensorsoft(8) }
+                          sensorsoft(8),
+                          servertech(9),
+                          rpm(10) }
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The device that is connected to the Device Port."
+    DESCRIPTION "The device that is connected to the Device Port. The 'slp*' 
+                 and 'servertech' values are deprecated and have been replaced 
+                 by the RPM functionality."
     ::= { slcDevPortCfgEntry 3 }
 
 slcDevPortCfgDevLogin OBJECT-TYPE
@@ -3031,6 +4019,7 @@ slcDevPortCfgInitScript OBJECT-TYPE
 
 slcDevPortCfgTimeout OBJECT-TYPE
     SYNTAX      Integer32 (0..30)
+    UNITS       "minutes"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The timeout (in minutes) for text connections.  A value 
@@ -3106,6 +4095,7 @@ slcDevPortCfgNFSMaxFiles OBJECT-TYPE
 
 slcDevPortCfgNFSMaxSize OBJECT-TYPE
     SYNTAX      Integer32
+    UNITS       "bytes"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The maximum size of each file (in bytes) for NFS File logging."
@@ -3115,90 +4105,112 @@ slcDevPortCfgEmailState OBJECT-TYPE
     SYNTAX      EnabledState
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "If enabled, Email logging is enabled for the Device Port."
+    DESCRIPTION "If enabled, Token and Data Detection (previously called 
+                 'Email Logging') is enabled for the Device Port."
     ::= { slcDevPortCfgEntry 42 }
 
 slcDevPortCfgEmailTrigger OBJECT-TYPE
     SYNTAX      INTEGER { bytecnt(1), textstring(2) }
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The type of trigger to use for email notification - specified 
-                 number of bytes received, or specified text string received."
+    DESCRIPTION "The type of trigger to use for Token and Data Detection 
+                 (previously called 'Email Logging') - number of data bytes 
+                 received, or token/character string received."
     ::= { slcDevPortCfgEntry 43 }
 
 slcDevPortCfgEmailByteThresh OBJECT-TYPE
     SYNTAX      Integer32
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "For a byte count trigger, the number of bytes required to 
-                 trigger an email notification."
+    DESCRIPTION "When Token and Data Detection (previously called 'Email 
+                 Logging') is configured to trigger on a data byte count, 
+                 the number of bytes required to trigger an action."
     ::= { slcDevPortCfgEntry 44 }
 
 slcDevPortCfgEmailDelay OBJECT-TYPE
     SYNTAX      Integer32
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "For a byte count trigger, once the number of bytes has been 
-                 received, the number of seconds to wait before sending the
-                 email notification."
+    DESCRIPTION "For Token and Data Detection (previously called 'Email 
+                 Logging'), a time limit of how long the device port will 
+                 capture data after the data trigger is detected and before 
+                 closing the log file and performing the selected actions. 
+                 This setting is now called 'Action Delay'."
     ::= { slcDevPortCfgEntry 45 }
 
 slcDevPortCfgEmailRestartDelay OBJECT-TYPE
     SYNTAX      Integer32
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "For a byte count trigger, once the email notification has 
-                 been send, the number of seconds to wait before restarting 
-                 the byte count process."
+    DESCRIPTION "For Token and Data Detection (previously called 'Email 
+                 Logging'), the period of time, after performing the 
+                 selected actions, during which the device port will ignore 
+                 additional characters received."
     ::= { slcDevPortCfgEntry 46 }
 
 slcDevPortCfgEmailTextString OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "For a text string trigger, the text string to parse for."
+    DESCRIPTION "When Token and Data Detection (previously called 'Email 
+                 Logging') is configured to trigger on a character string, 
+                 this defines the character string that will trigger an action."
     ::= { slcDevPortCfgEntry 47 }
 
 slcDevPortCfgEmailTo OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "List of emails to send email notification to."
+    DESCRIPTION "For Token and Data Detection (previously called 'Email 
+                 Logging'), if the Email action is enabled, this object 
+                 defines the list of emails to send email notification to."
     ::= { slcDevPortCfgEntry 48 }
 
 slcDevPortCfgEmailSubject OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "Subject to include with email notification."
+    DESCRIPTION "For Token and Data Detection (previously called 'Email 
+                 Logging'), if the Email action is enabled, this object 
+                 defines the subject to include with email notification."
     ::= { slcDevPortCfgEntry 49 }
 
 slcDevPortCfgPCCardState OBJECT-TYPE
     SYNTAX      EnabledState
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "If enabled, PC Card logging is enabled for the Device Port."
+    DESCRIPTION "If enabled, PC Card logging is enabled for the Device Port. 
+                 This value will be undefined if the SLC does not have PC Card 
+                 slots."
     ::= { slcDevPortCfgEntry 50 }
 
 slcDevPortCfgPCCardLogTo OBJECT-TYPE
     SYNTAX      INTEGER { upperSlot(1), lowerSlot(2) }
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "For PC Card logging, which PC Card slot to use for logging."
+    DESCRIPTION "For PC Card logging, which PC Card slot to use for logging. 
+                 This value will be undefined if the SLC does not have PC Card 
+                 slots."
     ::= { slcDevPortCfgEntry 51 }
 
 slcDevPortCfgPCCardMaxFiles OBJECT-TYPE
     SYNTAX      Integer32
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The maximum number of files to use for PC Card logging."
+    DESCRIPTION "The maximum number of files to use for PC Card logging. 
+                 This value will be undefined if the SLC does not have PC Card 
+                 slots."
     ::= { slcDevPortCfgEntry 52 }
 
 slcDevPortCfgPCCardMaxSize OBJECT-TYPE
     SYNTAX      Integer32
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The maximum size of each file (in bytes) for PC Card logging."
+    DESCRIPTION "The maximum size of each file (in bytes) for PC Card logging. 
+                 This value will be undefined if the SLC does not have PC Card 
+                 slots."
     ::= { slcDevPortCfgEntry 53 }
 
 slcDevPortCfgAction OBJECT-TYPE
@@ -3223,7 +4235,8 @@ slcDevPortCfgEmailSend OBJECT-TYPE
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "When a trigger is received, the type of notification to send: 
-                 email, SNMP trap, or email and SNMP trap."
+                 email, SNMP trap, or email and SNMP trap.  This object is 
+                 deprecated; instead refer to slcDevPortCfgTokenAction."
     ::= { slcDevPortCfgEntry 55 }
 
 slcDevPortCfgBanner OBJECT-TYPE
@@ -3236,6 +4249,7 @@ slcDevPortCfgBanner OBJECT-TYPE
 
 slcDevPortCfgIdleTimeout OBJECT-TYPE
     SYNTAX      Integer32
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The timeout (in seconds) for dial-in and dial-on-demand PPP 
@@ -3247,6 +4261,7 @@ slcDevPortCfgIdleTimeout OBJECT-TYPE
 
 slcDevPortCfgRestartDelay OBJECT-TYPE
     SYNTAX      Integer32
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The delay (in seconds) to wait before restarting dial-out or 
@@ -3305,6 +4320,7 @@ slcDevPortCfgSLMNMS OBJECT-TYPE
 
 slcDevPortCfgSLMByteThresh OBJECT-TYPE
     SYNTAX      Integer32
+    UNITS       "bytes"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The number of bytes required to trigger SLM logging."
@@ -3312,6 +4328,7 @@ slcDevPortCfgSLMByteThresh OBJECT-TYPE
 
 slcDevPortCfgSLMTimeFrame OBJECT-TYPE
     SYNTAX      Integer32
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The time frame for SLM logging, in seconds."
@@ -3350,6 +4367,7 @@ slcDevPortCfgHostList OBJECT-TYPE
 
 slcDevPortCfgDevLowTemp OBJECT-TYPE
     SYNTAX      Integer32
+    UNITS       "Celsius"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The low temperature limit, in Celsius, for the device 
@@ -3359,6 +4377,7 @@ slcDevPortCfgDevLowTemp OBJECT-TYPE
 
 slcDevPortCfgDevHighTemp OBJECT-TYPE
     SYNTAX      Integer32
+    UNITS       "Celsius"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The high temperature limit, in Celsius, for the device 
@@ -3368,6 +4387,7 @@ slcDevPortCfgDevHighTemp OBJECT-TYPE
 
 slcDevPortCfgDevTemperature OBJECT-TYPE
     SYNTAX      OCTET STRING
+    UNITS       "Celsius"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The actual temperature, in Celsius, for the device 
@@ -3455,6 +4475,7 @@ slcDevPortCfgMaxDirectConnects OBJECT-TYPE
 
 slcDevPortCfgTelnetTimeout OBJECT-TYPE
     SYNTAX      Integer32 (0..1800)
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The timeout (in seconds) for Telnet connections.  A value 
@@ -3463,6 +4484,7 @@ slcDevPortCfgTelnetTimeout OBJECT-TYPE
 
 slcDevPortCfgSSHTimeout OBJECT-TYPE
     SYNTAX      Integer32 (0..1800)
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The timeout (in seconds) for SSH connections.  A value 
@@ -3471,6 +4493,7 @@ slcDevPortCfgSSHTimeout OBJECT-TYPE
 
 slcDevPortCfgTCPTimeout OBJECT-TYPE
     SYNTAX      Integer32 (0..1800)
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The timeout (in seconds) for TCP connections.  A value 
@@ -3496,18 +4519,321 @@ slcDevPortCfgCBCPServerAllowNoCallback OBJECT-TYPE
 
 slcDevPortCfgDialbackDelay OBJECT-TYPE
     SYNTAX      Integer32 
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "When slcDevPortCfgModemState is set to dialback, cbcpServer 
-                 or cbcpClient, specifies the delay between the dial-in and 
-                 dial-out portion of the dialing sequence."
+    DESCRIPTION "When slcDevPortCfgModemState is set to dialback or cbcpServer, 
+                 specifies the delay between the dial-in and dial-out portion 
+                 of the dialing sequence."
     ::= { slcDevPortCfgEntry 88 }
+
+slcDevPortCfgUSBState OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, USB logging is enabled for the Device Port.  This 
+                 value will be undefined if the SLC does not have USB Ports."
+    ::= { slcDevPortCfgEntry 89 }
+
+slcDevPortCfgUSBLogTo OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For USB logging, which USB port to use for logging. This 
+                 value will be undefined if the SLC does not have USB Ports."
+    ::= { slcDevPortCfgEntry 90 }
+
+slcDevPortCfgUSBMaxFiles OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The maximum number of files to use for USB logging. This 
+                 value will be undefined if the SLC does not have USB Ports."
+    ::= { slcDevPortCfgEntry 91 }
+
+slcDevPortCfgUSBMaxSize OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "bytes"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The maximum size of each file (in bytes) for USB logging. This 
+                 value will be undefined if the SLC does not have USB Ports."
+    ::= { slcDevPortCfgEntry 92 }
+
+slcDevPortCfgCHAPAuthLocalUsers OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, the local user list (login and password) is used 
+                 to validate the CHAP host and secret sent by a remote PPP 
+                 peer for CHAP authentication, instead of using the CHAP host 
+                 and secret associated with a modem." 
+    ::= { slcDevPortCfgEntry 93 }
+
+slcDevPortCfgUseSites OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, sites (a set of site-oriented modem parameters 
+                 that can be activated by various modem-related events such 
+                 as authentication, outbound traffic for Dial-on-demand 
+                 connections, etc.) will be used instead of the parameters 
+                 configured for the modem."
+    ::= { slcDevPortCfgEntry 94 }
+
+slcDevPortCfgDialbackRetries OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "When slcDevPortCfgModemState is set to dialback or cbcpServer, 
+                 specifies the number of times the SLC will retry the dial-out 
+                 portion of the dialing sequence if the first attempt to 
+                 dial-out fails."
+    ::= { slcDevPortCfgEntry 95 }
+
+slcDevPortCfgGroup OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The group or groups that may access the Device Port."
+    ::= { slcDevPortCfgEntry 96 }
+
+slcDevPortCfgIPMask OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The network mask associated with slcDevPortCfgIPMask."
+    ::= { slcDevPortCfgEntry 97 }
+
+slcDevPortCfgDevPrompt OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If the device port is connected to a SLP or ServerTech CDU, 
+                 specifies the prompt that is configured for the SLP or 
+                 ServerTech CDU. This object is deprecated, and has been 
+                 replaced by the RPM functionality."
+    ::= { slcDevPortCfgEntry 98 }
+
+slcDevPortCfgDevNumOutlets OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If the device port is connected to a ServerTech CDU, specifies
+                 the number of outlets on the primary/master ServerTech unit. 
+                 This object is deprecated, and has been replaced by the RPM 
+                 functionality."
+    ::= { slcDevPortCfgEntry 99 }
+
+slcDevPortCfgDevNumExpOutlets OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If the device port is connected to a ServerTech CDU, specifies
+                 the number of outlets on the expansion ServerTech unit. This 
+                 object is deprecated, and has been replaced by the RPM 
+                 functionality."
+    ::= { slcDevPortCfgEntry 100 }
+
+slcDevPortCfgReversePinout OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, swaps the positions of the serial lines, such 
+                 that the direction of data or the signal is reversed.  
+                 For instance, TX is swapped with RX.  Enabling Reverse 
+                 Pinout facilitates connections to Cisco and Sun style RS-45 
+                 console ports using a straight through Ethernet patch cable, 
+                 without the need for a rolled cable or adapter.  Note that 
+                 all Lantronix serial adapters are intended to be used with 
+                 Reverse Pinout disabled."
+    ::= { slcDevPortCfgEntry 101 }
+
+slcDevPortCfgUSBVBUS OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For SLC8000 USB Device Ports only. If enabled, the USB VBUS 
+                 signal provides power to the USB device attached to a device 
+                 port. Disabling VBUS will power down the device as long as it 
+                 is bus-powered instead of self-powered."
+    ::= { slcDevPortCfgEntry 102 }
+
+slcDevPortCfgAssertDTR OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For RJ45 Device Ports only. By default, DTR is asserted on a 
+                 device port nearly all of the time (except momentarily when a 
+                 port is opened for operations).  Unchecking this option will 
+                 deassert DTR, simulating a cable disconnection for the device 
+                 that is connected to a device port."
+    ::= { slcDevPortCfgEntry 103 }
+
+slcDevPortCfgPortType OBJECT-TYPE
+    SYNTAX      INTEGER { rj45(1), usb(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Indicates the connector type on the device port: RJ45 or USB."
+    ::= { slcDevPortCfgEntry 104 }
+
+slcDevPortCfgTelnetTimeoutDataDirection OBJECT-TYPE
+    SYNTAX      TimeoutDataDirection
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If slcDevPortCfgTelnetTimeout is enabled, this setting 
+                 indicates the direction of data used to determine if the 
+                 connection has timed out."
+    ::= { slcDevPortCfgEntry 105 }
+
+slcDevPortCfgSSHTimeoutDataDirection OBJECT-TYPE
+    SYNTAX      TimeoutDataDirection
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If slcDevPortCfgSSHTimeout is enabled, this setting indicates 
+                 the direction of data used to determine if the connection has 
+                 timed out."
+    ::= { slcDevPortCfgEntry 106 }
+
+slcDevPortCfgTCPTimeoutDataDirection OBJECT-TYPE
+    SYNTAX      TimeoutDataDirection
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If slcDevPortCfgTCPTimeout is enabled, this setting indicates 
+                 the direction of data used to determine if the connection has 
+                 timed out."
+    ::= { slcDevPortCfgEntry 107 }
+
+slcDevPortCfgIdleTimeoutMessage OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, a message will be displayed to a user when their 
+                 connection to a device port will be terminated soon due to 
+                 the connection being idle."
+    ::= { slcDevPortCfgEntry 108 }
+
+slcDevPortCfgNumberOfSessionsMessage OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, a message will be displayed to a user when 
+                 connecting to a device port that indicates how many users 
+                 are currently connected to the device port."
+    ::= { slcDevPortCfgEntry 109 }
+
+slcDevPortCfgMinimizeLatency  OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, device port latency will be minimized by 
+                 reducing read delays."
+    ::= { slcDevPortCfgEntry 110 }
+
+slcDevPortCfgTelnetSoftIAC OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, the Telnet server will not block waiting for 
+                 the initial Telnet protocol IAC option responses."
+    ::= { slcDevPortCfgEntry 111 }
+
+slcDevPortCfgSendTermString OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, and a slcDevPortCfgTerminationString is defined, 
+                 when a network connection to a device port is terminated, the 
+                 termination string is sent to the device connected to the 
+                 device port.  The string should be defined so that it sends 
+                 the the appropriate command(s) to the device to terminate any 
+                 active user sessions."
+    ::= { slcDevPortCfgEntry 112 }
+
+slcDevPortCfgTerminationString OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The termination string sent to the device connected to the 
+                 device port if slcDevPortCfgSendTermString is enabled."
+    ::= { slcDevPortCfgEntry 113 }
+
+slcDevPortCfgPowerManagementSeq OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The key sequence that displays the Power Management menu 
+                 when a user is connected to a device port."
+    ::= { slcDevPortCfgEntry 114 }
+
+slcDevPortCfgPowerSupplies OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A string that describes the managed power supplies configured 
+                 for the device port. A device port can have up to four power 
+                 supplies that provide power for the device connected to the 
+                 device port.  The string is a comma separated list of power
+                 supplies formatted: '<Power Suppy Name>(RPM Id/Outlet Id)'."
+    ::= { slcDevPortCfgEntry 115 }
+
+slcDevPortCfgToggleDTR OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Applies to RJ45 device ports only.  If enabled, when a user 
+                 disconnects from a device port, DTR will be toggled.  This  
+                 feature can be used when a serial connection requires DSR to 
+                 be active for the attached device to connect.  In this case, 
+                 toggling DTR will end any active connection on the device."
+    ::= { slcDevPortCfgEntry 116 }
+
+slcDevPortCfgTokenAction OBJECT-TYPE
+    SYNTAX       OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For Token and Data Detection, a string containing one or more 
+                 actions that will be performed if a data trigger occurs:
+                 syslog, email, trap, sendstring, powersupply."
+    ::= { slcDevPortCfgEntry 117 }
+
+slcDevPortCfgTokenSendString OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For Token and Data Detection (previously called 'Email 
+                 Logging'), if the Send String action is enabled, this object 
+                 defines the string to send to the device connected to the 
+                 device port."
+    ::= { slcDevPortCfgEntry 118 }
+
+slcDevPortCfgTokenPowerSupply OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For Token and Data Detection (previously called 'Email 
+                 Logging'), if the Control Power Supply action is enabled, 
+                 this object defines the name of the managed power supply to 
+                 perform an action on. This string can be 'all' for all 
+                 managed power supplies associated with the device port, or 
+                 an individual power supply name."
+    ::= { slcDevPortCfgEntry 119 }
+
+slcDevPortCfgTokenPowerAction OBJECT-TYPE
+    SYNTAX      INTEGER { turnOff(1), turnOn(2), cyclePower(3) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For Token and Data Detection (previously called 'Email 
+                 Logging'), if the Control Power Supply action is enabled, 
+                 this object defines the action to take on 
+                 slcDevPortCfgTokenPowerSupply."
+    ::= { slcDevPortCfgEntry 120 }
 
 
 slcDevPortState     OBJECT IDENTIFIER ::= { slcDevDevicePorts 3 }
 
 slcDevPortStateNumber OBJECT-TYPE
-    SYNTAX      Integer32 ( 8 | 16 | 32 | 48 )
+    SYNTAX      Integer32 ( 8 | 16 | 24 | 32 | 40 | 48 )
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION 
@@ -3557,6 +4883,7 @@ slcDevPortStateIndex OBJECT-TYPE
 
 slcDevPortStateBytesInput OBJECT-TYPE
     SYNTAX      Integer32
+    UNITS       "bytes"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The number of bytes input to the Device Port since boot or 
@@ -3565,6 +4892,7 @@ slcDevPortStateBytesInput OBJECT-TYPE
 
 slcDevPortStateBytesOutput OBJECT-TYPE
     SYNTAX      Integer32
+    UNITS       "bytes"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The number of bytes output from the Device Port since boot or 
@@ -3649,9 +4977,10 @@ slcPCCardCfgTable OBJECT-TYPE
     SYNTAX      SEQUENCE OF SlcPCCardCfgEntry
     MAX-ACCESS  not-accessible
     STATUS      current
-    DESCRIPTION "Table of Device Port configuration entries.  There are two 
-                 entries in the table, index (1) for the upper PC Card slot, 
-                 and index (2) for the lower PC Card slot."
+    DESCRIPTION "Table of PC Card configuration entries.  There are two entries 
+                 in the table, index (1) for the upper PC Card slot, and index 
+                 (2) for the lower PC Card slot.  This table will be empty if 
+                 the SLC does not have PC Card slots."
     ::= { slcDevPCCard 1 }
 
 slcPCCardCfgEntry OBJECT-TYPE
@@ -3669,8 +4998,8 @@ SlcPCCardCfgEntry ::= SEQUENCE {
     slcPCCardCfgCardId              OCTET STRING,
 -- Modem/ISDN: Data (serial) settings
     slcPCCardCfgBaud                Integer32,
-    slcPCCardCfgDataBits            INTEGER,
-    slcPCCardCfgStopBits            INTEGER,
+    slcPCCardCfgDataBits            Integer32,
+    slcPCCardCfgStopBits            Integer32,
     slcPCCardCfgParity              INTEGER,
     slcPCCardCfgFlowControl         INTEGER,
 -- Modem/ISDN: Modem settings
@@ -3682,7 +5011,6 @@ SlcPCCardCfgEntry ::= SEQUENCE {
     slcPCCardCfgCHAPHost            OCTET STRING,
     slcPCCardCfgInitScript          OCTET STRING,
     slcPCCardCfgTimeout             Integer32,
-    slcPCCardCfgInitScript          OCTET STRING,
     slcPCCardCfgDialoutNum          OCTET STRING,
     slcPCCardCfgDialoutLogin        OCTET STRING,
     slcPCCardCfgDialbackMode        INTEGER,     
@@ -3721,7 +5049,11 @@ SlcPCCardCfgEntry ::= SEQUENCE {
     slcPCCardCfgHostList            OCTET STRING,
     slcPCCardCfgCBCPClientType      INTEGER,
     slcPCCardCfgCBCPServerAllowNoCallback EnabledState,
-    slcPCCardCfgDialbackDelay       Integer32
+    slcPCCardCfgDialbackDelay       Integer32,
+    slcPCCardCfgCHAPAuthLocalUsers  EnabledState,
+    slcPCCardCfgUseSites            EnabledState,
+    slcPCCardCfgDialbackRetries     Integer32,
+    slcPCCardCfgGroup               OCTET STRING
 }
 
 slcPCCardCfgIndex OBJECT-TYPE
@@ -3851,6 +5183,7 @@ slcPCCardCfgInitScript OBJECT-TYPE
 
 slcPCCardCfgTimeout OBJECT-TYPE
     SYNTAX      Integer32 (0..30)
+    UNITS       "minutes"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The timeout (in minutes) for text connections.  A value 
@@ -4056,6 +5389,7 @@ slcPCCardCfgIdleTimeout OBJECT-TYPE
 
 slcPCCardCfgRestartDelay OBJECT-TYPE
     SYNTAX      Integer32
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The delay (in seconds) to wait before restarting dial-out or 
@@ -4123,13 +5457,51 @@ slcPCCardCfgCBCPServerAllowNoCallback OBJECT-TYPE
 
 slcPCCardCfgDialbackDelay OBJECT-TYPE
     SYNTAX      Integer32 
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "When slcPCCardCfgModemState is set to dialback, cbcpServer 
-                 or cbcpClient, specifies the delay between the dial-in and 
-                 dial-out portion of the dialing sequence."
+    DESCRIPTION "When slcPCCardCfgModemState is set to dialback or cbcpServer, 
+                 specifies the delay between the dial-in and dial-out portion 
+                 of the dialing sequence."
     ::= { slcPCCardCfgEntry 50 }
 
+slcPCCardCfgCHAPAuthLocalUsers OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, the local user list (login and password) is used 
+                 to validate the CHAP host and secret sent by a remote PPP 
+                 peer for CHAP authentication, instead of using the CHAP host 
+                 and secret associated with a modem." 
+    ::= { slcPCCardCfgEntry 51 }
+
+slcPCCardCfgUseSites OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, sites (a set of site-oriented modem parameters 
+                 that can be activated by various modem-related events such 
+                 as authentication, outbound traffic for Dial-on-demand 
+                 connections, etc.) will be used instead of the parameters 
+                 configured for the modem."
+    ::= { slcPCCardCfgEntry 52 }
+
+slcPCCardCfgDialbackRetries OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "When slcPCCardCfgModemState is set to dialback or cbcpServer, 
+                 specifies the number of times the SLC will retry the dial-out 
+                 portion of the dialing sequence if the first attempt to 
+                 dial-out fails."
+    ::= { slcPCCardCfgEntry 53 }
+
+slcPCCardCfgGroup OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The group or groups that may access the PC Card slot."
+    ::= { slcPCCardCfgEntry 54 }
 
 slcDevPowerSupply   OBJECT IDENTIFIER ::= { slcDevices 4 }
 
@@ -4156,6 +5528,1165 @@ slcDevPowerSupplyB OBJECT-TYPE
     STATUS      current
     DESCRIPTION "The status of Power Supply B."
     ::= { slcDevPowerSupply 3 }
+
+
+slcDevUSB           OBJECT IDENTIFIER ::= { slcDevices 5 }
+
+slcDevUSBState OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, the USB devices connected to the SLC will be 
+                 accessible. This value will be undefined if the SLC does 
+                 not have USB Ports."
+    ::= { slcDevUSB 1 }
+
+-- USB Configuration table.
+
+slcDevUSBCfgTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF SlcDevUSBCfgEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Table of USB configuration entries.  There is one entry in the 
+                 table, index (1) for USB port 1.  This table will be empty if 
+                 the SLC does not have USB Ports."
+    ::= { slcDevUSB 2 }
+
+slcDevUSBCfgEntry OBJECT-TYPE
+    SYNTAX      SlcDevUSBCfgEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "An entry containing all configuration settings for a USB port."
+    INDEX       { slcDevUSBId }
+    ::= { slcDevUSBCfgTable 1 }
+
+SlcDevUSBCfgEntry ::= SEQUENCE {
+    slcDevUSBId                     Integer32,
+    slcDevUSBCfgCardType            INTEGER,
+    slcDevUSBCfgCardId              OCTET STRING,
+-- Storage Card settings
+    slcDevUSBCfgStorageFS           INTEGER,
+-- Modem: Data (serial) settings
+    slcDevUSBCfgBaud                Integer32,
+    slcDevUSBCfgDataBits            Integer32,
+    slcDevUSBCfgStopBits            Integer32,
+    slcDevUSBCfgParity              INTEGER,
+    slcDevUSBCfgFlowControl         INTEGER,
+-- Modem: Modem settings
+    slcDevUSBCfgModemState          INTEGER,
+    slcDevUSBCfgModemMode           INTEGER,
+    slcDevUSBCfgLocalIP             IpAddress,
+    slcDevUSBCfgRemoteIP            IpAddress,
+    slcDevUSBCfgAuth                INTEGER,
+    slcDevUSBCfgCHAPHost            OCTET STRING,
+    slcDevUSBCfgDODAuth             INTEGER,
+    slcDevUSBCfgDODCHAPHost         OCTET STRING,
+    slcDevUSBCfgInitScript          OCTET STRING,
+    slcDevUSBCfgTimeout             Integer32,
+    slcDevUSBCfgDialoutNum          OCTET STRING,
+    slcDevUSBCfgDialoutLogin        OCTET STRING,
+    slcDevUSBCfgDialbackMode        INTEGER,     
+    slcDevUSBCfgDialbackNum         OCTET STRING,     
+    slcDevUSBCfgDialbackDelay       Integer32,
+    slcDevUSBCfgNATState            EnabledState,
+    slcDevUSBCfgIdleTimeout         Integer32,
+    slcDevUSBCfgRestartDelay        Integer32,
+    slcDevUSBCfgCallerIdLogging     EnabledState,
+    slcDevUSBCfgCallerIdATCmd       OCTET STRING,
+    slcDevUSBCfgHostList            OCTET STRING,
+    slcDevUSBCfgCBCPClientType      INTEGER,
+    slcDevUSBCfgCBCPServerAllowNoCallback EnabledState,
+-- IP settings
+    slcDevUSBCfgTelnetState         EnabledState,
+    slcDevUSBCfgTelnetPort          Integer32,
+    slcDevUSBCfgTelnetAuth          EnabledState,
+    slcDevUSBCfgSSHState            EnabledState,
+    slcDevUSBCfgSSHPort             Integer32,
+    slcDevUSBCfgSSHAuth             EnabledState,
+    slcDevUSBCfgTCPState            EnabledState,
+    slcDevUSBCfgTCPPort             Integer32,
+    slcDevUSBCfgTCPAuth             EnabledState,
+-- GSM/GPRS only settings
+    slcDevUSBCfgGSMPIN              OCTET STRING,
+    slcDevUSBCfgGSMPPPCompression   EnabledState,
+    slcDevUSBCfgGSMAutoAcquireDNS   EnabledState,
+    slcDevUSBCfgGSMDialoutMode      INTEGER,
+    slcDevUSBCfgGSMContextID        OCTET STRING,
+    slcDevUSBCfgGSMBearerService    OCTET STRING,
+-- Additional settings
+    slcDevUSBCfgCHAPAuthLocalUsers  EnabledState,
+    slcDevUSBCfgUseSites            EnabledState,
+    slcDevUSBCfgDialbackRetries     Integer32,
+    slcDevUSBCfgDialtoneCheck       Integer32,
+    slcDevUSBCfgGroup               OCTET STRING
+}
+
+slcDevUSBId OBJECT-TYPE
+    SYNTAX      Integer32 (1)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The identifier for a USB Port (1 indicates USB Port U1)."
+    ::= { slcDevUSBCfgEntry 1 }
+
+slcDevUSBCfgCardType OBJECT-TYPE
+    SYNTAX      INTEGER { none(1), 
+                          storage(2), 
+                          modem(3), 
+                          isdn(4),
+                          wireless(5),
+                          gsmmodem(6) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The type of USB device in the port."
+    ::= { slcDevUSBCfgEntry 2 }
+
+slcDevUSBCfgCardId OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The identifying string of the device in the port."
+    ::= { slcDevUSBCfgEntry 3 }
+
+slcDevUSBCfgStorageFS OBJECT-TYPE
+    SYNTAX      INTEGER { notmounted(1), ext2(2), fat(3) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For thumb drives, the type of filesystem on the card."
+    ::= { slcDevUSBCfgEntry 4 }
+
+slcDevUSBCfgBaud OBJECT-TYPE
+    SYNTAX      Integer32 
+                ( 300 | 600 | 1200 | 2400 | 4800 | 
+                  9600 | 19200 | 38400 | 57600 | 115200 )
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For modem cards, the baud rate."
+    ::= { slcDevUSBCfgEntry 5 }
+
+slcDevUSBCfgDataBits OBJECT-TYPE
+    SYNTAX      Integer32 ( 7 | 8 )
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For modem cards, the data bits."
+    ::= { slcDevUSBCfgEntry 6 }
+
+slcDevUSBCfgStopBits OBJECT-TYPE
+    SYNTAX      Integer32 ( 1 | 2 )
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For modem cards, the stop bits."
+    ::= { slcDevUSBCfgEntry 7 }
+
+slcDevUSBCfgParity OBJECT-TYPE
+    SYNTAX      INTEGER { none(1), odd(2), even(3) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For modem cards, the parity."
+    ::= { slcDevUSBCfgEntry 8 }
+
+slcDevUSBCfgFlowControl OBJECT-TYPE
+    SYNTAX      INTEGER { none(1), xonxoff(2), rtscts(3) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For modem cards, the flow control."
+    ::= { slcDevUSBCfgEntry 9 }
+
+slcDevUSBCfgModemState OBJECT-TYPE
+    SYNTAX      INTEGER { disabled(1), 
+                          dialout(2), 
+                          dialin(3), 
+                          dialback(4),
+                          dialondemand(5),
+                          dialinAndDialondemand(6),
+                          dialinHostList(7),
+                          cbcpServer(8),
+                          cbcpClient(9) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For modem cards, indicates how the modem will be used."
+    ::= { slcDevUSBCfgEntry 10 }
+
+slcDevUSBCfgModemMode OBJECT-TYPE
+    SYNTAX      INTEGER { ppp(1), text(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For modem cards, the mode: PPP (for Dial-in and 
+                 Dial-out) and text (for Dial-in and Dial-back)."
+    ::= { slcDevUSBCfgEntry 11 }
+
+slcDevUSBCfgLocalIP OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For PPP connections, the local IP Address (all zeros if it 
+                 should be negotiated)."
+    ::= { slcDevUSBCfgEntry 12 }
+
+slcDevUSBCfgRemoteIP OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For PPP connections, the remote IP Address (all zeros if it 
+                 should be negotiated)."
+    ::= { slcDevUSBCfgEntry 13 }
+
+slcDevUSBCfgAuth OBJECT-TYPE
+    SYNTAX      INTEGER { pap(1), chap(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For PPP connections, the type of authentication to be used."
+    ::= { slcDevUSBCfgEntry 14 }
+
+slcDevUSBCfgCHAPHost OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For PPP connections with CHAP authentication, the host (for 
+                 Unix) or user (for Windows) to use."
+    ::= { slcDevUSBCfgEntry 15 }
+
+slcDevUSBCfgDODAuth OBJECT-TYPE
+    SYNTAX      INTEGER { pap(1), chap(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For PPP connections that are configured for both Dial-in and 
+                 Dial-on-Demand, the type of authentication to be used for 
+                 Dial-on-Demand."
+    ::= { slcDevUSBCfgEntry 16 }
+
+slcDevUSBCfgDODCHAPHost OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For PPP connections that are configured for both Dial-in and 
+                 Dial-on-Demand, with CHAP authentication for Dial-on-Demand, 
+                 the host (for Unix) or user (for Windows) to use."
+    ::= { slcDevUSBCfgEntry 17 }
+
+slcDevUSBCfgInitScript OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The initialization script for a modem."
+    ::= { slcDevUSBCfgEntry 18 }
+
+slcDevUSBCfgTimeout OBJECT-TYPE
+    SYNTAX      Integer32 (0..30)
+    UNITS       "minutes"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The timeout (in minutes) for text connections.  A value 
+                 of 0 indicates that timeouts are disabled."
+    ::= { slcDevUSBCfgEntry 19 }
+
+slcDevUSBCfgDialoutNum OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The phone number to use for dial-out connections."
+    ::= { slcDevUSBCfgEntry 20 }
+
+slcDevUSBCfgDialoutLogin OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(1..32))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The login to use for dial-out connections."
+    ::= { slcDevUSBCfgEntry 21 }
+
+slcDevUSBCfgDialbackMode OBJECT-TYPE
+    SYNTAX      INTEGER { usernumber(1), fixed(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For dial-back connections, defines the phone number to call: 
+                 a number associated with the authenticated user, or a fixed 
+                 number associated with the Device Port."
+    ::= { slcDevUSBCfgEntry 22 }
+
+slcDevUSBCfgDialbackNum OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The phone number to use for dial-back connections."
+    ::= { slcDevUSBCfgEntry 23 }
+
+slcDevUSBCfgDialbackDelay OBJECT-TYPE
+    SYNTAX      Integer32 
+    UNITS       "seconds"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "When slcDevUSBCfgModemState is set to dialback or cbcpServer, 
+                 specifies the delay between the dial-in and dial-out portion 
+                 of the dialing sequence."
+    ::= { slcDevUSBCfgEntry 24 }
+
+slcDevUSBCfgNATState OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, use NAT (Network Address Translation) to allow 
+                 dial-in and dial-back users to access the network connected
+                 to Eth1 and Eth2."
+    ::= { slcDevUSBCfgEntry 25 }
+
+slcDevUSBCfgIdleTimeout OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "seconds"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The timeout (in seconds) for dial-in and dial-on-demand PPP 
+                 connections.  If no traffic is received for the PPP connection 
+                 in the time defined by the idle timeout, the PPP connection 
+                 will be terminated.  A value of 0 indicates that timeouts are 
+                 disabled."
+    ::= { slcDevUSBCfgEntry 26 }
+
+slcDevUSBCfgRestartDelay OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "seconds"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The delay (in seconds) to wait before restarting dial-out or 
+                 dial-on-demand PPP connections."
+    ::= { slcDevUSBCfgEntry 27 }
+
+slcDevUSBCfgCallerIdLogging OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, caller id logging is enabled for a modem dial-in 
+                 connection."
+    ::= { slcDevUSBCfgEntry 28 }
+
+slcDevUSBCfgCallerIdATCmd OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The modem AT command required to initiate caller id logging 
+                 by the modem."
+    ::= { slcDevUSBCfgEntry 29 }
+
+slcDevUSBCfgHostList OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "When slcDevUSBCfgModemState is set to dialinHostList, the 
+                 name of the Host List used for Dial-in."
+    ::= { slcDevUSBCfgEntry 30 }
+
+slcDevUSBCfgCBCPClientType OBJECT-TYPE
+    SYNTAX      INTEGER { adminDefined(1), userDefined(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "When slcDevUSBCfgModemState is set to cbcpClient, the 
+                 preferred type of dialback number to use for CBCP negotiation."
+    ::= { slcDevUSBCfgEntry 31 }
+
+slcDevUSBCfgCBCPServerAllowNoCallback OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled and slcDevUSBCfgModemState is set to cbcpServer, 
+                 the SLC will allow the PPP peer to select the No Callback 
+                 option during CBCP negotiation."
+    ::= { slcDevUSBCfgEntry 32 }
+
+slcDevUSBCfgTelnetState OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, Telnet connections to the USB modem are allowed."
+    ::= { slcDevUSBCfgEntry 33 }
+
+slcDevUSBCfgTelnetPort OBJECT-TYPE
+    SYNTAX      Integer32 (1025..65535)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "TCP Port number for Telnet connections directly to the 
+                 USB modem."
+    ::= { slcDevUSBCfgEntry 34 }
+
+slcDevUSBCfgTelnetAuth OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, the user is required to authenticate to access 
+                 the USB modem with Telnet."
+    ::= { slcDevUSBCfgEntry 35 }
+
+slcDevUSBCfgSSHState OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, SSH connections to the USB modem are allowed."
+    ::= { slcDevUSBCfgEntry 36 }
+
+slcDevUSBCfgSSHPort OBJECT-TYPE
+    SYNTAX      Integer32 (1025..65535)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "TCP Port number for SSH connections directly to the USB modem."
+    ::= { slcDevUSBCfgEntry 37 }
+
+slcDevUSBCfgSSHAuth OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, the user is required to authenticate to access 
+                 the USB modem with SSH."
+    ::= { slcDevUSBCfgEntry 38 }
+
+slcDevUSBCfgTCPState OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, TCP connections to the USB modem are allowed."
+    ::= { slcDevUSBCfgEntry 39 }
+
+slcDevUSBCfgTCPPort OBJECT-TYPE
+    SYNTAX      Integer32 (1025..65535)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "TCP Port number for TCP connections directly to the USB modem."
+    ::= { slcDevUSBCfgEntry 40 }
+
+slcDevUSBCfgTCPAuth OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, the user is required to authenticate to access 
+                 the USB modem with TCP."
+    ::= { slcDevUSBCfgEntry 41 }
+
+slcDevUSBCfgGSMPIN OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The PIN associated with the GSM/GPRS modem."
+    ::= { slcDevUSBCfgEntry 42 }
+
+slcDevUSBCfgGSMPPPCompression OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, PPP compression is enabled GSM/GPRS modem 
+                 connections."
+    ::= { slcDevUSBCfgEntry 43 }
+
+slcDevUSBCfgGSMAutoAcquireDNS OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, DNS servers will be acquired vi GSM/GPRS modem 
+                 PPP connections."
+    ::= { slcDevUSBCfgEntry 44 }
+
+slcDevUSBCfgGSMDialoutMode OBJECT-TYPE
+    SYNTAX      INTEGER { gprs(1), gsm(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The mode to be used for GSM/GPRS modems configured for 
+                 dialout."
+    ::= { slcDevUSBCfgEntry 45 }
+
+slcDevUSBCfgGSMContextID OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The Context Id string used for GSM/GPRS modems configured 
+                 for GPRS dialout mode."
+    ::= { slcDevUSBCfgEntry 46 }
+
+slcDevUSBCfgGSMBearerService OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The Bearer Service Type string used for GSM/GPRS modems 
+                 configured for GSM dialin/dialout mode."
+    ::= { slcDevUSBCfgEntry 47 }
+
+slcDevUSBCfgCHAPAuthLocalUsers OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, the local user list (login and password) is used 
+                 to validate the CHAP host and secret sent by a remote PPP 
+                 peer for CHAP authentication, instead of using the CHAP host 
+                 and secret associated with a modem." 
+    ::= { slcDevUSBCfgEntry 48 }
+
+slcDevUSBCfgUseSites OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, sites (a set of site-oriented modem parameters 
+                 that can be activated by various modem-related events such 
+                 as authentication, outbound traffic for Dial-on-demand 
+                 connections, etc.) will be used instead of the parameters 
+                 configured for the modem."
+    ::= { slcDevUSBCfgEntry 49 }
+
+slcDevUSBCfgDialbackRetries OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "When slcDevUSBCfgModemState is set to dialback or cbcpServer, 
+                 specifies the number of times the SLC will retry the dial-out 
+                 portion of the dialing sequence if the first attempt to 
+                 dial-out fails."
+    ::= { slcDevUSBCfgEntry 50 }
+
+slcDevUSBCfgDialtoneCheck OBJECT-TYPE
+    SYNTAX      Integer32 (0..600)
+    UNITS       "minutes"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The time (in minutes) between checks for a modem dialtone.  
+                 A value of 0 indicates that dialtone checks are disabled."
+    ::= { slcDevUSBCfgEntry 51 }
+
+slcDevUSBCfgGroup OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The group or groups that may access the USB port."
+    ::= { slcDevUSBCfgEntry 52 }
+
+slcDevIntModem      OBJECT IDENTIFIER ::= { slcDevices 6 }
+
+slcDevIntModemModemState OBJECT-TYPE
+    SYNTAX      INTEGER { disabled(1), 
+                          dialout(2), 
+                          dialin(3), 
+                          dialback(4) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For the SLC internal modem, indicates how the modem will 
+                 be used."
+    ::= { slcDevIntModem 1 }
+
+slcDevIntModemModemMode OBJECT-TYPE
+    SYNTAX      INTEGER { ppp(1), text(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For the SLC internal modem, the mode: PPP (for Dial-in and 
+                 Dial-out) and text (for Dial-in and Dial-back)."
+    ::= { slcDevIntModem 2 }
+
+slcDevIntModemLocalIP OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For PPP connections, the local IP Address - all zeros if it 
+                 should be negotiated."
+    ::= { slcDevIntModem 3 }
+
+slcDevIntModemRemoteIP OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For PPP connections, the remote IP Address - all zeros if it 
+                 should be negotiated."
+    ::= { slcDevIntModem 4 }
+
+slcDevIntModemAuth OBJECT-TYPE
+    SYNTAX      INTEGER { pap(1), chap(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For PPP connections, the type of authentication to be used."
+    ::= { slcDevIntModem 5 }
+
+slcDevIntModemCHAPHost OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For PPP connections with CHAP authentication, the host (for 
+                 Unix) or user (for Windows) to use."
+    ::= { slcDevIntModem 6 }
+
+slcDevIntModemInitScript OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The initialization script for an internal modem."
+    ::= { slcDevIntModem 7 }
+
+slcDevIntModemTimeout OBJECT-TYPE
+    SYNTAX      Integer32 (0..30)
+    UNITS       "minutes"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The timeout (in minutes) for text connections.  A value 
+                 of 0 indicates that timeouts are disabled."
+    ::= { slcDevIntModem 8 }
+
+slcDevIntModemDialoutNum OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The phone number to use for dial-out connections."
+    ::= { slcDevIntModem 9 }
+
+slcDevIntModemDialoutLogin OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(1..32))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The login to use for dial-out connections."
+    ::= { slcDevIntModem 10 }
+
+slcDevIntModemDialbackMode OBJECT-TYPE
+    SYNTAX      INTEGER { usernumber(1), fixed(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For dial-back connections, defines the phone number to call: 
+                 a number associated with the authenticated user, or a fixed 
+                 number associated with the internal modem."
+    ::= { slcDevIntModem 11 }
+
+slcDevIntModemDialbackNum OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The phone number to use for dial-back connections."
+    ::= { slcDevIntModem 12 }
+
+slcDevIntModemDialbackRetries OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "When slcDevIntModemModemState is set to dialback, 
+                 specifies the number of times the SLC will retry the dial-out 
+                 portion of the dialing sequence if the first attempt to 
+                 dial-out fails."
+    ::= { slcDevIntModem 13 }
+
+slcDevIntModemDialbackDelay OBJECT-TYPE
+    SYNTAX      Integer32 
+    UNITS       "seconds"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "When slcDevIntModemModemState is set to dialback, 
+                 specifies the delay between the dial-in and dial-out portion 
+                 of the dialing sequence."
+    ::= { slcDevIntModem 14 }
+
+slcDevIntModemCallerIdLogging OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, caller id logging is enabled for a modem dial-in 
+                 connection."
+    ::= { slcDevIntModem 15 }
+
+slcDevIntModemCallerIdATCmd OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The modem AT command required to initiate caller id logging 
+                 by the modem."
+    ::= { slcDevIntModem 16 }
+
+slcDevIntModemUseSites OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, sites (a set of site-oriented modem parameters 
+                 that can be activated by various modem-related events such 
+                 as authentication, outbound traffic for Dial-on-demand 
+                 connections, etc.) will be used instead of the parameters 
+                 configured for the modem."
+    ::= { slcDevIntModem 17 }
+
+slcDevIntModemGroup OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The group or groups that may access the internal modem 
+                 connection."
+    ::= { slcDevIntModem 18 }
+
+slcDevIntModemIdleTimeout OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "seconds"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The timeout (in seconds) for dial-in and dial-on-demand PPP 
+                 connections.  If no traffic is received for the PPP connection 
+                 in the time defined by the idle timeout, the PPP connection 
+                 will be terminated.  A value of 0 indicates that timeouts are 
+                 disabled."
+    ::= { slcDevIntModem 19 }
+
+slcDevIntModemRestartDelay OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "seconds"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The delay (in seconds) to wait before restarting dial-out or 
+                 dial-on-demand PPP connections."
+    ::= { slcDevIntModem 20 }
+    
+slcDevIntModemNATState OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, use NAT (Network Address Translation) to allow 
+                 dial-in and dial-back users to access the network connected 
+                 to Eth1 and Eth2."
+    ::= { slcDevIntModem 21 }
+
+slcDevIntModemDialtoneCheck OBJECT-TYPE
+    SYNTAX      Integer32 (0..600)
+    UNITS       "minutes"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The time (in minutes) between checks for a modem dialtone.  
+                 A value of 0 indicates that dialtone checks are disabled."
+    ::= { slcDevIntModem 22 }
+
+slcDevRPM      OBJECT IDENTIFIER ::= { slcDevices 7 }
+
+-- RPM table.
+
+slcDevRPMCfgTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF SlcDevRPMCfgEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Table of RPM configuration entries."
+    ::= { slcDevRPM 1 }
+
+slcDevRPMCfgEntry OBJECT-TYPE
+    SYNTAX      SlcDevRPMCfgEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "An entry containing all configuration settings for an RPM,
+                 as well as some top level status information for the RPM."
+    INDEX       { slcDevRPMId }
+    ::= { slcDevRPMCfgTable 1 }
+
+SlcDevRPMCfgEntry ::= SEQUENCE {
+    slcDevRPMId                     Integer32,
+    slcDevRPMName                   OCTET STRING,
+    slcDevRPMVendorModel            OCTET STRING,
+    slcDevRPMManagedVia             INTEGER,
+    slcDevRPMIPAddress              IpAddress,
+    slcDevRPMPort                   Integer32,
+    slcDevRPMDriverOpts             OCTET STRING,
+    slcDevRPMStatus                 OCTET STRING,
+    slcDevRPMFirmwareVersion        OCTET STRING,
+    slcDevRPMSerialNumber           OCTET STRING,
+    slcDevRPMMACAddress             OCTET STRING,   
+    slcDevRPMNumOutlets             Integer32,
+    slcDevRPMOutletsOn              Integer32,
+    slcDevRPMSNMPReadComm           OCTET STRING,
+    slcDevRPMAdminLogin             OCTET STRING,
+    slcDevRPMLogStatus              Integer32,
+    slcDevRPMCriticalSNMPTraps      EnabledState,
+    slcDevRPMCriticalEmails         OCTET STRING,
+    slcDevRPMProvidesSLCPower       EnabledState,
+    slcDevRPMOnLowBattery           INTEGER,
+    slcDevRPMShutdownOrder          Integer32,
+    slcDevRPMLoad                   Integer32,
+    slcDevRPMLoadOverThreshold      Integer32,
+    slcDevRPMBatteryCharge          Integer32,
+    slcDevRPMBatteryRuntime         TimeTicks,
+    slcDevRPMBeeperStatus           EnabledState,
+    slcDevRPMTemperature            Integer32,
+    slcDevRPMUptime                 TimeTicks
+}
+
+slcDevRPMId OBJECT-TYPE
+    SYNTAX      Integer32 (1..100)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The unique identifier for an RPM device."
+    ::= { slcDevRPMCfgEntry 1 }
+
+slcDevRPMName OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(1..20))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The name of the RPM."
+    ::= { slcDevRPMCfgEntry 2 }
+
+slcDevRPMVendorModel OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The manufacture and model of the RPM."
+    ::= { slcDevRPMCfgEntry 3 }
+
+slcDevRPMManagedVia OBJECT-TYPE
+    SYNTAX      INTEGER { serial(1), network(2), snmp(3), usb(4) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The method of control for managing the RPM."
+    ::= { slcDevRPMCfgEntry 4 }
+
+slcDevRPMIPAddress OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For SNMP and network managed RPMs, the IP Address of the RPM."
+    ::= { slcDevRPMCfgEntry 5 }
+
+slcDevRPMPort OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For network managed RPMs, the TCP port to use to connect to 
+                 the RPM.  For USB managed RPMs, the USB port the device is 
+                 connected to (0 indicates a port on the front of the SLC). 
+                 For serially managed RPMs, the RJ45 device port the device is 
+                 connected to."
+    ::= { slcDevRPMCfgEntry 6 }
+
+slcDevRPMDriverOpts OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Any driver options that are configured for the RPM. This 
+                 option is mostly used for the USB vendor and product id."
+    ::= { slcDevRPMCfgEntry 7 }
+
+slcDevRPMStatus OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The current status for the RPM; for example, 'OL' to 
+                 indicate 'Online' for a UPS.  This object may be blank if 
+                 the device does not report a status, or if the device is 
+                 not in an error state."
+    ::= { slcDevRPMCfgEntry 8 }
+
+slcDevRPMFirmwareVersion OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The current firmware version of the RPM.  This object may be 
+                 blank if the device does not report its firmware version."
+    ::= { slcDevRPMCfgEntry 9 }
+
+slcDevRPMSerialNumber OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The serial number of the RPM.  This object may be blank if 
+                 the device does not report its serial number."
+    ::= { slcDevRPMCfgEntry 10 }
+
+slcDevRPMMACAddress OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The hardware address of the ethernet port of the RPM. 
+                 This object may be blank if the device does not report 
+                 its MAC address."
+    ::= { slcDevRPMCfgEntry 11 }
+
+slcDevRPMNumOutlets OBJECT-TYPE
+    SYNTAX      Integer32 (0..120)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The number of power outlets that the RPM has."
+    ::= { slcDevRPMCfgEntry 12 }
+
+slcDevRPMOutletsOn OBJECT-TYPE
+    SYNTAX      Integer32 (-1..120)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The number of RPM outlets that are currently turned on. 
+                 A negative value indicates that the RPM does not report 
+                 how many outlets are turned on."
+    ::= { slcDevRPMCfgEntry 13 }
+
+slcDevRPMSNMPReadComm OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(1..20))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For SNMP managed RPMs, the SNMP read (get) community."
+    ::= { slcDevRPMCfgEntry 14 }
+
+slcDevRPMAdminLogin OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(1..20))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "For serial or network managed RPMs, the administrator login."
+    ::= { slcDevRPMCfgEntry 15 }
+
+slcDevRPMLogStatus OBJECT-TYPE
+    SYNTAX      Integer32 (0..60)
+    UNITS       "minutes"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Indicates how frequently the status for the RPM is logged. 
+                 A value of 0 indicates that logging is disabled."
+    ::= { slcDevRPMCfgEntry 16 }
+
+slcDevRPMCriticalSNMPTraps OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, indicates that the slcEventRPMAction trap will 
+                 be sent for critical events for the RPM."
+    ::= { slcDevRPMCfgEntry 17 }
+
+slcDevRPMCriticalEmails OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "An email address to send emails to for critical events for 
+                 the RPM."
+    ::= { slcDevRPMCfgEntry 18 }
+
+slcDevRPMProvidesSLCPower OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, indicates that the RPM provides power to the SLC."
+    ::= { slcDevRPMCfgEntry 19 }
+
+slcDevRPMOnLowBattery OBJECT-TYPE
+    SYNTAX      INTEGER { shutdownThisUPS(1),
+                          shutdownAllUPS(2),
+                          allowBatteryToFail(3),
+                          shutdownSLCUPS(4)
+                        }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Indicates the action taken when a UPS is on battery and 
+                 reaches a 'low battery' state.  Applies to UPS devices only."
+    ::= { slcDevRPMCfgEntry 20 }
+
+slcDevRPMShutdownOrder OBJECT-TYPE
+    SYNTAX      Integer32 (0..50)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If a UPS reaches a 'low battery' state and its
+                 slcDevRPMOnLowBattery setting is shutdownAllUPS, this
+                 indicates the order in which this RPM will be shutdown as
+                 all UPSes are shutdown.  All UPSes with a shutdown order of 
+                 '1' will be shutdown first, followed by all UPSes with a 
+                 shutdown order of '2', etc. Shutdown orders are in the range 
+                 of 1 to 49, with 50 being reserved for UPSes that provide 
+                 power to the SLC - they will always be shutdown last. 
+                 A value of 0 indicates that this UPS will not be shutdown. 
+                 Applies to UPS devices only."
+    ::= { slcDevRPMCfgEntry 21 }
+
+slcDevRPMLoad OBJECT-TYPE
+    SYNTAX       Integer32 (-1..1000)
+    UNITS        "tenths of a percent"
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "The current load of the RPM expressed as a percentage. 
+                  The value is in tenths of a percent.  A negative value 
+                  indicates that the RPM does not report load values."
+    ::= { slcDevRPMCfgEntry 22 }
+
+slcDevRPMLoadOverThreshold OBJECT-TYPE
+    SYNTAX       Integer32 (-1..1000)
+    UNITS        "tenths of a percent"
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "The load when the RPM switches to an overload condition, 
+                  expressed as a percentage.  The value is in tenths of a 
+                  percent.  A negative value indicates that the RPM does not 
+                  report over load threshold values."
+    ::= { slcDevRPMCfgEntry 23 }
+
+slcDevRPMBatteryCharge OBJECT-TYPE
+    SYNTAX       Integer32 (-1..1000)
+    UNITS        "tenths of a percent"
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "The current battery charge for the the RPM, expressed as 
+                  a percentage.  The value is in tenths of a percent.  A 
+                  negative value indicates that the RPM does not report 
+                  battery charge values."
+    ::= { slcDevRPMCfgEntry 24 }
+
+slcDevRPMBatteryRuntime OBJECT-TYPE
+    SYNTAX       TimeTicks
+    UNITS        "hundredths of seconds"
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "The number of seconds in the RPM remaining battery life.
+                  A value of 0 indicates that the RPM does not report battery 
+                  runtime values."
+    ::= { slcDevRPMCfgEntry 25 }
+
+slcDevRPMBeeperStatus OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, indicates that the RPM beeper is enabled. 
+                 A value of 0 indicates that the RPM does not report beeper
+                 status."
+    ::= { slcDevRPMCfgEntry 26 }
+
+slcDevRPMTemperature OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "Celsius"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The internal temperature of the RPM, given in Celsius. 
+                 A value of less than or equal to zero indicates that the 
+                 RPM does not report temperature values."
+    ::= { slcDevRPMCfgEntry 27 }
+
+slcDevRPMUptime OBJECT-TYPE
+    SYNTAX       TimeTicks
+    UNITS        "hundredths of seconds"
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  "The number of seconds the RPM has been up.  A value of 0 
+                  indicates that the RPM does not report uptime values."
+    ::= { slcDevRPMCfgEntry 28 }
+
+slcDevRPMStatusTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF SlcDevRPMStatusEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Table of RPM status entries."
+    ::= { slcDevRPM 2 }
+
+slcDevRPMStatusEntry OBJECT-TYPE
+    SYNTAX      SlcDevRPMStatusEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "An entry containing status information for an RPM. The SLC
+                 supports up to two towers or units per RPM."
+    INDEX       { slcDevRPMId, RPMTowerIndex }
+    ::= { slcDevRPMStatusTable 1 }
+
+SlcDevRPMStatusEntry ::= SEQUENCE {
+    slcDevRPMCurrent                Integer32,
+    slcDevRPMInputVoltage           Integer32,
+    slcDevRPMApparentPower          Integer32,
+    slcDevRPMNominalApparentPower   Integer32,
+    slcDevRPMRealPower              Integer32,
+    slcDevRPMNominalRealPower       Integer32
+}
+
+slcDevRPMCurrent OBJECT-TYPE
+    SYNTAX      Integer32 
+    UNITS       "tenths of Amps"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The total current level, in tenths of Amps, for all outlets,
+                 on a given RPM tower or unit. If the value is negative, the 
+                 RPM does not report current for the tower or unit."
+    ::= { slcDevRPMStatusEntry 1 }
+
+slcDevRPMInputVoltage OBJECT-TYPE
+    SYNTAX      Integer32 
+    UNITS       "tenths of Volts"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The input voltage, in tenths of Volts, on a given RPM tower 
+                 or unit. If the value is negative, the RPM does not report 
+                 input voltage for the tower or unit."
+    ::= { slcDevRPMStatusEntry 2 }
+
+slcDevRPMApparentPower OBJECT-TYPE
+    SYNTAX      Integer32 
+    UNITS       "tenths of Volt-Amps"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The apparent power, in tenths of Volt-Amps, on a given RPM 
+                 tower or unit. If the value is negative, the RPM does not 
+                 report apparent power for the tower or unit."
+    ::= { slcDevRPMStatusEntry 3 }
+
+slcDevRPMNominalApparentPower OBJECT-TYPE
+    SYNTAX      Integer32 
+    UNITS       "tenths of Volt-Amps"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The nominal apparent power, in tenths of Volt-Amps, on a 
+                 given RPM tower or unit. If the value is negative, the RPM 
+                 does not report nominal apparent power for the tower or unit."
+    ::= { slcDevRPMStatusEntry 4 }
+
+slcDevRPMRealPower OBJECT-TYPE
+    SYNTAX      Integer32 
+    UNITS       "tenths of Watts"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The real power, in tenths of Watts, on a given RPM tower or 
+                 unit. If the value is negative, the RPM does not report 
+                 real power for the tower or unit."
+    ::= { slcDevRPMStatusEntry 5 }
+
+slcDevRPMNominalRealPower OBJECT-TYPE
+    SYNTAX      Integer32 
+    UNITS       "tenths of Watts"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The nominal real power, in tenths of Watts, on a given RPM 
+                 tower or unit. If the value is negative, the RPM does not 
+                 report nominal real power for the tower or unit."
+    ::= { slcDevRPMStatusEntry 6 }
+
+
+slcDevRPMOutletTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF SlcDevRPMOutletEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Table of RPM outlet status and control entries."
+    ::= { slcDevRPM 3 }
+
+slcDevRPMOutletEntry OBJECT-TYPE
+    SYNTAX      SlcDevRPMOutletEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "An entry containing status and control for outlets on an RPM."
+    INDEX       { slcDevRPMId, RPMOutletIndex }
+    ::= { slcDevRPMOutletTable 1 }
+
+SlcDevRPMOutletEntry ::= SEQUENCE {
+    slcDevRPMOutletName             OCTET STRING,
+    slcDevRPMOutletState            INTEGER,
+    slcDevRPMOutletCurrent          Integer32,
+    slcDevRPMOutletAction           INTEGER   
+}
+
+slcDevRPMOutletName OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The current name of the RPM outlet.  This will be blank if 
+                 the RPM device does not report outlet names."
+    ::= { slcDevRPMOutletEntry 1 }
+
+slcDevRPMOutletState OBJECT-TYPE
+    SYNTAX      INTEGER { unknown(1), off(2), on(3) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The current state of the RPM outlet."
+    ::= { slcDevRPMOutletEntry 2 }
+
+slcDevRPMOutletCurrent OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "tenths of Amps"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The current level, in tenths of Amps, for the RPM outlet.  
+                 This will be negative if the RPM does not report current
+                 values for the outlet."
+    ::= { slcDevRPMOutletEntry 3 }
+
+slcDevRPMOutletAction OBJECT-TYPE
+    SYNTAX      INTEGER { noAction(1), turnOff(2), turnOn(3), cyclePower(4) }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Performs an action to change the state of an outlet on an 
+                 RPM.  A read of this object always returns the value 
+                 noAction(1). If the RPM supports individual outlet control, 
+                 a command will be sent to the RPM to change the outlet state. 
+                 Requests for invalid outlets or RPMs that do not support 
+                 individual outlet control will return an error."
+    ::= { slcDevRPMOutletEntry 4 }
 
 
 --
@@ -4202,7 +6733,7 @@ SlcConnEntry ::= SEQUENCE {
 }
 
 slcConnIndex OBJECT-TYPE
-    SYNTAX      INTEGER
+    SYNTAX      Integer32 (1..512)
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "Reference index for each connection."
@@ -4240,6 +6771,7 @@ slcConnUser OBJECT-TYPE
 
 slcConnDuration OBJECT-TYPE
     SYNTAX      Integer32 
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The duration, in seconds, that the connection has existed."
@@ -4255,6 +6787,7 @@ slcConnDurationStr OBJECT-TYPE
 
 slcConnIdle OBJECT-TYPE
     SYNTAX      Integer32 
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The amount of time that the connection has been idle, 
@@ -4286,7 +6819,8 @@ slcSystemModel OBJECT-TYPE
     SYNTAX      OCTET STRING
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The model of the SLC: SLC8, SLC16, SLC32, SLC48."
+    DESCRIPTION "The model of the SLC: SLC8, SLC16, SLC32, SLC48, SLC8008, 
+                 SLC8016, SLC8024, SLC8032, SLC8040, SLC8048."
     ::= { slcSystem 1 }
 
 slcSystemSerialNo OBJECT-TYPE
@@ -4371,6 +6905,7 @@ slcSystemLogoutBanner OBJECT-TYPE
 
 slcSystemWebTimeout OBJECT-TYPE
     SYNTAX      Integer32 (0|5..120)
+    UNITS       "minutes"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The timeout (in minutes) for web sessions.  A value of 0 
@@ -4436,7 +6971,8 @@ slcSystemLCDScreens OBJECT-TYPE
     DESCRIPTION "A string describing the enabled LCD screens, in the order they 
                  are displayed.  Each screen is separated by a comma.  The 
                  possible screens are Current Time, Network, Console, Release, 
-                 Date/Time, Device Ports, Location and User Strings."
+                 Date/Time, Device Ports, Location, Temperature and User 
+                 Strings."
     ::= { slcSystem 19 }
 
 slcSystemLCDUserStrLine1 OBJECT-TYPE
@@ -4465,6 +7001,7 @@ slcSystemLCDScrolling OBJECT-TYPE
 
 slcSystemLCDScrollDelay OBJECT-TYPE
     SYNTAX      Integer32 (1..60)
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "If LCD scrolling is enabled (slcSystemLCDScrolling), the 
@@ -4473,6 +7010,7 @@ slcSystemLCDScrollDelay OBJECT-TYPE
 
 slcSystemLCDIdleDelay OBJECT-TYPE
     SYNTAX      Integer32 (5..60)
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "If LCD scrolling is enabled (slcSystemLCDScrolling), the 
@@ -4482,6 +7020,7 @@ slcSystemLCDIdleDelay OBJECT-TYPE
 
 slcSystemInternalTemp OBJECT-TYPE
     SYNTAX      Integer32
+    UNITS       "Celsius"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The internal temperature of the SLC, given in Celsius. 
@@ -4495,7 +7034,9 @@ slcSystemWebProtocol OBJECT-TYPE
                         }
     MAX-ACCESS  read-only
     STATUS      current
-    DESCRIPTION "The protocol used by the web server."
+    DESCRIPTION "The protocol used by the web server.  This setting is no 
+                 longer available; the web server is configured to only 
+                 support the TLS protocol."
     ::= { slcSystem 26 }
 
 slcSystemWebCipher OBJECT-TYPE
@@ -4510,6 +7051,72 @@ slcSystemWebCipher OBJECT-TYPE
                  uses 64 or 56 bits."
     ::= { slcSystem 27 }
 
+slcSystemModelString OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A string that describes the SLC model: 
+                 <Model>-<Power Supply>-<PCCard or USB>"
+    ::= { slcSystem 28 }
+
+slcSystemWebGroup OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The group or groups that may access the web."
+    ::= { slcSystem 29 }
+
+slcSystemWebInterface OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A string describing the interfaces the web is available on; 
+                 for example: Eth1,Eth2,PPP."
+    ::= { slcSystem 30 }
+
+slcSystemWebBanner OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The banner on the web home page."
+    ::= { slcSystem 31 }
+
+slcSystemInternalTempLow OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "Celsius"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The minimum acceptable internal temperature for the SLC, 
+                 in Celsius."
+    ::= { slcSystem 32 }
+
+slcSystemInternalTempHigh OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "Celsius"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The maximum acceptable internal temperature for the SLC, 
+                 in Celsius."
+    ::= { slcSystem 33 }
+
+slcSystemCalibrateTemp OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "Celsius"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "An offset in Celsius for calibrating the internal temperature 
+                 of the SLC."
+    ::= { slcSystem 34 }
+
+slcSystemWebServer OBJECT-TYPE
+    SYNTAX      EnabledState
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "If enabled, the web server will run and listen on TCP 
+                 ports 80 and 443 (all requests to port 80 are redirected 
+                 to port 443)."
+    ::= { slcSystem 35 }
+
 
 -- SLC Monitoring Traps
 
@@ -4517,7 +7124,10 @@ slcEvents       OBJECT IDENTIFIER ::= { slc 0 }
 slcEventObjects OBJECT IDENTIFIER ::= { slc 7 }
 
 slcPowerSupplyId OBJECT-TYPE
-    SYNTAX      INTEGER { powerSupplyA(1), powerSupplyB(2) }
+    SYNTAX      INTEGER { powerSupplyA(1), 
+                          powerSupplyB(2),
+                          primaryInlet(3),
+                          secondaryInlet(4) }
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The identifier of the power supply in a slcEventPowerSupply 
@@ -4534,6 +7144,7 @@ slcPowerSupplyAction OBJECT-TYPE
 
 slcDevPortNumBytes OBJECT-TYPE
     SYNTAX      Integer32
+    UNITS       "bytes"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The number of bytes received on a Device Port to trigger a 
@@ -4559,6 +7170,7 @@ slcDevPortStartByte OBJECT-TYPE
 
 slcDevPortTimeFrame OBJECT-TYPE
     SYNTAX      Integer32
+    UNITS       "seconds"
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION "The time frame, in seconds, after which a 
@@ -4607,6 +7219,66 @@ slcPCCardType OBJECT-TYPE
     DESCRIPTION "The type of card inserted in a PC Card slot."
     ::= { slcEventObjects 11 }
 
+slcUSBAction OBJECT-TYPE
+    SYNTAX      INTEGER { deviceInserted(1), 
+                          deviceRemoved(2),
+                          noModemDialTone(3) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The action that occurred on a USB Port."
+    ::= { slcEventObjects 12 }
+
+slcUSBType OBJECT-TYPE
+    SYNTAX      INTEGER { none(1), 
+                          storage(2), 
+                          modem(3), 
+                          isdn(4),
+                          wireless(5),
+                          gsmmodem(6) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The type of device inserted in a USB Port."
+    ::= { slcEventObjects 13 }
+
+slcDevPortErrorStatus OBJECT-TYPE
+    SYNTAX      INTEGER { dataDrop(1), 
+                          invalidIOConfiguration(2),
+                          errorIOModules(3) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The status returned when an error occurs in a Device Port. 
+                 dataDrop applies to a specific Device Port and is sent when 
+                 a Device Port is required to discard data in order to keep 
+                 data moving for all connections to the Device Port. 
+                 invalidIOConfiguration and errorIOModules apply to all 
+                 Device Ports.  invalidIOConfiguration is sent when the I/O 
+                 modules installed in a SLC are in an invalid configuration. 
+                 errorIOModules is sent when an error is detected in one or 
+                 more I/O modules."
+    ::= { slcEventObjects 14 }
+
+slcSDCardAction OBJECT-TYPE
+    SYNTAX      INTEGER { deviceInserted(1), 
+                          deviceRemoved(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The action that occurred on the SD Card slot."
+    ::= { slcEventObjects 15 }
+
+slcRPMAction OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The action that occurred on a Remote Power Manager."
+    ::= { slcEventObjects 16 }
+
+slcEventHost OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "The name or IP address of a host in a SLC event."
+    ::= { slcEventObjects 17 }
+
 
 slcEventPowerSupply NOTIFICATION-TYPE
     OBJECTS { slcPowerSupplyId, slcPowerSupplyAction }
@@ -4643,9 +7315,10 @@ slcEventDevicePortSLMData NOTIFICATION-TYPE
     STATUS      current
     DESCRIPTION "The SNMP trap that is generated when data is received on a 
                  Device Port, and the Device Port has been configured to 
-                 generate a trap designated for the SecureLinx Manager (SLM) 
-                 when a specified number of bytes is received or a specified 
-                 time frame is passed.  This trap is only sent to the SLM."
+                 generate a trap designated for the Secure Lantronix Management 
+                 Appliance (SLM) when a specified number of bytes is received 
+                 or a specified time frame is passed.  This trap is only sent 
+                 to the SLM."
     ::= { slcEvents 5 }
 
 slcEventDevicePortSLMConfig NOTIFICATION-TYPE
@@ -4654,9 +7327,9 @@ slcEventDevicePortSLMConfig NOTIFICATION-TYPE
     DESCRIPTION "The SNMP trap that is generated when the SLM logging 
                  configuration is changed for a Device Port, and the Device 
                  Port has been configured to generate a trap designated for 
-                 the SecureLinx Manager (SLM).  This trap specifies the new 
-                 SLM logging configuration for the Device Port, and is only 
-                 sent to the SLM."
+                 the Secure Lantronix Management Appliance (SLM).  This trap 
+                 specifies the new SLM logging configuration for the Device 
+                 Port, and is only sent to the SLM."
     ::= { slcEvents 6 }
 
 slcEventDevicePortDeviceLowTemp NOTIFICATION-TYPE
@@ -4711,5 +7384,49 @@ slcEventSLCInternalTemp NOTIFICATION-TYPE
     DESCRIPTION "The SNMP trap that is generated when the internal temperature 
                  of the SLC is outside of the acceptable operating range."
     ::= { slcEvents 13 }
+
+slcEventUSBAction NOTIFICATION-TYPE
+    OBJECTS     { slcDevUSBId, slcUSBAction, slcUSBType }
+    STATUS      current
+    DESCRIPTION "The SNMP trap that is generated when an event occurs on one 
+                 of the USB Ports."
+    ::= { slcEvents 14 }
+
+slcEventDevicePortError NOTIFICATION-TYPE
+    OBJECTS     { slcDevPortId, slcDevPortErrorStatus }
+    STATUS      current
+    DESCRIPTION "The SNMP trap that is generated when an error occurs on a 
+                 a Device Port, or across all Device Ports.  If an error 
+                 occurs across all Device Ports, slcDevPortId will be 1 (one)."
+    ::= { slcEvents 15 }
+
+slcEventSDCardAction NOTIFICATION-TYPE
+    OBJECTS     { slcSDCardAction }
+    STATUS      current
+    DESCRIPTION "The SNMP trap that is generated when an event occurs on the 
+                 SD Card slot."
+    ::= { slcEvents 16 }
+
+slcEventNoDialToneAlarm NOTIFICATION-TYPE
+    STATUS      current
+    DESCRIPTION "The SNMP trap that is generated when an event indicates 
+                 that a no-dial-tone condition on the internal modem exists."
+    ::= { slcEvents 17 }
+
+slcEventRPMAction NOTIFICATION-TYPE
+    OBJECTS     { slcDevRPMName, slcRPMAction }
+    STATUS      current
+    DESCRIPTION "The SNMP trap that is generated when an event occurs on one 
+                 of the Remote Power Manager (UPS or PDU) devices."
+    ::= { slcEvents 18 }
+
+slcEventPingHostFails NOTIFICATION-TYPE
+    OBJECTS     { slcEventHost }
+    STATUS      current
+    DESCRIPTION "The SNMP trap that is generated when the SLC is monitoring 
+                 a host with regular pings and the SLC is unable to ping the 
+                 host.  The trap includes either the name or the IP address 
+                 of the failed host."
+    ::= { slcEvents 19 }
 
 END

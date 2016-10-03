@@ -19,7 +19,7 @@ foreach (dbFetchRows("SELECT COUNT(`location_id`) AS `count`, `device_id` FROM `
 
 if (count($entries))
 {
-  echo(' Clean duplicate geo location entries: ');
+  echo('Clean duplicate geo location entries: ');
   foreach ($entries as $device_id)
   {
     // Remove all device rows except last one
@@ -30,7 +30,5 @@ if (count($entries))
 }
 
 unset($entries, $device_id, $last);
-
-echo(PHP_EOL);
 
 // EOF

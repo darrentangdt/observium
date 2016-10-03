@@ -11,10 +11,7 @@
  *
  */
 
-$mib = 'SMARTNODE-MIB';
-echo("$mib ");
-
-$mempool_array = snmpwalk_cache_oid($device, "memory", NULL, $mib, mib_dirs('patton'));
+$mempool_array = snmpwalk_cache_oid($device, 'memory', array(), $mib);
 
 foreach ($mempool_array as $index => $entry)
 {
@@ -24,7 +21,7 @@ foreach ($mempool_array as $index => $entry)
     $used  = $entry['memAllocatedBytes'];
     $total = $free + $used; # memTotalBytes is 0 !
     $descr = $entry['memDescr'];
-    discover_mempool($valid['mempool'], $device, $index, $mib, $descr, 1, $total, $used);
+    discover_mempool($valid['mempool'], $device, $index, 'SMARTNODE-MIB', $descr, 1, $total, $used);
   }
 }
 

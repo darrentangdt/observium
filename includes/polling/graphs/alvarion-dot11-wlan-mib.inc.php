@@ -75,7 +75,7 @@ foreach ($oids_array as $graph => $oids)
 
   if (!isset($graphs_db[$graph]) || $graphs_db[$graph] === TRUE)
   {
-    $data = snmp_get_multi($device, $oids, "-OQUs", "ALVARION-DOT11-WLAN-MIB", mib_dirs('alvarion'));
+    $data = snmp_get_multi($device, $oids, "-OQUs", "ALVARION-DOT11-WLAN-MIB");
     $data = $data[0];
 
     $rrd_file = str_replace('_', '-', $graph).".rrd";

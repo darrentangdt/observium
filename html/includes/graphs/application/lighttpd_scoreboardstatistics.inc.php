@@ -2,9 +2,9 @@
 
 $scale_min = 0;
 
-include("includes/graphs/common.inc.php");
+include($config['html_dir']."/includes/graphs/common.inc.php");
 
-$rrd_filename = $config['rrd_dir'] . "/" . $device['hostname'] . "/app-lighttpd-".$app['app_id'].".rrd";
+$rrd_filename = get_rrd_path($device, "app-lighttpd-".$app['app_id']);
 
 $array = array('connectionsp' => array('descr' => 'Connect', 'colour' => '750F7DFF'),
                'connectionsC' => array('descr' => 'Close', 'colour' => '00FF00FF'),
@@ -37,6 +37,6 @@ $colours   = "mixed";
 $nototal   = 1;
 $unit_text = "Workers";
 
-include("includes/graphs/generic_multi_simplex_seperated.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_simplex_separated.inc.php");
 
-?>
+// EOF

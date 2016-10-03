@@ -94,9 +94,9 @@ $colour_line_out = "000099";
 $colour_area_in = "91B13C";
 $colour_area_out = "8080BD";
 
-include("includes/graphs/generic_multi_separated.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_separated.inc.php");
 
-#include("includes/graphs/generic_multi_bits_separated.inc.php");
-#include("includes/graphs/generic_multi_data_separated.inc.php");
+#include($config['html_dir']."/includes/graphs/generic_multi_bits_separated.inc.php");
+#include($config['html_dir']."/includes/graphs/generic_multi_data_separated.inc.php");
 
 // EOF

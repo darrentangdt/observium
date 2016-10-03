@@ -65,6 +65,6 @@ foreach ($rownames as $mc => $data)
   }
 }
 
-include("includes/graphs/generic_multi_line.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_line.inc.php");
 
 // EOF

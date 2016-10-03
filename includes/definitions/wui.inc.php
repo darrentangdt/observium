@@ -39,6 +39,8 @@ $config['wui']['refresh_disabled'][]  = array('page' => 'alert_regenerate');
 $config['wui']['refresh_disabled'][]  = array('page' => 'alert_maintenance_add');
 $config['wui']['refresh_disabled'][]  = array('page' => 'group_add');
 $config['wui']['refresh_disabled'][]  = array('page' => 'groups_regenerate');
+$config['wui']['refresh_disabled'][]  = array('page' => 'add_alertlog_rule');
+$config['wui']['refresh_disabled'][]  = array('page' => 'syslog_rules');
 $config['wui']['refresh_disabled'][]  = array('page' => 'contact');
 $config['wui']['refresh_disabled'][]  = array('page' => 'contacts');
 $config['wui']['refresh_disabled'][]  = array('page' => 'bills', 'view' => 'add');
@@ -67,11 +69,5 @@ $config['wui']['search_modules'] = array('devices', 'ports', 'sensors', 'status'
 //$config['wui']['groups_list'] = array('device', 'port', 'processor', 'mempool', 'sensor', 'bgp_peer');
 $config['wui']['groups_list'] = array('device', 'port', 'processor', 'mempool', 'sensor');
 
-// Page configuration
-
-$config['pages']['device']['custom_panel'] = TRUE;
-$config['pages']['devices']['custom_panel'] = TRUE;
-$config['pages']['ports']['custom_panel'] = TRUE;
-$config['pages']['neighbours']['custom_panel'] = TRUE;
 
 // EOF

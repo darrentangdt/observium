@@ -25,7 +25,7 @@
 // SNIA-SML-MIB::chassis-Tag.0 = STRING: "International Business Machines 3584 7823156"
 // SNIA-SML-MIB::chassis-ElementName.0 = STRING: "IBM System Storage TS3500 Tape Library        "
 
-$data = snmp_get_multi($device, 'chassis-Model.0 chassis-SerialNumber.0 product-Version.0', "-OQUs", "SNIA-SML-MIB");
+$data = snmp_get_multi($device, 'chassis-Model.0 chassis-SerialNumber.0 product-Version.0', '-OQUs', 'SNIA-SML-MIB');
 
 if (is_array($data[0]))
 {

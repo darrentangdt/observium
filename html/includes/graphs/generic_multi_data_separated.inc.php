@@ -39,6 +39,7 @@ if (!$noheader)
 if (!isset($multiplier)) { $multiplier = "8"; }
 
 $rrd_multi = array();
+$stack = '';
 foreach ($rrd_list as $rrd)
 {
   if (!$config['graph_colours'][$colours_in][$iter] || !$config['graph_colours'][$colours_out][$iter]) { $iter = 0; }
@@ -73,9 +74,9 @@ foreach ($rrd_list as $rrd)
     $rrd_multi['out_thing'][] = $out . $i . ",UN,0," . $out . $i . ",IF";
   }
 
-  if ($i) { $stack="STACK"; }
+  if ($i) { $stack = ":STACK"; }
 
-  $rrd_options .= " AREA:inB".$i."#" . $colour_in . ":'" . $descr . "':$stack";
+  $rrd_options .= " AREA:inB".$i."#" . $colour_in . ":'" . $descr . "'$stack";
   $rrd_options .= " GPRINT:inB".$i.":LAST:%6.2lf%s$units";
   $rrd_options .= " GPRINT:inB".$i.":AVERAGE:%6.2lf%s$units";
   $rrd_options .= " GPRINT:inB".$i.":MAX:%6.2lf%s$units\l";
@@ -83,7 +84,7 @@ foreach ($rrd_list as $rrd)
   if (!$nototal) { $rrd_options .= " GPRINT:totin".$i.":%6.2lf%s$total_units"; }
 
   $rrd_options  .= " 'HRULE:0#" . $colour_out.":".$descr_out."'";
-  $rrd_optionsb .= " 'AREA:outB".$i."_neg#" . $colour_out . "::$stack'";
+  $rrd_optionsb .= " 'AREA:outB".$i."_neg#" . $colour_out . ":$stack'";
   $rrd_options  .= " GPRINT:outB".$i.":LAST:%6.2lf%s$units";
   $rrd_options  .= " GPRINT:outB".$i.":AVERAGE:%6.2lf%s$units";
   $rrd_options  .= " GPRINT:outB".$i.":MAX:%6.2lf%s$units\l";
@@ -117,7 +118,7 @@ if (!$nototal)
   $rrd_options .= " VDEF:totout=outoctets,TOTAL";
   $rrd_options .= " VDEF:tot=octets,TOTAL";
 
-#  $rrd_options .= " AREA:totin#" . $colour_in . ":'" . $descr . "':$stack";
+#  $rrd_options .= " AREA:totin#" . $colour_in . ":'" . $descr . "'$stack";
 #  $rrd_options .= " GPRINT:totin:LAST:%6.2lf%s$units";
 #  $rrd_options .= " GPRINT:totin:AVERAGE:%6.2lf%s$units";
 #  $rrd_options .= " GPRINT:totin:MAX:%6.2lf%s$units\l";
@@ -128,6 +129,6 @@ $rrd_options .= $rrd_optionsb;
 $rrd_options .= " HRULE:0#999999";
 
 // Clean
-unset($rrd_multi, $in_thing, $out_thing, $pluses);
+unset($rrd_multi, $in_thing, $out_thing, $pluses, $stack);
 
 // EOF

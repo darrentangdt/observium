@@ -13,33 +13,31 @@
 
 // First attempt at radio polling. Could do with some improvement perhaps
 
-echo(" RUCKUS-RADIO-MIB ");
-
 // Getting Radios
 
-$radios_snmp = snmpwalk_cache_oid($device, "RuckusRadioTable", array(), "RUCKUS-RADIO-MIB", mib_dirs('ruckus'));
+$radios_snmp = snmpwalk_cache_oid($device, 'RuckusRadioTable', array(), 'RUCKUS-RADIO-MIB');
 if ($GLOBALS['snmp_status'])
 {
-  $radios_snmp = snmpwalk_cache_oid($device, "ruckusRadioStatsNumSta", $radios_snmp, "RUCKUS-RADIO-MIB", mib_dirs('ruckus'));
+  $radios_snmp = snmpwalk_cache_oid($device, 'ruckusRadioStatsNumSta', $radios_snmp, 'RUCKUS-RADIO-MIB');
   if (OBS_DEBUG > 1) { print_vars($radios_snmp); }
 }
 
 // Goes through the SNMP radio data
 foreach ($radios_snmp as $radio_number => $radio)
 {
-  $radio['radio_mib']     = "RUCKUS-RADIO-MIB";
+  $radio['radio_mib']     = 'RUCKUS-RADIO-MIB';
   $radio['radio_number']  = $radio_number;
-  $radio['radio_ap']      = "0";                           // Hardcoded since the AP is self.
+  $radio['radio_ap']      = 0;                             // Hardcoded since the AP is self.
   $radio['radio_type']    = $radio['ruckusRadioMode'];
-  $radio['radio_status']  = "unknown";                     // Hardcoded, data doesn't exist in this MIB
+  $radio['radio_status']  = 'unknown';                     // Hardcoded, data doesn't exist in this MIB
   $radio['radio_clients'] = $radio['ruckusRadioStatsNumSta'];
   $radio['radio_txpower'] = $radio['ruckusRadioTxPower'];
   $radio['radio_channel'] = $radio['ruckusRadioChannel'];
 
-  if      ($radio['ruckusRadioBSSType'] == '1') { $radio['radio_status']  = "station"; }
-  else if ($radio['ruckusRadioBSSType'] == '2') { $radio['radio_status']  = "master"; }
-  else if ($radio['ruckusRadioBSSType'] == '3') { $radio['radio_status']  = "independent"; }
-  else                                          { $radio['radio_bsstype'] = "unknown"; }
+  if      ($radio['ruckusRadioBSSType'] == '1') { $radio['radio_status']  = 'station'; }
+  else if ($radio['ruckusRadioBSSType'] == '2') { $radio['radio_status']  = 'master'; }
+  else if ($radio['ruckusRadioBSSType'] == '3') { $radio['radio_status']  = 'independent'; }
+  else                                          { $radio['radio_bsstype'] = 'unknown'; }
 
   $radio['radio_protection'] = $radio['ruckusRadioProtectionMode'];
   $radio['radio_mac']        = array('NULL');                 // Hardcoded, data doesnt' exist in this MIB

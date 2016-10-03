@@ -13,14 +13,12 @@
 
 // First attempt at radio polling. Could do with some improvement perhaps
 
-echo(" RUCKUS-RADIO-MIB ");
-
 // Getting Radios
 
-$radios_snmp = snmpwalk_cache_oid($device, "RuckusRadioNumber", array(), "RUCKUS-RADIO-MIB", mib_dirs('ruckus'));
+$radios_snmp = snmpwalk_cache_oid($device, 'RuckusRadioNumber', array(), 'RUCKUS-RADIO-MIB');
 if ($GLOBALS['snmp_status'])
 {
-  $radios_snmp = snmpwalk_cache_oid($device, "ruckusRadioStatsTable", array(), "RUCKUS-RADIO-MIB", mib_dirs('ruckus'));
+  $radios_snmp = snmpwalk_cache_oid($device, 'ruckusRadioStatsTable', array(), 'RUCKUS-RADIO-MIB');
   if (OBS_DEBUG > 1) { print_vars($radios_snmp); }
 }
 
@@ -32,7 +30,7 @@ foreach ($radios_snmp as $radio_number => $radio)
 
   $radio['polled']        = $polled;
   $radio['radio_number']  = $radio_number;
-  $radio['radio_ap']      = "0"; // Hardcoded since the AP is self.
+  $radio['radio_ap']      = 0; // Hardcoded since the AP is self.
   $radio['radio_clients'] = $radio['ruckusRadioStatsNumSta'];
 
   if (OBS_DEBUG && count($radio))
@@ -70,9 +68,9 @@ foreach ($radios_snmp as $radio_number => $radio)
                 'busy_airtime'         => array('oid' => 'ruckusRadioStatsBusyAirtime')
   );
 
-  $rrd_file = "wifi-radio-" . $radio['radio_ap'] . "-" . $radio['radio_number'] . ".rrd";
-  $rrd_update = "N";
-  $rrd_create = "";
+  $rrd_file = 'wifi-radio-' . $radio['radio_ap'] . '-' . $radio['radio_number'] . '.rrd';
+  $rrd_update = 'N';
+  $rrd_create = '';
 
   foreach ($dses as $ds => $ds_data)
   {
@@ -83,20 +81,20 @@ foreach ($radios_snmp as $radio_number => $radio)
 
     if ($ds_data['type'] == 'gauge')
     {
-      $rrd_create .= " DS:" . $ds . ":GAUGE:600:U:100000000000";
+      $rrd_create .= ' DS:' . $ds . ':GAUGE:600:U:100000000000';
     }
     else
     {
-      $rrd_create .= " DS:" . $ds . ":COUNTER:600:U:100000000000";
+      $rrd_create .= ' DS:' . $ds . ':COUNTER:600:U:100000000000';
     }
 
     if (is_numeric($radio[$oid]))
     {
-      $rrd_update .= ":" . $radio[$oid];
+      $rrd_update .= ':' . $radio[$oid];
     }
     else
     {
-      $rrd_update .= ":U";
+      $rrd_update .= ':U';
     }
   }
 

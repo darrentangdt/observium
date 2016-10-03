@@ -11,10 +11,8 @@
  *
  */
 
-$mib = 'F10-M-SERIES-CHASSIS-MIB';
-
-$cache_mempool = snmpwalk_cache_multi_oid($device, 'chStackUnitMemUsageUtil', $cache_mempool, $mib, mib_dirs('force10'));
-$cache_mempool = snmpwalk_cache_multi_oid($device, 'chSysProcessorMemSize',   $cache_mempool, $mib, mib_dirs('force10'));
+$cache_mempool = snmpwalk_cache_multi_oid($device, 'chStackUnitMemUsageUtil', $cache_mempool, 'F10-M-SERIES-CHASSIS-MIB');
+$cache_mempool = snmpwalk_cache_multi_oid($device, 'chSysProcessorMemSize',   $cache_mempool, 'F10-M-SERIES-CHASSIS-MIB');
 
 $index            = $mempool['mempool_index'];
 $mempool['total'] = $cache_mempool[$index]['chSysProcessorMemSize'];

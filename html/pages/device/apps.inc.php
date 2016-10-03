@@ -61,12 +61,34 @@ foreach ($device_app_types as $type_key => $type_data)
       $navbar['options'][$app['app_type']]['text'] = $name;
       $navbar['options'][$app['app_type']]['url'] = $url;
 
-      $image = $config['html_dir'].'/images/icons/'.$app['app_type'].'.png';
-      $icon = (is_file($image) ? $app['app_type'] : 'apps');
-      $navbar['options'][$app['app_type']]['image'] = 'images/icons/'.$icon.'.png';
+      // Detect and add application icon
+      $icon = $app['app_type'];
+      $image = $config['html_dir'].'/images/apps/'.$icon.'.png';
+      if (is_file($image))
+      {
+        // Icon found
+        //$icon = $app['app_type'];
+      } else {
+        list($icon) = explode('-', str_replace('_', '-', $app['app_type']));
+        $image = $config['html_dir'].'/images/apps/'.$icon.'.png';
+        if ($icon != $app['app_type'] && is_file($image))
+        {
+          // 'postfix_qshape' -> 'postfix'
+          // 'exim-mailqueue' -> 'exim'
+        } else {
+          $icon = 'apps'; // Generic
+        }
+      }
+      $navbar['options'][$app['app_type']]['image'] = 'images/apps/'.$icon.'.png';
+      if (is_file($config['html_dir'].'/images/apps/'.$icon.'_2x.png'))
+      {
+        // HiDPI icon
+        $navbar['options'][$app['app_type']]['image_2x'] = 'images/apps/'.$icon.'_2x.png';
+      }
     }
 
     // If there is more than one instance of the current app type we need to determine how to render the navbar
+    // FIXME -- no icons
     else
     {
       // If the current app type and instance is the one being displayed, highlight the navbar root link and show which app/instance
@@ -157,6 +179,6 @@ if (is_file($app_filename))
   }
 }
 
-$page_title[] = "Apps";
+register_html_title("Apps");
 
 // EOF

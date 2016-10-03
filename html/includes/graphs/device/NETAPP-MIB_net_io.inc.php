@@ -16,6 +16,6 @@ $rrd_filename = get_rrd_path($device, "netapp-mib_misc.rrd");
 $ds_in = "NetRcvdBytes";
 $ds_out = "NetSentBytes";
 
-include("includes/graphs/generic_data.inc.php");
+include($config['html_dir']."/includes/graphs/generic_data.inc.php");
 
 ?>

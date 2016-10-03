@@ -36,7 +36,6 @@ if (is_numeric($vars['id']))
     $graph_title  = $device['hostname'] . ' :: ' . $unit_text; // hostname :: SLA XX
 
     $rrd_filename = get_rrd_path($device, "pseudowire-" . $index . ".rrd");
-    $graph_return['rrds'][] = $rrd_filename;
     $auth = TRUE;
   }
 }

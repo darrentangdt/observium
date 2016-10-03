@@ -27,6 +27,6 @@ $unit_text = "Frames/s";
 
   $args['nototal'] = 1; $print_total = 0; $nototal = 1;
 
-include("includes/graphs/generic_duplex.inc.php");
+include($config['html_dir']."/includes/graphs/generic_duplex.inc.php");
 
 ?>

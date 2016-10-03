@@ -22,7 +22,7 @@ foreach ($sensor_types as $sensor_type)
   // Cache all sensors
   foreach (dbFetchRows($sql, array($sensor_type, $device['device_id'])) as $entry)
   {
-    if (strlen($entry['measured_class']) && is_numeric($entry['measured_entity'])) // in_array($entry['sensor_class'], array('temperature', 'voltage', 'current', 'dbm')))
+    if (strlen($entry['measured_class']) && is_numeric($entry['measured_entity']) && !in_array($entry['sensor_class'], array('counter', 'state')))
     {
       // Sensors bounded with measured class, mostly ports
       // array index -> ['measured']['port']['345'][] = sensor array
@@ -39,17 +39,12 @@ if (isset($sensors_db['measured']))
 {
   foreach ($sensors_db['measured'] as $measured_class => $measured_entity)
   {
+    $box_args = array('title' => nicecase($measured_class).' sensors', 
+                      'icon' => 'oicon-node',
+                      ); 
+    echo generate_box_open($box_args);
 
-?>
-
-  <div class="box box-solid">
-    <div class="box-header ">
-      <i class="oicon-node"></i> <h3 class="box-title"><?php echo(nicecase($measured_class)); ?> sensors</h3>
-    </div>
-    <div class="box-body no-padding">
-      <table class="table table-condensed table-striped">
-
-<?php
+    echo' <table class="table table-condensed table-striped">';
 
     foreach ($measured_entity as $entity_id => $entry)
     {
@@ -78,10 +73,8 @@ if (isset($sensors_db['measured']))
 
 ?>
       </table>
-    </div>
-  </div>
 <?php
-
+    echo generate_box_close();
   }
   // End for print bounds, unset this array
   unset($sensors_db['measured']);
@@ -93,17 +86,11 @@ foreach ($sensors_db as $sensor_type => $sensors)
 
   if (count($sensors))
   {
-?>
-
-  <div class="box box-solid">
-    <div class="box-header ">
-      <a href="<?php echo(generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => $sensor_type))); ?>">
-        <i class="<?php echo($config['sensor_types'][$sensor_type]['icon']); ?>"></i><h3 class="box-title"><?php echo(nicecase($sensor_type)) ?></h3>
-      </a>
-    </div>
-    <div class="box-body no-padding">
-
-<?php
+    $box_args = array('title' => nicecase($sensor_type), 
+                    'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => $sensor_type)), 
+                    'icon' => $config['sensor_types'][$sensor_type]['icon'],
+                    ); 
+    echo generate_box_open($box_args);
 
     echo('<table class="table table-condensed table-striped">');
     foreach ($sensors as $sensor)
@@ -112,7 +99,7 @@ foreach ($sensors_db as $sensor_type => $sensors)
     }
 
     echo("</table>");
-    echo("</div></div>");
+    echo generate_box_close();
   }
 }
 

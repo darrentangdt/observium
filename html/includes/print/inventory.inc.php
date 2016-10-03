@@ -24,9 +24,10 @@ function print_inventory($vars)
   if ($vars['page'] == 'device' && is_numeric($vars['device']) && device_permitted($vars['device']))
   {
     // DHTML expandable tree
-    $GLOBALS['cache_html']['js'][]  = 'js/mktree.js';
-    $GLOBALS['cache_html']['css'][] = 'css/mktree.css';
-
+    register_html_resource('js', 'mktree.js');
+    register_html_resource('css', 'mktree.css');
+    
+    echo generate_box_open($vars['header']);
     echo('<table class="table table-striped  table-condensed "><tr><td>');
     echo('<div class="btn-group pull-right" style="margin-top:5px; margin-right: 5px;">
       <button class="btn btn-small" onClick="expandTree(\'enttree\');return false;"><i class="icon-plus muted small"></i> Expand</button>
@@ -37,6 +38,7 @@ function print_inventory($vars)
     print_ent_physical(0, 0, "liOpen");
     echo('</ul></div>');
     echo('</td></tr></table>');
+    echo generate_box_close();
     return TRUE;
   }
 
@@ -125,8 +127,7 @@ function print_inventory($vars)
     }
     elseif ($entry['entPhysicalClass'] == "sensor")
     {
-      $sensor = dbFetchRow("SELECT * FROM `sensors` AS S
-                            LEFT JOIN `sensors-state` AS ST ON S.`sensor_id` = ST.`sensor_id`
+      $sensor = dbFetchRow("SELECT * FROM `sensors` LEFT JOIN `sensors-state` USING(`sensor_id`)
                             WHERE `device_id` = ? AND (`entPhysicalIndex` = ? OR `sensor_index` = ?)", array($entry['device_id'], $entry['entPhysicalIndex'], $entry['entPhysicalIndex']));
       //$ent_text .= ' ('.$sensor['sensor_value'] .' '. $sensor['sensor_class'].')';
       $entry['entPhysicalName'] = generate_entity_link('sensor', $sensor);
@@ -205,43 +206,48 @@ relay
     {
       case 'chassis':
       case 'board':
-        $text .= '<i class="oicon-database"></i> ';
+        $icon = 'oicon-database';
         break;
       case 'module':
       case 'portInterfaceCard':
-        $text .= '<i class="oicon-drive"></i> ';
+        $icon = 'oicon-drive';
         break;
       case 'port':
-        $text .= '<i class="oicon-network-ethernet"></i> ';
+        $icon = 'oicon-network-ethernet';
         break;
       case 'container':
       case 'flexiblePicConcentrator':
-        $text .= '<i class="oicon-box-zipper"></i> ';
+        $icon = 'oicon-box-zipper';
         break;
       case 'stack':
-        $text .= '<i class="oicon-databases"></i> ';
+        $icon = 'icon-databases';
         break;
       case 'fan':
       case 'airflowSensor':
-        $text .= '<i class="oicon-weather-wind"></i> ';
+        $icon = 'oicon-weather-wind';
         break;
       case 'powerSupply':
       case 'powerEntryModule':
-        $text .= '<i class="oicon-plug"></i> ';
+        $icon = 'oicon-plug';
         break;
       case 'backplane':
-        $text .= '<i class="oicon-zones"></i> ';
+        $icon = 'oicon-zones';
         break;
       case 'sensor':
-        $text .= '<i class="oicon-asterisk"></i> ';
-        $sensor = dbFetchRow("SELECT * FROM `sensors` AS S
-                             LEFT JOIN `sensors-state` AS ST ON S.`sensor_id` = ST.`sensor_id`
+        $sensor = dbFetchRow("SELECT * FROM `sensors` LEFT JOIN `sensors-state` USING(`sensor_id`)
                              WHERE `device_id` = ? AND (`entPhysicalIndex` = ? OR `sensor_index` = ?)", array($device['device_id'], $ent['entPhysicalIndex'], $ent['entPhysicalIndex']));
+        if ($sensor['sensor_class'])
+        {
+          $icon = $GLOBALS['config']['sensor_types'][$sensor['sensor_class']]['icon'];
+        } else {
+          $icon = 'oicon-asterisk';
+        }
         break;
       default:
-        $text .= '<i class="oicon-chain"></i> ';
+        $icon = 'oicon-chain';
     }
-
+    
+    $text .= '<i class="'.$icon.'"></i> ';
     if ($ent['entPhysicalParentRelPos'] > '-1') { $text .= '<strong>'.$ent['entPhysicalParentRelPos'].'.</strong> '; }
 
     $ent_text = '';

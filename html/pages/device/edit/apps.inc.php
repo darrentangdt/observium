@@ -88,10 +88,9 @@ if (count($apps_enabled))
 <form id="appedit" name="appedit" method="post" action="" class="form-inline">
 <input type="hidden" name="device" value="<?php echo $device['device_id'];?>">
 
-<?php echo generate_box_open(array('title' => 'Applications')); ?>
+<?php echo generate_box_open(array('title' => 'Applications', 'header-border' => TRUE)); ?>
 
-<div class="box box-solid">
-<table class="table table-striped  table-condensed ">
+<table class="table table-striped table-condensed">
   <thead>
     <tr>
       <th style="width: 100px;">Enable</th>
@@ -119,6 +118,7 @@ foreach ($applications as $app)
 ?>
   </tbody>
 </table>
+</div>
 
   <div class="box-footer">
     <button type="submit" class="btn btn-primary pull-right" name="submit" value="save"><i class="icon-ok icon-white"></i> Save Changes</button>

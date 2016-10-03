@@ -15,11 +15,11 @@ echo generate_box_open();
 
 ?>
 
-<table class="table table-hover table-striped  " style="vertical-align: middle;">
+<table class="table table-hover table-striped vertical-align">
   <tbody>
-    <tr class="up" style="vertical-align: middle;">
+    <tr class="up">
       <td class="state-marker"></td>
-      <td style="vertical-align: middle; padding: 10px 14px ;"><span style="font-size: 20px; color: #193d7f;">BGP AS<?php echo($device['bgpLocalAs']); ?></span>
+      <td style="padding: 10px 14px;"><span style="font-size: 20px; color: #193d7f;">BGP AS<?php echo($device['bgpLocalAs']); ?></span>
       </td>
       <td>
 
@@ -55,23 +55,23 @@ echo generate_box_open();
       <td style="text-align: right;">
 
         <div class="btn-group" style="margin: 5px;">
-          <div class="btn btn-small"><strong>Total Sessions</strong></div>
-          <div class="btn btn-small"> <?php echo $sessions['count']+0; ?></div>
+          <div class="btn btn-sm btn-default"><strong>Total Sessions</strong></div>
+          <div class="btn btn-sm btn-default"> <?php echo $sessions['count']+0; ?></div>
         </div>
 
         <div class="btn-group" style="margin: 5px;">
-          <div class="btn btn-small"><strong>Errored Sessions</strong></div>
-          <div class="btn btn-small btn-danger"> <?php echo $sessions['alerts']+0; ?></div>
+          <div class="btn btn-sm btn-default"><strong>Errored Sessions</strong></div>
+          <div class="btn btn-sm btn-danger"> <?php echo $sessions['alerts']+0; ?></div>
         </div>
 
         <div class="btn-group" style="margin: 5px;">
-          <div class="btn btn-small btn-inactive"><strong>iBGP</strong></div>
-          <div class="btn btn-small btn-primary"> <?php echo $sessions['internal']+0; ?></div>
+          <div class="btn btn-sm btn-default"><strong>iBGP</strong></div>
+          <div class="btn btn-sm btn-info"> <?php echo $sessions['internal']+0; ?></div>
         </div>
 
         <div class="btn-group" style="margin: 5px;">
-          <div class="btn btn-small"><strong>eBGP</strong></div>
-          <div class="btn btn-small btn-info"> <?php echo $sessions['external']+0; ?></div>
+          <div class="btn btn-sm btn-default"><strong>eBGP</strong></div>
+          <div class="btn btn-sm btn-primary"> <?php echo $sessions['external']+0; ?></div>
         </div>
       </td>
 

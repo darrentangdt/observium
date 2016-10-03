@@ -13,55 +13,11 @@
 
 echo(" F5-BIGIP-SYSTEM-MIB ");
 
-/*
-sysCpuNumber.0 = 0
-sysChassisFanNumber.0 = 4
-sysChassisFanIndex.1 = 1
-sysChassisFanIndex.2 = 2
-sysChassisFanIndex.3 = 3
-sysChassisFanIndex.4 = 4
-sysChassisFanStatus.1 = good
-sysChassisFanStatus.2 = good
-sysChassisFanStatus.3 = good
-sysChassisFanStatus.4 = good
-sysChassisFanSpeed.1 = 12000
-sysChassisFanSpeed.2 = 12000
-sysChassisFanSpeed.3 = 11619
-sysChassisFanSpeed.4 = 12200
-sysChassisPowerSupplyNumber.0 = 2
-sysChassisPowerSupplyIndex.1 = 1
-sysChassisPowerSupplyIndex.2 = 2
-sysChassisPowerSupplyStatus.1 = good
-sysChassisPowerSupplyStatus.2 = bad
-sysChassisTempNumber.0 = 5
-sysChassisTempIndex.1 = 1
-sysChassisTempIndex.2 = 2
-sysChassisTempIndex.3 = 3
-sysChassisTempIndex.4 = 4
-sysChassisTempIndex.5 = 5
-sysChassisTempTemperature.1 = 29
-sysChassisTempTemperature.2 = 27
-sysChassisTempTemperature.3 = 29
-sysChassisTempTemperature.4 = 18
-sysChassisTempTemperature.5 = 28
-sysBladeTempNumber.0 = 0
-sysBladeVoltageNumber.0 = 0
-sysGeneralHwName.0 = C113
-sysGeneralHwNumber.0 = deprecated
-sysGeneralChassisSerialNum.0 = f5-xwhu-ptwt
-sysPlatformInfoName.0 = C113
-sysPlatformInfoMarketingName.0 = BIG-IP 4200
-sysCpuSensorNumber.0 = 1
-sysCpuSensorIndex.0.1 = 1
-sysCpuSensorTemperature.0.1 = 43
-sysCpuSensorFanSpeed.0.1 = 12000
-sysCpuSensorName.0.1 = cpu1
-sysCpuSensorSlot.0.1 = 0
- */
-
-if (strpos($device['hardware'], 'BIG-IP Virtual Edition') === FALSE) // FIXME. Not sure.. why?
+if (strpos($device['hardware'], 'BIG-IP Virtual Edition') === FALSE) // FIXME: Why? - Virtuals don't have hardware sensors
 {
-  $oids = snmpwalk_cache_multi_oid($device, "sysPlatform", array(), "F5-BIGIP-SYSTEM-MIB", mib_dirs('f5'));
+  $oids   = snmpwalk_cache_multi_oid($device, "sysPlatform",    array(), "F5-BIGIP-SYSTEM-MIB");
+  $oids_v = snmpwalk_cache_oid($device, "sysBladeVoltageTable", array(), "F5-BIGIP-SYSTEM-MIB");
+  $oids_t = snmpwalk_cache_oid($device, "sysBladeTempTable",    array(), "F5-BIGIP-SYSTEM-MIB");
 }
 
 $sysPlatform_oid = ".1.3.6.1.4.1.3375.2.1.3";
@@ -121,7 +77,21 @@ foreach ($oids as $index => $entry)
   }
 }
 
-unset($oids, $oid_name, $entry, $oid, $index, $class, $sysPlatform_oid);
+foreach($oids_v as $index => $entry)
+{
+  $oid = '.1.3.6.1.4.1.3375.2.1.3.2.5.2.1.2.\"'.$index.'\"';
+  $value = $entry['sysBladeVoltageVoltage'];
+  discover_sensor($valid['sensor'], 'voltage', $device, $oid, "$index", 'f5-bigip-system', $index, '0.001', $value);
+}
+foreach($oids_t as $index => $entry)
+{
+  $oid = '.1.3.6.1.4.1.3375.2.1.3.2.4.2.1.2.'.$index;
+  $descr = $entry['sysBladeTempLocation'];
+  $value = $entry['sysBladeTempTemperature'];
+  discover_sensor($valid['sensor'], 'temperature', $device, $oid, "$descr", 'f5-bigip-system', $descr, '1', $value);
+}
+
+unset($oids, $oids_t, $oids_v, $oid_name, $entry, $oid, $index, $class, $sysPlatform_oid);
 
 // HA state
 // F5-BIGIP-SYSTEM-MIB::sysCmSyncStatusId.0 = INTEGER: inSync(3)

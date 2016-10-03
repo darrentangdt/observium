@@ -12,7 +12,7 @@
  */
 
 // FIXME. From this uses only check_valid_sensors(), maybe need move to global functions or copy to polling. --mike
-// Also check_valid_virtual_machines. We (should) do a lot more discovery through the agent, IMO we should do away with the distinction. --tom
+// Also uses check_valid_virtual_machines(). We (should) do a lot more discovery through the agent, IMO we should do away with the distinction. --tom
 include_once("includes/discovery/functions.inc.php");
 
 global $valid, $agent_sensors;
@@ -21,16 +21,17 @@ if ($device['os_group'] == "unix")
 {
   echo("Observium UNIX Agent: ");
 
+  // Use port configured in config (or defaults)
   $agent_port = $config['unix-agent']['port'];
 
+  // ... Unless user configured a port for this specific device, and it's valid (numeric and within 16-bit port range)
   $override_port = get_dev_attrib($device, 'agent_port');
 
-  if (is_numeric($override_port))
+  if (is_numeric($override_port) && $override_port < 65536)
   {
     $agent_port = $override_port;
   }
 
-  // Try Official port (or override)
   $agent_start = utime();
   $agent_socket = "tcp://".$device['hostname'].":".$agent_port;
   $agent = @stream_socket_client($agent_socket, $errno, $errstr, 10);
@@ -39,23 +40,6 @@ if ($device['os_group'] == "unix")
   {
     print_warning("Connection to UNIX agent on ".$agent_socket." failed. ERROR: ".$errno." ".$errstr);
     logfile("UNIX-AGENT: Connection on ".$agent_socket." failed. ERROR: ".$errno." ".$errstr);
-
-    // Try check_mk port if the official one doesn't work.
-    // FIXME We'll drop this fallback after 1-Mar-2013 unless someone protests.
-    // You can still configure it per-device or globally in the config.
-    // Still not removed - adama (2014-01-01)
-    $agent_port = "6556";
-    $agent_start = utime();
-    $agent_socket = "tcp://".$device['hostname'].":".$agent_port;
-    $agent = @stream_socket_client($agent_socket, $errno, $errstr, 10);
-
-    if (!$agent)
-    {
-      print_error("Connection to UNIX agent on ".$agent_socket." failed. ERROR: ".$errno." ".$errstr);
-      logfile("UNIX-AGENT: Connection on ".$agent_socket." failed. ERROR: ".$errno." ".$errstr);
-    } else {
-      $agent_raw = stream_get_contents($agent);
-    }
   } else {
     $agent_raw = stream_get_contents($agent);
   }
@@ -65,9 +49,7 @@ if ($device['os_group'] == "unix")
   if (!empty($agent_raw))
   {
     echo("execution time: ".$agent_time."ms");
-    $agent_rrd = "agent.rrd";
-    rrdtool_create($device, $agent_rrd, "DS:time:GAUGE:600:0:U ");
-    rrdtool_update($device, $agent_rrd, "N:".$agent_time);
+    rrdtool_update_ng($device, 'agent', array('time' => $agent_time));
     $graphs['agent'] = TRUE;
 
     foreach (explode("<<<", $agent_raw) as $section)
@@ -77,10 +59,15 @@ if ($device['os_group'] == "unix")
       $sa = '';
       $sb = '';
       $sc = '';
+
+      # DO -NOT- ADD NEW CASES BELOW -- use <<<app-$foo>>> in your application script
       switch ($section)
       {
         // Compatibility with versions of scripts with and without app-
         // Disabled for DRBD because it falsely detects the check_mk output
+        case "drbd":
+          $sa = "app"; $sb = "drbd";
+          break;
         case "apache":
           $sa = "app"; $sb = "apache";
           break;
@@ -111,9 +98,9 @@ if ($device['os_group'] == "unix")
           // default section name: "app-some-sc"
           list($sa, $sb, $sc) = explode("-", $section, 3);
       }
-      # DO -NOT- ADD NEW IFS ABOVE -- use <<<app-$foo>>> in your application script
+      # DO -NOT- ADD NEW CASES ABOVE -- use <<<app-$foo>>> in your application script
 
-      if (!empty($sa) && !empty($sb))
+      if ($section != "app-drbd" && !empty($sa) && !empty($sb))
       {
         if (!empty($sc))
         {
@@ -154,18 +141,22 @@ if ($device['os_group'] == "unix")
           echo(" ");
 
           // FIXME Currently only used by drbd to get $app['app_instance'] - shouldn't the drbd parser get instances from somewhere else?
-          $app = @dbFetchRow("SELECT * FROM `applications` WHERE `device_id` = ? AND `app_type` = ?", array($device['device_id'],$key));
+          // $app = @dbFetchRow("SELECT * FROM `applications` WHERE `device_id` = ? AND `app_type` = ?", array($device['device_id'],$key));
 
-          print_debug('Including: applications/'.$key.'.inc.php');
+          // print_debug('Including: applications/'.$key.'.inc.php');
 
-          echo($key);
+          // echo($key);
 
-          include('includes/polling/applications/'.$key.'.inc.php');
+          //include('includes/polling/applications/'.$key.'.inc.php');
+
+          $valid_applications[$key] = $key;
+
         }
       }
     }
 
     // Processes
+    // FIXME unused
     if (!empty($agent_data['ps']))
     {
       echo("\nProcesses: ");
@@ -173,7 +164,7 @@ if ($device['os_group'] == "unix")
       {
         $process = preg_replace("/\((.*),([0-9]*),([0-9]*),([0-9\.]*)\)\ (.*)/", "\\1|\\2|\\3|\\4|\\5", $process);
         list($user, $vsz, $rss, $pcpu, $command) = explode("|", $process, 5);
-          $processlist[] = array('user' => $user, 'vsz' => $vsz, 'rss' => $rss, 'pcpu' => $pcpu, 'command' => $command);
+        $processlist[] = array('user' => $user, 'vsz' => $vsz, 'rss' => $rss, 'pcpu' => $pcpu, 'command' => $command);
       }
       #print_vars($processlist);
       echo("\n");

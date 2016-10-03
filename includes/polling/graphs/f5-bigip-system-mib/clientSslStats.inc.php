@@ -48,6 +48,8 @@ $table_defs['F5-BIGIP-SYSTEM-MIB']['clientssl'] = array(
      'sysClientsslStatTlsv11'   => array('descr' => 'Current TLSv1.1 Connections', 'ds_type' => 'COUNTER', 'ds_min' => '0'),
      'sysClientsslStatTlsv12'   => array('descr' => 'Current TLSv1.2 Connections', 'ds_type' => 'COUNTER', 'ds_min' => '0'),
      'sysClientsslStatDtlsv1'   => array('descr' => 'Current DTLSv1 Connections', 'ds_type' => 'COUNTER', 'ds_min' => '0'),
+     'sysClientsslStatTotNativeConns' => array('descr' => 'Current Native Connections', 'ds_type' => 'COUNTER', 'ds_min' => '0'),
+     'sysClientsslStatTotCompatConns' => array('descr' => 'Current Compat Connections', 'ds_type' => 'COUNTER', 'ds_min' => '0'),
   )
 );
 

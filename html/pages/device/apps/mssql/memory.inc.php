@@ -49,7 +49,7 @@ if (!empty($app_data['memory']))
   echo(overlib_link($link, $graph, $overlib_content, NULL));
 
 ?>
-      <div class="box box-solid info_box">
+      <div class="box box-solid">
         <div class="title"><i class="oicon-memory"></i> Memory</div>
         <div class="content">
           <table width="100%" class="table table-striped table-condensed-more ">

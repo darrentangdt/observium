@@ -12,10 +12,10 @@
  */
 
 // Firmware level (for TL2000/TL4000)
-$version = snmp_get($device, "libraryFwLevel.1", "-OQv", "DELL-TL4000-MIB", mib_dirs('dell'));
+$version = snmp_get($device, 'libraryFwLevel.1', '-OQv', 'DELL-TL4000-MIB');
 
 // Remote access URL for TL2000/TL4000
-$ra_url_http = snmp_get($device, "TL4000IdURL.0", "-Oqv", "DELL-TL4000-MIB", mib_dirs('dell'));
+$ra_url_http = snmp_get($device, 'TL4000IdURL.0', '-Oqv', 'DELL-TL4000-MIB');
 
 if ($ra_url_http != '')
 {

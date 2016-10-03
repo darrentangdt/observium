@@ -14,9 +14,7 @@
 // This could probably do with a rewrite, I suspect there's 1 table that can be walked for all the info below instead of 4.
 // Also, all types should be equal, not brocade-dom, brocade-dom-tx and brocade-dom-rx (requires better indexes too)
 
-echo(" FOUNDRY-SN-SWITCH-GROUP-MIB ");
-
-$oids = snmpwalk_cache_oid($device, "snIfOpticalMonitoringTxBiasCurrent", array(), "FOUNDRY-SN-SWITCH-GROUP-MIB", mib_dirs('foundry'));
+$oids = snmpwalk_cache_oid($device, "snIfOpticalMonitoringTxBiasCurrent", array(), "FOUNDRY-SN-SWITCH-GROUP-MIB");
 
 $scale = si_to_scale('milli');
 foreach ($oids as $index => $entry)
@@ -43,7 +41,7 @@ foreach ($oids as $index => $entry)
   }
 }
 
-$oids = snmpwalk_cache_oid($device, "snIfOpticalMonitoringTxPower", array(), "FOUNDRY-SN-SWITCH-GROUP-MIB", mib_dirs('foundry'));
+$oids = snmpwalk_cache_oid($device, "snIfOpticalMonitoringTxPower", array(), "FOUNDRY-SN-SWITCH-GROUP-MIB");
 
 foreach ($oids as $index => $entry)
 {
@@ -69,7 +67,7 @@ foreach ($oids as $index => $entry)
   }
 }
 
-$oids = snmpwalk_cache_oid($device, "snIfOpticalMonitoringRxPower", array(), "FOUNDRY-SN-SWITCH-GROUP-MIB", mib_dirs('foundry'));
+$oids = snmpwalk_cache_oid($device, "snIfOpticalMonitoringRxPower", array(), "FOUNDRY-SN-SWITCH-GROUP-MIB");
 
 foreach ($oids as $index => $entry)
 {
@@ -95,7 +93,7 @@ foreach ($oids as $index => $entry)
   }
 }
 
-$oids = snmpwalk_cache_oid($device, "snIfOpticalMonitoringTemperature", array(), "FOUNDRY-SN-SWITCH-GROUP-MIB", mib_dirs('foundry'));
+$oids = snmpwalk_cache_oid($device, "snIfOpticalMonitoringTemperature", array(), "FOUNDRY-SN-SWITCH-GROUP-MIB");
 
 foreach ($oids as $index => $entry)
 {

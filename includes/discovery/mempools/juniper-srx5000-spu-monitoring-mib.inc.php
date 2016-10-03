@@ -11,22 +11,20 @@
  *
  */
 
-echo("JUNIPER-SRX5000-SPU-MONITORING-MIB ");
-
 $srx_spu_array = array();
 
-$srx_spu_array = snmpwalk_cache_multi_oid($device, "jnxJsSPUMonitoringNodeDescr", $srx_spu_array, "JUNIPER-SRX5000-SPU-MONITORING-MIB");
-$srx_spu_array = snmpwalk_cache_multi_oid($device, "jnxJsSPUMonitoringFPCIndex", $srx_spu_array, "JUNIPER-SRX5000-SPU-MONITORING-MIB");
-$srx_spu_array = snmpwalk_cache_multi_oid($device, "jnxJsSPUMonitoringMemoryUsage", $srx_spu_array, "JUNIPER-SRX5000-SPU-MONITORING-MIB");
+$srx_spu_array = snmpwalk_cache_multi_oid($device, 'jnxJsSPUMonitoringNodeDescr', $srx_spu_array, $mib);
+$srx_spu_array = snmpwalk_cache_multi_oid($device, 'jnxJsSPUMonitoringFPCIndex', $srx_spu_array, $mib);
+$srx_spu_array = snmpwalk_cache_multi_oid($device, 'jnxJsSPUMonitoringMemoryUsage', $srx_spu_array, $mib);
 
-$srx_spu_array = snmpwalk_cache_multi_oid($device, "jnxJsSPUMonitoringNodeDescr", $srx_spu_array, "JUNIPER-SRX5000-SPU-MONITORING-MIB");
+$srx_spu_array = snmpwalk_cache_multi_oid($device, 'jnxJsSPUMonitoringNodeDescr', $srx_spu_array, $mib);
 foreach ($srx_spu_array as $index => $entry)
 {
   if (is_numeric($entry['jnxJsSPUMonitoringMemoryUsage']))
   {
     $descr = ($entry['jnxJsSPUMonitoringNodeDescr'] == 'single' ? '' : $entry['jnxJsSPUMonitoringNodeDescr'] . ' ') . 'SPC slot ' .  $entry['jnxJsSPUMonitoringFPCIndex'];
     $usage = $entry['jnxJsSPUMonitoringMemoryUsage'];
-    discover_mempool($valid['mempool'], $device, $index, "JUNIPER-SRX5000-SPU-MONITORING-MIB", $descr, 1, 100, $usage);
+    discover_mempool($valid['mempool'], $device, $index, 'JUNIPER-SRX5000-SPU-MONITORING-MIB', $descr, 1, 100, $usage);
   }
 }
 

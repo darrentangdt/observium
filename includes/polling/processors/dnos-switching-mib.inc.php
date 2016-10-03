@@ -13,16 +13,13 @@
 
 // DNOS-SWITCHING-MIB::agentSwitchCpuProcessTotalUtilization.0 = STRING: "    5 Secs (  6.510%)   60 Secs (  7.724%)  300 Secs (  6.3812%)"
 
-$mib = 'DNOS-SWITCHING-MIB';
-$oid = 'agentSwitchCpuProcessTotalUtilization.0';
+$data = snmp_get($device, 'agentSwitchCpuProcessTotalUtilization.0', '-OvQ', 'DNOS-SWITCHING-MIB');
 
-$values = trim(snmp_get($device, $oid, '-OvQ', $mib),'" ');
-
-if (preg_match('/300 Secs \(\s*(.*)%\)$/', $values, $matches))
+if (preg_match('/300 Secs \(\s*(?<proc>[\d\.]+)%\)/', $data, $matches))
 {
-  $proc = $matches[1];
+  $proc = $matches['proc'];
 }
 
-unset($oid, $values, $matches);
+unset($data, $matches);
 
 // EOF

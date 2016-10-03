@@ -1,9 +1,9 @@
 -- ==================================================================
--- Copyright (C) 2008 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- 
 -- Description: HUAWEI-OSPFV2-MIB provides information about OSPFv2
 -- Reference:
--- Version: V2.04
+-- Version: V2.06
 -- History:
 -- <author>,   <date>,  <contents>
 --  HUAWEI   2008-1-05  OSPF private MIB
@@ -32,7 +32,7 @@
     
 
         hwOspfv2MIB MODULE-IDENTITY 
-            LAST-UPDATED "201405212110Z"      
+            LAST-UPDATED "201505031110Z"      
             ORGANIZATION 
                 "Huawei Technologies Co.,Ltd."
             CONTACT-INFO 
@@ -49,6 +49,12 @@
                 in the system and on peripheral devices. The MIB is proper for system configuration.
                 There are no constraints on this MIB."
 
+            REVISION "201505031110Z"
+            DESCRIPTION "Added to hwOspfv2ProcessIdIndex hwOspfv2IntraAreaRouterIdConflictRecovered to indicates process id"
+                        
+            REVISION "201504031110Z"
+            DESCRIPTION "Added hwOspfv2IntraAreaRouterIdConflictRecovered to indicates the routerid conflict recovered"
+            
             REVISION "201405212110Z"
             DESCRIPTION "Added hwOspfv2Statistic to get statistics information"
 
@@ -199,7 +205,7 @@
 
         hwOspfv2ProcessIdIndex OBJECT-TYPE
             SYNTAX Integer32 (1..65535)
-            MAX-ACCESS not-accessible
+            MAX-ACCESS accessible-for-notify
             STATUS current
             DESCRIPTION
                 "The process ID indicates the OSPF process number. The value ranges from 1 to 65535."
@@ -1421,7 +1427,25 @@
         DESCRIPTION
             "The reason of the OSPF interface state change."
         ::= { hwOspfv2TrapsObjects 2 }
-    
+             
+        hwOspfv2AreaId OBJECT-TYPE
+            SYNTAX IpAddress
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                  "A 32-bit integer uniquely identifies an area.
+                Area ID 0.0.0.0 is used for the OSPF backbone."
+            ::= { hwOspfv2TrapsObjects 3 }
+                                
+        hwOspfv2NewRouterId OBJECT-TYPE
+            SYNTAX IpAddress
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "This object indicates the 32-bit integer that uniquely identifies the router in the Autonomous System.
+                It is the new router ID."
+            ::= { hwOspfv2TrapsObjects 4 }
+                          
         hwOspfv2Traps OBJECT IDENTIFIER ::= { hwOspfv2MIB 31 }
         
         hwOspfV2NeighborUnavailable NOTIFICATION-TYPE
@@ -1453,6 +1477,13 @@
             DESCRIPTION
                 "The object is used to monitor conflicted IP addresses of DRs in an intra area."
             ::= { hwOspfv2Traps 4 }
+
+        hwOspfv2IntraAreaRouterIdConflictRecovered NOTIFICATION-TYPE
+            OBJECTS { hwOspfv2ProcessIdIndex, hwOspfv2AreaId, ospfRouterId, hwOspfv2NewRouterId }
+            STATUS current
+            DESCRIPTION
+                "The object is used to monitor router ID conflict recovery in an intra area."
+            ::= { hwOspfv2Traps 5 }
 
         hwOspfv2Conformance OBJECT IDENTIFIER ::= { hwOspfv2MIB 32 }
         
@@ -1559,14 +1590,14 @@
             ::= { hwOspfv2Groups 7 }
         
         hwOspfTrapEventGroup NOTIFICATION-GROUP
-            NOTIFICATIONS { hwOspfV2NeighborUnavailable, hwOspfV2NeighborUnavailableClear, hwOspfv2IntraAreaRouteridConflict, hwOspfv2IntraAreaDRIpAddressConflict }
+            NOTIFICATIONS { hwOspfV2NeighborUnavailable, hwOspfV2NeighborUnavailableClear, hwOspfv2IntraAreaRouteridConflict, hwOspfv2IntraAreaDRIpAddressConflict, hwOspfv2IntraAreaRouterIdConflictRecovered }
             STATUS current
             DESCRIPTION 
                 "These objects are used to monitor/manage changed OSPF private alarm parameters."
             ::= { hwOspfv2Groups 8 }
         
         hwOspfv2TrapsObjectsGroup OBJECT-GROUP
-            OBJECTS { hwOspfv2NbrChgReason, hwOspfv2IfChgReason }
+            OBJECTS { hwOspfv2NbrChgReason, hwOspfv2IfChgReason, hwOspfv2AreaId, hwOspfv2NewRouterId, hwOspfv2ProcessIdIndex}
             STATUS current
             DESCRIPTION 
                 "The objects are used to monitor/manage the neighbor state change from full to others."

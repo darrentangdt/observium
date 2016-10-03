@@ -16,7 +16,7 @@ function build_mempool_query($vars)
   global $config, $cache;
 
   $sql = 'SELECT *, `mempools`.`mempool_id` AS `mempool_id` FROM `mempools`';
-  $sql .= ' LEFT JOIN `mempools-state` ON `mempools`.`mempool_id` = `mempools-state`.`mempool_id`';
+  $sql .= ' LEFT JOIN `mempools-state` USING(`mempool_id`)';
   $sql .= ' WHERE 1' . generate_query_permitted(array('device'));
 
   // Build query
@@ -58,7 +58,35 @@ function print_mempool_table($vars)
       $mempools[] = $mempool;
     }
   }
-  $mempools = array_sort_by($mempools, 'hostname', SORT_ASC, SORT_STRING, 'mempool_descr', SORT_ASC, SORT_STRING);
+
+  // Sorting
+  // FIXME. Sorting can be as function, but in must before print_table_header and after get table from db
+  switch ($vars['sort_order'])
+  {
+    case 'desc':
+      $sort_order = SORT_DESC;
+      $sort_neg   = SORT_ASC;
+      break;
+    case 'reset':
+      unset($vars['sort'], $vars['sort_order']);
+      // no break here
+    default:
+      $sort_order = SORT_ASC;
+      $sort_neg   = SORT_DESC;
+  }
+  switch($vars['sort'])
+  {
+    case 'usage':
+      $mempools = array_sort_by($mempools, 'mempool_perc', $sort_neg, SORT_NUMERIC);
+      break;
+    case 'used':
+      $mempools = array_sort_by($mempools, 'mempool_'.$vars['sort'], $sort_neg, SORT_NUMERIC);
+      break;
+    default:
+      $mempools = array_sort_by($mempools, 'hostname', $sort_order, SORT_STRING, 'mempool_descr', $sort_order, SORT_STRING);
+      break;
+  }
+
   $mempools_count = count($mempools);
 
   // Pagination
@@ -81,7 +109,7 @@ function print_mempool_table($vars)
     print_mempool_row($mempool, $vars);
   }
 
-  echo("</table>");
+  echo("</tbody></table>");
 
   echo generate_box_close();
 
@@ -91,32 +119,30 @@ function print_mempool_table($vars)
 
 function print_mempool_table_header($vars)
 {
-
   if ($vars['view'] == "graphs")
   {
-    $stripe_class = "table-striped-two";
-  }
-  else
-  {
-    $stripe_class = "table-striped";
+    $table_class = OBS_CLASS_TABLE_STRIPED_TWO;
+  } else {
+    $table_class = OBS_CLASS_TABLE_STRIPED;
   }
 
-  echo '<table class="table ' . $stripe_class . '  table-condensed">';
-  echo '  <thead>';
-  echo '    <tr>';
-  echo '      <th class="state-marker"></th>';
-  echo '      <th style="width: 1px;"></th>';
-  if ($vars['page'] != "device")
-  {
-    echo '      <th style="width: 200px;">Device</th>';
-  }
-  echo '      <th>Memory</th>';
-  echo '      <th style="width: 100px;"></th>';
-  echo '      <th style="width: 280px;">Usage</th>';
-  echo '      <th style="width: 50px;">Used</th>';
-  echo '    </tr>';
-  echo '  </thead>';
+  echo('<table class="' . $table_class . '">' . PHP_EOL);
+  $cols = array(
+                   array(NULL, 'class="state-marker"'),
+    'device'    => array('Device', 'style="width: 200px;"'),
+    'descr'     => array('Memory'),
+                   array('', 'style="width: 100px;"'),
+    'usage'     => array('Usage', 'style="width: 280px;"'),                   
+    'used'      => array('Used', 'style="width: 50px;"'),
+  );
 
+  if ($vars['page'] == "device")
+  {
+    unset($cols['device']);
+  }
+
+  echo(get_table_header($cols, $vars));
+  echo('<tbody>' . PHP_EOL);
 }
 
 function print_mempool_row($mempool, $vars)
@@ -149,7 +175,7 @@ function generate_mempool_row($mempool, $vars)
 
   $graph_array['width'] = 80;
   $graph_array['height'] = 20;
-  $graph_array['bg'] = 'ffffff00'; # the 00 at the end makes the area transparent.
+  $graph_array['bg'] = 'ffffff00';
   $graph_array['from'] = $config['time']['day'];
   $mini_graph = generate_graph_tag($graph_array);
 
@@ -172,8 +198,7 @@ function generate_mempool_row($mempool, $vars)
   $mempool['html_row_class'] = $background['class'];
 
   $row .= '<tr class="' . $mempool['html_row_class'] . '">
-            <td class="state-marker"></td>
-            <td width="1px"></td>';
+            <td class="state-marker"></td>';
   if ($vars['page'] != "device" && $vars['popup'] != TRUE)
   {
     $row .= '<td class="entity">' . generate_device_link($mempool) . '</td>';

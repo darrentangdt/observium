@@ -31,15 +31,15 @@ IMPORTS
 
 swInterfaces MODULE-IDENTITY
       	LAST-UPDATED "201304010000Z"  -- April 1, 2013
-		ORGANIZATION "Cisco Small Business"
+		ORGANIZATION "Cisco Systems, Inc."
 
 		CONTACT-INFO
 		"Postal: 170 West Tasman Drive
 		San Jose , CA 95134-1706
 		USA
 
-		Website: Cisco Small Business Home http://www.cisco.com/smb>;,
-		Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
+		
+		Website:  Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
 
         DESCRIPTION
              "The private MIB module definition for Switch Interfaces."
@@ -280,7 +280,10 @@ swIfType  OBJECT-TYPE
         eth100M(2),
         eth1000M(3),
         eth10G(4),
-        unknown(5)
+        eth20G(5),
+        eth40G(6),
+        eth100G(7),
+        unknown(8)
     }
     MAX-ACCESS  read-only
     STATUS      current

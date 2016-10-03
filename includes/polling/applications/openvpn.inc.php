@@ -33,24 +33,11 @@ if (is_array($agent_data['app']['openvpn']))
 
 foreach ($loadstats as $instance => $data)
 {
-  discover_app($device, 'openvpn', $instance);
-
-  $rrd_filename = "app-openvpn-" . $instance . ".rrd";
-  $rrd_values = array();
-
-  foreach (array('nclients', 'bytesin', 'bytesout') as $key)
-  {
-    $rrd_values[] = (is_numeric($data[$key]) ? $data[$key] : "U");
-  }
-
-  rrdtool_create($device, $rrd_filename, " \
-        DS:nclients:GAUGE:600:0:U \
-        DS:bytesin:DERIVE:600:0:125000000000 \
-        DS:bytesout:DERIVE:600:0:125000000000 ");
-
-  rrdtool_update($device, $rrd_filename, "N:" . implode(':', $rrd_values));
+  $app_id = discover_app($device, 'openvpn', $instance);
+  update_application($app_id, $data);
+  rrdtool_update_ng($device, 'openvpn', $data, $instance);
 }
 
-unset($loadstats, $rrd_values, $rrd_filename);
+unset($loadstats);
 
 // EOF

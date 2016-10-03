@@ -6,9 +6,9 @@
 	-- not included in this file.                               --
 	-- =======================================================  --
 
-	-- Version 2.3, January 2012 (See NOTE below)
+	-- Version 2.4.2, June 2015 (See NOTE below)
 
-	-- Copyright (c) 1995-2012 NetApp, Inc.
+	-- Copyright (c) 1995-2015 NetApp, Inc.
 	-- All rights reserved.
 
 	-- This NetApp SNMP Management Information Base
@@ -86,11 +86,12 @@
 		TEXTUAL-CONVENTION, DisplayString, TestAndIncr, TimeStamp, PhysAddress, DateAndTime
 		        FROM SNMPv2-TC
 		MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
-		        FROM SNMPv2-CONF;
-
+		        FROM SNMPv2-CONF
+		CounterBasedGauge64, ZeroBasedCounter64
+			FROM HCNUM-TC;
 
         netappModuleId  MODULE-IDENTITY
-	LAST-UPDATED      "201201270000Z"
+	LAST-UPDATED      "201504240000Z"
         ORGANIZATION      "NetApp"
         CONTACT-INFO      "www.netapp.com"
         DESCRIPTION       "The mib module for NetApp SNMPv2 entities"
@@ -112,6 +113,12 @@
 		"Universally Unique Identifier"
 	    SYNTAX   OCTET STRING (SIZE (16))
 
+	TimeTicks64 ::= TEXTUAL-CONVENTION
+	    STATUS   current
+	    DESCRIPTION
+		"Represents time in hundredths (1/100) of a second since an epoch."
+	    SYNTAX   Counter64
+
 	--  MIB-II (same prefix as MIB-I)
 
 	-- the NetApp MIB
@@ -119,6 +126,8 @@
 	-- NetApp conventions
 
 	netapp OBJECT IDENTIFIER ::= { enterprises 789 }
+
+	netapp0 OBJECT IDENTIFIER ::= { netapp 0 }
 
 	-- the current netapp mib
 
@@ -158,6 +167,13 @@
 	netappOnCommand OBJECT IDENTIFIER ::= { netapp 5 }
 
 	--
+	-- This is the tree under which values for the NetApp MetroCluster
+	-- are allocated.
+	--
+
+	netappMcc OBJECT IDENTIFIER ::= { netapp 6 }
+
+	--
 	-- We distinguish between filers and NetCaches.
 	--
 
@@ -168,6 +184,14 @@
 	netappCluster	OBJECT IDENTIFIER ::= { netappProducts 5 }
 	netappVserver	OBJECT IDENTIFIER ::= { netappProducts 6 }
 
+	--
+	-- This is the tree under which values for the NetApp MetroCluster
+	-- Tiebreaker software are allocated.
+	-- Those values are defined in separate MCCTB MIB file, distributed
+	-- with MCCTB product.
+	--
+
+	netappMcctb	OBJECT IDENTIFIER ::= { netappMcc 1 }
 
 	-- top-level netapp groups
 
@@ -225,6 +249,7 @@
 
 	qos	                        OBJECT IDENTIFIER ::= { netapp1 28 }
 
+	sm	                        OBJECT IDENTIFIER ::= { netapp1 29 }
 
 	-- clusterIdentity group
 	clusterIdentity OBJECT IDENTIFIER ::= { cluster 1 }
@@ -633,9 +658,9 @@
 		licensePackage                Integer32,
 		licenseOwner                  DisplayString,
 		licenseDescription            DisplayString,
-		licenseType                   Integer32,
+		licenseType                   INTEGER,
 		licenseExpiration             DateAndTime,
-		licenseLegacy                 Integer32,
+		licenseLegacy                 INTEGER,
 		licenseCustomerID             DisplayString
 	    }
 
@@ -753,9 +778,11 @@
             	vserverAggrList                   OCTET STRING,
             	vserverAllowedProtocolList        OCTET STRING,
             	vserverNumVolumes                 Integer32,
-            	vserverMaxVolumes                 Integer32,
+            	vserverMaxVolumes                 Unsigned32,
 		vserverDisallowedProtocolList	  OCTET STRING,
-		vserverIsRepository		  Boolean
+		vserverIPspace                    DisplayString,
+		vserverIsRepository		  Boolean,
+		vserverOperationalState           INTEGER 
             }
 
 	vserverIndex                    OBJECT-TYPE
@@ -861,7 +888,7 @@
 	vserverAntiVirusOnAccessPolicy  OBJECT-TYPE
 	SYNTAX      			DisplayString
 	MAX-ACCESS  			read-only
-	STATUS     			current
+	STATUS     			deprecated
 	DESCRIPTION
 		"Vserver Default Anti-Virus On-Access Policy"
 	::= { vserverEntry 13 }
@@ -878,19 +905,21 @@
 	SYNTAX      			INTEGER {
 					     data(0),
                                              admin(1),
-                                             node(2)
+                                             node(2),
+					     system(4)
                                         }
 	MAX-ACCESS  			read-only
 	STATUS      			current
 	DESCRIPTION
-            "Type of the vserver. There are three distinct supported
-            types: admin, node, and data.
+            "Type of the vserver. There are four distinct supported
+            types: data, admin, node and system.
 
             'data' vservers are the default scale-out vservers.
             One 'admin' vserver exists per cluster and it
             provides universal administrative access to the cluster.
             One 'node' vserver exists per node in the cluster and
-            identifies the physical controller."
+            identifies the physical controller. 'system' vserver is
+	    for	cluster-scoped communications in an IPspace."
 
 	::= { vserverEntry 15 }
 
@@ -935,11 +964,14 @@
        ::= { vserverEntry 19 }           
 
        vserverMaxVolumes          OBJECT-TYPE 
-       SYNTAX                     Integer32
+       SYNTAX                     Unsigned32 (0..4294967295)
        MAX-ACCESS                 read-only
        STATUS                     current
        DESCRIPTION
-           "Maximum number of volumes that can be created on the Vserver." 
+           "Maximum number of volumes that can be created on the Vserver.
+	    A value of 4294967295 indicates there is no limit on the number
+	    of volumes that can be created on the Vserver. 4294967295 value
+            translates to 'unlimited' when displayed at the CLI."
        ::= { vserverEntry 20 }
 
        vserverDisallowedProtocolList OBJECT-TYPE
@@ -951,14 +983,32 @@
             to run on the Vserver. Eg: NFS,CIFS,iSCSI,FCP."
        ::= { vserverEntry 21 }
 	
+	vserverIPspace				OBJECT-TYPE
+	SYNTAX					DisplayString
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"IPspace where the Vserver is assigned."
+	::= { vserverEntry 22 }
 
        vserverIsRepository          OBJECT-TYPE
        SYNTAX                       Boolean
        MAX-ACCESS                   read-only
        STATUS                       current
        DESCRIPTION
-       "This Vserver is a Vserver with Infinite Volume. A Vserver with Infinite Volume contains a single Infinite Volume."
-       ::= { vserverEntry 22 }
+       "This parameter defines if this is a Vserver with Infinite Volume. A Vserver with Infinite Volume contains a single Infinite Volume."
+       ::= { vserverEntry 23 }
+
+       vserverOperationalState    OBJECT-TYPE
+       SYNTAX                     INTEGER {
+                                     running(0),
+                                     stopped(1)
+                                  }
+       MAX-ACCESS                 read-only
+       STATUS                     current
+       DESCRIPTION
+           "Operational State of the vserver" 
+       ::= { vserverEntry 24 }
 
 	-- -- -- -- -- -- -- --
 	-- the product group --
@@ -1125,15 +1175,15 @@
 		licenseService
 		    DisplayString,
 		licenseIsLicensed
-		    Integer32,
+		    INTEGER,
 		licenseIsExpired
-		    Integer32,
+		    INTEGER,
 		licenseIsSite
-		    Integer32,
+		    INTEGER,
 		licenseExpirationTimeStamp
 		    Integer32,
                 licenseIsAutoEnabled
-		    Integer32
+		    INTEGER
 	    }
 
 	productLicenseIndex             OBJECT-TYPE
@@ -1487,7 +1537,7 @@
 	SYNTAX                          Integer32 (0..100)
         MAX-ACCESS                      read-only
         STATUS                          current
-	DESCRIPTION	
+	DESCRIPTION
 			" The percentage of time handling non-cp interrupts."
         ::= { cpu 12 }
 	
@@ -1499,7 +1549,181 @@
 			" The total number of Domain Switches."
         ::= { cpu 13 }
 
- 	-- the misc group for sysStat
+	-- the cpu group for sysStat on per node basis
+
+	cDOTCpuTable                    OBJECT-TYPE
+	SYNTAX                          SEQUENCE OF CDOTCpuEntry
+        MAX-ACCESS                      not-accessible
+        STATUS                          current
+	DESCRIPTION
+			"Provide a report of the current CPU statistics
+			on per node basis"
+	::= { cpu 14 }
+
+	cDOTCpuEntry                    OBJECT-TYPE
+	SYNTAX                          CDOTCpuEntry
+        MAX-ACCESS                      not-accessible
+        STATUS                          current
+	DESCRIPTION
+			"Provide a report of the node's CPU statistics"
+
+	INDEX	{ IMPLIED cDOTCpuNodeName }
+	::= { cDOTCpuTable 1 }
+
+	CDOTCpuEntry ::=
+	    SEQUENCE {
+                cDOTCpuNodeName
+		    DisplayString,
+		cDOTCpuUpTime
+		    TimeTicks64,
+		cDOTCpuBusyTime
+		    TimeTicks64,
+		cDOTCpuBusyTimePerCent
+		    Integer32,
+		cDOTCpuIdleTime
+		    TimeTicks64,
+		cDOTCpuIdleTimePerCent
+		    Integer32,
+		cDOTCpuCount
+		    Integer32,
+		cDOTCpuSwitchInvocations
+		    Counter64,
+		cDOTCpuContextSwitches
+		    Counter64,
+		cDOTCpuInterrupts
+		    Counter64,
+		cDOTCpuNonCPInterrupts
+		    Counter64,
+		cDOTCpuCPInterruptPercent
+		    Integer32,
+		cDOTCpuNonCPInterruptPercent
+		    Integer32,
+		cDOTCpuTotalDomainSwitches
+		    Counter64
+	    }
+
+	cDOTCpuNodeName			OBJECT-TYPE
+	SYNTAX				DisplayString
+	MAX-ACCESS			read-only
+	STATUS				current
+	DESCRIPTION
+		"Node Name. Same as nodeName for a specific node."
+	::= { cDOTCpuEntry 1 }
+
+	cDOTCpuUpTime                   OBJECT-TYPE
+	SYNTAX                          TimeTicks64
+        MAX-ACCESS                      read-only
+        STATUS                          current
+	DESCRIPTION
+			"The time (in hundredths of a second) that the
+			 CPU has been up since the last boot."
+	::= { cDOTCpuEntry 2 }
+
+	cDOTCpuBusyTime                 OBJECT-TYPE
+	SYNTAX                          TimeTicks64
+        MAX-ACCESS                      read-only
+        STATUS                          current
+	DESCRIPTION
+			"The time (in hundredths of a second) that the
+			 CPU has been doing useful work since the last
+			 boot."
+	::= { cDOTCpuEntry 3 }
+
+	cDOTCpuBusyTimePerCent          OBJECT-TYPE
+	SYNTAX                          Integer32 (0..100)
+        MAX-ACCESS                      read-only
+        STATUS                          current
+	DESCRIPTION
+			"The percent of time that the CPU has been doing
+			 useful work since the last time a client requested
+			 the cDOTCpuBusyTimePerCent."
+	::= { cDOTCpuEntry 4 }
+
+	cDOTCpuIdleTime                 OBJECT-TYPE
+	SYNTAX                          TimeTicks64
+        MAX-ACCESS                      read-only
+        STATUS                          current
+	DESCRIPTION
+			"The time (in hundredths of a second) that the
+			 CPU has been idle since the last boot."
+	::= { cDOTCpuEntry 5 }
+
+	cDOTCpuIdleTimePerCent          OBJECT-TYPE
+	SYNTAX                          Integer32 (0..100)
+        MAX-ACCESS                      read-only
+        STATUS                          current
+	DESCRIPTION
+			"The percent of time that the CPU has been idle
+			 since the last time a client requested the
+			 cDOTCpuBusyTimePerCent."
+	::= { cDOTCpuEntry 6 }
+
+	cDOTCpuCount                    OBJECT-TYPE
+	SYNTAX                          Integer32 (1..16)
+        MAX-ACCESS                      read-only
+        STATUS                          current
+	DESCRIPTION
+			"The number of CPUs in the system."
+
+	::= { cDOTCpuEntry 7 }
+
+        cDOTCpuSwitchInvocations        OBJECT-TYPE
+	SYNTAX                          Counter64
+        MAX-ACCESS                      read-only
+        STATUS                          current
+	DESCRIPTION
+			"The number of sk_switch invocations."
+	::= { cDOTCpuEntry 8 }
+
+	cDOTCpuContextSwitches          OBJECT-TYPE
+	SYNTAX                          Counter64
+        MAX-ACCESS                      read-only
+        STATUS                          current
+	DESCRIPTION
+			"The number of hardware context switches."
+	::= { cDOTCpuEntry 9 }
+
+	cDOTCpuInterrupts               OBJECT-TYPE
+	SYNTAX                          Counter64
+        MAX-ACCESS                      read-only
+        STATUS                          current
+	DESCRIPTION
+			"The number of interrupts during a CP."
+	::= { cDOTCpuEntry 10 }
+
+	cDOTCpuNonCPInterrupts          OBJECT-TYPE
+	SYNTAX                          Counter64
+        MAX-ACCESS                      read-only
+        STATUS                          current
+	DESCRIPTION
+			"The number of interrupts not during a CP."
+	::= { cDOTCpuEntry 11 }
+
+	cDOTCpuCPInterruptPercent       OBJECT-TYPE
+	SYNTAX                          Integer32 (0..100)
+        MAX-ACCESS                      read-only
+        STATUS                          current
+	DESCRIPTION
+			" The percentage of time handling CP interrupts."
+	::= { cDOTCpuEntry 12 }
+
+        cDOTCpuNonCPInterruptPercent    OBJECT-TYPE
+	SYNTAX                          Integer32 (0..100)
+        MAX-ACCESS                      read-only
+        STATUS                          current
+	DESCRIPTION
+			" The percentage of time handling non-cp interrupts."
+        ::= { cDOTCpuEntry 13 }
+
+        cDOTCpuTotalDomainSwitches      OBJECT-TYPE
+	SYNTAX                          Counter64
+        MAX-ACCESS                      read-only
+        STATUS                          current
+	DESCRIPTION
+			" The total number of Domain Switches."
+        ::= { cDOTCpuEntry 14 }
+
+        -- the misc group for sysStat
 
 	miscNfsOps                      OBJECT-TYPE
 	SYNTAX                          Integer32
@@ -2117,7 +2341,7 @@
 	::= { cp 1 }
 
 	cpFromTimerOps                  OBJECT-TYPE
-	SYNTAX                          Counter32	
+	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
@@ -2126,7 +2350,7 @@
 	::= { cp 2 }
 
 	cpFromSnapshotOps               OBJECT-TYPE
-	SYNTAX                          Counter32	
+	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
@@ -2135,7 +2359,7 @@
 	::= { cp 3 }
 
 	cpFromLowWaterOps               OBJECT-TYPE
-	SYNTAX                          Counter32	
+	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
@@ -2144,7 +2368,7 @@
 	::= { cp 4 }
 
 	cpFromHighWaterOps              OBJECT-TYPE
-	SYNTAX                          Counter32	
+	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
@@ -2153,7 +2377,7 @@
 	::= { cp 5 }
 
 	cpFromLogFullOps                OBJECT-TYPE
-	SYNTAX                          Counter32	
+	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
@@ -2162,16 +2386,16 @@
 	::= { cp 6 }
 
 	cpFromCpOps                     OBJECT-TYPE
-	SYNTAX                          Counter32	
+	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-			"The number of back to back consistency point 
+			"The number of back to back consistency point
 			operations since boot."
 	::= { cp 7 }
 
 	cpTotalOps                      OBJECT-TYPE
-	SYNTAX                          Counter32	
+	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
@@ -2180,7 +2404,7 @@
 	::= { cp 8 }
 
 	cpFromFlushOps                  OBJECT-TYPE
-	SYNTAX                          Counter32	
+	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
@@ -2189,7 +2413,7 @@
 	::= { cp 9 }
 
 	cpFromSyncOps                   OBJECT-TYPE
-	SYNTAX                          Counter32	
+	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
@@ -2198,7 +2422,7 @@
 	::= { cp 10 }
 
 	cpFromLowVbufOps                OBJECT-TYPE
-	SYNTAX                          Counter32	
+	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
@@ -2207,7 +2431,7 @@
 	::= { cp 11 }
 
 	cpFromCpDeferredOps             OBJECT-TYPE
-	SYNTAX                          Counter32	
+	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
@@ -2216,7 +2440,7 @@
 	::= { cp 12 }
 
 	cpFromLowDatavecsOps            OBJECT-TYPE
-	SYNTAX                          Counter32	
+	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
@@ -2224,8 +2448,215 @@
 			that were caused by low datavecs."
 	::= { cp 13 }
 
+        cpFromLowMbufOps                OBJECT-TYPE
+        SYNTAX                          Counter32
+        MAX-ACCESS                      read-only
+        STATUS                          current
+        DESCRIPTION
+                        "The number of consistency point operations since boot
+                        that were caused by low mbufs."
+        ::= { cp 14 }
+
+        cpFromNvlogReplayTakeoverTime   OBJECT-TYPE
+        SYNTAX                          Counter32
+        MAX-ACCESS                      read-only
+        STATUS                          current
+        DESCRIPTION
+                        "The number of consistency point operations since boot
+                        that were caused by nvlog replay takeover time."
+        ::= { cp 15 }
+
+        -- the cp group for sysStat on per node basis
+
+        cDOTCpTable                     OBJECT-TYPE
+        SYNTAX                          SEQUENCE OF CDOTCpEntry
+        MAX-ACCESS                      not-accessible
+        STATUS                          current
+        DESCRIPTION
+                        "Provide a report of the current CP statistics
+                        on per node basis"
+        ::= { cp 16 }
+
+        cDOTCpEntry                     OBJECT-TYPE
+        SYNTAX                          CDOTCpEntry
+        MAX-ACCESS                      not-accessible
+        STATUS                          current
+        DESCRIPTION
+                        "Provide a report of the node's CP statistics"
+
+        INDEX   { IMPLIED cDOTCpNodeName }
+        ::= { cDOTCpTable 1 }
+
+        CDOTCpEntry ::=
+            SEQUENCE {
+                cDOTCpNodeName
+                    DisplayString,
+                cDOTCpTime
+                    TimeTicks64,
+                cDOTCpFromTimerOps
+                    Counter64,
+                cDOTCpFromSnapshotOps
+                    Counter64,
+                cDOTCpFromLowWaterOps
+                    Counter64,
+                cDOTCpFromHighWaterOps
+                    Counter64,
+                cDOTCpFromLogFullOps
+                    Counter64,
+                cDOTCpFromCpOps
+                    Counter64,
+                cDOTCpTotalOps
+                    Counter64,
+                cDOTCpFromFlushOps
+                    Counter64,
+                cDOTCpFromSyncOps
+                    Counter64,
+                cDOTCpFromCpDeferredOps
+                    Counter64,
+                cDOTCpFromLowDatavecsOps
+                    Counter64,
+                cDOTCpFromLowMbufOps
+                    Counter64,
+                cDOTCpFromNvlogReplayTakeoverTime
+                    Counter64
+            }
+        cDOTCpNodeName                      OBJECT-TYPE
+        SYNTAX                              DisplayString
+        MAX-ACCESS                          not-accessible
+        STATUS                              current
+        DESCRIPTION
+                        "Node Name. Same as node name."
+        ::= { cDOTCpEntry 1 }
+
+        cDOTCpTime                          OBJECT-TYPE
+        SYNTAX                              TimeTicks64
+        MAX-ACCESS                          read-only
+        STATUS                              current
+        DESCRIPTION
+                        "The time (in hundredths of a second) since boot
+                        during which the system has had a consistency point
+                        (cp) operation in progress."
+        ::= { cDOTCpEntry 2 }
+
+        cDOTCpFromTimerOps                  OBJECT-TYPE
+        SYNTAX                              Counter64
+        MAX-ACCESS                          read-only
+        STATUS                              current
+        DESCRIPTION
+                        "The number of consistency point operations since boot
+                        that were caused by timer."
+        ::= { cDOTCpEntry 3 }
+
+        cDOTCpFromSnapshotOps               OBJECT-TYPE
+        SYNTAX                              Counter64
+        MAX-ACCESS                          read-only
+        STATUS                              current
+        DESCRIPTION
+                        "The number of consistency point operations since boot
+                        that were caused by snapshot operation."
+        ::= { cDOTCpEntry 4}
+
+        cDOTCpFromLowWaterOps               OBJECT-TYPE
+        SYNTAX                              Counter64
+        MAX-ACCESS                          read-only
+        STATUS                              current
+        DESCRIPTION
+                        "The number of consistency point operations since boot
+                        that were caused by low water mark."
+        ::= { cDOTCpEntry 5 }
+
+        cDOTCpFromHighWaterOps              OBJECT-TYPE
+        SYNTAX                              Counter64
+        MAX-ACCESS                          read-only
+        STATUS                              current
+        DESCRIPTION
+                        "The number of consistency point operations since boot
+                        that were caused by high water mark."
+        ::= { cDOTCpEntry 6 }
+
+        cDOTCpFromLogFullOps                OBJECT-TYPE
+        SYNTAX                              Counter64
+        MAX-ACCESS                          read-only
+        STATUS                              current
+        DESCRIPTION
+                        "The number of consistency point operations since boot
+                        that were caused by nv-log full."
+        ::= { cDOTCpEntry 7 }
+
+        cDOTCpFromCpOps                     OBJECT-TYPE
+        SYNTAX                              Counter64
+        MAX-ACCESS                          read-only
+        STATUS                              current
+        DESCRIPTION
+                        "The number of back to back consistency point
+                        operations since boot."
+        ::= { cDOTCpEntry 8 }
+
+        cDOTCpTotalOps                      OBJECT-TYPE
+        SYNTAX                              Counter64
+        MAX-ACCESS                          read-only
+        STATUS                              current
+        DESCRIPTION
+                        "The total number of consistency point operations
+                        since boot."
+        ::= { cDOTCpEntry 9 }
+
+        cDOTCpFromFlushOps                  OBJECT-TYPE
+        SYNTAX                              Counter64
+        MAX-ACCESS                          read-only
+        STATUS                              current
+        DESCRIPTION
+                        "The number of consistency point operations since boot
+                        that were caused by flushing unlogged write data."
+        ::= { cDOTCpEntry 10 }
+
+        cDOTCpFromSyncOps                   OBJECT-TYPE
+        SYNTAX                              Counter64
+        MAX-ACCESS                          read-only
+        STATUS                              current
+        DESCRIPTION
+                        "The number of consistency point operations since boot
+                        that were caused by file system sync requests."
+        ::= { cDOTCpEntry 11 }
+
+        cDOTCpFromCpDeferredOps             OBJECT-TYPE
+        SYNTAX                              Counter64
+        MAX-ACCESS                          read-only
+        STATUS                              current
+        DESCRIPTION
+                        "The number of back to back consistency point
+                        operations since boot that were deferred."
+        ::= { cDOTCpEntry 12 }
+
+        cDOTCpFromLowDatavecsOps            OBJECT-TYPE
+        SYNTAX                              Counter64
+        MAX-ACCESS                          read-only
+        STATUS                              current
+        DESCRIPTION
+                        "The number of consistency point operations since boot
+                        that were caused by low datavecs."
+        ::= { cDOTCpEntry 13 }
+
+        cDOTCpFromLowMbufOps                OBJECT-TYPE
+        SYNTAX                              Counter64
+        MAX-ACCESS                          read-only
+        STATUS                              current
+        DESCRIPTION
+                        "The number of consistency point operations since boot
+                        that were caused by low mbufs in mbuf pools."
+        ::= { cDOTCpEntry 14 }
+
+        cDOTCpFromNvlogReplayTakeoverTime   OBJECT-TYPE
+        SYNTAX                              Counter64
+        MAX-ACCESS                          read-only
+        STATUS                              current
+        DESCRIPTION
+                        "The number of consistency point operations since boot
+                        that were caused by nvlog replay takeover time."
+        ::= { cDOTCpEntry 15 }
+
 	-- -- -- -- -- -- --
-	-- the autosupport group for sysStat
+	-- the auto support group for sysStat
 
 	autosupportStatus               OBJECT-TYPE
 	SYNTAX                          INTEGER {
@@ -2239,9 +2670,9 @@
         STATUS                          current
 	DESCRIPTION
 			"An indication of the current status of
-			 autosupport on the appliance.  describes
+			 auto support on the appliance. Describes
 			 the success or failure of most recent 
-			 attempts to send autosupports."
+			 attempts to send auto supports."
 	
 	::= { autosupport 1 }
 
@@ -2250,7 +2681,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-			"A string describing the autosupport status,
+			"A string describing the auto support status,
 			including a description of the condition (if
 			any) that caused the status to be anything
 			other than ok(1)."
@@ -2262,7 +2693,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-			"Count of the number of autosupport messages
+			"Count of the number of auto support messages
 			 successfully sent since the last reset."
 	
 	::= { autosupport 3 }
@@ -2272,7 +2703,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-	                 "Count of the number of autosupport messages
+	                 "Count of the number of auto support messages
 			 not sent successfully since the last reset."
 
 	::= { autosupport 4 }
@@ -6989,7 +7420,7 @@
 	DESCRIPTION
 			"The number of NFS Version 2 calls received
 			 for the NFSPROC_SETATTR (Set File Attributes)
-			 procedure, since the the last boot."
+			 procedure, since the last boot."
 	::= { tv2Calls 3 }
 
 	tv2cRoots                       OBJECT-TYPE
@@ -9537,7 +9968,7 @@
 		qrIndex
 		    Integer32,
 		qrType
-		    Integer32,
+		    INTEGER,
 		qrId
 		    Integer32,
 		qrKBytesUsed
@@ -9657,7 +10088,7 @@
 		qvStateName
 		    DisplayString,
 		qvStateStat
-		    Integer32,
+		    INTEGER,
 		qvStateInitPercent
 		    Integer32,
 		qvStateVserver
@@ -9754,7 +10185,7 @@
 		qrVIndex
 		    Integer32,
 		qrVType
-		    Integer32,
+		    INTEGER,
 		qrVId
 		    Integer32,
 		qrVKBytesUsed
@@ -9772,7 +10203,7 @@
 		qrVTree
 		    DisplayString,
 		qrVIdType
-		    Integer32,
+		    INTEGER,
                 qrVSid
                     DisplayString,
 	        qrVKBytesThreshold
@@ -9971,7 +10402,7 @@
 		qrV2Index
 		    Integer32,
 		qrV2Type
-		    Integer32,
+		    INTEGER,
 		qrV2Id
 		    Integer32,
 		qrV2HighKBytesUsed
@@ -9979,7 +10410,7 @@
 		qrV2LowKBytesUsed
 		    Integer32,
                 qrV2QuotaUnlimited
-		    Integer32,
+		    INTEGER,
 		qrV2HighKBytesLimit
 		    Integer32,
 		qrV2LowKBytesLimit
@@ -9987,7 +10418,7 @@
 		qrV2FilesUsed
 		    Integer32,
                 qrV2FileQuotaUnlimited
-		    Integer32,
+		    INTEGER,
 		qrV2FileLimit
 		    Integer32,
 		qrV2PathName
@@ -9997,23 +10428,23 @@
 		qrV2Tree
 		    DisplayString,
 		qrV2IdType
-		    Integer32,
+		    INTEGER,
                 qrV2Sid
                     DisplayString,
                 qrV2ThresholdUnlimited
-		    Integer32,		    
+		    INTEGER,		    
 	        qrV2HighKBytesThreshold
                     Integer32,
 	        qrV2LowKBytesThreshold
                     Integer32,
                 qrV2SoftQuotaUnlimited
-		    Integer32,
+		    INTEGER,
 		qrV2HighKBytesSoftLimit
 		    Integer32,
 		qrV2LowKBytesSoftLimit
 		    Integer32,
 		qrV2SoftFileQuotaUnlimited
-		    Integer32,
+		    INTEGER,
 		qrV2SoftFileLimit
 		    Integer32,
 		qrV264KBytesUsed
@@ -10436,7 +10867,7 @@
 				 For node volumes and aggregates, only online
 				 volumes and aggregates are reported. For 
 				 cluster volumes and aggregates, the 
-				 dfStateOnline is set and and the value for 
+				 dfStateOnline is set and the value for 
 				 other fields are undefined when volumes 
 				 and aggregates are not online."
 		
@@ -10502,13 +10933,13 @@
 		dfLowAvailKBytes
 		    Integer32,
 		dfStatus 
-		    Integer32,
+		    INTEGER,
 		dfMirrorStatus 
-		    Integer32,
+		    INTEGER,
 		dfPlexCount
 		    Integer32,
 		dfType
-		    Integer32,
+		    INTEGER,
 		dfHighSisSharedKBytes
 		    Integer32,
 		dfLowSisSharedKBytes
@@ -10814,7 +11245,7 @@
         STATUS                          deprecated
 	DESCRIPTION
 				"The total amount of data in KBytes that is
-				 shared by more that one instance on the
+				 shared by more than one instance on the
 				 referenced file system.  This object returns
 				 the most significant 32 bits of the 64 bit
 				 unsigned integer. This object is deprecated - 
@@ -10827,7 +11258,7 @@
         STATUS                          deprecated
 	DESCRIPTION
 				"The total amount of data in KBytes that is
-				 shared by more that one instance on the
+				 shared by more than one instance on the
 				 referenced file system.  This object returns
 				 the least significant 32 bits of the 64 bit
 				 unsigned integer. This object is deprecated - 
@@ -10907,7 +11338,7 @@
         STATUS                          current
 	DESCRIPTION
 				"The total amount of data in KBytes that is
-				 shared by more that one instance on the
+				 shared by more than one instance on the
 				 referenced file system.  This object returns
 				 all of the 64 bit unsigned integer."
 	::= { dfEntry 32 }
@@ -10990,7 +11421,7 @@
 	::= { dfEntry 37 }
 
 	dfCompressSavedPercent		OBJECT-TYPE
-	SYNTAX				Integer32 (1..100)
+	SYNTAX				Integer32 (0..100)
 	MAX-ACCESS			read-only
 	STATUS				current
 	DESCRIPTION
@@ -11012,7 +11443,7 @@
 	::= { dfEntry 39 }
 
 	dfDedupeSavedPercent		OBJECT-TYPE
-	SYNTAX				Integer32 (1..100)
+	SYNTAX				Integer32 (0..100)
 	MAX-ACCESS			read-only
 	STATUS				current
 	DESCRIPTION
@@ -11036,7 +11467,7 @@
 	::= { dfEntry 41 }
 
 	dfTotalSavedPercent		OBJECT-TYPE
-	SYNTAX				Integer32 (1..100)
+	SYNTAX				Integer32 (0..100)
 	MAX-ACCESS			read-only
 	STATUS				current
 	DESCRIPTION
@@ -11087,7 +11518,7 @@
 		slIndex
 		    Integer32,
 		slMonth
-		    Integer32,
+		    INTEGER,
 		slDay
 		    Integer32,
 		slHour
@@ -11188,7 +11619,7 @@
 		slVIndex
 		    Integer32,
 		slVMonth
-		    Integer32,
+		    INTEGER,
 		slVDay
 		    Integer32,
 		slVHour
@@ -11204,7 +11635,7 @@
 		slVVolumeName
 		    DisplayString,
 		slVType
-		    Integer32
+		    INTEGER
 	    }
 
 	slVIndex                        OBJECT-TYPE
@@ -11350,7 +11781,7 @@
 		slQQtreeName
 		    DisplayString,
   	        slQQtreeContent
-		    Integer32,
+		    INTEGER,
 		slQSource	
 		    OCTET STRING,
 		slQSourceTime
@@ -11430,7 +11861,7 @@
         STATUS                          current
 	DESCRIPTION
 	    		"The source of this qtree for a replicated qtree.
-			'-' for a original qtree."
+			'-' for an original qtree."
 	::= { slQEntry 8 }
 
 	slQSourceTime                   OBJECT-TYPE
@@ -11550,14 +11981,14 @@
 		volIndex	Integer32,
 		volName		DisplayString,
 		volFSID		DisplayString,
-		volOwningHost	Integer32,
+		volOwningHost	INTEGER,
 		volState	DisplayString,
 		volStatus	DisplayString,
-		volOptions	DisplayString,
+		volOptions	OCTET STRING,
 		volUUID		DisplayString,
 		volAggrName	DisplayString,
-		volType		Integer32,
-		volClone	Integer32,
+		volType		INTEGER,
+		volClone	INTEGER,
 		volCloneOf	DisplayString,
 		volCloneSnap	DisplayString,
 		volVserver	DisplayString,
@@ -11575,7 +12006,8 @@
 		volNvfail		Boolean,
 		volInNvfailedState	Boolean,
 		volInstanceUUID		DisplayString,
-		volProvenanceUUID	DisplayString
+		volProvenanceUUID	DisplayString,
+		volDrForceNvfail        Boolean
 	    }
 
 	volIndex                        OBJECT-TYPE
@@ -11638,7 +12070,7 @@
 	::= { volEntry 6 }
 
 	volOptions                      OBJECT-TYPE
-	SYNTAX                          DisplayString
+	SYNTAX                          OCTET STRING (SIZE (0..1024))
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
@@ -11894,6 +12326,24 @@
 
         ::= { volEntry 29 }
 
+        volDrForceNvfail                OBJECT-TYPE
+        SYNTAX                          Boolean
+        MAX-ACCESS                      read-only
+        STATUS                          current
+        DESCRIPTION
+			"Indicates whether dr-force-nvfail option is enabled
+			 on this volume. If true, volume would be put in a
+			 special state called 'in-nvfailed-state' by switchover
+			 operation. The protocol access on the volume in
+			 'in-nvfailed-state' is blocked. This will cause the
+			 client applications to crash and thus prevent access
+			 to data on the volume. To get out of this situation,
+			 admin needs to manually clear the 'in-nvfailed-state'
+			 on the volume. By default, dr-force-nvfail option
+			 value is false."
+
+        ::= { volEntry 30 }
+
         volNumber                      OBJECT-TYPE
         SYNTAX                          Integer32 (0..2048)
         MAX-ACCESS                      read-only
@@ -11924,16 +12374,19 @@
 
         QtreeEntry ::=
 	    SEQUENCE {
-		qtreeIndex	Integer32,
-		qtreeVolume	Integer32,
-		qtreeVolumeName	DisplayString,
-		qtreeId	        Integer32,
-		qtreeName	DisplayString,
-		qtreeStyle	Integer32,
-		qtreeStatus	Integer32,
-		qtreeOplock	Integer32,
-		qtreeVserver    DisplayString
-	    }	    
+		qtreeIndex		     Integer32,
+		qtreeVolume		     Integer32,
+		qtreeVolumeName		     DisplayString,
+		qtreeId			     Integer32,
+		qtreeName		     DisplayString,
+		qtreeStyle		     INTEGER,
+		qtreeStatus		     INTEGER,
+		qtreeOplock		     INTEGER,
+		qtreeVserver		     DisplayString,
+		qtreeExportPolicy            DisplayString,
+		qtreeIsExportPolicyInherited Boolean,
+		qtreeMode                    Unsigned32
+	    }
 
 	qtreeIndex                      OBJECT-TYPE
 	SYNTAX                          Integer32 (1..2147483647)
@@ -11997,9 +12450,7 @@
 
 	qtreeStatus                     OBJECT-TYPE
 	SYNTAX                          INTEGER {
-                                             normal(1),
-                                             snapmirrored(2),
-                                             snapvaulted(3)
+                                             normal(1)
                                         }
         MAX-ACCESS                      read-only
         STATUS                          current
@@ -12031,6 +12482,34 @@
 			  Only applicable to cluster-mode volume."
 
 	::= { qtreeEntry 9 }
+
+        qtreeExportPolicy               OBJECT-TYPE
+	SYNTAX                          DisplayString
+	MAX-ACCESS                      read-only
+	STATUS                          current
+	DESCRIPTION
+	                 "Indicates the export policy assigned to the qtree."
+
+	::= { qtreeEntry 10 }
+
+        qtreeIsExportPolicyInherited    OBJECT-TYPE
+	SYNTAX                          Boolean
+	MAX-ACCESS                      read-only
+	STATUS                          current
+	DESCRIPTION
+	                 "Indicates the export policy assigned to the qtree is
+			  inherited from the parent volume."
+
+	::= { qtreeEntry 11 }
+    	
+        qtreeMode                       OBJECT-TYPE
+        SYNTAX                          Unsigned32
+        MAX-ACCESS                      read-only
+        STATUS                          current
+        DESCRIPTION
+                        "The file permission bits of the qtree."
+		    
+	::= { qtreeEntry 12 }
 
         -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         --
@@ -12068,13 +12547,13 @@
                 aggrIndex       Integer32,
                 aggrName        DisplayString,
                 aggrFSID        DisplayString,
-                aggrOwningHost  Integer32,
+                aggrOwningHost  INTEGER,
                 aggrState       DisplayString,
                 aggrStatus      DisplayString,
                 aggrOptions     DisplayString,
                 aggrUUID        DisplayString,
                 aggrFlexvollist OCTET STRING,
-                aggrType        Integer32,
+                aggrType        INTEGER,
                 aggrRaidType    DisplayString,
                 aggrHAType      INTEGER,
                 aggrOwners      DisplayString,
@@ -12254,37 +12733,52 @@
         aggrVolumeFootprints            OBJECT-TYPE
         SYNTAX                          Counter64
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
         DESCRIPTION
                         "Footprint of data and metadata inside
-                        volumes belonging to the Aggregate."
+                        volumes belonging to the Aggregate.
+			This field is deprecated in Data ONTAP 8.3
+			and later - use the volume-footprints
+			field of the aggr-space-get-iter ZAPI
+			instead."
         ::= { aggrEntry 15 }
 
         aggrVolumeFootprintsPercent     OBJECT-TYPE
         SYNTAX                          Integer32 (0..100)
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
         DESCRIPTION
                         "Footprint of data and metadata inside
                         volumes belonging to the aggregate as a
-                        percentage of aggregate size."
+                        percentage of aggregate size.
+			This field is deprecated in Data ONTAP 8.3
+			and later - use the volume-footprints-percent
+			field of the aggr-space-get-iter ZAPI
+			instead."
         ::= { aggrEntry 16 }
 
         aggrFilesystemMetadata          OBJECT-TYPE
         SYNTAX                          Counter64
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
         DESCRIPTION
-                        "Metadata of the Aggregate."
+                        "Metadata of the Aggregate.
+			This field is deprecated in Data ONTAP 8.3
+			and later - use the aggregate-metadata
+			field of the aggr-space-get-iter ZAPI
+			instead."
         ::= { aggrEntry 17 }
 
         aggrFilesystemMetadataPercent   OBJECT-TYPE
         SYNTAX                          Integer32 (0..100)
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS				deprecated
         DESCRIPTION
                         "Metadata of the Aggregate as a
-                        percentage of Aggregate size."
+                        percentage of Aggregate size.
+			This field is deprecated in Data ONTAP 8.3
+			and later - use the aggregate-metadata-percent
+			field of the aggr-space-get-iter ZAPI instead."
         ::= { aggrEntry 18 }
 
         aggrNumber                      OBJECT-TYPE
@@ -12411,7 +12905,7 @@
 		raidDiskName
 		    DisplayString,
 		raidStatus
-		    Integer32,
+		    INTEGER,
 		raidDiskId
 		    Integer32,
 		raidScsiAdapter
@@ -12559,7 +13053,7 @@
         STATUS                          current
 	DESCRIPTION
 			"Display RAID configuration information for
-			 the referenced volume, raid group, and disk drive."
+			 the referenced aggregate, raid group, and disk drive."
 	INDEX	{ raidVVol, raidVGroup, raidVIndex }
 	::= { raidVTable 1 }
 
@@ -12570,7 +13064,7 @@
 		raidVDiskName
 		    DisplayString,
 		raidVStatus
-		    Integer32,
+		    INTEGER,
 		raidVDiskId
 		    Integer32,
 		raidVScsiAdapter
@@ -12596,11 +13090,11 @@
 		raidVGroupNumber
 		    Integer32,
 		raidVDiskPort
-		    Integer32,
+		    INTEGER,
 		raidVSecondaryDiskName
 		    DisplayString,
 		raidVSecondaryDiskPort
-		    Integer32,
+		    INTEGER,
 		raidVShelf
 		    Integer32,
 		raidVBay
@@ -12647,7 +13141,7 @@
         STATUS                          current
 	DESCRIPTION
 			"A number that identifies this disk drive within 
-			 the given volume and RAID group."
+			 the given aggregate and RAID group."
 	::= { raidVEntry 1 }
 
 	raidVDiskName                   OBJECT-TYPE
@@ -12678,31 +13172,32 @@
 	raidVDiskId                     OBJECT-TYPE
 	SYNTAX                          Integer32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The disk identifier for the referenced disk
 			 drive. This OID is not available from the 
-			 Cluster management interfaces."
+			 Cluster management interfaces. This object is deprecated."
 	::= { raidVEntry 4 }
 
 	raidVScsiAdapter                OBJECT-TYPE
 	SYNTAX                          DisplayString
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The identifier of the SCSI adapter for the
 			 referenced disk drive. This OID is not available 
-			 from the Cluster management interfaces."
+			 from the Cluster management interfaces. This object is deprecated."
 	::= { raidVEntry 5 }
 
 	raidVScsiId                     OBJECT-TYPE
 	SYNTAX                          Integer32 (0..100)
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The identifier for the referenced disk drive
 			 on the referenced SCSI adapter. This OID is 
-			 not available from the Cluster management interfaces."
+			 not available from the Cluster management interfaces.
+			 This object is deprecated."
 	::= { raidVEntry 6 }
 
 	raidVUsedMb                     OBJECT-TYPE
@@ -12761,8 +13256,8 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-			"A number that identifies the volume that this entry
-			 belongs to.  The first volume is '1'."
+			"A number that identifies the aggregate that this entry
+			 belongs to.  The first aggregate is '1'."
 	::= { raidVEntry 12 }
 
 	raidVGroup                      OBJECT-TYPE
@@ -12771,7 +13266,7 @@
         STATUS                          current
 	DESCRIPTION
 			"A number that identifies the RAID group within the
-			 given volume that this entry belongs to.  The
+			 given aggregate that this entry belongs to.  The
 			 first RAID group is '1', and number across all plexes."
 	::= { raidVEntry 13 }
 
@@ -12788,7 +13283,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-			"The number of RAID groups within this volume."
+			"The number of RAID groups within this aggregate."
 	::= { raidVEntry 15 }
 
 	raidVDiskPort                   OBJECT-TYPE
@@ -12799,7 +13294,7 @@
                                              portNone(4)
                                         }
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"A number that indicates which port of the
 			disk is being used by the primary path to the disk.
@@ -12808,17 +13303,19 @@
 			If the disk only has a single port, the value
 			is portSingle, and if the port is not active, 
 			the value is portNone. This OID is not available 
-			from the Cluster management interfaces."
+			from the Cluster management interfaces.
+			This object is deprecated."
 	::= { raidVEntry 16 }
 
 	raidVSecondaryDiskName          OBJECT-TYPE
 	SYNTAX                          DisplayString
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The name identifying the secondary path to
 			the referenced disk drive. This OID is not 
-			available from the Cluster management interfaces."
+			available from the Cluster management interfaces.
+			This object is deprecated."
 	::= { raidVEntry 17 }
 
 	raidVSecondaryDiskPort          OBJECT-TYPE
@@ -12829,7 +13326,7 @@
                                              portNone(4)
                                         }
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"A number that indicates which port of the
 			disk is being used by the secondary path to the disk.
@@ -12838,7 +13335,7 @@
 			If the disk only has a single port, the value
 			is portSingle, and if the port is not active, 
 			the value is portNone. This OID is not available from 
-			the Cluster management interfaces."
+			the Cluster management interfaces. This object is deprecated."
 	::= { raidVEntry 18 }
 
 	raidVShelf                      OBJECT-TYPE
@@ -12866,7 +13363,7 @@
         STATUS                          current
         DESCRIPTION
                         "A number that identifies the plex within the
-                         given volume that this entry belongs to.  The
+                         given aggregate that this entry belongs to.  The
                          first plex is '1'."
         ::= { raidVEntry 21 } 
 
@@ -12885,7 +13382,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-			"The number of plexes within this volume.
+			"The number of plexes within this aggregate.
                         This number is always 1 or 2."
 	::= { raidVEntry 23 }
 
@@ -13037,7 +13534,7 @@
 		spareDiskName
 		    DisplayString,
 		spareStatus
-		    Integer32,
+		    INTEGER,
 		spareDiskId
 		    Integer32,
 		spareScsiAdapter
@@ -13049,11 +13546,11 @@
 		spareTotalBlocks
 		    Integer32,
 		spareDiskPort
-		    Integer32,
+		    INTEGER,
 		spareSecondaryDiskName
 		    DisplayString,
 		spareSecondaryDiskPort
-		    Integer32,
+		    INTEGER,
 		spareShelf
 		    Integer32,
 		spareBay
@@ -13118,31 +13615,33 @@
 	spareDiskId                     OBJECT-TYPE
 	SYNTAX                          Integer32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The disk identifier for the referenced spare disk
 			 drive. This OID is not available from the Cluster
-			 management interfaces."
+			 management interfaces. This object is deprecated."
 	::= { spareEntry 4 }
 
 	spareScsiAdapter                OBJECT-TYPE
 	SYNTAX                          DisplayString
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The identifier of the SCSI adapter for the
 			 referenced spare disk drive. This OID is not 
-			 available from the Cluster management interfaces."
+			 available from the Cluster management interfaces.
+			 This object is deprecated."
 	::= { spareEntry 5 }
 
 	spareScsiId                     OBJECT-TYPE
 	SYNTAX                          Integer32 (0..100)
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The identifier for the referenced spare disk drive
 			 on the referenced SCSI adapter. This OID is not 
-			 available from the Cluster management interfaces."
+			 available from the Cluster management interfaces.
+			 This object is deprecated."
 	::= { spareEntry 6 }
 
 	spareTotalMb                    OBJECT-TYPE
@@ -13172,7 +13671,7 @@
                                              portNone(4)
                                         }
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"A number that indicates which port of the
 			disk is being used by the primary path to the disk.
@@ -13181,17 +13680,19 @@
 			If the disk only has a single port, the value
 			is portSingle, and if the port is not active, 
 			the value is portNone. This OID is not available
-			from the Cluster management interfaces."
+			from the Cluster management interfaces.
+			This object is deprecated."
 	::= { spareEntry 9 }
 
 	spareSecondaryDiskName          OBJECT-TYPE
 	SYNTAX                          DisplayString
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The name identifying the secondary path to
 			the referenced disk drive. This OID is not 
-			available from the Cluster management interfaces."
+			available from the Cluster management interfaces.
+			This object is deprecated."
 	::= { spareEntry 10 }
 
 	spareSecondaryDiskPort          OBJECT-TYPE
@@ -13202,7 +13703,7 @@
                                              portNone(4)
                                         }
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"A number that indicates which port of the
 			disk is being used by the secondary path to the disk.
@@ -13211,7 +13712,7 @@
 			If the disk only has a single port, the value
 			is portSingle, and if the port is not active, 
 			the value is portNone. This OID is not available from
-			the Cluster management interfaces."
+			the Cluster management interfaces. This object is deprecated."
 	::= { spareEntry 11 }
 
 	spareShelf                      OBJECT-TYPE
@@ -13428,15 +13929,11 @@
 			disks.  Each failed disk is described with
 			a sentence like
 
-			Parity disk in volume vol0, RAID group 1, failed.
-
-			or
-
 			Disk on adapter 8a, shelf 1, bay 0, failed.
 
 			or
 
-			Parity disk in aggregate aggr0, RAID group 1, failed."
+			Disk on stack 3, shelf 2, bay 2, failed."
 
 	::= { diskSummary 10 }
 
@@ -13456,8 +13953,7 @@
         STATUS                          current
 	DESCRIPTION
 			"Number of entries in the raidVTable table.
-			 This is the total number of traditional volumes
-			 and aggregates in the system."
+			 This is the total number of aggregates in the system."
 
 	::= { raid 5 }
 
@@ -13485,8 +13981,7 @@
         STATUS                          current
 	DESCRIPTION
 			"Number of entries in the raidPTable table.
-			 This is the total number of traditional volumes
-			 and aggregates in the system."
+			 This is the total number of aggregates in the system."
 
 	::= { raid 8 }
 
@@ -13517,7 +14012,7 @@
 		otherDiskDiskName
 		    DisplayString,
 		otherDiskStatus
-		    Integer32,
+		    INTEGER,
 		otherDiskDiskId
 		    Integer32,
 		otherDiskScsiAdapter
@@ -13529,11 +14024,11 @@
 		otherDiskTotalBlocks
 		    Integer32,
 		otherDiskDiskPort
-		    Integer32,
+		    INTEGER,
 		otherDiskSecondaryDiskName
 		    DisplayString,
 		otherDiskSecondaryDiskPort
-		    Integer32,
+		    INTEGER,
 		otherDiskShelf
 		    Integer32,
 		otherDiskBay
@@ -13596,28 +14091,33 @@
 	otherDiskDiskId                 OBJECT-TYPE
 	SYNTAX                          Integer32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The disk identifier for the referenced disk
-			 drive."
+			 drive. This OID is not available from the Cluster
+			 management interfaces. This object is deprecated."
 	::= { otherDiskEntry 4 }
 
 	otherDiskScsiAdapter            OBJECT-TYPE
 	SYNTAX                          DisplayString
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The identifier of the SCSI adapter for the
-			 referenced disk drive."
+			 referenced disk drive. This OID is not available
+			 from the Cluster management interfaces.
+			 This object is deprecated."
 	::= { otherDiskEntry 5 }
 
 	otherDiskScsiId                 OBJECT-TYPE
 	SYNTAX                          Integer32 (0..100)
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The identifier for the referenced disk drive
-			 on the referenced SCSI adapter."
+			 on the referenced SCSI adapter. This OID is
+			 not available from the Cluster management interfaces.
+			 This object is deprecated."
 	::= { otherDiskEntry 6 }
 
 	otherDiskTotalMb                OBJECT-TYPE
@@ -13647,7 +14147,7 @@
                                              portNone(4)
                                         }
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"A number that indicates which port of the
 			disk is being used by the primary path to the disk.
@@ -13655,16 +14155,20 @@
 			indicate which port is being used.
 			If the disk only has a single port, the value
 			is portSingle, and if the port is not active, 
-			the value is portNone."
+			the value is portNone. This OID is not available
+			from the Cluster management interfaces.
+			This object is deprecated."
 	::= { otherDiskEntry 9 }
 
 	otherDiskSecondaryDiskName      OBJECT-TYPE
 	SYNTAX                          DisplayString
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The name identifying the secondary path to
-			the referenced disk drive."
+			the referenced disk drive. This OID is not available
+			from the Cluster management interfaces.
+			This object is deprecated."
 	::= { otherDiskEntry 10 }
 
 	otherDiskSecondaryDiskPort      OBJECT-TYPE
@@ -13675,7 +14179,7 @@
                                              portNone(4)
                                         }
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"A number that indicates which port of the
 			disk is being used by the secondary path to the disk.
@@ -13683,7 +14187,9 @@
 			indicate which port is being used.
 			If the disk only has a single port, the value
 			is portSingle, and if the port is not active, 
-			the value is portNone."
+			the value is portNone. This OID is not available
+			from the Cluster management interfaces.
+			This object is deprecated."
 	::= { otherDiskEntry 11 }
 
 	otherDiskShelf                  OBJECT-TYPE
@@ -13805,7 +14311,7 @@
         STATUS                          current
 	DESCRIPTION
 			"Display RAID configuration information for
-			 the referenced volume, plex, raid group, and disk drive."
+			 the referenced aggregate, plex, raid group, and disk drive."
 	INDEX	{ raidPVol, raidPPlex, raidPGroup, raidPIndex }
 	::= { raidPTable 1 }
 
@@ -13814,7 +14320,7 @@
 		raidPIndex
 		    Integer32,
 		raidPStatus
-		    Integer32,
+		    INTEGER,
 		raidPVol
 		    Integer32,
                 raidPPlex
@@ -13832,11 +14338,11 @@
 		raidPDiskName
 		    DisplayString,
 		raidPDiskPort
-		    Integer32,
+		    INTEGER,
 		raidPSecondaryDiskName
 		    DisplayString,
 		raidPSecondaryDiskPort
-		    Integer32,
+		    INTEGER,
 		raidPScsiAdapter
 		    DisplayString,
 		raidPScsiId
@@ -13889,7 +14395,7 @@
         STATUS                          current
 	DESCRIPTION
 			"A number that identifies this disk drive within 
-			 the given volume and RAID group."
+			 the given aggregate and RAID group."
 	::= { raidPEntry 1 }
 
 	raidPStatus                     OBJECT-TYPE
@@ -13914,8 +14420,8 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-			"A number that identifies the volume that this entry
-			 belongs to. The first volume is '1'."
+			"A number that identifies the aggregate that this entry
+			 belongs to. The first aggregate is '1'."
 	::= { raidPEntry 3 }
 
 	raidPPlex                       OBJECT-TYPE
@@ -13942,7 +14448,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-			"The number of plexes within this volume.
+			"The number of plexes within this aggregate.
                         This number is always 1 or 2."
 	::= { raidPEntry 6 }
 
@@ -13988,7 +14494,7 @@
                                              portNone(4)
                                         }
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"A number that indicates which port of the
 			disk is being used by the primary path to the disk.
@@ -13996,16 +14502,20 @@
 			indicate which port is being used.
 			If the disk only has a single port, the value
 			is portSingle, and if the port is not active, 
-			the value is portNone."
+			the value is portNone. This OID is not available
+			from the Cluster management interfaces.
+			This object is deprecated."
 	::= { raidPEntry 11 }
 
 	raidPSecondaryDiskName          OBJECT-TYPE
 	SYNTAX                          DisplayString
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The name identifying the secondary path to
-			the referenced disk drive."
+			the referenced disk drive. This OID is not
+			available from the Cluster management interfaces.
+			This object is deprecated."
 	::= { raidPEntry 12 }
 
 	raidPSecondaryDiskPort          OBJECT-TYPE
@@ -14016,7 +14526,7 @@
                                              portNone(4)
                                         }
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"A number that indicates which port of the
 			disk is being used by the secondary path to the disk.
@@ -14024,34 +14534,42 @@
 			indicate which port is being used.
 			If the disk only has a single port, the value
 			is portSingle, and if the port is not active, 
-			the value is portNone."
+			the value is portNone. This OID is not available
+			from the Cluster management interfaces.
+			This object is deprecated."
 	::= { raidPEntry 13 }
 
 	raidPScsiAdapter                OBJECT-TYPE
 	SYNTAX                          DisplayString
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The identifier of the SCSI adapter for the
-			 referenced disk drive."
+			 referenced disk drive. This OID is not available
+			 from the Cluster management interfaces.
+			 This object is deprecated."
 	::= { raidPEntry 14 }
 
 	raidPScsiId                     OBJECT-TYPE
 	SYNTAX                          Integer32 (0..100)
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The identifier for the referenced disk drive
-			 on the referenced SCSI adapter."
+			 on the referenced SCSI adapter. This OID is
+			 not available from the Cluster management interfaces.
+			 This object is deprecated."
 	::= { raidPEntry 15 }
 
 	raidPDiskId                     OBJECT-TYPE
 	SYNTAX                          Integer32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The disk identifier for the referenced disk
-			 drive."
+			 drive. This OID is not available from the
+			 Cluster management interfaces.
+			 This object is deprecated."
 	::= { raidPEntry 16 }
 
 	raidPShelf                      OBJECT-TYPE
@@ -14258,7 +14776,7 @@
                 plexVolName
                     DisplayString,
                 plexStatus
-                    Integer32,
+                    INTEGER,
                 plexPercentResyncing
                     Integer32
             } 
@@ -14285,7 +14803,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
         DESCRIPTION
-                        "The volume to which this plex belongs."
+                        "The aggregate to which this plex belongs."
         ::= { plexEntry 3 }
 
         plexStatus                      OBJECT-TYPE
@@ -14357,11 +14875,11 @@
 		outOfDateDiskTotalBlocks
 		    Integer32,
 		outOfDateDiskDiskPort
-		    Integer32,
+		    INTEGER,
 		outOfDateDiskSecondaryDiskName
 		    DisplayString,
 		outOfDateDiskSecondaryDiskPort
-		    Integer32,
+		    INTEGER,
 		outOfDateDiskShelf
 		    Integer32,
 		outOfDateDiskBay
@@ -14395,7 +14913,7 @@
 	DESCRIPTION
 			"A number that identifies this entry for the
 			 referenced disk drive in the list of out-of-date
-			 diskdrives."
+			 disk drives."
 	::= { outOfDateDiskEntry 1 }
 
 	outOfDateDiskDiskName           OBJECT-TYPE
@@ -14410,28 +14928,34 @@
 	outOfDateDiskDiskId             OBJECT-TYPE
 	SYNTAX                          Integer32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The disk identifier for the referenced disk
-			 drive."
+			 drive. This OID is not available from the
+			 Cluster management interfaces.
+			 This object is deprecated."
 	::= { outOfDateDiskEntry 3 }
 
 	outOfDateDiskScsiAdapter        OBJECT-TYPE
 	SYNTAX                          DisplayString
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The identifier of the SCSI adapter for the
-			 referenced disk drive."
+			 referenced disk drive. This OID is not available
+			 from the Cluster management interfaces.
+			 This object is deprecated."
 	::= { outOfDateDiskEntry 4 }
 
 	outOfDateDiskScsiId             OBJECT-TYPE
 	SYNTAX                          Integer32 (0..100)
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The identifier for the referenced disk drive
-			 on the referenced SCSI adapter."
+			 on the referenced SCSI adapter. This OID is not
+			 available from the Cluster management interfaces.
+			 This object is deprecated."
 	::= { outOfDateDiskEntry 5 }
 
 	outOfDateDiskTotalMb            OBJECT-TYPE
@@ -14461,7 +14985,7 @@
                                              portNone(4)
                                         }
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"A number that indicates which port of the
 			disk is being used by the primary path to the disk.
@@ -14469,16 +14993,20 @@
 			indicate which port is being used.
 			If the disk only has a single port, the value
 			is portSingle, and if the port is not active, 
-			the value is portNone."
+			the value is portNone. This OID is not available
+			from the Cluster management interfaces.
+			This object is deprecated."
 	::= { outOfDateDiskEntry 8 }
 
 	outOfDateDiskSecondaryDiskName  OBJECT-TYPE
 	SYNTAX                          DisplayString
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"The name identifying the secondary path to
-			the referenced disk drive."
+			the referenced disk drive. This OID is not available
+			from the Cluster management interfaces.
+			This object is deprecated"
 	::= { outOfDateDiskEntry 9 }
 
 	outOfDateDiskSecondaryDiskPort  OBJECT-TYPE
@@ -14489,7 +15017,7 @@
                                              portNone(4)
                                         }
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          deprecated
 	DESCRIPTION
 			"A number that indicates which port of the
 			disk is being used by the secondary path to the disk.
@@ -14497,7 +15025,9 @@
 			indicate which port is being used.
 			If the disk only has a single port, the value
 			is portSingle, and if the port is not active, 
-			the value is portNone."
+			the value is portNone. This OID is not available
+			from the Cluster management interfaces.
+			This object is deprecated."
 	::= { outOfDateDiskEntry 10 }
 
 	outOfDateDiskShelf              OBJECT-TYPE
@@ -15923,7 +16453,7 @@
 	STATUS				current
 	DESCRIPTION
 			"The number of SMB2 invalid QUERY_FS_INFO
-			 requestd, since the last time the statistics
+			 requests, since the last time the statistics
 			 were cleared."
 	::= { cifsReqs 78 }
 
@@ -15933,7 +16463,7 @@
 	STATUS				current
 	DESCRIPTION
 			"The number of SMB2 SET_BASIC_INFO
-			 requesed, since the last time the statistics
+			 received, since the last time the statistics
 			 were cleared."
 	::= { cifsReqs 79 }
 
@@ -15943,7 +16473,7 @@
 	STATUS				current
 	DESCRIPTION
 			"The number of SMB2 SET_FILE_RENAME_INFO
-			 requeved, since the last time the statistics
+			 received, since the last time the statistics
 			 were cleared."
 	::= { cifsReqs 80 }
 
@@ -15953,7 +16483,7 @@
 	STATUS				current
 	DESCRIPTION
 			"The number of SMB2 SET_FILE_LINK_INFO
-			 requived, since the last time the statistics
+			 received, since the last time the statistics
 			 were cleared."
 	::= { cifsReqs 81 }
 
@@ -15963,7 +16493,7 @@
 	STATUS				current
 	DESCRIPTION
 			"The number of SMB2 SET_FILE_DISP_INFO
-			 reqeived, since the last time the statistics
+			 received, since the last time the statistics
 			 were cleared."
 	::= { cifsReqs 82 }
 
@@ -18640,7 +19170,7 @@
 		amPort
 		    Integer32,
 		amStatus
-		    Integer32
+		    INTEGER
 	    }
 
 	amIndex                         OBJECT-TYPE
@@ -18774,7 +19304,7 @@
 	    DESCRIPTION
 		"Indicates the current status of the takeover partner of 
 		 this appliance. up(1) indicates that the takeover partner is 
-		 reachable. unknown(2) indicates that an unknown error occured.
+		 reachable. unknown(2) indicates that an unknown error occurred.
 		 failed(3) indicates that the partner has failed, takeoverAddrs
 		 indicates the partner's IP address this appliance has taken
 		 over."
@@ -19139,7 +19669,7 @@
         MAX-ACCESS                      not-accessible
         STATUS                          current
 	DESCRIPTION
-		 	"Number of kilobytes sent to and recieved from the client side
+		 	"Number of kilobytes sent to and received from the client side
 			per acceleration rule"
 
  	::= { ncHttp 37 }
@@ -19204,7 +19734,7 @@
         MAX-ACCESS                      not-accessible
         STATUS                          current
  	DESCRIPTION	
-			"Number of kilobytes sent to and recieved from the client side
+			"Number of kilobytes sent to and received from the client side
  			per acceleration rule"
 
 	::= { ncHttp 38 }
@@ -19863,7 +20393,7 @@
         MAX-ACCESS                      not-accessible
         STATUS                          current
  	DESCRIPTION
-			 "Number of kilobytes sent to and recieved from the 
+			 "Number of kilobytes sent to and received from the 
 			 client side per acceleration rule"
 
  	::= { ncStreaming 45 }
@@ -20046,7 +20576,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-			"Has Full Service Resolver initalised"
+			"Has Full Service Resolver initialized"
 	::= { ncDnsIres 2 }
 
 	ncDnsIresForwardLookups         OBJECT-TYPE
@@ -20378,9 +20908,9 @@
 		snapmirrorDst
 			OCTET STRING,
 		snapmirrorStatus
-			Integer32,
+			INTEGER,
 		snapmirrorState
-			Integer32,
+			INTEGER,
 		snapmirrorLag
 			TimeTicks,
 		snapmirrorTotalSuccesses
@@ -20670,7 +21200,7 @@
 		snapmirrorConnName
 			DisplayString,
 		snapmirrorConnType
-			Integer32,
+			INTEGER,
 		snapmirrorConnSrc1
 			DisplayString,
 		snapmirrorConnDst1
@@ -20747,6 +21277,407 @@
 
         ::= { snapmirrorConnEntry 7 }
 
+	snapmirrorRelStatusTable	OBJECT-TYPE
+	SYNTAX				SEQUENCE OF SnapmirrorRelStatusEntry
+	MAX-ACCESS			not-accessible
+	STATUS				current
+	DESCRIPTION
+			"Provide a list of snapmirror status."
+
+	::= { sm 1 }
+
+	snapmirrorRelStatusEntry           OBJECT-TYPE
+	SYNTAX				   SnapmirrorRelStatusEntry
+	MAX-ACCESS			   not-accessible
+	STATUS				   current
+	DESCRIPTION
+			"Provide a report of current status of snapmirror."
+
+	INDEX	{ snapmirrorRelIndex }
+	::= { snapmirrorRelStatusTable 1 }
+
+        SnapmirrorRelStatusEntry ::=
+	    SEQUENCE {
+		snapmirrorRelIndex
+			Integer32,
+		snapmirrorRelSrcPath
+			DisplayString,
+		snapmirrorRelDestPath
+			DisplayString,
+		snapmirrorRelType
+			INTEGER,
+		snapmirrorRelStatus
+			INTEGER,
+		snapmirrorRelState
+			INTEGER,
+		snapmirrorRelLag
+			TimeTicks,
+		snapmirrorRelThrottleValue
+			Unsigned32,
+		snapmirrorRelSchedule
+			DisplayString,
+		snapmirrorRelPolicy
+			DisplayString,
+		snapmirrorRelTransferSnapshot
+			DisplayString,
+		snapmirrorRelNewestSnapshot
+			DisplayString,
+		snapmirrorRelNewestSnapshotTimeStamp
+			DateAndTime,
+		snapmirrorRelExportedSnapshot
+			DisplayString,
+		snapmirrorRelExportedSnapshotTimeStamp
+			DateAndTime,
+		snapmirrorRelHealthy
+			INTEGER,
+		snapmirrorRelUnHealthyReason
+			DisplayString,
+		snapmirrorRelLastTransferType
+			INTEGER,
+		snapmirrorRelLastTransferError
+			DisplayString,
+		snapmirrorRelLastTransferSize
+			Counter64,
+		snapmirrorRelLastTransferTimeSeconds
+			Unsigned32,
+		snapmirrorRelGroupType
+			INTEGER,
+		snapmirrorRelVserver
+			DisplayString,
+		snapmirrorRelUpdateSuccCnt
+			Counter64,
+		snapmirrorRelUpdateFailCnt
+			Counter64,
+		snapmirrorRelResyncSuccCnt
+			Counter64,
+		snapmirrorRelResyncFailCnt
+			Counter64,
+		snapmirrorRelBreakSuccCnt
+			Counter64,
+		snapmirrorRelBreakFailCnt
+			Counter64,
+		snapmirrorRelTotalTransBytes
+			Counter64,
+		snapmirrorRelTotalTransTimeSeconds
+			Counter32
+	    }
+
+	snapmirrorRelIndex		OBJECT-TYPE
+	SYNTAX                          Integer32 (1..2147483647)
+	MAX-ACCESS			read-only
+	STATUS				current
+	DESCRIPTION
+		"A number that identifies this snapmirror relationship. The
+		cmodeSnapmirrorIndex is not related to any other table defined
+		in this MIB."
+
+	::={ snapmirrorRelStatusEntry 1 }
+
+	snapmirrorRelSrcPath		OBJECT-TYPE
+	SYNTAX				DisplayString
+	MAX-ACCESS			read-only
+	STATUS				current
+	DESCRIPTION
+		"Source path of this relationship."
+	::={ snapmirrorRelStatusEntry 2 }
+
+	snapmirrorRelDestPath		OBJECT-TYPE
+	SYNTAX				DisplayString
+	MAX-ACCESS			read-only
+	STATUS				current
+	DESCRIPTION
+		"Destination path of this relationship."
+	::={ snapmirrorRelStatusEntry 3 }
+
+	snapmirrorRelType		OBJECT-TYPE
+	SYNTAX				INTEGER {
+						dp(0),
+						ls(1),
+						xdp(2),
+						rst(3),
+						tdp(4)
+					}
+	MAX-ACCESS			read-only
+	STATUS				current
+	DESCRIPTION
+		"Relationship type of this relationship."
+	::={ snapmirrorRelStatusEntry 4 }
+
+	snapmirrorRelStatus		OBJECT-TYPE
+	SYNTAX                          INTEGER {
+					    idle(0),
+					    transferring(1),
+					    restoring(2),
+					    checking(3),
+					    quiescing(4),
+					    quiesced(5),
+					    queued(6),
+					    preparing(7),
+					    waiting(8),
+					    finalizing(9),
+					    resyncing(10),
+					    aborting(11),
+					    breaking(12)
+                                        }
+	MAX-ACCESS                      read-only
+	STATUS                          current
+	DESCRIPTION
+			"Current transfer status of this relationship."
+
+	::= { snapmirrorRelStatusEntry 5 }
+
+	snapmirrorRelState		OBJECT-TYPE
+	SYNTAX                          INTEGER {
+                                             uninitialized(0),
+                                             snapmirrored(1),
+					     brokenOff(2)
+                                        }
+	MAX-ACCESS                      read-only
+	STATUS                          current
+	DESCRIPTION
+			"Current state of this relationship."
+
+	::= { snapmirrorRelStatusEntry 6 }
+
+	snapmirrorRelLag		OBJECT-TYPE
+	SYNTAX                          TimeTicks
+	MAX-ACCESS                      read-only
+	STATUS                          current
+	DESCRIPTION
+			"How far behind from the source the destination is."
+
+	::= { snapmirrorRelStatusEntry 7 }
+
+	snapmirrorRelThrottleValue	OBJECT-TYPE
+	SYNTAX                          Unsigned32
+	MAX-ACCESS                      read-only
+	STATUS                          current
+	DESCRIPTION
+		"Current throttle value for this relationship."
+
+	::= { snapmirrorRelStatusEntry 8 }
+
+	snapmirrorRelSchedule		OBJECT-TYPE
+	SYNTAX				DisplayString
+	MAX-ACCESS                      read-only
+	STATUS                          current
+	DESCRIPTION
+		"The schedule associated with this relationship."
+
+	::= { snapmirrorRelStatusEntry 9 }
+
+	snapmirrorRelPolicy		OBJECT-TYPE
+	SYNTAX				DisplayString
+	MAX-ACCESS                      read-only
+	STATUS                          current
+	DESCRIPTION
+		"The policy associated with this relationship."
+
+	::= { snapmirrorRelStatusEntry 10 }
+
+
+	snapmirrorRelTransferSnapshot	 OBJECT-TYPE
+	SYNTAX                           DisplayString
+	MAX-ACCESS                       read-only
+	STATUS                           current
+	DESCRIPTION
+		"The current transfer snapshot for this relationship."
+
+	::= { snapmirrorRelStatusEntry 11 }
+
+	snapmirrorRelNewestSnapshot	 OBJECT-TYPE
+	SYNTAX                           DisplayString
+	MAX-ACCESS                       read-only
+	STATUS                           current
+	DESCRIPTION
+		"The newest snapshot at the destination of this relationship."
+
+	::= { snapmirrorRelStatusEntry 12 }
+
+	snapmirrorRelNewestSnapshotTimeStamp		 OBJECT-TYPE
+	SYNTAX						 DateAndTime
+	MAX-ACCESS                                       read-only
+	STATUS                                           current
+	DESCRIPTION
+		"The time stamp of newest snapshot at the destination of this relationship."
+
+	::= { snapmirrorRelStatusEntry 13 }
+
+	snapmirrorRelExportedSnapshot		  OBJECT-TYPE
+	SYNTAX					  DisplayString
+	MAX-ACCESS                                read-only
+	STATUS                                    current
+	DESCRIPTION
+		"The exported snapshot at the destination of this relationship."
+
+	::= { snapmirrorRelStatusEntry 14 }
+
+
+	snapmirrorRelExportedSnapshotTimeStamp		   OBJECT-TYPE
+	SYNTAX						   DateAndTime
+	MAX-ACCESS                                         read-only
+	STATUS                                             current
+	DESCRIPTION
+		"The time stamp of exported snapshot at the destination of this relationship."
+
+	::= { snapmirrorRelStatusEntry 15 }
+
+	snapmirrorRelHealthy		OBJECT-TYPE
+	SYNTAX				INTEGER {
+					false(0),
+					true(1)
+		                        }
+	MAX-ACCESS                      read-only
+	STATUS                          current
+	DESCRIPTION
+		"Indicates whether this relationship is healthy or not."
+
+	::= { snapmirrorRelStatusEntry 16 }
+
+	snapmirrorRelUnHealthyReason	     OBJECT-TYPE
+	SYNTAX				     DisplayString
+	MAX-ACCESS                           read-only
+	STATUS                               current
+	DESCRIPTION
+		"Indicates the specific reason due to which this relationship is not healthy."
+
+	::= { snapmirrorRelStatusEntry 17 }
+
+	snapmirrorRelLastTransferType		  OBJECT-TYPE
+	SYNTAX					  INTEGER {
+						  initialize(0),
+						  update(1),
+						  resync(2),
+						  restore(3),
+						  check(4)
+						  }
+	MAX-ACCESS				  read-only
+	STATUS					  current
+	DESCRIPTION
+		"The type of the last transfer on this relationship."
+
+	::= { snapmirrorRelStatusEntry 18 }
+
+	snapmirrorRelLastTransferError		   OBJECT-TYPE
+	SYNTAX					   DisplayString
+	MAX-ACCESS				   read-only
+	STATUS					   current
+	DESCRIPTION
+		"The last transfer error for this relationship."
+
+	::= { snapmirrorRelStatusEntry 19 }
+
+	snapmirrorRelLastTransferSize		 OBJECT-TYPE
+	SYNTAX					 Counter64
+	MAX-ACCESS				 read-only
+	STATUS					 current
+	DESCRIPTION
+		"The size of the last transfer for this relationship."
+
+	::= { snapmirrorRelStatusEntry 20 }
+
+	snapmirrorRelLastTransferTimeSeconds	      OBJECT-TYPE
+	SYNTAX					      Unsigned32
+	MAX-ACCESS				      read-only
+	STATUS					      current
+	DESCRIPTION
+		"The duration of the last transfer for this relationship."
+
+	::= { snapmirrorRelStatusEntry 21 }
+
+	snapmirrorRelGroupType			  OBJECT-TYPE
+	SYNTAX					  INTEGER {
+						  flexvol(0),
+						  infinitevol-dr(1),
+						  vserver-dr(2)
+						  }
+	MAX-ACCESS				  read-only
+	STATUS					  current
+	DESCRIPTION
+		"Indicate if this relationship is part of an Infinite Volume or Vserver DR relationship."
+
+	::= { snapmirrorRelStatusEntry 22 }
+
+	snapmirrorRelVserver            OBJECT-TYPE
+	SYNTAX                          DisplayString
+	MAX-ACCESS                      read-only
+	STATUS                          current
+	DESCRIPTION
+			"Destination vserver to which this relationship belongs."
+	::= { snapmirrorRelStatusEntry 23 }
+
+	snapmirrorRelUpdateSuccCnt		  OBJECT-TYPE
+	SYNTAX					  Counter64
+	MAX-ACCESS				  read-only
+	STATUS					  current
+	DESCRIPTION
+		"Total number of successful updates since this relationship was initialized."
+
+	::= { snapmirrorRelStatusEntry 24 }
+
+	snapmirrorRelUpdateFailCnt		  OBJECT-TYPE
+	SYNTAX					  Counter64
+	MAX-ACCESS				  read-only
+	STATUS					  current
+	DESCRIPTION
+		"Total number of failed updates since this relationship was initialized."
+
+	::= { snapmirrorRelStatusEntry 25 }
+
+	snapmirrorRelResyncSuccCnt		  OBJECT-TYPE
+	SYNTAX					  Counter64
+	MAX-ACCESS				  read-only
+	STATUS					  current
+	DESCRIPTION
+		"Total number of successful resyncs since this relationship was initialized."
+
+	::= { snapmirrorRelStatusEntry 26 }
+
+	snapmirrorRelResyncFailCnt		  OBJECT-TYPE
+	SYNTAX					  Counter64
+	MAX-ACCESS				  read-only
+	STATUS					  current
+	DESCRIPTION
+		"Total number of failed resyncs since this relationship was initialized."
+
+	::= { snapmirrorRelStatusEntry 27 }
+
+	snapmirrorRelBreakSuccCnt		  OBJECT-TYPE
+	SYNTAX					  Counter64
+	MAX-ACCESS				  read-only
+	STATUS					  current
+	DESCRIPTION
+		"Total number of successful breaks since this relationship was initialized."
+
+	::= { snapmirrorRelStatusEntry 28 }
+
+	snapmirrorRelBreakFailCnt		  OBJECT-TYPE
+	SYNTAX					  Counter64
+	MAX-ACCESS				  read-only
+	STATUS					  current
+	DESCRIPTION
+		"Total number of failed breaks since this relationship was initialized."
+
+	::= { snapmirrorRelStatusEntry 29 }
+
+	snapmirrorRelTotalTransBytes		  OBJECT-TYPE
+	SYNTAX					  Counter64
+	MAX-ACCESS				  read-only
+	STATUS					  current
+	DESCRIPTION
+		"Total transfer bytes since this relationship was created."
+
+	::= { snapmirrorRelStatusEntry 30 }
+
+	snapmirrorRelTotalTransTimeSeconds	  OBJECT-TYPE
+	SYNTAX					  Counter32
+	MAX-ACCESS				  read-only
+	STATUS					  current
+	DESCRIPTION
+		"Total transfer time in seconds since this relationship was created."
+
+	::= { snapmirrorRelStatusEntry 31 }
+
 	-- -- -- -- -- -- -- -- --
 	-- the snapvault group
 	-- -- -- -- -- -- -- -- --
@@ -20771,7 +21702,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-			"Number of active snapvault destionations."
+			"Number of active snapvault destinations."
 
 	::= { snapvault 2 }
 
@@ -20888,9 +21819,9 @@
 		svDst
 			OCTET STRING,
 		svStatus
-			Integer32,
+			INTEGER,
 		svState
-			Integer32,
+			INTEGER,
 		svLag
 			TimeTicks,
 		svTotalSuccesses
@@ -20943,7 +21874,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-			"Destionation of the snapvault relationship.
+			"Destination of the snapvault relationship.
 			<filer>:/vol/<qtree_name>"
 
 	::= { snapvaultStatusEntry 3 }
@@ -21141,7 +22072,7 @@
 		svHostName
 			DisplayString,
 		svHostType
-			Integer32,
+			INTEGER,
 		svHostTotalSuccesses
 			Integer32,
 		svHostTotalFailures
@@ -21243,9 +22174,9 @@
 		svSchedSnapshot
 			DisplayString,
 		svSchedStatus
-			Integer32,
+			INTEGER,
 		svSchedType
-			Integer32,
+			INTEGER,
 		svSchedSchedule
 			DisplayString
 	    }
@@ -21338,7 +22269,7 @@
 					     on(2)
 					}
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"Indicates whether ndmpd has been turned on or not."
 	::= { ndmp 1 }
@@ -21346,7 +22277,7 @@
 	ndmpSessionOpened               OBJECT-TYPE
 	SYNTAX                          Integer32 
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"Total number of ndmpd sessions currently opened.
 		Sessions may be running backups, restores or neither."
@@ -21355,7 +22286,7 @@
 	ndmpBackupActive                OBJECT-TYPE
 	SYNTAX                          Integer32 
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"Number of ndmpd backups currently active."
 	::= { ndmp 3 }
@@ -21363,7 +22294,7 @@
 	ndmpRestoreActive               OBJECT-TYPE
 	SYNTAX                          Integer32 
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"Number of ndmpd restores currently active."
 	::= { ndmp 4 }
@@ -21371,7 +22302,7 @@
 	ndmpTapeActive                  OBJECT-TYPE
 	SYNTAX                          Integer32 
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"Number of tape drives currently active."
 	::= { ndmp 5 }
@@ -21379,7 +22310,7 @@
 	ndmpBackupSuccesses             OBJECT-TYPE
 	SYNTAX                          Counter32 
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"Number of ndmpd backups that succeeded."
 	::= { ndmp 6 }
@@ -21387,7 +22318,7 @@
 	ndmpRestoreSuccesses            OBJECT-TYPE
 	SYNTAX                          Counter32 
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"Number of ndmpd restores that succeeded."
 	::= { ndmp 7 }
@@ -21395,7 +22326,7 @@
 	ndmpBackupFailures              OBJECT-TYPE
 	SYNTAX                          Counter32 
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"Number of ndmpd backups that failed."
 	::= { ndmp 8 }
@@ -21403,7 +22334,7 @@
 	ndmpRestoreFailures             OBJECT-TYPE
 	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"Number of ndmpd restores that failed."
 	::= { ndmp 9 }
@@ -21411,7 +22342,7 @@
 	ndmpBackupFailureReason         OBJECT-TYPE
 	SYNTAX                          DisplayString
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"When the ndmpBackupFailures value is non-zero, this string
 		describes the reason for the most recent backup failure."
@@ -21420,7 +22351,7 @@
 	ndmpRestoreFailureReason        OBJECT-TYPE
 	SYNTAX                          DisplayString
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"When the ndmpRestoreFailures value is non-zero, this string
 		describes the reason for the most recent restore failure."
@@ -21501,13 +22432,13 @@
 		fabricIndex
 		    Integer32,
 		fabricStatus
-		    Integer32,
+		    INTEGER,
 		fabricStatusMessage
 		    DisplayString,
 		fabricName
 		    OCTET STRING,
 		fabricOwner
-		    Integer32
+		    INTEGER
 	    }
 
 	fabricIndex                     OBJECT-TYPE
@@ -21592,13 +22523,13 @@
 		switchSymbolicName
 		    OCTET STRING,
 		switchType
-		    Integer32,
+		    INTEGER,
 		switchDomain
 		    Integer32,
 		switchManagementId
 		    Integer32,
 		switchStatus
-		    Integer32,
+		    INTEGER,
 		switchStatusMessage
 		    DisplayString,
 		switchLinkSpeed
@@ -21823,9 +22754,9 @@
 		portNumber
 		    Integer32,
 		portType
-		    Integer32,
+		    INTEGER,
 		portState
-		    Integer32,
+		    INTEGER,
 		portFabricIndex
 		    Integer32
 	    }
@@ -21926,7 +22857,7 @@
 	dmpActives                      OBJECT-TYPE
 	SYNTAX                          Integer32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"Number of active dump."
 	::= { dump 1 }
@@ -21934,7 +22865,7 @@
 	dmpAttempts                     OBJECT-TYPE
 	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"Number of dump attempted."
 	::= { dump 2 }
@@ -21942,7 +22873,7 @@
 	dmpSuccesses                    OBJECT-TYPE
 	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"Number of dump succeeded."
 	::= { dump 3 }
@@ -21950,7 +22881,7 @@
 	dmpFailures                     OBJECT-TYPE
 	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"Number of dump failed."
 	::= { dump 4 }
@@ -21958,7 +22889,7 @@
 	dmpTable                        OBJECT-TYPE
 	SYNTAX                          SEQUENCE OF DmpEntry
         MAX-ACCESS                      not-accessible
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 				"Provides a report of dumps on each
 				 dump subtree."
@@ -21971,7 +22902,7 @@
 	dmpEntry                        OBJECT-TYPE
 	SYNTAX                          DmpEntry
         MAX-ACCESS                      not-accessible
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 				"Shows statistics of dumps on an unique
 				 dump subtree."
@@ -21993,7 +22924,7 @@
 	    	dmpTime
 			Integer32,
 		dmpStatus
-		        Integer32,
+		        INTEGER,
 -- lastdump entries
 	    	dmpLevel
 			Integer32,
@@ -22011,7 +22942,7 @@
 	dmpIndex                        OBJECT-TYPE
 	SYNTAX                          Integer32 (1..2147483647)
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 				"Index into the subtree dump table."
 	::= { dmpEntry 1 }
@@ -22019,7 +22950,7 @@
 	dmpStPath                       OBJECT-TYPE
 	SYNTAX                          DisplayString
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 				"The full path to the dump subtree. In the
 				 format of /vol/<volname>/..."
@@ -22028,7 +22959,7 @@
 	dmpStAttempts                   OBJECT-TYPE
 	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 				"No. of dump attempted for the subtree."
 	::= { dmpEntry 3 }
@@ -22036,7 +22967,7 @@
 	dmpStSuccesses                  OBJECT-TYPE
 	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 				"No. of dump succeeded for the subtree."
 	::= { dmpEntry 4 }
@@ -22044,7 +22975,7 @@
 	dmpStFailures                   OBJECT-TYPE
 	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 				"No. of dump failed for the subtree."
 	::= { dmpEntry 5 }
@@ -22052,7 +22983,7 @@
 	dmpTime                         OBJECT-TYPE
 	SYNTAX                          Integer32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 				"The start time for the last attempt
 				 to dump the subtree, including the
@@ -22068,7 +22999,7 @@
 					     failed(4)
 					}
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION		"The status for the last dump attempt
 				 on the subtree."
 	::= { dmpEntry 7 }
@@ -22076,7 +23007,7 @@
 	dmpLevel                        OBJECT-TYPE
 	SYNTAX                          Integer32 (0..9)
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 				"The level of the dump."
 	::= { dmpEntry 8 }
@@ -22084,7 +23015,7 @@
 	dmpNumFiles                     OBJECT-TYPE
 	SYNTAX                          Integer32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 				"The number of files dumped."
 	::= { dmpEntry 9 }
@@ -22092,7 +23023,7 @@
 	dmpDataAmount                   OBJECT-TYPE
 	SYNTAX                          Integer32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 				"The amount of data dumped, in Megabytes."
 	::= { dmpEntry 10 }
@@ -22100,7 +23031,7 @@
 	dmpStartTime                    OBJECT-TYPE
 	SYNTAX                          Integer32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 				"The start time of the dump. The time is
 				 in seconds since January 1, 1970."
@@ -22109,7 +23040,7 @@
 	dmpDuration                     OBJECT-TYPE
 	SYNTAX                          TimeTicks
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 				"The duration of the dump."
 	::= { dmpEntry 12 }
@@ -22119,7 +23050,7 @@
 	rstActives                      OBJECT-TYPE
 	SYNTAX                          Integer32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"Number of active restore."
 	::= { restore 1 }
@@ -22127,7 +23058,7 @@
 	rstAttempts                     OBJECT-TYPE
 	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"Number of restore attempted."
 	::= { restore 2 }
@@ -22135,7 +23066,7 @@
 	rstSuccesses                    OBJECT-TYPE
 	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"Number of restore succeeded."
 	::= { restore 3 }
@@ -22143,7 +23074,7 @@
 	rstFailures                     OBJECT-TYPE
 	SYNTAX                          Counter32
         MAX-ACCESS                      read-only
-        STATUS                          current
+        STATUS                          obsolete
 	DESCRIPTION
 		"Number of restore failed."
 	::= { restore 4 }
@@ -22238,7 +23169,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-		"Allow the server to acception connections with
+		"Allow the server to accept connections with
 		authentication type NONE."
 	::= { dafsOptions 9 }
 
@@ -22323,7 +23254,7 @@
 			dafsNicDevice
 				DisplayString,
 			dafsNicState
-				Integer32,
+				INTEGER,
 			dafsNicListenAddr
 				OCTET STRING,
 			dafsNicNumRqstDemons
@@ -22997,13 +23928,13 @@
 			dafsSessionId
 				OCTET STRING,
 			dafsSessionEndian
-				Integer32,
+				INTEGER,
 			dafsSessionAllowBackChannel
-				Integer32,
+				INTEGER,
 			dafsSessionAllowRdmaReadChannel
-				Integer32,
+				INTEGER,
 			dafsSessionUseChecksums
-				Integer32,
+				INTEGER,
 			dafsSessionMaxCredentials
 				Integer32,
 			dafsSessionMaxRequestSize
@@ -23089,7 +24020,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-		"Maximum number of credientials that can be registered
+		"Maximum number of credentials that can be registered
 		on this session."
 	::= { dafsSessionEntry 7 }
 
@@ -23141,7 +24072,7 @@
         STATUS                          current
 	DESCRIPTION
 		"Supplied by the client to uniquely identify an
-		instnce of a client."
+		instance of a client."
 	::= { dafsSessionEntry 13 }
 
 	dafsSessionNumCredentials       OBJECT-TYPE
@@ -23195,9 +24126,9 @@
 			dafsExportPath
 				DisplayString,
 			dafsExportEnabled
-				Integer32,
+				INTEGER,
 			dafsExportRwMode
-				Integer32,
+				INTEGER,
 			dafsExportAccessList
 				DisplayString
 			}
@@ -23312,7 +24243,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION    
-	    "Number of times VI got disconnected with out any error."
+	    "Number of times VI got disconnected without any error."
 	::= { viaNodeConnection 5 }
 
         viaConnectTimeOut               OBJECT-TYPE
@@ -23328,7 +24259,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION    
-	    "Number of time VI got connected with out any error."
+	    "Number of time VI got connected without any error."
 	::= { viaNodeConnection 7 }
 
         viaCurrConnectPending           OBJECT-TYPE
@@ -23488,7 +24419,7 @@
 	::= { viaConnTable 1 }
 
         ViaConnEntry  ::= SEQUENCE {
-	viaConnState                 Integer32,
+	viaConnState                 INTEGER,
 	viaConnVINumber              Integer32,
 	viaConnRemoteNetAddress      IpAddress,
 	viaConnLocalNetAddress       IpAddress,
@@ -23549,7 +24480,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-	    "Local IPadress of the connection."
+	    "Local IP address of the connection."
 	::= { viaConnEntry 4 }
 
         viaConnRemotePortNumber         OBJECT-TYPE
@@ -23557,7 +24488,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-	    "Remote TCP portnumber of the connection."
+	    "Remote TCP port number of the connection."
 	::= { viaConnEntry 5 }
 
         viaConnLocalPortNumber          OBJECT-TYPE
@@ -23565,7 +24496,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-	    "Local TCP Portnumber of the connection."
+	    "Local TCP port number of the connection."
 	::= { viaConnEntry 6 }
 
         viaConnLocalDescriminator       OBJECT-TYPE
@@ -23592,7 +24523,7 @@
         STATUS                          current
 	DESCRIPTION
 	    "The local limit on the maximum packet size that can be 
-	    transfered through the connection."
+	    transferred through the connection."
 	::= { viaConnEntry 9 }
 
         viaConnRemoteMaxTransferSize    OBJECT-TYPE
@@ -23601,7 +24532,7 @@
         STATUS                          current
 	DESCRIPTION
 	    "The remote limit on the maximum packet size that can be 
-	    transfered through the connection."
+	    transferred through the connection."
 	::= { viaConnEntry 10 }
 
         viaConnLocalEnableRdmaWrite     OBJECT-TYPE
@@ -23846,7 +24777,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-	    "1 if synchronisation model is thread safe else 0."
+	    "1 if synchronization model is thread safe else 0."
 	::= { viaNicEntry 6 }
 
         viaMaxDiscriminatorLength       OBJECT-TYPE
@@ -23855,7 +24786,7 @@
         STATUS                          current
 	DESCRIPTION
 	    "The maximum number of bytes that the VI provider allows
-	    for a connection descriminator."
+	    for a connection discriminator."
 	::= { viaNicEntry 7 }
 
         viaMaxRegisterBytes             OBJECT-TYPE
@@ -24068,7 +24999,7 @@
 		 vfDisallowedProtocols
 		 	Integer32,
 		 vfState
-		 	Integer32		       
+		 	INTEGER		       
       	     }
 
 	vfIndex                         OBJECT-TYPE
@@ -24278,7 +25209,7 @@
                 vfProName
                            OCTET STRING,
 		vfProStatus
-			   Integer32
+			   INTEGER
 	    }
 
         vfFpIndex                       OBJECT-TYPE
@@ -24524,7 +25455,7 @@
 		lunComment DisplayString,
 		lunSizeLow Integer32,
 		lunSizeHigh Integer32,
-		lunMapped Integer32,
+		lunMapped INTEGER,
 		lunSerialNumber DisplayString,
 		lunQtreeName DisplayString,
 		lunHighOps Counter32,
@@ -24535,10 +25466,10 @@
 		lunLowWriteBytes Counter32,
 		lunHighErrors Counter32,
 		lunLowErrors Counter32,
-		lunOnline Integer32,
-		lunSnapStatus	Integer32,
-		lunShareStatus Integer32,
-		lunSpaceReserved Integer32,
+		lunOnline INTEGER,
+		lunSnapStatus	INTEGER,
+		lunShareStatus INTEGER,
+		lunSpaceReserved INTEGER,
 		lunStatsResetTime Integer32,
 		lunHighReadOps Counter32,
 		lunLowReadOps Counter32,
@@ -25077,12 +26008,12 @@
 	    SEQUENCE {
 		initiatorGroupIndex Integer32,
 		initiatorGroupName  DisplayString,
-		initiatorGroupType  Integer32,
-		initiatorGroupOS    Integer32,
+		initiatorGroupType  INTEGER,
+		initiatorGroupOS    INTEGER,
 		initiatorGroupThrottleReserve Integer32,
-		initiatorGroupThrottleBorrow  Integer32,
-		initiatorGroupUsePartner  Integer32,
-		initiatorGroupUseALUA	Integer32,
+		initiatorGroupThrottleBorrow  INTEGER,
+		initiatorGroupUsePartner  INTEGER,
+		initiatorGroupUseALUA	INTEGER,
 		initiatorGroupVserver         DisplayString
 		}
 
@@ -25155,7 +26086,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-		    "True if this inititiator group is allowed to
+		    "True if this initiator group is allowed to
 		    exceed its throttle settings if more resources
 		    are needed and otherwise available.  If
 		    initiatorGroupThrottleReserve is 0, this value
@@ -25183,7 +26114,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-		    "If true this initiator group supports Asymetric Logical
+		    "If true this initiator group supports Asymmetric Logical
 		    Unit Access."
 	::= { initiatorGroupEntry 8 }
 
@@ -25204,7 +26135,7 @@
         MAX-ACCESS                      not-accessible
         STATUS                          current
 	DESCRIPTION
-			"Table of individual Initator names in each Initiator 
+			"Table of individual Initiator names in each Initiator 
 			group"
 	::= {initiator 2}
 
@@ -25252,7 +26183,7 @@
 	::= { initiatorGroupMemberEntry 3 }
 
 	initiatorListTable              OBJECT-TYPE
-	SYNTAX                          SEQUENCE OF InitatorListEntry
+	SYNTAX                          SEQUENCE OF InitiatorListEntry
         MAX-ACCESS                      not-accessible
         STATUS                          current
 	DESCRIPTION
@@ -25260,7 +26191,7 @@
 	::= { initiator 3 }
 
 	initiatorListEntry              OBJECT-TYPE
-	SYNTAX                          InitatorListEntry
+	SYNTAX                          InitiatorListEntry
         MAX-ACCESS                      not-accessible
         STATUS                          current
 	DESCRIPTION	
@@ -25268,13 +26199,13 @@
 	INDEX { initiatorListEntryIndex}
 	::= { initiatorListTable 1 }
 
-	InitatorListEntry ::=
+	InitiatorListEntry ::=
 	    SEQUENCE {
 		initiatorListEntryIndex	        Integer32,
 		targetAdapterName		DisplayString,
 		connectedInitiatorNodeName	DisplayString,
 		connectedInitiatorPortName	DisplayString,
-		connectedInitiatorType		Integer32,
+		connectedInitiatorType		INTEGER,
 		connectedInitiatorIsid		DisplayString,
 		connectedInitiatorPortalGroup	Integer32,
 		connectedInitiatorVserver       DisplayString
@@ -25358,7 +26289,7 @@
 	fcpTarget	OBJECT IDENTIFIER ::= {blocks 17}
 
 	fcpTargetTable                  OBJECT-TYPE
-	SYNTAX                          SEQUENCE OF FcpTargetTableEntry
+	SYNTAX                          SEQUENCE OF FcpTargetEntry
         MAX-ACCESS                      not-accessible
         STATUS                          current
 	DESCRIPTION
@@ -25367,8 +26298,8 @@
 			management interfaces"
 	::= {fcpTarget 1}
 
-	fcpTargetTableEntry             OBJECT-TYPE
-	SYNTAX                          FcpTargetTableEntry
+	fcpTargetEntry             OBJECT-TYPE
+	SYNTAX                          FcpTargetEntry
         MAX-ACCESS                      not-accessible
         STATUS                          current
 	DESCRIPTION	
@@ -25376,17 +26307,17 @@
 	INDEX	{ fcpTargetTableIndex }
 	::= { fcpTargetTable 1 }
 	
-	FcpTargetTableEntry ::=
+	FcpTargetEntry ::=
 	    SEQUENCE {
 		fcpTargetTableIndex    Integer32,
 		fcpTargetName   DisplayString,
 		fcpTargetNN	DisplayString,
 		fcpTargetPN	DisplayString,
 		fcpTargetSpeed	Integer32,
-		fcpTargetStatus	Integer32,
-		fcpTargetStandby Integer32,
-		fcpTargetTopology Integer32,
-		fcpTargetType	Integer32
+		fcpTargetStatus	INTEGER,
+		fcpTargetStandby INTEGER,
+		fcpTargetTopology INTEGER,
+		fcpTargetType	INTEGER
 		}
 
 	fcpTargetTableIndex             OBJECT-TYPE
@@ -25395,7 +26326,7 @@
         STATUS                          current
         DESCRIPTION
                      "A number that identifies a specific fcp target device."
-        ::= { fcpTargetTableEntry 1 }
+        ::= { fcpTargetEntry 1 }
 
 	fcpTargetName                   OBJECT-TYPE
 	SYNTAX                          DisplayString
@@ -25403,7 +26334,7 @@
         STATUS                          current
 	DESCRIPTION
 		    "The name of the fcp target device" 
-	::= { fcpTargetTableEntry 2 }
+	::= { fcpTargetEntry 2 }
 
 	fcpTargetNN                     OBJECT-TYPE
 	SYNTAX                          DisplayString
@@ -25411,7 +26342,7 @@
         STATUS                          current
 	DESCRIPTION
 		    "The FC WWNN of the fcp target device" 
-	::= { fcpTargetTableEntry 3 }
+	::= { fcpTargetEntry 3 }
 
 	fcpTargetPN                     OBJECT-TYPE
 	SYNTAX                          DisplayString
@@ -25419,7 +26350,7 @@
         STATUS                          current
 	DESCRIPTION
 		    "The FC WWPN of the fcp target device" 
-	::= { fcpTargetTableEntry 4 }
+	::= { fcpTargetEntry 4 }
 
 	fcpTargetSpeed                  OBJECT-TYPE
 	SYNTAX                          Integer32
@@ -25427,7 +26358,7 @@
         STATUS                          current
 	DESCRIPTION
 		    "speed in gigabits per second. 0 is unknown."
-	::= { fcpTargetTableEntry 5 }
+	::= { fcpTargetEntry 5 }
 
 	fcpTargetStatus                 OBJECT-TYPE
 	SYNTAX                          INTEGER {
@@ -25447,7 +26378,7 @@
         STATUS                          current
 	DESCRIPTION
 		    "Status of the fcp target adapter"
-	::= { fcpTargetTableEntry 6 }
+	::= { fcpTargetEntry 6 }
 
 	fcpTargetStandby                OBJECT-TYPE
 	SYNTAX                          INTEGER {
@@ -25458,7 +26389,7 @@
         STATUS                          current
 	DESCRIPTION
 			"Whether this target adapter is in standby mode."
-	::= { fcpTargetTableEntry 7 }
+	::= { fcpTargetEntry 7 }
 
 	fcpTargetTopology               OBJECT-TYPE
 	SYNTAX                          INTEGER {
@@ -25471,7 +26402,7 @@
         STATUS                          current
 	DESCRIPTION
 			"fibre channel topology for this adapter. "
-	::= { fcpTargetTableEntry 8 }
+	::= { fcpTargetEntry 8 }
 
         fcpTargetType                   OBJECT-TYPE
 	SYNTAX                          INTEGER {
@@ -25485,7 +26416,7 @@
         STATUS                          current
         DESCRIPTION
 			"Responsibility/Type for this adapter."
-	::= { fcpTargetTableEntry 9 }
+	::= { fcpTargetEntry 9 }
 
         fcpCfMode                       OBJECT-TYPE
 	SYNTAX                          INTEGER {
@@ -25515,7 +26446,7 @@
 	pset 		OBJECT IDENTIFIER ::= {blocks 19}
 
 	psetTable                       OBJECT-TYPE
-	SYNTAX                          SEQUENCE OF PortSetEntry
+	SYNTAX                          SEQUENCE OF PsetEntry
         MAX-ACCESS                      not-accessible
         STATUS                          current
 	DESCRIPTION
@@ -25524,7 +26455,7 @@
 	::= {pset 1}
 
 	psetEntry                       OBJECT-TYPE
-	SYNTAX                          PortSetEntry
+	SYNTAX                          PsetEntry
         MAX-ACCESS                      not-accessible
         STATUS                          current
 	DESCRIPTION	
@@ -25532,11 +26463,11 @@
 	INDEX	{ psetIndex }
 	::= { psetTable 1 }
 	
-	PortSetEntry ::=
+	PsetEntry ::=
 	    SEQUENCE {
 		psetIndex Integer32,
 		psetName  DisplayString,
-		psetType  Integer32,
+		psetType  INTEGER,
 		psetVserver  DisplayString
 		}
 
@@ -25720,7 +26651,7 @@
    fcpTargetPort    OBJECT IDENTIFIER ::= {blocks 26}
    
    fcpTargetPortTable              OBJECT-TYPE
-   SYNTAX                          SEQUENCE OF FcpTargetPortTableEntry
+   SYNTAX                          SEQUENCE OF FcpTargetPortEntry
        MAX-ACCESS                      not-accessible
        STATUS                          current
    DESCRIPTION
@@ -25729,8 +26660,8 @@
        This table is available from c-mode management interfaces only."
    ::= {fcpTargetPort 1}
    
-   fcpTargetPortTableEntry         OBJECT-TYPE
-   SYNTAX                          FcpTargetPortTableEntry
+   fcpTargetPortEntry         OBJECT-TYPE
+   SYNTAX                          FcpTargetPortEntry
        MAX-ACCESS                      not-accessible
        STATUS                          current
    DESCRIPTION   
@@ -25739,22 +26670,22 @@
    INDEX    { fcpTargetPortNodeName, IMPLIED fcpTargetPortName }
    ::= { fcpTargetPortTable 1 }
       
-   FcpTargetPortTableEntry ::=
+   FcpTargetPortEntry ::=
        SEQUENCE {        
        fcpTargetPortNodeName      DisplayString,
        fcpTargetPortName          DisplayString,
        fcpTargetPortSpeed         Integer32,
-       fcpTargetPortStandby       Integer32,
-       fcpTargetPortTopology      Integer32
+       fcpTargetPortStandby       INTEGER,
+       fcpTargetPortTopology      INTEGER
        }
    
-   fcpTargetPortNodeName           OBJECT-TYPE
+   fcpTargetPortNodeName               OBJECT-TYPE
    SYNTAX                              DisplayString
        MAX-ACCESS                      read-only
        STATUS                          current
    DESCRIPTION
        "Name of the node hosting the FCP target port."
-   ::= { fcpTargetPortTableEntry 1 }
+   ::= { fcpTargetPortEntry 1 }
    
    fcpTargetPortName               OBJECT-TYPE
    SYNTAX                          DisplayString
@@ -25762,7 +26693,7 @@
        STATUS                          current
    DESCRIPTION
        "FCP target port name."
-   ::= { fcpTargetPortTableEntry 2 }
+   ::= { fcpTargetPortEntry 2 }
 
    fcpTargetPortSpeed              OBJECT-TYPE
    SYNTAX                          Integer32
@@ -25770,7 +26701,7 @@
        STATUS                          current
    DESCRIPTION
        "Speed in gigabits per second. 0 indicates speed is set to auto."
-   ::= { fcpTargetPortTableEntry 3 }
+   ::= { fcpTargetPortEntry 3 }
    
    fcpTargetPortStandby                OBJECT-TYPE
    SYNTAX                          INTEGER {
@@ -25781,7 +26712,7 @@
        STATUS                          current
    DESCRIPTION
        "Whether this target adapter is in standby mode."
-   ::= { fcpTargetPortTableEntry 4 }
+   ::= { fcpTargetPortEntry 4 }
    
    fcpTargetPortTopology               OBJECT-TYPE
        SYNTAX                      INTEGER {
@@ -25795,7 +26726,7 @@
        STATUS                          current
    DESCRIPTION
        "Fibre channel topology for this adapter."
-   ::= { fcpTargetPortTableEntry 5 }
+   ::= { fcpTargetPortEntry 5 }
 
 
    -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -25806,7 +26737,7 @@
    fcpTargetLif    OBJECT IDENTIFIER ::= {blocks 27}
    
    fcpTargetLifTable               OBJECT-TYPE
-   SYNTAX                          SEQUENCE OF FcpTargetLifTableEntry
+   SYNTAX                          SEQUENCE OF FcpTargetLifEntry
        MAX-ACCESS                      not-accessible
        STATUS                          current
    DESCRIPTION
@@ -25815,8 +26746,8 @@
        This table is available from c-mode management interfaces only."
    ::= {fcpTargetLif 1}
    
-   fcpTargetLifTableEntry          OBJECT-TYPE
-   SYNTAX                          FcpTargetLifTableEntry
+   fcpTargetLifEntry          OBJECT-TYPE
+   SYNTAX                          FcpTargetLifEntry
        MAX-ACCESS                      not-accessible
        STATUS                          current
    DESCRIPTION   
@@ -25824,7 +26755,7 @@
    INDEX    {fcpTargetLifVserver, fcpTargetLifName }
    ::= { fcpTargetLifTable 1 }
       
-   FcpTargetLifTableEntry ::=
+   FcpTargetLifEntry ::=
        SEQUENCE {
        fcpTargetLifVserver       DisplayString,
        fcpTargetLifName          DisplayString,
@@ -25832,8 +26763,8 @@
        fcpTargetLifHomePort      DisplayString,
        fcpTargetLifNN            DisplayString,
        fcpTargetLifPN            DisplayString,
-       fcpTargetLifStatusAdmin   Integer32,
-       fcpTargetLifStatusOper    Integer32
+       fcpTargetLifStatusAdmin   INTEGER,
+       fcpTargetLifStatusOper    INTEGER
        }
    
    fcpTargetLifVserver             OBJECT-TYPE
@@ -25842,14 +26773,14 @@
        STATUS                          current
        DESCRIPTION
        "Vserver containing the FCP target LIF."
-   ::= { fcpTargetLifTableEntry 1 } 
+   ::= { fcpTargetLifEntry 1 } 
    fcpTargetLifName                OBJECT-TYPE
    SYNTAX                          DisplayString
        MAX-ACCESS                      read-only
        STATUS                          current
    DESCRIPTION
        "The name of the FCP target device."
-   ::= { fcpTargetLifTableEntry 2 }    
+   ::= { fcpTargetLifEntry 2 }    
 
    fcpTargetLifHomeNode             OBJECT-TYPE
    SYNTAX                           DisplayString
@@ -25857,7 +26788,7 @@
        STATUS                           current
    DESCRIPTION
        "The home node of the FCP target LIF."
-   ::= { fcpTargetLifTableEntry 3 }
+   ::= { fcpTargetLifEntry 3 }
 
    fcpTargetLifHomePort              OBJECT-TYPE
    SYNTAX                            DisplayString
@@ -25865,7 +26796,7 @@
        STATUS                            current
    DESCRIPTION
        "The home port of the FCP target LIF."
-   ::= { fcpTargetLifTableEntry 4 }
+   ::= { fcpTargetLifEntry 4 }
 
    fcpTargetLifNN                  OBJECT-TYPE
    SYNTAX                          DisplayString
@@ -25873,7 +26804,7 @@
        STATUS                          current
    DESCRIPTION
        "The FC WWNN of the FCP target hosting the LIF."
-   ::= { fcpTargetLifTableEntry 5 }
+   ::= { fcpTargetLifEntry 5 }
    
    fcpTargetLifPN                  OBJECT-TYPE
    SYNTAX                          DisplayString
@@ -25881,7 +26812,7 @@
        STATUS                          current
    DESCRIPTION
        "The FC WWPN of the FCP target LIF."
-   ::= { fcpTargetLifTableEntry 6 }
+   ::= { fcpTargetLifEntry 6 }
    
    fcpTargetLifStatusAdmin         OBJECT-TYPE
    SYNTAX                          INTEGER {
@@ -25892,7 +26823,7 @@
        STATUS                          current
    DESCRIPTION
        "Status of the FCP target LIF assigned by an administrator."
-   ::= { fcpTargetLifTableEntry 7 }
+   ::= { fcpTargetLifEntry 7 }
 
    fcpTargetLifStatusOper          OBJECT-TYPE
    SYNTAX                          INTEGER {
@@ -25903,7 +26834,7 @@
        STATUS                          current
    DESCRIPTION
        "Operational status of the FCP target LIF."
-   ::= { fcpTargetLifTableEntry 8 }
+   ::= { fcpTargetLifEntry 8 }
 
 
 	-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -26308,7 +27239,7 @@
 	        enclIndex
 		    Integer32,
 		enclContactState
-		    Integer32,
+		    INTEGER,
 		enclChannelShelfAddr
 		    DisplayString,
 		enclProductLogicalID
@@ -26600,7 +27531,7 @@
 	    "The list of fans or fan modules present and for which
 	     status is known in this enclosure.  Numbering begins with
 	     fans on the front of the enclosure, if applicable. Fans
-	     are numberedleft-to-right (upper fans, then lower, if
+	     are numbered left-to-right (upper fans, then lower, if
 	     applicable) as facing the fans or the modules that
 	     contain them, such as power supply modules.  R100/R150
 	     shelf power supply fans are not included in this list."
@@ -26995,7 +27926,7 @@
         STATUS                          current
 	DESCRIPTION
 	    "The list of lengths (in meters) of cables attached
-	     to the the enclosure.  If no cable is attached,
+	     to the enclosure.  If no cable is attached,
 	     the entry is shown as <N/A>."
 	::= { enclEntry 56 }
 
@@ -27056,7 +27987,7 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-	    "The list of fan speeds in revolutons per minute (RPM) for fans 
+	    "The list of fan speeds in revolutions per minute (RPM) for fans 
 	     or fan modules present and for which speed status
 	     is known in this enclosure. Not all enclosure types report
 	     fan speeds. Fans are numbered as described in enclFansPresent."
@@ -27386,12 +28317,16 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-                      "A unique value for each interface.  Its value
-                      ranges between 1 and the value of ifNumber.  The
-                      value for each interface must remain constant at
-                      least from one re-initialization of the entity's
-                      network management system to the next re-
-                      initialization."
+                      "A unique value for each interface. For
+		      clustered Data ONTAP, the high-order 16-bits
+		      denote the node identifier and the low-order
+		      16-bits denote the interface index within
+		      the node. For Data ONTAP operating in 7-mode,
+		      it ranges between 1 and the ifNumber value.
+		      The value for each interface must remain
+		      constant at least from one re-initialization
+		      of the entity's network management system to
+		      the next re-initialization."
         ::= { netifEntry 1 }
 
 	netifDescr                      OBJECT-TYPE
@@ -27399,10 +28334,22 @@
         MAX-ACCESS                      read-only
         STATUS                          current
 	DESCRIPTION
-                      "A textual string containing information about the
-                      interface.  This string should include the name of
-                      the manufacturer, the product name and the version
-                      of the hardware interface."
+		      "A textual string that contains interface information.
+		      For clustered Data ONTAP, the string is in the
+		      the following format:
+		      <node name>:<interface name>
+		      For Data ONTAP operating in 7-Mode, the string
+		      contains only the interface name.
+
+		      For a management port (for example, e0M or e0P), the
+		      interface name is preceded by the text MGMT_PORT_ONLY
+		      and a blank space after the text, in both clustered
+		      Data ONTAP and Data ONTAP operating in 7-Mode.
+
+		      Example:
+		      The strings are in the following formats:
+		      <node name>:MGMT_PORT_ONLY <interface name>, for clustered Data ONTAP.
+		      MGMT_PORT_ONLY <interface name>, for Data ONTAP operating in 7-mode."
 	::= { netifEntry 2 }
 
         ifHighInOctets                  OBJECT-TYPE
@@ -27860,7 +28807,10 @@
          netportFlowcontrolAdmin          INTEGER,	
          netportFlowcontrolOper           INTEGER,
          netportAutorevertDelay           INTEGER,
-         netportRemoteDeviceId	          DisplayString
+         netportRemoteDeviceId	          DisplayString,
+	 netportIPspace                   DisplayString,
+	 netportBroadcastDomain           DisplayString,
+	 netportMtuAdmin		  INTEGER
 	}
 
 	netportNode				OBJECT-TYPE
@@ -27897,7 +28847,7 @@
 		 the cluster. The data port services clients' requests. It is where
 		 all the file requests come in. The management port is used 
 		 by administrator to manage resources within a node. 
-		 The intercluster port is used to communicate to other cluser. 
+		 The intercluster port is used to communicate to other cluster. 
 		 The cluster-mgmt port is used to manage resources within the cluster. 
 		 The undef role is for the port that has not yet been assigned a role."
 	::= { netportEntry 3 }
@@ -27983,7 +28933,7 @@
 	MAX-ACCESS				read-only
 	STATUS					current
 	DESCRIPTION
-		"The speed of the port set by an adminstrator.
+		"The speed of the port set by an administrator.
 		 It can be either undef(0), auto(1), ten Mb/s(2), hundred Mb/s(3), one Gb/s(4), or ten Gb/s(5)."
 	::= { netportEntry 10 }
 
@@ -28024,7 +28974,7 @@
 	MAX-ACCESS				read-only
 	STATUS					current
 	DESCRIPTION
-		"Indicates whether the port status is set 'UP' by an adminstrator."
+		"Indicates whether the port status is set 'UP' by an administrator."
 	::= { netportEntry 14 }
 
 	netportType				OBJECT-TYPE
@@ -28062,7 +29012,8 @@
 	SYNTAX					INTEGER {
 							mac(0),
 							ip(1),
-							sequential(2)
+							sequential(2),
+							none(-1)
 							}
 	MAX-ACCESS				read-only
 	STATUS					current
@@ -28081,7 +29032,8 @@
 	SYNTAX					INTEGER {
 							multimode(0),
 							multimode-lacp(1),
-							singlemode(2)
+							singlemode(2),
+							none(-1)
 							}
 	MAX-ACCESS				read-only
 	STATUS					current
@@ -28132,7 +29084,7 @@
 	MAX-ACCESS				read-only
 	STATUS					current
 	DESCRIPTION
-		"The flowcontrol of the port set by an adminstrator.
+		"The flowcontrol of the port set by an administrator.
 		 It can be either undef(0), none(1), receive(2), send(3), or full(4)."
 	::= { netportEntry 23 }
 
@@ -28157,7 +29109,7 @@
 	STATUS					current
 	DESCRIPTION
 		"If the port is designated as a cluster port, this field shows
-		the delay in seconds before autoreverting a LIF to this port.
+		the delay in seconds before auto reverting a LIF to this port.
 		otherwise, it shows an empty string."
 	::= { netportEntry 25 }
 
@@ -28168,6 +29120,32 @@
 	DESCRIPTION
 		"Remote device ID discovered by L2 protocol."
 	::= { netportEntry 26 }
+
+	netportIPspace				OBJECT-TYPE
+	SYNTAX					DisplayString
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"IPspace where the port is assigned."
+	::= { netportEntry 27 }
+	
+	netportBroadcastDomain			OBJECT-TYPE
+	SYNTAX					DisplayString
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"Broadcast Domain of the port is assigned."
+	::= { netportEntry 28 }
+
+	netportMtuAdmin				OBJECT-TYPE
+	SYNTAX					INTEGER
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The Maximum Transmission Unit (MTU) set by the Administrator
+		 (in bytes) of the largest packet that is supported by the
+		 port."
+        ::= { netportEntry 29 }
 
 	-- netportIfGrpTable
 
@@ -28347,7 +29325,8 @@
 		logicalInterfaceDataProtocol	 DisplayString,
 		logicalInterfaceFcpWwpn          DisplayString,
 		logicalInterfaceComment		 DisplayString,
-		logicalInterfaceListenForDnsQuery Boolean
+		logicalInterfaceListenForDnsQuery Boolean,
+		logicalInterfaceAddressString    DisplayString
 			  }
 
 	logicalInterfaceServer			 OBJECT-TYPE
@@ -28384,7 +29363,7 @@
 		 to other node(s) in the cluster. The data interface services 
 		 external clients where all the file requests come in. 
 		 The management interface is used by administrator to manage resources
-		 within a node. The intercluster interface is used to communicate to other cluser. 
+		 within a node. The intercluster interface is used to communicate to other cluster. 
 		 The cluster-mgmt port is used to manage resources within the cluster.
 		 The undef role is for the interface that has not yet been assigned a role."
 	::= { logicalInterfaceEntry 3 }
@@ -28453,7 +29432,10 @@
 	MAX-ACCESS				 read-only
 	STATUS					 current
 	DESCRIPTION
-		"The IP address assigned to the interface."
+		"The IP address assigned to the interface. This field only
+		displays ipv4 addresses correctly. Ipv6 addresses will display as
+		0.0.0.0. Refer to the logicalInterfaceAddressString field for
+		the address of an ipv6 interface."
 	::= { logicalInterfaceEntry 11 }
 
 	logicalInterfaceNetmask			 OBJECT-TYPE
@@ -28461,9 +29443,12 @@
 	MAX-ACCESS				 read-only
 	STATUS					 current
 	DESCRIPTION
-		"The netmask assigned to the interface."
+		"The netmask assigned to the interface. This field only
+		displays ipv4 netmasks correctly. Ipv6 netmasks will display as
+		0.0.0.0. Refer to the logicalInterfaceAddressString field for
+		the netmask length of an ipv6 interface."
 	::= { logicalInterfaceEntry 12 }
-
+	
 	logicalInterfaceNetmaskLength		 OBJECT-TYPE
 	SYNTAX					 INTEGER
 	MAX-ACCESS				 read-only
@@ -28496,7 +29481,12 @@
 	SYNTAX					 INTEGER {
 							  next-avail(0),
 							  priority(1),
-							  disabled(2)
+							  disabled(2),
+							  system-defined(3),
+							  local-only(4),
+							  sfo-partner-only(5),
+							  ipspace-wide(6),
+							  broadcast-domain-wide(7)
 							 }
 	MAX-ACCESS				 read-only
 	STATUS					 current
@@ -28531,7 +29521,7 @@
 	MAX-ACCESS				 read-only
 	STATUS					 current
 	DESCRIPTION
-		"Indicates whethere the sticky bit is set. It is the readonly field that is set by
+		"Indicates whether the sticky bit is set. It is the readonly field that is set by
 		 the system. When it is set, the interface's auto-revert is disabled.
 		 It is set when the interface is migrated manually, so that it will not
 		 auto-revert to the home port."
@@ -28542,7 +29532,8 @@
 	SYNTAX					 INTEGER {
 							  system-defined(0), 
 							  disabled(1),
-							  enabled(2)
+							  enabled(2),
+							  unused(3)
 							 }
 	MAX-ACCESS				 read-only
 	STATUS					 current
@@ -28597,7 +29588,7 @@
 	MAX-ACCESS				 read-only
 	STATUS					 current
 	DESCRIPTION
-		"The status of the interface with respect to it's Vserver.
+		"The status of the interface with respect to its Vserver.
 		 It can be either UP(0) or DOWN(1)."
 	::= { logicalInterfaceEntry 25 }
 
@@ -28633,6 +29624,16 @@
 		"Indicates whether the LIF has to listen for DNS
 		 queries for load-balancing."
 	::= { logicalInterfaceEntry 29 }
+
+	logicalInterfaceAddressString	         OBJECT-TYPE
+	SYNTAX					 DisplayString
+	MAX-ACCESS				 read-only
+	STATUS					 current
+	DESCRIPTION
+		"The IP address assigned to the interface. This field displays
+		properly for both ipv4 addresses as well as ipv6 addresses. 
+		Format: <ip address>/<netmask length>"
+	::= { logicalInterfaceEntry 30 }
 	
 	-- netOpts
 
@@ -28648,6 +29649,15 @@
 		"Indicates whether the cluster supports IPv6."
 	::= { netOptsv6Table 1 }
 
+	netOptsv6RAProcEnabled          OBJECT-TYPE
+	SYNTAX                          Boolean
+	MAX-ACCESS                      read-only
+	STATUS                          current
+	DESCRIPTION
+		"Indicates whether the cluster supports IPv6 Router
+		Advertisement Processing."
+	::= { netOptsv6Table 2 }
+
         netOptsSwitchlessCluster OBJECT IDENTIFIER ::= { netOpts 2 }
 
         netOptsSwitchlessClusterEnabled OBJECT-TYPE
@@ -28658,6 +29668,454 @@
                 "Indicates whether the cluster network is switchless."
         ::= { netOptsSwitchlessCluster 1 }
 
+	-- ipspaceTable
+
+	ipspaceTable	     			OBJECT-TYPE
+	SYNTAX					SEQUENCE OF IPspaceEntry
+	MAX-ACCESS				not-accessible
+	STATUS					current
+	DESCRIPTION
+		"A table of IPspaces, where each entry represents an IPspace."
+	::= { network 6 }
+
+	ipspaceEntry				OBJECT-TYPE
+	SYNTAX					IPspaceEntry
+	MAX-ACCESS				not-accessible
+	STATUS					current
+	DESCRIPTION
+		"IPspace entry."
+	INDEX { IMPLIED ipspaceName }
+	::= { ipspaceTable 1 }
+
+	IPspaceEntry ::=
+	SEQUENCE {
+		ipspaceName		        DisplayString,		
+		ipspaceID		        Unsigned32,
+		ipspacePorts                    DisplayString,
+		ipspaceBroadcastDomains         DisplayString,
+		ipspaceVservers                 DisplayString
+		}
+
+	ipspaceName 			        OBJECT-TYPE
+	SYNTAX					DisplayString
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The IPspace name."
+	::= { ipspaceEntry 1 }
+
+	ipspaceID			        OBJECT-TYPE
+	SYNTAX					Unsigned32
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The Identifier of the IPspace."
+	::= { ipspaceEntry 2 }
+
+	ipspacePorts 			        OBJECT-TYPE
+	SYNTAX					DisplayString
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The network ports assigned to the IPspace of the form {node1:port1},{node2:port2}."
+	::= { ipspaceEntry 3 }
+
+	ipspaceBroadcastDomains			OBJECT-TYPE
+	SYNTAX					DisplayString
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The broadcast domains for the IPspace."
+	::= { ipspaceEntry 4 }
+	
+	ipspaceVservers				OBJECT-TYPE
+	SYNTAX					DisplayString
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The vservers assigned to the IPspace of the form {vs1,vs2}."
+	::= { ipspaceEntry 5 }
+
+	-- vsRouteTable
+
+	vsRouteTable	     			OBJECT-TYPE
+	SYNTAX					SEQUENCE OF VsRouteEntry
+	MAX-ACCESS				not-accessible
+	STATUS					current
+	DESCRIPTION
+		"A table of vserver routes, where each entry represents a vserver route."
+	::= { network 7 }
+
+	vsRouteEntry				OBJECT-TYPE
+	SYNTAX					VsRouteEntry
+	MAX-ACCESS				not-accessible
+	STATUS					current
+	DESCRIPTION
+		"Vsroutes entry."
+	INDEX { vsRouteVserverID, IMPLIED vsRouteUuid }
+	::= { vsRouteTable 1 }
+
+	VsRouteEntry ::=
+	SEQUENCE {
+		vsRouteVserverID		Unsigned32,		
+		vsRouteUuid                     DisplayString,
+		vsRouteDestination	        DisplayString,
+		vsRouteGateway                  DisplayString,
+		vsRouteMetric                   INTEGER,
+		vsRouteAddressFamily            DisplayString
+		}
+
+	vsRouteVserverID			OBJECT-TYPE
+	SYNTAX					Unsigned32 (0..4294967295)
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The vserver of the vserver route."
+	::= { vsRouteEntry 1 }
+
+        vsRouteUuid		                OBJECT-TYPE
+	SYNTAX					DisplayString
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The Uuid of the vserver route."
+	::= { vsRouteEntry 2 }
+	
+	vsRouteDestination		        OBJECT-TYPE
+	SYNTAX					DisplayString
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The destination of the vserver route."
+	::= { vsRouteEntry 3 }
+	
+	vsRouteGateway			        OBJECT-TYPE
+	SYNTAX					DisplayString
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The gateway of the vserver route."
+	::= { vsRouteEntry 4 }
+	
+
+	vsRouteMetric			        OBJECT-TYPE
+	SYNTAX					INTEGER
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The metric of the vserver route."
+	::= { vsRouteEntry 5 }
+
+	vsRouteAddressFamily		        OBJECT-TYPE
+	SYNTAX					DisplayString
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The address family of the vserver route."
+	::= { vsRouteEntry 6 }
+
+        -- vsFailoverGroupTable
+
+	vsFailoverGroupTable	     		OBJECT-TYPE
+	SYNTAX					SEQUENCE OF VsFailoverGroupEntry
+	MAX-ACCESS				not-accessible
+	STATUS					current
+	DESCRIPTION
+		"A table of logical interface failover groups, where each entry
+		represents a logical interface failover group."
+	::= { network 8 }
+
+	vsFailoverGroupEntry			OBJECT-TYPE
+	SYNTAX					VsFailoverGroupEntry
+	MAX-ACCESS				not-accessible
+	STATUS					current
+	DESCRIPTION
+		"VsFailoverGroup entry."
+	INDEX { vsFailoverGroupVserverID, IMPLIED vsFailoverGroupName }
+	::= { vsFailoverGroupTable 1 }
+
+	VsFailoverGroupEntry ::=
+	SEQUENCE {
+		vsFailoverGroupVserverID        Unsigned32,		
+		vsFailoverGroupName	        DisplayString,
+		vsFailoverGroupTargets          DisplayString
+		}
+
+	vsFailoverGroupVserverID		OBJECT-TYPE
+	SYNTAX					Unsigned32 (0..4294967295)
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The vserver of the failover group."
+	::= { vsFailoverGroupEntry 1 }
+
+	vsFailoverGroupName      		OBJECT-TYPE
+	SYNTAX					DisplayString
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The name of the failover group."
+	::= { vsFailoverGroupEntry 2 }
+
+	vsFailoverGroupTargets			OBJECT-TYPE
+	SYNTAX					DisplayString
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The failover targets of the failover group."
+	::= { vsFailoverGroupEntry 3 }
+
+        -- vsFirewallPolicyTable
+
+	vsFirewallPolicyTable	     		OBJECT-TYPE
+	SYNTAX					SEQUENCE OF VsFirewallPolicyEntry
+	MAX-ACCESS				not-accessible
+	STATUS					current
+	DESCRIPTION
+		"A table of firewall policies, where each entry represents a
+		firewall policy."
+	::= { network 9 }
+
+	vsFirewallPolicyEntry			OBJECT-TYPE
+	SYNTAX					VsFirewallPolicyEntry
+	MAX-ACCESS				not-accessible
+	STATUS					current
+	DESCRIPTION
+		"Vsfailovergroups entry."
+	INDEX { vsFirewallPolicyVserverID, IMPLIED vsFirewallPolicyUuid }
+	::= { vsFirewallPolicyTable 1 }
+
+	VsFirewallPolicyEntry ::=
+	SEQUENCE {
+                vsFirewallPolicyVserverID	Unsigned32,
+                vsFirewallPolicyUuid            DisplayString,
+                vsFirewallPolicyName	        DisplayString,
+                vsFirewallPolicyService         DisplayString,
+                vsFirewallPolicyAllowList       DisplayString
+                }
+
+	vsFirewallPolicyVserverID		OBJECT-TYPE
+	SYNTAX					Unsigned32 (0..4294967295)
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The vserver on which this firewall policy is defined."
+	::= { vsFirewallPolicyEntry 1 }
+
+	vsFirewallPolicyUuid                    OBJECT-TYPE
+	SYNTAX					DisplayString
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The unique identifier for this firewall policy."
+	::= { vsFirewallPolicyEntry 2 }
+	
+	vsFirewallPolicyName		        OBJECT-TYPE
+	SYNTAX					DisplayString
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The name of this firewall policy."
+	::= { vsFirewallPolicyEntry 3 }
+
+	vsFirewallPolicyService		        OBJECT-TYPE
+	SYNTAX					DisplayString
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The service that this firewall policy is restricting access to."
+	::= { vsFirewallPolicyEntry 4 }
+
+	vsFirewallPolicyAllowList		OBJECT-TYPE
+	SYNTAX					DisplayString
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"The list of source IPs that are allowed to access the
+		underlying service of this firewall policy."
+	::= { vsFirewallPolicyEntry 5 }
+
+        -- broadcastDomainTable
+
+        broadcastDomainTable                    OBJECT-TYPE
+        SYNTAX                                  SEQUENCE OF BroadcastDomainEntry
+        MAX-ACCESS                              not-accessible
+        STATUS                                  current
+        DESCRIPTION
+                "A table of broadcast domains, where each entry represents a broadcast domain."
+        ::= { network 10 }
+
+        broadcastDomainEntry                    OBJECT-TYPE
+        SYNTAX                                  BroadcastDomainEntry
+        MAX-ACCESS                              not-accessible
+        STATUS                                  current
+        DESCRIPTION
+                "Broadcast domain entry."
+        INDEX { broadcastDomainIpspaceName, broadcastDomainName }
+        ::= { broadcastDomainTable 1 }
+
+        BroadcastDomainEntry ::=
+        SEQUENCE {
+                broadcastDomainIpspaceName      DisplayString,
+                broadcastDomainName             DisplayString,
+                broadcastDomainMTU              INTEGER,
+                broadcastDomainPorts            DisplayString,
+                broadcastDomainFailoverGroups   DisplayString,
+                broadcastDomainSubnets          DisplayString
+                }
+
+        broadcastDomainIpspaceName              OBJECT-TYPE
+        SYNTAX                                  DisplayString
+        MAX-ACCESS                              read-only
+        STATUS                                  current
+        DESCRIPTION
+                "The IPspace name."
+        ::= { broadcastDomainEntry 1 }
+
+        broadcastDomainName                     OBJECT-TYPE
+        SYNTAX                                  DisplayString
+        MAX-ACCESS                              read-only
+        STATUS                                  current
+        DESCRIPTION
+                "The broadcast domain name."
+        ::= { broadcastDomainEntry 2 }
+
+        broadcastDomainMTU                      OBJECT-TYPE
+        SYNTAX                                  INTEGER
+        MAX-ACCESS                              read-only
+        STATUS                                  current
+        DESCRIPTION
+                "MTU of the broadcast domain."
+        ::= { broadcastDomainEntry 3 }
+
+        broadcastDomainPorts                    OBJECT-TYPE
+        SYNTAX                                  DisplayString
+        MAX-ACCESS                              read-only
+        STATUS                                  current
+        DESCRIPTION
+                "The network ports assigned to the broadcast domain of the form {node1:port1},{node2:port2}."
+        ::= { broadcastDomainEntry 4 }
+
+        broadcastDomainFailoverGroups           OBJECT-TYPE
+        SYNTAX                                  DisplayString
+        MAX-ACCESS                              read-only
+        STATUS                                  current
+        DESCRIPTION
+                "The failover groups for the broadcast domain of the form {fg1,fg2}."
+        ::= { broadcastDomainEntry 5 }
+       
+        broadcastDomainSubnets                  OBJECT-TYPE
+        SYNTAX                                  DisplayString
+        MAX-ACCESS                              read-only
+        STATUS                                  current
+        DESCRIPTION
+                "The subnets associated with this broadcast domain."
+        ::= { broadcastDomainEntry 6 }
+        
+        -- subnetTable
+ 
+        subnetTable                             OBJECT-TYPE
+        SYNTAX                                  SEQUENCE OF SubnetEntry
+        MAX-ACCESS                              not-accessible
+        STATUS                                  current
+        DESCRIPTION
+                "A table of Subnets, where each entry represents a Subnet."
+        ::= { network 11 }
+     
+        subnetEntry                             OBJECT-TYPE
+        SYNTAX                                  SubnetEntry
+        MAX-ACCESS                              not-accessible
+        STATUS                                  current
+        DESCRIPTION
+                "Subnet entry."
+        INDEX { subnetIpspaceName, subnetName }
+        ::= { subnetTable 1 }
+     
+        SubnetEntry ::=
+        SEQUENCE {
+                subnetIpspaceName               DisplayString,
+                subnetBroadcastDomainName       DisplayString,
+                subnetName                      DisplayString,
+                subnetMask                      DisplayString,
+                subnetGateway                   DisplayString,
+                subnetIpRanges                  DisplayString,
+                subnetTotalCount                INTEGER,
+                subnetUsedCount                 INTEGER,
+                subnetAvailableCount            INTEGER
+                }
+     
+        subnetIpspaceName                       OBJECT-TYPE
+        SYNTAX                                  DisplayString
+        MAX-ACCESS                              read-only
+        STATUS                                  current
+        DESCRIPTION
+                "The IPspace name."
+        ::= { subnetEntry 1 }
+     
+        subnetBroadcastDomainName               OBJECT-TYPE
+        SYNTAX                                  DisplayString
+        MAX-ACCESS                              read-only
+        STATUS                                  current
+        DESCRIPTION
+                "The broadcast domain name."
+        ::= { subnetEntry 2 }
+       
+        subnetName                              OBJECT-TYPE
+        SYNTAX                                  DisplayString
+        MAX-ACCESS                              read-only
+        STATUS                                  current
+        DESCRIPTION
+                "The Subnet name."
+        ::= { subnetEntry 3 }
+     
+        subnetMask                              OBJECT-TYPE
+        SYNTAX                                  DisplayString
+        MAX-ACCESS                              read-only
+        STATUS                                  current
+        DESCRIPTION
+             "Subnet IP and Mask."
+        ::= { subnetEntry 4 }
+
+        subnetGateway                           OBJECT-TYPE
+        SYNTAX                                  DisplayString
+        MAX-ACCESS                              read-only
+        STATUS                                  current
+        DESCRIPTION
+                "Subnet Gateway IP."
+        ::= { subnetEntry 5 }
+     
+        subnetIpRanges                          OBJECT-TYPE
+        SYNTAX                                  DisplayString
+        MAX-ACCESS                              read-only
+        STATUS                                  current
+        DESCRIPTION
+                "Subnet IP Ranges."
+        ::= { subnetEntry 6 }
+     
+        subnetTotalCount                        OBJECT-TYPE
+        SYNTAX                                  INTEGER
+        MAX-ACCESS                              read-only
+        STATUS                                  current
+        DESCRIPTION
+                "Total address count for all ranges."
+        ::= { subnetEntry 7 }
+     
+        subnetUsedCount                         OBJECT-TYPE
+        SYNTAX                                  INTEGER
+        MAX-ACCESS                              read-only
+        STATUS                                  current
+        DESCRIPTION
+                "Used address count for all ranges."
+        ::= { subnetEntry 8 }
+     
+        subnetAvailableCount                     OBJECT-TYPE
+        SYNTAX                                  INTEGER
+        MAX-ACCESS                              read-only
+        STATUS                                  current
+        DESCRIPTION
+                "Available address count for all ranges."
+        ::= { subnetEntry 9 }
+       
 	-- -- -- -- -- -- -- --
 	-- the sis group
 	-- -- -- -- -- -- -- --
@@ -28704,13 +30162,13 @@
 		sisPath
 		    DisplayString,
 		sisState
-		    Integer32,
+		    INTEGER,
 		sisStatus
-		    Integer32,
+		    INTEGER,
 		sisProgress
 		    DisplayString,
 		sisType
-		    Integer32,
+		    INTEGER,
 		sisSchedule
 		    DisplayString,
 		sisLastOpBeginTime
@@ -28760,6 +30218,8 @@
 		sisQuickCheckFsize
 		    Counter64,
 		sisIsConstituent
+		    Boolean,
+		sisIsInlineDedupeEnabled
 		    Boolean
 	    }
 
@@ -29080,6 +30540,16 @@
 		"Indicates whether the volume is a constituent or not."
 
 	::= { sisEntry 31 }
+
+	sisIsInlineDedupeEnabled        OBJECT-TYPE
+	SYNTAX                          Boolean
+	MAX-ACCESS                      read-only
+	STATUS                          current
+	DESCRIPTION
+		"Indicates whether inline dedupe is enabled on
+		the volume or not"
+
+	::= { sisEntry 32 }
 
 	-- -- -- -- -- -- -- -- --
 	-- the compression group
@@ -29452,7 +30922,7 @@
             qosWorkloadFile              DisplayString,
             qosWorkloadQtree             DisplayString,
             qosWorkloadReadAhead         DisplayString,
-            qosWorkloadExtCache          DisplayString
+            qosWorkloadCache          	 DisplayString
         }
 
         qosWorkloadUuid                  OBJECT-TYPE
@@ -29477,7 +30947,8 @@
         SYNTAX                           INTEGER {
                                                  preset(1),
                                                  user-defined(2),
-                                                 system-defined(3)
+                                                 system-defined(3),
+                                                 autovolume(4)
                                          }
         MAX-ACCESS                       read-only
         STATUS                           current
@@ -29558,7 +31029,7 @@
         ::= { qosWorkloadEntry  11 }
 
 
-        qosWorkloadExtCache              OBJECT-TYPE
+	qosWorkloadCache		 OBJECT-TYPE
         SYNTAX                           DisplayString
         MAX-ACCESS                       read-only
         STATUS                           current
@@ -29701,7 +31172,8 @@
 			qosReadaheadJitter			Integer32,
 			qosReadaheadMinRetireTime	Integer32,
 			qosReadaheadMaxRetireTime	Integer32,
-			qosReadaheadUseHistogram	Boolean
+			qosReadaheadUseHistogram	Boolean,
+			qosReadaheadMinFileHistogram	Integer32
 	}
 
     qosReadaheadSettingName	OBJECT-TYPE
@@ -29958,12 +31430,20 @@
 		"Use Histogram-based predictions."
 	::= { qosReadaheadSettingsEntry 30 }
 
+	qosReadaheadMinFileHistogram		OBJECT-TYPE
+	SYNTAX					Integer32 (8192..33554432)
+	MAX-ACCESS				read-only
+	STATUS					current
+	DESCRIPTION
+		"Minimum filesize for Histogram-based predictions (blocks)"
+	::= { qosReadaheadSettingsEntry 31 }
+
 	-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 	-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 	-- NetApp trap definitions
 	-- See RFC 1215 for instructions on building traps
 	-- 
-	-- All EnterpiseSpecific Traps of NetApp
+	-- All EnterpriseSpecific Traps of NetApp
 	-- contain the OIDs 'productTrapData and productSerialNum'
 	--
 	-- The last digit of a trap contains information about the
@@ -30380,10 +31860,19 @@
 		"A disk storage shelf reported a fault, probably due
 		to a problem with drive placement, fans, power,
 		or temperature."
-	
+
 	::= { netapp 0 103 }
-	
-	
+
+	shelfWarning                    NOTIFICATION-TYPE
+	OBJECTS                         {productTrapData, productSerialNum}
+	STATUS                          current
+	DESCRIPTION
+		"A disk storage shelf reported a warning, probably due
+		to a problem with drive placement, fans, power,
+		or temperature."
+
+	::= { netapp 0 105 }
+
 	shelfRepaired                   NOTIFICATION-TYPE
 	OBJECTS                         {productTrapData, productSerialNum}
 	STATUS                          current
@@ -30460,7 +31949,7 @@
 
 	-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 	--
-	--  This section contains traps related to autosupport
+	--  This section contains traps related to auto support
 	--
 	-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 
@@ -30468,7 +31957,7 @@
 	OBJECTS                         {productTrapData, productSerialNum}
 	STATUS                          current
 	DESCRIPTION
-		"Unable to send autosupport.
+		"Unable to send auto support.
 		The trap includes a string describing the reason for the failure."
 	
 	::= { netapp 0 134 }
@@ -30477,7 +31966,7 @@
 	OBJECTS                         {productTrapData, productSerialNum}
 	STATUS                          current
 	DESCRIPTION
-		"Autosupport may be configured incorrectly.
+		"Auto support may be configured incorrectly.
 		The trap includes a string describing the mis-configuration."
 	
 	::= { netapp 0 135 }
@@ -30486,7 +31975,7 @@
 	OBJECTS                         {productTrapData, productSerialNum}
 	STATUS                          current
 	DESCRIPTION
-		"Autosupport was sent successfully."
+		"Auto support was sent successfully."
 	
 	::= { netapp 0 136 }
 	
@@ -30517,7 +32006,7 @@
 	OBJECTS                         {productTrapData, productSerialNum}
 	STATUS                          current
 	DESCRIPTION
-		"UPS: Shutting down now: Time left on battery is exhuasted."
+		"UPS: Shutting down now: Time left on battery is exhausted."
 
 	::= { netapp 0 144 }
 	upsBatteryWarning               NOTIFICATION-TYPE
@@ -30589,7 +32078,7 @@
 	OBJECTS                         {productTrapData, productSerialNum}
 	STATUS                          current
 	DESCRIPTION
-		"The application is notifing of a certain event."
+		"The application is notifying of a certain event."
 
         ::= { netapp 0 156 }
 
@@ -30612,7 +32101,7 @@
 
 	-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 	--
-	--  This section contains traps related to Autosaving NT EVT files.
+	--  This section contains traps related to auto saving NT EVT files.
 	--
 	-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 	
@@ -30630,7 +32119,7 @@
 	OBJECTS                         {productTrapData, productSerialNum}
 	STATUS                          current
 	DESCRIPTION
-		"The internal audit log has been autosaved to an external evt file.
+		"The internal audit log has been auto saved to an external evt file.
 		Notifying the user."
 
         ::= { netapp 0 166 }
@@ -30967,7 +32456,7 @@
 	DESCRIPTION 
 		"Remote Management Controller card is missing its internal 
 		cable, or LAN cable or power supply cable. The trap includes 
-		a string specifing the missing component."  
+		a string specifying the missing component."  
 
 	::= { netapp 0 284 }
 
@@ -31034,7 +32523,7 @@
 	OBJECTS                         {productTrapData, productSerialNum}
 	STATUS                          current
 	DESCRIPTION 
-		"Volume can not be brought online because its raw size is 
+		"Volume cannot be brought online because its raw size is 
 		larger than maximum allowed size. The string sent with trap 
 		specifies name of affected volume and its raw size, and 
 		maximum allowed size."
@@ -31075,7 +32564,7 @@
 	OBJECTS                         {productTrapData, productSerialNum}
 	STATUS                          current
 	DESCRIPTION 
-		"This trap is issued when a volume can not be brought online 
+		"This trap is issued when a volume cannot be brought online 
 		due to an error.  The string sent with trap specifies name of 
 		affected volume and error description."
 
@@ -31360,7 +32849,7 @@
         OBJECTS                         {productTrapData, productSerialNum}
 	STATUS                          current
         DESCRIPTION
-                "An attempt to change the filer's password with the domain
+                "An attempt to change the storage system's password with the domain
                 controller has failed."
         ::= { netapp 0 436 }
 
@@ -31414,6 +32903,20 @@
 		indicate a failure in disk or loop or bus operation,
 		which may be able to continue."
 	::= { netapp 0 464 }
+
+	shelfSESElectronicsWarning	NOTIFICATION-TYPE
+	OBJECTS				{productTrapData, productSerialNum}
+	STATUS				current
+	DESCRIPTION
+		"One or more of the enclosure services devices in a
+		disk shelf has reported a problem.  Some shelf designs 
+		combine the enclosure monitoring hardware function into 
+		the module that provides  the storage interface to
+		the shelf.  A failure in the enclosure monitoring
+		section of these combined modules does not necessarily
+		indicate a failure in disk or loop or bus operation,
+		which may be able to continue."
+	::= { netapp 0 465 }
 
 	shelfSESElectronicsInfo         NOTIFICATION-TYPE
 	OBJECTS                         {productTrapData, productSerialNum}
@@ -31491,7 +32994,7 @@
         OBJECTS                         {productTrapData, productSerialNum}
 	STATUS                          current
         DESCRIPTION
-                "A request for a CIFS control block can not be granted. All
+                "A request for a CIFS control block cannot be granted. All
                 control blocks are in use."
         ::= { netapp 0 497 }
 
@@ -31721,7 +33224,7 @@
         -- HBA Offline Traps
         -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 
- 	hbaOfflineInformation		NOTIFICATION-TYPE 
+        hbaOfflineInformation		NOTIFICATION-TYPE
 	OBJECTS                         {productTrapData, productSerialNum}
 	STATUS                          current
 	DESCRIPTION
@@ -31730,7 +33233,49 @@
 		errors that make the interface unable to communicate
 		with attached devices."
 
-	::= { netapp 0 587 }	
+	::= { netapp 0 587 }
+
+        -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+        -- FC Adapter Traps
+        -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+
+        fcOfflineError			NOTIFICATION-TYPE
+	OBJECTS                         {productTrapData, productSerialNum}
+	STATUS                          current
+	DESCRIPTION
+		"A FibreChannel adapter port has gone off-line due to
+		an error condition."
+
+	::= { netapp 0 594 }
+
+        fcOnlineFailWarning		NOTIFICATION-TYPE
+	OBJECTS                         {productTrapData, productSerialNum}
+	STATUS                          current
+	DESCRIPTION
+		"A FibreChannel adapter has failed to come on-line due
+		to some error condition.  Check the cables for proper
+		connections."
+
+	::= { netapp 0 595 }
+
+	fcOffLineNotification		NOTIFICATION-TYPE
+	OBJECTS				{productTrapData, productSerialNum}
+	STATUS				current
+	DESCRIPTION
+		"A FibreChannel adapter has gone off line.
+		 This state may be caused either by user command or by
+		 errors that make the interface unable to communicate
+		 with attached devices."
+
+	::= { netapp 0 596 }
+
+        fcOnlineInformation		NOTIFICATION-TYPE
+	OBJECTS                         {productTrapData, productSerialNum}
+	STATUS                          current
+	DESCRIPTION
+		"A FibreChannel adapter port has come on-line."
+
+	::= { netapp 0 597 }
 
         -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 	-- LUN Snap Restore Notice
@@ -31809,26 +33354,26 @@
 	::= { netapp 0 646 }
 
         -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-	-- Snap Autodelete Notice
+	-- Snap Auto Delete Notice
         -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 
  	snapAutoDelete			NOTIFICATION-TYPE 
 	OBJECTS				{productTrapData, productSerialNum}
 	STATUS                          current
 	DESCRIPTION
-		"Snapshot Autodeleted"
+		"Snapshot Auto Deleted"
 
 	::= { netapp 0 656 }
 
         -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-	-- Volume Autogrow Notice
+	-- Volume Auto Grow Notice
         -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 
  	volumeAutogrow			NOTIFICATION-TYPE 
 	OBJECTS				{productTrapData, productSerialNum}
 	STATUS                          current
 	DESCRIPTION
-		"Volume is Autogrown"
+		"Volume is Auto Grown"
 
 	::= { netapp 0 666 }
 
@@ -31993,7 +33538,7 @@
             wait for cutover-action"
         
         ::= { netapp 0 737 }
-        
+
 	-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 	-- C-Mode SAN Begin
 	-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
@@ -32008,7 +33553,7 @@
 	OBJECTS                         {productTrapData, productSerialNum}
 	STATUS                          current
 	DESCRIPTION
-            "The node has lost connectivitiy with the other nodes
+            "The node has lost connectivity with the other nodes
 	     in the cluster. Both fcp and iscsi traffic have been disabled 
 	     on this node. The corrective action is to reboot the node, and 
 	     if the node is waiting for giveback then perform a giveback."
@@ -32025,7 +33570,7 @@
 	OBJECTS                         {productTrapData, productSerialNum}
 	STATUS                          current
 	DESCRIPTION
-            "The node established connectivitiy with the other nodes
+            "The node established connectivity with the other nodes
 	     in the cluster."
 	    
 	::= { netapp 0 746 }
@@ -32266,16 +33811,218 @@
              "The SNMP server is too busy."
 
      ::= { netapp 0 824 }
+
+    lunDestroy               NOTIFICATION-TYPE
+    OBJECTS                  {productTrapData, productSerialNum}
+    STATUS                   current
+    DESCRIPTION
+             "A LUN was destroyed."
+
+    ::= { netapp 0 837 }
+
+     -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+     -- 
+     --  Health Monitor Alert EMS trap
+     --
+     -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+     healthMonitorAlertRaised        NOTIFICATION-TYPE
+     OBJECTS                         {productTrapData, productSerialNum}
+     STATUS                          current
+     DESCRIPTION
+            "A Health Monitor has created an alert."
+	    
+     ::= { netapp 0 862 }
         
-    -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+     healthMonitorAlertCleared       NOTIFICATION-TYPE
+     OBJECTS                         {productTrapData, productSerialNum}
+     STATUS                          current
+     DESCRIPTION
+            "A Health Monitor has cleared an alert."
+	    
+     ::= { netapp 0 867 }
+
+     volumeLogicalOverallocated      NOTIFICATION-TYPE
+     OBJECTS                         {productTrapData, productSerialNum}
+     STATUS                          current
+     DESCRIPTION
+            "The volume has over allocated space and may not be able to
+             honor file reservations or the aggregate has over allocated
+             space and may not be able to honor volume guarantees.
+             If and when the reserved/guaranteed space is consumed
+             there will be insufficient physical space which can
+             cause the volume/aggregate to be taken offline."
+
+     ::= { netapp 0 873 }
+
+     volumeReserveGrew               NOTIFICATION-TYPE
+     OBJECTS                         {productTrapData, productSerialNum}
+     STATUS                          current
+     DESCRIPTION
+            "At least one volume's WAFL reserve grew because it was
+             physically over allocated."
+
+     ::= { netapp 0 875 }
+
+     volumePhysicalOverallocated     NOTIFICATION-TYPE
+     OBJECTS                         {productTrapData, productSerialNum}
+     STATUS                          current
+     DESCRIPTION
+            "The volume/aggregate is running dangerously low on
+             free blocks to write to."
+
+     ::= { netapp 0 882 }
+
+    -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    --
+    -- This section contains traps related to C-mode Snapmirror/Snapvault
+    -- Reserve trap from 90x to 96x for C-mode Snapmirror/Snapvault
+    -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+     smVaultSnapWarnLimit    NOTIFICATION-TYPE
+     OBJECTS                 {productTrapData, productSerialNum}
+     STATUS                  current
+     DESCRIPTION
+             "The snapshot count limit on the destination volume has been reached."
+
+     ::= { netapp 0 895 }
+
+      lunRelocationCompletion         NOTIFICATION-TYPE
+      OBJECTS                         {productTrapData, productSerialNum}
+      STATUS                          current
+      DESCRIPTION
+                "Lun relocation completed successfully"
+     ::= { netapp 0 896 }
+
+     clusterLinkDown         NOTIFICATION-TYPE
+     OBJECTS                 {productTrapData, productSerialNum}
+     STATUS                  current
+     DESCRIPTION
+             "A cluster link has been lost."
+
+     ::= { netapp 0 973 }
+
+     clusterL2ConnFail       NOTIFICATION-TYPE
+     OBJECTS                 {productTrapData, productSerialNum}
+     STATUS                  current
+     DESCRIPTION
+             "The l2ping command is currently failing between cluster ports."
+
+     ::= { netapp 0 983 }
+
+     clusterPingDropLarge    NOTIFICATION-TYPE
+     OBJECTS                 {productTrapData, productSerialNum}
+     STATUS                  current
+     DESCRIPTION
+             "Pings of large packets between cluster ports are currently failing."
+
+     ::= { netapp 0 993 }
+     -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+     --
+     -- This section contains traps related to Disks
+     -- Reserve trap from 100x to 102x for disk related events.
+     -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+     diskFailedRemoveCarrier NOTIFICATION-TYPE
+     OBJECTS                 {productTrapData, productSerialNum}
+     STATUS                  current
+     DESCRIPTION
+             "All disks in a carrier that contains
+             more than one disk are failed by
+             Data ONTAP(R) and the carrier can be removed."
+
+     ::= { netapp 0 1002 }
+
+        -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+	--
+	-- This section contains traps related to SAS connectors.
+	-- Reserve traps 104x for SAS connector traps.
+        -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+
+        sasConnectorWarn		NOTIFICATION-TYPE
+	OBJECTS				{productTrapData, productSerialNum}
+	STATUS				current
+	DESCRIPTION
+		"A cable connecting a SAS device to a disk shelf
+		has been removed or failed."
+	::= { netapp 0 1045 }
+
+	sasConnectorInfo		NOTIFICATION-TYPE
+	OBJECTS				{productTrapData, productSerialNum}
+	STATUS				current
+	DESCRIPTION
+		"A previously-existing error condition involving a SAS cable
+		has been corrected."
+	::= { netapp 0 1047 }
 
 
+        -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+	--
+	-- This section contains traps related to shelf power supply issues
+	--
+        -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 
-	-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -		
+	sesShelfPowerSupplyError	NOTIFICATION-TYPE
+	OBJECTS				{productTrapData, productSerialNum}
+	STATUS				current
+	DESCRIPTION
+		"A shelf power supply has failed or been removed."
+	::= { netapp 0 1054 }
+
+	sesShelfPowerSupplyWarn		NOTIFICATION-TYPE
+	OBJECTS				{productTrapData, productSerialNum}
+	STATUS				current
+	DESCRIPTION
+		"A shelf power supply has indicated a warning condition."
+	::= { netapp 0 1055 }
+
+
+	sesShelfPowerSupplyInfo		NOTIFICATION-TYPE
+	OBJECTS				{productTrapData, productSerialNum}
+	STATUS				current
+	DESCRIPTION
+		"A previously reported error or warning condition
+		involving a shelf power supply has been corrected."
+	::= { netapp 0 1057 }
+
+        -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+        -- Volume Rehost traps
+        -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+
+        volRehostFailed                     NOTIFICATION-TYPE
+        OBJECTS                             {productTrapData, productSerialNum}
+        STATUS                              current
+        DESCRIPTION
+            "A volume rehost attempt has failed. The volume is available
+	    under source Vserver."
+
+        ::= { netapp 0 1064 }
+
+        volRehostSucceeded                  NOTIFICATION-TYPE
+        OBJECTS                             {productTrapData, productSerialNum}
+        STATUS                              current
+        DESCRIPTION
+            "A volume rehost attempt is successful."
+
+        ::= { netapp 0 1067 }
+
+    -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    --
+    --  Offbox-AV Traps
+    --
+    -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    offboxvscanVirusDetectedError   NOTIFICATION-TYPE
+    OBJECTS                         {productTrapData, productSerialNum}
+    STATUS                          current
+    DESCRIPTION
+             "VScan: A possible virus has been detected"
+
+    ::= { netapp 0 1072 }
+
+	-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 	-- End of NetApp trap definitions
-	-- 
+	--
 	-- Note: Please update this comment when adding a new NOTIFICATION-TYPE.
-	--       The next trap set range should be: 83x
+	--       The next trap set range should be: 112x
 	-- 
         --       The 10xxx trap range is used by DataFabric Manager
         --           (netappDataFabricManager) see the DFM MIB for further

@@ -16,20 +16,20 @@
 //FE-FIREEYE-MIB::feSecurityContentVersion.0 = STRING: "361.121"
 //if (empty($version)) // FIXME. What?
 //{
-  $features = snmp_get($device, "feInstalledSystemImage.0", "-Osqv", "FE-FIREEYE-MIB");
-  $content = snmp_get($device, "feSecurityContentVersion.0", "-Osqv", "FE-FIREEYE-MIB");
-  $features = trim(str_replace("\"","", "$features ($content)"));
+  $features = snmp_get($device, 'feInstalledSystemImage.0', '-Osqv', 'FE-FIREEYE-MIB');
+  $content = snmp_get($device, 'feSecurityContentVersion.0', '-Osqv', 'FE-FIREEYE-MIB');
+  $features = trim(str_replace('"', '', "$features ($content)"));
 
-  $version = snmp_get($device, "feSystemImageVersionCurrent.0", "-Osqv", "FE-FIREEYE-MIB");
-  $version = trim(str_replace("\"","", $version));
+  $version = snmp_get($device, 'feSystemImageVersionCurrent.0', '-Osqv', 'FE-FIREEYE-MIB');
+  $version = trim(str_replace('"','', $version));
 //}
 
 //FE-FIREEYE-MIB::feHardwareModel.0 = STRING: "FireEyeCMS4400"
 //FE-FIREEYE-MIB::feSerialNumber.0 = STRING: "FM1419CA02Y"
-$hardware = snmp_get($device, "feHardwareModel.0", "-Osqv", "FE-FIREEYE-MIB");
+$hardware = snmp_get($device, 'feHardwareModel.0', '-Osqv', 'FE-FIREEYE-MIB');
 $hardware = substr($hardware, 1, -1);
 
-$serial = snmp_get($device, "feSerialNumber.0", "-Osqv", "FE-FIREEYE-MIB");
+$serial = snmp_get($device, 'feSerialNumber.0', '-Osqv', 'FE-FIREEYE-MIB');
 $serial = substr($serial, 1, -1);
 
 // EOF

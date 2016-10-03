@@ -47,15 +47,15 @@ IMPORTS
 
 vlan MODULE-IDENTITY
               LAST-UPDATED "200602120000Z"
-              ORGANIZATION "Cisco Small Business"
+              ORGANIZATION "Cisco Systems, Inc."
 
               CONTACT-INFO
               "Postal: 170 West Tasman Drive
               San Jose , CA 95134-1706
               USA
 
-              Website: Cisco Small Business Home http://www.cisco.com/smb>;,
-              Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
+              
+              Website:  Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
 
               DESCRIPTION
                       "The private MIB module definition for IP Multicast support in CISCOSB devices."
@@ -372,7 +372,7 @@ vlanDynamicVlanEntry OBJECT-TYPE
 
 VlanDynamicVlanEntry ::= SEQUENCE {
         vlanDynamicVlanMacAddress  MacAddress,
-        vlanDynamicVlanTag     VlanIndex,
+        vlanDynamicVlanTag         VlanIndex,
         vlanDynamicVlanStatus      RowStatus
     }
 
@@ -862,8 +862,8 @@ vlanSubnetPortEntry OBJECT-TYPE
 
 VlanSubnetPortEntry ::=
     SEQUENCE {        vlanSubnetPortGroupId            INTEGER,
-                      vlanSubnetPortGroupVid            INTEGER,
-                      vlanSubnetPortRowStatus            RowStatus    }
+                      vlanSubnetPortGroupVid           INTEGER,
+                      vlanSubnetPortRowStatus          RowStatus    }
 
 vlanSubnetPortGroupId OBJECT-TYPE
     SYNTAX      INTEGER (1..2147483647)
@@ -912,8 +912,8 @@ vlanTriplePlayEntry OBJECT-TYPE
     ::= { vlanTriplePlayTable 1 }
 
 VlanTriplePlayEntry ::= SEQUENCE {
-        vlanTriplePlayInnerVID     VlanIndex,
-        vlanTriplePlayMulticastTvVID     VlanIndex,
+        vlanTriplePlayInnerVID       VlanIndex,
+        vlanTriplePlayMulticastTvVID VlanIndex,
         vlanTriplePlayRowStatus  RowStatus
     }
 
@@ -962,8 +962,8 @@ vlanTriplePlayMulticatTvEntry OBJECT-TYPE
     ::= { vlanTriplePlayMulticastTvTable 1 }
 
 VlanTriplePlayMulticatTvEntry ::= SEQUENCE {
-              vlanTriplePlayMulticastTvMulticastTvVID      VlanIndex,
-        vlanTriplePlayMulticastTvMulticastTvPortList         PortList
+        vlanTriplePlayMulticastTvMulticastTvVID      VlanIndex,
+        vlanTriplePlayMulticastTvMulticastTvPortList PortList
 
 }
 
@@ -1288,9 +1288,9 @@ vlanInetTriplePlayEntry OBJECT-TYPE
 
 VlanInetTriplePlayEntry ::= SEQUENCE {
         vlanInetTriplePlayInetAddressType   InetAddressType,
-        vlanInetTriplePlayInnerVID              VlanIndex,
-        vlanInetTriplePlayMulticastTvVID        VlanIndex,
-        vlanInetTriplePlayRowStatus             RowStatus
+        vlanInetTriplePlayInnerVID          VlanIndex,
+        vlanInetTriplePlayMulticastTvVID    VlanIndex,
+        vlanInetTriplePlayRowStatus         RowStatus
     }
 
 vlanInetTriplePlayInetAddressType OBJECT-TYPE
@@ -1347,7 +1347,7 @@ vlanInetTriplePlayMulticatTvEntry OBJECT-TYPE
 
 VlanInetTriplePlayMulticatTvEntry ::= SEQUENCE {
         vlanInetTriplePlayMulticastTvMulticastTvVID      VlanIndex,
-        vlanInetTriplePlayMulticastTvMulticastTvPortList         PortList
+        vlanInetTriplePlayMulticastTvMulticastTvPortList PortList
 }
 
 vlanInetTriplePlayMulticastTvMulticastTvVID      OBJECT-TYPE
@@ -1485,11 +1485,13 @@ vlanPrivateMapEntry OBJECT-TYPE
     ::= { vlanPrivateMapTable 1 }
 
 VlanPrivateMapEntry ::= SEQUENCE {
-        vlanPrivateMapPrimaryVid        VlanIndex,
-        vlanPrivateMapSecondaryVid      VlanIndex,
-        vlanPrivateMapPrimaryPorts      PortList,
-        vlanPrivateMapSecondaryPorts    PortList,
-        vlanPrivateMapStatus            RowStatus
+        vlanPrivateMapPrimaryVid            VlanIndex,
+        vlanPrivateMapSecondaryVid          VlanIndex,
+        vlanPrivateMapPrimaryPorts          PortList,
+        vlanPrivateMapSecondaryPorts        PortList,
+        vlanPrivateMapPrimaryOperPorts      PortList,
+        vlanPrivateMapSecondaryOperPorts    PortList,
+        vlanPrivateMapStatus                RowStatus
 }
 
 vlanPrivateMapPrimaryVid OBJECT-TYPE
@@ -1528,6 +1530,24 @@ vlanPrivateMapSecondaryPorts  OBJECT-TYPE
           association of vlanPrivateMapPrimaryVid and vlanPrivateMapSecondaryVid."
     ::= { vlanPrivateMapEntry 4}
 
+vlanPrivateMapPrimaryOperPorts  OBJECT-TYPE
+    SYNTAX      PortList
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+         "The private vlan active promiscuous ports mode which are belongs to the
+          association of vlanPrivateMapPrimaryVid and vlanPrivateMapSecondaryVid."
+    ::= { vlanPrivateMapEntry 5}
+
+vlanPrivateMapSecondaryOperPorts  OBJECT-TYPE
+    SYNTAX      PortList
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+         "The private vlan active host ports mode which are belongs to the
+          association of vlanPrivateMapPrimaryVid and vlanPrivateMapSecondaryVid."
+    ::= { vlanPrivateMapEntry 6}
+
 vlanPrivateMapStatus OBJECT-TYPE
     SYNTAX      RowStatus
     MAX-ACCESS  read-write
@@ -1535,7 +1555,7 @@ vlanPrivateMapStatus OBJECT-TYPE
     DESCRIPTION
        "The row status variable, used according to
        row installation and removal conventions."
-    ::= { vlanPrivateMapEntry 5 }
+    ::= { vlanPrivateMapEntry 7 }
 
 -- end of vlanPrivateMapTable
 

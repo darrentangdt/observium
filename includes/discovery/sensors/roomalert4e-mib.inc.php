@@ -11,8 +11,6 @@
  *
  */
 
-echo(" ROOMALERT4E-MIB ");
-
 // ATTENTION! In the SNMP settings of the device, there is a checkbox called [ ] Use 2 digit SNMP.
 // If checked, values will be rounded; SNMP will return 20 for 20.4 degrees. If unchecked, values are *1000, so 2040 for 20.4 degrees.
 //
@@ -22,7 +20,7 @@ $scale = 1; // Start at 1 for 2 digits setting.
 
 // Internal Temperature
 // ROOMALERT4E-MIB::internal-tempc.0 = 2882
-$oids = snmpwalk_cache_multi_oid($device, "internal-tempc", array(), "ROOMALERT4E-MIB", mib_dirs('avtech'));
+$oids = snmpwalk_cache_multi_oid($device, "internal-tempc", array(), "ROOMALERT4E-MIB");
 
 foreach ($oids as $index => $entry)
 {
@@ -54,7 +52,7 @@ foreach ($oids as $index => $entry)
 // ROOMALERT4E-MIB::digital-sen1-2.0 = 7327
 // ROOMALERT4E-MIB::digital-sen1.6.0 = "External Temp"
 
-$oids = snmpwalk_cache_multi_oid($device, "digital", array(), "ROOMALERT4E-MIB", mib_dirs('avtech'));
+$oids = snmpwalk_cache_multi_oid($device, "digital", array(), "ROOMALERT4E-MIB");
 
 $index = 0;
 

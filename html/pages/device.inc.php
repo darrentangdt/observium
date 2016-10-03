@@ -104,26 +104,22 @@ if (isset($cache['devices']['id'][$vars['device']]) || count($permit_tabs))
   $device_state = unserialize($device['device_state']);
 
   // Add the device hostname to the page title array
-  $page_title[] = escape_html($device['hostname']);
+  register_html_title(escape_html($device['hostname']));
 
   // If the device's OS type has a group, set the device's os_group
   if ($config['os'][$device['os']]['group']) { $device['os_group'] = $config['os'][$device['os']]['group']; }
 
 //// DEV
-?>
 
-<div class="row">
+  // Start to cache panel
+  // NOTE. Also this panel content can be moved to html/includes/panels/device.inc.php (instead ob_cache() here)
+    ob_start();
 
-<div class="col-xl-4 visible-xl">
+    print_device_header($device, array('no_graphs' => TRUE));
 
-    <?php print_device_header($device, array('no_graphs' => TRUE)); ?>
+    include("pages/device/overview/information_extended.inc.php");
 
-
-    <?php include("pages/device/overview/information_extended.inc.php"); ?>
-
-<div class="box box-solid">
-  <div class="box-body no-padding">
-<?php
+    echo generate_box_open();
 
     // Only show graphs for device_permitted(), don't show device graphs to users who can only see a single entity.
 
@@ -182,19 +178,16 @@ if (isset($cache['devices']['id'][$vars['device']]) || count($permit_tabs))
     }
     echo '</div>';
 
+    echo generate_box_close();
 
-unset($graph_array);
+    $panel_html = ob_get_contents();
+    ob_end_clean();
 
-?>
-  </div>
-</div>
-</div>
+    register_html_panel($panel_html);
 
-<div class="col-xl-8 col-lg-12">
+    unset($graph_array, $panel_html);
 
-<?php
-
-/////
+  // End panel
 
   // Print the device header
 
@@ -330,10 +323,10 @@ unset($graph_array);
     // Print the load balancer tab if the loadbalancer_tabs array has entries.
     if (is_array($loadbalancer_tabs))
     {
-      $navbar['options']['loadbalancer'] = array('text' => 'Load Balancer', 'icon' => 'oicon-arrow-split');
+      $navbar['options']['loadbalancer'] = array('text' => 'Load Balancer', 'icon' => 'oicon-arrow-split', 'community' => FALSE);
     }
 
-    // $routing_tabs is used in device/routing/ to build the tabs menu. we built it here to save some queries
+    // $routing_tabs is used in device/routing/ to build the tabs menu. we build it here to save some queries
 
     $device_routing_count['ipsec_tunnels'] = dbFetchCell("SELECT COUNT(*) FROM `ipsec_tunnels` WHERE `device_id` = ?", array($device['device_id']));
     if ($device_routing_count['ipsec_tunnels']) { $routing_tabs[] = 'ipsec_tunnels'; }
@@ -341,7 +334,8 @@ unset($graph_array);
     $device_routing_count['bgp'] = dbFetchCell("SELECT COUNT(*) FROM `bgpPeers` WHERE `device_id` = ?", array($device['device_id']));
     if ($device_routing_count['bgp']) { $routing_tabs[] = 'bgp'; }
 
-    $device_routing_count['ospf'] = dbFetchCell("SELECT COUNT(*) FROM `ospf_instances` WHERE `ospfAdminStat` = 'enabled' AND `device_id` = ?", array($device['device_id']));
+    //$device_routing_count['ospf'] = dbFetchCell("SELECT COUNT(*) FROM `ospf_instances` WHERE `ospfAdminStat` = 'enabled' AND `device_id` = ?", array($device['device_id']));
+    $device_routing_count['ospf'] = dbFetchCell("SELECT COUNT(*) FROM `ospf_instances` WHERE `device_id` = ?", array($device['device_id']));
     if ($device_routing_count['ospf']) { $routing_tabs[] = 'ospf'; }
 
     $device_routing_count['eigrp'] = dbFetchCell("SELECT COUNT(*) FROM `eigrp_ports` WHERE `device_id` = ?", array($device['device_id']));
@@ -366,32 +360,36 @@ unset($graph_array);
     }
 
     // Print the packages tab if there are matching entries in the packages table
-    if (dbFetchCell('SELECT COUNT(*) FROM `packages` WHERE `device_id` = ?', array($device['device_id'])) > '0')
+    if (dbFetchCell('SELECT COUNT(*) FROM `packages` WHERE `device_id` = ?', array($device['device_id'])) > 0)
     {
       $navbar['options']['packages'] = array('text' => 'Pkgs', 'icon' => 'oicon-box-zipper');
     }
 
     // Print the inventory tab if inventory is enabled and either entphysical or hrdevice tables have entries
-    if (dbFetchCell('SELECT COUNT(*) FROM `entPhysical` WHERE `device_id` = ?', array($device['device_id'])) > '0')
+    if (dbFetchCell('SELECT COUNT(*) FROM `entPhysical` WHERE `device_id` = ?', array($device['device_id'])) > 0)
     {
       $navbar['options']['entphysical'] = array('text' => 'Inventory', 'icon' => 'oicon-wooden-box');
     }
-    elseif (dbFetchCell('SELECT COUNT(*) FROM `hrDevice` WHERE `device_id` = ?', array($device['device_id'])) > '0')
+    elseif (dbFetchCell('SELECT COUNT(*) FROM `hrDevice` WHERE `device_id` = ?', array($device['device_id'])) > 0)
     {
       $navbar['options']['hrdevice'] = array('text' => 'Inventory', 'icon' => 'oicon-wooden-box');
     }
 
     // Print service tab if show_services enabled and there are entries in the services table
     ## DEPRECATED
-    if ($config['show_services'] && dbFetchCell('SELECT COUNT(service_id) FROM services WHERE device_id = ?', array($device['device_id'])) > '0')
+    if ($config['show_services'] && dbFetchCell('SELECT COUNT(*) FROM services WHERE device_id = ?', array($device['device_id'])) > 0)
     {
       $navbar['options']['services'] = array('text' => 'Services', 'icon' => 'oicon-target');
     }
 
-    // Print toner tab if there are entries in the toner table
-    if (dbFetchCell('SELECT COUNT(toner_id) FROM toner WHERE device_id = ?', array($device['device_id'])) > '0')
+    // Print printing tab if there are entries in the printersupplies table
+    if (dbFetchCell('SELECT COUNT(*) FROM `printersupplies` WHERE device_id = ?', array($device['device_id'])) > 0)
     {
       $navbar['options']['printing'] = array('text' => 'Printing', 'icon' => 'oicon-printer-color');
+
+      // $printing_tabs is used in device/printing/ to build the tabs menu. we build it here to save some queries
+      /// FIXME. sid3windr, I not see what this query "save" here, must be moved to device/printing.inc.php
+      $printing_tabs = dbFetchColumn("SELECT DISTINCT `supply_type` FROM `printersupplies` WHERE `device_id` = ?", array($device['device_id']));
     }
 
     // Always print logs tab
@@ -436,9 +434,10 @@ unset($graph_array);
     // If the user has global write permissions, show them the edit tab
     if ($_SESSION['userlevel'] >= "10")
     {
-      $navbar['options']['tools']                             = array('text' => '', 'icon' => 'oicon-gear', 'url' => '#', 'right' => TRUE, 'class' => "dropdown-toggle", 'link_opts' => 'data-hover="dropdown" data-toggle="dropdown"');
+      $navbar['options']['tools']                             = array('text' => '', 'icon' => 'oicon-gear', 'url' => '#', 'right' => TRUE, 'class' => "dropdown-toggle");
       $navbar['options']['tools']['suboptions']['data']       = array('text' => 'Device Data', 'icon' => 'oicon-application-list');
       $navbar['options']['tools']['suboptions']['perf']       = array('text' => 'Performance Data', 'icon' => 'oicon-time');
+      if($config['web_enable_showtech']) { $navbar['options']['tools']['suboptions']['showtech']       = array('text' => 'Show Tech-Support', 'icon' => 'oicon-exclamation'); }
       $navbar['options']['tools']['suboptions']['divider_1']  = array('divider' => TRUE);
 
       if (is_array($config['os'][$device['os']]['remote_access']))
@@ -559,20 +558,20 @@ unset($graph_array);
       $form = array('type'      => 'horizontal',
                     'id'        => 'delete_host',
                     //'space'     => '20px',
-                    'title'     => 'Delete device',
+                    //'title'     => 'Delete device',
                     'icon'      => 'oicon-server--minus',
-                    //'class'     => 'box box-solid',
+                    //'class'     => '',
                     'url'       => 'delhost/'
                     );
 
       $form['row'][0]['id']   = array(
                                       'type'        => 'hidden',
                                       'value'       => $device['device_id']);
-      $form['row'][4]['deleterrd'] = array(
-                                      'type'        => 'checkbox',
-                                      'name'        => 'Delete RRDs',
-                                      'onchange'    => "javascript: showDiv(this.checked);",
-                                      'value'       => 'confirm');
+      //$form['row'][4]['deleterrd'] = array(
+      //                                'type'        => 'checkbox',
+      //                                'name'        => 'Delete RRDs',
+      //                                'onchange'    => "javascript: showDiv(this.checked);",
+      //                                'value'       => 'confirm');
       $form['row'][5]['confirm'] = array(
                                       'type'        => 'checkbox',
                                       'name'        => 'Confirm Deletion',
@@ -630,8 +629,5 @@ The requested tab does not exist. Please correct the URL and try again.');
     print_error_permission();
   }
 }
-
-echo '</div>';
-echo '</div>';
 
 // EOF

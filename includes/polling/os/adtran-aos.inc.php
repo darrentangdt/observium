@@ -15,8 +15,8 @@
 //ADTRAN-AOSUNIT::adAOSDeviceSerialNumber.0 = STRING: CFG034348
 //ADTRAN-AOSUNIT::adAOSDeviceVersion.0 = STRING: A2.06.00.E
 
-$version  = snmp_get($device, "adAOSDeviceVersion.0",      "-OQv", "ADTRAN-AOSUNIT");
-$hardware = snmp_get($device, "adAOSDeviceProductName.0",  "-OQv", "ADTRAN-AOSUNIT");
-$serial   = snmp_get($device, "adAOSDeviceSerialNumber.0", "-OQv", "ADTRAN-AOSUNIT");
+$version  = snmp_get($device, 'adAOSDeviceVersion.0',      '-OQv', 'ADTRAN-AOSUNIT');
+$hardware = snmp_get($device, 'adAOSDeviceProductName.0',  '-OQv', 'ADTRAN-AOSUNIT');
+$serial   = snmp_get($device, 'adAOSDeviceSerialNumber.0', '-OQv', 'ADTRAN-AOSUNIT');
 
 // EOF

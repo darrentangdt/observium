@@ -22,12 +22,15 @@ if (is_file($drbd_rrd))
   $rrd_filename = $drbd_rrd;
 }
 
-$ds_in = "dr";
-$ds_out = "dw";
+$ds_in   = "dr";
+$ds_out  = "dw";
 
-$multiplier = "8";
+$leg_in  = "Read";
+$leg_out = "Written";
+
+$multiplier = "1024";
 $format = "bytes";
 
-include("includes/graphs/generic_data.inc.php");
+include($config['html_dir']."/includes/graphs/generic_data.inc.php");
 
 // EOF

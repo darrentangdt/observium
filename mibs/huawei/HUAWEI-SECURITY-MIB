@@ -1,8 +1,8 @@
 -- ===================================================================
--- Copyright (C) 2010 by HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by HUAWEI TECHNOLOGIES. All rights reserved.
 -- Description:
 -- Reference:
--- Version: V2.22
+-- Version: V2.27
 -- ===================================================================
           
     HUAWEI-SECURITY-MIB DEFINITIONS ::= BEGIN
@@ -10,7 +10,7 @@
     IMPORTS
         EnabledStatus
             FROM P-BRIDGE-MIB
-        MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE, Integer32
+        MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE, Integer32, Unsigned32
             FROM SNMPv2-SMI
         DateAndTime, DisplayString, TEXTUAL-CONVENTION
             FROM SNMPv2-TC
@@ -20,7 +20,7 @@
             FROM SNMPv2-CONF;
                  
     hwSecurityMIB MODULE-IDENTITY 
-        LAST-UPDATED "201501061301Z"
+        LAST-UPDATED "201510141420Z"
         ORGANIZATION "Huawei Technologies Co.,Ltd."
           CONTACT-INFO 
             "Huawei Industrial Base
@@ -31,8 +31,20 @@
                  Email: support@huawei.com"
           DESCRIPTION 
               "The private mib file includes the general extent 
-              information of the device.hwDatacomm(165).hwSecurityMIB." 
-        REVISION "201501061301Z"
+              information of the device.hwDatacomm(165).hwSecurityMIB."    
+        REVISION "201510141420Z"  
+        DESCRIPTION
+              "Add hwAntiAttack hwAntiAttackObjectGroup hwBaseSecurityAntiAttackRateRising hwBaseSecurityAntiAttackRateResume for DFNS(LDM)"
+        REVISION "201509291648Z"  
+        DESCRIPTION
+              "Add hwCfgApTrapObject hwCfgApTrap hwCfgApTrapFailAlarm for Virtual-Access"
+        REVISION "201505262023Z"
+        DESCRIPTION
+              "Add hwBaseArpVlanCarTrap"
+        REVISION "201504071102Z"
+        DESCRIPTION
+              "Add hwBaseSecurityTtlExpiredLoop"
+        REVISION "201503241012Z"
         DESCRIPTION
               "Add hwDapPortChange,hwDapMibPortChange for DAP"
 	REVISION "201409182020Z"
@@ -66,6 +78,9 @@
         REVISION "201404041301Z"
         DESCRIPTION
             "SOC modify SeqNo"
+        REVISION "201503241012Z"
+        DESCRIPTION
+            "CP-CAR Add hwAppliApperProtocolDescirption hwTcpIpDefendProtocolDescirption"
           ::= { hwDatacomm 165 }  
           
                             
@@ -212,7 +227,9 @@
               hwTcpIpDefendRateThreshold
                   Integer32,
               hwTcpIpDefendRateInterval
-                  Integer32                  
+                  Integer32,
+              hwTcpIpDefendProtocolDescirption
+                  OCTET STRING	
                   }                  
 
       hwTcpIpDefendChassisId OBJECT-TYPE
@@ -292,7 +309,14 @@
           DESCRIPTION
               "The detection interval of TCPIP protection.unit(s)."
           ::= { hwTcpIpDefendEntry 15 }
-
+	  
+      hwTcpIpDefendProtocolDescirption OBJECT-TYPE
+          SYNTAX OCTET STRING
+          MAX-ACCESS  read-only
+          STATUS      current
+          DESCRIPTION
+              "The descirption of Protocol."
+          ::= { hwTcpIpDefendEntry 16 }		  
           
       hwMaDefend OBJECT IDENTIFIER ::= { hwBaseSecurityMIBObjects 4 }
 
@@ -448,7 +472,9 @@
               hwAppliApperRateThreshold
                   Integer32,
               hwAppliApperRateInterval
-                  Integer32
+                  Integer32,
+	      hwAppliApperProtocolDescirption
+		  OCTET STRING
                   }                  
 
       hwAppliApperChassisId OBJECT-TYPE
@@ -524,6 +550,14 @@
           DESCRIPTION
               "The detect interval of Application-Apperceive protection. unit(s)."
           ::= { hwApplicationApperceiveEntry 15 }
+	  
+      hwAppliApperProtocolDescirption OBJECT-TYPE
+          SYNTAX OCTET STRING
+          MAX-ACCESS  read-only
+          STATUS      current
+          DESCRIPTION
+              "The descirption of Protocol."
+          ::= { hwApplicationApperceiveEntry 16 }      
       
       hwDefdPortVlan OBJECT IDENTIFIER ::= { hwBaseSecurityMIBObjects 6 } 
       
@@ -753,14 +787,15 @@
           ::= { hwBaseSecurityNotifications  2 } 
           
       hwBaseSecurityTcpIpAttackDiscardedRateRising NOTIFICATION-TYPE
-          OBJECTS { 
+          OBJECTS {
 	      hwTcpIpDefendCurrentRateLow, 
-	      hwTcpIpDefendCurrentRateHigh, 
+	      hwTcpIpDefendCurrentRateHigh,
 	      hwTcpIpDefendRateThreshold, 
 	      hwTcpIpDefendRateInterval,
-	      hwTcpIpDefendChassisId, 
+              hwTcpIpDefendChassisId, 
               hwTcpIpDefendSlotId, 
-              hwTcpIpDefendType}
+              hwTcpIpDefendType,
+	      hwTcpIpDefendProtocolDescirption}
           STATUS current
           DESCRIPTION 
               " The discard packets exceed the threshold of TCPIP protection. "
@@ -769,12 +804,13 @@
       hwBaseSecurityTcpIpAttackDiscardedRateResume NOTIFICATION-TYPE
           OBJECTS { 
 	      hwTcpIpDefendCurrentRateLow, 
-	      hwTcpIpDefendCurrentRateHigh, 
+	      hwTcpIpDefendCurrentRateHigh,
 	      hwTcpIpDefendRateThreshold, 
 	      hwTcpIpDefendRateInterval,
 	      hwTcpIpDefendChassisId, 
               hwTcpIpDefendSlotId, 
-              hwTcpIpDefendType}
+              hwTcpIpDefendType,
+	      hwTcpIpDefendProtocolDescirption}
           STATUS current
           DESCRIPTION 
               " The alarm of TCPIP protection is resumed. "
@@ -809,14 +845,15 @@
           ::= { hwBaseSecurityNotifications  6 }
           
       hwBaseSecurityApplicationApperceiveDiscardedRateRising NOTIFICATION-TYPE
-          OBJECTS { 
+          OBJECTS {	  
 	      hwAppliApperCurrentRateLow, 
-	      hwAppliApperCurrentRateHigh, 
+	      hwAppliApperCurrentRateHigh,
 	      hwAppliApperRateThreshold, 
 	      hwAppliApperRateInterval,
-	      hwAppliApperChassisId, 
+		  hwAppliApperChassisId, 
               hwAppliApperSlotId, 
-              hwAppliApperProtocol}
+              hwAppliApperProtocol,
+	      hwAppliApperProtocolDescirption}
           STATUS current
           DESCRIPTION 
               " The discard packets exceed the threshold of Application-Apperceive protection. "
@@ -825,12 +862,13 @@
       hwBaseSecurityApplicationApperceiveDiscardedRateResume NOTIFICATION-TYPE
           OBJECTS { 
 	      hwAppliApperCurrentRateLow, 
-	      hwAppliApperCurrentRateHigh, 
+	      hwAppliApperCurrentRateHigh,
 	      hwAppliApperRateThreshold, 
 	      hwAppliApperRateInterval,
-	      hwAppliApperChassisId, 
+		  hwAppliApperChassisId, 
               hwAppliApperSlotId, 
-              hwAppliApperProtocol}
+              hwAppliApperProtocol,
+	      hwAppliApperProtocolDescirption}
           STATUS current
           DESCRIPTION 
               "The alarm of Application-Apperceive protection is resumed."
@@ -862,7 +900,7 @@
 		   STATUS current
 		   DESCRIPTION 
 		   "An attack occur on the Network. "
-		   ::= { hwBaseSecurityNotifications 12 }
+	::= { hwBaseSecurityNotifications 12 }
 		
 
      hwBaseSocAttackResumeTrap NOTIFICATION-TYPE
@@ -880,7 +918,7 @@
 		   STATUS current
 		   DESCRIPTION 
 		   "An attack cancels on the Network."
-		   ::= { hwBaseSecurityNotifications 13 }
+	::= { hwBaseSecurityNotifications 13 }
                       
     hwBaseSecurityStormControlInterfaceResume NOTIFICATION-TYPE
         OBJECTS {
@@ -893,6 +931,75 @@
             "L2 loop detect alarm cleared."
         ::= { hwBaseSecurityNotifications 14 }
 
+    hwBaseSecurityTtlExpiredLoop NOTIFICATION-TYPE
+        OBJECTS {
+            hwTtlExpiredLoopChassisId,
+            hwTtlExpiredLoopSlotId,
+            hwTtlExpiredLoopLastRateLow,
+            hwTtlExpiredLoopLastRateHigh,
+            hwTtlExpiredLoopCurrentRateLow,
+            hwTtlExpiredLoopCurrentRateHigh,
+            hwTtlExpiredLoopRateInterval,
+            hwTtlExpiredLoopRateThreshold}
+        STATUS current
+        DESCRIPTION
+            "The alarm of ttl-expired loop detection."
+        ::= { hwBaseSecurityNotifications 15 }
+
+    hwBaseSecurityTtlExpiredLoopResume NOTIFICATION-TYPE
+        OBJECTS {
+            hwTtlExpiredLoopChassisId,
+            hwTtlExpiredLoopSlotId,
+            hwTtlExpiredLoopLastRateLow,
+            hwTtlExpiredLoopLastRateHigh,
+            hwTtlExpiredLoopCurrentRateLow,
+            hwTtlExpiredLoopCurrentRateHigh,
+            hwTtlExpiredLoopRateInterval,
+            hwTtlExpiredLoopRateThreshold}
+        STATUS current
+        DESCRIPTION
+            "TTL-Expired loop alarm cleared."
+        ::= { hwBaseSecurityNotifications 16 }
+
+     hwBaseArpVlanCarTrap NOTIFICATION-TYPE
+	 OBJECTS { 
+	     hwBaseArpVlanCarLogIfName,
+	     hwBaseArpVlanCarPhyIfName}
+		   STATUS current
+		   DESCRIPTION 
+		   "ARP VLAN CAR took effect on an interface, which may be because a loop occurred on the interface."
+	::= { hwBaseSecurityNotifications 17 }
+		
+
+     hwBaseArpVlanCarResumeTrap NOTIFICATION-TYPE
+	 OBJECTS {
+	     hwBaseArpVlanCarLogIfName,
+	     hwBaseArpVlanCarPhyIfName}
+		   STATUS current
+		   DESCRIPTION 
+		   "ARP VLAN CAR become ineffective on an interface."
+	::= { hwBaseSecurityNotifications 18 }
+
+      hwBaseSecurityAntiAttackRateRising NOTIFICATION-TYPE
+          OBJECTS { 
+          hwAntiAttackType,
+          hwAntiAttackRateThreshold,
+          hwAntiAttackCurrentRate}
+          STATUS current
+          DESCRIPTION
+              " The rate of packets exceed the threshold of anti-attack alarm. "
+          ::= { hwBaseSecurityNotifications 19 }
+
+      hwBaseSecurityAntiAttackRateResume NOTIFICATION-TYPE
+          OBJECTS {
+          hwAntiAttackType,
+          hwAntiAttackRateThreshold, 
+          hwAntiAttackCurrentRate}
+          STATUS current
+          DESCRIPTION
+              " The alarm of anti-attack alarm is resumed. "
+          ::= { hwBaseSecurityNotifications  20 }  
+          
       hwMacFilter OBJECT IDENTIFIER ::= { hwBaseSecurityMIBObjects 12 }
 
       hwMacFilterModeTable OBJECT-TYPE
@@ -1079,6 +1186,234 @@
         DESCRIPTION
             "The VlanID of VlanIF which the interface join in."
         ::= { hwBaseSecurityStormControlInterfaceEntry 4 }
+
+    hwBaseArpVlanCarTrapObject OBJECT IDENTIFIER ::= { hwBaseSecurityMIBObjects 14 }
+
+    hwBaseArpVlanCarInfoTable OBJECT-TYPE
+        SYNTAX  SEQUENCE OF HwBaseArpVlanCarInfoEntry 
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "A Table about arp vlan car information."
+        ::= { hwBaseArpVlanCarTrapObject 1 }
+
+
+    hwBaseArpVlanCarInfoEntry OBJECT-TYPE
+        SYNTAX HwBaseArpVlanCarInfoEntry 
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "Description."
+        INDEX { hwBaseArpVlanCarLogIfName,hwBaseArpVlanCarPhyIfName }
+        ::= { hwBaseArpVlanCarInfoTable 1 }
+
+
+    HwBaseArpVlanCarInfoEntry ::= SEQUENCE {
+        hwBaseArpVlanCarLogIfName 
+            OCTET STRING,
+        hwBaseArpVlanCarPhyIfName 
+            OCTET STRING,
+        hwBaseArpVlanCarVlanId
+            Integer32
+        }
+
+    hwBaseArpVlanCarLogIfName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+            "The logic interface name."
+        ::= { hwBaseArpVlanCarInfoEntry 1 }
+
+
+    hwBaseArpVlanCarPhyIfName OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+            "The physical interface name."
+        ::= { hwBaseArpVlanCarInfoEntry 2 }
+
+    hwBaseArpVlanCarVlanId OBJECT-TYPE
+        SYNTAX Integer32 (0..4094)
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+            "The VlanId of arp vlan car."
+        ::= { hwBaseArpVlanCarInfoEntry 3 }
+
+
+    hwTtlExpiredLoop OBJECT IDENTIFIER ::= { hwBaseSecurityMIBObjects 15 }
+
+    hwTtlExpiredLoopTable OBJECT-TYPE
+        SYNTAX  SEQUENCE OF HwTtlExpiredLoopEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "A Table about TTL-expired loop information."
+        ::= { hwTtlExpiredLoop 1 }
+
+
+    hwTtlExpiredLoopEntry OBJECT-TYPE
+        SYNTAX HwTtlExpiredLoopEntry 
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "Description."
+        INDEX { hwTtlExpiredLoopChassisId,hwTtlExpiredLoopSlotId }
+        ::= { hwTtlExpiredLoopTable 1 }
+
+
+    HwTtlExpiredLoopEntry ::= SEQUENCE {
+        hwTtlExpiredLoopChassisId 
+            Unsigned32,
+        hwTtlExpiredLoopSlotId 
+            Unsigned32,
+        hwTtlExpiredLoopLastRateLow 
+            Unsigned32,
+        hwTtlExpiredLoopLastRateHigh 
+            Unsigned32,
+        hwTtlExpiredLoopCurrentRateLow 
+            Unsigned32,
+        hwTtlExpiredLoopCurrentRateHigh 
+            Unsigned32,
+        hwTtlExpiredLoopRateInterval 
+            Unsigned32,
+        hwTtlExpiredLoopRateThreshold 
+            Unsigned32
+        }
+
+ 
+    hwTtlExpiredLoopChassisId OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS accessible-for-notify
+        STATUS current
+        DESCRIPTION
+            "The chassis ID indicates the chassis ttl-expired loop occur."
+        ::= { hwTtlExpiredLoopEntry 1 }
+
+
+    hwTtlExpiredLoopSlotId OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS accessible-for-notify
+        STATUS current
+        DESCRIPTION
+            "The slot ID indicates the slot ttl-expired loop occur."
+        ::= { hwTtlExpiredLoopEntry 2 }
+
+
+    hwTtlExpiredLoopLastRateLow OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+            "The lower 32 bits of last discard bytes."
+        ::= { hwTtlExpiredLoopEntry 3 }
+
+
+    hwTtlExpiredLoopLastRateHigh OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+            "The high 32 bits of last discard bytes."
+        ::= { hwTtlExpiredLoopEntry 4 }
+
+
+    hwTtlExpiredLoopCurrentRateLow OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+            "The lower 32 bits of current discard bytes."
+        ::= { hwTtlExpiredLoopEntry 5 }
+
+
+    hwTtlExpiredLoopCurrentRateHigh OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+            "The high 32 bits of current discard bytes."
+        ::= { hwTtlExpiredLoopEntry 6 }
+
+
+    hwTtlExpiredLoopRateInterval OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+            "Interval."
+        ::= { hwTtlExpiredLoopEntry 7 }
+
+
+    hwTtlExpiredLoopRateThreshold OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+            "Threshold."
+        ::= { hwTtlExpiredLoopEntry 8 }
+
+      hwAntiAttack OBJECT IDENTIFIER ::= { hwBaseSecurityMIBObjects 16 }
+
+      hwAntiAttackTable OBJECT-TYPE
+          SYNTAX      SEQUENCE OF HwAntiAttackEntry
+          MAX-ACCESS  not-accessible
+          STATUS      current
+          DESCRIPTION
+              "This table list the information about anti-attack alarm."
+          ::= { hwAntiAttack 1 }
+
+      hwAntiAttackEntry OBJECT-TYPE
+          SYNTAX      HwAntiAttackEntry
+          MAX-ACCESS  not-accessible
+          STATUS      current
+          DESCRIPTION
+              "This table list the information about anti-attack alarm."
+          INDEX  { hwAntiAttackType}
+          ::= { hwAntiAttackTable 1 }
+
+      HwAntiAttackEntry  ::=
+          SEQUENCE{
+              hwAntiAttackType
+                  INTEGER,
+              hwAntiAttackRateThreshold
+                  Integer32,
+              hwAntiAttackCurrentRate
+                  Integer32
+                  }
+
+      hwAntiAttackType OBJECT-TYPE
+          SYNTAX     INTEGER{
+                       abnormal(1),
+                       fragment(2),
+                       tcpSyn(3),
+                       udpFlood(4),
+                       icmpFlood(5)
+                      }
+          MAX-ACCESS read-only
+          STATUS     current
+          DESCRIPTION
+              "The data index of anti-attack, attack type configured in anti-attack alarm."
+          ::= { hwAntiAttackEntry 1 }
+
+      hwAntiAttackRateThreshold OBJECT-TYPE
+          SYNTAX     Integer32
+          MAX-ACCESS read-only
+          STATUS     current
+          DESCRIPTION
+              "The alarm threshold of anti-attack alarm during the processing of pkt-flooding.unit(bps)."
+          ::= { hwAntiAttackEntry 2 }
+
+      hwAntiAttackCurrentRate OBJECT-TYPE
+          SYNTAX     Integer32
+          MAX-ACCESS read-only
+          STATUS     current
+          DESCRIPTION
+              "The current rate of anti-attack alarm. unit(bps)."
+          ::= { hwAntiAttackEntry 3 }
+          
         hwMeSecurityMIBObjects OBJECT IDENTIFIER ::= { hwSecurityMIB 2 }
         
         hwSecurityTrapObject OBJECT IDENTIFIER ::= { hwMeSecurityMIBObjects 1 }
@@ -1282,6 +1617,49 @@
         DESCRIPTION
             "The alarm of dap port changed"
         ::= { hwDapTrapObject 1 }
+
+   hwCfgApTrapObject OBJECT IDENTIFIER ::= { hwSecurityTrapObject 6 }
+
+    hwCfgApUserName OBJECT-TYPE
+        SYNTAX OCTET STRING (SIZE (0..128))
+        MAX-ACCESS accessible-for-notify
+        STATUS current
+        DESCRIPTION
+            "The name of user failed to configure access point."
+        ::= { hwCfgApTrapObject 1 }
+		
+    hwCfgApIPAddress OBJECT-TYPE
+        SYNTAX OCTET STRING (SIZE (0..128))
+        MAX-ACCESS accessible-for-notify
+        STATUS current
+        DESCRIPTION
+            "The IP-address of user failed to configure access point."
+        ::= { hwCfgApTrapObject 2 }
+		
+    hwCfgApApID OBJECT-TYPE
+        SYNTAX Integer32
+        MAX-ACCESS accessible-for-notify
+        STATUS current
+        DESCRIPTION
+            "The ID of access point failed to be configured."
+        ::= { hwCfgApTrapObject 3 }
+		
+	hwCfgApOperation OBJECT-TYPE
+        SYNTAX OCTET STRING (SIZE (0..128))
+        MAX-ACCESS accessible-for-notify
+        STATUS current
+        DESCRIPTION
+            "The operation of confiuration to access point."
+        ::= { hwCfgApTrapObject 4 }
+
+    hwCfgApReason OBJECT-TYPE
+        SYNTAX OCTET STRING (SIZE (0..128))
+        MAX-ACCESS accessible-for-notify
+        STATUS current
+        DESCRIPTION
+            "The reason of failed to configure access point."
+        ::= { hwCfgApTrapObject 5 }
+
         hwSecurityTraps OBJECT IDENTIFIER ::= { hwMeSecurityMIBObjects 2 }
         
         hwStrackTrap OBJECT IDENTIFIER ::= { hwSecurityTraps 1 }
@@ -1536,6 +1914,21 @@
         DESCRIPTION
             "The dap port is changed."
         ::= { hwDapTrap 1 }
+
+        hwCfgApTrap OBJECT IDENTIFIER ::= { hwSecurityTraps 6 }
+
+        hwCfgApTrapFailAlarm NOTIFICATION-TYPE
+            OBJECTS {
+            hwCfgApUserName,
+            hwCfgApIPAddress,
+            hwCfgApApID,
+            hwCfgApOperation,
+            hwCfgApReason }
+        STATUS current
+        DESCRIPTION
+            "The operation failed to config access point."
+        ::= { hwCfgApTrap 1 }
+
     hwTrafficSuppression OBJECT IDENTIFIER ::= { hwMeSecurityMIBObjects 3 }
     hwTrafficSuppressionTable OBJECT-TYPE
         SYNTAX  SEQUENCE OF HwTrafficSuppressionEntry
@@ -1586,7 +1979,8 @@
           MODULE 
               MANDATORY-GROUPS {  hwLocalUrpfObjectGroup, hwTcpIpDefendObjectGroup, hwMaDefendObjectGroup,
                                  hwApplicationApperceiveObjectGroup, hwBaseSecurityNotificationsObjectGroup,
-                                 hwMeSecurityObjectGroup, hwMeSecurityTrapGroup, hwDefdPortVlanObjectGroup, hwSocAttackTrapGroup }
+                                 hwMeSecurityObjectGroup, hwMeSecurityTrapGroup, hwDefdPortVlanObjectGroup, hwSocAttackTrapGroup,
+                                 hwAntiAttackObjectGroup}
           ::= { hwSecurityCompliances 1 }
 
       hwBaseSecurityGroups OBJECT IDENTIFIER ::= { hwSecurityConformance 2 }
@@ -1615,7 +2009,8 @@
               hwTcpIpDefendRateInterval,
 	      hwTcpIpDefendChassisId, 
               hwTcpIpDefendSlotId, 
-              hwTcpIpDefendType
+              hwTcpIpDefendType,
+	      hwTcpIpDefendProtocolDescirption
                  }
           STATUS current       
           DESCRIPTION 
@@ -1647,7 +2042,8 @@
               hwAppliApperRateInterval,
 	      hwAppliApperChassisId, 
               hwAppliApperSlotId,
-              hwAppliApperProtocol
+              hwAppliApperProtocol,
+	      hwAppliApperProtocolDescirption
                  }
           STATUS current       
           DESCRIPTION 
@@ -1666,9 +2062,15 @@
               hwBaseSecurityApplicationApperceiveDiscardedRateResume,
               hwBaseSecurityStormControlInterface                                ,
               hwBaseSocAttackTrap, 
-              hwBaseSocAttackResumeTrap ,     
-              hwBaseSecurityStormControlInterfaceResume
-                 }
+              hwBaseSocAttackResumeTrap,     
+              hwBaseSecurityStormControlInterfaceResume,
+              hwBaseSecurityTtlExpiredLoop,
+              hwBaseSecurityTtlExpiredLoopResume,
+              hwBaseArpVlanCarTrap,
+              hwBaseArpVlanCarResumeTrap,
+              hwBaseSecurityAntiAttackRateRising,
+              hwBaseSecurityAntiAttackRateResume
+              }
           STATUS current       
           DESCRIPTION 
               "Total alarm of protection are resumed."
@@ -1696,8 +2098,13 @@
                 hwIpsgSourceInterface,
                 hwIcmpPacketDropNum,
                 hwIcmpAlarmThreshold,
-            hwIcmpSourceInterface,
-            hwDapPortChange
+                hwIcmpSourceInterface,
+                hwDapPortChange,
+                hwCfgApUserName,
+                hwCfgApIPAddress,
+                hwCfgApApID,
+                hwCfgApOperation,
+                hwCfgApReason
                 }
             STATUS current
             DESCRIPTION 
@@ -1728,7 +2135,8 @@
             hwIpsgDropALarm,
             hwIcmpGlobleDropALarm,
             hwIcmpIfDropALarm,
-            hwDapMibPortChange
+            hwDapMibPortChange,
+            hwCfgApTrapFailAlarm
                 }
             STATUS current
             DESCRIPTION 
@@ -1763,7 +2171,17 @@
 		  DESCRIPTION 
 		  "The alarm parameter of Security Operation Center"
 		  ::= { hwBaseSecurityGroups 11 }
-
+          
+      hwAntiAttackObjectGroup OBJECT-GROUP
+          OBJECTS{
+              hwAntiAttackType,
+              hwAntiAttackRateThreshold,
+              hwAntiAttackCurrentRate
+                  }
+          STATUS current
+          DESCRIPTION
+              "The alarm parameter of anti-attack alarm."
+          ::= { hwBaseSecurityGroups 12 }
 END
 
 --

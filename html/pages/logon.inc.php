@@ -46,7 +46,7 @@
                                       'class'       => 'input-xlarge',
                                       //'width'       => '95%',
                                       'value'       => '');
-if (check_extension_exists('mcrypt'))
+if ($config['login_remember_me'] && check_extension_exists('mcrypt'))
 {
       $form['row'][2]['remember']  = array(
                                       'type'        => 'checkbox',
@@ -64,9 +64,10 @@ if (check_extension_exists('mcrypt'))
       print_form($form);
       unset($form);
 
-if (isset($auth_message))
+if (isset($_SESSION['auth_message']))
 {
-  echo('<div class="controls" style="font-weight: bold; color: #cc0000; padding-top: 25px;">' . escape_html($auth_message) . '</div');
+  echo('<div class="controls" style="text-align: center; font-weight: bold; color: #cc0000; margin-top: 15px;">' . escape_html($_SESSION['auth_message']) . '</div');
+  unset($_SESSION['auth_message']);
 }
 ?>
         </div>
@@ -80,7 +81,7 @@ if (isset($auth_message))
 
 if (isset($config['login_message']))
 {
-  echo('<div class=row><div class="col-md-6 col-md-offset-3"><div style="margin-top: 10px;text-align: center; font-weight: bold; color: #cc0000;">'.$config['login_message'].'</div></div></div>');
+  echo('<div class=row><div class="col-md-6 col-md-offset-3"><div style="margin-top: 10px;text-align: center; font-weight: bold; color: #cc0000;">'.escape_html($config['login_message']).'</div></div></div>');
 }
 ?>
 <script type="text/javascript">

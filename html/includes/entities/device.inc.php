@@ -135,17 +135,17 @@ function print_device_header($device, $args = array())
 
   $type = strtolower($device['os']);
 
-  echo '<div class="box box-solid"><table class=" table table-hover table-condensed '.$args['class'].'" style="vertical-align: middle; margin-bottom: 10px; min-height: 70px; border-radius: 2px;">';
+  echo '<div class="box box-solid"><table class=" table table-hover table-condensed '.$args['class'].'" style="margin-bottom: 10px; min-height: 70px; border-radius: 2px;">';
   echo '
-              <tr class="'.$device['html_row_class'].'" style="vertical-align: middle;">
+              <tr class="'.$device['html_row_class'].' vertical-align">
                <td class="state-marker"></td>
-               <td style="width: 70px; text-align: center; vertical-align: middle;">'.get_device_icon($device).'</td>
-               <td style="vertical-align: middle;"><span style="font-size: 20px;">' . generate_device_link($device) . '</span>
+               <td style="width: 70px; text-align: center;">'.get_device_icon($device).'</td>
+               <td><span style="font-size: 20px;">' . generate_device_link($device) . '</span>
                <br /><a href="'.generate_location_url($device['location']).'">' . escape_html($device['location']) . '</a></td>
                ';
 
 
-  if(device_permitted($device) && !$args['no_graphs'])
+  if (device_permitted($device) && !$args['no_graphs'])
   {
 
     echo '<td>';
@@ -174,6 +174,7 @@ function print_device_header($device, $args = array())
 
     $graph_array['height'] = "45";
     $graph_array['width']  = "150";
+    $graph_array['style']  = array('width: 150px !important'); // Fix for FF issue on HiDPI screen
     $graph_array['bg']     = "FFFFFF00";
 
     // Preprocess device graphs array
@@ -201,7 +202,8 @@ function print_device_header($device, $args = array())
         }
 
         echo '<div class="pull-right" style="padding: 2px; margin: 0;">';
-        echo generate_graph_tag($graph_array);
+        //echo generate_graph_tag($graph_array);
+        echo generate_graph_popup($graph_array);
         echo '<div style="padding: 0px; font-weight: bold; font-size: 7pt; text-align: center;">'.$text.'</div>';
         echo '</div>';
       }
@@ -217,7 +219,7 @@ function print_device_header($device, $args = array())
 </div>');
 }
 
-function print_device_row($device, $vars = array('view' => 'basic'))
+function print_device_row($device, $vars = array('view' => 'basic'), $link_vars = array())
 {
   global $config;
 
@@ -230,14 +232,14 @@ function print_device_row($device, $vars = array('view' => 'basic'))
   $tags = array(
       'html_row_class'  => $device['html_row_class'],
       'device_id'     => $device['device_id'],
-      'device_link'   => generate_device_link($device),
+      'device_link'   => generate_device_link($device, NULL, $link_vars),
       'hardware'      => escape_html($device['hardware']),
       'features'      => escape_html($device['features']),
       'os_text'       => $device['os_text'],
       'version'       => escape_html($device['version']),
       'sysName'       => escape_html($device['sysName']),
       'device_uptime' => deviceUptime($device, 'short'),
-      'location'      => escape_html(truncate($device['location'], 32, ''))
+      'location'      => escape_html(truncate($device['location'], 40, ''))
   );
 
   switch ($vars['view'])
@@ -245,26 +247,27 @@ function print_device_row($device, $vars = array('view' => 'basic'))
     case 'detail':
     case 'details':
       $tags['device_image']  = get_device_icon($device);
-      $tags['ports_count']   = dbFetchCell("SELECT COUNT(*) FROM `ports` WHERE `device_id` = ?;", array($device['device_id']));
+      $tags['ports_count']   = dbFetchCell("SELECT COUNT(*) FROM `ports` WHERE `device_id` = ? AND `deleted` = 0;", array($device['device_id']));
       $tags['sensors_count'] = dbFetchCell("SELECT COUNT(*) FROM `sensors` WHERE `device_id` = ?;", array($device['device_id']));
+      $tags['sensors_count'] += dbFetchCell("SELECT COUNT(*) FROM `status` WHERE `device_id` = ?;", array($device['device_id']));
       $hostbox = '
-  <tr class="'.$tags['html_row_class'].'" onclick="location.href=\'device/device='.$tags['device_id'].'/\'" style="cursor: pointer;">
+  <tr class="'.$tags['html_row_class'].'" onclick="openLink(\'device/device='.$tags['device_id'].'/\')" style="cursor: pointer;">
     <td class="state-marker"></td>
-    <td style="width: 64px; text-align: center; vertical-align: middle;">'.$tags['device_image'].'</td>
+    <td class="text-center vertical-align" style="width: 64px; text-align: center;">'.$tags['device_image'].'</td>
     <td style="width: 300px;"><span class="entity-title">'.$tags['device_link'].'</span><br />'.$tags['location'].'</td>
-    <td style="width: 55px;">';
+    <td class="text-nowrap" style="width: 55px;">';
       if ($tags['ports_count'])
       {
-        $hostbox .= '<i class="oicon-network-ethernet"></i> '.$tags['ports_count'];
+        $hostbox .= '<i class="oicon-network-ethernet"></i> <span class="label">'.$tags['ports_count'].'</span>';
       }
       $hostbox .= '<br />';
       if ($tags['sensors_count'])
       {
-        $hostbox .= '<i class="oicon-dashboard"></i> '.$tags['sensors_count'];
+        $hostbox .= '<i class="oicon-dashboard"></i> <span class="label">'.$tags['sensors_count'].'</span>';
       }
       $hostbox .= '</td>
-    <td>'.$tags['hardware'].'<br />'.$tags['features'].'</td>
-    <td>'.$tags['os_text'].'<br />'.$tags['version'].'</td>
+    <td>'.$tags['os_text'].' '.$tags['version']. (!empty($tags['features']) ? ' ('.$tags['features'].')' : '').'<br />
+        '.$tags['hardware'].'</td>
     <td>'.$tags['device_uptime'].'<br />'.$tags['sysName'].'</td>
   </tr>';
       break;
@@ -284,10 +287,10 @@ function print_device_row($device, $vars = array('view' => 'basic'))
         );
 
         $hostbox = '
-  <tr class="'.$tags['html_row_class'].'" onclick="location.href=\'device/device='.$tags['device_id'].'/tab=perf/\'" style="cursor: pointer;">
+  <tr class="'.$tags['html_row_class'].'" onclick="openLink(\'device/device='.$tags['device_id'].'/tab=perf/\')" style="cursor: pointer;">
     <td class="state-marker"></td>
-    <td style="width: 64px; text-align: center; vertical-align: middle;">'.$tags['device_image'].'</td>
-    <td style="width: 300px; vertical-align: middle;"><span class="entity-title">' . $tags['device_link'] . '</span><br />'.$tags['location'].'</td>
+    <td class="vertical-align" style="width: 64px; text-align: center;">'.$tags['device_image'].'</td>
+    <td class="vertical-align" style="width: 300px;"><span class="entity-title">' . $tags['device_link'] . '</span><br />'.$tags['location'].'</td>
     <td><div class="pull-right" style="height: 100px; padding: 2px; margin: 0;">' . generate_graph_tag($graph_array) . '</div></td>
   </tr>';
       }
@@ -341,9 +344,9 @@ function print_device_row($device, $vars = array('view' => 'basic'))
       }
 
       $hostbox = '
-  <tr class="'.$tags['html_row_class'].'" onclick="location.href=\'device/device='.$tags['device_id'].'/\'" style="cursor: pointer;">
+  <tr class="'.$tags['html_row_class'].'" onclick="openLink(\'device/device='.$tags['device_id'].'/\')" style="cursor: pointer;">
     <td class="state-marker"></td>
-    <td style="width: 64px; text-align: center; vertical-align: middle;">'.$tags['device_image'].'</td>
+    <td class="vertical-align" style="width: 64px; text-align: center;">'.$tags['device_image'].'</td>
     <td style="width: 300px;"><span class="entity-title">'.$tags['device_link'].'</span><br />'.$tags['location'].'</td>
     <td>';
       if ($tags['graphs'])
@@ -356,12 +359,13 @@ function print_device_row($device, $vars = array('view' => 'basic'))
     default: // basic
       $table_cols = 6;
       $tags['device_image']  = get_device_icon($device);
-      $tags['ports_count']   = dbFetchCell("SELECT COUNT(*) FROM `ports` WHERE `device_id` = ?;", array($device['device_id']));
+      $tags['ports_count']   = dbFetchCell("SELECT COUNT(*) FROM `ports` WHERE `device_id` = ? AND `deleted` = 0;", array($device['device_id']));
       $tags['sensors_count'] = dbFetchCell("SELECT COUNT(*) FROM `sensors` WHERE `device_id` = ?;", array($device['device_id']));
+      $tags['sensors_count'] += dbFetchCell("SELECT COUNT(*) FROM `status` WHERE `device_id` = ?;", array($device['device_id']));
       $hostbox = '
-  <tr class="'.$tags['html_row_class'].'" onclick="location.href=\'device/device='.$tags['device_id'].'/\'" style="cursor: pointer;">
+  <tr class="'.$tags['html_row_class'].'" onclick="openLink(\'device/device='.$tags['device_id'].'/\')" style="cursor: pointer;">
     <td class="state-marker"></td>
-    <td style="width: 64px; text-align: center; vertical-align: middle;">'.$tags['device_image'].'</td>
+    <td class="vertical-align" style="width: 64px; text-align: center;">'.$tags['device_image'].'</td>
     <td style="width: 300;"><span class="entity-title">'.$tags['device_link'].'</span><br />'.$tags['location'].'</td>
     <td>'.$tags['hardware'].' '.$tags['features'].'</td>
     <td>'.$tags['os_text'].' '.$tags['version'].'</td>
@@ -494,7 +498,7 @@ function generate_device_popup_header($device, $vars = array())
 <table class="table table-striped table-rounded table-condensed">
   <tr class="' . $device['html_row_class'] . '" style="font-size: 10pt;">
     <td class="state-marker"></td>
-    <td style="width: 64px; text-align: center; vertical-align: middle;">' . get_device_icon($device) . '</td>
+    <td class="vertical-align" style="width: 64px; text-align: center;">' . get_device_icon($device) . '</td>
     <td width="200px"><a href="#" class="' . device_link_class($device) . '" style="font-size: 15px; font-weight: bold;">' . escape_html($device['hostname']) . '</a><br />' . escape_html(truncate($device['location'], 64, '')) . '</td>
     <td>' . escape_html($device['hardware']) . ' <br /> ' . $device['os_text'] . ' ' . escape_html($device['version']) . '</td>
     <td>' . deviceUptime($device, 'short') . '<br />' . escape_html($device['sysName']) . '
@@ -538,7 +542,10 @@ function generate_device_popup($device, $vars = array(), $start = NULL, $end = N
   // Preprocess device graphs array
   foreach ($device['graphs'] as $graph)
   {
-    $graphs_enabled[] = $graph['graph'];
+    if($graph['enabled'] != '0')
+    {
+      $graphs_enabled[] = $graph['graph'];
+    }
   }
 
   foreach ($graphs as $entry)
@@ -567,7 +574,7 @@ function generate_device_popup($device, $vars = array(), $start = NULL, $end = N
 
       $graph_array = array();
       $graph_array['height'] = "100";
-      $graph_array['width']  = "275";
+      $graph_array['width']  = "290";
       $graph_array['to']     = $config['time']['now'];
       $graph_array['device'] = $device['device_id'];
       $graph_array['type']   = $graph;
@@ -617,7 +624,6 @@ function generate_device_link($device, $text = NULL, $vars = array(), $escape = 
   }
 
   $url = generate_device_url($device, $vars);
-  //$link = overlib_link($url, $text, $contents, $class, $escape);
 
   if ($escape)
   {
@@ -625,6 +631,34 @@ function generate_device_link($device, $text = NULL, $vars = array(), $escape = 
   }
 
   return '<a href="' . $url . '" class="entity-popup ' . $class . '" data-eid="' . $device['device_id'] . '" data-etype="device">' . $text . '</a>';
+}
+
+function generate_device_form_values($form_filter = FALSE, $column = 'device_id')
+{
+  global $cache;
+
+  $form_items = array();
+  foreach ($cache['devices']['hostname'] as $hostname => $device_id)
+  {
+    if ($cache['devices']['id'][$device_id]['disabled'] && !$GLOBALS['config']['web_show_disabled']) { continue; }
+    else if (is_array($form_filter) && !in_array($device_id, $form_filter)) { continue; } // Devices only with entries
+  
+    $form_items[$device_id] = array('name' => $hostname, 'group' => 'UP');
+    if ($cache['devices']['id'][$device_id]['disabled'] === '1')
+    {
+      $form_items[$device_id]['group'] = 'DISABLED';
+    }
+    else if ($cache['devices']['id'][$device_id]['status'] === '0')
+    {
+      $form_items[$device_id]['group'] = 'DOWN';
+    }
+    if (isset($cache['devices']['id'][$device_id]['row_class'][0]))
+    {
+      // Set background color for non empty row_class (disabled/down/ignored)
+      $form_items[$device_id]['class'] = 'bg-' . $cache['devices']['id'][$device_id]['row_class'];
+    }
+  }
+  return $form_items;
 }
 
 // EOF

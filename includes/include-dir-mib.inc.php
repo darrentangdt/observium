@@ -31,8 +31,13 @@ if (isset($config['os'][$device['os']]['detect']) && $config['os'][$device['os']
 // This is an include so that we don't lose variable scope.
 
 $include_lib = isset($include_lib) && $include_lib;
+if (!isset($include_order))
+{
+  // Order for include MIBs definitions, default: 'model,os,group,default'
+  $include_order = NULL;
+}
 
-foreach (get_device_mibs($device) as $mib)
+foreach (get_device_mibs($device, TRUE, $include_order) as $mib)
 {
   $inc_dir  = $config['install_dir'] . '/' . $include_dir . '/' . strtolower($mib);
   $inc_file = $inc_dir . '.inc.php';
@@ -41,8 +46,7 @@ foreach (get_device_mibs($device) as $mib)
   {
     if (is_file($inc_file))
     {
-      if (OBS_DEBUG) { echo("[[$mib]]"); }
-
+      echo("$mib ");
       include($inc_file);
 
       if ($include_lib && is_file($inc_dir . '.lib.php'))
@@ -70,6 +74,6 @@ foreach (get_device_mibs($device) as $mib)
   }
 }
 
-unset($include_dir, $include_lib, $inc_file, $inc_dir, $dir_file, $mib);
+unset($include_dir, $include_lib, $include_order, $inc_file, $inc_dir, $dir_file, $mib);
 
 // EOF

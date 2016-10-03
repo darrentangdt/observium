@@ -28,7 +28,7 @@ $where_array = build_devices_where_array($vars);
 $where = ' WHERE 1 ';
 $where .= implode('', $where_array);
 
-$page_title[] = "Devices";
+register_html_title("Devices");
 
 foreach ($config['device_types'] as $entry)
 {
@@ -56,9 +56,14 @@ foreach (array('os', 'hardware', 'version', 'features', 'type') as $entry)
     {
       $name = $config['os'][$item]['text'];
     }
-    else if ($entry == 'type' && isset($types[$item]))
+    else if ($entry == 'type')
     {
-      $name = array('name' => $types[$item]['text'], 'icon' => $types[$item]['icon']);
+      if (isset($types[$item]))
+      {
+        $name = array('name' => $types[$item]['text'], 'icon' => $types[$item]['icon']);
+      } else {
+        $name = array('name' => nicecase($item),       'icon' => 'oicon-exclamation-white');
+      }
     } else {
       $name = nicecase($item);
     }
@@ -80,12 +85,12 @@ foreach (get_type_groups('device') as $entry)
 }
 
 $form_items['sort'] = array('hostname' => 'Hostname',
-                              'location' => 'Location',
-                              'os'       => 'Operating System',
-                              'version'  => 'Version',
-                              'features' => 'Featureset',
-                              'type'     => 'Device Type',
-                              'uptime'   => 'Uptime');
+                            'location' => 'Location',
+                            'os'       => 'Operating System',
+                            'version'  => 'Version',
+                            'features' => 'Featureset',
+                            'type'     => 'Device Type',
+                            'uptime'   => 'Uptime');
 
 $form = array('type'  => 'rows',
               'space' => '10px',
@@ -171,11 +176,6 @@ $form['row'][1]['search']   = array(
                                 'right'       => TRUE,
                                 );
 
-?>
-<div class="row">
-<div class="col-xl-4 visible-xl">
-<?php
-
 $panel_form = array('type'          => 'rows',
                     'title'         => 'Search Devices',
                     'space'         => '10px',
@@ -200,14 +200,9 @@ $panel_form['row'][4]['type']          = $form['row'][1]['type'];
 $panel_form['row'][5]['sort']          = $form['row'][0]['sort'];
 $panel_form['row'][5]['search']        = $form['row'][1]['search'];
 
-print_form($panel_form);
+// Register custom panel
+register_html_panel(generate_form($panel_form));
 
-?>
-</div>
-
-<div class="col-xl-8">
-
-<?php
 
 if ($vars['searchbar'] != "hide")
 {
@@ -299,6 +294,13 @@ foreach (array('graphs') as $type)
   }
 }
 
+if (isset($vars['pagination']) && (!$vars['pagination'] || $vars['pagination'] == 'no'))
+{
+  $navbar['options_right']['pagination']     = array('text' => 'Enable Pagination', 'url' => generate_url($vars, array('pagination' => NULL)));
+} else {
+  $navbar['options_right']['pagination']     = array('text' => 'Disable Pagination' , 'url' => generate_url($vars, array('pagination' => '0', 'pageno' => NULL, 'pagesize' => NULL)));
+}
+
 if ($vars['searchbar'] == "hide")
 {
   $navbar['options_right']['searchbar']     = array('text' => 'Show Search', 'url' => generate_url($vars, array('searchbar' => NULL)));
@@ -322,19 +324,38 @@ unset($navbar);
 
 if ($vars['format'] == 'graphs')
 {
-  $search = array();
-  $search[] = array('type'    => 'datetime',
-                    'id'      => 'timestamp',
-                    'presets' => TRUE,
-                    'min'     => '2007-04-03 16:06:59',  // Hehe, who will guess what this date/time means? --mike
-                                                         // First commit! Though Observium was already 7 months old by that point. --adama
-                    'max'     => date('Y-m-d 23:59:59'), // Today
-                    'from'    => date('Y-m-d H:i:s', $vars['from']),
-                    'to'      => date('Y-m-d H:i:s', $vars['to']));
+  $form = array('type'          => 'rows',
+                'space'         => '5px',
+                'submit_by_key' => TRUE); //Do not use url here, because it discards all other vars from url
 
-  print_search($search, NULL, 'update'); //Do not use url here, because it discards all other vars from url
-  unset($search);
+  // Datetime Field
+  $form['row'][0]['timestamp'] = array(
+                              'type'        => 'datetime',
+                              'grid'        => 10,
+                              'grid_xs'     => 10,
+                              //'width'       => '70%',
+                              //'div_class'   => 'col-lg-10 col-md-10 col-sm-10 col-xs-10',
+                              'presets'     => TRUE,
+                              'min'         => '2007-04-03 16:06:59',  // Hehe, who will guess what this date/time means? --mike
+                                                                       // First commit! Though Observium was already 7 months old by that point. --adama
+                              'max'         => date('Y-m-d 23:59:59'), // Today
+                              'from'        => date('Y-m-d H:i:s', $vars['from']),
+                              'to'          => date('Y-m-d H:i:s', $vars['to']));
+  // Update button
+  $form['row'][0]['update']   = array(
+                              'type'        => 'submit',
+                              //'name'        => 'Search',
+                              //'icon'        => 'icon-search',
+                              //'div_class'   => 'col-lg-2 col-md-2 col-sm-2 col-xs-2',
+                              'grid'        => 2,
+                              'grid_xs'     => 2,
+                              'right'       => TRUE);
+
+  print_form($form);
+  unset($form);
 }
+
+$count = dbFetchCell("SELECT COUNT(*) FROM `devices` ".$where.$query_permitted);
 
 $sort = build_devices_sort($vars);
 
@@ -345,6 +366,17 @@ if ($config['geocoding']['enable'])
 }
 $query .= $where . $query_permitted . $sort;
 
+// Pagination
+$pagination_html = '';
+if (isset($vars['pagination']) && (!$vars['pagination'] || $vars['pagination'] == 'no')) {} // Skip if pagination set to false
+else if ($count)
+{
+  pagination($vars, 0, TRUE); // Get default pagesize/pageno
+  $start = $vars['pagesize'] * $vars['pageno'] - $vars['pagesize'];
+  $query .= 'LIMIT '.$start.','.$vars['pagesize'];
+  $pagination_html = pagination($vars, $count);
+}
+
 list($format, $subformat) = explode("_", $vars['format'], 2);
 
 $devices = dbFetchRows($query);
@@ -354,7 +386,19 @@ if (count($devices))
   $include_file = $config['html_dir'].'/pages/devices/'.$format.'.inc.php';
   if (is_file($include_file))
   {
+    echo $pagination_html;
+    if ($format != 'graphs')
+    {
+      echo generate_box_open();
+    }
+
     include($include_file);
+
+    if ($vars['format'] != 'graphs')
+    {
+      echo generate_box_close();
+    }
+    echo $pagination_html;
   } else {
     print_error("<h4>Error</h4>
                  This should not happen. Please ensure you are on the latest release and then report this to the Observium developers if it continues.");
@@ -364,8 +408,5 @@ if (count($devices))
                Please try adjusting your search parameters.");
 }
 
-echo '</div>';
-
-echo '</div>';
 
 // EOF

@@ -16,6 +16,6 @@ $rrd_filename = get_rrd_path($device, "netapp_stats.rrd");
 $ds_in = "net_rx";
 $ds_out = "net_tx";
 
-include("includes/graphs/generic_data.inc.php");
+include($config['html_dir']."/includes/graphs/generic_data.inc.php");
 
 ?>

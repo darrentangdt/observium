@@ -11,18 +11,16 @@
  *
  */
 
-echo(" ISPRO-MIB ");
-
-$oids = snmpwalk_cache_oid($device, "isDeviceConfigTable", array(), "ISPRO-MIB", mib_dirs('jacarta'));
-$oids = snmpwalk_cache_oid($device, "isDeviceMonitorTemperatureTable", $oids, "ISPRO-MIB", mib_dirs('jacarta'));
-$oids = snmpwalk_cache_oid($device, "isDeviceConfigTemperatureTable", $oids, "ISPRO-MIB", mib_dirs('jacarta'));
-$oids = snmpwalk_cache_oid($device, "isDeviceMonitorHumidityTable", $oids, "ISPRO-MIB", mib_dirs('jacarta'));
-$oids = snmpwalk_cache_oid($device, "isDeviceConfigHumidityTable", $oids, "ISPRO-MIB", mib_dirs('jacarta'));
-$oids = snmpwalk_cache_oid($device, "isDeviceMonitorDigitalInTable", $oids, "ISPRO-MIB", mib_dirs('jacarta'));
-$oids = snmpwalk_cache_oid($device, "isDeviceConfigDigitalInTable", $oids, "ISPRO-MIB", mib_dirs('jacarta'));
+$oids = snmpwalk_cache_oid($device, 'isDeviceConfigTable', array(), 'ISPRO-MIB');
+$oids = snmpwalk_cache_oid($device, 'isDeviceMonitorTemperatureTable', $oids, 'ISPRO-MIB');
+$oids = snmpwalk_cache_oid($device, 'isDeviceConfigTemperatureTable', $oids, 'ISPRO-MIB');
+$oids = snmpwalk_cache_oid($device, 'isDeviceMonitorHumidityTable', $oids, 'ISPRO-MIB');
+$oids = snmpwalk_cache_oid($device, 'isDeviceConfigHumidityTable', $oids, 'ISPRO-MIB');
+$oids = snmpwalk_cache_oid($device, 'isDeviceMonitorDigitalInTable', $oids, 'ISPRO-MIB');
+$oids = snmpwalk_cache_oid($device, 'isDeviceConfigDigitalInTable', $oids, 'ISPRO-MIB');
 
 // isConfigTemperatureUnit.0 = INTEGER: celsius(1)
-$isConfigTemperatureUnit = snmp_get($device, "isConfigTemperatureUnit.0", "-Oqv", "ISPRO-MIB", mib_dirs('jacarta'));
+$isConfigTemperatureUnit = snmp_get($device, 'isConfigTemperatureUnit.0', '-Oqv', 'ISPRO-MIB');
 
 foreach ($oids as $index => $entry)
 {
@@ -59,11 +57,6 @@ foreach ($oids as $index => $entry)
     if ($isConfigTemperatureUnit == 'fahrenheit')
     {
       $options['sensor_unit'] = 'F';
-
-      foreach (array('limit_high', 'limit_low', 'limit_high_warn', 'limit_low_warn') as $param)
-      {
-        $options[$param] = f2c($options[$param]); // Convert limits from fahrenheit to celsius
-      }
     } else {
       $options['sensor_unit'] = 'C';
     }
@@ -139,8 +132,8 @@ foreach ($oids as $index => $entry)
   }
 }
 
-$oids = snmpwalk_cache_oid($device, "isDeviceMonitorDigitalInTable", array(), "ISPRO-MIB", mib_dirs('jacarta'));
-$oids = snmpwalk_cache_oid($device, "isDeviceConfigDigitalInTable", $oids, "ISPRO-MIB", mib_dirs('jacarta'));
+$oids = snmpwalk_cache_oid($device, 'isDeviceMonitorDigitalInTable', array(), 'ISPRO-MIB');
+$oids = snmpwalk_cache_oid($device, 'isDeviceConfigDigitalInTable', $oids, 'ISPRO-MIB');
 
 foreach ($oids as $index => $entry)
 {

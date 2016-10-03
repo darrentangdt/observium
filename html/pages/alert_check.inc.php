@@ -22,13 +22,13 @@ include($config['html_dir']."/includes/alerting-navbar.inc.php");
 
 $check = dbFetchRow("SELECT * FROM `alert_tests` WHERE `alert_test_id` = ?", array($vars['alert_test_id']));
 
-if ($_SESSION['userlevel'] == 10 && $vars['submit'])
+if ($_SESSION['userlevel'] >= 10 && $vars['submit'])
 {
   // We are editing. Lets see what we are editing.
   if ($vars['submit'] == "check_conditions")
   {
     $conds = array(); $cond_array = array();
-    foreach (explode("\n", $vars['check_conditions']) AS $cond)
+    foreach (explode("\n", trim($vars['check_conditions'])) AS $cond)
     {
       list($cond_array['metric'], $cond_array['condition'], $cond_array['value']) = explode(" ", trim($cond), 3);
       $conds[] = $cond_array;
@@ -118,91 +118,40 @@ humanize_alert_check($check);
   <div class="col-md-12">
 
 <?php
-  $box_args = array('title' => 'Checker Details',
-                    'header-border' => TRUE,
-                   );
-
-  if ($_SESSION['userlevel'] == '10')
-  {
-    $box_args['header-controls'] = array('controls' => array('edit'   => array('text' => 'Edit',
-                                                                               'icon' => 'icon-edit',
-                                                                               'url'  => '#edit_alert_modal',
-                                                                               'data' => 'data-toggle="modal"'),
-                                                             'delete' => array('text' => 'Delete',
-                                                                               'icon' => 'icon-trash',
-                                                                               'url'  => '#delete_alert_modal',
-                                                                               'data' => 'data-toggle="modal"')));
-  }
 
   echo generate_box_open($box_args);
 
- #if ($_SESSION['userlevel'] >= '10') { echo '      <div class="title pull-right"><a href="'.generate_url($vars, array('edit' => "TRUE")).'"><i class="oicon-gear"></i> Edit</a></div>'; }
+  $contacts = dbFetchRows("SELECT * FROM `alert_contacts_assoc` LEFT JOIN `alert_contacts` ON `alert_contacts`.`contact_id` = `alert_contacts_assoc`.`contact_id` WHERE `aca_type` = 'alert' AND `alert_checker_id` = ?", array($vars['alert_test_id']));
 
   echo('
         <table class="' . OBS_CLASS_TABLE_STRIPED . '">
          <thead>
           <tr>
-            <th style="width: 5%;">Test ID</th>
-            <th style="width: 15%;">Entity Type</th>
-            <th style="width: 20%;">Name</th>
-            <th style="width: 45%;">Message</th>
-            <th style="width: 5%;">Options</th>
-            <th style="width: 5%;">Delay</th>
-            <th style="width: 10%;">Status</th>
+            <!--<th style="width: 5%;">Test ID</th>-->
+            <th style="width: 15%;">Name / Type</th>
+            <th style="width: 40%;">Message</th>
+            <th style="width: 5%;">Test</th>
+            <th style="width: 25%;">Test Conditions</th>
+            <th style="width: 7%;">Options</th>
+            <th style="width: 10%;">Status / Contacts</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>' . $check['alert_test_id'] . '</td>
-            <td><i class="' . $config['entities'][$check['entity_type']]['icon'] . '"></i> ' . nicecase($check['entity_type']) . '</td>
-            <td>' . escape_html($check['alert_name']) . '</td>
-            <td><i>' . escape_html($check['alert_message']) . '</i></td>
+            <!--<td>' . $check['alert_test_id'] . '</td>-->
+            <td><b>' . escape_html($check['alert_name']) . '</b><br />
+                <i class="' . $config['entities'][$check['entity_type']]['icon'] . '"></i> ' . nicecase($check['entity_type']) . '</td>
+            <td><i><small>' . escape_html($check['alert_message']) . '</small></i></td>
             <td>');
-  if ($check['suppress_recovery'])
-  {
-    echo('<div style="text-decoration: line-through" title="Recovery notification suppressed">R</div>');
-  }
-  echo('</td>
-            <td>' . $check['delay'] . '</td>
-            <td><i>' . $check['status_numbers'] . '</i></td>
-          </tr>
-        </tbody></table>' . PHP_EOL);
 
-  echo generate_box_close();
-  echo('
-  </div>
-</div>');
-
-  $assocs = dbFetchRows("SELECT * FROM `alert_assoc` WHERE `alert_test_id` = ?", array($vars['alert_test_id']));
-
-?>
-<div class="row">
-  <div class="col-md-4">
-<?php
-
-  $box_args = array('title' => 'Check Conditions',
-                    'header-border' => TRUE,
-                   );
-
-  if ($_SESSION['userlevel'] == '10')
-  {
-    $box_args['header-controls'] = array('controls' => array('edit'   => array('text' => 'Edit',
-                                                                               'icon' => 'icon-edit',
-                                                                               'url'  => '#conditions_modal',
-                                                                               'data' => 'data-toggle="modal"')));
-  }
-
-  echo generate_box_open($box_args);
-
-  echo '<table class="' . OBS_CLASS_TABLE_STRIPED . '">
-        <thead><th>';
   if ($check['and'] == "1")
   {
-    echo('Requires <strong>ALL</strong> conditions to match:');
+    echo('<span class="label label-primary">ALL</span>');
   } else {
-    echo('Requires <strong>ANY</strong> condition to match:');
+    echo('<span class="label">ANY</span>');
   }
-  echo '</tr></thead>';
+
+  echo '</td>';
 
   $conditions = json_decode($check['conditions'], TRUE);
 
@@ -212,16 +161,92 @@ humanize_alert_check($check);
     $condition_text_block[] = escape_html($condition['metric'].' '.$condition['condition'].' '.$condition['value']);
   }
 
-  echo '<tr><td>';
+  echo '<td>';
   echo '<code>'.implode($condition_text_block,'<br />').'</code>' ;
-  echo '</td></tr>';
-  echo '</table>';
+  echo '</td>';
+
+
+  echo('
+            <td>');
+
+  if ($check['suppress_recovery'] || TRUE)
+  {
+    echo('<span class="label label-suppressed" title="Recovery notification suppressed">No Recovery</span><br />');
+  }
+
+  if ($check['delay'] > 0 || TRUE)
+  {
+    echo '<span class="label label-delayed">Delay '.$check['delay'].'</span><br />';
+  }
+
+  echo '
+            </td>
+            <td><i>' . $check['status_numbers'] . '</i><br />';
+
+  if(count($contacts))
+  {
+    $content = "";
+    foreach($contacts as $contact) { $content .= '<span class="label">'.$contact['contact_method'].'</span> '.$contact['contact_descr'].'<br />'; }
+    echo generate_tooltip_link('', '<span class="label label-success">'.count($contacts).' Notifiers</span>', $content);
+  } else {
+    echo '<span class="label label-primary">Default Notifier</span>';
+  }
+
+
+  echo '</td>
+          </tr>
+        </tbody></table>' . PHP_EOL;
+
 
   echo generate_box_close();
-?>
-
+  echo('
   </div>
+</div>');
 
+
+  // Build group-specific navbar
+
+  $navbar = array('brand' => escape_html($check['alert_name']), 'class' => "navbar-narrow");
+
+  $navbar['options']['entries']     = array('text' => 'Alert Entries');
+  $navbar['options']['details']     = array('text' => 'Alert Details');
+
+
+  if ($_SESSION['userlevel'] == '10')
+  {
+    $navbar['options_right']['edit_test']     = array('text' => 'Edit Conditions', 'icon' => 'oicon-wrench', 'url' => '#edit_conditions_modal', 'link_opts' => 'data-toggle="modal"');
+    $navbar['options_right']['edit_alert'] = array('text' => 'Edit Alert', 'icon' => 'oicon-gear', 'url' => '#edit_alert_modal', 'link_opts' => 'data-toggle="modal"');
+    $navbar['options_right']['delete']     = array('text' => 'Delete', 'icon' => 'oicon-minus-circle-frame', 'url' => '#delete_alert_modal', 'link_opts' => 'data-toggle="modal"');
+  }
+
+  foreach ($navbar['options'] as $option => $array)
+  {
+    if (!isset($vars['view'])) { $vars['view'] = $option; }
+    if ($vars['view'] == $option) { $navbar['options'][$option]['class'] .= " active"; }
+    $navbar['options'][$option]['url'] = generate_url($page_array, array('view' => $option));
+  }
+
+  $page_array = array('page' => 'alert_check', 'alert_test_id' => $check['alert_test_id']);
+
+  foreach ($navbar['options'] as $option => $array)
+  {
+    if (!isset($vars['view'])) { $vars['view'] = $option; }
+    if ($vars['view'] == $option) { $navbar['options'][$option]['class'] .= " active"; }
+    $navbar['options'][$option]['url'] = generate_url($page_array, array('view' => $option));
+  }
+
+  print_navbar($navbar);
+  unset($navbar);
+
+
+if($vars['view'] == "details")
+{
+
+
+  $assocs = dbFetchRows("SELECT * FROM `alert_assoc` WHERE `alert_test_id` = ?", array($vars['alert_test_id']));
+
+?>
+<div class="row">
   <div class="col-md-8">
 
 <?php
@@ -293,7 +318,7 @@ foreach ($assocs as $assoc_id => $assoc)
   echo '</code></td>';
   echo '<td style="text-align: right;">';
 
-  if ($_SESSION['userlevel'] == 10)
+  if ($_SESSION['userlevel'] >= 10)
   {
     echo '<a href="#assoc_edit_modal_' . $assoc['alert_assoc_id'] . '" data-toggle="modal"><i class="icon-cog text-muted"></i></a>&nbsp;
           <a href="#assoc_del_modal_' . $assoc['alert_assoc_id'] . '" data-toggle="modal"><i class="icon-trash text-danger"></i></a>';
@@ -304,11 +329,11 @@ foreach ($assocs as $assoc_id => $assoc)
 
 $modals .= '
 <div id="assoc_del_modal_'.$assoc['alert_assoc_id'].'" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="delete_alert" aria-hidden="true">
- <form id="edit" name="edit" method="post" class="form" action="">
+ <form id="edit" name="edit" method="post" class="form form-horizontal" action="">
   <input type="hidden" name="assoc_id" value="'. $assoc['alert_assoc_id'].'">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="myModalLabel"><i class="oicon-minus-circle"></i> Delete Assocation Rule '.$assoc['alert_assoc_id'].'</h3>
+    <h3 id="myModalLabel">Delete Assocation Rule '.$assoc['alert_assoc_id'].'</h3>
   </div>
   <div class="modal-body">
 
@@ -388,41 +413,149 @@ $modals .= '
 echo('</table>');
 
 echo generate_box_close();
+?>
 
-echo('
   </div>
-</div>');
 
-echo $modals;
+  <div class="col-md-4">
+<?php
+
+  $box_args = array('title' => 'Contacts',
+                    'header-border' => TRUE,
+                   );
+
+  if ($_SESSION['userlevel'] == '10')
+  {
+    $box_args['header-controls'] = array('controls' => array('all'    => array('text' => 'Add All',
+                                                                               'icon' => 'icon-plus',
+                                                                               'url'  => '',
+                                                                               'data' => ''),
+                                                              'clear' => array('text' => 'Remove All',
+                                                                               'icon' => 'icon-remove',
+                                                                               'url'  => '',
+                                                                               'data' => '')));
+  }
+
+  echo generate_box_open($box_args);
+
+  echo '<table class="' . OBS_CLASS_TABLE_STRIPED . '">';
+
+  if(count($contacts))
+  {
+
+    echo '
+  <thead><tr>
+    <th style="width: 25%;">Transport</th>
+    <th style="">Contact Description</th>
+    <th style="width: 30px;"></th>
+  </tr></thead>
+  <tbody>';
+
+    foreach($contacts AS $contact)
+    {
+
+      $c_exist[$contact['contact_id']] = TRUE;
+
+      echo '
+    <tr>
+      <td><span class="label">'.$contact['contact_method'].'</span></td>
+      <td>'.$contact['contact_descr'].'</td>
+      <td><a href="#assoc_del_modal_' . $assoc['alert_assoc_id'] . '" data-toggle="modal"><i class="icon-trash text-danger"></i></a></td>
+    </tr>';
+
+    }
+
+    echo '</tbody>';
+
+  } else {
+
+    echo '<tr class="info">
+                <td style="padding:5px; text-align: center; color: #555;"><i><small>This alert check is not assigned to any contacts</i></td>
+          </tr>';
+
+  }
+  echo '</table>';
+
+  $all_contacts = dbFetchRows('SELECT * FROM `alert_contacts` ORDER BY `contact_method`, `contact_descr`');
+
+  if (count($all_contacts))
+  {
+    $form = '<form method="post" action="" class="form form-inline pull-right" style="margin: 5px;">';
+
+    $form .= generate_form_element(array('id' => 'type', 'value' => 'alert_checker'), 'hidden');
+
+    $item = array('id'          => 'contact_id',
+                  'live-search' => FALSE,
+                  'width'       => '220px',
+                  'readonly'    => $readonly);
+
+    foreach ($all_contacts as $contact)
+    {
+      if (!isset($c_exist[$contact['contact_id']]))
+      {
+        $item['values'][$contact['contact_id']] = array('name'  => escape_html($contact['contact_descr']),
+                                                        'subtext' => escape_html($contact['contact_method']));
+      }
+    }
+
+    $form .= generate_form_element($item, 'select');
+
+    $item = array('id'          => 'submit',
+                  'name'        => 'Associate',
+                  'class'       => 'btn-primary',
+                  'icon'        => 'icon-plus',
+                  'readonly'    => $readonly,
+                  'value'       => 'associate_alert_check');
+
+    $form .= generate_form_element($item, 'submit');
+
+    $form .= '</form>';
+
+    $box_close['footer_content'] = $form;
+    $box_close['footer_nopadding'] = TRUE;
+  } else {
+    // print_warning('No unassociated alert checkers.');
+  }
+
+  echo generate_box_close($box_close);
+
+  echo '
+  </div>
+
+</div>';
+
+} elseif ($vars['view'] == 'entries') {
 
 echo '
 <div class="row" style="margin-top: 10px;">
   <div class="col-md-12">';
 
-  if ($vars['view'] == 'alert_log')
-  {
-    print_alert_log($vars);
-  } else {
-    $vars['pagination'] = TRUE;
-    print_alert_table($vars);
-  }
+if ($vars['view'] == 'alert_log')
+{
+  print_alert_log($vars);
+} else {
+  $vars['pagination'] = TRUE;
+  print_alert_table($vars);
+}
 
 echo '
-
   </div>
 </div>';
 
+}
+
+echo $modals;
+
+
+if ($_SESSION['userlevel'] >= 10)
+{
 ?>
 
-<?php
-if ($_SESSION['userlevel'] == 10) {
-?>
-
-<div id="conditions_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div id="edit_conditions_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
  <form id="edit" name="edit" method="post" class="form" action="">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="myModalLabel"><i class="oicon-traffic-light"></i> Edit Check Conditions</h3>
+    <h3 id="myModalLabel">Edit Check Conditions</h3>
   </div>
   <div class="modal-body">
   <span class="help-block">Please exercise care when editing here.</span>
@@ -455,7 +588,7 @@ if ($_SESSION['userlevel'] == 10) {
   <input type="hidden" name="alert_test_id" value="<?php echo($check['alert_test_id']); ?>" />
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="myModalLabel"><i class="oicon-minus-circle"></i> Delete Alert Checker <?php echo($check['alert_test_id']); ?></h3>
+    <h3 id="myModalLabel">Delete Alert Checker <?php echo($check['alert_test_id']); ?></h3>
   </div>
   <div class="modal-body">
 

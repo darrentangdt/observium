@@ -11,14 +11,12 @@
  *
  */
 
-//CISCO-LWAPP-SYS-MIB::clsSysMaxClients.0 = Gauge32: 7000
-//CISCO-LWAPP-SYS-MIB::clsMaxClientsCount.0 = Gauge32: 53
-//CISCO-LWAPP-SYS-MIB::clsSysApConnectCount.0 = Gauge32: 22
-$mib = 'CISCO-LWAPP-SYS-MIB';
-echo(" $mib ");
+// CISCO-LWAPP-SYS-MIB::clsSysMaxClients.0 = Gauge32: 7000
+// CISCO-LWAPP-SYS-MIB::clsMaxClientsCount.0 = Gauge32: 53
+// CISCO-LWAPP-SYS-MIB::clsSysApConnectCount.0 = Gauge32: 22
 
-//$wificlients1 = snmp_get($device, "clsSysApConnectCount.0", "-OUqnv", $mib); // This is AP count
-$wificlients1 = snmp_get($device, "clsMaxClientsCount.0", "-OUqnv", $mib);
+//$wificlients1 = snmp_get($device, 'clsSysApConnectCount.0', '-OUqnv', 'CISCO-LWAPP-SYS-MIB'); // This is AP count
+$wificlients1 = snmp_get($device, 'clsMaxClientsCount.0', '-OUqnv', 'CISCO-LWAPP-SYS-MIB');
 
 if (!is_numeric($wificlients1))
 {

@@ -12,7 +12,6 @@
  */
 
 $mib = 'SOCOMECUPS-MIB';
-echo(" $mib ");
 
 $scale  = 0.1;
 $limits = array('limit_low' => 0);

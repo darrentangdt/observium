@@ -11,14 +11,12 @@
  *
  */
 
-echo(" GUDEADS-EPC8X-MIB ");
-
 // GUDEADS-EPC8X-MIB::epc8TempSensor.1 = INTEGER: -9999 10th of degree Celsius
 // GUDEADS-EPC8X-MIB::epc8TempSensor.2 = INTEGER: -9999 10th of degree Celsius
 // GUDEADS-EPC8X-MIB::epc8HygroSensor.1 = INTEGER: -9999 10th of percentage humidity
 // GUDEADS-EPC8X-MIB::epc8HygroSensor.2 = INTEGER: -9999 10th of percentage humidity
 
-$cache['epc8x'] = snmpwalk_cache_multi_oid($device, "epc8SensorTable", array(), "GUDEADS-EPC8X-MIB", mib_dirs('gude'));
+$cache['epc8x'] = snmpwalk_cache_multi_oid($device, 'epc8SensorTable', array(), 'GUDEADS-EPC8X-MIB');
 
 $scale = 0.1;
 foreach ($cache['epc8x'] as $index => $entry)
@@ -44,9 +42,9 @@ foreach ($cache['epc8x'] as $index => $entry)
 
 // GUDEADS-EPC8X-MIB::epc8Irms.0 = INTEGER: 3121 mA
 
-$oid   = ".1.3.6.1.4.1.28507.1.1.3.1.0";
-$descr = "Output";
-$value = snmp_get($device, "epc8Irms.0","-Oqv", "GUDEADS-EPC8X-MIB", mib_dirs('gude'));
+$oid   = '.1.3.6.1.4.1.28507.1.1.3.1.0';
+$descr = 'Output';
+$value = snmp_get($device, 'epc8Irms.0','-Oqv', 'GUDEADS-EPC8X-MIB');
 $scale = 0.001;
 
 if ($value != '' && $value != -9999)

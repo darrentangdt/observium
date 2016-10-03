@@ -12,20 +12,18 @@
 
 // First attempt at wlan polling. Could do with some improvement perhaps
 
-echo(" RUCKUS-WLAN-MIB ");
-
 // Getting WLANs
 
 // Entries in this table are indexed by ifIndex.
 
-$wlan_table = snmpwalk_cache_oid($device, "RuckusWLANTable", array(), "RUCKUS-WLAN-MIB", mib_dirs('ruckus'));
+$wlan_table = snmpwalk_cache_oid($device, 'RuckusWLANTable', array(), 'RUCKUS-WLAN-MIB');
 
 if (OBS_DEBUG > 1) { print_vars($wlan_table); }
 
 // Goes through the SNMP wlan data
 foreach ($wlan_table as $wlan_ifIndex => $wlan)
 {
-  $wlan['wlan_mib']           = "RUCKUS-WLAN-MIB";
+  $wlan['wlan_mib']           = 'RUCKUS-WLAN-MIB';
   $wlan['wlan_index']         = $wlan_ifIndex;                                // Interface index.
   $wlan['wlan_vlan_id']       = $wlan['ruckusWLANVlanID'];                      // Specifies the VLAN ID of the WLAN.  If VLAN ID is 1, packets from this WLAN will be untagged.
   $wlan['wlan_name']          = $wlan['ruckusWLANName'];                    // Name of the WLAN
@@ -36,7 +34,7 @@ foreach ($wlan_table as $wlan_ifIndex => $wlan)
   $wlan['wlan_channel']       = $wlan['ruckusWLANChannel'];                 // Specifies the current operating channel.
   $wlan['wlan_radio_mode']    = $wlan['ruckusWLANRadioMode'];               // Specifies the radio mode. ieee802dot11b(1), ieee802dot11g(2), auto(3), ieee802dot11a(4), ieee802dot11ng(5), ieee802dot11na(6), ieee802dot11ac(7)
   //$wlan['wlan_admin_status'] = $wlan['ruckusWLANAdminStatus'];             // Administrative status of the WLAN interface. up(1), down(2)
-  if ($wlan['ruckusWLANAdminStatus'] == 'down') { $wlan['wlan_admin_status']  = "0"; } else { $wlan['wlan_admin_status'] = "1"; }
+  if ($wlan['ruckusWLANAdminStatus'] == 'down') { $wlan['wlan_admin_status']  = 0; } else { $wlan['wlan_admin_status'] = 1; }
   $wlan['wlan_beacon_period'] = $wlan['ruckusWLANBeaconPeriod'];            // The number of milliseconds that a station will use for scheduling Beacon transmissions.
   $wlan['wlan_dtim_period']   = $wlan['ruckusWLANDTIMPeriod'];              // The number of TU that a station will use for scheduling Beacon transmissions.
   $wlan['wlan_frag_thresh']   = $wlan['ruckusWLANFragmentationThreshold'];  // The current maximum size, in octets, of the MPDU that may be delivered to the PHY.
@@ -51,3 +49,5 @@ foreach ($wlan_table as $wlan_ifIndex => $wlan)
 }
 
 unset($wlans_snmp);
+
+// EOF

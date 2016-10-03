@@ -18,7 +18,9 @@
 {{ALERT_STATE}}
 {{ALERT_MESSAGE}}
 ------------------------------------
+{{#ENTITY_NAME}}
 Entity:      {{ENTITY_NAME}}
+{{/ENTITY_NAME}}
 {{#ENTITY_DESCRIPTION}}
 Description: {{ENTITY_DESCRIPTION}}
 {{/ENTITY_DESCRIPTION}}

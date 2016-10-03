@@ -11,8 +11,8 @@
  *
  */
 
-$app_graphs['default'] = array('postfix_sent' => 'Postfix - Sent / Received',
-                'postfix_spam' => 'Postfix - Spam / Virus',
-                'postfix_reject' => 'Postfix - Rejected / Bounced');
+$app_graphs['default'] = array('postfix_mailgraph_sent' => 'Postfix - Sent / Received',
+                               'postfix_mailgraph_spam' => 'Postfix - Spam / Virus',
+                               'postfix_mailgraph_reject' => 'Postfix - Rejected / Bounced');
 
 // EOF

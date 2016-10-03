@@ -2,8 +2,8 @@
 
 include(dirname(__FILE__) . '/../includes/defaults.inc.php');
 //include(dirname(__FILE__) . '/../config.php'); // Do not include user editable config here
-include(dirname(__FILE__) . '/data/test_definitions.inc.php'); // Fake definitions for testing
 include(dirname(__FILE__) . '/../includes/definitions.inc.php');
+include(dirname(__FILE__) . '/data/test_definitions.inc.php'); // Fake definitions for testing
 include(dirname(__FILE__) . '/../includes/functions.inc.php');
 
 class IncludesCommonTest extends PHPUnit_Framework_TestCase
@@ -56,7 +56,7 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
   public function testExternalExec($cmd, $timeout, $result)
   {
     $test = external_exec($cmd, $timeout);
-    unset($GLOBALS['exec_status']['runtime']);
+    unset($GLOBALS['exec_status']['runtime'], $GLOBALS['exec_status']['exitdelay']);
     $this->assertSame($result, $GLOBALS['exec_status']);
   }
 
@@ -269,6 +269,7 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
 
   /**
    * @dataProvider providerDeviceUptime
+   * @group values
    */
   public function testDeviceUptime($value, $result)
   {
@@ -286,6 +287,7 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
 
   /**
    * @dataProvider providerFormatUptime
+   * @group values
    */
   public function testFormatUptime($value, $format, $result)
   {
@@ -399,6 +401,7 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
 
   /**
    * @dataProvider providerHumanspeed
+   * @group values
    */
   public function testHumanspeed($value, $result)
   {
@@ -415,6 +418,7 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
 
   /**
    * @dataProvider providerFormatMac
+   * @group values
    */
   public function testFormatMac($value, $result)
   {
@@ -436,6 +440,7 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
 
   /**
    * @dataProvider providerFormatNumberShort
+   * @group values
    */
   public function testFormatNumberShort($value, $sf, $result)
   {
@@ -461,6 +466,7 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
 
   /**
    * @dataProvider providerSgn
+   * @group values
    */
   public function testSgn($value, $result)
   {
@@ -473,6 +479,34 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
       array( 10,  1),
       array(  0,  0),
       array(-10, -1),
+    );
+  }
+
+  /**
+   * @dataProvider providerValueToSi
+   * @group values
+   */
+  public function testValueToSi($type, $unit, $value, $result)
+  {
+    $this->assertEquals($result, value_to_si($value, $unit, $type), '', 0.0001);
+  }
+
+  public function providerValueToSi()
+  {
+    return array(
+      array(         NULL,   'F',      0,  -17.7777),
+      array(         NULL,   'F',     32,    0.0),
+      array(         NULL,   'F',    100,   37.7777),
+      array(         NULL,   'F',   -100,  -73.3333),
+      array('temperature',   'K',      0, -273.15),
+      array('temperature',   'K', 273.15,    0.0),
+      array('temperature',   'K',    100, -173.15),
+      array('temperature',   'K',   -100, -373.15), // This incorrect!
+      array('temperature',   'C',      0,    0.0),
+      array('temperature',   'C',    100,  100.0),
+      array(         NULL, 'psi',      0,    0.0),
+      array(   'pressure', 'psi',      1, 6894.757),
+      array(   'pressure', 'psi',   -0.1, -689.4757),
     );
   }
 
@@ -968,7 +1002,7 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
    */
   public function testGetDeviceMibs($device, $result)
   {
-    $mibs = array_values(get_device_mibs($device)); // Use array_values for reset keys
+    $mibs = array_values(get_device_mibs($device, FALSE)); // Use array_values for reset keys
     $this->assertEquals($result, $mibs);
   }
 
@@ -985,11 +1019,13 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
           'UCD-SNMP-MIB',
           'HOST-RESOURCES-MIB',
           'LSI-MegaRAID-SAS-MIB',
+          'EtherLike-MIB',
           'ENTITY-MIB',
           'ENTITY-SENSOR-MIB',
+          'CISCO-ENTITY-VENDORTYPE-OID-MIB',
+          //'HOST-RESOURCES-MIB',
           'Q-BRIDGE-MIB',
           'LLDP-MIB',
-          'EtherLike-MIB',
           'CISCO-CDP-MIB',
           'PW-STD-MIB',
           'DISMAN-PING-MIB',
@@ -1014,12 +1050,13 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
           'CISCO-ENHANCED-MEMPOOL-MIB',
           'CISCO-MEMORY-POOL-MIB',
           'CISCO-PROCESS-MIB',
+          'EtherLike-MIB',
           'ENTITY-MIB',
           'ENTITY-SENSOR-MIB',
+          'CISCO-ENTITY-VENDORTYPE-OID-MIB',
           'HOST-RESOURCES-MIB',
           'Q-BRIDGE-MIB',
           'LLDP-MIB',
-          'EtherLike-MIB',
           'CISCO-CDP-MIB',
           'PW-STD-MIB',
           'DISMAN-PING-MIB',
@@ -1042,11 +1079,13 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
           'UCD-SNMP-MIB',
           'HOST-RESOURCES-MIB',
           'LSI-MegaRAID-SAS-MIB',
+          'EtherLike-MIB',
           'ENTITY-MIB',
           'ENTITY-SENSOR-MIB',
+          'CISCO-ENTITY-VENDORTYPE-OID-MIB',
+          //'HOST-RESOURCES-MIB',
           'Q-BRIDGE-MIB',
           'LLDP-MIB',
-          'EtherLike-MIB',
           'CISCO-CDP-MIB',
           'PW-STD-MIB',
           'DISMAN-PING-MIB',
@@ -1066,12 +1105,13 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
           'JUNIPER-SRX5000-SPU-MONITORING-MIB',
           'JUNIPER-VLAN-MIB',
           'JUNIPER-MAC-MIB',
+          'EtherLike-MIB',
           //'ENTITY-MIB',
           //'ENTITY-SENSOR-MIB',
+          'CISCO-ENTITY-VENDORTYPE-OID-MIB',
           'HOST-RESOURCES-MIB',
           'Q-BRIDGE-MIB',
           'LLDP-MIB',
-          'EtherLike-MIB',
           'CISCO-CDP-MIB',
           'PW-STD-MIB',
           'DISMAN-PING-MIB',
@@ -1088,12 +1128,13 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
         array(
           'CISCO-IETF-IP-MIB',
           'CISCO-ENTITY-SENSOR-MIB',
+          'EtherLike-MIB',
           'ENTITY-MIB',
           //'ENTITY-SENSOR-MIB',
+          'CISCO-ENTITY-VENDORTYPE-OID-MIB',
           'HOST-RESOURCES-MIB',
           //'Q-BRIDGE-MIB',
           'LLDP-MIB',
-          'EtherLike-MIB',
           'CISCO-CDP-MIB',
           'PW-STD-MIB',
           'DISMAN-PING-MIB',
@@ -1109,12 +1150,13 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
         ),
         array(
           'JUST-TEST-MIB',
+          'EtherLike-MIB',
           'ENTITY-MIB',
           'ENTITY-SENSOR-MIB',
+          'CISCO-ENTITY-VENDORTYPE-OID-MIB',
           'HOST-RESOURCES-MIB',
           'Q-BRIDGE-MIB',
           'LLDP-MIB',
-          'EtherLike-MIB',
           'CISCO-CDP-MIB',
           'PW-STD-MIB',
           'DISMAN-PING-MIB',
@@ -1131,17 +1173,102 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
         array(
           'DFL800-MIB', // HW specific MIB
           'JUST-TEST-MIB',
+          'EtherLike-MIB',
           'ENTITY-MIB',
           'ENTITY-SENSOR-MIB',
+          'CISCO-ENTITY-VENDORTYPE-OID-MIB',
           'HOST-RESOURCES-MIB',
           'Q-BRIDGE-MIB',
           'LLDP-MIB',
-          'EtherLike-MIB',
           'CISCO-CDP-MIB',
           'PW-STD-MIB',
           'DISMAN-PING-MIB',
           'BGP4-MIB',
         )
+      ),
+
+    );
+  }
+
+  /**
+   * @dataProvider providerGetDeviceMibsOrder
+   * @group mibs
+   */
+  public function testGetDeviceMibsOrder($device, $order, $result)
+  {
+    $mibs = array_values(get_device_mibs($device, FALSE, $order)); // Use array_values for reset keys
+    $this->assertEquals($result, $mibs);
+  }
+
+  public function providerGetDeviceMibsOrder()
+  {
+    $device = array(
+      'device_id' => 1,
+      'os'        => 'test_order',
+      'sysObjectID' => '.1.3.6.1.4.1.171.20.1.2.1'
+    );
+    $default = array(
+      'EtherLike-MIB',
+      'ENTITY-MIB',
+      'ENTITY-SENSOR-MIB',
+      'CISCO-ENTITY-VENDORTYPE-OID-MIB',
+      'HOST-RESOURCES-MIB',
+      //'Q-BRIDGE-MIB', // Blacklisted in group 'test_black'
+      'LLDP-MIB',
+      'CISCO-CDP-MIB',
+      'PW-STD-MIB',
+      'DISMAN-PING-MIB',
+      'BGP4-MIB',
+    );
+    $model = array(
+      'DFL800-MIB',
+    );
+    $os    = array(
+      'JUST-TEST-MIB',
+    );
+    $group = array(
+      'CISCO-IETF-IP-MIB',
+      'CISCO-ENTITY-SENSOR-MIB',
+    );
+
+    return array(
+      // Empty (default order)
+      array(
+        $device,
+        NULL,
+        array_merge($model, $os, $group, $default),
+      ),
+      // Same but with default order passed or unknown data
+      array(
+        $device,
+        array('model', 'os', 'group', 'default'),
+        array_merge($model, $os, $group, $default),
+      ),
+      array(
+        $device,
+        'model,os,group,default',
+        array_merge($model, $os, $group, $default),
+      ),
+      array(
+        $device,
+        'asdasd,asdasdsw,asdasda',
+        array_merge($model, $os, $group, $default),
+      ),
+      // Order changed
+      array(
+        $device,
+        'default', // Default first
+        array_merge($default, $model, $os, $group),
+      ),
+      array(
+        $device,
+        array('group', 'os'), // group and os first
+        array_merge($group, $os, $model, $default),
+      ),
+      array(
+        $device,
+        array('group', 'os', 'default', 'model'), // full changed order
+        array_merge($group, $os, $default, $model),
       ),
 
     );
@@ -1295,7 +1422,8 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
       array(TRUE, array("1" => 'a', "0" => 'b', "2" => 'c')),
       array(TRUE, array("1" => 'a', "0" => 'b', "2" => 'c')),
       array(TRUE, array("a" => 'a', "b" => 'b', "c" => 'c')),
-      array(TRUE, "string"),
+      // Not array!
+      array(FALSE, "string"),
     );
   }
 

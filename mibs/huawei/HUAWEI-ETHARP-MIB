@@ -1,5 +1,5 @@
 -- =================================================================
--- Copyright (C) 2006 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2014 by  HUAWEI TECHNOLOGIES. All rights reserved.
 --
 -- Description: Huawei Ethernet ARP MIB
 -- Reference: HUAWEI Enterprise MIB
@@ -686,6 +686,7 @@ hwEthernetARPObjects OBJECT IDENTIFIER ::= { hwEthernetARPMIB 1 }
             STATUS current
             DESCRIPTION
                 "The status of interface linked by ARP. This value can not be set anytime."  
+            DEFVAL { down }
             ::= { hwArpLinkInterfaceEntry 15 }
         
         hwArpLinkRowStatus OBJECT-TYPE
@@ -1024,6 +1025,7 @@ hwEthernetARPObjects OBJECT IDENTIFIER ::= { hwEthernetARPMIB 1 }
                         STATUS current
                         DESCRIPTION
                             "This object indicates the status of the ARP anti-attack."
+                        DEFVAL { disable }
                         ::= { hwEthernetARPObjects 19 }
  
 
@@ -1255,6 +1257,7 @@ hwEthernetARPObjects OBJECT IDENTIFIER ::= { hwEthernetARPMIB 1 }
             STATUS current
             DESCRIPTION
                 "This object indicates the status of the gratuitous-arp send."
+            DEFVAL { disabled }          
             ::= { hwARPGratuitousSendEntry 2 }   
                     
         hwARPArpGratuitousSendInterval OBJECT-TYPE
@@ -1264,6 +1267,7 @@ hwEthernetARPObjects OBJECT IDENTIFIER ::= { hwEthernetARPMIB 1 }
             DESCRIPTION
                 "This object indicates the interval of the gratuitous-arp send.
                 The value ranges from 1 to 86400, in second, with default value 90."
+            DEFVAL { 90 } 
             ::= { hwARPGratuitousSendEntry 3 }    
                          
      

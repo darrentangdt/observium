@@ -11,8 +11,6 @@
  *
  */
 
-$mib = 'APSYSMGMT-MIB';
-
-$mempool['perc'] = snmp_get($device, "apSysMemoryUtil.0", "-OvQ", $mib, mib_dirs('acme'));
+$mempool['perc'] = snmp_get($device, "apSysMemoryUtil.0", "-OvQ", 'APSYSMGMT-MIB');
 
 // EOF

@@ -14,11 +14,16 @@
 if (!isset($vars['section'])) { $vars['section'] = 'eventlog'; }
 
 $sections = array('eventlog');
-if ($config['enable_syslog']) { $sections[] = 'syslog'; }
-//if (OBSERVIUM_EDITION != 'community')
-//{
-  $sections[] = 'alertlog';
-//}
+if ($config['enable_syslog'])
+{
+  $sections[] = 'syslog';
+  if (OBSERVIUM_EDITION != 'community')
+  {
+      $sections[] = 'logalert';
+  }
+}
+
+$sections[] = 'alertlog';
 
 $navbar['brand'] = "Logging";
 $navbar['class'] = "navbar-narrow";
@@ -40,6 +45,7 @@ switch ($vars['section'])
   case 'syslog':
   case 'eventlog':
   case 'alertlog':
+  case 'logalert':
     include($config['html_dir'].'/pages/device/logs/'.$vars['section'].'.inc.php');
     break;
   default:

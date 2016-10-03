@@ -20,6 +20,6 @@ if (preg_match('/(?<hardware>AX[0-9]+).+ version\ (?<version>[\d\.]+)/i', $poll_
 
 // A10-AX-MIB::axSysSerialNumber.0 = STRING: "AX10A3xxxxxxxx"
 
-$serial = snmp_get($device, "A10-AX-MIB::axSysSerialNumber.0", "-OQv", "A10-AX-MIB", mib_dirs('a10'));
+$serial = snmp_get($device, 'axSysSerialNumber.0', '-OQv', 'A10-AX-MIB');
 
 // EOF

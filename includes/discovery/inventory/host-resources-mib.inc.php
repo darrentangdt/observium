@@ -13,8 +13,6 @@
 
 /// FIXME. Full rewrite and move to inventory stuff
 
-echo("HOST-RESOURCES-MIB ");
-
 $hrDevice_oids = array('hrDeviceEntry','hrProcessorEntry');
 
 $hrDevices = array();

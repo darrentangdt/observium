@@ -1,9 +1,9 @@
 -- ==================================================================
--- Copyright (C) 2006 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- 
 -- Description: HUAWEI PWE3 Management MIB
 -- Reference:
--- Version: V2.06
+-- Version: V2.09
 -- History:
 --              V1.0 PanJun, 2006-05-10, publish
 -- ==================================================================
@@ -29,12 +29,14 @@
             DisplayString, TruthValue, RowStatus, TEXTUAL-CONVENTION            
                 FROM SNMPv2-TC
             EnabledStatus
-                FROM P-BRIDGE-MIB;
-            
+                FROM P-BRIDGE-MIB
+            hwL2vpnAcIfIndex,hwL2vpnAcIfPhyType,hwL2vpnAcIfLinkType,hwL2vpnAcIfEncap,hwL2vpnAcIfMinEncapNum,hwL2vpnAcIfMaxEncapNum,hwL2vpnAcIfEncapStep,hwL2vpnAcIfMinJitterBuffer,
+           hwL2vpnAcIfMaxJitterBuffer,hwL2vpnAcIfJitterBufferStep,hwL2vpnAcIfCfgTtpHeader,hwL2vpnAcIfMinIdleCode,hwL2vpnAcIfMaxIdleCode
+               FROM HUAWEI-L2VPN-MIB;
     
     
         hwL2VpnPwe3 MODULE-IDENTITY 
-            LAST-UPDATED  "201410271600Z"           --Oct 27, 2014 at 16:00 GMT  
+            LAST-UPDATED  "201507181600Z"           --July 18, 2015 at 13:58 GMT 
             ORGANIZATION 
                 "Huawei Technologies Co.,Ltd."
             CONTACT-INFO 
@@ -48,6 +50,19 @@
             DESCRIPTION 
                 "The HUAWEI-PWE3-MIB contains objects to
                 manage PWE3."
+         
+           REVISION "201507181600Z"           --July 18, 2015 at 13:58 GMT 
+             DESCRIPTION               
+             "Add ifName to hwRemoteApPwParaMisMatch "
+
+             REVISION "201507141600Z"           --July 07, 2015 at 16:00 GMT 
+             DESCRIPTION               
+             "Add PWE3 MIB Trap(hwVpwsPwRedundancyDegraded)." 
+
+             REVISION "201504071600Z"           --Apr 07, 2015 at 16:00 GMT 
+             DESCRIPTION               
+             "Modify the description of hwSvcActive." 
+
              REVISION "201410271600Z"           --Oct 27, 2014 at 16:00 GMT 
              DESCRIPTION               
              "Add PWE3 MIB Trap(hwVpwsPwRedundancyDegraded)." 
@@ -1790,7 +1805,7 @@
                  ten seconds of SES are counted as one Unavailable
                  Seconds (UAS)."
             ::= { hwPWVcTDMPerfCurrentEntry 8 }
-        
+			
 --          
 -- PWE3 MIB Trap Definitions
 -- 
@@ -1890,6 +1905,25 @@
             ::= { hwPwe3MIBTraps 11 }
 
         
+		
+       hwRemoteApPwParaMisMatch NOTIFICATION-TYPE
+            OBJECTS {  hwPWVcPeerAddr, hwPWVcPwTdmEncapsulationNum, hwPWVcPwJitterBufferDepth, hwPWVcPwRtpHeader,
+			          hwPWVcPwIdleCode,hwPWVcIfName ,hwL2vpnAcIfPhyType,hwL2vpnAcIfLinkType,hwL2vpnAcIfEncap,hwL2vpnAcIfMinEncapNum,hwL2vpnAcIfMaxEncapNum,hwL2vpnAcIfEncapStep,hwL2vpnAcIfMinJitterBuffer,
+					  hwL2vpnAcIfMaxJitterBuffer,hwL2vpnAcIfJitterBufferStep,hwL2vpnAcIfCfgTtpHeader,hwL2vpnAcIfMinIdleCode,hwL2vpnAcIfMaxIdleCode}
+            STATUS current
+            DESCRIPTION 
+            "This notification indicates the low-speed interface parameter settings reported by the remoter AP mismatch those of the PW."
+            ::= { hwPwe3MIBTraps 12 }
+			
+      hwRemoteApPwParaMisMatchResume NOTIFICATION-TYPE
+            OBJECTS { hwPWVcPeerAddr, hwPWVcPwTdmEncapsulationNum, hwPWVcPwJitterBufferDepth, hwPWVcPwRtpHeader,
+			          hwPWVcPwIdleCode,hwPWVcIfName ,hwL2vpnAcIfPhyType,hwL2vpnAcIfLinkType,hwL2vpnAcIfEncap,hwL2vpnAcIfMinEncapNum,hwL2vpnAcIfMaxEncapNum,hwL2vpnAcIfEncapStep,hwL2vpnAcIfMinJitterBuffer,
+					  hwL2vpnAcIfMaxJitterBuffer,hwL2vpnAcIfJitterBufferStep,hwL2vpnAcIfCfgTtpHeader,hwL2vpnAcIfMinIdleCode,hwL2vpnAcIfMaxIdleCode}
+            STATUS current
+            DESCRIPTION        
+            "This notification indicates the low-speed interface parameter settings reported by the remoter AP match those of the PW."
+            ::= { hwPwe3MIBTraps 13 }
+			
         hwSvcObjects OBJECT IDENTIFIER ::= { hwPwe3MIBObjects 3 }
 
         
@@ -2333,7 +2367,7 @@
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                "Denotes the current vc is active or not.Currently, can't support.Return the default value is 'false'."
+                "Denotes the current vc is active or not."
             ::= { hwSvcEntry 30 }
 
         hwSvcUpStartTime OBJECT-TYPE
@@ -3221,7 +3255,7 @@
 
         hwPWVcNotificationGroup NOTIFICATION-GROUP
             NOTIFICATIONS { hwPWVcSwitchWtoP, hwPWVcSwitchPtoW, hwPWVcDown, hwPWVcUp, hwPWVcDeleted, 
-                hwPWVcBackup, hwLdpPWVcDown, hwLdpPWVcUp,hwPWVcStatusChange,hwVpwsPwRedundancyDegraded,hwVpwsPwRedundancyDegradedClear }
+                hwPWVcBackup, hwLdpPWVcDown, hwLdpPWVcUp,hwPWVcStatusChange,hwVpwsPwRedundancyDegraded,hwVpwsPwRedundancyDegradedClear,hwRemoteApPwParaMisMatch,hwRemoteApPwParaMisMatchResume}
             STATUS current
             DESCRIPTION 
                 "The PWE3's VC Notification group."
@@ -3243,7 +3277,7 @@
             DESCRIPTION 
                 "The PWE3's VC TDM performance information group."
             ::= { hwPwe3MIBGroups 10 }
-
+         
         hwL2vpnSvcMIBGroups OBJECT IDENTIFIER ::= { hwPwe3MIBConformance 3 }
 
         hwSvcGroup OBJECT-GROUP

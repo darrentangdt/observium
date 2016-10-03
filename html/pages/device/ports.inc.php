@@ -29,9 +29,22 @@ $navbar = array('brand' => "Ports", 'class' => "navbar-narrow");
 
 $navbar['options']['basic']['text']   = 'Basic';
 $navbar['options']['details']['text'] = 'Details';
-$navbar['options']['arp']['text']     = 'ARP/NDP Table';
 
-if(dbFetchCell("SELECT COUNT(*) FROM `vlans_fdb` WHERE `device_id` = ?", array($device['device_id'])))
+if (dbFetchCell("SELECT COUNT(*) FROM `ipv4_addresses` LEFT JOIN `ports` USING(`port_id`) WHERE `device_id` = ?", array($device['device_id'])))
+{
+  $navbar['options']['ipv4']['text'] = 'IPv4 addresses';
+}
+if (dbFetchCell("SELECT COUNT(*) FROM `ipv6_addresses` LEFT JOIN `ports` USING(`port_id`) WHERE `device_id` = ?", array($device['device_id'])))
+{
+  $navbar['options']['ipv6']['text'] = 'IPv6 addresses';
+}
+
+if (dbFetchCell("SELECT COUNT(*) FROM `ip_mac` LEFT JOIN `ports` USING(`port_id`) WHERE `device_id` = ?", array($device['device_id'])))
+{
+  $navbar['options']['arp']['text'] = 'ARP/NDP Table';
+}
+
+if (dbFetchCell("SELECT COUNT(*) FROM `vlans_fdb` WHERE `device_id` = ?", array($device['device_id'])))
 {
   $navbar['options']['fdb']['text'] = 'FDB Table';
 }
@@ -150,52 +163,13 @@ if ($vars['view'] == 'minigraphs')
   }
   echo("</div>");
 }
-else if (in_array($vars['view'], array("arp", "adsl", "neighbours", "fdb", "map")))
+else if (is_file($config['html_dir'] . '/pages/device/ports/' . $vars['view'] . '.inc.php'))
 {
-  include($config['html_dir']."/pages/device/ports/".$vars['view'].".inc.php");
+  include($config['html_dir'] . '/pages/device/ports/' . $vars['view'] . '.inc.php');
 } else {
   if ($vars['view'] == "details") { $port_details = 1; }
 
-  if ($vars['view'] == "graphs") { $table_class = "table-striped-two"; } else { $table_class = "table-striped"; }
-  echo '<div class="box box-solid">';
-  echo('<table class="table table-hover  table-condensed  '.$table_class.'">');
-
-  echo('  <thead>');
-  echo('<tr>');
-
-  // Define column headers for the table
-  $cols = array(
-                'state' => NULL,
-                'BLANK' => NULL,
-                'port' => 'Port',
-                'graphs' => NULL,
-                'traffic' => 'Traffic',
-                'speed' => 'Speed',
-                // 'media' => 'Media',
-                'mac' => 'MAC Address',
-                'details' => NULL);
-
-  foreach ($cols as $sort => $col)
-  {
-
-    if ($sort == "state")
-    {
-        echo('<th class="state-marker"></th>');
-    }
-    elseif ($col == NULL)
-    {
-      echo('<th></th>');
-    }
-    elseif ($vars['sort'] == $sort)
-    {
-      echo('<th>'.$col.' *</th>');
-    } else {
-      echo('<th><a href="'. generate_url($vars, array('sort' => $sort)).'">'.$col.'</a></th>');
-    }
-  }
-
-  echo('      </tr>');
-  echo('  </thead>');
+  if ($vars['view'] == "graphs") { $table_class = OBS_CLASS_TABLE_STRIPED_TWO; } else { $table_class = OBS_CLASS_TABLE_STRIPED; }
 
   $i = "1";
 
@@ -204,7 +178,7 @@ else if (in_array($vars['view'], array("arp", "adsl", "neighbours", "fdb", "map"
 
   $sql  = "SELECT *, `ports`.`port_id` as `port_id`";
   $sql .= " FROM  `ports`";
-  $sql .= " LEFT JOIN `ports-state` ON  `ports`.`port_id` =  `ports-state`.`port_id`";
+  //$sql .= " LEFT JOIN `ports-state` USING (`port_id`)";
   $sql .= " WHERE `device_id` = ? ORDER BY `ifIndex` ASC";
   $ports = dbFetchRows($sql, array($device['device_id']));
 
@@ -245,17 +219,35 @@ else if (in_array($vars['view'], array("arp", "adsl", "neighbours", "fdb", "map"
     $cache['ports_vlan'][$entry['port_id']][$entry['vlan']] = $entry;
   }
 
+  echo generate_box_open();
+  echo '<table class="' . $table_class . ' table-hover">' . PHP_EOL;
+
+  $cols = array(
+                   array(NULL, 'class="state-marker"'),
+                   array(NULL),
+    'port'      => array('Port'),
+                   array(NULL),
+    'traffic'   => array('Traffic'),
+    'speed'     => array('Speed'),
+    'mac'       => array('MAC Address'),
+                   array(NULL),
+  );
+
+  echo get_table_header($cols, $vars);
+  echo '<tbody>' . PHP_EOL;
+
   foreach ($ports as $port)
   {
     if (is_filtered()) { continue; }
 
     print_port_row($port, $vars);
   }
-  echo("</table>");
-  echo '</div>';
+
+  echo '</tbody></table>';
+  echo generate_box_close();
 }
 
-$page_title[] = "Ports";
+register_html_title("Ports");
 
 unset($where, $ext_tables, $cache['ports_option'], $cache['ports_vlan']);
 

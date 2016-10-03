@@ -11,13 +11,11 @@
  *
  */
 
-$mib = 'COMPELLENT-MIB';
-
-$cml['temp'] = snmpwalk_cache_oid($device, 'scEnclTempTable', array(), $mib);
-$cml['fan'] = snmpwalk_cache_oid($device, 'scEnclFanTable', array(), $mib);
-$cml['ctrl'] = snmpwalk_cache_oid($device, 'scCtlrEntry', array(), $mib);
-$cml['disk'] = snmpwalk_cache_oid($device, 'scDiskEntry', array(), $mib);
-$cml['cache'] = snmpwalk_cache_oid($device, 'ScCacheEntry', array(), $mib);
+$cml['temp'] = snmpwalk_cache_oid($device, 'scEnclTempTable', array(), 'COMPELLENT-MIB');
+$cml['fan'] = snmpwalk_cache_oid($device, 'scEnclFanTable', array(), 'COMPELLENT-MIB');
+$cml['ctrl'] = snmpwalk_cache_oid($device, 'scCtlrEntry', array(), 'COMPELLENT-MIB');
+$cml['disk'] = snmpwalk_cache_oid($device, 'scDiskEntry', array(), 'COMPELLENT-MIB');
+$cml['cache'] = snmpwalk_cache_oid($device, 'ScCacheEntry', array(), 'COMPELLENT-MIB');
 
 foreach ($cml['temp'] as $index => $entry)
 {

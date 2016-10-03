@@ -11,9 +11,7 @@
  *
  */
 
-echo(" CISCO-ENTITY-SENSOR-MIB ");
-
-$entity_array = snmpwalk_cache_multi_oid($device, 'entSensorValueEntry', $entity_array, 'CISCO-ENTITY-SENSOR-MIB', mib_dirs('cisco'));
+$entity_array = snmpwalk_cache_multi_oid($device, 'entSensorValueEntry', $entity_array, 'CISCO-ENTITY-SENSOR-MIB');
 if ($GLOBALS['snmp_status'])
 {
   if (is_array($GLOBALS['cache']['entity-mib']))
@@ -33,17 +31,17 @@ if ($GLOBALS['snmp_status'])
     $oids = array('entPhysicalDescr', 'entPhysicalName', 'entPhysicalClass', 'entPhysicalContainedIn', 'entPhysicalParentRelPos');
     foreach ($oids as $oid)
     {
-      $entity_array = snmpwalk_cache_multi_oid($device, $oid, $entity_array, "ENTITY-MIB:CISCO-ENTITY-VENDORTYPE-OID-MIB", mib_dirs('cisco'));
+      $entity_array = snmpwalk_cache_multi_oid($device, $oid, $entity_array, "ENTITY-MIB:CISCO-ENTITY-VENDORTYPE-OID-MIB");
       if (!$GLOBALS['snmp_status']) { break; }
     }
-    $entity_array = snmpwalk_cache_twopart_oid($device, "entAliasMappingIdentifier", $entity_array, "ENTITY-MIB:IF-MIB", mib_dirs());
+    $entity_array = snmpwalk_cache_twopart_oid($device, "entAliasMappingIdentifier", $entity_array, "ENTITY-MIB:IF-MIB");
   }
 
   $t_oids = array('entSensorThresholdSeverity', 'entSensorThresholdRelation', 'entSensorThresholdValue');
   $t_entity_array = array();
   foreach ($t_oids as $oid)
   {
-    $t_entity_array = snmpwalk_cache_twopart_oid($device, $oid, $t_entity_array, 'CISCO-ENTITY-SENSOR-MIB', mib_dirs('cisco'));
+    $t_entity_array = snmpwalk_cache_twopart_oid($device, $oid, $t_entity_array, 'CISCO-ENTITY-SENSOR-MIB');
   }
 
   // http://tools.cisco.com/Support/SNMP/do/BrowseOID.do?local=en&translate=Translate&typeName=SensorDataType

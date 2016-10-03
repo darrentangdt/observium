@@ -76,6 +76,6 @@ echo '</table>';
 
 echo generate_box_close();
 
-$page_title[] = "Graphs";
+register_html_title("Graphs");
 
 // EOF

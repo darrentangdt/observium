@@ -96,15 +96,15 @@ foreach (dbFetchRows("SELECT * FROM `ports` WHERE `deleted` = '0' AND `device_id
     $port = array_merge($port, $ports_attribs['port'][$port['port_id']]);
   }
 
-  echo('<tr class="'.$port['row_class'].'">');
+  echo('<tr class="'.$port['row_class'].' vertical-align">');
   echo('<td class="state-marker"></td>');
   echo("<td>". $port['ifIndex']."</td>");
-  echo('<td><span class="entity">'.generate_entity_link('port', $port).'</span><br />'.escape_html($port['ifAlias']).'</td>');
+  echo('<td style="vertical-align: top;"><span class="entity">'.generate_entity_link('port', $port).'</span><br />'.escape_html($port['ifAlias']).'</td>');
   echo("<td>".$port['human_type']."<br />");
 
   echo('<span>'.escape_html($port['admin_status']).'</span> / <span data-name="operstatus_'.$port['port_id'].'" class="'.$port['row_class'].'">'. escape_html($port['ifOperStatus']) .'</span></td>');
 
-  echo('<td style="vertical-align: middle;">');
+  echo('<td>');
   $item = array('id'          => 'port[]',
                 'readonly'    => $readonly,
                 'value'       => $port['port_id']);
@@ -120,7 +120,7 @@ foreach (dbFetchRows("SELECT * FROM `ports` WHERE `deleted` = '0' AND `device_id
   echo(generate_form_element($item, 'switch'));
   echo("</td>");
 
-  echo('<td style="vertical-align: middle;">');
+  echo('<td>');
   $item = array('id'          => 'ignore_'.$port['port_id'],
                 'size'        => 'mini',
                 'on-text'     => 'No',
@@ -140,7 +140,7 @@ foreach (dbFetchRows("SELECT * FROM `ports` WHERE `deleted` = '0' AND `device_id
 #  echo('<br /><input class="input-mini" name="threshold_pps_out-'.$port['port_id'].'" size="3" value="'.$port['threshold_pps_out'].'"></input></td>');
 
   // Custom port speed
-  echo('<td style="vertical-align: middle; white-space: nowrap;">');
+  echo('<td class="text-nowrap">');
   $ifSpeed_custom_bool = isset($port['ifSpeed_custom']);
   $ifSpeed = $ifSpeed_custom_bool ? $port['ifSpeed_custom'] : $port['ifSpeed'];
   $item = array('id'          => 'ifSpeed_custom_'.$port['port_id'],
@@ -161,7 +161,7 @@ foreach (dbFetchRows("SELECT * FROM `ports` WHERE `deleted` = '0' AND `device_id
   echo(generate_form_element($item, 'checkbox'));
   echo('</td>');
 
-  echo '<td style="vertical-align: middle;">';
+  echo '<td>';
   if ($port['port_64bit'] == 1)
   {
     echo '<span class="label label-success">64bit</span>';

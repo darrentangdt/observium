@@ -42,27 +42,9 @@ if (!empty($agent_data['app']['nfsd']))
     "fsstat", "fsinfo", "pathconf", "commit"
   );
 
-  foreach ($nfsLabel as $key => $values)
-  {
-    foreach ($values as $name)
-    {
-      $definition.=" DS:".($key.$name).":DERIVE:600:0:12500000 ";
-    }
-  }
-
-  rrdtool_create($device, $rrd_filename, $definition." ");
-
   $datas = array();
-  foreach ($nfsLabel as $key => $values)
-  {
-    foreach ($values as $name)
-    {
-      $datas[$key.$name] = "U";
-    }
-  }
 
-  $lines = explode("\n", $agent_data['app']['nfsd']);
-  foreach ($lines as $line)
+  foreach (explode("\n", $agent_data['app']['nfsd']) as $line)
   {
     $tokens = explode(" ", $line);
     if (isset($tokens[0]) && isset($nfsLabel[strtolower($tokens[0])]))
@@ -77,7 +59,11 @@ if (!empty($agent_data['app']['nfsd']))
     }
   }
 
-  rrdtool_update($device, $rrd_filename,  "N:".implode(':', $datas));
+
+  update_application($app_id, $datas);
+  rrdtool_update_ng($device, 'nfsd', $datas, $app_id);
+
+  unset($app_id, $nfsLabel, $datas, $tokens, $base, $k, $v);
 }
 
 // EOF

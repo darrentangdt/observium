@@ -11,22 +11,26 @@
  *
  */
 
-$fnSysVersion = snmp_get($device, "FORTINET-FORTIGATE-MIB::fgSysVersion.0", "-Ovq", NULL, mib_dirs('fortinet'));
-$serial       = snmp_get($device, "FORTINET-CORE-MIB::fnSysSerial.0", "-Ovq", NULL, mib_dirs('fortinet'));
+$fnSysVersion = snmp_get($device, 'fgSysVersion.0', '-Ovq', 'FORTINET-FORTIGATE-MIB');
+$serial       = snmp_get($device, 'fnSysSerial.0', '-Ovq', 'FORTINET-CORE-MIB');
 
-$version = preg_replace("/(.+),(.+),(.+)/", "\\1||\\2||\\3", $fnSysVersion);
-list($version,$features) = explode("||", $version);
+$version = preg_replace('/(.+),(.+),(.+)/', "\\1||\\2||\\3", $fnSysVersion);
+list($version,$features) = explode('||', $version);
 
-$hardware = rewrite_fortinet_hardware($poll_device['sysObjectID']);
+$hardware = rewrite_definition_hardware($device, $poll_device['sysObjectID']);
+$fn_type  = rewrite_definition_type($device, $poll_device['sysObjectID']);
+if (!empty($fn_type))
+{
+  $type = $fn_type;
+}
 
-$sessrrd  = "fortigate_sessions.rrd";
-$sessions = snmp_get($device, "FORTINET-FORTIGATE-MIB::fgSysSesCount.0", "-Ovq", NULL, mib_dirs('fortinet'));
+// FIXME, move to graphs module
+$sessions = snmp_get($device, 'fgSysSesCount.0', '-Ovq', 'FORTINET-FORTIGATE-MIB');
 
 if (is_numeric($sessions))
 {
-  rrdtool_create($device, $sessrrd,"  DS:sessions:GAUGE:600:0:3000000 ");
-  print_cli_data ("Firewall Sessions", $sessions);
-  rrdtool_update($device, $sessrrd,"N:".$sessions);
+  rrdtool_update_ng($device, 'fortigate-sessions', array('sessions' => $sessions));
+  print_cli_data ('Firewall Sessions', $sessions);
   $graphs['fortigate_sessions'] = TRUE;
 }
 

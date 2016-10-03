@@ -141,49 +141,49 @@ omeAlertForwardedAlert           TRAP-TYPE
 
 omeAlertUnknownStatus           TRAP-TYPE 
     ENTERPRISE  omEssentialsTrap 
-    VARIABLES  { omeAlertDevice } 
+    VARIABLES  { omeAlertMessage, omeAlertDevice } 
     DESCRIPTION 
        "System monitoring alert from Essentials. Sent when status of the remote device is Unknown." 
 
     --#TYPE		"Status Alert" 
     --#SUMMARY	 	"Device %s has changed status to Unknown." 
-    --#ARGUMENTS	{0}  
-    --#SEVERITY	 	UNKNOWN 
+    --#ARGUMENTS	{1}  
+    --#SEVERITY	 	MINOR 
     ::= 3001
 
 omeAlertNormalStatus           TRAP-TYPE 
     ENTERPRISE  omEssentialsTrap 
-    VARIABLES  { omeAlertDevice } 
+    VARIABLES  { omeAlertMessage, omeAlertDevice } 
     DESCRIPTION 
        "System monitoring alert from Essentials. Sent when status of the remote device is Normal." 
 
     --#TYPE		"Status Alert" 
     --#SUMMARY	 	"Device %s has changed status to Normal." 
-    --#ARGUMENTS	{0}  
+    --#ARGUMENTS	{1}  
     --#SEVERITY	 	INFORMATIONAL 
     ::= 3002	
 
 omeAlertWarningStatus           TRAP-TYPE 
     ENTERPRISE  omEssentialsTrap 
-    VARIABLES  { omeAlertDevice } 
+    VARIABLES  { omeAlertMessage, omeAlertDevice } 
     DESCRIPTION 
        "System monitoring alert from Essentials. Sent when status of the remote device is Warning." 
 
     --#TYPE		"Status Alert" 
     --#SUMMARY	 	"Device %s has changed status to Warning." 
-    --#ARGUMENTS	{0}  
+    --#ARGUMENTS	{1}  
     --#SEVERITY	 	MINOR 
     ::= 3003
 
 omeAlertCriticalStatus           TRAP-TYPE 
     ENTERPRISE  omEssentialsTrap 
-    VARIABLES  { omeAlertDevice } 
+    VARIABLES  { omeAlertMessage, omeAlertDevice } 
     DESCRIPTION 
        "System monitoring alert from Essentials. Sent when status of the remote device is Critical." 
 
     --#TYPE		"Status Alert" 
     --#SUMMARY	 	"Device %s has changed status to Critical." 
-    --#ARGUMENTS	{0} 
+    --#ARGUMENTS	{1} 
     --#SEVERITY	 	CRITICAL 
     ::= 3004	
 	

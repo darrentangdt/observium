@@ -55,7 +55,7 @@ $link_array = array('page'    => 'device',
   if ($device_loadbalancer_count['netscaler_vsvr'])    { $panes['netscaler_vsvrs'] = 'NS vServers'; }
   if ($device_loadbalancer_count['netscaler_services']) { $panes['netscaler_svcs'] = 'NS Services'; }
 
-  if ($device['os_group'] == 'unix' || $device['os'] == 'windows' || $device['os'] == 'generic' || $device['os'] == 'drac')
+  if ($config['os'][$device['os']]['ipmi'])
   {
     $panes['ipmi']     = 'IPMI';
   }
@@ -104,6 +104,6 @@ The requested page does not exist. Please correct the URL and try again.');
 
 unset($filename, $navbar, $panes, $link_array);
 
-$page_title[] = "Settings";
+register_html_title("Settings");
 
 // EOF

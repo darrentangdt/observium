@@ -11,9 +11,9 @@
  *
  */
 
-$version  = trim(snmp_get($device, 'sysFWVer.0',    '-OQv', 'TRANGO-APEX-SYS-MIB', mib_dirs('trango')), '"');
-$features = trim(snmp_get($device, 'sysOSVer.0',    '-OQv', 'TRANGO-APEX-SYS-MIB', mib_dirs('trango')), '"');
-$hardware = trim(snmp_get($device, 'sysModel.0',    '-OQv', 'TRANGO-APEX-SYS-MIB', mib_dirs('trango')), '"');
-$serial   = trim(snmp_get($device, 'sysSerialID.0', '-OQv', 'TRANGO-APEX-SYS-MIB', mib_dirs('trango')), '"');
+$version  = snmp_get($device, 'sysFWVer.0',    '-OQv', 'TRANGO-APEX-SYS-MIB');
+$features = snmp_get($device, 'sysOSVer.0',    '-OQv', 'TRANGO-APEX-SYS-MIB');
+$hardware = snmp_get($device, 'sysModel.0',    '-OQv', 'TRANGO-APEX-SYS-MIB');
+$serial   = snmp_get($device, 'sysSerialID.0', '-OQv', 'TRANGO-APEX-SYS-MIB');
 
 // EOF

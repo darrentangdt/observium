@@ -39,7 +39,7 @@ $rrd_options .= " AREA:perc#" . $background['right'] . ":";
 $rrd_options .= " LINE1.25:perc#" . $background['left'] . ":'$descr'";
 $rrd_options .= " GPRINT:size:LAST:%6.2lf%sB";
 $rrd_options .= " GPRINT:free:LAST:%6.2lf%sB";
-$rrd_options .= " GPRINT:perc:LAST:%5.2lf%%\\\\n";
+$rrd_options .= " GPRINT:perc:LAST:%5.2lf%%\\n";
 
 if ($_GET['trend'])
 {
@@ -66,7 +66,7 @@ if ($_GET['previous'])
   $rrd_options .= " LINE1.25:percX#" . $colour . ":'$descr'";
   $rrd_options .= " GPRINT:sizeX:LAST:%6.2lf%sB";
   $rrd_options .= " GPRINT:freeX:LAST:%6.2lf%sB";
-  $rrd_options .= " GPRINT:percX:LAST:%5.2lf%%\\\\n";
+  $rrd_options .= " GPRINT:percX:LAST:%5.2lf%%\\n";
 }
 
 ?>

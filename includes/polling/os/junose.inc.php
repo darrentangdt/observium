@@ -11,10 +11,10 @@
  *
  */
 
-if (strpos($poll_device['sysDescr'], "olive"))
+if (strpos($poll_device['sysDescr'], 'olive'))
 {
-  $hardware = "Olive";
-  $serial = "";
+  $hardware = 'Olive';
+  $serial = '';
 } else {
   if (preg_match('/^Juniper Networks, Inc\. ([a-z]+ )?(?<hw>[\w-][^,]+) SW Version : \((?<version>.+?)\) Build/i', $poll_device['sysDescr'], $matches))
   {
@@ -29,12 +29,12 @@ if (strpos($poll_device['sysDescr'], "olive"))
 
   if (empty($version))
   {
-    $junose_version   = snmp_get($device, "juniSystemSwVersion.0", "-Ovqs", "Juniper-System-MIB", mib_dirs("junose"));
+    $junose_version   = snmp_get($device, 'juniSystemSwVersion.0', '-Ovqs', 'Juniper-System-MIB');
 
-    list($version) = explode(" ", $junose_version);
-    list(,$version) =  explode("(", $version);
-    //list($features) = explode("]", $junose_version);
-    //list(,$features) =  explode("[", $features);
+    list($version) = explode(' ', $junose_version);
+    list(,$version) =  explode('(', $version);
+    //list($features) = explode(']', $junose_version);
+    //list(,$features) =  explode('[', $features);
   }
 }
 

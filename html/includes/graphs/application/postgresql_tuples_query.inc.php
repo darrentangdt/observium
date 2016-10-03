@@ -39,6 +39,6 @@ if (is_file($rrd_filename))
     echo("file missing: $file");
 }
 
-include("includes/graphs/generic_multi_line.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_line.inc.php");
 
 // EOF

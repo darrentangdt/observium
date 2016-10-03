@@ -12,9 +12,7 @@
  *
  */
 
-echo(" ALCATEL-IND1-INTERSWITCH-PROTOCOL-MIB ");
-
-$amap_array = snmpwalk_cache_threepart_oid($device, "aipAMAPportConnectionTable", array(), "ALCATEL-IND1-INTERSWITCH-PROTOCOL-MIB", mib_dirs('aos'), OBS_SNMP_ALL_NUMERIC);
+$amap_array = snmpwalk_cache_threepart_oid($device, "aipAMAPportConnectionTable", array(), "ALCATEL-IND1-INTERSWITCH-PROTOCOL-MIB", NULL, OBS_SNMP_ALL_NUMERIC_INDEX);
 
 if ($amap_array)
 {

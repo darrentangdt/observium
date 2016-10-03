@@ -12,6 +12,6 @@
  */
 
 // Uses HH3C
-include($config['install_dir']."/includes/polling/os/hh3c.inc.php");
+include('includes/polling/os/hh3c.inc.php');
 
 // EOF

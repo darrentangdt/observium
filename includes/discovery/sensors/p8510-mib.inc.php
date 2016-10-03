@@ -13,8 +13,6 @@
 
 # FIXME could do with a rewrite?
 
-echo(" P8510-MIB ");
-
 $regexp = '/
       \.1\.3\.6\.1\.4\.1\.22626\.1\.5\.2\.
       (?P<id>\d+)

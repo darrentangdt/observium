@@ -11,8 +11,6 @@
  *
  */
 
-echo(" MG-SNMP-UPS-MIB ");
-
 $cache['mge'] = array();
 $cache['mge'] = snmpwalk_cache_multi_oid($device, "upsmgInputPhaseTable", $cache['mge'], "MG-SNMP-UPS-MIB");
 
@@ -34,21 +32,30 @@ foreach ($cache['mge'] as $index => $entry)
   {
     $oid   = ".1.3.6.1.4.1.705.1.6.2.1.2.$index"; // MG-SNMP-UPS-MIB:mginputVoltage.$index
     $value = $entry['mginputVoltage'];
-    discover_sensor($valid['sensor'], 'voltage', $device, $oid, 100+$index, 'mge-ups', $descr, $scale, $value);
+    if ($value != 0)
+    {
+      discover_sensor($valid['sensor'], 'voltage', $device, $oid, 100+$index, 'mge-ups', $descr, $scale, $value);
+    }
   }
 
   if (is_numeric($entry['mginputCurrent']))
   {
     $oid   = ".1.3.6.1.4.1.705.1.6.2.1.6.$index"; // MG-SNMP-UPS-MIB:mginputCurrent.$index
     $value = $entry['mginputCurrent'];
-    discover_sensor($valid['sensor'], 'current', $device, $oid, 100+$index, 'mge-ups', $descr, $scale, $value);
+    if ($value != 0)
+    {
+      discover_sensor($valid['sensor'], 'current', $device, $oid, 100+$index, 'mge-ups', $descr, $scale, $value);
+    }
   }
 
   if (is_numeric($entry['mginputFrequency']))
   {
     $oid   = ".1.3.6.1.4.1.705.1.6.2.1.3.$index"; // MG-SNMP-UPS-MIB:mginputFrequency.$index
     $value = $entry['mginputFrequency'];
-    discover_sensor($valid['sensor'], 'frequency', $device, $oid, 100+$index, 'mge-ups', $descr, $scale, $value);
+    if ($value != 0)
+    {
+      discover_sensor($valid['sensor'], 'frequency', $device, $oid, 100+$index, 'mge-ups', $descr, $scale, $value);
+    }
   }
 }
 
@@ -56,88 +63,139 @@ foreach ($cache['mge'] as $index => $entry)
 $cache['mge'] = array();
 $cache['mge'] = snmpwalk_cache_multi_oid($device, "upsmgOutput", $cache['mge'], "MG-SNMP-UPS-MIB");
 
-$entry = $cache['mge'][0]; // Use 0 only, upsmgOutput includes the PhaseTable used below.
+// WHAT the f..k, why this wrong $index copy-pasted
+$index_rename = $index; // Get old broken index for rename rrds
+$index        = 0;      // Use 0 only, upsmgOutput includes the PhaseTable used below.
+$entry        = $cache['mge'][$index];
 
 // MG-SNMP-UPS-MIB::upsmgOutputOnBattery.0 = INTEGER: no(2)
 if (isset($entry['upsmgOutputOnBattery']))
 {
-  $descr = "On Battery";
-  $oid   = ".1.3.6.1.4.1.705.1.7.3.0";
-  $value = $entry['upsmgOutputOnBattery'];
-  discover_sensor($valid['sensor'], 'state', $device, $oid, "upsmgOutputOnBattery.$index", 'mge-status-state', $descr, NULL, $value, array('entPhysicalClass' => 'battery'));
+  $descr    = 'On Battery';
+  $oid_name = 'upsmgOutputOnBattery';
+  $oid_num  = '.1.3.6.1.4.1.705.1.7.3.0';
+  $type     = 'mge-status-state';
+  $value    = $entry[$oid_name];
+
+  rename_rrd($device, "status-{$type}-{$oid_name}.{$index_rename}", "status-{$type}-{$oid_name}.{$index}");
+  discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr, $value, array('entPhysicalClass' => 'battery'));
 }
 
 // MG-SNMP-UPS-MIB::upsmgOutputOnByPass.0 = INTEGER: no(2)
 if (isset($entry['upsmgOutputOnByPass']))
 {
-  $descr = "On Bypass";
-  $oid   = ".1.3.6.1.4.1.705.1.7.4.0";
-  $value = $entry['upsmgOutputOnByPass'];
-  discover_sensor($valid['sensor'], 'state', $device, $oid, "upsmgOutputOnByPass.$index", 'mge-status-state', $descr, NULL, $value, array('entPhysicalClass' => 'battery'));
+  $descr    = 'On Bypass';
+  $oid_name = 'upsmgOutputOnByPass';
+  $oid_num  = '.1.3.6.1.4.1.705.1.7.4.0';
+  $type     = 'mge-status-state';
+  $value    = $entry[$oid_name];
+
+  rename_rrd($device, "status-{$type}-{$oid_name}.{$index_rename}", "status-{$type}-{$oid_name}.{$index}");
+  discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr, $value, array('entPhysicalClass' => 'battery'));
 }
 
 // FIXME TODO: State sensors:
 // MG-SNMP-UPS-MIB::upsmgOutputUnavailableByPass.0 = INTEGER: no(2)
 if (isset($entry['upsmgOutputUnavailableByPass']))
 {
-  $descr = "On Bypass";
-  $oid   = ".1.3.6.1.4.1.705.1.7.5.0";
-  $value = $entry['upsmgOutputUnavailableByPass'];
-  discover_sensor($valid['sensor'], 'state', $device, $oid, "upsmgOutputUnavailableByPass.$index", 'mge-status-state', $descr, NULL, $value, array('entPhysicalClass' => 'other'));
+  $descr    = 'Unavailable Bypass';
+  $oid_name = 'upsmgOutputUnavailableByPass';
+  $oid_num  = '.1.3.6.1.4.1.705.1.7.5.0';
+  $type     = 'mge-status-state';
+  $value    = $entry[$oid_name];
+
+  rename_rrd($device, "status-{$type}-{$oid_name}.{$index_rename}", "status-{$type}-{$oid_name}.{$index}");
+  discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr, $value, array('entPhysicalClass' => 'other'));
 }
 
 // MG-SNMP-UPS-MIB::upsmgOutputNoByPass.0 = INTEGER: no(2)
 if (isset($entry['upsmgOutputNoByPass']))
 {
-  $descr = "No Bypass";
-  $oid   = ".1.3.6.1.4.1.705.1.7.6.0";
-  $value = $entry['upsmgOutputNoByPass'];
-  discover_sensor($valid['sensor'], 'state', $device, $oid, "upsmgOutputNoByPass.$index", 'mge-status-state', $descr, NULL, $value, array('entPhysicalClass' => 'other'));
+  $descr    = 'No Bypass';
+  $oid_name = 'upsmgOutputNoByPass';
+  $oid_num  = '.1.3.6.1.4.1.705.1.7.6.0';
+  $type     = 'mge-status-state';
+  $value    = $entry[$oid_name];
+
+  rename_rrd($device, "status-{$type}-{$oid_name}.{$index_rename}", "status-{$type}-{$oid_name}.{$index}");
+  discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr, $value, array('entPhysicalClass' => 'other'));
 }
 
 // MG-SNMP-UPS-MIB::upsmgOutputUtilityOff.0 = INTEGER: no(2)
 if (isset($entry['upsmgOutputUtilityOff']))
 {
-  $descr = "Utility Off";
-  $oid   = ".1.3.6.1.4.1.705.1.7.7.0";
-  $value = $entry['upsmgOutputUtilityOff'];
-  discover_sensor($valid['sensor'], 'state', $device, $oid, "upsmgOutputUtilityOff.$index", 'mge-status-state', $descr, NULL, $value, array('entPhysicalClass' => 'other'));
+  $descr    = 'Utility Off';
+  $oid_name = 'upsmgOutputUtilityOff';
+  $oid_num  = '.1.3.6.1.4.1.705.1.7.7.0';
+  $type     = 'mge-status-state';
+  $value    = $entry[$oid_name];
+
+  rename_rrd($device, "status-{$type}-{$oid_name}.{$index_rename}", "status-{$type}-{$oid_name}.{$index}");
+  discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr, $value, array('entPhysicalClass' => 'other'));
 }
 
 // MG-SNMP-UPS-MIB::upsmgOutputOnBoost.0 = INTEGER: no(2)
 if (isset($entry['upsmgOutputOnBoost']))
 {
-  $descr = "On Boost";
-  $oid   = ".1.3.6.1.4.1.705.1.7.8.0";
-  $value = $entry['upsmgOutputOnBoost'];
-  discover_sensor($valid['sensor'], 'state', $device, $oid, "upsmgOutputOnBoost.$index", 'mge-status-state', $descr, NULL, $value, array('entPhysicalClass' => 'other'));
+  $descr    = 'On Boost';
+  $oid_name = 'upsmgOutputOnBoost';
+  $oid_num  = '.1.3.6.1.4.1.705.1.7.8.0';
+  $type     = 'mge-status-state';
+  $value    = $entry[$oid_name];
+
+  rename_rrd($device, "status-{$type}-{$oid_name}.{$index_rename}", "status-{$type}-{$oid_name}.{$index}");
+  discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr, $value, array('entPhysicalClass' => 'other'));
 }
 
 // MG-SNMP-UPS-MIB::upsmgOutputInverterOff.0 = INTEGER: no(2)
 if (isset($entry['upsmgOutputInverterOff']))
 {
-  $descr = "Inverter Off";
-  $oid   = ".1.3.6.1.4.1.705.1.7.9.0";
-  $value = $entry['upsmgOutputInverterOff'];
-  discover_sensor($valid['sensor'], 'state', $device, $oid, "upsmgOutputInverterOff.$index", 'mge-status-state', $descr, NULL, $value, array('entPhysicalClass' => 'other'));
+  $family_name = strtolower(snmp_get($device, 'upsmgIdentFamilyName.0', '-Oqv', 'MG-SNMP-UPS-MIB'));
+  $family_name = str_replace('eaton ', '', $family_name);
+
+  $descr    = "Inverter Off";
+  $oid_name = 'upsmgOutputInverterOff';
+  $oid_num  = '.1.3.6.1.4.1.705.1.7.9.0';
+  $value    = $entry[$oid_name];
+  if ($family_name == 'ex' || $family_name == '9sx') // Known Online UPSes
+  {
+    $type = 'mge-status-state';
+    // This rename for old wrong indexes
+    rename_rrd($device, "status-{$type}-{$oid_name}.{$index_rename}", "status-{$type}-{$oid_name}.{$index}");
+    // This rename for changed family name
+    rename_rrd($device, "status-mge-status-inverter-{$oid_name}.{$index}", "status-{$type}-{$oid_name}.{$index}");
+  } else {
+    $type = 'mge-status-inverter';
+    rename_rrd($device, "status-mge-status-state-{$oid_name}.{$index_rename}", "status-{$type}-{$oid_name}.{$index}");
+  }
+
+  discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr, $value, array('entPhysicalClass' => 'other'));
 }
 
 // MG-SNMP-UPS-MIB::upsmgOutputOverLoad.0 = INTEGER: no(2)
 if (isset($entry['upsmgOutputOverLoad']))
 {
-  $descr = "Over Load";
-  $oid   = ".1.3.6.1.4.1.705.1.7.10.0";
-  $value = $entry['upsmgOutputOverLoad'];
-  discover_sensor($valid['sensor'], 'state', $device, $oid, "upsmgOutputOverLoad.$index", 'mge-status-state', $descr, NULL, $value, array('entPhysicalClass' => 'other'));
+  $descr    = 'Over Load';
+  $oid_name = 'upsmgOutputOverLoad';
+  $oid_num  = '.1.3.6.1.4.1.705.1.7.10.0';
+  $type     = 'mge-status-state';
+  $value    = $entry[$oid_name];
+
+  rename_rrd($device, "status-{$type}-{$oid_name}.{$index_rename}", "status-{$type}-{$oid_name}.{$index}");
+  discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr, $value, array('entPhysicalClass' => 'other'));
 }
 
 // MG-SNMP-UPS-MIB::upsmgOutputOverTemp.0 = INTEGER: no(2)
 if (isset($entry['upsmgOutputOverTemp']))
 {
-  $descr = "Over Temperature";
-  $oid   = ".1.3.6.1.4.1.705.1.7.11.0";
-  $value = $entry['upsmgOutputOverTemp'];
-  discover_sensor($valid['sensor'], 'state', $device, $oid, "upsmgOutputOverTemp.$index", 'mge-status-state', $descr, NULL, $value, array('entPhysicalClass' => 'temperature'));
+  $descr    = 'Over Temperature';
+  $oid_name = 'upsmgOutputOverTemp';
+  $oid_num  = '.1.3.6.1.4.1.705.1.7.11.0';
+  $type     = 'mge-status-state';
+  $value    = $entry[$oid_name];
+
+  rename_rrd($device, "status-{$type}-{$oid_name}.{$index_rename}", "status-{$type}-{$oid_name}.{$index}");
+  discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr, $value, array('entPhysicalClass' => 'other'));
 }
 
 // MG-SNMP-UPS-MIB::upsmgOutputOnBuck.0 = INTEGER: 2
@@ -156,19 +214,28 @@ foreach ($cache['mge'] as $index => $entry)
 
   $oid   = ".1.3.6.1.4.1.705.1.7.2.1.4.$index"; // MG-SNMP-UPS-MIB:mgoutputLoadPerPhase.$index
   $value = $entry['mgoutputLoadPerPhase'];
-  discover_sensor($valid['sensor'], 'capacity', $device, $oid, "mgoutputLoadPerPhase.$index", 'mge-ups', $descr, 1, $value, array('limit_high' => 85, 'limit_high_warn' => 70));
+  discover_sensor($valid['sensor'], 'load', $device, $oid, "mgoutputLoadPerPhase.$index", 'mge-ups', $descr . ' Load', 1, $value, array('limit_high' => 85, 'limit_high_warn' => 70));
 
   $oid   = ".1.3.6.1.4.1.705.1.7.2.1.2.$index"; // MG-SNMP-UPS-MIB:mgoutputVoltage.$index
   $value = $entry['mgoutputVoltage'];
-  discover_sensor($valid['sensor'], 'voltage', $device, $oid, $index, 'mge-ups', $descr, $scale, $value);
+  if ($value != 0)
+  {
+    discover_sensor($valid['sensor'], 'voltage', $device, $oid, $index, 'mge-ups', $descr, $scale, $value);
+  }
 
   $oid   = ".1.3.6.1.4.1.705.1.7.2.1.5.$index"; // MG-SNMP-UPS-MIB:mgoutputCurrent.$index
   $value = $entry['mgoutputCurrent'];
-  discover_sensor($valid['sensor'], 'current', $device, $oid, $index, 'mge-ups', $descr, $scale, $value);
+  if ($value != 0)
+  {
+    discover_sensor($valid['sensor'], 'current', $device, $oid, $index, 'mge-ups', $descr, $scale, $value);
+  }
 
   $oid   = ".1.3.6.1.4.1.705.1.7.2.1.3.$index"; // MG-SNMP-UPS-MIB:mgoutputFrequency.$index
   $value = $entry['mgoutputFrequency'];
-  discover_sensor($valid['sensor'], 'frequency', $device, $oid, $index, 'mge-ups', $descr, $scale, $value);
+  if ($value != 0)
+  {
+    discover_sensor($valid['sensor'], 'frequency', $device, $oid, $index, 'mge-ups', $descr, $scale, $value);
+  }
 }
 
 echo(" ");
@@ -178,7 +245,7 @@ $cache['mge'] = array();
 foreach (array("upsmgBattery") as $table)
 {
   echo("$table ");
-  $cache['mge'] = snmpwalk_cache_multi_oid($device, $table, $cache['mge'], "MG-SNMP-UPS-MIB", NULL, OBS_SNMP_ALL_NUMERIC);
+  $cache['mge'] = snmpwalk_cache_multi_oid($device, $table, $cache['mge'], "MG-SNMP-UPS-MIB", NULL, OBS_SNMP_ALL_NUMERIC_INDEX);
 }
 
 foreach ($cache['mge'] as $index => $entry)
@@ -191,7 +258,10 @@ foreach ($cache['mge'] as $index => $entry)
     $oid       = ".1.3.6.1.4.1.705.1.5.5.$index";
     $value     = $entry['upsmgBatteryVoltage'];
 
-    discover_sensor($valid['sensor'], 'voltage', $device, $oid, "upsmgBatteryVoltage.$index", 'mge', $descr, $scale, $value);
+    if ($value != 0)
+    {
+      discover_sensor($valid['sensor'], 'voltage', $device, $oid, "upsmgBatteryVoltage.$index", 'mge', $descr, $scale, $value);
+    }
   }
 
   // MG-SNMP-UPS-MIB::upsmgBatteryCurrent.0 = 0
@@ -200,7 +270,10 @@ foreach ($cache['mge'] as $index => $entry)
     $oid       = ".1.3.6.1.4.1.705.1.5.6.$index";
     $value     = $entry['upsmgBatteryCurrent'];
 
-    discover_sensor($valid['sensor'], 'current', $device, $oid, "upsmgBatteryCurrent.$index", 'mge', $descr, $scale, $value);
+    if ($value != 0)
+    {
+      discover_sensor($valid['sensor'], 'current', $device, $oid, "upsmgBatteryCurrent.$index", 'mge', $descr, $scale, $value);
+    }
   }
 
   // MG-SNMP-UPS-MIB::upsmgBatteryTemperature.0 = INTEGER: 15
@@ -209,17 +282,20 @@ foreach ($cache['mge'] as $index => $entry)
     $oid       = ".1.3.6.1.4.1.705.1.5.7.$index";
     $value     = $entry['upsmgBatteryTemperature'];
 
-    discover_sensor($valid['sensor'], 'temperature', $device, $oid, "upsmgBatteryTemperature.$index", 'mge', $descr, 1, $value);
+    if ($value != 0)
+    {
+      discover_sensor($valid['sensor'], 'temperature', $device, $oid, "upsmgBatteryTemperature.$index", 'mge', $descr, 1, $value);
+    }
   }
 
   // MG-SNMP-UPS-MIB::upsmgBatteryLevel.0 = INTEGER: 100
   if (isset($entry['upsmgBatteryLevel']))
   {
     $oid       = ".1.3.6.1.4.1.705.1.5.2.$index";
-    $limits    = array('limit_low' => snmp_get($device, "upsmgConfigLowBatteryLevel.0", "-Oqc", "MG-SNMP-UPS-MIB"));
+    $limits    = array('limit_low' => snmp_get($device, "upsmgConfigLowBatteryLevel.0", "-Oqv", "MG-SNMP-UPS-MIB"));
     $value     = $entry['upsmgBatteryLevel'];
 
-    discover_sensor($valid['sensor'], 'capacity', $device, $oid, "upsmgBatteryLevel.$index", 'mge', $descr, 1, $value, $limits);
+    discover_sensor($valid['sensor'], 'capacity', $device, $oid, "upsmgBatteryLevel.$index", 'mge', $descr . ' Capacity', 1, $value, $limits);
   }
 
   // MG-SNMP-UPS-MIB::upsmgBatteryRemainingTime.0 = INTEGER: 12180
@@ -227,7 +303,7 @@ foreach ($cache['mge'] as $index => $entry)
   {
     $descr     = "Battery Runtime Remaining";
     $oid       = ".1.3.6.1.4.1.705.1.5.1.$index";
-    $limits    = array('limit_low' => snmp_get($device, "upsmgConfigLowBatteryTime.0", "-Oqc", "MG-SNMP-UPS-MIB"));
+    $limits    = array('limit_low' => snmp_get($device, "upsmgConfigLowBatteryTime.0", "-Oqv", "MG-SNMP-UPS-MIB"));
     $value     = $entry['upsmgBatteryRemainingTime'];
     $scale     = 1 / 60;
 
@@ -243,7 +319,7 @@ foreach ($cache['mge'] as $index => $entry)
     $descr = "Battery Fault";
     $oid   = ".1.3.6.1.4.1.705.1.5.9.$index";
     $value = $entry['upsmgBatteryFaultBattery'];
-    discover_sensor($valid['sensor'], 'state', $device, $oid, "upsmgBatteryFaultBattery.$index", 'mge-status-state', $descr, NULL, $value, array('entPhysicalClass' => 'battery'));
+    discover_status($device, $oid, "upsmgBatteryFaultBattery.$index", 'mge-status-state', $descr, $value, array('entPhysicalClass' => 'battery'));
   }
 
   // MG-SNMP-UPS-MIB::upsmgBatteryChargerFault.0 = no
@@ -284,8 +360,8 @@ echo(" ");
 $cache['mge'] = array();
 foreach (array("upsmgEnviron") as $table)
 {
-  echo("$table ");
-  $cache['mge'] = snmpwalk_cache_multi_oid($device, $table, $cache['mge'], "MG-SNMP-UPS-MIB", NULL, OBS_SNMP_ALL_NUMERIC);
+  //echo("$table ");
+  $cache['mge'] = snmpwalk_cache_multi_oid($device, $table, $cache['mge'], "MG-SNMP-UPS-MIB", NULL, OBS_SNMP_ALL_NUMERIC_INDEX);
 }
 
 // MG-SNMP-UPS-MIB::upsmgEnvironAmbientTemp.0 = INTEGER: 0
@@ -318,7 +394,7 @@ $cache['mge'] = array();
 foreach (array("upsmgConfigEnvironmentTable","upsmgEnvironmentSensorTable") as $table)
 {
   echo("$table ");
-  $cache['mge'] = snmpwalk_cache_multi_oid($device, $table, $cache['mge'], "MG-SNMP-UPS-MIB", NULL, OBS_SNMP_ALL_NUMERIC);
+  $cache['mge'] = snmpwalk_cache_multi_oid($device, $table, $cache['mge'], "MG-SNMP-UPS-MIB", NULL, OBS_SNMP_ALL_NUMERIC_INDEX);
 }
 
 // upsmgConfigSensorIndex.1 = 1
@@ -379,7 +455,10 @@ foreach ($cache['mge'] as $index => $entry)
                              'limit_high_warn' => $entry['upsmgConfigTemperatureHigh'] - $hysteresis,
                              'limit_low_warn'  => $entry['upsmgConfigTemperatureLow']  + $hysteresis);
 
-    discover_sensor($valid['sensor'], 'temperature', $device, $oid, $index, 'mge', $descr, $scale, $value, $limits);
+    if ($value != 0)
+    {
+      discover_sensor($valid['sensor'], 'temperature', $device, $oid, $index, 'mge', $descr, $scale, $value, $limits);
+    }
   }
 }
 

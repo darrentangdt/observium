@@ -11,7 +11,7 @@
  *
  */
 
-$page_title[] = "OSPF";
+register_html_title("OSPF");
 
 $navbar = array();
 $navbar['brand'] = "OSPF";

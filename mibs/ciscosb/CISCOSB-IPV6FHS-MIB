@@ -13,7 +13,7 @@ IMPORTS
     Integer32, Counter32, OBJECT-TYPE                    FROM SNMPv2-SMI
     rndErrorDesc, rndErrorSeverity                       FROM CISCOSB-DEVICEPARAMS-MIB
     switch001, rlMacMulticast, rndNotifications          FROM CISCOSB-MIB
-    InetAddressType, InetAddress                         FROM INET-ADDRESS-MIB
+    InetAddressType,InetAddress,InetAddressPrefixLength  FROM INET-ADDRESS-MIB
     InterfaceIndex, InterfaceIndexOrZero                 FROM IF-MIB
     VlanId                                               FROM Q-BRIDGE-MIB
     VlanList1, VlanList2, VlanList3, VlanList4           FROM CISCOSB-BRIDGEMIBOBJECTS-MIB;
@@ -21,15 +21,15 @@ IMPORTS
 
 rlIpv6Fhs MODULE-IDENTITY
         LAST-UPDATED "201212120000Z"
-        ORGANIZATION "Cisco Small Business"
+        ORGANIZATION "Cisco Systems, Inc."
 
         CONTACT-INFO
         "Postal: 170 West Tasman Drive
         San Jose , CA 95134-1706
         USA
 
-        Website: Cisco Small Business Home http://www.cisco.com/smb>;,
-        Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
+        
+        Website:  Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
 
         DESCRIPTION
                 "The private MIB module definition for IPv6 First Hop Security."
@@ -74,6 +74,7 @@ rlIpv6Fhs MODULE-IDENTITY
  rlRaGuard             OBJECT IDENTIFIER ::= { rlIpv6Fhs 3 }
  rlNbrBindingIntegrity OBJECT IDENTIFIER ::= { rlIpv6Fhs 4 }
  rlDhcpGuard           OBJECT IDENTIFIER ::= { rlIpv6Fhs 5 }
+ rlSourceGuard         OBJECT IDENTIFIER ::= { rlIpv6Fhs 6 }
 
  --------------------------------------------------------------
  -- The First Hop Security
@@ -633,7 +634,11 @@ rlFirstHopSecEnableVlan3073to4094 OBJECT-TYPE
     rlFirstHopSecCountersDropDhcpGuardUnauthorizedAssignedAddress     Counter32,
     rlFirstHopSecCountersDropSourceGuardNoBinding                     Counter32,
     rlFirstHopSecCountersDropNbrBindingIntegrityIllegalIcmpv6         Counter32,
-    rlFirstHopSecCountersDropNbrBindingIntegrityIllegalDhcpv6         Counter32
+    rlFirstHopSecCountersDropNbrBindingIntegrityIllegalDhcpv6         Counter32,
+    rlFirstHopSecCountersRxDhcpRelease                                Counter32,
+    rlFirstHopSecCountersDropDhcpRelease                              Counter32,
+    rlFirstHopSecCountersRxDhcpDecline                                Counter32,
+    rlFirstHopSecCountersDropDhcpDecline                              Counter32
     }
 
  rlFirstHopSecCountersIfIndex OBJECT-TYPE
@@ -946,7 +951,37 @@ rlFirstHopSecEnableVlan3073to4094 OBJECT-TYPE
       invalid target address, invalid flag, invalid option."
     ::= { rlFirstHopSecCountersEntry 38 }
 
+ rlFirstHopSecCountersRxDhcpRelease OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+      "Number of DHCPv6 RELEASE messages received on the interface."
+    ::= { rlFirstHopSecCountersEntry 39 }
 
+ rlFirstHopSecCountersDropDhcpRelease OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+      "Number of DHCPv6 RELEASE messages dropped on the interface."
+    ::= { rlFirstHopSecCountersEntry 40 }
+
+ rlFirstHopSecCountersRxDhcpDecline OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+      "Number of DHCPv6 DECLINE messages received on the interface."
+    ::= { rlFirstHopSecCountersEntry 41 }
+
+ rlFirstHopSecCountersDropDhcpDecline OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+      "Number of DHCPv6 DECLINE messages dropped on the interface."
+    ::= { rlFirstHopSecCountersEntry 42 }
 
  --------------------------------------------------------------
  -- The First Hop Security Global Configurations
@@ -978,6 +1013,80 @@ rlFirstHopSecEnableVlan3073to4094 OBJECT-TYPE
            Hop Security counters are cleared on this interface.
            Reading this object has no effect."
     ::= { rlFirstHopSec 10 }
+
+--------------------------------------------------------------
+ -- First Hop Security Error Counters Table (Read Only)
+ --------------------------------------------------------------
+
+ rlFirstHopSecErrorCountersTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF RlFirstHopSecErrorCountersEntry
+    MAX-ACCESS  not-accessible
+    STATUS current
+    DESCRIPTION  "The table displays first hop security error counters"
+    ::= { rlFirstHopSec 11 }
+
+ rlFirstHopSecErrorCountersEntry OBJECT-TYPE
+    SYNTAX  RlFirstHopSecErrorCountersEntry
+    MAX-ACCESS  not-accessible
+    STATUS current
+    DESCRIPTION   "Static row for this table."
+    INDEX { rlFirstHopSecErrorCountersIndex }
+    ::= { rlFirstHopSecErrorCountersTable 1 }
+
+ RlFirstHopSecErrorCountersEntry ::= SEQUENCE {
+    rlFirstHopSecErrorCountersIndex              INTEGER,
+    rlFirstHopSecErrorCountersNBTOverflow        Counter32,
+    rlFirstHopSecErrorCountersNPTOverflow        Counter32,
+    rlFirstHopSecErrorCountersTcamOverflow       Counter32
+}
+
+ rlFirstHopSecErrorCountersIndex  OBJECT-TYPE
+   SYNTAX      INTEGER {
+        static(1)
+   }
+   MAX-ACCESS  not-accessible
+   STATUS      current
+   DESCRIPTION
+     "The table contains only one static entry."
+   ::= { rlFirstHopSecErrorCountersEntry 1 }
+
+ rlFirstHopSecErrorCountersNBTOverflow OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+      "Counts Neighbor Binding Table overflow"
+    ::= { rlFirstHopSecErrorCountersEntry 2 }
+
+ rlFirstHopSecErrorCountersNPTOverflow OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+      "Counts Neighbor Prefix Table overflow"
+    ::= { rlFirstHopSecErrorCountersEntry 3 }
+
+rlFirstHopSecErrorCountersTcamOverflow OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+      "Counts TCAM overflow"
+    ::= { rlFirstHopSecErrorCountersEntry 4 }
+
+ --------------------------------------------------------------
+ -- First Hop Security Clear Error Counters (Action Only)
+ --------------------------------------------------------------
+ rlFirstHopSecClearErrorCounters OBJECT-TYPE
+    SYNTAX TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+          "When this object is set to true IPv6 First Hop Security Error Counters
+           are cleared.
+           Setting this object to false or reading this object has no effect."
+    ::= { rlFirstHopSec 12 }
+
 
  --------------------------------------------------------------
  -- The ND Inspection
@@ -2555,7 +2664,9 @@ rlRaGuardEnableVlan3073to4094 OBJECT-TYPE
     rlNbrBindingIntegrityPolicyMaxEntriesVlanLimit      Integer32,
     rlNbrBindingIntegrityPolicyMaxEntriesInterfaceLimit Integer32,
     rlNbrBindingIntegrityPolicyMaxEntriesMacLimit       Integer32,
-    rlNbrBindingIntegrityPolicyRowStatus                RowStatus
+    rlNbrBindingIntegrityPolicyRowStatus                RowStatus,
+    rlNbrBindingIntegrityPolicyPrefixValidation         RlIpv6FhsSettingStatusType,
+    rlNbrBindingIntegrityPolicyAddressConfig            INTEGER
     }
 
  rlNbrBindingIntegrityPolicyName OBJECT-TYPE
@@ -2589,7 +2700,7 @@ rlRaGuardEnableVlan3073to4094 OBJECT-TYPE
     ::= { rlNbrBindingIntegrityPolicyEntry 3 }
 
  rlNbrBindingIntegrityPolicyMaxEntriesVlanLimit OBJECT-TYPE
-    SYNTAX      Integer32 (-2 | -1 | 0..2147483647)
+    SYNTAX      Integer32 (-2 | -1 | 0..65535)
     MAX-ACCESS  read-write
     STATUS current
     DESCRIPTION
@@ -2601,7 +2712,7 @@ rlRaGuardEnableVlan3073to4094 OBJECT-TYPE
     ::= { rlNbrBindingIntegrityPolicyEntry 4 }
 
  rlNbrBindingIntegrityPolicyMaxEntriesInterfaceLimit OBJECT-TYPE
-    SYNTAX      Integer32 (-2 | -1 | 0..2147483647)
+    SYNTAX      Integer32 (-2 | -1 | 0..65535)
     MAX-ACCESS  read-write
     STATUS current
     DESCRIPTION
@@ -2613,7 +2724,7 @@ rlRaGuardEnableVlan3073to4094 OBJECT-TYPE
     ::= { rlNbrBindingIntegrityPolicyEntry 5 }
 
  rlNbrBindingIntegrityPolicyMaxEntriesMacLimit OBJECT-TYPE
-    SYNTAX      Integer32 (-2 | -1 | 0..2147483647)
+    SYNTAX      Integer32 (-2 | -1 | 0..65535)
     MAX-ACCESS  read-write
     STATUS current
     DESCRIPTION
@@ -2632,6 +2743,36 @@ rlRaGuardEnableVlan3073to4094 OBJECT-TYPE
       "The row status variable, used according to
       row installation and removal conventions."
     ::= { rlNbrBindingIntegrityPolicyEntry 7 }
+
+ rlNbrBindingIntegrityPolicyPrefixValidation OBJECT-TYPE
+    SYNTAX RlIpv6FhsSettingStatusType
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+          "Enable/disable address prefix validation using Neighbor Prefix Table."
+    DEFVAL  { unspecified }
+    ::= { rlNbrBindingIntegrityPolicyEntry 8 }
+
+ rlNbrBindingIntegrityPolicyAddressConfig OBJECT-TYPE
+   SYNTAX      INTEGER {
+        unspecified(-1),
+        autoconfig(1),
+        autoconfigAndManual(3),
+        dhcp(4),
+        autoconfigAndDhcp(5),
+        autoconfigManualAndDhcp(7)
+   }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+          "Specify the allowed methods for address binding in Neighbor Binding Table.
+          autoconfig(1) refers to stateless address autoconfiguration.
+          autoconfigAndManual(3) allows manual and stateless address autoconfiguration.
+          dhcp(4) permits binding only from DHCP.
+          autoconfigAndDhcp(5) binds from DHCP and stateless address autoconfiguration.
+          autoconfigManualAndDhcp(7) binds from Manual, DHCP and stateless address autoconfiguration."
+    DEFVAL  { unspecified }
+    ::= { rlNbrBindingIntegrityPolicyEntry 9 }
 
  --------------------------------------------------------------
  -- Neighbor Binding Integrity Policy Attachment Table - Port
@@ -3027,8 +3168,9 @@ RlNbrBindingIntegrityBindingEntry ::= SEQUENCE {
    rlNbrBindingIntegrityBindingMacAddress         MacAddress,
    rlNbrBindingIntegrityBindingOrigin             INTEGER,
    rlNbrBindingIntegrityBindingState              INTEGER,
-   rlNbrBindingIntegrityBindingExpiryTime         INTEGER,
-   rlNbrBindingIntegrityBindingRowStatus          RowStatus
+   rlNbrBindingIntegrityBindingExpiryTime         Unsigned32,
+   rlNbrBindingIntegrityBindingRowStatus          RowStatus,
+   rlNbrBindingIntegrityBindingTCAMOverflow       TruthValue
 }
 
 rlNbrBindingIntegrityBindingVlanTag OBJECT-TYPE
@@ -3096,11 +3238,12 @@ rlNbrBindingIntegrityBindingState OBJECT-TYPE
    ::= { rlNbrBindingIntegrityBindingEntry 7 }
 
 rlNbrBindingIntegrityBindingExpiryTime OBJECT-TYPE
-   SYNTAX INTEGER
+   SYNTAX Unsigned32
    MAX-ACCESS  read-only
    STATUS current
    DESCRIPTION
-        "The time in seconds until the entry is expired."
+        "The time in seconds until the entry is expired.
+         A value of 4294967295 denotes infinite lifetime."
    ::= { rlNbrBindingIntegrityBindingEntry 8 }
 
 rlNbrBindingIntegrityBindingRowStatus OBJECT-TYPE
@@ -3111,6 +3254,16 @@ rlNbrBindingIntegrityBindingRowStatus OBJECT-TYPE
       "The row status variable, used according to row
       installation and removal conventions."
    ::= { rlNbrBindingIntegrityBindingEntry 9 }
+
+rlNbrBindingIntegrityBindingTCAMOverflow OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+          "Signs if entry is configured in TCAM"
+    DEFVAL  { false }
+    ::= { rlNbrBindingIntegrityBindingEntry 10 }
+
 
  -------------------------------------------
  -- Neighbor Binding Integrity Clear Table (Action only)
@@ -3140,7 +3293,8 @@ rlNbrBindingIntegrityBindingRowStatus OBJECT-TYPE
    rlNbrBindingIntegrityClearSourceAddress      InetAddress,
    rlNbrBindingIntegrityClearIfIndex            InterfaceIndex,
    rlNbrBindingIntegrityClearMacAddress         MacAddress,
-   rlNbrBindingIntegrityClearRowStatus          RowStatus
+   rlNbrBindingIntegrityClearRowStatus          RowStatus,
+   rlNbrBindingIntegrityClearBindMethod         INTEGER
  }
 
  rlNbrBindingIntegrityClearIndex OBJECT-TYPE
@@ -3203,6 +3357,210 @@ rlNbrBindingIntegrityBindingRowStatus OBJECT-TYPE
       row installation and removal conventions."
    ::= { rlNbrBindingIntegrityClearEntry 7 }
 
+ rlNbrBindingIntegrityClearBindMethod OBJECT-TYPE
+   SYNTAX      INTEGER {
+        ndp(1),
+        dhcp(2)
+   }
+   MAX-ACCESS  read-write
+   STATUS current
+   DESCRIPTION
+        "clear dynamic entries bound using the specified method."
+   ::= { rlNbrBindingIntegrityClearEntry 8 }
+
+
+ --------------------------------------------------
+ -- Neighbor Binding Integrity Binding Prefix Table
+ --------------------------------------------------
+
+rlNbrBindingIntegrityBindingPrefixTable OBJECT-TYPE
+   SYNTAX  SEQUENCE OF RlNbrBindingIntegrityBindingPrefixEntry
+   MAX-ACCESS  not-accessible
+   STATUS current
+   DESCRIPTION  "The table specifies Neighbor Binding Integrity binding table."
+   ::= { rlNbrBindingIntegrity 18 }
+
+rlNbrBindingIntegrityBindingPrefixEntry OBJECT-TYPE
+   SYNTAX  RlNbrBindingIntegrityBindingPrefixEntry
+   MAX-ACCESS  not-accessible
+   STATUS current
+   DESCRIPTION   "The row definition for this table."
+   INDEX { rlNbrBindingIntegrityBindingPrefixVlanTag,
+           rlNbrBindingIntegrityBindingPrefixAddressType,
+           rlNbrBindingIntegrityBindingPrefixAddress,
+           rlNbrBindingIntegrityBindingPrefixLength  }
+   ::= { rlNbrBindingIntegrityBindingPrefixTable 1 }
+
+RlNbrBindingIntegrityBindingPrefixEntry ::= SEQUENCE {
+   rlNbrBindingIntegrityBindingPrefixVlanTag            VlanId,
+   rlNbrBindingIntegrityBindingPrefixAddressType        InetAddressType,
+   rlNbrBindingIntegrityBindingPrefixAddress            InetAddress,
+   rlNbrBindingIntegrityBindingPrefixLength             InetAddressPrefixLength,
+   rlNbrBindingIntegrityBindingPrefixOrigin             INTEGER,
+   rlNbrBindingIntegrityBindingPrefixAllowAutoconfig    TruthValue,
+   rlNbrBindingIntegrityBindingPrefixExpiryTime         Unsigned32,
+   rlNbrBindingIntegrityBindingPrefixRowStatus          RowStatus
+}
+
+rlNbrBindingIntegrityBindingPrefixVlanTag OBJECT-TYPE
+   SYNTAX VlanId
+   MAX-ACCESS not-accessible
+   STATUS current
+   DESCRIPTION
+       "The binding prefix entry's VLAN tag."
+   ::= { rlNbrBindingIntegrityBindingPrefixEntry 1 }
+
+rlNbrBindingIntegrityBindingPrefixAddressType OBJECT-TYPE
+   SYNTAX  InetAddressType
+   MAX-ACCESS  not-accessible
+   STATUS current
+   DESCRIPTION
+        "The binding prefix entry's INET address type.
+         The only inet type that is supported is ipv6."
+   ::= { rlNbrBindingIntegrityBindingPrefixEntry 2 }
+
+rlNbrBindingIntegrityBindingPrefixAddress OBJECT-TYPE
+   SYNTAX  InetAddress
+   MAX-ACCESS  not-accessible
+   STATUS current
+   DESCRIPTION
+        "The binding prefix entry's address."
+   ::= { rlNbrBindingIntegrityBindingPrefixEntry 3 }
+
+rlNbrBindingIntegrityBindingPrefixLength OBJECT-TYPE
+   SYNTAX  InetAddressPrefixLength
+   MAX-ACCESS  not-accessible
+   STATUS current
+   DESCRIPTION
+        "Indicates the number of leading one bits that form the
+        mask to be logical-ANDed with the inet address
+        before being compared to the value in the
+        rlNbrBindingIntegrityBindingPrefixAddress field."
+   ::= { rlNbrBindingIntegrityBindingPrefixEntry 4 }
+
+rlNbrBindingIntegrityBindingPrefixOrigin OBJECT-TYPE
+   SYNTAX INTEGER {
+        static(1),
+        dynamic(2)
+        }
+   MAX-ACCESS  read-only
+   STATUS current
+   DESCRIPTION
+        "The binding prefix entry's origin: static or dynamic"
+   ::= { rlNbrBindingIntegrityBindingPrefixEntry 5 }
+
+rlNbrBindingIntegrityBindingPrefixAllowAutoconfig OBJECT-TYPE
+   SYNTAX      TruthValue
+   MAX-ACCESS  read-write
+   STATUS current
+   DESCRIPTION
+        "Indicates whether the prefix can be used for
+         stateless address auto-configuration."
+   ::= { rlNbrBindingIntegrityBindingPrefixEntry 6 }
+
+rlNbrBindingIntegrityBindingPrefixExpiryTime OBJECT-TYPE
+   SYNTAX Unsigned32
+   MAX-ACCESS  read-only
+   STATUS current
+   DESCRIPTION
+        "The time in seconds until the entry is expired.
+         A value of 4294967295 denotes infinite lifetime."
+   ::= { rlNbrBindingIntegrityBindingPrefixEntry 7 }
+
+rlNbrBindingIntegrityBindingPrefixRowStatus OBJECT-TYPE
+   SYNTAX RowStatus
+   MAX-ACCESS read-create
+   STATUS current
+   DESCRIPTION
+      "The row status variable, used according to row
+      installation and removal conventions."
+   ::= { rlNbrBindingIntegrityBindingPrefixEntry 8 }
+
+ --------------------------------------------------------------
+ -- Neighbor Binding Integrity Clear Prefix Table (Action only)
+ --------------------------------------------------------------
+
+ rlNbrBindingIntegrityClearPrefixTable OBJECT-TYPE
+   SYNTAX  SEQUENCE OF RlNbrBindingIntegrityClearPrefixEntry
+   MAX-ACCESS  not-accessible
+   STATUS current
+   DESCRIPTION  "The table clears Neighbor Binding Integrity Binding Prefix table
+                 according to configured filters."
+   ::= { rlNbrBindingIntegrity 19 }
+
+
+ rlNbrBindingIntegrityClearPrefixEntry OBJECT-TYPE
+   SYNTAX  RlNbrBindingIntegrityClearPrefixEntry
+   MAX-ACCESS  not-accessible
+   STATUS current
+   DESCRIPTION   "The row definition for this table."
+   INDEX { rlNbrBindingIntegrityClearPrefixIndex  }
+   ::= { rlNbrBindingIntegrityClearPrefixTable 1 }
+
+ RlNbrBindingIntegrityClearPrefixEntry ::= SEQUENCE {
+   rlNbrBindingIntegrityClearPrefixIndex        INTEGER,
+   rlNbrBindingIntegrityClearPrefixVlanTag      VlanId,
+   rlNbrBindingIntegrityClearPrefixAddressType  InetAddressType,
+   rlNbrBindingIntegrityClearPrefixAddress      InetAddress,
+   rlNbrBindingIntegrityClearPrefixLength       InetAddressPrefixLength,
+   rlNbrBindingIntegrityClearPrefixRowStatus    RowStatus
+ }
+
+ rlNbrBindingIntegrityClearPrefixIndex OBJECT-TYPE
+   SYNTAX      INTEGER {
+        static(1)
+   }
+   MAX-ACCESS  not-accessible
+   STATUS current
+   DESCRIPTION
+        "The row index in the table."
+   ::= { rlNbrBindingIntegrityClearPrefixEntry 1 }
+
+ rlNbrBindingIntegrityClearPrefixVlanTag OBJECT-TYPE
+   SYNTAX VlanId
+   MAX-ACCESS read-write
+   STATUS current
+   DESCRIPTION
+       "Clear binding prefix entries with this VLAN tag."
+   ::= { rlNbrBindingIntegrityClearPrefixEntry 2 }
+
+ rlNbrBindingIntegrityClearPrefixAddressType OBJECT-TYPE
+   SYNTAX  InetAddressType
+   MAX-ACCESS  read-write
+   STATUS current
+   DESCRIPTION
+       "Clear binding prefix entries with this address type.
+        The only inet type that is supported is ipv6."
+   ::= { rlNbrBindingIntegrityClearPrefixEntry 3 }
+
+ rlNbrBindingIntegrityClearPrefixAddress OBJECT-TYPE
+   SYNTAX  InetAddress
+   MAX-ACCESS  read-write
+   STATUS current
+   DESCRIPTION
+        "Clear binding prefix entries with this address prefix."
+   ::= { rlNbrBindingIntegrityClearPrefixEntry 4 }
+
+ rlNbrBindingIntegrityClearPrefixLength OBJECT-TYPE
+   SYNTAX  InetAddressPrefixLength
+   MAX-ACCESS  read-write
+   STATUS current
+   DESCRIPTION
+        "Indicates the number of leading one bits that form the
+        mask to be logical-ANDed with the inet address
+        before being compared to the value in the
+        rlNbrBindingIntegrityClearPrefixAddress field."
+   ::= { rlNbrBindingIntegrityClearPrefixEntry 5 }
+
+ rlNbrBindingIntegrityClearPrefixRowStatus OBJECT-TYPE
+   SYNTAX RowStatus
+   MAX-ACCESS read-create
+   STATUS current
+   DESCRIPTION
+      "The row status variable, used according to
+      row installation and removal conventions."
+   ::= { rlNbrBindingIntegrityClearPrefixEntry 6 }
+
  --------------------------------------------------------------
  -- Neighbor Binding Integrity Active Policy Table (Read Only)
  --------------------------------------------------------------
@@ -3240,7 +3598,11 @@ rlNbrBindingIntegrityBindingRowStatus OBJECT-TYPE
     rlNbrBindingIntegrityActivePolicyMaxEntriesMacLimit       Integer32,
     rlNbrBindingIntegrityActivePolicyMaxEntriesMacLimitType   RlIpv6FhsSettingType,
     rlNbrBindingIntegrityActivePolicyBindingLifetime          Integer32,
-    rlNbrBindingIntegrityActivePolicyBindingLifetimeType      RlIpv6FhsSettingType
+    rlNbrBindingIntegrityActivePolicyBindingLifetimeType      RlIpv6FhsSettingType,
+    rlNbrBindingIntegrityActivePolicyPrefixValidation         RlIpv6FhsSettingStatusType,
+    rlNbrBindingIntegrityActivePolicyPrefixValidationType     RlIpv6FhsSettingType,
+    rlNbrBindingIntegrityActivePolicyAddressConfig            INTEGER,
+    rlNbrBindingIntegrityActivePolicyAddressConfigType        RlIpv6FhsSettingType
     }
 
  rlNbrBindingIntegrityActivePolicyIfIndex OBJECT-TYPE
@@ -3311,7 +3673,7 @@ rlNbrBindingIntegrityBindingRowStatus OBJECT-TYPE
     ::= { rlNbrBindingIntegrityActivePolicyEntry 8 }
 
  rlNbrBindingIntegrityActivePolicyMaxEntriesVlanLimit OBJECT-TYPE
-    SYNTAX      Integer32 (-2 | 0..2147483647)
+    SYNTAX      Integer32 (-2 | 0..65535)
     MAX-ACCESS  read-only
     STATUS current
     DESCRIPTION
@@ -3329,7 +3691,7 @@ rlNbrBindingIntegrityBindingRowStatus OBJECT-TYPE
     ::= { rlNbrBindingIntegrityActivePolicyEntry 10 }
 
  rlNbrBindingIntegrityActivePolicyMaxEntriesInterfaceLimit OBJECT-TYPE
-    SYNTAX      Integer32 (-2 | 0..2147483647)
+    SYNTAX      Integer32 (-2 | 0..65535)
     MAX-ACCESS  read-only
     STATUS current
     DESCRIPTION
@@ -3347,7 +3709,7 @@ rlNbrBindingIntegrityBindingRowStatus OBJECT-TYPE
     ::= { rlNbrBindingIntegrityActivePolicyEntry 12 }
 
  rlNbrBindingIntegrityActivePolicyMaxEntriesMacLimit OBJECT-TYPE
-    SYNTAX      Integer32 (-2 | 0..2147483647)
+    SYNTAX      Integer32 (-2 | 0..65535)
     MAX-ACCESS  read-only
     STATUS current
     DESCRIPTION
@@ -3380,6 +3742,50 @@ rlNbrBindingIntegrityBindingRowStatus OBJECT-TYPE
           "rlNbrBindingIntegrityActivePolicyBindingLifetime setting type."
     ::= { rlNbrBindingIntegrityActivePolicyEntry 16 }
 
+ rlNbrBindingIntegrityActivePolicyPrefixValidation OBJECT-TYPE
+    SYNTAX RlIpv6FhsSettingStatusType
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+          "Enable/disable address prefix validation using Neighbor Prefix Table."
+    ::= { rlNbrBindingIntegrityActivePolicyEntry 17 }
+
+ rlNbrBindingIntegrityActivePolicyPrefixValidationType OBJECT-TYPE
+    SYNTAX      RlIpv6FhsSettingType
+    MAX-ACCESS  read-only
+    STATUS current
+    DESCRIPTION
+        "rlNbrBindingIntegrityActivePolicyPrefixValidation setting type."
+    ::= { rlNbrBindingIntegrityActivePolicyEntry 18 }
+
+ rlNbrBindingIntegrityActivePolicyAddressConfig OBJECT-TYPE
+   SYNTAX      INTEGER {
+        autoconfig(1),
+        autoconfigAndManual(3),
+        dhcp(4),
+        autoconfigAndDhcp(5),
+        autoconfigManualAndDhcp(7)
+   }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+          "Specify the allowed methods for address binding in Neighbor Binding Table.
+          autoconfig(1) refers to stateless address autoconfiguration.
+          autoconfigAndManual(3) allows manual and stateless address autoconfiguration.
+          dhcp(4) permits binding only from DHCP.
+          autoconfigAndDhcp(5) binds from DHCP and stateless address autoconfiguration.
+          autoconfigManualAndDhcp(7) binds from Manual, DHCP and stateless address autoconfiguration."
+    ::= { rlNbrBindingIntegrityActivePolicyEntry 19 }
+
+ rlNbrBindingIntegrityActivePolicyAddressConfigType OBJECT-TYPE
+    SYNTAX      RlIpv6FhsSettingType
+    MAX-ACCESS  read-only
+    STATUS current
+    DESCRIPTION
+        "rlNbrBindingIntegrityActivePolicyAddressConfig setting type."
+    ::= { rlNbrBindingIntegrityActivePolicyEntry 20 }
+
+
  --------------------------------------------------------------
  -- Neighbor Binding Integrity Global Configurations
  --------------------------------------------------------------
@@ -3403,7 +3809,7 @@ rlNbrBindingIntegrityBindingRowStatus OBJECT-TYPE
     ::= { rlNbrBindingIntegrity 11 }
 
  rlNbrBindingIntegrityMaxEntriesVlanLimit OBJECT-TYPE
-    SYNTAX      Integer32 (-2 | 0..2147483647)
+    SYNTAX      Integer32 (-2 | 0..65535)
     MAX-ACCESS  read-write
     STATUS current
     DESCRIPTION
@@ -3414,7 +3820,7 @@ rlNbrBindingIntegrityBindingRowStatus OBJECT-TYPE
     ::= { rlNbrBindingIntegrity 12 }
 
  rlNbrBindingIntegrityMaxEntriesInterfaceLimit OBJECT-TYPE
-    SYNTAX      Integer32 (-2 |0..2147483647)
+    SYNTAX      Integer32 (-2 |0..65535)
     MAX-ACCESS  read-write
     STATUS current
     DESCRIPTION
@@ -3425,7 +3831,7 @@ rlNbrBindingIntegrityBindingRowStatus OBJECT-TYPE
     ::= { rlNbrBindingIntegrity 13 }
 
  rlNbrBindingIntegrityMaxEntriesMacLimit OBJECT-TYPE
-    SYNTAX      Integer32 (-2 | 0..2147483647)
+    SYNTAX      Integer32 (-2 | 0..65535)
     MAX-ACCESS  read-write
     STATUS current
     DESCRIPTION
@@ -3443,6 +3849,59 @@ rlNbrBindingIntegrityBindingRowStatus OBJECT-TYPE
         "Number of entries in Neighbor Binding Table."
 
     ::= { rlNbrBindingIntegrity 15 }
+
+ rlNbrBindingIntegrityPrefixValidation OBJECT-TYPE
+    SYNTAX  TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+          "Enable/disable address prefix validation using Neighbor Prefix Table."
+    DEFVAL  { false }
+    ::= { rlNbrBindingIntegrity 16 }
+
+ rlNbrBindingIntegrityAddressConfig OBJECT-TYPE
+   SYNTAX      INTEGER {
+        autoconfig(1),
+        autoconfigAndManual(3),
+        dhcp(4),
+        autoconfigAndDhcp(5),
+        autoconfigManualAndDhcp(7)
+   }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+          "Specify the allowed methods for address binding in Neighbor Binding Table.
+          autoconfig(1) refers to stateless address autoconfiguration.
+          autoconfigAndManual(3) allows manual and stateless address autoconfiguration.
+          dhcp(4) permits binding only from DHCP.
+          autoconfigAndDhcp(5) binds from DHCP and stateless address autoconfiguration.
+          autoconfigManualAndDhcp(7) binds from Manual, DHCP and stateless address autoconfiguration."
+    DEFVAL  { autoconfigAndManual }
+    ::= { rlNbrBindingIntegrity 17 }
+
+ rlNbrBindingIntegrityPrefixEntriesNum OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS current
+    DESCRIPTION
+        "Number of entries in Neighbor Prefix Table."
+    ::= { rlNbrBindingIntegrity 21 }
+
+ --------------------------------------------------------------------
+ -- Neighbor Binding Integrity Clear DHCP Recovery File (Action Only)
+ --------------------------------------------------------------------
+
+ rlNbrBindingIntegrityClearDhcpRecoveryFile OBJECT-TYPE
+    SYNTAX      Integer32 (0..4094)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+          "Clear neighbor binding integrity's DHCP recovery file.
+           Setting a value of zero clears the information for all VLANs.
+           Setting a non-zero value clears the information for a specific VLAN.
+           Reading this object has not effect."
+    ::= { rlNbrBindingIntegrity 20 }
+
 
  --------------------------------------------------------------
  -- Neighbor Binding Integrity Traps
@@ -3492,6 +3951,23 @@ rlNbrBindingIntegrityBindingRowStatus OBJECT-TYPE
         "Warning trap indicating that a new entry was not inserted into
          Neighbor Binding table because of the Neighbor Binding table overflow."
     ::=  { rndNotifications 235 }
+
+ rlSrcGuardTCAMOverflowTrap
+ NOTIFICATION-TYPE
+    OBJECTS   { rndErrorDesc, rndErrorSeverity }
+    STATUS  current
+    DESCRIPTION
+        "Warning trap indicating that a new Source Guard entry was not inserted into
+         TCAM because of the lack of resources."
+    ::=  { rndNotifications 238 }
+
+ rlNbrBindingIntegrityPrefixOverflowTrap NOTIFICATION-TYPE
+    OBJECTS   { rndErrorDesc, rndErrorSeverity }
+    STATUS  current
+    DESCRIPTION
+        "Warning trap indicating that a new entry was not inserted into
+         Neighbor Prefix table because of the Neighbor Prefix table overflow."
+    ::=  { rndNotifications 239 }
 
  --------------------------------------------------------------
  -- The DHCPv6 Guard
@@ -3898,7 +4374,7 @@ rlDhcpGuardPolicyMatchReplyAddrSpecified OBJECT-TYPE
     STATUS      current
     DESCRIPTION
       "A list of vlans from 2049 to 3072."
-    DEFVAL {'00'H}      
+    DEFVAL {'00'H}
     ::= { rlDhcpGuardPolicyVlanEntry 4 }
 
 
@@ -4185,9 +4661,508 @@ rlDhcpGuardEnableVlan3073to4094 OBJECT-TYPE
  --------------------------------------------------------------
  -- The Source Guard
  --------------------------------------------------------------
+ --------------------------------------------------------------
+ -- The Source Guard Policy Configuration Table
+ --------------------------------------------------------------
+
+rlSourceGuardPolicyTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF RlSourceGuardPolicyEntry
+    MAX-ACCESS  not-accessible
+    STATUS current
+    DESCRIPTION  "The table specifies Source Guard
+                 per policy configurations."
+    ::= { rlSourceGuard 1 }
+
+rlSourceGuardPolicyEntry OBJECT-TYPE
+    SYNTAX  RlSourceGuardPolicyEntry
+    MAX-ACCESS  not-accessible
+    STATUS current
+    DESCRIPTION   "The row definition for this table."
+    INDEX { IMPLIED rlSourceGuardPolicyName }
+    ::= { rlSourceGuardPolicyTable 1 }
+
+RlSourceGuardPolicyEntry ::= SEQUENCE {
+    rlSourceGuardPolicyName                 DisplayString,
+    rlSourceGuardPolicyTrusted              RlIpv6FhsSettingStatusType,
+    rlSourceGuardPolicyRowStatus            RowStatus
+    }
+
+rlSourceGuardPolicyName OBJECT-TYPE
+    SYNTAX DisplayString (SIZE(1..32))
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "The Source Guard policy name."
+    ::= { rlSourceGuardPolicyEntry 1 }
+
+rlSourceGuardPolicyTrusted OBJECT-TYPE
+    SYNTAX  RlIpv6FhsSettingStatusType
+    MAX-ACCESS  read-write
+    STATUS current
+    DESCRIPTION
+        "Indicates whether policy defines trusted functionality"
+    DEFVAL { unspecified }
+    ::= { rlSourceGuardPolicyEntry 2 }
+
+rlSourceGuardPolicyRowStatus OBJECT-TYPE
+    SYNTAX RowStatus
+    MAX-ACCESS read-create
+    STATUS current
+    DESCRIPTION
+      "The row status variable, used according to
+      row installation and removal conventions."
+    ::= { rlSourceGuardPolicyEntry 3 }
+
 
  --------------------------------------------------------------
- -- The DHCPv6 Guard Traps
+ -- The Source Guard Policy Attachment Table - Port
+ --------------------------------------------------------------
+
+ rlSourceGuardPortPolicyTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF RlSourceGuardPortPolicyEntry
+    MAX-ACCESS  not-accessible
+    STATUS current
+    DESCRIPTION  "The table specifies Source Guard policy
+                 attachment for ports."
+    ::= { rlSourceGuard 2 }
+
+ rlSourceGuardPortPolicyEntry OBJECT-TYPE
+    SYNTAX  RlSourceGuardPortPolicyEntry
+    MAX-ACCESS  not-accessible
+    STATUS current
+    DESCRIPTION   "The row definition for this table."
+    INDEX { rlSourceGuardPortPolicyIfIndex,
+            IMPLIED rlSourceGuardPortPolicyName }
+    ::= { rlSourceGuardPortPolicyTable 1 }
+
+ RlSourceGuardPortPolicyEntry ::= SEQUENCE {
+    rlSourceGuardPortPolicyIfIndex          InterfaceIndex,
+    rlSourceGuardPortPolicyName             DisplayString,
+    rlSourceGuardPortPolicyVlan1to1024      OCTET STRING,
+    rlSourceGuardPortPolicyVlan1025to2048   OCTET STRING,
+    rlSourceGuardPortPolicyVlan2049to3072   OCTET STRING,
+    rlSourceGuardPortPolicyVlan3073to4094   OCTET STRING,
+    rlSourceGuardPortPolicyRowStatus        RowStatus
+    }
+
+ rlSourceGuardPortPolicyIfIndex OBJECT-TYPE
+    SYNTAX InterfaceIndex
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "The port's interface index."
+    ::= { rlSourceGuardPortPolicyEntry 1 }
+
+ rlSourceGuardPortPolicyName OBJECT-TYPE
+    SYNTAX DisplayString (SIZE(1..32))
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "The Source guard policy name"
+    ::= { rlSourceGuardPortPolicyEntry 2 }
+
+ rlSourceGuardPortPolicyVlan1to1024 OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(0..128))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "A list of vlans from 1 to 1024."
+    ::= { rlSourceGuardPortPolicyEntry 3 }
+
+ rlSourceGuardPortPolicyVlan1025to2048 OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(0..128))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "A list of vlans from 1025 to 2048."
+    ::= { rlSourceGuardPortPolicyEntry 4 }
+
+ rlSourceGuardPortPolicyVlan2049to3072 OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(0..128))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "A list of vlans from 2049 to 3072."
+    ::= { rlSourceGuardPortPolicyEntry 5 }
+
+ rlSourceGuardPortPolicyVlan3073to4094 OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(0..128))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "A list of vlans from 3073 to 4094."
+    ::= { rlSourceGuardPortPolicyEntry 6 }
+
+ rlSourceGuardPortPolicyRowStatus OBJECT-TYPE
+    SYNTAX RowStatus
+    MAX-ACCESS read-create
+    STATUS current
+    DESCRIPTION
+       "The row status variable, used according to
+       row installation and removal conventions."
+    ::= { rlSourceGuardPortPolicyEntry 7 }
+
+ --------------------------------------------------------------
+ -- The Source Guard Policy Attachment Table - Port (Read Only)
+ --------------------------------------------------------------
+
+ rlSourceGuardPolicyPortTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF RlSourceGuardPolicyPortEntry
+    MAX-ACCESS  not-accessible
+    STATUS current
+    DESCRIPTION  "The table specifies Source guard policy
+                 attachment for ports."
+    ::= { rlSourceGuard 3 }
+
+ rlSourceGuardPolicyPortEntry OBJECT-TYPE
+    SYNTAX  RlSourceGuardPolicyPortEntry
+    MAX-ACCESS  not-accessible
+    STATUS current
+    DESCRIPTION   "The row definition for this table."
+    INDEX { rlSourceGuardPolicyPortName,
+            rlSourceGuardPolicyPortIfIndex }
+    ::= { rlSourceGuardPolicyPortTable 1 }
+
+ RlSourceGuardPolicyPortEntry ::= SEQUENCE {
+    rlSourceGuardPolicyPortName             DisplayString,
+    rlSourceGuardPolicyPortIfIndex          InterfaceIndex,
+    rlSourceGuardPolicyPortVlan1to1024      OCTET STRING,
+    rlSourceGuardPolicyPortVlan1025to2048   OCTET STRING,
+    rlSourceGuardPolicyPortVlan2049to3072   OCTET STRING,
+    rlSourceGuardPolicyPortVlan3073to4094   OCTET STRING
+    }
+
+ rlSourceGuardPolicyPortName OBJECT-TYPE
+    SYNTAX DisplayString (SIZE(1..32))
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "The Source guard policy name"
+    ::= { rlSourceGuardPolicyPortEntry 1 }
+
+ rlSourceGuardPolicyPortIfIndex OBJECT-TYPE
+    SYNTAX InterfaceIndex
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "The port's interface index."
+    ::= { rlSourceGuardPolicyPortEntry 2 }
+
+ rlSourceGuardPolicyPortVlan1to1024 OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(0..128))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "A list of vlans from 1 to 1024."
+    ::= { rlSourceGuardPolicyPortEntry 3 }
+
+ rlSourceGuardPolicyPortVlan1025to2048 OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(0..128))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "A list of vlans from 1025 to 2048."
+    ::= { rlSourceGuardPolicyPortEntry 4 }
+
+ rlSourceGuardPolicyPortVlan2049to3072 OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(0..128))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "A list of vlans from 2049 to 3072."
+    ::= { rlSourceGuardPolicyPortEntry 5 }
+
+ rlSourceGuardPolicyPortVlan3073to4094 OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(0..128))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "A list of vlans from 3073 to 4094."
+    ::= { rlSourceGuardPolicyPortEntry 6 }
+
+
+ --------------------------------------------------------------
+ -- The Source Guard Policy Attachment Table - Vlan
+ --------------------------------------------------------------
+
+ rlSourceGuardVlanPolicyTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF RlSourceGuardVlanPolicyEntry
+    MAX-ACCESS  not-accessible
+    STATUS current
+    DESCRIPTION  "The table specifies Source Guard policy
+                 attachment for vlans."
+    ::= { rlSourceGuard 4 }
+
+ rlSourceGuardVlanPolicyEntry OBJECT-TYPE
+    SYNTAX  RlSourceGuardVlanPolicyEntry
+    MAX-ACCESS  not-accessible
+    STATUS current
+    DESCRIPTION   "The row definition for this table."
+    INDEX { rlSourceGuardVlanPolicyVlanTag }
+    ::= { rlSourceGuardVlanPolicyTable 1 }
+
+ RlSourceGuardVlanPolicyEntry ::= SEQUENCE {
+    rlSourceGuardVlanPolicyVlanTag            VlanId,
+    rlSourceGuardVlanPolicyName               DisplayString,
+    rlSourceGuardVlanPolicyRowStatus          RowStatus
+ }
+
+ rlSourceGuardVlanPolicyVlanTag OBJECT-TYPE
+    SYNTAX VlanId
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "The port's interface index."
+    ::= { rlSourceGuardVlanPolicyEntry 1 }
+
+ rlSourceGuardVlanPolicyName OBJECT-TYPE
+    SYNTAX DisplayString (SIZE(1..32))
+    MAX-ACCESS  read-write
+    STATUS current
+    DESCRIPTION
+        "The Source guard policy name"
+    ::= { rlSourceGuardVlanPolicyEntry 2 }
+
+ rlSourceGuardVlanPolicyRowStatus OBJECT-TYPE
+    SYNTAX RowStatus
+    MAX-ACCESS read-create
+    STATUS current
+    DESCRIPTION
+       "The row status variable, used according to
+       row installation and removal conventions."
+    ::= { rlSourceGuardVlanPolicyEntry 3 }
+
+ --------------------------------------------------------------
+ -- The Source Guard Policy Table - Vlan
+ --------------------------------------------------------------
+
+ rlSourceGuardPolicyVlanTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF RlSourceGuardPolicyVlanEntry
+    MAX-ACCESS  not-accessible
+    STATUS current
+    DESCRIPTION  "The table specifies Source Guard policy
+                 attachment for vlans."
+    ::= { rlSourceGuard 5 }
+
+ rlSourceGuardPolicyVlanEntry OBJECT-TYPE
+    SYNTAX  RlSourceGuardPolicyVlanEntry
+    MAX-ACCESS  not-accessible
+    STATUS current
+    DESCRIPTION   "The row definition for this table."
+    INDEX { IMPLIED rlSourceGuardPolicyVlanPolicyName }
+    ::= { rlSourceGuardPolicyVlanTable 1 }
+
+ RlSourceGuardPolicyVlanEntry ::= SEQUENCE {
+    rlSourceGuardPolicyVlanPolicyName    DisplayString,
+    rlSourceGuardPolicyVlan1to1024       OCTET STRING,
+    rlSourceGuardPolicyVlan1025to2048    OCTET STRING,
+    rlSourceGuardPolicyVlan2049to3072    OCTET STRING,
+    rlSourceGuardPolicyVlan3073to4094    OCTET STRING
+
+ }
+
+ rlSourceGuardPolicyVlanPolicyName OBJECT-TYPE
+    SYNTAX DisplayString (SIZE(1..32))
+    MAX-ACCESS  not-accessible
+    STATUS current
+    DESCRIPTION
+        "The Source guard policy name"
+    ::= { rlSourceGuardPolicyVlanEntry 1 }
+
+ rlSourceGuardPolicyVlan1to1024 OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(0..128))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      "A list of vlans from 1 to 1024."
+    DEFVAL {'00'H}
+    ::= { rlSourceGuardPolicyVlanEntry 2 }
+
+ rlSourceGuardPolicyVlan1025to2048 OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(0..128))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      "A list of vlans from 1025 to 2048."
+    DEFVAL {'00'H}
+    ::= { rlSourceGuardPolicyVlanEntry 3 }
+
+ rlSourceGuardPolicyVlan2049to3072 OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(0..128))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      "A list of vlans from 2049 to 3072."
+    DEFVAL {'00'H}
+    ::= { rlSourceGuardPolicyVlanEntry 4 }
+
+
+ rlSourceGuardPolicyVlan3073to4094 OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(0..128))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      "A list of vlans from 3073 to 4094."
+    DEFVAL {'00'H}
+    ::= { rlSourceGuardPolicyVlanEntry 5 }
+
+ --------------------------------------------------------------
+ -- The Source Guard Enable Table
+ --------------------------------------------------------------
+
+rlSourceGuardEnableVlanTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF RlSourceGuardEnableVlanEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table contains only one entry of a static vlan list. The Source Guard enabled VLANs are set to 1s."
+    ::= { rlSourceGuard 6 }
+
+rlSourceGuardEnableVlanEntry OBJECT-TYPE
+    SYNTAX      RlSourceGuardEnableVlanEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Statically created by local or network management vlan list"
+    INDEX   {rlSourceGuardEnableVlanIndex}
+    ::= { rlSourceGuardEnableVlanTable 1 }
+
+RlSourceGuardEnableVlanEntry ::=SEQUENCE {
+    rlSourceGuardEnableVlanIndex         INTEGER,
+    rlSourceGuardEnableVlan1to1024       OCTET STRING,
+    rlSourceGuardEnableVlan1025to2048    OCTET STRING,
+    rlSourceGuardEnableVlan2049to3072    OCTET STRING,
+    rlSourceGuardEnableVlan3073to4094    OCTET STRING
+
+}
+
+rlSourceGuardEnableVlanIndex  OBJECT-TYPE
+   SYNTAX      INTEGER {
+        static(1)
+   }
+   MAX-ACCESS  not-accessible
+   STATUS      current
+   DESCRIPTION
+     "The table contains only one static entry."
+
+   ::= { rlSourceGuardEnableVlanEntry 1 }
+
+rlSourceGuardEnableVlan1to1024 OBJECT-TYPE
+   SYNTAX      OCTET STRING(SIZE(0..128))
+   MAX-ACCESS  read-write
+   STATUS      current
+   DESCRIPTION
+     "A list of vlans from 1 to 1024."
+   DEFVAL {'00'H}
+   ::= { rlSourceGuardEnableVlanEntry 2 }
+
+rlSourceGuardEnableVlan1025to2048 OBJECT-TYPE
+   SYNTAX      OCTET STRING(SIZE(0..128))
+   MAX-ACCESS  read-write
+   STATUS      current
+   DESCRIPTION
+     "A list of vlans from 1025 to 2048."
+   DEFVAL {'00'H}
+   ::= { rlSourceGuardEnableVlanEntry 3 }
+
+rlSourceGuardEnableVlan2049to3072 OBJECT-TYPE
+   SYNTAX      OCTET STRING(SIZE(0..128))
+   MAX-ACCESS  read-write
+   STATUS      current
+   DESCRIPTION
+     "A list of vlans from 2049 to 3072."
+   DEFVAL {'00'H}
+   ::= { rlSourceGuardEnableVlanEntry 4 }
+
+rlSourceGuardEnableVlan3073to4094 OBJECT-TYPE
+   SYNTAX      OCTET STRING(SIZE(0..128))
+   MAX-ACCESS  read-write
+   STATUS      current
+   DESCRIPTION
+     "A list of vlans from 3073 to 4094."
+   DEFVAL {'00'H}
+   ::= { rlSourceGuardEnableVlanEntry 5 }
+
+ --------------------------------------------------------------
+ -- The Source Guard Active Policy Table (Read Only)
+ --------------------------------------------------------------
+
+ rlSourceGuardActivePolicyTable OBJECT-TYPE
+    SYNTAX  SEQUENCE OF RlSourceGuardActivePolicyEntry
+    MAX-ACCESS  not-accessible
+    STATUS current
+    DESCRIPTION  "The table specifies Source Guard Active Policy
+                 per port and VLAN."
+    ::= { rlSourceGuard 7 }
+
+ rlSourceGuardActivePolicyEntry OBJECT-TYPE
+    SYNTAX  RlSourceGuardActivePolicyEntry
+    MAX-ACCESS  not-accessible
+    STATUS current
+    DESCRIPTION   "The row definition for this table."
+    INDEX { rlSourceGuardActivePolicyIfIndex,
+            rlSourceGuardActivePolicyVlanTag}
+    ::= { rlSourceGuardActivePolicyTable 1 }
+
+ RlSourceGuardActivePolicyEntry ::= SEQUENCE {
+    rlSourceGuardActivePolicyIfIndex              InterfaceIndex,
+    rlSourceGuardActivePolicyVlanTag              VlanId,
+    rlSourceGuardActivePolicyNamePort             DisplayString,
+    rlSourceGuardActivePolicyNameVlan             DisplayString,
+    rlSourceGuardActivePolicyTrusted              RlIpv6FhsSettingStatusType,
+    rlSourceGuardActivePolicyTrustedType          RlIpv6FhsSettingType
+}
+
+ rlSourceGuardActivePolicyIfIndex OBJECT-TYPE
+    SYNTAX InterfaceIndex
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "The port's interface index."
+    ::= { rlSourceGuardActivePolicyEntry 1 }
+
+ rlSourceGuardActivePolicyVlanTag OBJECT-TYPE
+    SYNTAX VlanId
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "The VLAN identifier."
+    ::= { rlSourceGuardActivePolicyEntry 2 }
+
+ rlSourceGuardActivePolicyNamePort OBJECT-TYPE
+    SYNTAX DisplayString (SIZE(1..32))
+    MAX-ACCESS  read-only
+    STATUS current
+    DESCRIPTION
+        "The Source guard policy name attached to given interface."
+    ::= { rlSourceGuardActivePolicyEntry 3 }
+
+ rlSourceGuardActivePolicyNameVlan OBJECT-TYPE
+    SYNTAX DisplayString (SIZE(0..32))
+    MAX-ACCESS  read-only
+    STATUS current
+    DESCRIPTION
+        "The Source Guard policy name attached to given vlan."
+    ::= { rlSourceGuardActivePolicyEntry 4 }
+
+ rlSourceGuardActivePolicyTrusted OBJECT-TYPE
+    SYNTAX  RlIpv6FhsSettingStatusType
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates whether policy defines trusted functionality"
+    ::= { rlSourceGuardActivePolicyEntry 5 }
+
+ rlSourceGuardActivePolicyTrustedType OBJECT-TYPE
+    SYNTAX      RlIpv6FhsSettingType
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+          "rlSourceGuardActivePolicyNamePort setting type."
+    ::= { rlSourceGuardActivePolicyEntry 6 }
+
+ --------------------------------------------------------------
+ -- The Source Guard Traps
  --------------------------------------------------------------
 
  rlSrcGuardMessageDropTrap NOTIFICATION-TYPE

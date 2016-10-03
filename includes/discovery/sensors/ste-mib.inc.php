@@ -11,8 +11,6 @@
  *
  */
 
-echo(" STE-MIB ");
-
 /**
   STE-MIB::sensIndex.1 = INTEGER: 26518
   STE-MIB::sensIndex.2 = INTEGER: 29068
@@ -36,16 +34,25 @@ $oids = snmpwalk_cache_multi_oid($device, "sensTable", array(), "STE-MIB");
 
 foreach ($oids as $index => $entry)
 {
-  $oid   = ".1.3.6.1.4.1.21796.4.1.3.1.5.$index";
+  $oid   = ".1.3.6.1.4.1.21796.4.1.3.1.5.{$index}";
   $descr = $entry['sensName'];
   $value = $entry['sensValue'];
   $scale = 0.1;
 
+  $options = array();
   // sensUnit: none (0), celsius (1), fahrenheit (2), kelvin (3), percent(4)
   switch ($entry['sensUnit'])
   {
     case 'celsius':
       $type = 'temperature';
+      break;
+    case 'fahrenheit':
+      $type = 'temperature';
+      $options['sensor_unit'] = 'F';
+      break;
+    case 'kelvin':
+      $type = 'temperature';
+      $options['sensor_unit'] = 'K';
       break;
     case 'percent':
       $type = 'humidity';
@@ -56,8 +63,15 @@ foreach ($oids as $index => $entry)
 
   if (is_numeric($value) && $entry['sensState'] != 'invalid')
   {
-    discover_sensor($valid['sensor'], $type, $device, $oid, "steSensor.$index", 'ste', $descr, $scale, $value);
+    discover_sensor($valid['sensor'], $type, $device, $oid, "steSensor.$index", 'ste', $descr, $scale, $value, $options);
   }
+
+  $oid_name = 'sensState';
+  $oid_num  = ".1.3.6.1.4.1.21796.4.1.3.1.3.{$index}";
+  $type     = 'ste-SensorState';
+  $value    = $entry[$oid_name];
+
+  discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr, $value, array('entPhysicalClass' => 'other'));
 }
 
 // EOF

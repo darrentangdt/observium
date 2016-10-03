@@ -11,13 +11,10 @@
  *
  */
 
-$mib = 'NETAPP-MIB';
-$cache_discovery['netapp-mib'] = snmpwalk_cache_oid($device, "dfEntry", array(), $mib, mib_dirs("netapp"));
+$cache_discovery['netapp-mib'] = snmpwalk_cache_oid($device, "dfEntry", array(), 'NETAPP-MIB');
 
 if (count($cache_discovery['netapp-mib']))
 {
-  echo(" $mib ");
-
   /*
   Available data:
 
@@ -94,7 +91,7 @@ if (count($cache_discovery['netapp-mib']))
 
       if (is_numeric($index))
       {
-        discover_storage($valid['storage'], $device, $index, $fstype, $mib, $descr, 1024, $size, $used, $hc);
+        discover_storage($valid['storage'], $device, $index, $fstype, 'NETAPP-MIB', $descr, 1024, $size, $used, array('storage_hc' => $hc));
       }
     }
     unset($deny, $fstype, $descr, $size, $used, $free, $percent, $hc);

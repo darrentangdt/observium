@@ -39,6 +39,6 @@ $colours   = "mixed";
 $nototal   = 0;
 $unit_text = "Rows";
 
-include("includes/graphs/generic_multi_simplex_separated.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_simplex_separated.inc.php");
 
 // EOF

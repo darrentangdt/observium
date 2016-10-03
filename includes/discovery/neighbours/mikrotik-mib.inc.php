@@ -23,8 +23,6 @@
 // mtxrNeighborSoftwareID.1 = STRING:
 // mtxrNeighborInterfaceID.1 = INTEGER: 2
 
-echo(" MIKROTIK-MIB ");
-
 $mtxr_array = snmpwalk_cache_oid($device, "mtxrNeighbor", array(), "MIKROTIK-MIB", NULL, OBS_SNMP_ALL | OBS_SNMP_CONCAT);
 
 if ($mtxr_array)
@@ -39,7 +37,7 @@ if ($mtxr_array)
     $entry['mtxrNeighborMacAddress'] = zeropad($a) . ':' . zeropad($b) . ':' . zeropad($c) . ':' . zeropad($d) . ':' . zeropad($e) . ':' . zeropad($f);
 
     $ifIndex = $entry['mtxrNeighborInterfaceID'];
-  
+
     // Get the port using BRIDGE-MIB
     $port = dbFetchRow("SELECT * FROM `ports` WHERE `device_id` = ? AND `ifIndex` = ? AND `ifDescr` NOT LIKE 'Vlan%'", array($device['device_id'], $ifIndex));
 
@@ -91,7 +89,7 @@ if ($mtxr_array)
       $remote_port_ids = dbFetchRows("SELECT `port_id` FROM `ports` WHERE `ifPhysAddress` = ? AND `device_id` = ?", array($remote_chassis_id, $remote_device_id));
       if (count($remote_port_ids) == 1) { $remote_port_id = $remote_port_ids[0]['port_id']; }
     }
-    
+
     if (!is_bad_xdp($entry['mtxrNeighborIdentity']) && is_numeric($port['port_id']) && !empty($entry['mtxrNeighborIdentity']))
     {
       // We format the remote MAC just like lldpRemPortId macAddress (I think) (00 11 22 33 44 55) - we don't have an actual remote port name or ifIndex or anything in this MIB.

@@ -22,20 +22,22 @@ foreach ($devices as $device)
     {	
       case '.1.3.6.1.4.1.18248.1.1.1.0':
         rename_rrd($device, "sensor-temperature-papouch-tme-1.rrd", "sensor-temperature-TMESNMP2-MIB-int_temperature-0.rrd");
+        echo('.');
         break;
       case '.1.3.6.1.4.1.18248.20.1.2.1.1.2.1':
         rename_rrd($device, "sensor-temperature-papouch-th2e-1.rrd", "sensor-temperature-the_v01-MIB-inChValue-1.rrd");
+        echo('.');
         break;
       case '.1.3.6.1.4.1.18248.20.1.2.1.1.2.2':
         rename_rrd($device, "sensor-humidity-papouch-th2e-1.rrd", "sensor-humidity-the_v01-MIB-inChValue-2.rrd");
+        echo('.');
         break;
       case '.1.3.6.1.4.1.18248.20.1.2.1.1.2.3':
         rename_rrd($device, "sensor-temperature-papouch-th2e-3.rrd", "sensor-temperature-the_v01-MIB-inChValue-3.rrd");
+        echo('.');
         break;
     }
   }
 }
-
-echo(PHP_EOL);
 
 // EOF

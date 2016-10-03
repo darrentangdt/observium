@@ -13,7 +13,7 @@
 
 $ap['text'] = $ap['name'] . " " . $ap['type'];
 
-echo("<tr onclick=\"location.href='" . generate_ap_url($ap) . "/'\" style='cursor: pointer;'>
+echo("<tr onclick=\"openLink('" . generate_ap_url($ap) . "/')\" style='cursor: pointer;'>
          <td valign=top width=350>");
 echo("        <span class=entity-title> " . generate_ap_link($ap,  " ".$ap['text']." </span><br />"));
 echo("<span class=small>");

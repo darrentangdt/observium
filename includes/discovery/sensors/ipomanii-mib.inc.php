@@ -11,30 +11,28 @@
  *
  */
 
-// IPOMANII-MIB
-
 // FIXME: Currently no EMD "stack" support
 
-echo(" IPOMANII-MIB ");
+echo(' IPOMANII-MIB ');
 
-echo("outletConfigDesc ");
-$cache['ipoman']['out'] = snmpwalk_cache_multi_oid($device, "outletConfigDesc", $cache['ipoman']['out'], "IPOMANII-MIB");
-echo("outletConfigLocation ");
-$cache['ipoman']['out'] = snmpwalk_cache_multi_oid($device, "outletConfigLocation", $cache['ipoman']['out'], "IPOMANII-MIB");
-echo("inletConfigDesc ");
-$cache['ipoman']['in'] = snmpwalk_cache_multi_oid($device, "inletConfigDesc", $cache['ipoman'], "IPOMANII-MIB");
+echo('outletConfigDesc ');
+$cache['ipoman']['out'] = snmpwalk_cache_multi_oid($device, 'outletConfigDesc', $cache['ipoman']['out'], 'IPOMANII-MIB');
+echo('outletConfigLocation ');
+$cache['ipoman']['out'] = snmpwalk_cache_multi_oid($device, 'outletConfigLocation', $cache['ipoman']['out'], 'IPOMANII-MIB');
+echo('inletConfigDesc ');
+$cache['ipoman']['in'] = snmpwalk_cache_multi_oid($device, 'inletConfigDesc', $cache['ipoman'], 'IPOMANII-MIB');
 
 $oids_in = array();
 $oids_out = array();
 
-echo("inletConfigCurrentHigh ");
-$oids_in = snmpwalk_cache_multi_oid($device, "inletConfigCurrentHigh", $oids_in, "IPOMANII-MIB");
-echo("inletStatusCurrent ");
-$oids_in = snmpwalk_cache_multi_oid($device, "inletStatusCurrent", $oids_in, "IPOMANII-MIB");
-echo("outletConfigCurrentHigh ");
-$oids_out = snmpwalk_cache_multi_oid($device, "outletConfigCurrentHigh", $oids_out, "IPOMANII-MIB");
-echo("outletStatusCurrent ");
-$oids_out = snmpwalk_cache_multi_oid($device, "outletStatusCurrent", $oids_out, "IPOMANII-MIB");
+echo('inletConfigCurrentHigh ');
+$oids_in = snmpwalk_cache_multi_oid($device, 'inletConfigCurrentHigh', $oids_in, 'IPOMANII-MIB');
+echo('inletStatusCurrent ');
+$oids_in = snmpwalk_cache_multi_oid($device, 'inletStatusCurrent', $oids_in, 'IPOMANII-MIB');
+echo('outletConfigCurrentHigh ');
+$oids_out = snmpwalk_cache_multi_oid($device, 'outletConfigCurrentHigh', $oids_out, 'IPOMANII-MIB');
+echo('outletStatusCurrent ');
+$oids_out = snmpwalk_cache_multi_oid($device, 'outletStatusCurrent', $oids_out, 'IPOMANII-MIB');
 
 $scale = 0.001;
 foreach ($oids_in as $index => $entry)
@@ -66,12 +64,12 @@ foreach ($oids_out as $index => $entry)
 
 $oids = array();
 
-echo("inletConfigFrequencyHigh ");
-$oids = snmpwalk_cache_multi_oid($device, "inletConfigFrequencyHigh", $oids, "IPOMANII-MIB");
-echo("inletConfigFrequencyLow ");
-$oids = snmpwalk_cache_multi_oid($device, "inletConfigFrequencyLow", $oids, "IPOMANII-MIB");
-echo("inletStatusFrequency ");
-$oids = snmpwalk_cache_multi_oid($device, "inletStatusFrequency", $oids, "IPOMANII-MIB");
+echo('inletConfigFrequencyHigh ');
+$oids = snmpwalk_cache_multi_oid($device, 'inletConfigFrequencyHigh', $oids, 'IPOMANII-MIB');
+echo('inletConfigFrequencyLow ');
+$oids = snmpwalk_cache_multi_oid($device, 'inletConfigFrequencyLow', $oids, 'IPOMANII-MIB');
+echo('inletStatusFrequency ');
+$oids = snmpwalk_cache_multi_oid($device, 'inletStatusFrequency', $oids, 'IPOMANII-MIB');
 
 $scale = 0.1;
 foreach ($oids as $index => $entry)
@@ -91,39 +89,39 @@ foreach ($oids as $index => $entry)
   // FIXME: iPoMan 1201 also says it has 2 inlets, at least until firmware 1.06 - wtf?
 }
 
-// FIXME: What to do with IPOMANII-MIB::ipmEnvEmdConfigHumiOffset.0 ?
+// FIXME: What to do with ipmEnvEmdConfigHumiOffset.0 ?
 
-$emd_installed = snmp_get($device, "IPOMANII-MIB::ipmEnvEmdStatusEmdType.0"," -Oqv");
+$emd_installed = snmp_get($device, 'ipmEnvEmdStatusEmdType.0',' -Oqv', 'IPOMANII-MIB');
 $scale = 0.1;
 if ($emd_installed == 'eMD-HT')
 {
-  $descr  = snmp_get($device, "IPOMANII-MIB::ipmEnvEmdConfigHumiName.0", "-Oqv");
-  $oid    = ".1.3.6.1.4.1.2468.1.4.2.1.5.1.1.3.0";
-  $value  = snmp_get($device, "IPOMANII-MIB::ipmEnvEmdStatusHumidity.0", "-Oqv");
-  $limits = array('limit_high' => snmp_get($device, "IPOMANII-MIB::ipmEnvEmdConfigHumiHighSetPoint.0", "-Oqv"),
-                  'limit_low'  => snmp_get($device, "IPOMANII-MIB::ipmEnvEmdConfigHumiLowSetPoint.0", "-Oqv"));
+  $descr  = snmp_get($device, 'ipmEnvEmdConfigHumiName.0', '-Oqv', 'IPOMANII-MIB');
+  $oid    = '.1.3.6.1.4.1.2468.1.4.2.1.5.1.1.3.0';
+  $value  = snmp_get($device, 'ipmEnvEmdStatusHumidity.0', '-Oqv', 'IPOMANII-MIB');
+  $limits = array('limit_high' => snmp_get($device, 'ipmEnvEmdConfigHumiHighSetPoint.0', '-Oqv', 'IPOMANII-MIB'),
+                  'limit_low'  => snmp_get($device, 'ipmEnvEmdConfigHumiLowSetPoint.0', '-Oqv', 'IPOMANII-MIB'));
 
-  if ($descr != "" && is_numeric($value) && $value > "0")
+  if ($descr != '' && is_numeric($value) && $value > 0)
   {
-    $descr = trim(str_replace("\"", "", $descr));
+    $descr = trim(str_replace('"', '', $descr));
 
-    discover_sensor($valid['sensor'], 'humidity', $device, $oid, "1", 'ipoman', $descr, $scale, $value, $limits);
+    discover_sensor($valid['sensor'], 'humidity', $device, $oid, 1, 'ipoman', $descr, $scale, $value, $limits);
   }
 }
 
 if ($emd_installed != 'disabled')
 {
-  $descr  = snmp_get($device, "IPOMANII-MIB::ipmEnvEmdConfigTempName.0", "-Oqv");
-  $oid    = ".1.3.6.1.4.1.2468.1.4.2.1.5.1.1.2.0";
-  $value  = snmp_get($device, "IPOMANII-MIB::ipmEnvEmdStatusTemperature.0", "-Oqv");
-  $limits = array('limit_high' => snmp_get($device, "IPOMANII-MIB::ipmEnvEmdConfigTempHighSetPoint.0", "-Oqv"),
-                  'limit_low'  => snmp_get($device, "IPOMANII-MIB::ipmEnvEmdConfigTempLowSetPoint.0", "-Oqv"));
+  $descr  = snmp_get($device, 'ipmEnvEmdConfigTempName.0', '-Oqv', 'IPOMANII-MIB');
+  $oid    = '.1.3.6.1.4.1.2468.1.4.2.1.5.1.1.2.0';
+  $value  = snmp_get($device, 'ipmEnvEmdStatusTemperature.0', '-Oqv', 'IPOMANII-MIB');
+  $limits = array('limit_high' => snmp_get($device, 'ipmEnvEmdConfigTempHighSetPoint.0', '-Oqv', 'IPOMANII-MIB'),
+                  'limit_low'  => snmp_get($device, 'ipmEnvEmdConfigTempLowSetPoint.0', '-Oqv', 'IPOMANII-MIB'));
 
-  if ($descr != "" && is_numeric($value) && $value > "0")
+  if ($descr != '' && is_numeric($value) && $value > 0)
   {
-    $descr = trim(str_replace("\"", "", $descr));
+    $descr = trim(str_replace('"', '', $descr));
 
-    discover_sensor($valid['sensor'], 'temperature', $device, $oid, "1", 'ipoman', $descr, $scale, $value, $limits);
+    discover_sensor($valid['sensor'], 'temperature', $device, $oid, 1, 'ipoman', $descr, $scale, $value, $limits);
   }
 }
 
@@ -132,10 +130,10 @@ if ($emd_installed != 'disabled')
 #  $oids_in = array();
 $oids_out = array();
 
-#  echo("inletStatusWH ");
-#  $oids_in = snmpwalk_cache_multi_oid($device, "inletStatusWH", $oids_in, "IPOMANII-MIB");
-echo("outletStatusWH ");
-$oids_out = snmpwalk_cache_multi_oid($device, "outletStatusWH", $oids_out, "IPOMANII-MIB");
+#  echo('inletStatusWH ');
+#  $oids_in = snmpwalk_cache_multi_oid($device, 'inletStatusWH', $oids_in, 'IPOMANII-MIB');
+echo('outletStatusWH ');
+$oids_out = snmpwalk_cache_multi_oid($device, 'outletStatusWH', $oids_out, 'IPOMANII-MIB');
 
 #  foreach ($oids_in as $index => $entry)
 #  {
@@ -162,12 +160,12 @@ foreach ($oids_out as $index => $entry)
 
 $oids = array();
 
-echo("inletConfigVoltageHigh ");
-$oids = snmpwalk_cache_multi_oid($device, "inletConfigVoltageHigh", $oids, "IPOMANII-MIB");
-echo("inletConfigVoltageLow ");
-$oids = snmpwalk_cache_multi_oid($device, "inletConfigVoltageLow", $oids, "IPOMANII-MIB");
-echo("inletStatusVoltage ");
-$oids = snmpwalk_cache_multi_oid($device, "inletStatusVoltage", $oids, "IPOMANII-MIB");
+echo('inletConfigVoltageHigh ');
+$oids = snmpwalk_cache_multi_oid($device, 'inletConfigVoltageHigh', $oids, 'IPOMANII-MIB');
+echo('inletConfigVoltageLow ');
+$oids = snmpwalk_cache_multi_oid($device, 'inletConfigVoltageLow', $oids, 'IPOMANII-MIB');
+echo('inletStatusVoltage ');
+$oids = snmpwalk_cache_multi_oid($device, 'inletStatusVoltage', $oids, 'IPOMANII-MIB');
 
 $scale = 0.1;
 foreach ($oids as $index => $entry)
@@ -181,7 +179,6 @@ foreach ($oids as $index => $entry)
   {
     discover_sensor($valid['sensor'], 'voltage', $device, $oid, $index, 'ipoman', $descr, $scale, $value, $limits);
   }
-  // FIXME: iPoMan 1201 also says it has 2 inlets, at least until firmware 1.06 - wtf?
 }
 
 // EOF

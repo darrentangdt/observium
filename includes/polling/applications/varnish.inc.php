@@ -15,32 +15,29 @@ if (!empty($agent_data['app']['varnish']))
 {
   $app_id = discover_app($device, 'varnish');
 
-  $data = $agent_data['app']['varnish'];
-  $rrd_filename = "app-varnish-$app_id.rrd";
-
   // Varnish specific output from agent
-  list ($backend_req, $backend_unhealthy, $backend_busy, $backend_fail, $backend_reuse, $backend_toolate, $backend_recycle, $backend_retry, $cache_hitpass, $cache_hit, $cache_miss, $lru_nuked, $lru_moved) = explode(";", $data);
+  $data = explode(";", $agent_data['app']['varnish']);
 
-  rrdtool_create($device, $rrd_filename, " \
-      DS:backend_req:COUNTER:600:0:125000000000 \
-      DS:backend_unhealthy:COUNTER:600:0:125000000000 \
-      DS:backend_busy:COUNTER:600:0:125000000000 \
-      DS:backend_fail:COUNTER:600:0:125000000000 \
-      DS:backend_reuse:COUNTER:600:0:125000000000 \
-      DS:backend_toolate:COUNTER:600:0:125000000000 \
-      DS:backend_recycle:COUNTER:600:0:125000000000 \
-      DS:backend_retry:COUNTER:600:0:125000000000 \
-      DS:cache_hitpass:COUNTER:600:0:125000000000 \
-      DS:cache_hit:COUNTER:600:0:125000000000 \
-      DS:cache_miss:COUNTER:600:0:125000000000 \
-      DS:lru_nuked:COUNTER:600:0:125000000000 \
-      DS:lru_moved:COUNTER:600:0:125000000000 ");
+  $stats = array(
+    'backend_req'       => $data[0],
+    'backend_unhealthy' => $data[1],
+    'backend_busy'      => $data[2],
+    'backend_fail'      => $data[3],
+    'backend_reuse'     => $data[4],
+    'backend_toolate'   => $data[5],
+    'backend_recycle'   => $data[6],
+    'backend_retry'     => $data[7],
+    'cache_hitpass'     => $data[8],
+    'cache_hit'         => $data[9],
+    'cache_miss'        => $data[10],
+    'lru_nuked'         => $data[11],
+    'lru_moved'         => $data[12],
+  );
 
-  $rrd = sprintf("N:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d", $backend_req, $backend_unhealthy, $backend_busy, $backend_fail, $backend_reuse, $backend_toolate, $backend_recycle, $backend_retry, $cache_hitpass, $cache_hit, $cache_miss, $lru_nuked, $lru_moved);
+  rrdtool_update_ng($device, 'varnish', $stats, $app_id);
+  update_application($app_id, $stats);
 
-  rrdtool_update($device, $rrd_filename, $rrd);
-
-  unset($data, $rrd_filename, $rrd);
+  unset($data);
 }
 
 // EOF

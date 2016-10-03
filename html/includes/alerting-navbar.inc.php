@@ -16,7 +16,13 @@ if (!is_array($alert_rules)) { $alert_rules = cache_alert_rules(); }
 $navbar['class'] = 'navbar-narrow';
 $navbar['brand'] = 'Alerting';
 
-$pages = array('alerts' => 'Alerts', 'alert_checks' => 'Alert Checkers', 'alert_log' => 'Alert Logging', 'alert_maintenance' => 'Scheduled Maintenance',  'contacts' => 'Contacts');
+$pages = array('alerts'            => 'Alerts',
+               'alert_checks'      => 'Alert Checkers',
+               'alert_log'         => 'Alert Logging',
+               'alert_maintenance' => 'Scheduled Maintenance',
+               'syslog_alerts'     => 'Syslog Alerts',
+               'syslog_rules'      => 'Syslog Rules',
+               'contacts'          => 'Contacts');
 
 foreach ($pages as $page_name => $page_desc)
 {
@@ -43,11 +49,18 @@ $navbar['options']['update']['userlevel'] = 10; // Minimum user level to display
 // We don't really need to highlight Regenerate, as it's not a display option, but an action.
 // if ($vars['action'] == 'update') { $navbar['options']['update']['class'] = 'active'; }
 
+$navbar['options']['sadd']['url']  = generate_url(array('page' => 'add_syslog_rule'));
+$navbar['options']['sadd']['text'] = 'Add Syslog Rule';
+$navbar['options']['sadd']['icon'] = 'oicon-clipboard--plus';
+$navbar['options']['sadd']['right'] = TRUE;
+$navbar['options']['sadd']['userlevel'] = 10; // Minimum user level to display item
+
 $navbar['options']['add']['url']  = generate_url(array('page' => 'add_alert_check'));
 $navbar['options']['add']['text'] = 'Add Checker';
-$navbar['options']['add']['icon'] = 'oicon-plus-octagon';
+$navbar['options']['add']['icon'] = 'oicon-bell--plus';
 $navbar['options']['add']['right'] = TRUE;
 $navbar['options']['add']['userlevel'] = 10; // Minimum user level to display item
+
 
 // Print out the navbar defined above
 print_navbar($navbar);
@@ -55,7 +68,7 @@ unset($navbar);
 
 // Run Actions
 
-if ($_SESSION['userlevel'] == 10)
+if ($_SESSION['userlevel'] >= 10)
 {
   if ($vars['submit'] == "delete_alert_checker" && $vars['confirm'] == "confirm")
   {
@@ -69,6 +82,32 @@ if ($_SESSION['userlevel'] == 10)
 
     print_message("Deleted all traces of alert checker ".$vars['alert_test_id']);
   }
+
+  if ($vars['submit'] == "delete_syslog_rule" && $vars['confirm'] == "confirm")
+  {
+    dbDelete('syslog_alerts', '`la_id` = ?', array($vars['la_id']));
+    dbDelete('syslog_rules_assoc', '`la_id` = ?', array($vars['la_id']));
+    dbDelete('syslog_rules', '`la_id` = ?', array($vars['la_id']));
+    dbDelete('alerts_contacts_assoc', '`aca_type` = "syslog" AND `alert_checker_id` = ?', array($vars['la_id']));
+
+    set_obs_attrib('syslog_rules_changed', time());
+
+    unset($vars['la_id']);
+
+    print_message("Deleted all traces of Syslog Rule ".$vars['la_id']);
+  }
+  elseif ($vars['submit'] == "edit_syslog_rule")
+  {
+    $rows_updated = dbUpdate(array('la_name' => $vars['la_name'], 'la_descr' => $vars['la_descr'], 'la_rule' => $vars['la_rule'],
+      'la_disable' => (isset($vars['la_disable']) ? 1 : 0)), 'syslog_rules', '`la_id` = ?', array($vars['la_id']));
+
+    set_obs_attrib('syslog_rules_changed', time());
+
+  }
+
+
 }
+
+
 
 // EOF

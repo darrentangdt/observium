@@ -20,6 +20,6 @@ $vars['entity_id']   = $vars['port'];
 // Print Alert Log
 print_alert_log($vars);
 
-$page_title[] = 'Alert Log';
+register_html_title('Alert Log');
 
 // EOF

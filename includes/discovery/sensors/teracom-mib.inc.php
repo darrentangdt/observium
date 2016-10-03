@@ -20,10 +20,12 @@ $scale = 1;
 // 1-Wire sensors
 for ($i = 1;$i <= 8;$i++)
 {
-  $data = snmp_get_multi($device, 's'.$i.'description.0 s'.$i.'ID.0 s'.$i.'1x10Int.0 s'.$i.'2x10Int.0 s'.$i.'1MINx10Int.0 s'.$i.'1MAXx10Int.0', '-OQUs', 'TERACOM-MIB', mib_dirs('teracom'));
+  //$data = snmp_get_multi($device, 's'.$i.'description.0 s'.$i.'ID.0 s'.$i.'1x10Int.0 s'.$i.'2x10Int.0 s'.$i.'1MINx10Int.0 s'.$i.'1MAXx10Int.0', '-OQUs', 'TERACOM-MIB', mib_dirs('teracom'));
+  $data = snmp_get_multi($device, 's'.$i.'description.0 s'.$i.'ID.0 s'.$i.'1x10Int.0 s'.$i.'1MINx10Int.0 s'.$i.'1MAXx10Int.0', '-OQUs', 'TERACOM-MIB', mib_dirs('teracom'));
   if ($data[0]['s'.$i.'ID'] == 'ff:ff:ff:ff:ff:ff') { continue; }
   $descr = $data[0]['s'.$i.'description'];
-  $oid   = ".1.3.6.1.4.1.38783.1.3.1.1.$i.0";
+  //$oid   = ".1.3.6.1.4.1.38783.1.3.1.1.$i.0";
+  $oid   = ".1.3.6.1.4.1.38783.1.3.1.$i.1.0";
   $value = $data[0]['s'.$i.'1x10Int'];
   // TODO figure out how to identify sensor types
   $type = 'temperature';

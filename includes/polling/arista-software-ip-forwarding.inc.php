@@ -11,60 +11,53 @@
  *
  */
 
-if ($device['os'] == "arista_eos")
+if ($device['os'] == 'arista_eos') // FIXME mib based! => graphs dir?
 {
-  echo("ARISTA-SW-IP-FORWARDING\n");
+  echo('ARISTA-SW-IP-FORWARDING');
 
-  $data = snmpwalk_cache_oid($device, "aristaSwFwdIpStatsTable", array(), "ARISTA-SW-IP-FORWARDING-MIB", mib_dirs('arista'));
-  $oids = array ('HCInReceives', 'InHdrErrors', 'InNoRoutes', 'InAddrErrors',
-                 'InUnknownProtos', 'InTruncatedPkts',
-                 'HCInForwDatagrams',
-                 'ReasmReqds', 'ReasmOKs', 'ReasmFails',
-                 'OutNoRoutes', 'HCOutForwDatagrams',
-                 'OutDiscards',
-                 'OutFragReqds', 'OutFragOKs', 'OutFragFails', 'OutFragCreates',
-                 'HCOutTransmits' );
+  $data = snmpwalk_cache_oid($device, 'aristaSwFwdIpStatsTable', array(), 'ARISTA-SW-IP-FORWARDING-MIB');
 
-  $rrdfile = "arista-netstats-sw-ip.rrd";
-  $rrdfile6 = "arista-netstats-sw-ip6.rrd";
-
-  foreach ($oids as $oid)
+  // Not doing "$data as $ipver => $data" to be sure we don't get unexpected AFs other than what we know
+  foreach (array('ipv4', 'ipv6') as $ipver)
   {
-    $oid_ds = str_replace("HC", "", $oid);
-    $rrd_create .= " DS:$oid_ds:COUNTER:600:U:100000000000";
-  }
-
-  $have6 = isset( $data['ipv6'] );
-  $rrdupdate = "N";
-  $rrdupdate6 = "N";
-
-  foreach ($oids as $oid)
-  {
-    $rrdupdate .= ":" .$data[ 'ipv4' ][ 'aristaSwFwdIpStats' . $oid ];
-    if ($have6)
+    if (isset($data[$ipver]))
     {
-      $rrdupdate6 .= ":" .$data[ 'ipv6' ][ 'aristaSwFwdIpStats' . $oid ];
+      rrdtool_update_ng($device, "arista-netstats-sw-$ipver", array(
+        'InReceives'       => $data[$ipver]['aristaSwFwdIpStatsHCInReceives'],
+        'InHdrErrors'      => $data[$ipver]['aristaSwFwdIpStatsInHdrErrors'],
+        'InNoRoutes'       => $data[$ipver]['aristaSwFwdIpStatsInNoRoutes'],
+        'InAddrErrors'     => $data[$ipver]['aristaSwFwdIpStatsInAddrErrors'],
+        'InUnknownProtos'  => $data[$ipver]['aristaSwFwdIpStatsInUnknownProtos'],
+        'InTruncatedPkts'  => $data[$ipver]['aristaSwFwdIpStatsInTruncatedPkts'],
+        'InForwDatagrams'  => $data[$ipver]['aristaSwFwdIpStatsHCInForwDatagrams'],
+        'ReasmReqds'       => $data[$ipver]['aristaSwFwdIpStatsReasmReqds'],
+        'ReasmOKs'         => $data[$ipver]['aristaSwFwdIpStatsReasmOKs'],
+        'ReasmFails'       => $data[$ipver]['aristaSwFwdIpStatsReasmFails'],
+        'OutNoRoutes'      => $data[$ipver]['aristaSwFwdIpStatsOutNoRoutes'],
+        'OutForwDatagrams' => $data[$ipver]['aristaSwFwdIpStatsHCOutForwDatagrams'],
+        'OutDiscards'      => $data[$ipver]['aristaSwFwdIpStatsOutDiscards'],
+        'OutFragReqds'     => $data[$ipver]['aristaSwFwdIpStatsOutFragReqds'],
+        'OutFragOKs'       => $data[$ipver]['aristaSwFwdIpStatsOutFragOKs'],
+        'OutFragFails'     => $data[$ipver]['aristaSwFwdIpStatsOutFragFails'],
+        'OutFragCreates'   => $data[$ipver]['aristaSwFwdIpStatsOutFragCreates'],
+        'OutTransmits'     => $data[$ipver]['aristaSwFwdIpStatsHCOutTransmits'],
+      ));
     }
   }
 
-  rrdtool_create($device,$rrdfile, $rrd_create);
-  rrdtool_update($device, $rrdfile, $rrdupdate);
-
-  if ($have6)
+  if (isset($data['ipv4']))
   {
-    rrdtool_create($device, $rrdfile6, $rrd_create);
-    rrdtool_update($device, $rrdfile6, $rrdupdate6);
+    $graphs['netstat_arista_sw_ip'] = TRUE;
+    $graphs['netstat_arista_sw_ip_frag'] = TRUE;
   }
 
-  unset($data, $oid, $oids, $oid_ds, $rrdfile, $rrdupate, $rrd_create);
-
-  $graphs['netstat_arista_sw_ip'] = TRUE;
-  $graphs['netstat_arista_sw_ip_frag'] = TRUE;
-  if ($have6)
+  if (isset($data['ipv6']))
   {
     $graphs['netstat_arista_sw_ip6'] = TRUE;
     $graphs['netstat_arista_sw_ip6_frag'] = TRUE;
   }
+
+  unset($data, $ipver);
 }
 
 // EOF

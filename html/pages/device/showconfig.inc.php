@@ -11,12 +11,12 @@
  *
  */
 
-// FIXME, we really need a new user groups/permissions system!
-if ($_SESSION['userlevel'] > 7)
+//r(auth_user_level_permissions($_SESSION['userlevel']));
+if ($_SESSION['userlevel'] >= 7)
 {
   // Enable google code prettify
-  $GLOBALS['cache_html']['js'][]  = 'js/google-code-prettify.js';
-  $GLOBALS['cache_html']['css'][] = 'css/google-code-prettify.css';
+  register_html_resource('js', 'google-code-prettify.js');
+  register_html_resource('css', 'google-code-prettify.css');
 
   // Print device config navbar
   $navbar = array();
@@ -252,7 +252,7 @@ if ($_SESSION['userlevel'] > 7)
   echo($text);
 }
 
-$page_title[] = 'Config';
+register_html_title('Config');
 
 // Clean
 unset($text, $device_config, $diff, $rev, $rev_active_index);

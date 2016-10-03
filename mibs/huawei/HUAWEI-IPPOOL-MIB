@@ -1,9 +1,9 @@
 -- ============================================================================
--- Copyright (C) 2003 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 --
 -- DESCRIPTION:  HUAWEI-IPPOOL-MIB
 -- Reference:  
--- Version: V2.10
+-- Version: V2.13
 -- History:
 --         v3.01
 --         modified by huangjun 2009-12-08
@@ -23,7 +23,7 @@
                 FROM IPV6-TC;
 
         hwIppool MODULE-IDENTITY
-            LAST-UPDATED "201412260000Z"
+            LAST-UPDATED "201508120000Z"
             ORGANIZATION 
 			"Huawei Technologies Co.,Ltd."
             CONTACT-INFO 
@@ -37,10 +37,22 @@
            
             DESCRIPTION 
                 "The MIB contains objects of module IPPOOL."
+                
+            REVISION  "201508120000Z" --August 12, 2015
+            DESCRIPTION
+            "Modify V2.12-V2.13 mod hwIPPoolType for supporting local rui-slave address pool."
+
+            REVISION  "201503310000Z" --March 11, 2015
+            DESCRIPTION
+            "Modify V2.11-V2.12 mod for DAP warning fail reason."
+
+            REVISION  "201502110000Z" --February 11, 2015
+            DESCRIPTION
+            "Modify V2.10-V2.11 mod for hwIPv6RemotePoolExportHostRoutePDprefix."
 
             REVISION  "201412260000Z" --December 26, 2014
             DESCRIPTION
-            "Modify V2.08-V2.09 add for pool weight and DAP warning."
+            "Modify V2.09-V2.10 add for pool weight and DAP warning."
 
             REVISION
             "201412260000Z" --December 26, 2014
@@ -269,11 +281,11 @@
             ::= { hwIPPoolEntry 11 }
 
         hwIPPoolType OBJECT-TYPE
-            SYNTAX INTEGER {local(1),relay(2),server(3)}
+            SYNTAX INTEGER {local(1),relay(2),server(3),localRuiSlave(4)}
             MAX-ACCESS read-create
             STATUS current
             DESCRIPTION
-                "Value indicates the type of pool, 1-local, 2-relay, 3-server."
+                "Value indicates the type of pool, 1-local, 2-relay, 3-server, 4-localRuiSlave."
             ::= { hwIPPoolEntry 12 }
             
         hwIPPoolNetwork OBJECT-TYPE
@@ -3382,7 +3394,15 @@
             DESCRIPTION
                 "DAP name."
             ::= { hwIPPoolTrapOid 7 }
-                                            
+      
+         hwIPPoolDAPReason OBJECT-TYPE
+            SYNTAX DisplayString (SIZE(1..255))
+            MAX-ACCESS accessible-for-notify
+            STATUS current
+            DESCRIPTION
+                "Failure Cause of Address Segment Application."
+            ::= { hwIPPoolTrapOid 8 }
+                                                  
         hwIPPoolTrapsDefine OBJECT IDENTIFIER ::= { hwIPPoolMibTrap 2 }
 
         hwIPPoolTraps OBJECT IDENTIFIER ::= { hwIPPoolTrapsDefine 0 }
@@ -3584,7 +3604,7 @@
            ::= { hwIPPoolTraps 21 }  
            
       hwIPPoolDAPApplyUnsuccessful NOTIFICATION-TYPE 
-           OBJECTS { hwIPPoolName, hwIPPoolRouterIPAddr, hwIPPoolRouterIPMask }
+           OBJECTS { hwIPPoolName, hwIPPoolRouterIPAddr, hwIPPoolRouterIPMask, hwIPPoolDAPReason }
            STATUS current
            DESCRIPTION 
                 "
@@ -3592,7 +3612,7 @@
                 "
            ::= { hwIPPoolTraps 22 }  
  hwIPPoolDAPReleaseUnsuccessful NOTIFICATION-TYPE 
-           OBJECTS { hwIPPoolName, hwIPPoolRouterIPAddr, hwIPPoolRouterIPMask }
+           OBJECTS { hwIPPoolName, hwIPPoolRouterIPAddr, hwIPPoolRouterIPMask, hwIPPoolDAPReason }
            STATUS current
            DESCRIPTION 
                 "
@@ -4035,7 +4055,7 @@
                 hwIPv6RemotePoolExportHostRouteFlag,
                 hwIPv6RemotePoolRowStatus,
 				hwIPv6RemotePoolExportHostRouteIPv6Address,
-				hwIPv6RemotePoolExportHostRoutePDprefix,
+				hwIPv6RemotePoolExportHostRoutePDPrefix,
 				hwIPv6RemotePoolExportHostRouteNDPrefix,
 				hwIPv6RemotePoolWeight
                 }

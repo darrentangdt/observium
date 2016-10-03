@@ -149,13 +149,13 @@ if ($percentile)
   $rrd_options .= " GPRINT:percentile_out:%6.2lf%s";
 }
 
-$rrd_options .= " COMMENT:\\\\n";
+$rrd_options .= " COMMENT:\\n";
 
 if ($print_total)
 {
   $rrd_options .= " GPRINT:tot:'Total %6.2lf%s'";
   $rrd_options .= " GPRINT:totin:'(In %6.2lf%s'";
-  $rrd_options .= " GPRINT:totout:'Out %6.2lf%s)\\\\l'";
+  $rrd_options .= " GPRINT:totout:'Out %6.2lf%s)\\l'";
 }
 
 if ($percentile)
@@ -166,7 +166,7 @@ if ($percentile)
 
 if ($vars['previous'] == "yes")
 {
-  $rrd_options .= " LINE1.25:in".$format."X#666666:'Prev In \\\\n'";
+  $rrd_options .= " LINE1.25:in".$format."X#666666:'Prev In \\n'";
   $rrd_options .= " AREA:in".$format."X#99999966:";
   $rrd_options .= " LINE1.25:dout".$format."X#444466:'Prev Out'";
   if ($graph_style != 'mrtg')

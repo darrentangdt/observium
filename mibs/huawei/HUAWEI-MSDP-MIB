@@ -1,6 +1,10 @@
 --  ===========================================================================
+-- Copyright (C) 2015 by HUAWEI TECHNOLOGIES. All rights reserved.
 -- Description: HUAWEI MSDP MIB
 -- Reference:   Module(HUAWEI-MSDP-MIB).
+-- Version:     V1.01
+-- History:     
+-- V1.00
 -- ===========================================================================
 
     HUAWEI-MSDP-MIB DEFINITIONS ::= BEGIN
@@ -18,7 +22,7 @@
                 FROM SNMPv2-TC;         -- [RFC2579]
 
         hwMsdpMIB MODULE-IDENTITY 
-            LAST-UPDATED "200910111915Z"        -- October 11, 2009 at 19:15 GMT
+            LAST-UPDATED "201502050000Z"        -- February 05, 2015 at 00:00 GMT
             ORGANIZATION 
                 "Huawei Technologies Co.,Ltd."
             CONTACT-INFO 
@@ -35,6 +39,11 @@
                 Huawei Technologies co.,Ltd . Supplementary information may
                 be available at:
                 http://www.huawei.com"
+                
+            REVISION "201502050000Z"        -- February 05, 2015 at 00:00 GMT
+            DESCRIPTION 
+                "Delete hwPimTuningParametersGroup from hwMsdpMIBFullCompliance."
+                 
             REVISION "200910310000Z"        -- October 31, 2009 at 00:00 GMT
             DESCRIPTION 
                 "The initial revision of this Mib module."
@@ -148,10 +157,6 @@
                            hwMsdpMIBNotificationGroup }
 
         GROUP   hwMsdpMIBPeerGroup
-        DESCRIPTION
-            "This group is optional."
-
-        GROUP   hwPimTuningParametersGroup
         DESCRIPTION
             "This group is optional."
 

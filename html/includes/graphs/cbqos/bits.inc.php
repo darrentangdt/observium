@@ -11,7 +11,7 @@
  *
  */
 
-include("includes/graphs/common.inc.php");
+include($config['html_dir']."/includes/graphs/common.inc.php");
 
 $rrd_options .= " DEF:pre_B=$rrd_filename:PrePolicyByte:AVERAGE";
 $rrd_options .= " DEF:post_B=$rrd_filename:PostPolicyByte:AVERAGE";
@@ -32,12 +32,12 @@ $rrd_options .= " GPRINT:pre:LAST:' %6.2lf%sb'";
 $rrd_options .= " GPRINT:pre:AVERAGE:' %6.2lf%sb'";
 $rrd_options .= " GPRINT:pre:MAX:' %6.2lf%sb\\n'";
 
-$rrd_options .= " AREA:post#008f00:'Post-policy':";
+$rrd_options .= " AREA:post#008f00:'Post-policy'";
 $rrd_options .= " GPRINT:post:LAST:' %6.2lf%sb'";
 $rrd_options .= " GPRINT:post:AVERAGE:' %6.2lf%sb'";
 $rrd_options .= " GPRINT:post:MAX:' %6.2lf%sb\\n'";
 
-$rrd_options .= " AREA:drop_i#ea8f00:'Dropped    ':";
+$rrd_options .= " AREA:drop_i#ea8f00:'Dropped    '";
 $rrd_options .= " GPRINT:drop:LAST:' %6.2lf%sb'";
 $rrd_options .= " GPRINT:drop:AVERAGE:' %6.2lf%sb'";
 $rrd_options .= " GPRINT:drop:MAX:' %6.2lf%sb\\n'";

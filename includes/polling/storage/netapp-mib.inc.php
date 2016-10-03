@@ -12,7 +12,7 @@
  */
 
 // NETAPP-MIB
-echo(' NETAPP-MIB: ');
+//echo(' NETAPP-MIB: ');
 
 $index = $storage['storage_index'];
 
@@ -25,7 +25,7 @@ if ($storage['storage_hc'])
     foreach (array('size', 'used', 'free') as $param)
     {
       $oid = $netapp_oids[$param];
-      $cache_storage['netapp-mib-hc'] = snmpwalk_cache_multi_oid($device, $oid, $cache_storage['netapp-mib-hc'], 'NETAPP-MIB', mib_dirs('netapp'));
+      $cache_storage['netapp-mib-hc'] = snmpwalk_cache_multi_oid($device, $oid, $cache_storage['netapp-mib-hc'], 'NETAPP-MIB');
     }
     if (OBS_DEBUG && count($cache_storage['netapp-mib-hc'])) { print_vars($cache_storage['netapp-mib-hc']); }
   }
@@ -38,7 +38,7 @@ if ($storage['storage_hc'])
     foreach (array('size', 'used', 'free') as $param)
     {
       $oid = $netapp_oids[$param];
-      $cache_storage['netapp-mib'] = snmpwalk_cache_multi_oid($device, $oid, $cache_storage['netapp-mib'], 'NETAPP-MIB', mib_dirs('netapp'));
+      $cache_storage['netapp-mib'] = snmpwalk_cache_multi_oid($device, $oid, $cache_storage['netapp-mib'], 'NETAPP-MIB');
     }
     if (OBS_DEBUG && count($cache_storage['netapp-mib'])) { print_vars($cache_storage['netapp-mib']); }
   }

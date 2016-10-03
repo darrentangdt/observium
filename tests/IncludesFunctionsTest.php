@@ -64,13 +64,15 @@ class IncludesFunctionsTest extends PHPUnit_Framework_TestCase
       array('nano',  -7, 1.0E-9),
       array('micro',  4, 1.0E-10),
       array('milli',  7, 1.0E-10),
+      array('deci',   0, 0.1),
       array('units',  3, 0.001),
+      array('deca',   0, 10),
       array('kilo',   2, 10),
       array('mega',  -2, 1000000),
       array('giga',  -1, 1000000000),
       array('tera',  -4, 1000000000000),
-      array('exa',    4, 100000000000),
-      array('peta',  -3, 1000000000000000000),
+      array('peta',   4, 100000000000),
+      array('exa',   -3, 1000000000000000000),
       array('zetta',  1, 1.0E+20),
       array('yotta',  7, 100000000000000000),
       array('',      -6, 1),
@@ -330,6 +332,87 @@ class IncludesFunctionsTest extends PHPUnit_Framework_TestCase
       array('Simple String',                   NULL, 'Simple String'),
       array('',    NULL, ''),
       array(FALSE, NULL, FALSE),
+    );
+    return $results;
+  }
+
+  /**
+  * @dataProvider providerGetIpVersion
+  * @group ip
+  */
+  public function testGetIpVersion($string, $result)
+  {
+    $this->assertSame($result, get_ip_version($string));
+  }
+
+  public function providerGetIpVersion()
+  {
+    $results = array(
+      // IPv4
+      array('193.156.90.38',    4),
+      array('32.125.52.61',     4),
+      array('127.0.0.1',        4),
+      array('0.0.0.0',          4),
+      array('255.255.255.255',  4),
+      // IPv6
+      array('ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff',  6),
+      array('2001:07f8:0012:0001:0000:0000:0005:0272',  6),
+      array('2001:7f8:12:1::5:0272',                    6),
+      array('::1',                                      6),
+      array('::',                                       6),
+      array('::ffff:192.0.2.128',                       6), // IPv4 mapped to IPv6
+      // Wrong data
+      array('4a7d343dd',              FALSE),
+      array('my.domain.name',         FALSE),
+      array('256.156.90.38',          FALSE),
+      array('1.1.1.1.1',              FALSE),
+      array('2001:7f8:12:1::5:0272f', FALSE),
+      array('gggg:7f8:12:1::5:272f',  FALSE),
+      array('',                       FALSE),
+      array(FALSE,                    FALSE),
+      // IP with mask also wrong!
+      array('193.156.90.38/32',           FALSE),
+      array('2001:7f8:12:1::5:0272/128',  FALSE),
+    );
+    return $results;
+  }
+
+  /**
+  * @dataProvider providerParseBgpPeerIndex
+  * @group bgp
+  */
+  public function testParseBgpPeerIndex($mib, $index, $result)
+  {
+    $peer = array();
+    parse_bgp_peer_index($peer, $index, $mib);
+    $this->assertSame($result, $peer);
+  }
+
+  public function providerParseBgpPeerIndex()
+  {
+    $results = array(
+      // IPv4
+      array('BGP4-V2-MIB-JUNIPER', '0.1.203.153.47.15.1.203.153.47.207',
+            array('jnxBgpM2PeerRoutingInstance' => '0',
+                  'jnxBgpM2PeerLocalAddrType'   => 'ipv4',
+                  'jnxBgpM2PeerLocalAddr'       => '203.153.47.15',
+                  'jnxBgpM2PeerRemoteAddrType'  => 'ipv4',
+                  'jnxBgpM2PeerRemoteAddr'      => '203.153.47.207')),
+      array('BGP4-V2-MIB-JUNIPER', '47.1.0.0.0.0.1.10.241.224.142',
+            array('jnxBgpM2PeerRoutingInstance' => '47',
+                  'jnxBgpM2PeerLocalAddrType'   => 'ipv4',
+                  'jnxBgpM2PeerLocalAddr'       => '0.0.0.0',
+                  'jnxBgpM2PeerRemoteAddrType'  => 'ipv4',
+                  'jnxBgpM2PeerRemoteAddr'      => '10.241.224.142')),
+      // IPv6
+      array('BGP4-V2-MIB-JUNIPER', '0.2.32.1.4.112.0.20.0.101.0.0.0.0.0.0.0.2.2.32.1.4.112.0.20.0.101.0.0.0.0.0.0.0.1',
+            array('jnxBgpM2PeerRoutingInstance' => '0',
+                  'jnxBgpM2PeerLocalAddrType'   => 'ipv6',
+                  'jnxBgpM2PeerLocalAddr'       => '2001:0470:0014:0065:0000:0000:0000:0002',
+                  'jnxBgpM2PeerRemoteAddrType'  => 'ipv6',
+                  'jnxBgpM2PeerRemoteAddr'      => '2001:0470:0014:0065:0000:0000:0000:0001')),
+      // Wrong data
+      //array('4a7d343dd',              FALSE),
     );
     return $results;
   }

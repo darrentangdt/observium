@@ -279,7 +279,7 @@ class HtmlIncludesFunctionsTest extends PHPUnit_Framework_TestCase
       array(array(), TRUE, 'generic'),
       
       // Last, check with img tag
-      array(array('os' => 'ios'), FALSE, '<img src="http://localhost/images/os/cisco.png" alt="" />'),
+      array(array('os' => 'ios'), FALSE, '<img src="http://localhost/images/os/cisco.png" srcset="http://localhost/images/os/cisco_2x.png 2x" alt="" />'),
     );
   }
 }

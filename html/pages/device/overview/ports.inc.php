@@ -11,26 +11,22 @@
  *
  */
 
-$ports['total']    = dbFetchCell("SELECT COUNT(*) FROM `ports` WHERE device_id = ?", array($device['device_id']));
-$ports['up']       = dbFetchCell("SELECT COUNT(*) FROM `ports` WHERE device_id = ? AND `ifAdminStatus` = 'up' AND (`ifOperStatus` = 'up' OR `ifOperStatus` = 'monitoring')", array($device['device_id']));
-$ports['down']     = dbFetchCell("SELECT COUNT(*) FROM `ports` WHERE device_id = ? AND `ifAdminStatus` = 'up' AND (`ifOperStatus` = 'lowerLayerDown' OR `ifOperStatus` = 'down')", array($device['device_id']));
-$ports['disabled'] = dbFetchCell("SELECT COUNT(*) FROM `ports` WHERE device_id = ? AND `ifAdminStatus` = 'down'", array($device['device_id']));
+$where  = ' WHERE `device_id` = ? AND `deleted` != ?';
+$params = array($device['device_id'], '1');
+$ports['total']    = dbFetchCell("SELECT COUNT(*) FROM `ports` $where", $params);
+$ports['up']       = dbFetchCell("SELECT COUNT(*) FROM `ports` $where AND `ifAdminStatus` = 'up' AND (`ifOperStatus` = 'up' OR `ifOperStatus` = 'monitoring')", $params);
+$ports['down']     = dbFetchCell("SELECT COUNT(*) FROM `ports` $where AND `ifAdminStatus` = 'up' AND (`ifOperStatus` = 'lowerLayerDown' OR `ifOperStatus` = 'down')", $params);
+$ports['disabled'] = dbFetchCell("SELECT COUNT(*) FROM `ports` $where AND `ifAdminStatus` = 'down'", $params);
+$ports['deleted']  = dbFetchCell("SELECT COUNT(*) FROM `ports` WHERE `device_id` = ? AND `deleted` = ?", $params);
 
 if ($ports['down']) { $ports_colour = $warn_colour_a; } else { $ports_colour = $list_colour_a; }
 
 if ($ports['total'])
 {
-?>
+  echo generate_box_open(array('title' => 'Ports',
+                               'icon'  => 'oicon-network-ethernet',
+                               'url'   => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'ports'))));
 
-<div class="box box-solid">
-  <div class="box-header ">
-    <a href="<?php echo(generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'ports'))); ?>">
-      <i class="oicon-network-ethernet"></i><h3 class="box-title">Ports</h3>
-    </a>
-  </div>
-  <div class="body-box no-padding">
-
-<?php
   $graph_array['height'] = "100";
   $graph_array['width']  = "512";
   $graph_array['to']     = $config['time']['now'];
@@ -78,6 +74,7 @@ if ($ports['total'])
   // Custom order for port types. See human type names here: $rewrite_iftype
   $port_types = array(
     'Ethernet',
+    '802.3ad LAg',
     'L2 VLAN (802.1Q)',
     'L3 VLAN (IP)',
     'L3 VLAN (IPX)',
@@ -96,15 +93,35 @@ if ($ports['total'])
     }
 
     // Index example for TenGigabitEthernet3/10.324:
-    //  $ports_links['Ethernet'][] = array('label_base' => 'TenGigabitEthernet', 'label_num0' => '3', 'label_num1' => '10', 'label_num2' => '324')
-    $label_num  = preg_replace('![^\d\.\/]!', '', substr($data['port_label'], strlen($data['port_label_base']))); // Remove base part and all not-numeric chars
-    preg_match('!^(\d+)(?:\/(\d+)(?:\.(\d+))*)*!', $label_num, $label_nums); // Split by slash and point (1/1.324)
+    // $ports_links['Ethernet'][] = array('port_label_base' => 'TenGigabitEthernet', 'port_label_num' => '3/10.324')
+    $label_num = str_replace(array(':', '_'), array('/', '-'), $data['port_label_num']);
+    //$label_num  = preg_replace('![^\d\.\/]!', '', substr($data['port_label'], strlen($data['port_label_base']))); // Remove base part and all not-numeric chars
+    //preg_match('!^(\d+)(?:\/(\d+)(?:\.(\d+))*)*!', $label_num, $label_nums); // Split by slash and point (1/1.324)
+    $label_nums = array(0,0,0);
+    $i = 2;
+    //r(array_reverse(explode('/', $label_num)));
+    foreach (array_reverse(explode('/', $label_num)) as $num)
+    {
+      //$num = preg_replace('/[^0-9.]/', '', $num); // Remove all not-numeric chars
+      if ($i == 2) // && strpos($num, '-') !== FALSE)
+      {
+        $num = str_replace('-', '.', $num);
+        list($label_nums[$i], $label_nums[$i+1]) = explode('.', $num, 2);
+      } else {
+        $label_nums[$i] = $num;
+      }
+      $i--;
+    }
+    if (!is_numeric($label_nums[3])) { $label_nums[3] = 0; }
+
     $ports_links[$data['human_type']][$data['ifIndex']] = array(
       'label'      => $data['port_label'],
       'label_base' => $data['port_label_base'],
+      //'label_num'  => $data['port_label_num'],
       'label_num0' => $label_nums[0],
       'label_num1' => $label_nums[1],
       'label_num2' => $label_nums[2],
+      'label_num3' => $label_nums[3],
       'link'       => generate_port_link($data, $data['port_label_short'])
     );
   }
@@ -117,7 +134,8 @@ if ($ports['total'])
     $ports_links[$port_type] = array_sort_by($ports_links[$port_type], 'label_base', SORT_DESC, SORT_STRING,
                                                                        'label_num0', SORT_ASC,  SORT_NUMERIC,
                                                                        'label_num1', SORT_ASC,  SORT_NUMERIC,
-                                                                       'label_num2', SORT_ASC,  SORT_NUMERIC);
+                                                                       'label_num2', SORT_ASC,  SORT_NUMERIC,
+                                                                       'label_num3', SORT_ASC,  SORT_NUMERIC);
     /* FIXME. This part not completed, wait ;)
     if ($port_type == 'Ethernet')
     {
@@ -149,8 +167,9 @@ if ($ports['total'])
   echo('</td></tr>');
   echo('</table>');
 
+  echo generate_box_close();
+
   unset($ifsep);
-  echo("</div></div>");
 }
 
 // EOF

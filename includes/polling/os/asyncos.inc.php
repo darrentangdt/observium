@@ -11,24 +11,21 @@
  *
  */
 
-// Cisco IronPort Email Security Appliances, eg:
-// Cisco IronPort Model C160, AsyncOS Version: 7.6.2-014, Build Date: 2012-11-02, Serial #: 99999AAA9AA9-99AAAA9
-
-if (preg_match('/^Cisco IronPort Model (\w+),.*AsyncOS Version: ([\d\.-]+),.*Serial #: ([\w-]+)/', $poll_device['sysDescr'], $regexp_result))
+if (preg_match('/^Cisco(?: IronPort)? Model (?<hardware>[\w\-]+),.*AsyncOS Version: (?<version>[\d\.\-]+),.*Serial #: (?<serial>[\w\-]+)/', $poll_device['sysDescr'], $matches))
 {
-  $hardware = $regexp_result[1];
-  $version = $regexp_result[2];
-  $serial = $regexp_result[3];
+  // Cisco IronPort Model C160, AsyncOS Version: 7.6.2-014, Build Date: 2012-11-02, Serial #: 99999AAA9AA9-99AAAA9
+  // Cisco Model S380, AsyncOS Version: 8.8.0-085, Build Date: 2015-07-02, Serial #: 99999AAA9AA9-99AAAA9
+  $hardware = $matches['hardware'];
+  $version  = $matches['version'];
+  $serial   = $matches['serial'];
 }
 
-$a_rrd = "asyncos_workq.rrd";
-$a_val = snmp_get($device, "ASYNCOS-MAIL-MIB::workQueueMessages.0", "-Ovq");
-
-if (is_numeric($a_val))
+// FIXME. Move to polling graphs
+$workq_depth = snmp_get($device, 'workQueueMessages.0', '-Ovq', 'ASYNCOS-MAIL-MIB');
+if (is_numeric($workq_depth))
 {
-  rrdtool_create($device, $a_rrd,"  DS:DEPTH:ABSOLUTE:600:0:U ");
-  echo("Work Queue: $a_val\n");
-  rrdtool_update($device, $a_rrd, " N:$a_val");
+  rrdtool_update_ng($device, 'asyncos-workq', array('DEPTH' => $workq_depth));
+  //echo("Work Queue: $workq_depth\n");
   $graphs['asyncos_workq'] = TRUE;
 }
 

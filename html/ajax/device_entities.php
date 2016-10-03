@@ -38,6 +38,15 @@ if ($_SESSION['userlevel'] >= '5')
       }
       break;
 
+    case "netscalervsvr":
+      foreach (dbFetch("SELECT * FROM `netscaler_vservers` WHERE `device_id` = ?", array($_GET['device_id'])) as $entity)
+      {
+        $string = addslashes($entity['vsvr_label']);
+        echo("obj.options[obj.options.length] = new Option('".$string."','".$entity['vsvr_id']."');\n");
+      }
+      break;
+
+
     case "port":
       foreach (dbFetch("SELECT * FROM `ports` WHERE `device_id` = ? AND `deleted` = '0'", array($_GET['device_id'])) as $port)
       {

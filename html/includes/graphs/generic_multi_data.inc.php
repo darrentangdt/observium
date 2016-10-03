@@ -95,13 +95,13 @@ if ($i)
     $rrd_options .= " GPRINT:in".$format.":LAST:%6.2lf%s";
     $rrd_options .= " GPRINT:in".$format.":AVERAGE:%6.2lf%s";
     $rrd_options .= " GPRINT:in".$format.":MAX:%6.2lf%s";
-    $rrd_options .= " GPRINT:95thin:%6.2lf%s\\\\n";
+    $rrd_options .= " GPRINT:95thin:%6.2lf%s\\n";
     $rrd_options .= " AREA:dout".$format."#".$colour_area_out.":Out";
 #    $rrd_options .= " LINE1.25:dout".$format."#".$colour_line_out.":Out";
     $rrd_options .= " GPRINT:out".$format.":LAST:%6.2lf%s";
     $rrd_options .= " GPRINT:out".$format.":AVERAGE:%6.2lf%s";
     $rrd_options .= " GPRINT:out".$format.":MAX:%6.2lf%s";
-    $rrd_options .= " GPRINT:95thout:%6.2lf%s\\\\n";
+    $rrd_options .= " GPRINT:95thout:%6.2lf%s\\n";
   }
 
   $rrd_options .= " LINE1:95thin#aa0000";

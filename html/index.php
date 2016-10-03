@@ -69,21 +69,28 @@ ob_start('html_callback');
   <base href="<?php echo($config['base_url']); ?>" />
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <link href="css/bootstrap.css" rel="stylesheet" type="text/css" />
-  <link href="css/bootstrap-select.css" rel="stylesheet" type="text/css" />
-  <link href="css/bootstrap-switch.css" rel="stylesheet" type="text/css" />
-  <link href="css/bootstrap-hacks.css" rel="stylesheet" type="text/css" />
-  <link href="css/jquery.qtip.min.css" rel="stylesheet" type="text/css" />
-  <link href="css/sprite.css" rel="stylesheet" type="text/css" />
-  <link href="css/flags.css" rel="stylesheet" type="text/css" />
   <!-- ##CSS_CACHE## -->
-  <script type="text/javascript" src="js/jquery.min.js"></script>
-  <!--<script type="text/javascript" src="js/jquery-ui.min.js"></script>--> <?php // FIXME. We not use JQueryUI or I wrong? (mike) ?>
-  <script src="js/bootstrap.min.js"></script>
   <!-- ##JS_CACHE## -->
 <?php /* html5.js below from https://github.com/aFarkas/html5shiv */ ?>
   <!--[if lt IE 9]><script src="js/html5shiv.min.js"></script><![endif]-->
 <?php
+
+register_html_resource('css', 'bootstrap.css');
+register_html_resource('css', 'bootstrap-select.css');
+register_html_resource('css', 'bootstrap-switch.css');
+register_html_resource('css', 'bootstrap-hacks.css');
+register_html_resource('css', 'jquery.qtip.min.css');
+register_html_resource('css', 'sprite.css');
+register_html_resource('css', 'flags.css');
+register_html_resource('css', 'c3.min.css');
+
+
+register_html_resource('js', 'jquery.min.js');
+// register_html_resource('js', 'jquery-ui.min.js'); // FIXME. We don't use JQueryUI or am I wrong? (mike)
+register_html_resource('js', 'bootstrap.min.js');
+register_html_resource('js', 'observium.js');
+register_html_resource('js', 'd3.min.js');
+register_html_resource('js', 'c3.min.js');
 
 $runtime_start = utime();
 
@@ -93,51 +100,20 @@ ini_set('display_errors', 0);
 $_SERVER['PATH_INFO'] = (isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : $_SERVER['ORIG_PATH_INFO']);
 
 $vars = get_vars(); // Parse vars from GET/POST/URI
-// print_vars($vars);
 
 if ($vars['export'] == 'yes') // This is for display XML on export pages
 {
   // Code prettify (but it's still horrible)
-  $GLOBALS['cache_html']['js'][]  = 'js/google-code-prettify.js';
-  $GLOBALS['cache_html']['css'][] = 'css/google-code-prettify.css';
+  register_html_resource('js', 'google-code-prettify.js');
+  register_html_resource('css', 'google-code-prettify.css');
 }
 
 include($config['html_dir'] . "/includes/authenticate.inc.php");
 
-// Load the settings for Multi-Tenancy. - FIXME i don't think we still support this, nor that it really works well. could/should be done in config.php by who needs this.
-if (isset($config['branding']) && is_array($config['branding']))
-{
-  if ($config['branding'][$_SERVER['SERVER_NAME']])
-  {
-    foreach ($config['branding'][$_SERVER['SERVER_NAME']] as $confitem => $confval)
-    {
-      eval("\$config['" . $confitem . "'] = \$confval;");
-    }
-  } else {
-    foreach ($config['branding']['default'] as $confitem => $confval)
-    {
-      eval("\$config['" . $confitem . "'] = \$confval;");
-    }
-  }
-}
-
-// page_title_prefix is displayed, unless page_title is set
-if ($config['page_title']) { $config['page_title_prefix'] = $config['page_title']; }
-
 $page_refresh = print_refresh($vars); // $page_refresh used in navbar for refresh menu
 
 ?>
-  <title><?php if (isset($config['page_title']))
-               {
-                  echo($config['page_title']);
-               } else {
-                  $title = array(nicecase($vars['page']));
-                  // if suffix is set, put it in the back
-                  if ($config['page_title_suffix']) { $title[] = $config['page_title_suffix']; }
-                  echo(rtrim($config['page_title_prefix'] . implode(" - ", $title), ' -:'));
-                  unset($title);
-
-               } ?></title>
+  <title>##TITLE##</title>
   <link rel="shortcut icon" href="<?php echo($config['favicon']);  ?>" />
 <?php
 
@@ -158,10 +134,11 @@ if ($vars['widescreen'] == "no")  { unset($_SESSION['widescreen']); unset($vars[
 if ($vars['big_graphs'] == "yes") { $_SESSION['big_graphs'] = 1; unset($vars['big_graphs']); }
 if ($vars['big_graphs'] == "no")  { unset($_SESSION['big_graphs']); unset($vars['big_graphs']); }
 
+// FIXME this block still needed?
 if ($_SESSION['widescreen'])
 {
   // Widescreen style additions
-  $GLOBALS['cache_html']['css'][] = 'css/styles-wide.css';
+  register_html_resource('css', 'styles-wide.css');
 }
 
 echo '</head>';
@@ -185,7 +162,7 @@ if ($_SESSION['authenticated'])
   if ($config['web_mouseover'] && $allow_mobile)
   {
     // Enable qTip tooltips
-    $GLOBALS['cache_html']['js'][]  = 'js/jquery.qtip.min.js';
+    register_html_resource('js', 'jquery.qtip.min.js');
   }
   // Do various queries which we use in multiple places
   include($config['html_dir'] . "/includes/cache-data.inc.php");
@@ -291,24 +268,26 @@ if ($_SESSION['authenticated'])
     }
   }
 
-  if($config['pages'][$vars['page']]['custom_panel'])
+  /*
+  if ($config['pages'][$vars['page']]['custom_panel'])
   {
     include($page_file);
   } else {
 
 
-    if(is_file($config['html_dir']."/includes/panels/".$vars['page'].".inc.php"))
+    if (is_file($config['html_dir']."/includes/panels/".$vars['page'].".inc.php"))
     {
       $panel_file = $config['html_dir']."/includes/panels/".$vars['page'].".inc.php";
     } else {
       $panel_file = $config['html_dir']."/includes/panels/default.inc.php";
     }
+  */
   ?>
 
 <div class="row">
 <div class="col-xl-4 visible-xl">
 
-<?php include($panel_file); ?>
+##PAGE_PANEL##
 
 </div>
 
@@ -319,6 +298,23 @@ if ($_SESSION['authenticated'])
 </div>
 
   <?php
+  //}
+
+  // Register default panel if custom not set
+  if (!isset($GLOBALS['cache_html']['page_panel']))
+  {
+    if (is_file($config['html_dir']."/includes/panels/".$vars['page'].".inc.php"))
+    {
+      $panel_file = $config['html_dir']."/includes/panels/".$vars['page'].".inc.php";
+    } else {
+      $panel_file = $config['html_dir']."/includes/panels/default.inc.php";
+    }
+    ob_start();
+    include($panel_file);
+    $panel_html = ob_get_contents();
+    ob_end_clean();
+
+    register_html_panel($panel_html);
   }
 
 } else if ($config['auth_mechanism'] == 'cas') {
@@ -333,13 +329,11 @@ if ($_SESSION['authenticated'])
   exit;
 }
 
-$runtime_end = utime(); $runtime = $runtime_end - $runtime_start;
-$gentime = substr($runtime, 0, 5);
+$gentime = utime() - $runtime_start;
 $fullsize = memory_get_usage();
 unset($cache);
 $cachesize = $fullsize - memory_get_usage();
 if ($cachesize < 0) { $cachesize = 0; } // Silly PHP!
-
 
 ?>
 </div>
@@ -347,7 +341,6 @@ if ($cachesize < 0) { $cachesize = 0; } // Silly PHP!
 <?php
 if($vars['bare'] != 'yes')
 {
-
 ?>
 
 <div class="navbar navbar-fixed-bottom">
@@ -383,7 +376,7 @@ if($vars['bare'] != 'yes')
             ?>
             <a href="<?php echo(generate_url(array('page'=>'overview'))); ?>" class="dropdown-toggle" data-hover="dropdown" data-toggle="dropdown">
               <i class="oicon-exclamation-red"></i> <b class="caret"></b></a>
-            <div class="<?php echo($div_class); ?>" style="width: 700px; max-height: 500px; z-index: 2000;">
+            <div class="<?php echo($div_class); ?>" style="width: 700px; max-height: 500px; z-index: 2000; padding: 10px 10px 0px;">
 
               <h3>Notifications</h3>
 <?php
@@ -409,18 +402,31 @@ foreach ($notifications as $notification)
 
           <li class="dropdown">
             <a href="<?php echo(generate_url(array('page'=>'overview'))); ?>" class="dropdown-toggle" data-hover="dropdown" data-toggle="dropdown">
-              <i class="oicon-time"></i> <?php echo($gentime); ?>s <b class="caret"></b></a>
+              <i class="oicon-time"></i> <?php echo(number_format($gentime, 3)); ?>s <b class="caret"></b></a>
             <div class="dropdown-menu" style="padding: 10px 10px 0px 10px;">
-              <table class="table  table-condensed-more  table-striped">
+              <table class="table table-condensed-more table-striped">
                 <tr>
-                  <th>Page</th><td><?php echo($gentime); ?>s</td>
+                  <th>Page</th><td><?php echo(number_format($gentime, 3)); ?>s</td>
                 </tr>
                 <tr>
-                  <th>Cache</th><td><?php echo($cache_time); ?>s</td>
+                  <th>Cache</th><td><?php echo(number_format($cache_time, 3)); ?>s</td>
                 </tr>
+                <tr>
+                  <th>Menu</th><td><?php echo(number_format($menu_time, 3)); ?>s</td>
+                </tr>
+<?php
+if ($form_time)
+{
+?>
+                <tr>
+                  <th>Form</th><td><?php echo(number_format($form_time, 3)); ?>s</td>
+                </tr>
+<?php
+}
+?>
 
               </table>
-              <table class="table  table-condensed-more  table-striped">
+              <table class="table table-condensed-more table-striped">
                 <tr>
                   <th colspan=2>MySQL</th>
                 </tr>
@@ -454,14 +460,13 @@ foreach ($notifications as $notification)
             </div>
           </li>
 
-<?php if ($config['profile_sql'] == TRUE && $SESSION['userlevel'] = '10') // FIXME level 10 only?
+<?php if ($config['profile_sql'] == TRUE && $SESSION['userlevel'] = '10')
 {
 ?>
           <li class="dropdown">
             <a href="<?php echo(generate_url(array('page'=>'overview'))); ?>" class="dropdown-toggle" data-hover="dropdown" data-toggle="dropdown">
               <i class="oicon-databases"></i> <b class="caret"></b></a>
-            <div class="dropdown-menu" style="padding: 10px 10px 0px 10px; width: 1150px; height: 700px; overflow: scroll;">
-
+            <div class="dropdown-menu" style="padding: 10px 10px 0px 10px; width: 1150px; height: 700px; z-index: 2000; overflow: scroll;">
               <table class="table  table-condensed-more  table-striped">
 
   <?php
@@ -492,20 +497,6 @@ foreach ($notifications as $notification)
 <?php
 } // end if bare
 
-if (is_array($page_title))
-{
-  // if suffix is set, put it in the back
-  if ($config['page_title_suffix']) { $page_title[] = $config['page_title_suffix']; }
-
-  $title = implode(" - ", $page_title);
-
-  // if prefix is set, put it in front
-  if ($config['page_title_prefix']) { $title = $config['page_title_prefix'] . $title; }
-
-  // set the title
-  echo('<script type="text/javascript">document.title = "'.$title.'";</script>');
-}
-
 //  <script type="text/javascript">
 //  $(document).ready(function()
 //  {
@@ -526,13 +517,17 @@ if (is_array($page_title))
     echo '<script type="text/javascript" src="js/twitter-bootstrap-hover-dropdown.min.js"></script>';
   }
 
+  // FIXME vvvv change to register_html_resource(), but maybe better to keep them at the bottom? Function has no way to do this right now
 ?>
-
   <script type="text/javascript" src="js/bootstrap-select.min.js"></script>
-  <script type="text/javascript">$('.selectpicker').selectpicker();</script>
+  <script type="text/javascript">
+$('.selectpicker').selectpicker({
+  iconBase: '', // reset iconbase from glyphicon
+  tickIcon: 'glyphicon glyphicon-ok',
+});
+  </script>
 
   <script type="text/javascript" src="js/bootstrap-switch.min.js"></script>
-  <script type="text/javascript" src="js/observium.js"></script>
   <!-- ##SCRIPT_CACHE## -->
 
   </body>

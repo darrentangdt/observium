@@ -75,8 +75,9 @@ function poll_sensor($device, $class, $unit, &$oid_cache)
             print_debug("value taken from oid_cache");
             $sensor_poll['sensor_value'] = $oid_cache[$sensor_db['sensor_oid']];
           } else {
-            $sensor_poll['sensor_value'] = snmp_fix_numeric(snmp_get($device, $sensor_db['sensor_oid'], "-OUqnv", "SNMPv2-MIB", mib_dirs()));
+            $sensor_poll['sensor_value'] = snmp_get($device, $sensor_db['sensor_oid'], "-OUqnv", "SNMPv2-MIB");
           }
+          $sensor_poll['sensor_value'] = snmp_fix_numeric($sensor_poll['sensor_value']);
 
           if (is_numeric($sensor_poll['sensor_value']) && $sensor_poll['sensor_value'] != 9999)
           {
@@ -97,7 +98,7 @@ function poll_sensor($device, $class, $unit, &$oid_cache)
           print_debug("value taken from oid_cache");
           $sensor_poll['sensor_value'] = $oid_cache[$sensor_db['sensor_oid']];
         } else {
-          $sensor_poll['sensor_value'] = snmp_get($device, $sensor_db['sensor_oid'], "-OUqnv", "SNMPv2-MIB", mib_dirs());
+          $sensor_poll['sensor_value'] = snmp_get($device, $sensor_db['sensor_oid'], "-OUqnv", "SNMPv2-MIB");
         }
         if (strpos($sensor_poll['sensor_value'], ':') !== FALSE)
         {
@@ -111,8 +112,9 @@ function poll_sensor($device, $class, $unit, &$oid_cache)
           print_debug("value taken from oid_cache");
           $sensor_poll['sensor_value'] = $oid_cache[$sensor_db['sensor_oid']];
         } else {
-          $sensor_poll['sensor_value'] = snmp_fix_numeric(snmp_get($device, $sensor_db['sensor_oid'], "-OUqnv", "SNMPv2-MIB", mib_dirs()));
+          $sensor_poll['sensor_value'] = snmp_get($device, $sensor_db['sensor_oid'], "-OUqnv", "SNMPv2-MIB");
         }
+        $sensor_poll['sensor_value'] = snmp_fix_numeric($sensor_poll['sensor_value']);
       }
     }
     else if ($sensor_db['poller_type'] == "agent")
@@ -153,26 +155,14 @@ function poll_sensor($device, $class, $unit, &$oid_cache)
       $sensor_poll['sensor_value'] = 0;
     }
 
+    // Scale
     if (isset($sensor_db['sensor_multiplier']) && $sensor_db['sensor_multiplier'] != 0)
     {
       $sensor_poll['sensor_value'] *= $sensor_db['sensor_multiplier'];
     }
 
-    switch ($sensor_db['sensor_unit'])
-    {
-      case 'F':
-        $sensor_poll['sensor_value'] = f2c($sensor_poll['sensor_value']);
-        print_debug('TEMPERATURE sensor: Fahrenheit -> Celsius');
-        break;
-      case 'K':
-        $sensor_poll['sensor_value'] -= 273.15;
-        print_debug('TEMPERATURE sensor: Kelvin -> Celsius');
-        break;
-    }
-
-    $rrd_file = get_sensor_rrd($device, $sensor_db);
-
-    rrdtool_create($device, $rrd_file, "DS:sensor:GAUGE:600:-20000:U");
+    // Unit conversion to SI (if required)
+    $sensor_poll['sensor_value'] = value_to_si($sensor_poll['sensor_value'], $sensor_db['sensor_unit'], $class);
 
     //print_cli_data("Value", $sensor_poll['sensor_value'] . "$unit ", 3);
 
@@ -254,7 +244,9 @@ function poll_sensor($device, $class, $unit, &$oid_cache)
       StatsD::gauge(str_replace(".", "_", $device['hostname']) . '.' . 'sensor' . '.' . $sensor_db['sensor_class'] . '.' . $sensor_db['sensor_type'] . '.' . $sensor_db['sensor_index'], $sensor_poll['sensor_value']);
     }
 
-    // Update RRD
+    // Update RRD - FIXME - can't convert to NG because filename is dynamic! new function should return index instead of filename.
+    $rrd_file = get_sensor_rrd($device, $sensor_db);
+    rrdtool_create($device, $rrd_file, "DS:sensor:GAUGE:600:-20000:U");
     rrdtool_update($device, $rrd_file, "N:" . $sensor_poll['sensor_value']);
 
     // Enable graph
@@ -293,7 +285,7 @@ function poll_sensor($device, $class, $unit, &$oid_cache)
 
 function poll_status($device)
 {
-  global $config, $agent_status, $ipmi_status, $graphs, $oid_cache;
+  global $config, $agent_sensors, $ipmi_sensors, $graphs, $oid_cache;
 
   $sql  = "SELECT * FROM `status`";
   $sql .= " LEFT JOIN `status-state` USING(`status_id`)";
@@ -322,16 +314,16 @@ function poll_status($device)
           print_debug("value taken from oid_cache");
           $status_value = $oid_cache[$status_db['status_oid']];
         } else {
-          $status_value = snmp_fix_numeric(snmp_get($device, $status_db['status_oid'], "-OUqnv", "SNMPv2-MIB", mib_dirs()));
+          $status_value = snmp_get($device, $status_db['status_oid'], "-OUqnv", "SNMPv2-MIB");
         }
+        $status_value = snmp_fix_numeric($status_value);
       }
     }
     else if ($status_db['poller_type'] == "agent")
     {
-      if (isset($agent_status))
+      if (isset($agent_sensors['state']))
       {
-        $status_value = $agent_status[$class][$status_db['status_type']][$status_db['status_index']]['current'];
-        // FIXME pass unit?
+        $status_value = $agent_sensors['state'][$status_db['status_type']][$status_db['status_index']]['current'];
       } else {
         print_warning("No agent status data available.");
         continue;
@@ -339,10 +331,9 @@ function poll_status($device)
     }
     else if ($status_db['poller_type'] == "ipmi")
     {
-      if (isset($ipmi_status))
+      if (isset($ipmi_sensors['state']))
       {
-        $status_value = $ipmi_status[$class][$status_db['status_type']][$status_db['status_index']]['current'];
-        $unit = $ipmi_status[$class][$status_db['status_type']][$status_db['status_index']]['unit'];
+        $status_value = $ipmi_sensors['state'][$status_db['status_type']][$status_db['status_index']]['current'];
       } else {
         print_warning("No IPMI status data available.");
         continue;
@@ -354,30 +345,21 @@ function poll_status($device)
 
     $status_polled_time = time(); // Store polled time for current status
 
-    $rrd_file = get_status_rrd($device, $status_db);
-
-    rrdtool_create($device, $rrd_file, "DS:status:GAUGE:600:-20000:U");
-
     // Write new value and humanize (for alert checks)
-    $status_poll['status_value'] = $status_value;
-
-    // Set status_event and status_name if they're not already set.
-    if (isset($config['status_states'][$status_db['status_type']]) && !isset($status['status_event']))
+    $state_array = get_state_array($status_db['status_type'], $status_value, $status_db['poller_type']);
+    $status_poll['status_value'] = $state_array['value'];
+    $status_poll['status_name']  = $state_array['name'];
+    if ($status_db['status_ignore'] || $status_db['status_disable'])
     {
-      $status_poll['status_value'] = (int)$status_poll['status_value'];
-      $status_poll['status_name'] = $config['status_states'][$status_db['status_type']][$status_poll['status_value']]['name'];
-      if ($status_poll['status_ignore'] || $status['status_disable'])
-      {
-        $status_poll['status_event'] = 'ignore';
-      } else {
-        $status_poll['status_event'] = $config['status_states'][$status_db['status_type']][$status_poll['status_value']]['event'];
-      }
+      $status_poll['status_event'] = 'ignore';
+    } else {
+      $status_poll['status_event'] = $state_array['event'];
     }
 
     // If last change never set, use current time
     if (empty($status_db['status_last_change']))
     {
-                           $status_db['status_last_change'] = $status_polled_time;
+      $status_db['status_last_change'] = $status_polled_time;
     }
 
     if ($status_poll['status_event'] != $status_db['status_event'])
@@ -436,7 +418,9 @@ function poll_status($device)
       StatsD::gauge(str_replace(".", "_", $device['hostname']).'.'.'status'.'.'.$status_db['status_class'].'.'.$status_db['status_type'].'.'.$status_db['status_index'], $status_value);
     }
 
-    // Update RRD
+    // Update RRD - FIXME - can't convert to NG because filename is dynamic! new function should return index instead of filename.
+    $rrd_file = get_status_rrd($device, $status_db);
+    rrdtool_create($device, $rrd_file, "DS:status:GAUGE:600:-20000:U");
     rrdtool_update($device, $rrd_file,"N:$status_value");
 
     // Enable graph
@@ -483,12 +467,12 @@ function poll_device($device, $options)
   global $config, $device, $polled_devices, $db_stats, $exec_status, $alert_rules, $alert_table, $graphs, $attribs;
 
   $alert_metrics = array();
-
   $oid_cache = array();
-
   $old_device_state = unserialize($device['device_state']);
-
   $attribs = get_entity_attribs('device', $device['device_id']);
+
+  $pid_info = check_process_run($device); // This just clear stalled DB entries
+  add_process_info($device); // Store process info
 
   $alert_rules = cache_alert_rules();
   $alert_table = cache_device_alert_table($device['device_id']);
@@ -579,41 +563,16 @@ function poll_device($device, $options)
     log_event($event_msg, $device, 'device', $device['device_id'], $event_severity);
   }
 
-  $rrd_filename = "status.rrd";
-
-  rrdtool_create($device, $rrd_filename, "DS:status:GAUGE:600:0:1 ");
-
-  if ($status == "1" || $status == "0")
-  {
-    rrdtool_update($device, $rrd_filename, "N:".$status);
-  } else {
-    rrdtool_update($device, $rrd_filename, "N:U");
-  }
+  rrdtool_update_ng($device, 'status', array('status' => $status));
 
   if (!$attribs['ping_skip'])
   {
     // Ping response RRD database.
-    $ping_rrd = 'ping.rrd';
-    rrdtool_create($device, $ping_rrd, "DS:ping:GAUGE:600:0:65535 " );
-
-    if ($device['pingable'])
-    {
-      rrdtool_update($device, $ping_rrd,"N:".$device['pingable']);
-    } else {
-      rrdtool_update($device, $ping_rrd,"N:U");
-    }
+    rrdtool_update_ng($device, 'ping', array('ping' => ($device['pingable'] ? $device['pingable'] : 'U')));
   }
 
   // SNMP response RRD database.
-  $ping_snmp_rrd = 'ping_snmp.rrd';
-  rrdtool_create($device, $ping_snmp_rrd, "DS:ping_snmp:GAUGE:600:0:65535 " );
-
-  if ($device['snmpable'])
-  {
-    rrdtool_update($device, $ping_snmp_rrd,"N:".$device['snmpable']);
-  } else {
-    rrdtool_update($device, $ping_snmp_rrd,"N:U");
-  }
+  rrdtool_update_ng($device, 'ping_snmp', array('ping_snmp' => ($device['snmpable'] ? $device['snmpable'] : 'U')));
 
   $alert_metrics['device_status'] = $status;
   $alert_metrics['device_status_type'] = $status_type;
@@ -716,8 +675,8 @@ function poll_device($device, $options)
       $m_end   = utime();
 
       $m_run   = round($m_end - $m_start, 4);
-      $device_state['poller_mod_perf'][$module] = number_format($m_run, 4);
-      print_cli_data("Module time", "$m_run"."s");
+      $device_state['poller_mod_perf'][$module] = $m_run;
+      print_cli_data("Module time", number_format($m_run, 4)."s");
 
       echo(PHP_EOL);
 
@@ -784,22 +743,20 @@ function poll_device($device, $options)
     if (!$options['m'])
     {
       dbInsert(array('device_id' => $device['device_id'], 'operation' => 'poll', 'start' => $device_start, 'duration' => $device_run), 'devices_perftimes');
-
-      $poller_rrd = "perf-poller.rrd";
-      rrdtool_create($device, $poller_rrd, "DS:val:GAUGE:600:0:38400 ");
-      rrdtool_update($device, $poller_rrd, "N:".$device_time);
+      rrdtool_update_ng($device, 'perf-poller', array('val' => $device_time));
     }
 
-    if (OBS_DEBUG) {
+    if (OBS_DEBUG)
+    {
       echo("Updating " . $device['hostname'] . " - ");
       print_vars($update_array);
-      echo(" \n"); }
+      echo(" \n");
+    }
 
     $updated = dbUpdate($update_array, 'devices', '`device_id` = ?', array($device['device_id']));
 
     if ($updated) {
       print_cli_data("Updated Data", implode(", ", array_keys($update_array)), 1);
-    //echo("UPDATED!\n");
     }
 
     $alert_metrics['device_uptime']   = $device['uptime'];
@@ -814,6 +771,8 @@ function poll_device($device, $options)
 
   echo(PHP_EOL);
 
+  // Clean
+  del_process_info($device); // Remove process info
   unset($alert_metrics);
 }
 
@@ -821,11 +780,22 @@ function poll_device($device, $options)
 // Function return FALSE, if poller module allowed for device os (otherwise TRUE).
 function poller_module_excluded($device, $module)
 {
+  global $config;
+
   ///FIXME. rename module: 'wmi' -> 'windows-wmi'
   if ($module == 'wmi'  && $device['os'] != 'windows') { return TRUE; }
 
-  if ($module == 'ipmi' && !($device['os_group'] == 'unix' || $device['os'] == 'drac' || $device['os'] == 'windows' || $device['os'] == 'generic')) { return TRUE; }
+  if ($module == 'ipmi' &&
+      (!isset($config['os'][$device['os']]['ipmi']) || $config['os'][$device['os']]['ipmi'] == FALSE)) { return TRUE; }
   if ($module == 'unix-agent' && !($device['os_group'] == 'unix' || $device['os'] == 'generic')) { return TRUE; }
+
+  if (isset($config['os'][$device['os']]['poller_blacklist']))
+  {
+    if (in_array($module, $config['os'][$device['os']]['poller_blacklist']))
+    {
+      return TRUE;
+    }
+  }
 
   $os_test = explode('-', $module, 2);
   if (count($os_test) === 1) { return FALSE; } // Check modules only with a dash.
@@ -874,7 +844,7 @@ function poller_module_excluded($device, $module)
  *       'descr'     => 'Current IKE SAs',                 // [OPTIONAL] Description of the OID contents
  *       'numeric'   => '.1.3.6.1.4.1.555.4.1.1.48.45',    // [OPTIONAL] Numeric OID
  *       'index'     => '0',                               // [OPTIONAL] OID index, if not set equals '0'
- *       'ds_name'   => 'IKECurrSAs',                      // [OPTIONAL] DS name, if not set used OID name truncated to 18 chars
+ *       'ds_name'   => 'IKECurrSAs',                      // [OPTIONAL] DS name, if not set used OID name truncated to 19 chars
  *       'ds_type'   => 'GAUGE',                           // [OPTIONAL] DS type, if not set equals 'COUNTER'
  *       'ds_min'    => '0',                               // [OPTIONAL] Min value for DS, if not set equals 'U'
  *       'ds_max'    => '30000'                            // [OPTIONAL] Max value for DS, if not set equals '100000000000'
@@ -882,7 +852,6 @@ function poller_module_excluded($device, $module)
  *  )
  *
  */
-
 function collect_table($device, $oids_def, &$graphs)
 {
   $rrd      = array();
@@ -949,11 +918,13 @@ function collect_table($device, $oids_def, &$graphs)
     }
   }
 
+  // rrd DS limit is 20 bytes (19 chars + NULL terminator)
+  $ds_len = 19;
+
   $oids       = array();
   $oids_index = array();
   foreach ($oids_def['oids'] as $oid => $entry)
   {
-    //if (!isset($entry['descr']))   { $entry['descr'] = ''; }   // Descr not used in any case
     if (is_numeric($entry['numeric']) && isset($oids_def['numeric']))
     {
       $entry['numeric'] = $oids_def['numeric'] . '.' . $entry['numeric']; // Numeric oid, for future using
@@ -970,7 +941,6 @@ function collect_table($device, $oids_def, &$graphs)
     } else {
       $ds_name = $entry['ds_name'];
     }
-    $ds_len = ($mib != 'NS-ROOT-MIB' ? 19 : 18); // Hardcode max len for NS-ROOT-MIB to 18 chars
     if (strlen($ds_name) > $ds_len) { $ds_name = truncate($ds_name, $ds_len, ''); }
 
     if (isset($oids_def['no_index']) && $oids_def['no_index'] == TRUE)
@@ -979,6 +949,7 @@ function collect_table($device, $oids_def, &$graphs)
     } else {
       $oids[]       = $oid.'.'.$entry['index'];
     }
+
     $oids_index[] = array('index' => $entry['index'], 'oid' => $oid);
 
     if (!$use_walk)
@@ -1007,20 +978,24 @@ function collect_table($device, $oids_def, &$graphs)
       $data = snmp_get_multi($device, $oids, "-OQUs", $mib, $mib_dirs);
       break;
   }
+
   if (isset($GLOBALS['exec_status']['exitcode']) && $GLOBALS['exec_status']['exitcode'] !== 0)
   {
     // Break because latest snmp walk/get return not good exitstatus (wrong mib/timeout/error/etc)
     print_debug("  WARNING, latest snmp walk/get return not good exitstatus for '$mib', RRD update skipped.");
     return FALSE;
   }
+
   if (isset($oids_def['no_index']) && $oids_def['no_index'] == TRUE)
   {
     $data[0] = $data[''];
   }
+
   foreach ($oids_index as $entry)
   {
     $index = $entry['index'];
     $oid   = $entry['oid'];
+
     if (is_numeric($data[$index][$oid]))
     {
       $rrd['ok']           = TRUE; // We have any data for current rrd_file
@@ -1054,7 +1029,7 @@ function collect_table($device, $oids_def, &$graphs)
       foreach ($rrd_file_info['DS'] as $ds => $nothing)
       {
         $ds_list[] = $ds;
-        $graph_template .= "    '$ds' => array('label' => 'CHANGE_ME'),\n";
+        $graph_template .= "    '$ds' => array('label' => '$ds'),\n";
       }
       $graph_template .= "  )\n);";
       $in_args = array_diff($rrd['ds_list'], $ds_list);
@@ -1102,59 +1077,8 @@ function collect_table($device, $oids_def, &$graphs)
   return $data;
 }
 
-// Poll a table from SNMP and build an RRD based on an array of arguments.
-
-function collect_table_old($args, $device, &$graphs)
-{
-
-  $data = snmpwalk_cache_oid($device, $args['table'], array(), $args['mib']);
-
-  echo("Collecting: ".$args['table']." ");
-
-  $rrd_update = "N";
-
-  $search  = array();
-  $replace = array();
-  if (is_array($args['ds_rename']))
-  {
-    foreach ($args['ds_rename'] AS $s => $r)
-    {
-      $search[]  = $s;
-      $replace[] = $r;
-    }
-  }
-
-  foreach ($args['ds_list'] as $ds_name => $ds_data)
-  {
-
-    if (!isset($ds_data['type'])) { $ds_data['type'] = 'COUNTER'; }
-    if (!isset($ds_data['min']))  { $ds_data['min']  = 'U'; }
-    if (!isset($ds_data['max']))  { $ds_data['max']  = '100000000000'; }
-
-    if (is_array($args['ds_rename'])) { $ds = str_replace($search, $replace, $ds_name); } else { $ds = $ds_name; }
-    if (strlen($ds) > 18) { $ds = truncate($ds, 18, ''); }
-
-    $rrd_create .= ' DS:'.$ds.':'.$ds_data['type'].':600:'.$ds_data['min'].':'.$ds_data['max'];
-
-    if (is_numeric($data[0][$ds_name]))
-    {
-      $rrd_update .= ":".$data[0][$ds_name];
-    } else {
-      $rrd_update .= ":U";
-    }
-
-  }
-
-  rrdtool_create($device, $args['file'], $rrd_create);
-  rrdtool_update($device, $args['file'], $rrd_update);
-
-  // We should only create a graph when the OID was present -- FIXME :)
-  foreach ($args['graphs'] as $g) { $graphs[$g] = TRUE; }
-}
-
 function poll_p2p_radio($device, $mib, $index, $radio)
 {
-
   $params  = array('radio_tx_freq', 'radio_rx_freq', 'radio_tx_power', 'radio_rx_level', 'radio_name', 'radio_bandwidth', 'radio_modulation', 'radio_total_capacity', 'radio_standard', 'radio_loopback', 'radio_tx_mute', 'radio_eth_capacity', 'radio_e1t1_channels', 'radio_cur_capacity');
 
   if (is_array($GLOBALS['cache']['p2p_radios'][$mib][$index])) { $radio_db = $GLOBALS['cache']['p2p_radios'][$mib][$index]; }
@@ -1193,51 +1117,25 @@ function poll_p2p_radio($device, $mib, $index, $radio)
     }
   }
 
-  // Create RRD files
-
-  $dses = array('tx_power'             => array('type' => 'gauge'),
-                'rx_level'             => array('type' => 'gauge'),
-                'rmse'                 => array('type' => 'gauge'),
-                'agc_gain'             => array('type' => 'gauge'),
-                'cur_capacity'         => array('type' => 'gauge'),
-                'sym_rate_tx'          => array('type' => 'gauge'),
-                'sym_rate_rx'          => array('type' => 'gauge'),
-  );
-
-  $rrd_file = "p2p_radio-" . $mib . "-" . $index . ".rrd";
-  $rrd_update = "N";
-  $rrd_create = "";
-
-  foreach ($dses as $ds => $ds_data)
-  {
-
-    $field = "radio_".$ds;
-
-    $radio[$ds] = $radio[$oid];
-
-    if ($ds_data['type'] == 'gauge')
-    {
-      $rrd_create .= " DS:" . $ds . ":GAUGE:600:U:100000000000";
-    }
-    else
-    {
-      $rrd_create .= " DS:" . $ds . ":COUNTER:600:U:100000000000";
-    }
-
-    if (is_numeric($radio[$field]))
-    {
-      $rrd_update .= ":" . $radio[$field];
-    }
-    else
-    {
-      $rrd_update .= ":U";
-    }
-  }
-
-  rrdtool_create($device, $rrd_file, $rrd_create);
-  rrdtool_update($device, $rrd_file, $rrd_update);
+  rrdtool_update_ng($device, 'p2p_radio', array(
+    'tx_power'     => $radio['radio_tx_power'],
+    'rx_level'     => $radio['radio_rx_level'],
+    'rmse'         => $radio['radio_rmse'],
+    'agc_gain'     => $radio['radio_agc_gain'],
+    'cur_capacity' => $radio['radio_cur_capacity'],
+    'sym_rate_tx'  => $radio['radio_sym_rate_tx'],
+    'sym_rate_rx'  => $radio['radio_sym_rate_tx'],
+  ), "$mib-$index");
 
   $GLOBALS['valid']['p2p_radio'][$mib][$index] = 1; // FIXME. What? How it passed there?
+}
+
+function update_application($app_id, $app_data)
+{
+
+  $update_array = array('app_json' => json_encode($app_data), 'app_lastpolled' => time());
+
+  dbUpdate($update_array, 'applications', '`app_id` = ?', array($app_id));
 
 }
 

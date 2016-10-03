@@ -12,9 +12,7 @@
  *
  */
 
-echo(" FOUNDRY-SN-SWITCH-GROUP-MIB ");
-
-$fdp_array = snmpwalk_cache_twopart_oid($device, "snFdpCacheEntry", array(), "FOUNDRY-SN-SWITCH-GROUP-MIB", mib_dirs('foundry'));
+$fdp_array = snmpwalk_cache_twopart_oid($device, "snFdpCacheEntry", array(), "FOUNDRY-SN-SWITCH-GROUP-MIB");
 
 if ($fdp_array)
 {

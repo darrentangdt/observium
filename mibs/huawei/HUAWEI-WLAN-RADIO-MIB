@@ -60,7 +60,7 @@
 -- Saturday, May 14, 2011 at 18:08:48
 -- 
 --  =========================================================================================================================================
--- Copyright (C) 2010 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2014 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- Description:  The mib is used for defining the management of huawei AC at the side of the quality of wireless signal for AP MIB objects.
 -- Reference: MIB description_20091130.doc, SSMP-USER-BASED-SM-MIB.mib.
 -- Version: V1.18

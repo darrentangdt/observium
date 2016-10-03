@@ -17,8 +17,6 @@
 # Description for the OIDs is at:
 # ftp://ftp.qtech.ru/Ericsson_SmartEdge/manual/11.1.2.4%20%20%20PDF/Operation_and_Maintenance/Performance_Management/SNMP_MIBs/Enterprise_MIBs.pdf
 
-echo(" RBN-ENVMON-MIB ");
-
 $descr_data = snmp_walk($device, ".1.3.6.1.4.1.2352.2.4.1.6.1.2", "-Oqv", "");
 $oid_value_data = snmp_walk($device, ".1.3.6.1.4.1.2352.2.4.1.6.1.3", "-Osqn", "");
 $descr_values = array_map(NULL, explode("\n", $descr_data), explode("\n", $oid_value_data));

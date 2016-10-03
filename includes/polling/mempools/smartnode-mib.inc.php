@@ -11,9 +11,7 @@
  *
  */
 
-$mib = 'SMARTNODE-MIB';
-
-$cache_mempool = snmpwalk_cache_multi_oid($device, 'memory', $cache_mempool, $mib, mib_dirs('patton'));
+$cache_mempool = snmpwalk_cache_multi_oid($device, 'memory', $cache_mempool, 'SMARTNODE-MIB');
 
 $index            = $mempool['mempool_index'];
 $mempool['total'] = $cache_mempool[$index]['memFreeBytes'] + $cache_mempool[$index]['memAllocatedBytes'];

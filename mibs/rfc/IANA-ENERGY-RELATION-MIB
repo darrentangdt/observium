@@ -1,4 +1,4 @@
-IANA-ENERGY-RELATION-MIB DEFINITIONS ::= BEGIN
+ IANA-ENERGY-RELATION-MIB DEFINITIONS ::= BEGIN
       IMPORTS
         MODULE-IDENTITY, mib-2
             FROM SNMPv2-SMI
@@ -15,7 +15,7 @@ IANA-ENERGY-RELATION-MIB DEFINITIONS ::= BEGIN
                       Los Angeles, CA 90094
                       United States
                       Tel: +1-310-301-5800
-                      EMail: iana&iana.org"
+                      EMail: iana@iana.org"
         DESCRIPTION
          "Copyright (c) 2015 IETF Trust and the persons identified as
           authors of the code.  All rights reserved.
@@ -45,6 +45,7 @@ IANAEnergyRelationship ::= TEXTUAL-CONVENTION
     DESCRIPTION
            "An enumerated value specifying the type of
             relationship between an Energy Object A, on
+
             which the relationship is specified, with the
             Energy Object B, identified by the UUID.
 

@@ -43,38 +43,28 @@ if (!empty($agent_data['app']['crashplan']))
     {
       $crashplan_servers[] = $crashplan_server['serverName'];
 
-      $rrd_filename = "app-crashplan-".$crashplan_server['serverName'].".rrd";
+      update_application($app_id, $crashplan_data);
 
-      unset($rrd_values);
-
-      foreach (array('totalBytes', 'usedBytes', 'usedPercentage', 'freeBytes', 'freePercentage', 'coldBytes', 'coldPercentageOfUsed',
-        'coldPercentageOfTotal', 'archiveBytes', 'selectedBytes', 'remainingBytes', 'inboundBandwidth', 'outboundBandwidth', 'orgCount',
-        'userCount', 'computerCount', 'onlineComputerCount', 'backupSessionCount') as $key)
-      {
-        $rrd_values[] = (is_numeric($crashplan_server[$key]) ? $crashplan_server[$key] : "U");
-      }
-
-      rrdtool_create($device, $rrd_filename, " \
-          DS:totalBytes:GAUGE:600:0:125000000000 \
-          DS:usedBytes:GAUGE:600:0:125000000000 \
-          DS:usedPercentage:GAUGE:600:0:100 \
-          DS:freeBytes:GAUGE:600:0:125000000000 \
-          DS:freePercentage:GAUGE:600:0:100 \
-          DS:coldBytes:GAUGE:600:0:125000000000 \
-          DS:coldPctOfUsed:GAUGE:600:0:100 \
-          DS:coldPctOfTotal:GAUGE:600:0:100 \
-          DS:archiveBytes:GAUGE:600:0:125000000000 \
-          DS:selectedBytes:GAUGE:600:0:125000000000 \
-          DS:remainingBytes:GAUGE:600:0:125000000000 \
-          DS:inboundBandwidth:GAUGE:600:0:125000000000 \
-          DS:outboundBandwidth:GAUGE:600:0:125000000000 \
-          DS:orgCount:GAUGE:600:0:125000000000 \
-          DS:userCount:GAUGE:600:0:125000000000 \
-          DS:computerCount:GAUGE:600:0:125000000000 \
-          DS:onlineComputerCount:GAUGE:600:0:125000000000 \
-          DS:backupSessionCount:GAUGE:600:0:125000000000 ");
-
-      rrdtool_update($device, $rrd_filename, "N:" . implode(':', $rrd_values));
+      rrdtool_update_ng($device, 'crashplan', array(
+        'totalBytes'          => $crashplan_server['totalBytes'],
+        'usedBytes'           => $crashplan_server['usedBytes'],
+        'usedPercentage'      => $crashplan_server['usedPercentage'],
+        'freeBytes'           => $crashplan_server['freeBytes'],
+        'freePercentage'      => $crashplan_server['freePercentage'],
+        'coldBytes'           => $crashplan_server['coldBytes'],
+        'coldPctOfUsed'       => $crashplan_server['coldPercentageOfUsed'],
+        'coldPctOfTotal'      => $crashplan_server['coldPercentageOfTotal'],
+        'archiveBytes'        => $crashplan_server['archiveBytes'],
+        'selectedBytes'       => $crashplan_server['selectedBytes'],
+        'remainingBytes'      => $crashplan_server['remainingBytes'],
+        'inboundBandwidth'    => $crashplan_server['inboundBandwidth'],
+        'outboundBandwidth'   => $crashplan_server['outboundBandwidth'],
+        'orgCount'            => $crashplan_server['orgCount'],
+        'userCount'           => $crashplan_server['userCount'],
+        'computerCount'       => $crashplan_server['computerCount'],
+        'onlineComputerCount' => $crashplan_server['onlineComputerCount'],
+        'backupSessionCount'  => $crashplan_server['backupSessionCount'],
+      ), $crashplan_server['serverName']);
     }
 
     # Set list of servers as device attribute so we can use it in the web interface

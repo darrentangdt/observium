@@ -11,8 +11,6 @@
  *
  */
 
-echo(" OPENBSD-SENSORS-MIB ");
-
 $obsd_array  = snmpwalk_cache_multi_oid($device, "sensorEntry", array(), "OPENBSD-SENSORS-MIB");
 $sensorTypes = array('temperature' => 'temperature',
                      'fan'         => 'fanspeed',

@@ -13,20 +13,18 @@
 
 // Force10 M-Series
 
-$mib = "F10-M-SERIES-CHASSIS-MIB";
-
-echo(" ".$mib." ");
-
-$oids = snmpwalk_cache_oid($device, "chStackUnitTemp", array(), $mib, mib_dirs('force10'));
-$oids = snmpwalk_cache_oid($device, "chStackUnitSysType", $oids, $mib, mib_dirs('force10'));
+$oids = snmpwalk_cache_oid($device, 'chStackUnitTemp', array(), 'F10-M-SERIES-CHASSIS-MIB');
+$oids = snmpwalk_cache_oid($device, 'chStackUnitSysType', $oids, 'F10-M-SERIES-CHASSIS-MIB');
 
 foreach ($oids as $index => $entry)
 {
-  $descr = "Unit " . strval($index - 1) . " " . $entry['chStackUnitSysType'];
-  $oid   = ".1.3.6.1.4.1.6027.3.19.1.2.1.1.14.".$index;
+  $descr = 'Unit ' . strval($index - 1) . ' ' . $entry['chStackUnitSysType'];
+  $oid   = ".1.3.6.1.4.1.6027.3.19.1.2.1.1.14.$index";
   $value = $entry['chStackUnitTemp'];
 
-  discover_sensor($valid['sensor'], 'temperature', $device, $oid, $index, $mib, $descr, 1, $value);
+  discover_sensor($valid['sensor'], 'temperature', $device, $oid, $index, 'F10-M-SERIES-CHASSIS-MIB', $descr, 1, $value);
 }
+
+unset($oids, $oid, $descr, $value);
 
 // EOF

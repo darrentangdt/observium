@@ -14,6 +14,9 @@
 include($config['install_dir'] . '/includes/polling/functions.inc.php');
 include($config['install_dir'] . '/includes/discovery/functions.inc.php');
 
+$ports_ignored_count = intval(get_entity_attrib('device', $device, 'ports_ignored_count')); // Cache last ports ignored count
+$ports_total_count   = $ports_ignored_coun + dbFetchCell('SELECT COUNT(*) FROM `ports` WHERE `device_id` = ? AND `deleted` = 0', array($device['device_id']));
+
 if ($vars['submit'])
 {
   if ($readonly)
@@ -37,7 +40,11 @@ if ($vars['submit'])
     if ($vars['toggle_ports'] && isset($config[$vars['toggle_ports']]) && strpos($vars['toggle_ports'], 'enable_ports_') === 0)
     {
       $module = $vars['toggle_ports'];
-      if (isset($attribs[$module]) && $attribs[$module] != $config[$module])
+      if ($vars['submit'] === 'Disable' && $attribs[$module] !== '0')
+      {
+        set_dev_attrib($device, $module, "0");
+      }
+      else if (isset($attribs[$module]) && $attribs[$module] != $config[$module])
       {
         del_dev_attrib($device, $module);
       } elseif ($config[$module] == 0) {
@@ -177,6 +184,7 @@ foreach (array_keys($config) as $module)
 
   $attrib_status = '<span class="label label-important">disabled</span>';
   $toggle = 'Enable'; $btn_class = 'btn-success'; $btn_icon = 'icon-ok';
+  $value  = 'Toggle';
   $disabled = FALSE;
   if ($module == 'enable_ports_junoseatmvp' && $device['os'] != 'junose') /// FIXME. see here includes/discovery/junose-atm-vp.inc.php
   {
@@ -195,6 +203,22 @@ foreach (array_keys($config) as $module)
     $attrib_status = '<span class="label label-success">enabled</span>';
     $toggle = "Disable"; $btn_class = "btn-danger"; $btn_icon = 'icon-remove';
   }
+  else if ($module == 'enable_ports_separate_walk' && !$attrib_set)
+  {
+    if ($config['os'][$device['os']]['ports_separate_walk'] && $ports_total_count > 10)
+    {
+      $attrib_status = '<span class="label label-warning">FORCED</span>';
+      $toggle = "Disable"; $btn_class = "btn-danger"; $btn_icon = 'icon-remove';
+      $value  = 'Disable';
+    }
+    /// FIXME. Warning, currently not recommended, use at own risk, enabled only if ports polling time more than 20 sec or ports count more than 10
+    else if (intval($device['state']['poller_mod_perf']['ports']) < 20 && $ports_total_count <= 10)
+    {
+      $attrib_status = '<span class="label label-default">excluded</span>';
+      $toggle = "Excluded"; $btn_class = ''; $btn_icon = 'icon-lock';
+      $disabled = TRUE;
+    }
+  }
 
   echo($attrib_status . '</td><td>');
 
@@ -209,7 +233,7 @@ foreach (array_keys($config) as $module)
                                              'right'    => TRUE,
                                              'readonly' => $readonly,
                                              'disabled' => $disabled,
-                                             'value'    => 'Toggle');
+                                             'value'    => $value);
       print_form($form); unset($form);
 
   echo('</td></tr>');

@@ -37,7 +37,8 @@ if (!$noheader)
 
 $i = 0;
 $colour_iter = 0;
-
+$cstack = '';
+$bstack = '';
 foreach ($rrd_list as $rrd)
 {
   if ($rrd['colour'])
@@ -70,15 +71,15 @@ foreach ($rrd_list as $rrd)
   if ($rrd['invert'])
   {
     $rrd_options .= " CDEF:".$id."i=".$id.",-1,*";
-    $rrd_optionsc .= " AREA:".$id."i#".$colour.":'$descr':".$cstack;
+    $rrd_optionsc .= " AREA:".$id."i#".$colour.":'$descr'".$cstack;
     $rrd_optionsc .= " GPRINT:".$id.":LAST:%5.1lf%s GPRINT:".$id."min:MIN:%5.1lf%s";
     $rrd_optionsc .= " GPRINT:".$id."max:MAX:%5.1lf%s GPRINT:".$id.":AVERAGE:'%5.1lf%s\\n'";
-    $cstack = "STACK";
+    $cstack = ":STACK";
   } else {
-    $rrd_optionsb .= " AREA:".$id."#".$colour.":'$descr':".$bstack;
+    $rrd_optionsb .= " AREA:".$id."#".$colour.":'$descr'".$bstack;
     $rrd_optionsb .= " GPRINT:".$id.":LAST:%5.1lf%s GPRINT:".$id."min:MIN:%5.1lf%s";
     $rrd_optionsb .= " GPRINT:".$id."max:MAX:%5.1lf%s GPRINT:".$id.":AVERAGE:'%5.1lf%s\\n'";
-    $bstack = "STACK";
+    $bstack = ":STACK";
   }
 
   $i++;
@@ -88,5 +89,7 @@ foreach ($rrd_list as $rrd)
 $rrd_options .= $rrd_optionsb;
 $rrd_options .= " HRULE:0#555555";
 $rrd_options .= $rrd_optionsc;
+
+unset($cstack, $bstack);
 
 // EOF

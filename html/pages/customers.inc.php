@@ -11,10 +11,12 @@
  *
  */
 
-$page_title[] = "Customers";
+register_html_title("Customers");
+
+echo generate_box_open();
 ?>
 
-<table class="table table-hover table-striped-two  table-condensed " style="margin-top: 10px;">
+<table class="table table-hover table-striped-two  table-condensed ">
   <thead>
       <tr>
         <th style="width: 250px;"><span style="font-weight: bold;" class="interface">Customer</span></th>
@@ -76,5 +78,7 @@ foreach (dbFetchRows("SELECT * FROM `ports` WHERE `port_descr_type` = 'cust' GRO
 }
 
 echo("</table>");
+
+echo generate_box_close();
 
 // EOF

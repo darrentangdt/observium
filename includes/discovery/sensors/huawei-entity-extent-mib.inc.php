@@ -11,13 +11,10 @@
  *
  */
 
-$mib = 'HUAWEI-ENTITY-EXTENT-MIB';
-echo(" $mib ");
-
-$huawei['sensors_names'] = snmpwalk_cache_oid($device, 'hwEntityBomEnDesc', array(), $mib, mib_dirs('huawei'));
-$huawei['temp'] = snmpwalk_cache_oid($device, 'hwEntityTemperature', array(), $mib, mib_dirs('huawei'));
-$huawei['fan']  = snmpwalk_cache_oid($device, 'HwFanStatusEntry',  array(), $mib, mib_dirs('huawei'));
-$opticalarray  = snmpwalk_cache_oid($device, 'HwOpticalModuleInfoEntry',  $opticalarray, $mib, mib_dirs('huawei'));
+$huawei['sensors_names'] = snmpwalk_cache_oid($device, 'hwEntityBomEnDesc', array(), 'HUAWEI-ENTITY-EXTENT-MIB');
+$huawei['temp'] = snmpwalk_cache_oid($device, 'hwEntityTemperature', array(), 'HUAWEI-ENTITY-EXTENT-MIB');
+$huawei['fan']  = snmpwalk_cache_oid($device, 'HwFanStatusEntry', array(), 'HUAWEI-ENTITY-EXTENT-MIB');
+$opticalarray   = snmpwalk_cache_oid($device, 'HwOpticalModuleInfoEntry', $opticalarray, 'HUAWEI-ENTITY-EXTENT-MIB');
 
 //If we got entity-mib, merge it with optical modules
 if (is_array($GLOBALS['cache']['entity-mib']))
@@ -33,12 +30,12 @@ if (is_array($GLOBALS['cache']['entity-mib']))
 
 foreach ($huawei['temp'] as $index => $entry)
 {
-  $oid = '.1.3.6.1.4.1.2011.5.25.31.1.1.1.1.11.'.$index;
+  $oid = ".1.3.6.1.4.1.2011.5.25.31.1.1.1.1.11.$index";
   $descr = explode(',', $huawei['sensors_names'][$index]['hwEntityBomEnDesc']);
   $value = $entry['hwEntityTemperature'];
   if ($entry['hwEntityTemperature'] > 0 && $value <= 1000)
   {
-    $options = array('limit_high' => snmp_get($device, "hwEntityTemperatureThreshold.".$index, "-Osqv", "HUAWEI-ENTITY-EXTENT-MIB", mib_dirs('huawei')));
+    $options = array('limit_high' => snmp_get($device, "hwEntityTemperatureThreshold.$index", '-Osqv', 'HUAWEI-ENTITY-EXTENT-MIB'));
     discover_sensor($valid['sensor'], 'temperature', $device, $oid, $index, 'huawei', $descr[0], 1, $value, $options);
   }
 }
@@ -63,9 +60,9 @@ foreach ($opticalarray as $index => $entry)
   {
     // Port found, get mapped ifIndex
     $sensor_port = $opticalarray[$index];
-    if (isset($sensor_port['0']['entAliasMappingIdentifier']) && strpos($sensor_port['0']['entAliasMappingIdentifier'], "fIndex"))
+    if (isset($sensor_port['0']['entAliasMappingIdentifier']) && strpos($sensor_port['0']['entAliasMappingIdentifier'], 'fIndex'))
     {
-      list(, $ifIndex) = explode(".", $sensor_port['0']['entAliasMappingIdentifier']);
+      list(, $ifIndex) = explode('.', $sensor_port['0']['entAliasMappingIdentifier']);
       $port = get_port_by_index_cache($device['device_id'], $ifIndex);
       $temperatureoid = '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.5.'.$index;
       $voltageoid = '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.6.'.$index;

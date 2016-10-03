@@ -11,9 +11,9 @@
  *
  */
 
-if (strpos($poll_device['sysDescr'], "olive"))
+if (strpos($poll_device['sysDescr'], 'olive'))
 {
-  $hardware = "Olive";
+  $hardware = 'Olive';
 }
 else if (preg_match('/^Juniper Networks, Inc\. ([a-z]+ )?(?<hw>[\w-][^,]+), kernel JUNOS (?<version>[^, ]+)/i', $poll_device['sysDescr'], $matches))
 {
@@ -31,7 +31,7 @@ else if (preg_match('/^Juniper Networks, Inc\. ([a-z]+ )?(?<hw>[\w-][^,]+), kern
 
 if (empty($hardware))
 {
-  $hw = snmp_get($device, "JUNIPER-MIB::jnxBoxDescr.0", "-Ovqsn", "JUNIPER-MIB");
+  $hw = snmp_get($device, 'jnxBoxDescr.0', '-Ovqsn', 'JUNIPER-MIB');
   if (preg_match('/^([a-z]+ )?(?<hw>[\w\ -]+)/i', $hw, $matches))
   {
     //Juniper SRX100H2 Internet Router
@@ -46,7 +46,7 @@ if (empty($hardware))
 
 if (empty($version))
 {
-  $jun_ver = snmp_get($device, "hrSWInstalledName.2", "-Oqv", "HOST-RESOURCES-MIB");
+  $jun_ver = snmp_get($device, 'hrSWInstalledName.2', '-Oqv', 'HOST-RESOURCES-MIB');
   if (preg_match('/^[^\[]+\[(?<version>[^]]+)\]/', $jun_ver, $matches))
   {
     //JUNOS Software Release [12.1X46-D30.2]
@@ -56,7 +56,7 @@ if (empty($version))
 
 if ($hardware != 'Olive')
 {
-  $serial   = snmp_get($device, "JUNIPER-MIB::jnxBoxSerialNo.0", "-OQv", "JUNIPER-MIB");
+  $serial   = snmp_get($device, 'jnxBoxSerialNo.0', '-OQv', 'JUNIPER-MIB');
 }
 
 // EOF

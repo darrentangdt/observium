@@ -13,87 +13,123 @@
 
 if (!isset($vars['sort'])) { $vars['sort'] = "in"; }
 if (!isset($vars['period'])) { $vars['period'] = "day"; }
+$graph_width = 949;
+$thumb_width = 120;
 $from = "-" . $vars['period'];
 $from = $config['time'][$vars['period']];
 
-echo("<div style='margin: 0px 0px 0px 0px'>
-       <div style=' margin:0px; float: left;';>
-         <div class='box box-solid well-small well-shaded'>
-         <span class=device-head>Day</span><br />
+  echo '<div class="row">';
+  echo '  <div class="col-md-2">';
 
-         <a href='".generate_url($link_array,array('view' => 'macaccounting', 'subview' => 'top10', 'graph'=>$vars['graph'], sort => $vars['sort'], 'period' => 'day'))."'>
+  $graph_array['id']     = $vars['port'];
+  $graph_array['type']   = 'port_mac_acc_total';
+  $graph_array['stat']   = $vars['stat'];
+  $graph_array['sort']   = $vars['sort'];
+  $graph_array['height'] = "60";
+  $graph_array['width']  = 170;
+  $graph_array['legend'] = "no";
+  $graph_array['to']     = $config['time']['now'];
+  $graph_array['from']   = $config['time'][$vars['period']];
 
-           <img style='border: #5e5e5e 2px;' valign=middle src='graph.php?id=".$port['port_id'].
-                  "&amp;stat=".$vars['graph']."&amp;type=port_mac_acc_total&amp;sort=".$vars['sort']."&amp;from=".$config['time']['day']."&amp;to=".$config['time']['now']."&amp;width=150&amp;height=50' />
-         </a>
-         </div>
-         <div class='box box-solid well-small well-shaded'>
-         <span class=device-head>Two Day</span><br />
-         <a href='".generate_url($link_array,array('view' => 'macaccounting', 'subview' => 'top10', 'graph'=>$vars['graph'], sort => $vars['sort'], 'period' => 'twoday'))."/'>
-           <img style='border: #5e5e5e 2px;' valign=middle src='graph.php?id=".$port['port_id'].
-                  "&amp;stat=".$vars['graph']."&amp;type=port_mac_acc_total&amp;sort=".$vars['sort']."&amp;from=".$config['time']['twoday']."&amp;to=".$config['time']['now']."&amp;width=150&amp;height=50' />
-         </a>
-         </div>
-         <div class='box box-solid well-small well-shaded'>
-         <span class=device-head>Week</span><br />
-          <a href='".generate_url($link_array,array('view' => 'macaccounting', 'subview' => 'top10', 'graph'=>$vars['graph'], sort => $vars['sort'], 'period' => 'week'))."/'>
-          <img style='border: #5e5e5e 2px;' valign=middle src='graph.php?id=".$port['port_id']."&amp;type=port_mac_acc_total&amp;sort=".$vars['sort']."&amp;stat=".$vars['graph']."&amp;from=".$config['time']['week']."&amp;to=".$config['time']['now']."&amp;width=150&amp;height=50' />
-          </a>
-          </div>
-          <div class='box box-solid well-small well-shaded'>
-          <span class=device-head>Month</span><br />
-          <a href='".generate_url($link_array,array('view' => 'macaccounting', 'subview' => 'top10', 'graph'=>$vars['graph'], sort => $vars['sort'], 'period' => 'month'))."/'>
-          <img style='border: #5e5e5e 2px;' valign=middle src='graph.php?id=".$port['port_id']."&amp;type=port_mac_acc_total&amp;sort=".$vars['sort']."&amp;stat=".$vars['graph']."&amp;from=".$config['time']['month']."&amp;to=".$config['time']['now']."&amp;width=150&amp;height=50' />
-          </a>
-          </div>
-          <div class='box box-solid well-small well-shaded'>
-          <span class=device-head>Year</span><br />
-          <a href='".generate_url($link_array,array('view' => 'macaccounting', 'subview' => 'top10', 'graph'=>$vars['graph'], sort => $vars['sort'], 'period' => 'year'))."/'>
-          <img style='border: #5e5e5e 2px;' valign=middle src='graph.php?id=".$port['port_id']."&amp;type=port_mac_acc_total&amp;sort=".$vars['sort']."&amp;stat=".$vars['graph']."&amp;from=".$config['time']['year']."&amp;to=".$config['time']['now']."&amp;width=150&amp;height=50' />
-          </a>
-          </div>
-     </div>
-     <div style='float: left;'>
-       <img src='graph.php?id=".$port['port_id']."&amp;type=port_mac_acc_total&amp;sort=".$vars['sort']."&amp;stat=".$vars['graph']."&amp;from=$from&amp;to=".$config['time']['now']."&amp;width=765&amp;height=300' />
-     </div>
-     <div style=' margin:0px; float: left;';>
-          <div class='box box-solid well-small well-shaded'>
-         <span class=device-head>Bits</span><br />
-         <a href='".generate_url($link_array,array('view' => 'macaccounting', 'subview' => 'top10', 'graph'=>'bits', sort => $vars['sort'], 'period' => $vars['period']))."'>
-           <img style='border: #5e5e5e 2px;' valign=middle src='graph.php?id=".$port['port_id']."&amp;stat=bits&amp;type=port_mac_acc_total&amp;sort=".$vars['sort']."&amp;from=$from&amp;to=".$config['time']['now']."&amp;width=150&amp;height=50' />
-         </a>
-         </div>
-         <div class='box box-solid well-small well-shaded'>
-         <span class=device-head>Packets</span><br />
-         <a href='".generate_url($link_array,array('view' => 'macaccounting', 'subview' => 'top10', 'graph'=>'pkts', sort => $vars['sort'], 'period' => $vars['period']))."/'>
-           <img style='border: #5e5e5e 2px;' valign=middle src='graph.php?id=".$port['port_id']."&amp;stat=pkts&amp;type=port_mac_acc_total&amp;sort=".$vars['sort']."&amp;from=$from&amp;to=".$config['time']['now']."&amp;width=150&amp;height=50' />
-         </a>
-         </div>
-         <div class='box box-solid well-small well-shaded'>
-         <span class=device-head>Top Input</span><br />
-         <a href='".generate_url($link_array,array('view' => 'macaccounting', 'subview' => 'top10', 'graph'=>$vars['graph'], sort => 'in', 'period' => $vars['period']))."'>
-           <img style='border: #5e5e5e 2px;' valign=middle src='graph.php?id=".$port['port_id'].
-                  "&amp;stat=".$vars['graph']."&amp;type=port_mac_acc_total&amp;sort=in&amp;from=$from&amp;to=".$config['time']['now']."&amp;width=150&amp;height=50' />
-         </a>
-         </div>
-         <div class='box box-solid well-small well-shaded'>
-         <span class=device-head>Top Output</span><br />
-         <a href='".generate_url($link_array,array('view' => 'macaccounting', 'subview' => 'top10', 'graph'=>$vars['graph'], sort => 'out', 'period' => $vars['period']))."'>
-           <img style='border: #5e5e5e 2px;' valign=middle src='graph.php?id=".$port['port_id'].
-                  "&amp;stat=".$vars['graph']."&amp;type=port_mac_acc_total&amp;sort=out&amp;from=$from&amp;to=".$config['time']['now']."&amp;width=150&amp;height=50' />
-         </a>
-         </div>
-         <div class='box box-solid well-small well-shaded'>
-         <span class=device-head>Top Aggregate</span><br />
-         <a href='".generate_url($link_array,array('view' => 'macaccounting', 'subview' => 'top10', 'graph'=>$vars['graph'], sort => 'both', 'period' => $vars['period']))."'>
-           <img style='border: #5e5e5e 2px;' valign=middle src='graph.php?id=".$port['port_id'].
-                  "&amp;stat=".$vars['graph']."&amp;type=port_mac_acc_total&amp;sort=both&amp;from=$from&amp;to=".$config['time']['now']."&amp;width=150&amp;height=50' />
-         </a>
-         </div>
-     </div>
-   </div>
-");
+  $variants = array('Bits'      => array('stat' => 'bits', sort => $vars['sort']),
+                    'Packets'   => array('stat' => 'pkts', sort => $vars['sort']),
+                    'Top Input'   => array('stat' => $vars['stat'], sort => 'in'),
+                    'Top Output'  => array('stat' => $vars['stat'], sort => 'out'),
+                    'Top Aggregate' => array('stat' => $vars['stat'], sort => 'both'));
 
-unset($query);
+
+  foreach ($variants as $text => $variant)
+  {
+
+    $graph_array = array_merge($graph_array, $variant);
+
+    $link_array = $vars;
+    $link_array['period'] = $vars['period'];
+    $link_array = array_merge($link_array, $variant);
+    $link = generate_url($link_array);
+
+    echo '    <div class="box box-solid">';
+    echo '<div class="box-header with-border"><h3 class="box-title">' . $text . '</h3></div>';
+    echo '    <div class="box-body">';
+    echo '<a href="'.$link.'">';
+    echo generate_graph_tag($graph_array);
+    echo '</a>';
+    echo '    </div>';
+    echo '    </div>';
+
+  }
+
+  echo '  </div>';
+
+  echo '  <div class="col-md-10">';
+  echo '    <div class="box box-solid" style="padding-bottom: 10px;">';
+
+  $thumb_array = array('sixhour' => '6 Hours',
+                       'day' => '24 Hours',
+                       'twoday' => '48 Hours',
+                       'week' => 'One Week',
+                       //'twoweek' => 'Two Weeks',
+                       'month' => 'One Month',
+                       //'twomonth' => 'Two Months',
+                       'year' => 'One Year',
+                       'twoyear' => 'Two Years'
+                      );
+
+  $graph_array['id']     = $vars['port'];
+  $graph_array['type']   = 'port_mac_acc_total';
+  $graph_array['stat']   = $vars['stat'];
+  $graph_array['height'] = "60";
+  $graph_array['width']  = $thumb_width;
+  $graph_array['legend'] = "no";
+  $graph_array['to']     = $config['time']['now'];
+  $graph_array['sort']   = $vars['sort'];
+
+
+  echo('<table style="width: 100%; background: transparent;"><tr>');
+
+  foreach ($thumb_array as $period => $text)
+  {
+    $graph_array['from']   = $config['time'][$period];
+
+    $link_array = $vars;
+    $link_array['period'] = $period;
+    $link = generate_url($link_array);
+
+    echo('<td style="text-align: center;">');
+    echo('<h3 class="box-title">'.$text.'</h3>');
+    echo('<a href="'.$link.'">');
+    echo(generate_graph_tag($graph_array));
+    echo('</a>');
+    echo('</td>');
+
+  }
+
+  echo('</tr></table>');
+
+  echo '    </div>';
+  echo '  </div>';
+
+
+  unset($graph_array['legend']);
+  $graph_array['height'] = "300";
+  $graph_array['id']   = $vars['port'];
+  $graph_array['width']  = $graph_width;
+  $graph_array['type']   = 'port_mac_acc_total';
+  $graph_array['stat']   = $vars['stat'];
+  $graph_array['sort']   = $vars['sort'];
+  $graph_array['from']   = $config['time'][$vars['period']];
+  $graph_array['to']     = $config['time']['now'];
+
+  echo '  <div class="col-md-10">';
+  echo '    <div class="box box-solid">';
+
+  echo('<div class="box box-solid">');
+  echo(generate_graph_tag($graph_array));
+  echo("</div>");
+
+  echo '    </div>';
+  echo '  </div>';
+
+  echo '</div>';
 
 // EOF

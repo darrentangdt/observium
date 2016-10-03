@@ -18,11 +18,13 @@ $port_module = 'etherlike';
 if ($ports_modules[$port_module])
 {
   echo("dot3Stats ");
-  $port_stats = snmpwalk_cache_oid($device, "dot3StatsEntry", $port_stats, "EtherLike-MIB", mib_dirs());
+  $port_stats = snmpwalk_cache_oid($device, "dot3StatsEntry", $port_stats, "EtherLike-MIB");
   $process_port_functions[$port_module] = $GLOBALS['snmp_status'];
-} else {
+}
+else if ($has_ifEntry)
+{
   echo("dot3StatsDuplexStatus ");
-  $port_stats = snmpwalk_cache_oid($device, "dot3StatsDuplexStatus", $port_stats, "EtherLike-MIB", mib_dirs());
+  $port_stats = snmpwalk_cache_oid($device, "dot3StatsDuplexStatus", $port_stats, "EtherLike-MIB");
   $process_port_functions[$port_module] = $GLOBALS['snmp_status'];
 }
 

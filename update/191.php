@@ -11,7 +11,7 @@
  *
  */
 
-echo(" Migrating state sensors to status entries: ");
+echo("Migrating state sensors to status entries: ");
 
 foreach (dbFetchRows("SELECT * FROM `sensors` WHERE `sensor_class` = ?", array("state")) AS $sensor)
 {
@@ -49,7 +49,5 @@ foreach (dbFetchRows("SELECT * FROM `sensors` WHERE `sensor_class` = ?", array("
   echo '.';
 
 }
-
-echo(PHP_EOL);
 
 // EOF

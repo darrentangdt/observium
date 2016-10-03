@@ -14,7 +14,7 @@
 if (!$os)
 {
   //FIXME. Make it generic for printers group
-  if (strstr(snmp_get($device, 'prtGeneralServicePerson.1', '-OQv', 'Printer-MIB', mib_dirs()), 'Samsung')) { $os = 'samsung'; }
+  if (strstr(snmp_get($device, 'prtGeneralServicePerson.1', '-OQv', 'Printer-MIB'), 'Samsung')) { $os = 'samsung'; }
 }
 
 // EOF

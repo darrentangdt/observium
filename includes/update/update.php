@@ -57,16 +57,13 @@ if ($schema_insert && is_file($config['install_dir'] . '/update/db_schema_mysql.
     // Default path
     $mysql_cmd = '/usr/bin/mysql';
   } else {
+    // Try to find mysql executable in search paths
     $mysql_cmd = external_exec('which mysql');
-    if (!is_executable($cmd))
-    {
-      // Not found mysql cmd
-      $mysql_cmd = FALSE;
-    }
   }
 
-  if ($mysql_cmd)
+  if (is_executable($mysql_cmd))
   {
+    // If mysql executable exist (or find) use insert initial schema
     $cmd = $mysql_cmd .
             ' -u' . escapeshellarg($config['db_user']) .
             ' -p' . escapeshellarg($config['db_pass']) .
@@ -94,6 +91,24 @@ if ($schema_insert && is_file($config['install_dir'] . '/update/db_schema_mysql.
       }
     }
   }
+}
+
+if ($db_rev > 272) // observium_processes added in db version 272
+{
+  // Check if discovery -u already running
+  $pid_info = check_process_run(-1);
+  if ($pid_info)
+  {
+    // Process ID exist in DB
+    print_message("%rAnother ".$pid_info['process_name']." process (PID: ".$pid_info['PID'].", UID: ".$pid_info['UID'].", STARTED: ".$pid_info['STARTED'].") already running for update.%n", 'color');
+
+    // Not sure what better, return and process all other discovery operations
+    // or complete stop discovery
+    // (stop can produce 6 hour latency for devices discovery, but return can broke all discovery devices after update)
+    return FALSE;
+    //exit(2);
+  }
+  add_process_info(-1); // Store process info
 }
 
 $updating = 0;
@@ -132,8 +147,9 @@ foreach ($filelist as $file)
 
     if ($extension == "php")
     {
-      echo(sprintf("%03d",$db_rev) . " -> " . sprintf("%03d", $filename) . " ... (php)");
+      echo(sprintf("%03d",$db_rev) . " -> " . sprintf("%03d", $filename) . " # (php) ");
 
+      $start = time();
       if (include_wrapper($filepath))
       {
         // File included OK, update dbSchema
@@ -143,6 +159,8 @@ foreach ($filelist as $file)
           // dbSchema inserted, now only update
           $schema_insert = FALSE;
         }
+        $update_time = formatUptime(time() - $start);
+        echo(" Done ($update_time)." . PHP_EOL);
       } else {
         // Critical errors, stop update
         logfile('update-errors.log', "====== Schema update " . sprintf("%03d", $db_rev) . " -> " . sprintf("%03d", $filename) . " ==============");
@@ -152,9 +170,10 @@ foreach ($filelist as $file)
     }
     else if ($extension == "sql")
     {
-      echo(sprintf("%03d",$db_rev) . " -> " . sprintf("%03d",$filename) . " ... (db)");
+      echo(sprintf("%03d",$db_rev) . " -> " . sprintf("%03d",$filename) . " # (db) ");
 
-      $err = 0;
+      $err   = 0;
+      $start = time();
 
       if ($fd = @fopen($filepath, 'r'))
       {
@@ -169,43 +188,60 @@ foreach ($filelist as $file)
         {
           if (trim($line))
           {
-            if ((strpos($line, '#ERROR_IGNORE') === 0) ||
-                (strpos($line, '#IGNORE_ERROR') === 0))   { $error_ignore = TRUE; }
+            // Skip comments
+            if ($line[0] == '#' || $line[0] == '-' || $line[0] == '/')
+            {
+              if ((strpos($line, 'ERROR_IGNORE') !== FALSE) ||
+                  (strpos($line, 'IGNORE_ERROR') !== FALSE))
+              {
+                $error_ignore = TRUE;
+              }
+              else if (strpos($line, 'NOTE') !== FALSE)
+              {
+                list(, $note) = explode('NOTE', $line, 2);
+                echo('('.trim($note).')');
+              }
+              continue;
+            }
 
             print_debug($line);
-            if ($line[0] != "#")
+
+            $update = dbQuery($line);
+            if (!$update)
             {
-              $update = dbQuery($line);
-              if (!$update)
+              $error_no  = dbErrorNo();
+              $error_msg = "($error_no) " . dbError();
+              if ($error_no >= 2000) // || !$error_ignore)
               {
-                $error_no  = dbErrorNo();
-                $error_msg = "($error_no) " . dbError();
-                if ($error_no >= 2000) // || !$error_ignore)
-                {
-                  // Critical errors, stop update
-                  echo(" stopped. Critical error: " . $error_msg . PHP_EOL);
-                  // http://dev.mysql.com/doc/refman/5.6/en/error-messages-client.html
-                  logfile('update-errors.log', "====== Schema update " . sprintf("%03d", $db_rev) . " -> " . sprintf("%03d", $filename) . " ==============");
-                  logfile('update-errors.log', "Query: " . $line);
-                  logfile('update-errors.log', "Error: " . $error_msg);
-                  exit(1);
-                } else {
-                  $err++;
-                  $errors[] = array('query' => $line, 'error' => $error_msg);
-                  print_debug($error_msg);
-                }
+                // Critical errors, stop update
+                echo(" stopped. Critical error: " . $error_msg . PHP_EOL);
+                // http://dev.mysql.com/doc/refman/5.6/en/error-messages-client.html
+                logfile('update-errors.log', "====== Schema update " . sprintf("%03d", $db_rev) . " -> " . sprintf("%03d", $filename) . " ==============");
+                logfile('update-errors.log', "Query: " . $line);
+                logfile('update-errors.log', "Error: " . $error_msg);
+                del_process_info(-1); // Remove process info
+                exit(1);
+              } else {
+                echo('F');
+                $err++;
+                $errors[] = array('query' => $line, 'error' => $error_msg);
+                print_debug($error_msg);
               }
+            } else {
+              echo('.');
             }
+
           }
         }
 
+        $update_time = formatUptime(time() - $start);
         if ($db_rev < 1)
         {
-          echo(' done.' . PHP_EOL);
+          echo(" Done ($update_time)." . PHP_EOL);
         }
         else if ($err)
         {
-          echo(" done ($err errors)." . PHP_EOL);
+          echo(" Done ($update_time, $err errors)." . PHP_EOL);
           logfile('update-errors.log', "====== Schema update " . sprintf("%03d", $db_rev) . " -> " . sprintf("%03d", $filename) . " ==============");
           foreach ($errors as $error)
           {
@@ -214,7 +250,7 @@ foreach ($filelist as $file)
           }
           unset($errors);
         } else {
-          echo(' done.' . PHP_EOL);
+          echo(" Done ($update_time)." . PHP_EOL);
         }
 
         // SQL update done, update dbSchema
@@ -229,6 +265,7 @@ foreach ($filelist as $file)
         // Critical errors, stop update
         logfile('update-errors.log', "====== Schema update " . sprintf("%03d", $db_rev) . " -> " . sprintf("%03d", $filename) . " ==============");
         logfile('update-errors.log', "Error: Could not open file $filepath!");
+        del_process_info(-1); // Remove process info
         exit(1);
       }
     }
@@ -251,5 +288,8 @@ if ($updating)
 } else {
   echo('-- Database is up to date.' . PHP_EOL);
 }
+
+// Clean
+del_process_info(-1); // Remove process info
 
 // EOF

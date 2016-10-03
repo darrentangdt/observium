@@ -38,6 +38,7 @@ UBNT-MIB DEFINITIONS ::= BEGIN
     -- --------------------------------------------------------------------------------
     
     ubntAirFIBER OBJECT IDENTIFIER ::= { ubntMIB 3 }
+    ubntAirMAX OBJECT IDENTIFIER ::= { ubntMIB 4 }
     ubntEdgeMax OBJECT IDENTIFIER ::= { ubntMIB 5 }
     ubntUniFi OBJECT IDENTIFIER ::= { ubntMIB 6 }
     ubntAirVision OBJECT IDENTIFIER ::= { ubntMIB 7 }

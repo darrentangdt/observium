@@ -11,10 +11,6 @@
  *
  */
 
-echo(" AC-SYSTEM-MIB ");
-
-$sensor_type = 'ac-system';
-
 //AC-SYSTEM-MIB::acSysFanTrayGeographicalPosition.1 = Gauge32: 1
 //AC-SYSTEM-MIB::acSysFanTrayExistence.1 = INTEGER: present(1)
 //AC-SYSTEM-MIB::acSysFanTrayType.1 = STRING: M1K's Fan-Tray ID.
@@ -24,9 +20,9 @@ $sensor_type = 'ac-system';
 //AC-SYSTEM-MIB::acSysFanTrayFansCurrentSpeed.1 = Hex-STRING: 00 00 00 00 00 00 00 00
 //AC-SYSTEM-MIB::acSysFanTrayFansStatus.1 = Hex-STRING: 00
 
-$oids = snmpwalk_cache_multi_oid($device, "acSysFanTrayTable", array(), "AC-SYSTEM-MIB", mib_dirs('audiocodes'));
+$oids = snmpwalk_cache_multi_oid($device, 'acSysFanTrayTable', array(), 'AC-SYSTEM-MIB');
 
-$sensor_state_type = $sensor_type.'-fan-state';
+$sensor_state_type = 'ac-system-fan-state';
 foreach ($oids as $index => $entry)
 {
   $descr = "Fan Tray $index";
@@ -49,9 +45,9 @@ foreach ($oids as $index => $entry)
 // AC-SYSTEM-MIB::acSysPowerSupplySeverity.1 = INTEGER: cleared(1)
 // AC-SYSTEM-MIB::acSysPowerSupplySeverity.2 = INTEGER: cleared(1)
 
-$oids = snmpwalk_cache_multi_oid($device, "acSysPowerSupplyTable", array(), "AC-SYSTEM-MIB", mib_dirs('audiocodes'));
+$oids = snmpwalk_cache_multi_oid($device, 'acSysPowerSupplyTable', array(), 'AC-SYSTEM-MIB');
 
-$sensor_state_type = $sensor_type.'-power-state';
+$sensor_state_type = 'ac-system-power-state';
 foreach ($oids as $index => $entry)
 {
   $descr = "Power Supply $index";
@@ -76,9 +72,9 @@ foreach ($oids as $index => $entry)
 // AC-SYSTEM-MIB::acSysModulePresence.68435969 = INTEGER: present(1)
 // AC-SYSTEM-MIB::acSysModulePresence.68956161 = INTEGER: present(1)
 
-$oids = snmpwalk_cache_multi_oid($device, "acSysModuleTemperature", array(), "AC-SYSTEM-MIB", mib_dirs('audiocodes'));
-$oids = snmpwalk_cache_multi_oid($device, "acSysModuleType",          $oids, "AC-SYSTEM-MIB", mib_dirs('audiocodes'));
-$oids = snmpwalk_cache_multi_oid($device, "acSysModulePresence",      $oids, "AC-SYSTEM-MIB", mib_dirs('audiocodes'));
+$oids = snmpwalk_cache_multi_oid($device, 'acSysModuleTemperature', array(), 'AC-SYSTEM-MIB');
+$oids = snmpwalk_cache_multi_oid($device, 'acSysModuleType',          $oids, 'AC-SYSTEM-MIB');
+$oids = snmpwalk_cache_multi_oid($device, 'acSysModulePresence',      $oids, 'AC-SYSTEM-MIB');
 
 foreach ($oids as $index => $entry)
 {
@@ -88,7 +84,7 @@ foreach ($oids as $index => $entry)
 
   if ($entry['acSysModulePresence'] != 'missing' && stripos($entry['acSysModuleType'], 'sA') !== 0 && $value > 0)
   {
-    discover_sensor($valid['sensor'], 'temperature', $device, $oid, "acSysModuleTemperature.$index", $sensor_type, $descr, 1, $value, array('limit_high' => 60));
+    discover_sensor($valid['sensor'], 'temperature', $device, $oid, "acSysModuleTemperature.$index", 'ac-system', $descr, 1, $value, array('limit_high' => 60));
   }
 }
 

@@ -13,15 +13,15 @@ IMPORTS
 
 rlPoe    MODULE-IDENTITY
          LAST-UPDATED "200911260000Z"
-         ORGANIZATION "Cisco Small Business"
+         ORGANIZATION "Cisco Systems, Inc."
 
          CONTACT-INFO
          "Postal: 170 West Tasman Drive
          San Jose , CA 95134-1706
          USA
 
-         Website: Cisco Small Business Home http://www.cisco.com/smb>;,
-         Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
+         
+         Website:  Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
 
          DESCRIPTION
                 "Add a new field in the PoE MIB to indicate Max power allocation allowed"
@@ -290,7 +290,8 @@ RlPethPowerPseEntry ::= SEQUENCE {
     rlPethPowerPsePowerManagementMode INTEGER,
     rlPethPowerPsedisconnectMethod    INTEGER,
     rlPethPowerPseTemperatureSensor   INTEGER,
-    rlPethPowerPseInrushTestEnabled   INTEGER
+    rlPethPowerPseInrushTestEnabled   INTEGER,
+    rlPethPowerPseLegacyDisabled      INTEGER
 }
 
 rlPethPowerPseGroupIndex OBJECT-TYPE
@@ -378,6 +379,20 @@ rlPethPowerPseInrushTestEnabled OBJECT-TYPE
         "This variable identifies if HW inrush test will be disabled.
         by default HW inrush test is enabled."
     ::= { rlPethPowerPseEntry 7 }
+
+rlPethPowerPseLegacyDisabled OBJECT-TYPE
+    SYNTAX      INTEGER {
+        enabled(0),
+        disabled(1)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This variable identifies poe Legacy global configuration mode"
+    ::= { rlPethPowerPseEntry 8 }
+
+
+
 
 END
 

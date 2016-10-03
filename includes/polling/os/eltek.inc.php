@@ -22,6 +22,6 @@ if (preg_match('/(?:ELTEK )?(?<hardware>.+?)\([\d\.]+\).+?OS:(?<version>.+)/', $
   $version  = $matches['version'];
 }
 
-$serial = snmp_get($device, ".1.3.6.1.4.1.12148.9.2.1.3.7.0", "-Oqv", "ELTEK-DISTRIBUTED-MIB", mib_dirs('eltek'));
+$serial = snmp_get($device, 'systemSiteInfoSystemSeriaNum.0', '-Oqv', 'ELTEK-DISTRIBUTED-MIB');
 
 // EOF

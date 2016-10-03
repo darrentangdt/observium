@@ -19,7 +19,7 @@ if (preg_match('/(?<hardware>AW\+) v(?<version>[\d\.\-]+)/', $poll_device['sysDe
   $version  = $matches['version'];
 } else {
   $hardware = 'AW+';
-  $version  = snmp_get($device, "currSoftVersion.0", "-OsvQU", "AT-SETUP-MIB");
+  $version  = snmp_get($device, 'currSoftVersion.0', '-OsvQU', 'AT-SETUP-MIB');
 }
 
 // EOF

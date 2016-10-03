@@ -8,13 +8,13 @@ JUNIPER-IVE-MIB DEFINITIONS ::= BEGIN
         		FROM RFC1155-SMI;
         
 juniper-ive MODULE-IDENTITY
-    LAST-UPDATED "200811220000Z"
+    LAST-UPDATED "201005180000Z"
     ORGANIZATION "Juniper"
     CONTACT-INFO    
 	 "Internet: https://www.juniper.net/cm/index.jsp"
     DESCRIPTION
 	"This file defines the private Juniper Networks MIB extensions."
-    REVISION     "200811220000Z"
+    REVISION     "201002221000Z"
     DESCRIPTION
 	"Initial Version"
     ::= { enterprises 12532 }
@@ -324,6 +324,7 @@ raidDescription OBJECT-TYPE
     ::= { juniper-ive 34 }
 
 
+
 -- J&J traps
 
 clusterName OBJECT-TYPE
@@ -385,6 +386,13 @@ nodeName OBJECT-TYPE
 	"Node Name"
     ::= { juniper-ive 41 } 
 
+iveTemperature OBJECT-TYPE
+    SYNTAX	Gauge32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"The Temperature of MAG application blade. Other platform such as SA and IC will return 0"
+    ::= { juniper-ive 42 } 
 
 iveTraps OBJECT IDENTIFIER ::= { juniper-ive 251 }
 
@@ -428,19 +436,19 @@ externalAuthServerUnreachable NOTIFICATION-TYPE
 iveStart NOTIFICATION-TYPE
     STATUS	current
     DESCRIPTION
-	"IVE startup"
+	"IVE startup under administrator's instruction."
     ::= { iveTraps 9 }
 
 iveShutdown NOTIFICATION-TYPE
     STATUS	current
     DESCRIPTION
-	"IVE shutdown"
+	"IVE shutdown under administrator's instruction."
     ::= { iveTraps 10 }
 
 iveReboot NOTIFICATION-TYPE
     STATUS	current
     DESCRIPTION
-	"IVE reboot"
+	"IVE reboot under administrator's instruction."
     ::= { iveTraps 11 }
     
 archiveServerUnreachable NOTIFICATION-TYPE
@@ -531,11 +539,11 @@ iveMaxConcurrentUsersVirtualSystem NOTIFICATION-TYPE
 	"Maximum number of concurrent Virtual System users signed in"
     ::= { iveTraps 24 }
 
-ocspResponderUnreachable NOTIFICATION-TYPE
+ocspResponderConnectionFailed NOTIFICATION-TYPE
     OBJECTS { ocspResponderURL }
     STATUS	current
     DESCRIPTION
-	"OCSP Responder is not responding"
+	"OCSP Responder cannot be connected"
     ::= { iveTraps 25 }
 
 iveFanNotify NOTIFICATION-TYPE
@@ -591,7 +599,7 @@ iveNetInternalInterfaceDownTrap NOTIFICATION-TYPE
     OBJECTS { nicEvent }
     STATUS	current
     DESCRIPTION
-	"The External interface has gone down, reason is in nicEvent"
+	"The Internal interface has gone down, reason is in nicEvent"
     ::= { iveTraps 33 }
 
 iveNetManagementInterfaceDownTrap NOTIFICATION-TYPE
@@ -601,10 +609,17 @@ iveNetManagementInterfaceDownTrap NOTIFICATION-TYPE
 	"The Management interface has gone down, reason is in nicEvent"
     ::= { iveTraps 34 }
 
+iveTemperatureNotify NOTIFICATION-TYPE
+    OBJECTS { iveTemperature }
+    STATUS	current
+    DESCRIPTION
+	"IVE Temperature is above threshold"
+    ::= { iveTraps 35 }
 
 -- Product Name
 iveSAProduct OBJECT IDENTIFIER ::= { juniper-ive 252 }
 iveICProduct OBJECT IDENTIFIER ::= { juniper-ive 253 }
+iveMAGProduct OBJECT IDENTIFIER ::= { juniper-ive 254 }
 
 iveProductSA700   OBJECT IDENTIFIER ::= {iveSAProduct 1}
 iveProductSA2000  OBJECT IDENTIFIER ::= {iveSAProduct 2 }
@@ -619,6 +634,13 @@ iveProductIC4500  OBJECT IDENTIFIER ::= {iveICProduct 2 }
 iveProductIC6000 OBJECT IDENTIFIER ::= {iveICProduct 3 }
 iveProductIC6500 OBJECT IDENTIFIER ::= {iveICProduct 4 }
 
+--MAG platform
+iveProductMAG2600  OBJECT IDENTIFIER ::= {iveMAGProduct 1 }
+iveProductMAG4610  OBJECT IDENTIFIER ::= {iveMAGProduct 2 }
+iveProductSM160  OBJECT IDENTIFIER ::= {iveMAGProduct 3 }
+iveProductSM360 OBJECT IDENTIFIER ::= {iveMAGProduct 4 }
+
+--SA 
 iveSA700   OBJECT IDENTIFIER ::= {iveProductSA700 1}
 iveSA2000   OBJECT IDENTIFIER ::= {iveProductSA2000 1}
 iveSA2500   OBJECT IDENTIFIER ::= {iveProductSA2500 1}
@@ -630,10 +652,18 @@ iveSA6000   OBJECT IDENTIFIER ::= {iveProductSA6000 1}
 iveSA6500   OBJECT IDENTIFIER ::= {iveProductSA6500 1}
 iveSA6000FIPS  OBJECT IDENTIFIER ::= {iveProductSA6000 2}
 iveSA6500FIPS   OBJECT IDENTIFIER ::= {iveProductSA6500 2}
+
+--IC
 iveIC4000   OBJECT IDENTIFIER ::= {iveProductIC4000 1}
 iveIC6000   OBJECT IDENTIFIER ::= {iveProductIC6000 1}
 iveIC4500   OBJECT IDENTIFIER ::= {iveProductIC4500 1}
 iveIC6500   OBJECT IDENTIFIER ::= {iveProductIC6500 1}
 iveIC6000FIPS  OBJECT IDENTIFIER ::=  {iveProductIC6000 2}
+
+--MAG platform incase we have other rev
+iveMAG2600  OBJECT IDENTIFIER ::= {iveProductMAG2600 1}
+iveMAG4610  OBJECT IDENTIFIER ::= {iveProductMAG4610 1}
+iveMAGSM160   OBJECT IDENTIFIER ::= {iveProductSM160 1}
+iveMAGSM360   OBJECT IDENTIFIER ::= {iveProductSM360 1}
 
 END

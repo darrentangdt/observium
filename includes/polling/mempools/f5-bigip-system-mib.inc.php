@@ -11,12 +11,10 @@
  *
  */
 
-$mib = 'F5-BIGIP-SYSTEM-MIB';
+$tmm_mempool = snmpwalk_cache_multi_oid($device, 'sysTmmStatMemoryUsed', array(), 'F5-BIGIP-SYSTEM-MIB');
+$tmm_mempool = snmpwalk_cache_multi_oid($device, 'sysTmmStatMemoryTotal', $tmm_mempool, 'F5-BIGIP-SYSTEM-MIB');
 
-$tmm_mempool = snmpwalk_cache_multi_oid($device, "sysTmmStatMemoryUsed", NULL, $mib, mib_dirs('f5'));
-$tmm_mempool = snmpwalk_cache_multi_oid($device, "sysTmmStatMemoryTotal", $tmm_mempool, $mib, mib_dirs('f5'));
-
-$index = $mempool['mempool_index'];
+$index            = $mempool['mempool_index'];
 $mempool['total'] = $tmm_mempool[$index]['sysTmmStatMemoryTotal'];
 $mempool['used']  = $tmm_mempool[$index]['sysTmmStatMemoryUsed'];
 

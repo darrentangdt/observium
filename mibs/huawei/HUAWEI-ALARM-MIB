@@ -1,5 +1,5 @@
 -- ==================================================================
--- Copyright (C) 2009 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2013 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- 
 -- Description: HUAWEI ALARM MIB
 -- Reference:
@@ -890,7 +890,8 @@
             MAX-ACCESS read-write
             STATUS current
             DESCRIPTION
-                "The switch of alarm delay suppression. The default is enable."
+                "The switch of alarm delay suppression."
+            DEFVAL { enable }
             ::= { hwAlarmDelay 1 }
 
         
@@ -947,6 +948,7 @@
             STATUS current
             DESCRIPTION
                 "The switch of alarm correlation analyze suppression."
+            DEFVAL { disable }
             ::= { hwAlarmCorrAnalyze 1 }
         
          
@@ -1070,6 +1072,7 @@
             STATUS current
             DESCRIPTION
                 "The switch of event delay suppression."
+            DEFVAL { enable }
             ::= { hwEventDelay 1 }
         
         

@@ -1,4 +1,4 @@
-
+ 
 IBM-BCCUSTOM-MIB DEFINITIONS ::= BEGIN
  IMPORTS
  DisplayString, TEXTUAL-CONVENTION
@@ -14,7 +14,7 @@ IBM-BCCUSTOM-MIB DEFINITIONS ::= BEGIN
  ibmProd  OBJECT IDENTIFIER ::= { ibm 6 }  
         
  bcCustom MODULE-IDENTITY
- LAST-UPDATED "200807291830Z"
+ LAST-UPDATED "201310151730Z"
  ORGANIZATION "Brocade Communications Systems, Inc.,"
  CONTACT-INFO "Customer Support Group
  Brocade Communications Systems,
@@ -30,7 +30,7 @@ IBM-BCCUSTOM-MIB DEFINITIONS ::= BEGIN
 			All rights reserved."
 
 
- REVISION    "201105271030Z" -- May 27, 2011 10:30am
+ REVISION    "201310151730Z" -- Oct 15, 2013 05:30pm
  DESCRIPTION	"Initial version of this module."
  
  ::= { ibmProd 215 }
@@ -60,11 +60,16 @@ IBM-BCCUSTOM-MIB DEFINITIONS ::= BEGIN
  STATUS  current
  DESCRIPTION   "The OID subtree for various protocol configuration operations"
  ::= { bcCustom 5 } 
+
+ snmpuser OBJECT-IDENTITY
+ STATUS  current
+ DESCRIPTION   "The OID subtree for SNMPV3 user  configuration operations"
+ ::= { bcCustom 6 }
  
  license   OBJECT-IDENTITY
  STATUS  current
  DESCRIPTION   "The OID subtree for feature license key configuration operations"
- ::= { bcCustom 6 } 
+ ::= { bcCustom 7 } 
  
  mibCustomVersion OBJECT IDENTIFIER ::= { bcCustomMibVersion 1 }                   
  mibMajorMinor OBJECT-TYPE
@@ -335,16 +340,36 @@ PortInformationEntry ::= SEQUENCE {
  DESCRIPTION "The port protocol of the I/O Module."
  ::= { portInformationEntry 7 }
  
- -- Port Module Information – Total port available
+ -- Port Module Information Â– Total port available
  portModuleTotal OBJECT-TYPE
  SYNTAX INTEGER(0..65535)
  MAX-ACCESS read-only
  STATUS current
  DESCRIPTION "This value must return the the total number of ports supported on the IOM. This
- 			  value must be customized"
+ 			  value must be customized
+			 Note: When an IOM supports the ability to activate additional ports supported by the 
+			 IOM hardware by installing a license key then this OID can be set in two different ways, 
+			 such that the CMM firmware will handle displaying the port information correctly.
+
+			(1) The IOM firmware will account for both activated and un-activated ports due to the 
+			current installed license key and set the 'Total port available' equal 
+			to the activated ports only. 
+            (2) The IOM firmware does not differentiate and account for both activated and 
+			un-activated ports due to the current installed license key and set the 
+			'Total port available' equal to the maximum supported ports by the IOM hardware. 
+			
+			In addition the OID 'portModuleLabel' for a non-activated port must be set to 
+			'Unused' and the 'portModuleLicensedState' must be set to 'notLicensed'. 
+
+			Although the CMM will handle either (1) or (2) above the IOM should implement (1) 
+			to assist the CMM user interface response time when displaying port information 
+			for the IOM. When an IOM implements (2) this will increase the CMM response time 
+			since this will require the CMM to issue more SNMP get operations for the various 
+			port information OID's and then discard the information for the user interface."
+
  ::= { portInformationEntry 8 }
  
- -- Port Module Information – Port Speed list
+ -- Port Module Information Â– Port Speed list
  portModuleSpeedList OBJECT-TYPE
  SYNTAX OCTET STRING(SIZE(0..128))
  MAX-ACCESS read-only
@@ -384,7 +409,7 @@ PortInformationEntry ::= SEQUENCE {
  			4 Gbps Full Duplex, and 10 Gbps Full Duplex."
  ::= { portInformationEntry 9 }                          
  
- -- Port Module Information – Relative port index to real port index
+ -- Port Module Information Â– Relative port index to real port index
  -- This object is to map to relative port index to the real port index.
  -- The caller will supply the relative port index and the server will return the real port index.
  -- For an example in the table above, if the caller supply the relative port index information
@@ -400,7 +425,7 @@ PortInformationEntry ::= SEQUENCE {
  			  server."
  ::= { portInformationEntry 10 }
 
- -- Port Module Information – Real port index to relative port index
+ -- Port Module Information Â– Real port index to relative port index
  -- This object is to map to real port index to the relative port index.
  -- The caller will supply the real port index and the server will return the relative port index.
  -- For an example in the table above, if the caller supply the real port index 16, the server will
@@ -526,7 +551,8 @@ PortInformationEntry ::= SEQUENCE {
  fwImageIndex INTEGER,
  fwImageInformation OCTET STRING,
  fwImageFileLocation INTEGER,
- fwImageProtocols  OCTET STRING
+ fwImageProtocols  OCTET STRING,
+ fwImageIsUpdateable INTEGER 
  }
 
 -- Firmware Image Information index
@@ -613,27 +639,40 @@ PortInformationEntry ::= SEQUENCE {
 ::= { fwInformationEntry 3 }
 
 -- Firmware image update protocols enabled 
- fwImageProtocols OBJECT-TYPE 
- SYNTAX OCTET STRING (SIZE(0..32)) 
- MAX-ACCESS read-only 
- STATUS current 
- DESCRIPTION "The CMM will use this command to read the current supported and enabled IOM file transfer protocols. The bit mask is treated 				as 32 bits in network byte order. 1310 That is the bit 0 will be the left most bit and bit 31 will be the right most bit. The 			   bit pattern definition is defined as below. 
-			 Supported Bit Mask (Bits 31:16): 
-			 Bit(31): This bit is set to 1 if TFTP is supported. 
-			 Bit(30): This bit is set to 1 if FTP is supported 
-			 Bit(29): This bit is set to 1 if SFTP (via SSH) is supported 
-			 Bit(28): This bit is set to 1 if HTTP is supported. 
-			 Bit(27): This bit is set to 1 if HTTPs is supported 
-			 Bit(26:16): Reserved: must be set to zeroes. 
-			 Enabled Bit Mask (Bits 15:0): 
-			 Bit(15): This bit is set to 1 if TFTP is enabled. 
-			 Bit(14): This bit is set to 1 if FTP is enabled 
-			 Bit(13): This bit is set to 1 if SFTP (via SSH) is enabled. 
-			 Bit(12): This bit is set to 1 if HTTP is enabled. 
-			 Bit(11): This bit is set to 1 if HTTPs is enabled 
-			 Bit(10:0): Reserved: must be set to zeroes. ." 
+ fwImageProtocols OBJECT-TYPE
+ SYNTAX OCTET STRING (SIZE(0..32))
+ MAX-ACCESS read-only
+ STATUS current
+ DESCRIPTION "The CMM will use this command to read the current supported and enabled IOM file transfer protocols. The bit mask is treated 				as 32 bits in network byte order. 1310 That is the bit 0 will be the left most bit and bit 31 will be the right most bit. The			   bit pattern definition is defined as below.
+			Supported Bit Mask (Bits 31:16):
+			Bit(31): This bit is set to 1 if TFTP is supported.
+			Bit(30): This bit is set to 1 if FTP is supported
+			Bit(29): This bit is set to 1 if SFTP (via SSH) is supported
+			Bit(28): This bit is set to 1 if HTTP is supported.
+			Bit(27): This bit is set to 1 if HTTPs is supported
+			Bit(26:16): Reserved: must be set to zeroes.
+			Enabled Bit Mask (Bits 15:0):
+			Bit(15): This bit is set to 1 if TFTP is enabled.
+			Bit(14): This bit is set to 1 if FTP is enabled
+			Bit(13): This bit is set to 1 if SFTP (via SSH) is enabled.
+			Bit(12): This bit is set to 1 if HTTP is enabled.
+			Bit(11): This bit is set to 1 if HTTPs is enabled
+			Bit(10:0): Reserved: must be set to zeroes. ."
 ::= { fwInformationEntry 4}
 
+--Firmware Image Updateable
+ fwImageIsUpdateable OBJECT-TYPE
+ SYNTAX INTEGER {
+         updateable(0),
+        notupdateable(1)
+        }
+ MAX-ACCESS read-only
+ STATUS current
+ DESCRIPTION "This object indicates whether the firmware image index can be updated
+             separately using one of the indicated file transfer mechanisms from
+             'fwImageProtocol'. If this specific image cannot be updated then IOM must return
+             'notupdateable' otherwise IOM must return updateable'."
+::= { fwInformationEntry 5}
 
 -- Firmware Filename
 firmwareCmd OBJECT IDENTIFIER ::= { firmwareOps 2 }
@@ -708,7 +747,7 @@ firmwareCmd OBJECT IDENTIFIER ::= { firmwareOps 2 }
 			  valid, would be appropriate to explain the reason for the failure."
 ::= { firmwareCmd 5 }
 
--- Firmware Update – Image activation
+-- Firmware Update Â– Image activation
  fwUpdateImageActivation OBJECT-TYPE
  SYNTAX INTEGER(0..65535)
  MAX-ACCESS read-write
@@ -743,7 +782,9 @@ firmwareCmd OBJECT IDENTIFIER ::= { firmwareOps 2 }
  			  where the FTP or sFTP protocol will be used for transferring the packet file,
  			  username is USERID, password is PASSW0RD, host IP address is either
  			  fe80::290:27ff:fe29:6019 or 192.168.0.2, port number is 30045, and /tmp is the
- 			  full pathname to the packet file application.img.
+ 			  full pathname to the packet file application.img. Note: The URI may or may not
+			  have a port number. If the port number is not included the default port number for
+			  that protocol will be used.
  			  
  			  Some protocols do not need the username, password, and the port number, so
  			  the minimum requirement for a fully qualified address would be:
@@ -759,15 +800,44 @@ firmwareCmd OBJECT IDENTIFIER ::= { firmwareOps 2 }
  			  address/hostname is used the filename in the URI may point to the top level
  			  directory that contains many files that make up the firmware image and the IOM
  			  is responsible to accept or reject this operation and indicate this by utilizing the
- 			  status OID."
- 			  
+ 			  status OID.
+
+			  Notes on sftp file transfers:
+			  (3) Summary: CMM will provide to the IOM the fingerprint of the CMM sftp
+			  server's public key as part of the other parameters in the URI for the file
+			  transfer.
+			  (4) CMM 'sets' to the IOM the URI which will contain the fingerprint (128bit MD5
+			  fingerprint). For example assume the 128bit MD5 fingerprint of the 1024-bit
+			  RSA key is '00:6d:75:9e:f3:38:2b:6b:2e:e7:a8:87:9f:ea:26:03'. CMM issues
+			  a 'set' of the URI to the IOM of form:
+			  <protocol>://<username>:<password>;<fingerprint>@<IP
+			  address>:<port>/<path>/<filename.
+			  Then the URI would be: sftp://USERID:PASSW0RD;
+			  00:6d:75:9e:f3:38:2b:6b:2e:e7:a8:87:9f:ea:26:03@
+			  [fe80::290:27ff:fe29:6019]:30045/tmp/application.img
+			  (5) The fingerprint character string then will be used by IOM to create the
+			  CMM's sftp servers public key and add to the IOM's known host key file.
+			  (6) IOM sftp client then connects to the CMM sftp server. Since IOM has the
+			  CMM sftp servers public key fingerprint the IOM sftp client will look into it's
+			  known host key file.
+			  (7) IOM begins the sftp transfer of application.img using the user credentials
+			  (for example USERID, PASSW0RD) and CMM's sftp server key.
+			  Note - As of 5/1/2013 this specification assumes that the fingerprint in the URI
+			  will be for a RSA key only. Therefore all IOM sftp client's when connecting to the
+			  sftp server will respond to the sftp server and indicate in the
+			  'server_host_key_algorithms list that a RSA key is the preferred key by listing
+			  this first in the 'server_host_key_algorithms' parameter 'name-list'. The sftp
+			  client and server then will be required to use a RSA key for the file transfer. In
+			  the future the URI syntax will be changed to allow the user to specify which type
+			  of key (RSA or DSA) the fingerprint is for.
+			 "
  ::= { firmwareCmd 7 }    
  
  -- Firmware 1307 update key string
  fwUpdateImageSftpRsaKey OBJECT-TYPE
  SYNTAX OCTET STRING(SIZE(0..1024))
  MAX-ACCESS read-write
- STATUS	deprecated 
+ STATUS deprecated
  DESCRIPTION "Contains the public 1024 bit RSA key used for a secure file transfer utilizing
  			  sFTP over a SSH connection.The CMM will issue a set (write) of this object with
  			  the CMMs current public key when a SFTP transfer is required for a firmware
@@ -856,25 +926,25 @@ firmwareCmd OBJECT IDENTIFIER ::= { firmwareOps 2 }
  systemFileInformationProtocols OBJECT-TYPE
  SYNTAX OCTET STRING (SIZE(0..32))  
  MAX-ACCESS read-only 
- STATUS current 
- DESCRIPTION  "The CMM will use this command to read the current supported and enabled IOM file transfer protocols. The bit mask is treated 			  as 32 bits in network byte order. That is the bit 0 will be the left most bit and bit 31 will be the right most bit. The bit 				 pattern definition is defined as below. 
- 			   Supported Bit Mask (Bits 31:16): 
+ STATUS current
+ DESCRIPTION  "The CMM will use this command to read the current supported and enabled IOM file transfer protocols. The bit mask is treated				  as 32 bits in network byte order. That is the bit 0 will be the left most bit and bit 31 will be the right most bit. The bit  			 pattern definition is defined as below.
+			   Supported Bit Mask (Bits 31:16):
 			   Bit(31): This bit is set to 1 if TFTP is supported.
-			   Bit(30): This bit is set to 1 if FTP is supported 
-			   Bit(29): This bit is set to 1 if SFTP (via SSH) is supported 
-			   Bit(28): This bit is set to 1 if HTTP is supported. 
-			   Bit(27): This bit is set to 1 if HTTPs is supported 
-			   Bit(26:16): Reserved: must be set to zeroes. 
-			   Enabled Bit Mask (Bits 15:0): 
-			   Bit(15): This bit is set to 1 if TFTP is enabled. 
-			   Bit(14): This bit is set to 1 if FTP is enabled 
-			   Bit(13): This bit is set to 1 if SFTP (via SSH) is enabled. 
-			   Bit(12): This bit is set to 1 if HTTP is enabled. 
- 			   Bit(11): This bit is set to 1 if HTTPs is enabled 
-			   Bit(10:0): Reserved: must be set to zeroes. ." 
+			   Bit(30): This bit is set to 1 if FTP is supported
+			   Bit(29): This bit is set to 1 if SFTP (via SSH) is supported
+			   Bit(28): This bit is set to 1 if HTTP is supported.
+			   Bit(27): This bit is set to 1 if HTTPs is supported
+			   Bit(26:16): Reserved: must be set to zeroes.
+			   Enabled Bit Mask (Bits 15:0):
+			   Bit(15): This bit is set to 1 if TFTP is enabled.
+			   Bit(14): This bit is set to 1 if FTP is enabled
+			   Bit(13): This bit is set to 1 if SFTP (via SSH) is enabled.
+			   Bit(12): This bit is set to 1 if HTTP is enabled.
+			   Bit(11): This bit is set to 1 if HTTPs is enabled
+			   Bit(10:0): Reserved: must be set to zeroes. ."
 ::= { systemFileInformationEntry 3}
 
- 
+
 -- This section defines a set of commands that the MM can send to IOM to instruct IOM1
 -- to perform on the file.
 --
@@ -951,7 +1021,9 @@ systemFileCmd OBJECT IDENTIFIER ::= { files 2 }
  			  where the FTP or sFTP protocol will be used for transferring the packet file,
  			  username is USERID, password is PASSW0RD, host IP address is
  			   fe80::290:27ff:fe29:6019 or 192.168.0.2, port number is 30045, and /tmp is the
- 			   full pathname to the packet file service.log.
+ 			   full pathname to the packet file service.log. Note: The URI may or may not have 
+			   a port number. If the port number is not included the default port number for that 
+			   protocol will be used.
  			   
  			   Some protocols do not need the username, password, and the port number, so
  			   the minimum requirement for a fully qualified address would be:
@@ -959,7 +1031,53 @@ systemFileCmd OBJECT IDENTIFIER ::= { files 2 }
  			   <protocol>://<IP address or hostname>/<path</<filename>
  			   
  			   An example of a fully qualified address for the firmware packet file can be:
- 			   tftp://192.168.0.2:2022/1527 tmp/service.log"
+ 			   tftp://192.168.0.2:2022/1527 tmp/service.log
+
+			   Note: CMM sets the systemFileCmdUri to provide the URI that includes the IP 
+			   address, protocol, filename.filetype and any authentication parameters.
+			   a. If the IOM currently has a file contained in the IOM's file-system then the URI
+			   will contain the appropriate filename.filetype
+			   b. If the IOM does not generate the file until the file transfer, the CMM will create
+			   the URI with a prefix filename.filetype such as IOM3_service_.txt. The IOM is
+			   then responsible to parse the file name for a the category of file being requested
+			   by the CMM (_'service_' or '_config_' or '_syslog_'). Then concatenate to the
+			   MM's 
+			   created prefix the IOM's VPD part-number and a timestamp. For example the
+			   IOM would use the prefix created by CMM 'IOM3_service_.txt'
+			   to 'IOM3_service_02R1014_20110916-004651.tgz'. (generic format is;
+			   <IOM(slot number)>_service_<IOM Part Number>_<date: 4 digit year 2 digit 
+			   month 2 digit day>-<time: 2 digit hour 2 digit minutes 2 digit seconds>
+			   Note: file-type used is completely up to the IOM.
+
+			   Notes on sftp file transfers:
+			   (1) Summary: CMM will provide to the IOM the fingerprint of the CMM sftp
+			   server's public key as part of the other parameters in the URI for the file
+			   transfer.
+			   (2) CMM 'sets' to the IOM the URI which will contain the fingerprint (128bit MD5
+			   fingerprint). For example assume the 128bit MD5 fingerprint of the 1024-bit
+			   RSA key is '00:6d:75:9e:f3:38:2b:6b:2e:e7:a8:87:9f:ea:26:03'. CMM issues
+			   a 'set' of the URI to the IOM of form:
+			   <protocol>://<username>:<password>;<fingerprint>@<IP
+			   address>:<port>/<path>/<filename.
+			   Then the URI would be: sftp://USERID:PASSW0RD;
+			   00:6d:75:9e:f3:38:2b:6b:2e:e7:a8:87:9f:ea:26:03@
+			   [fe80::290:27ff:fe29:6019]:30045/tmp/application.img
+			   (3) The fingerprint character string then will be used by IOM to create the
+			   CMM's sftp servers public key and add to the IOM's known host key file.
+			   (4) IOM sftp client then connects to the CMM sftp server. Since IOM has the
+			   CMM sftp servers public key fingerprint the IOM sftp client will look into it's
+			   known host key file. IOM begins the sftp transfer of application.img using the
+			   user credentials (for example USERID, PASSW0RD) and CMM's sftp server
+			   key.
+			   Note - As of 5/1/2013 this specification assumes that the fingerprint in the
+			   URI will be for a RSA key only. Therefore all IOM sftp client's when
+			   connecting to the sftp server will respond to the sftp server and indicate in
+			   the 'server_host_key_algorithms' list that a RSA key is the preferred key by
+			   listing this first in the 'server_host_key_algorithms' parameter name-list. '
+			   The sftp client and server then will be required to use a RSA key for the file
+			   transfer. In the future the URI syntax will be changed to allow the user to
+			   specify which type of key (RSA or DSA) the fingerprint is for.
+			   "
  ::= {systemFileCmd 4 }
  
  systemFileCmdSftpRsaKey OBJECT-TYPE
@@ -991,7 +1109,9 @@ systemFileCmd OBJECT IDENTIFIER ::= { files 2 }
  systemFileOperationStatus OBJECT-TYPE
  SYNTAX INTEGER {
 			noOperation(0),
-			inprogress(50),
+			initiated(1),
+            generationcompleted(50),
+			transfer(51),
  			success(101),
  			failed(201)
  			}
@@ -999,7 +1119,9 @@ systemFileCmd OBJECT IDENTIFIER ::= { files 2 }
  STATUS current
  DESCRIPTION "The status of the system file operation:
  				0: No operation pending.
-				1-100: the percentage of completion of the operation.
+				1: Switch starting to generate supportshow
+				50: Switch done generating supportshow
+				51: Switch starting to transfer supportshow .txt file
 				101: success.
 				201: failed"
  ::= {systemFileCmd 7 } 
@@ -1115,39 +1237,202 @@ systemFileCmd OBJECT IDENTIFIER ::= { files 2 }
  STATUS current
  DESCRIPTION "Enables/Disables NTPv3 authentication"
 ::= { ntpConfig 6 }
- 
--- SNMPv3 Configuration
--- These objects are allow for the EHCM SNMPv3 userid to have an additional
 
-ehcmSnmpv3Cfg OBJECT IDENTIFIER ::= { protocols 2 } 
- 
- ehcmSnmpv3IPv6TrapAddress OBJECT-TYPE
- SYNTAX OCTET STRING(SIZE(0..255))
- MAX-ACCESS read-write
- STATUS current
- DESCRIPTION "Trap destination IPv6 address. Note: This address represents the address that will
- 			 be used for by IBM director for receiving SNMPv3 traps for the EHCM defined
- 			 SNMPv3 user. This address is in addition to the MM IP address and does not
- 			 override or replace that trap address. This value is normally set to zero and will
- 			 only be set when director request the MM to set to a valid IP address. A value of all
- 			 zeroes indicates no address is configured. Note the MM will set an IPv6 or IPv4
- 			 address. If IPv6 address is set then the IPv4 trap address will be zero. If IPv4
- 			 address is set then the IPv6 trap address will be zero."
- ::= { ehcmSnmpv3Cfg 1}
- 
- ehcmSnmpv3IPv4TrapAddress OBJECT-TYPE
- SYNTAX IpAddress
- MAX-ACCESS read-write
- STATUS current
- DESCRIPTION "Trap destination IPv4 address. Note: This address represents the address that will
- 			 be used for by IBM director for receiving SNMPv3 traps for the EHCM defined
- 			 SNMPv3 user. This address is in addition to the MMs IP address and does not
- 			 override or replace that trap address. This value is normally set to zero and will
- 			 only be set when director request the MM to set to a valid IP address. A value of all
- 			 zeroes indicates no address is configured. Note: the MM will set an IPv6 or IPv4
- 			 address. If IPv6 address is set then the IPv4 trap address will be zero. If IPv4
- 			 address is set then the IPv6 trap address will be zero."
- ::= { ehcmSnmpv3Cfg 2 }
+-- SNMPv3 Configuration
+-- These objects allow for the use of EHCM to configure one additional SNMPv3 user account for
+-- a given IOM that can be utilized by an external application for receiving traps from an IOM<92>s
+-- SNMP agent or performing get/set operations directly to the IOM<92>s SNMP agent.
+iomSnmpv3Cfg OBJECT IDENTIFIER ::= { snmpuser 1 }
+
+iomSnmpv3UserName OBJECT-TYPE
+SYNTAX OCTET STRING(SIZE(0..32))
+MAX-ACCESS read-write
+STATUS current
+DESCRIPTION
+"String that contains the SNMPv3 userid. Note: this IOM<92>s SNMPv3 user account
+ configuration must not be allowed to be altered from any of the IOM UI<92>s."
+::= { iomSnmpv3Cfg 1 }
+
+iomSnmpv3UserAuthProtocol OBJECT-TYPE
+SYNTAX INTEGER {
+         sha (1)
+         }
+MAX-ACCESS read-write
+STATUS current
+DESCRIPTION
+"SNMPv3 - Authentication Protocol supported by the user. The only allowed
+protocol is <91>SHA<92>."
+::= { iomSnmpv3Cfg 2 }
+iomSnmpv3UserAuthPassword OBJECT-TYPE
+SYNTAX OCTET STRING(SIZE(0..32))
+MAX-ACCESS read-write
+STATUS current
+DESCRIPTION
+"SNMPv3 User - Authentication password string. Notes: (1) The MM does not
+validate the contents of the password against any password security rules, the IOM
+is responsible for validation and may fail the set of this object, (2) value returned for
+a <91>get<92> request is null for security reasons."
+::= { iomSnmpv3Cfg 3 }
+
+iomSnmpv3UserPrivacyProtocol OBJECT-TYPE
+SYNTAX INTEGER {
+        aes (1)
+        }
+MAX-ACCESS read-write
+STATUS current
+DESCRIPTION
+"SNMPv3 - Privacy Protocol supported by the user. The only allowed protocol is
+<91>AES<92>."
+::= { iomSnmpv3Cfg 4 }
+
+iomSnmpv3UserPrivacyPassword OBJECT-TYPE
+SYNTAX OCTET STRING (SIZE(0..32))
+MAX-ACCESS read-write
+STATUS current
+DESCRIPTION
+"SNMPv3 User - Privacy password string. Notes: (1) The MM does not validate the
+contents of the password against any password security rules, the IOM is
+responsible for validation and may fail the set of this object, (2) value returned for a
+<91>get<92> request is null for security reasons.."
+::= { iomSnmpv3Cfg 5 }
+
+iomSnmpv3UserAccessType OBJECT-TYPE
+SYNTAX INTEGER {
+		no-access(0),
+        get-traps(1),
+        get-set-traps(2),
+        traps-only(3)
+        }
+MAX-ACCESS read-write
+STATUS current
+DESCRIPTION
+"SNMPv3 User Access level (Get, Set, and Traps) of the user."
+::= { iomSnmpv3Cfg 6 }
+
+iomSnmpv3UserIPv6TrapAddress OBJECT-TYPE
+SYNTAX OCTET STRING(SIZE(0..255))
+MAX-ACCESS read-write
+STATUS current
+DESCRIPTION
+"Trap destination IPv6 address. Note: This address represents the address that will
+be used by an external application for receiving SNMPv3 traps directly from the
+IOM<92>s SNMPv3 agent user account that has been configured in the user account
+OID(s) (iomSnmpv3User..). This address is in addition to the MM<92>s IP address and
+does not override or replace that trap address. This value is normally set to zero
+and will only be set when the external application request the MM to set to a valid
+IP address. A value of all zeroes indicates no address is configured. Both IPv4 and
+IPv6 addresses can be set and if they are then the IOM must send traps to both the
+IPv4 and IPv6 address. The format will be a string with a generic format of the IPv6
+address as follows: <91>abcd:abcd:abcd:abcd:abcd:abcd:abcd:abcd<92>, also may be the
+compressed IPv6 address format, for example fe80::211:25ff:fec3:d364 ."
+::= { iomSnmpv3Cfg 7 }
+
+iomSnmpv3UserIPv4TrapAddress OBJECT-TYPE
+SYNTAX IpAddress
+MAX-ACCESS read-write
+STATUS current
+DESCRIPTION
+" Trap destination IP4 address. Note: This address represents the address that will
+be used by an external application for receiving SNMPv3 traps directly from the
+IOM<92>s SNMPv3 agent user account that has been configured in SNMPv3 user
+account OID(s) (iomSnmpv3User). This address is in addition to the MM<92>s IP
+address and does not override or replace that trap address. This value is normally
+set to zero and will only be set when the external application request the MM to set
+to a valid IP address. Both IPv4 and IPv6 addresses can be set and if they are then
+the IOM must send traps to both the IPv4 and IPv6 address. A value of all zeroes
+indicates no address is configured. For example for a valid IPv4 address
+<91>9.72.217.85<92>, this would be represented as <91>0948d955<92>."
+::= { iomSnmpv3Cfg 8 }
+
+iomSnmpv3UserState OBJECT-TYPE
+SYNTAX INTEGER {
+        disabled(0),
+        enabled(1)
+         }
+MAX-ACCESS read-write
+STATUS current
+DESCRIPTION
+"Indicates the state of the user: Enabled or Disabled.
+The sequence of creating and enabling a user account or changing various OID<92>s
+of the SNMPv3 user account will be as follows:
+    (1) Set the <91>iomSnmpv3UserState<92> to disabled.
+    (2) Configure all the appropriate v3 user account information and trap address objects.
+    (3) Set the <91>snmpv3UserState<92> to enabled. When the IOM receives a set to enable, the IOM is
+        responsible to validate that all the SNMPv3 user objects are valid to create a functioning v3 user
+	account. If they are not then the response to this set should fail as described in (4).
+    (4) If all objects have been set correctly the response to this object will be
+    <91>success<92> otherwise the response will indicate failure. Note: enforcing disabling
+    then enabling the user account will ensure no partial account will be configured in
+    the IOM SNMP agent."
+::= { iomSnmpv3Cfg 9 }
+
+iomSnmpv3UserStateStatusString OBJECT-TYPE
+SYNTAX OCTET STRING (SIZE(4))
+MAX-ACCESS read-only
+STATUS current
+DESCRIPTION
+" This object will be a bit string that contains detailed information about the
+SNMPv3 user account status. The intent is that the information string will be
+passed to the external application in the event that the MM set an <91>enable<92> state
+using the object <91>iomSnmpv3UserState<92> and the response to the write of that
+object was a failure due to an invalid account parameter. The bit string in this
+object is only to be used by the MM for the case above, otherwise the data is not
+guaranteed to be accurate. The bit mask is treated as 32 bits in network byte
+order. That is the bit 0 will be the left most bit and bit 31 will be the right most bit.
+The bit pattern definition is defined as below:
+    Bit(8:31): reserved must be set to zeroes.
+	Bit(8): Set to 1 to indicate the IPv6 trap address is invalid.
+    Bit(7): Set to 1 to indicate the IPv4 trap address is invalid
+    Bit(6): Set to 1 to indicate the access type is invalid or not set.
+    Bit(5): Set to 1 to indicate the privacy 2486 password is invalid or not set
+    Bit(4): Set to 1 to indicate the privacy protocol is invalid or not set.
+    Bit(3): Set to 1 to indicate 1 the authentication password is invalid or not set.
+    Bit(2): Set to 1 to indicate the authentication protocol is invalid or not set.
+    Bit(1): Set to 1 to indicate the user-name is invalid or not set.
+    Bit(0): If this bit is set to <91>0<92> then this will indicate all account parameters are
+    correct. The MM will then ignore all other bits within this object. If this bit is set
+    to <91>1<92> then then at least one other bit must be set to indicate what specific
+    account parameter(s) are invalid and caused the failed response to the
+    <91>iomSnmpv3UserState<92> enable."
+::= { iomSnmpv3Cfg 10 }
+
+iomSnmpv3TestTrap OBJECT-TYPE
+SYNTAX INTEGER {
+    traptest(1)
+    }
+MAX-ACCESS read-write
+STATUS current
+DESCRIPTION
+"This object provides a mechanism to generate a <91>test trap<92>. A set of this object will only
+generate a <91>test trap<92> from the IOM If a valid SNMPv3 user account has been configured and is
+enabled. The trap information should specifically indicate that it contains an informational test
+event."
+::= { iomSnmpv3Cfg 11 } 
+
+
+iomSnmpv3tResetUser OBJECT-TYPE
+SYNTAX INTEGER {
+     reset(1)
+    }    
+MAX-ACCESS read-write
+STATUS current
+DESCRIPTION
+"This object provides a method to reset all the other objects that make up the SNMPv3 user 
+account back to default values. This may be used for security reasons by the MM in order to
+provide a method to ensure the SNMPv3 user account is in a disabled state and all associated
+account information is back to default values (essentially at manufacturing reset values for the
+IOM). The following is a description of the expected account default values:
+ - iomSnmpv3UserName - set to zero 
+ - iomSnmpv3UserAuthProtocol - set to '1' (sha)
+ - iomSnmpv3UserAuthPassword - set to zero 
+ - iomSnmpv3UserPrivacyProtocol - set to '1' (aes)
+ - iomSnmpv3UserPrivacyPassword - set to zero 
+ - iomSnmpv3UserAccessType - set to '0' (no-access)
+ - iomSnmpv3UserIPv6TrapAddress - set to zero 
+ - iomSnmpv3UserIPv4TrapAddress - set to zero 
+ - iomSnmpv3UserState - set to '0' (disabled)
+ - iomSnmpv3UserStateStatusString - set to zero"
+::= { iomSnmpv3Cfg 12 } 
  
  -- Feature License Key Information
  
@@ -1221,4 +1506,4 @@ ehcmSnmpv3Cfg OBJECT IDENTIFIER ::= { protocols 2 }
  DESCRIPTION "Provides information on the current state of the license"
  ::= {licenseKeyInformationEntry 3 }
 
- END
+ END                                                                                                                                         

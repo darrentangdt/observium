@@ -16,7 +16,7 @@ $color = ($message_tags['ALERT_STATE'] == "RECOVER" ? "green" : "red");
 // Default URL if not set
 if ($endpoint['url'] == "") { $endpoint['url'] = 'https://api.hipchat.com'; }
 
-$message = '<a href="'.$message_tags['ALERT_URL'].'">'.$title.'</a>';
+$message = '<a href="'.$message_tags['ALERT_URL'].'">'.$message_tags['TITLE'].'</a>';
 $message .= '<br />';
 $message .= str_replace("             ", "", str_replace("\n", " ", $message_tags['METRICS']));
 
@@ -35,16 +35,16 @@ $context_data = array(
     "Content-Type: application/json\r\n".
     "Content-Length: ".strlen($data_string)."\r\n".
     "Authorization: Bearer " . $endpoint['token']."\r\n",
-  'content'=> $data_string);
+  'content' => $data_string);
 
 // API URL to POST to
 $url = $endpoint['url'] . '/v2/room/' . urlencode($endpoint['room_id']) . '/notification';
 
 // Send out API call
-get_http_request($url, $context_data);
+$response = get_http_request($url, $context_data);
 
 // Return of this API call is "204 No Content" - there is no way to know if it went through or not, so we return TRUE always and hope for the best.
-$notify_status['success'] = TRUE;
+$notify_status['success'] = $response !== FALSE;
 
 unset($message, $context_data);
 

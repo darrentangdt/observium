@@ -21,42 +21,34 @@ if (!empty($agent_data['app']['powerdns']))
     $powerdns[$key] = $value;
   }
 
-  $rrd_filename = "app-powerdns-$app_id.rrd";
+  $data = array(
+    'corruptPackets'   => $powerdns['corrupt-packets'],
+    'def_cacheInserts' => $powerdns['deferred-cache-inserts'],
+    'def_cacheLookup'  => $powerdns['deferred-cache-lookup'],
+    'latency'          => $powerdns['latency'],
+    'pc_hit'           => $powerdns['packetcache-hit'],
+    'pc_miss'          => $powerdns['packetcache-miss'],
+    'pc_size'          => $powerdns['packetcache-size'],
+    'qsize'            => $powerdns['qsize-q'],
+    'qc_hit'           => $powerdns['query-cache-hit'],
+    'qc_miss'          => $powerdns['query-cache-miss'],
+    'rec_answers'      => $powerdns['recursing-answers'],
+    'rec_questions'    => $powerdns['recursing-questions'],
+    'servfailPackets'  => $powerdns['servfail-packets'],
+    'q_tcpAnswers'     => $powerdns['tcp-answers'],
+    'q_tcpQueries'     => $powerdns['tcp-queries'],
+    'q_timedout'       => $powerdns['timedout-packets'],
+    'q_udpAnswers'     => $powerdns['udp-answers'],
+    'q_udpQueries'     => $powerdns['udp-queries'],
+    'q_udp4Answers'    => $powerdns['udp4-answers'],
+    'q_udp4Queries'    => $powerdns['udp4-queries'],
+    'q_udp6Answers'    => $powerdns['udp6-answers'],
+    'q_udp6Queries'    => $powerdns['udp6-queries']);
 
-  unset($rrd_values);
+  update_application($app_id, $data);
+  rrdtool_update_ng($device, 'powerdns', $data, $app_id);
 
-  foreach (array('corrupt-packets', 'deferred-cache-inserts', 'deferred-cache-lookup', 'latency', 'packetcache-hit', 'packetcache-miss', 'packetcache-size', 'qsize-q',
-    'query-cache-hit', 'query-cache-miss', 'recursing-answers', 'recursing-questions', 'servfail-packets', 'tcp-answers', 'tcp-queries', 'timedout-packets', 'udp-answers',
-    'udp-queries', 'udp4-answers', 'udp4-queries', 'udp6-answers', 'udp6-queries') as $key)
-  {
-    $rrd_values[] = (is_numeric($powerdns[$key]) ? $powerdns[$key] : "U");
-  }
-
-  rrdtool_create($device, $rrd_filename, " \
-        DS:corruptPackets:DERIVE:600:0:125000000000 \
-        DS:def_cacheInserts:DERIVE:600:0:125000000000 \
-        DS:def_cacheLookup:DERIVE:600:0:125000000000 \
-        DS:latency:DERIVE:600:0:125000000000 \
-        DS:pc_hit:DERIVE:600:0:125000000000 \
-        DS:pc_miss:DERIVE:600:0:125000000000 \
-        DS:pc_size:DERIVE:600:0:125000000000 \
-        DS:qsize:DERIVE:600:0:125000000000 \
-        DS:qc_hit:DERIVE:600:0:125000000000 \
-        DS:qc_miss:DERIVE:600:0:125000000000 \
-        DS:rec_answers:DERIVE:600:0:125000000000 \
-        DS:rec_questions:DERIVE:600:0:125000000000 \
-        DS:servfailPackets:DERIVE:600:0:125000000000 \
-        DS:q_tcpAnswers:DERIVE:600:0:125000000000 \
-        DS:q_tcpQueries:DERIVE:600:0:125000000000 \
-        DS:q_timedout:DERIVE:600:0:125000000000 \
-        DS:q_udpAnswers:DERIVE:600:0:125000000000 \
-        DS:q_udpQueries:DERIVE:600:0:125000000000 \
-        DS:q_udp4Answers:DERIVE:600:0:125000000000 \
-        DS:q_udp4Queries:DERIVE:600:0:125000000000 \
-        DS:q_udp6Answers:DERIVE:600:0:125000000000 \
-        DS:q_udp6Queries:DERIVE:600:0:125000000000 ");
-
-  rrdtool_update($device, $rrd_filename, "N:" . implode(':', $rrd_values));
+  unset($powerdns);
 }
 
 // EOF

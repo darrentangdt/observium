@@ -16,15 +16,15 @@ IMPORTS
 
 rldot1x MODULE-IDENTITY
                 LAST-UPDATED "200701020000Z"
-                ORGANIZATION "Cisco Small Business"
+                ORGANIZATION "Cisco Systems, Inc."
 
                 CONTACT-INFO
                 "Postal: 170 West Tasman Drive
                 San Jose , CA 95134-1706
                 USA
 
-                Website: Cisco Small Business Home http://www.cisco.com/smb>;,
-                Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
+                
+                Website:  Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
 
                 DESCRIPTION
                       "This private MIB module defines dot1x private MIBs."
@@ -200,7 +200,9 @@ Rldot1xAuthenticationPortEntry::=
         rldot1xTimeoutSilencePeriod
             INTEGER,
         rldot1xNumOfAuthorizedHosts
-            INTEGER
+            INTEGER,
+        rldot1xAuthenticationOpenEnabled
+            TruthValue
     }
 
 rldot1xAuthenticationPortMethod OBJECT-TYPE
@@ -304,6 +306,16 @@ rldot1xNumOfAuthorizedHosts OBJECT-TYPE
     DESCRIPTION
          "Number of authorized host in multi-sessions mode."
     ::= { rldot1xAuthenticationPortEntry 10 }
+
+rldot1xAuthenticationOpenEnabled OBJECT-TYPE
+    SYNTAX TruthValue
+    MAX-ACCESS  read-write
+    STATUS  current
+    DESCRIPTION
+        "Open access allows clients or devices to gain network access before authentication is performed.
+         In the mode the switch performs failure replies received from a Radius server as success."
+    DEFVAL { false }
+    ::= { rldot1xAuthenticationPortEntry 11 }
 
  --------------------------------------------------------------
  -- The Authenticator Statistics Table

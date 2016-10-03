@@ -40,7 +40,7 @@ if (preg_match('/^(?:dlink |d-link )?(?<hardware>[a-z]+\-\d+[\w\/-]+) +(?<featur
   }
 } else {
   // SINGLE-IP-MIB::swSingleIPPlatform.0 = STRING: "DES-3028P L2 Switch"
-  list($hardware) = explode(' ', snmp_get($device, "swSingleIPPlatform.0", "-Ovq", "SINGLE-IP-MIB", mib_dirs('d-link')));
+  list($hardware) = explode(' ', snmp_get($device, 'swSingleIPPlatform.0', '-Ovq', 'SINGLE-IP-MIB'));
 }
 
 if (!$version)
@@ -48,16 +48,16 @@ if (!$version)
   // DLINK-EQUIPMENT-MIB::swUnitMgmtVersion.1 = STRING: "6.00.B21"
   //$version = snmp_get($device, "swUnitMgmtVersion.1", "-Ovq", "DLINK-EQUIPMENT-MIB");
   // RMON2-MIB::probeSoftwareRev.0 = STRING: "Build 6.00.B21"
-  $version = snmp_get($device, "probeSoftwareRev.0", "-Ovq", "RMON2-MIB");
-  $version = str_replace("Build ", "", $version);
+  $version = snmp_get($device, 'probeSoftwareRev.0', '-Ovq', 'RMON2-MIB');
+  $version = str_replace('Build ', '', $version);
 }
 // HW revision is not required, but anyone can come in handy in the future.
 // I for example have more than five revisions for one platform (DES-3550)
 // RMON2-MIB::probeHardwareRev.0 = STRING: "0A3G"
-//$revision = trim(snmp_get($device, "probeHardwareRev.0", "-Ovq", "RMON2-MIB"), '"');
-//$hardware = ($revision === '') ? $hardware : $hardware . " " . $revision ;
+//$revision = trim(snmp_get($device, 'probeHardwareRev.0', '-Ovq', 'RMON2-MIB'), '"');
+//$hardware = ($revision === '') ? $hardware : $hardware . ' ' . $revision ;
 
 // AGENT-GENERAL-MIB::agentSerialNumber.0 = STRING: "PL5T2A1000668"
-$serial = snmp_get($device, "agentSerialNumber.0", "-Ovq", "AGENT-GENERAL-MIB", mib_dirs('d-link'));
+$serial = snmp_get($device, 'agentSerialNumber.0', '-Ovq', 'AGENT-GENERAL-MIB');
 
 // EOF

@@ -1,9 +1,9 @@
 -- =================================================================
--- Copyright (C) 2002 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 --
 -- Description: configuration mangement mib
 -- Reference:   huawei enterprise mib
--- Version:     V2.10
+-- Version:     V2.13
 -- History:
 --                initial version 2002-12-20
 -- =================================================================
@@ -26,7 +26,7 @@ HUAWEI-CONFIG-MAN-MIB DEFINITIONS ::= BEGIN
 
     -- 1.3.6.1.4.1.2011.6.10
     hwConfig MODULE-IDENTITY 
-        LAST-UPDATED "201409182200Z"        -- Septembet 18, 2014 at 22:00 GMT
+        LAST-UPDATED "201504271402Z"         -- April 27, 2015 at 14:02GMT
         ORGANIZATION
               "Huawei Technologies Co.,Ltd."
         CONTACT-INFO
@@ -43,7 +43,18 @@ HUAWEI-CONFIG-MAN-MIB DEFINITIONS ::= BEGIN
             in the system and in peripheral devices. The MIB is proper for system configuration.
             NMS can query configuration change log information and operate configuration.
             There are no constraints on this MIB."
+        REVISION "201504271402Z"         -- April 27, 2015 at 14:02GMT
+           DESCRIPTION 
+            "add trap node hwConfigInconsistent and hwConfigConsistent."
 
+        REVISION "201504131119Z"        -- April 13, 2015 at 11:19 GMT
+           DESCRIPTION 
+            "modified  trap node hwCfgRestoreFail, and  MIB node hwCfgRestoreErrCode for hwCfgRestoreFail."
+
+
+        REVISION "201502022300Z"        -- February 09, 2015 at 23:00 GMT
+        DESCRIPTION 
+            "Add new trap node hwCfgRestoreFail, and new MIB node hwCfgRestoreErrCode for hwCfgRestoreFail."
         REVISION "201409182200Z"        -- Septembet 18, 2014 at 22:00 GMT
         DESCRIPTION 
             "Modify the length and description of hwCfgBackupPassword."
@@ -1114,6 +1125,21 @@ HUAWEI-CONFIG-MAN-MIB DEFINITIONS ::= BEGIN
                 "compare configuration of the files"
             ::= { hwCfgOperate 7 }
 
+    -- 1.3.6.1.4.1.2011.6.10.1.2.8
+    hwCfgRestoreErrCode OBJECT-TYPE
+            SYNTAX INTEGER
+		{
+		warnning(1),
+		fileOpenFail(2),
+		fileNotExist(3),
+		fileVerifyFail(4),
+		other(5)
+		}
+            MAX-ACCESS accessible-for-notify
+            STATUS current
+            DESCRIPTION
+                "ErrorCode: cause of an alarm.(1:Failed to restore some configurations. 2:Failed to restore all configurations because of a failure to open the configuration file. 3:Failed to restore all configurations because of the nonexistent configuration file. 4:Failed to restore all configurations because of the nonexistent configuration file. 5: Failed to restore all configurations because of other reasons.)"
+            ::= { hwCfgOperate 8 }
 
     -- ==========================================================================
     -- configuration save group
@@ -1510,6 +1536,28 @@ the function of saving configuration automatically is disable when the interval 
             "When the system begin to backup current configuration to
             servers, this trap will generate."
         ::= { hwConfigManNotifications 6 }
+
+    -- 1.3.6.1.4.1.2011.6.10.2.7
+    hwCfgRestoreFail  NOTIFICATION-TYPE
+    		OBJECTS { hwCfgRestoreErrCode }
+        STATUS current
+        DESCRIPTION 
+            "When configuration restoration fails, this trap is generated."
+        ::= { hwConfigManNotifications 7 }
+
+    -- 1.3.6.1.4.1.2011.6.10.2.8
+    hwConfigInconsistent  NOTIFICATION-TYPE    		
+        STATUS current
+        DESCRIPTION 
+            "When system automatically detects that configurations of the main board and the slave board are inconsistent, this trap is generated."
+        ::= { hwConfigManNotifications 8 }
+
+    -- 1.3.6.1.4.1.2011.6.10.2.9
+    hwConfigConsistent  NOTIFICATION-TYPE    		
+        STATUS current
+        DESCRIPTION 
+            "When system automatically detects that configurations of the main board and the slave board change from inconsistent to consistent, this trap is generated."
+        ::= { hwConfigManNotifications 9 }
         
     -- 1.3.6.1.4.1.2011.6.10.3
     hwConfigManConformance OBJECT IDENTIFIER ::= { hwConfig 3 }
@@ -1577,14 +1625,14 @@ the function of saving configuration automatically is disable when the interval 
     
     -- 1.3.6.1.4.1.2011.6.10.3.2.3
     hwCfgManNotificationGroup NOTIFICATION-GROUP
-        NOTIFICATIONS { hwCfgManEventlog, hwCfgOperateCompletion ,hwCfgInconsistent, hwCfgInconsistentResume, hwCfgB2STransferFail, hwCfgB2SOperate}
+        NOTIFICATIONS { hwCfgManEventlog, hwCfgOperateCompletion ,hwCfgInconsistent, hwCfgInconsistentResume, hwCfgB2STransferFail, hwCfgB2SOperate, hwCfgRestoreFail, hwConfigInconsistent, hwConfigConsistent}
         STATUS current
         DESCRIPTION 
             "Collection of notification objects."
         ::= { hwConfigManGroups 3 }
     -- 1.3.6.1.4.1.2011.6.10.3.2.4
     hwCfgSaveGroup OBJECT-GROUP
-        OBJECTS { hwCfgSaveAutoInterval, hwCfgSaveAutoTime, hwCfgSaveManualTime, hwCfgSaveAutoCpuLimit, hwCfgSaveAutoNoCfgInterval, hwCfgSaveAutoDelay}
+        OBJECTS { hwCfgSaveAutoInterval, hwCfgSaveAutoTime, hwCfgSaveManualTime, hwCfgSaveAutoCpuLimit, hwCfgSaveAutoNoCfgInterval, hwCfgSaveAutoDelay, hwCfgRestoreErrCode }
         STATUS current
         DESCRIPTION 
             "A group of configuration operation."

@@ -269,7 +269,7 @@ function dbLastID($connection = NULL)
  * */
 function dbFetchRows($sql, $parameters = array())
 {
-  $time_start = microtime(true);
+  $time_start = utime();
   $result = dbQuery($sql, $parameters);
 
   $rows = array();
@@ -281,8 +281,8 @@ function dbFetchRows($sql, $parameters = array())
     }
     mysql_free_result($result);
 
-    $time_end = microtime(true);
-    $GLOBALS['db_stats']['fetchrows_sec'] += number_format($time_end - $time_start, 8);
+    $time_end = utime();
+    $GLOBALS['db_stats']['fetchrows_sec'] += $time_end - $time_start;
     $GLOBALS['db_stats']['fetchrows']++;
   }
 
@@ -297,15 +297,15 @@ function dbFetchRows($sql, $parameters = array())
  * */
 function dbFetchRow($sql = null, $parameters = array())
 {
-  $time_start = microtime(true);
+  $time_start = utime();
   $result = dbQuery($sql, $parameters);
   if ($result)
   {
     $row = mysql_fetch_assoc($result);
     mysql_free_result($result);
-    $time_end = microtime(true);
+    $time_end = utime();
 
-    $GLOBALS['db_stats']['fetchrow_sec'] += number_format($time_end - $time_start, 8);
+    $GLOBALS['db_stats']['fetchrow_sec'] += $time_end - $time_start;
     $GLOBALS['db_stats']['fetchrow']++;
 
     return $row;
@@ -313,7 +313,7 @@ function dbFetchRow($sql = null, $parameters = array())
     return null;
   }
 
-  //$time_start = microtime(true);
+  //$time_start = utime();
 }
 
 /*
@@ -321,16 +321,16 @@ function dbFetchRow($sql = null, $parameters = array())
  * */
 function dbFetchCell($sql, $parameters = array())
 {
-  $time_start = microtime(true);
+  $time_start = utime();
   //$row = dbFetchRow($sql, $parameters);
   $result = dbQuery($sql, $parameters);
   if ($result)
   {
     $row = mysql_fetch_assoc($result);
     mysql_free_result($result);
-    $time_end = microtime(true);
+    $time_end = utime();
 
-    $GLOBALS['db_stats']['fetchcell_sec'] += number_format($time_end - $time_start, 8);
+    $GLOBALS['db_stats']['fetchcell_sec'] += $time_end - $time_start;
     $GLOBALS['db_stats']['fetchcell']++;
 
     return array_shift($row); // shift first field off first row

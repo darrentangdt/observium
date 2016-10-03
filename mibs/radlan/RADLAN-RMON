@@ -7,10 +7,10 @@ RADLAN-RMON DEFINITIONS ::= BEGIN
 IMPORTS
     rnd                                                     FROM RADLAN-MIB
     OwnerString, EntryStatus                                FROM RMON-MIB
-    DisplayString                                           FROM SNMPv2-TC-v1
     Unsigned32, Integer32, Counter32, TimeTicks,
     MODULE-IDENTITY, OBJECT-TYPE                            FROM SNMPv2-SMI
-    RowStatus, TruthValue, TEXTUAL-CONVENTION               FROM SNMPv2-TC;
+    DisplayString, RowStatus, TruthValue,
+    TEXTUAL-CONVENTION                                      FROM SNMPv2-TC;
 
 
 rlRmonControl  MODULE-IDENTITY

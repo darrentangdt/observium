@@ -11,9 +11,6 @@
  *
  */
 
-$mib = 'HUAWEI-ENERGYMNGT-MIB';
-echo(" $mib ");
-
 //HUAWEI-ENERGYMNGT-MIB::hwBoardIndex.4294902016 = -65280
 //HUAWEI-ENERGYMNGT-MIB::hwBoardType.4294902016 = MPU
 //HUAWEI-ENERGYMNGT-MIB::hwBoardName.4294902016 = LS61S24N
@@ -21,7 +18,7 @@ echo(" $mib ");
 //HUAWEI-ENERGYMNGT-MIB::hwBoardRatedPower.4294902016 = 165000
 //HUAWEI-ENERGYMNGT-MIB::hwBoardThresholdOfPower.4294902016 = 500000
 
-$huawei['power']  = snmpwalk_cache_oid($device, 'HwBoardPowerMngtEntry',  array(), $mib, mib_dirs('huawei'));
+$huawei['power']  = snmpwalk_cache_oid($device, 'HwBoardPowerMngtEntry', array(), 'HUAWEI-ENERGYMNGT-MIB');
 
 $scale = 0.001;
 foreach ($huawei['power'] as $index => $entry)

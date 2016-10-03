@@ -11,9 +11,7 @@
  *
  */
 
-echo("GEIST-MIB-V3 ");
-
-$productTitle = snmp_get($device, 'productTitle.0', '-OQv', 'GEIST-MIB-V3', mib_dirs('geist'));
+$productTitle = snmp_get($device, 'productTitle.0', '-OQv', 'GEIST-MIB-V3');
 
 if ($productTitle)
 {
@@ -102,7 +100,7 @@ if ($productTitle)
 
   foreach ($geist_sensors as $sensor)
   {
-    $cache['geist'][$sensor['prefix'].'Table'] = snmpwalk_cache_multi_oid($device, $sensor['prefix'].'Table', array(), "GEIST-MIB-V3", mib_dirs('geist'));
+    $cache['geist'][$sensor['prefix'].'Table'] = snmpwalk_cache_multi_oid($device, $sensor['prefix'].'Table', array(), 'GEIST-MIB-V3');
 
     foreach ($cache['geist'][$sensor['prefix'].'Table'] as $index => $entry)
     {

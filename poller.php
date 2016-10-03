@@ -105,6 +105,8 @@ if (isset($options['i']) && $options['i'] && isset($options['n']))
             WHERE MOD(temp.rownum, '.$options['i'].') = ?;';
   $doing = $options['n'] ."/".$options['i'];
   $params[] = $options['n'];
+  //print_vars($query);
+  //print_vars($params);
 }
 
 if (!$where)
@@ -120,13 +122,18 @@ EXAMPLE:
 -h all                                       Poll all devices
 -h new                                       Poll all devices that have not had a discovery run before
 
--i <instances> -n <number>                   Poll as instance <number> of <instances>
-                                             Instances start at 0. 0-3 for -n 4
+-i <instances> -n <id/number>                Poll as instance <id/number> of <instances>
+                                             Instance numbers start at 0. 0-3 for -i 4
+                                             Example:
+                                               -i 4 -n 0
+                                               -i 4 -n 1
+                                               -i 4 -n 2
+                                               -i 4 -n 3
 
 OPTIONS:
  -h                                          Device hostname, id or key odd/even/all/new.
- -i                                          Poll instance.
- -n                                          Poll number.
+ -i                                          Poll instances count.
+ -n                                          Instance id (number), must start from 0 and to be less than instances count.
  -q                                          Quiet output.
  -M                                          Show globally enabled/disabled modules and exit.
  -V                                          Show version and exit.
@@ -193,20 +200,37 @@ if (!isset($options['q']))
 
   print_cli_data('Memory usage', formatStorage(memory_get_usage(TRUE), 2, 4).' (peak: '.formatStorage(memory_get_peak_usage(TRUE), 2, 4).')', 0);
 
-  print_cli_data('MySQL Usage', 'Cell['.($db_stats['fetchcell']+0).'/'.round($db_stats['fetchcell_sec']+0,3).'s]'.
-                       ' Row['.($db_stats['fetchrow']+0). '/'.round($db_stats['fetchrow_sec']+0,3).'s]'.
-                      ' Rows['.($db_stats['fetchrows']+0).'/'.round($db_stats['fetchrows_sec']+0,3).'s]'.
-                    ' Column['.($db_stats['fetchcol']+0). '/'.round($db_stats['fetchcol_sec']+0,3).'s]'.
-                    ' Update['.($db_stats['update']+0).'/'.round($db_stats['update_sec']+0,3).'s]'.
-                    ' Insert['.($db_stats['insert']+0). '/'.round($db_stats['insert_sec']+0,3).'s]'.
-                    ' Delete['.($db_stats['delete']+0). '/'.round($db_stats['delete_sec']+0,3).'s]', 0);
+  $mysql_time = 0;
+  foreach($db_stats AS $cmd => $count)
+  {
+    if(isset($db_stats[$cmd.'_sec']))
+    {
+      $mysql_times[] = ucfirst(str_replace("fetch", "", $cmd))."[".$count."/".round($db_stats[$cmd.'_sec'],3)."s]";
+      $mysql_time += $db_stats[$cmd.'_sec'];
+    }
+  }
 
+  print_cli_data('MySQL Usage', implode(" ", $mysql_times) . ' ('.round($mysql_time, 3).'s '.round($mysql_time/$poller_time*100, 3).'%)', 0);
+
+
+  $rrd_time = 0;
   foreach($GLOBALS['rrdtool'] AS $cmd => $data)
   {
     $rrd_times[] = $cmd."[".$data['count']."/".round($data['time'],3)."s]";
+    $rrd_time += $data['time'];
   }
 
-  print_cli_data('RRDTool Usage', implode(" ", $rrd_times), 0);
+  print_cli_data('RRDTool Usage', implode(" ", $rrd_times) . ' ('.round($rrd_time, 3).'s '.round($rrd_time/$poller_time*100, 3).'%)', 0);
+
+  $snmp_time = 0;
+  foreach($GLOBALS['snmp_stats'] AS $cmd => $data)
+  {
+    $snmp_times[] = $cmd."[".$data['count']."/".round($data['time'],3)."s]";
+    $snmp_time += $data['time'];
+  }
+
+  print_cli_data('SNMP Usage', implode(" ", $snmp_times) . ' ('.round($snmp_time, 3).'s '.round($snmp_time/$poller_time*100, 3).'%)', 0);
+
 }
 
 logfile($string);
@@ -216,5 +240,7 @@ unset($config); // Remove this for testing
 #print_vars(get_defined_vars());
 
 echo("\n");
+
+print_r($runtime_stats);
 
 // EOF

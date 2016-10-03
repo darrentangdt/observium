@@ -60,7 +60,7 @@ class HtmlIncludesPrintTest extends PHPUnit_Framework_TestCase
       <th style="width: 150px;"><a href="routing/protocol=bgp/type=all/sort=device/">Local address</a></th>
       <th style="width: 20px;"></th>
       <th style="width: 150px;"><a href="routing/protocol=bgp/type=all/sort=peer_ip/">Peer address</a></th>
-      <th style="width: 50px;"><a href="routing/protocol=bgp/type=all/sort=type/sort_order=desc/">Type&nbsp;&darr;</a></th>
+      <th style="width: 50px;"><a href="routing/protocol=bgp/type=all/sort=type/sort_order=desc/">Type&nbsp;&nbsp;<i class="small glyphicon glyphicon-triangle-bottom"></i></a></th>
       <th >Family</th>
       <th><a href="routing/protocol=bgp/type=all/sort=peer_as/">Remote AS</a></th>
       <th><a href="routing/protocol=bgp/type=all/sort=state/">State</a></th>

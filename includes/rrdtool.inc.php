@@ -22,11 +22,28 @@
 // TESTME needs unit testing
 function get_rrd_path($device, $filename)
 {
-  $filename = safename($filename);
-  $ext = pathinfo($filename, PATHINFO_EXTENSION);
-  if ($ext != 'rrd') { $filename .= '.rrd'; } // Add rrd extension if not already set
+  global $config;
 
-  return trim($GLOBALS['config']['rrd_dir']) . "/" . $device['hostname'] . "/" . safename($filename);
+  $filename = safename(trim($filename));
+
+  // If filename empty, return base rrd dirname for device (for example in delete_device())
+  $rrd_file = trim($config['rrd_dir']) . '/';
+  if (strlen($device['hostname']))
+  {
+    $rrd_file .= $device['hostname'] . '/';
+  }
+
+  if (strlen($filename) > 0)
+  {
+    $ext = pathinfo($filename, PATHINFO_EXTENSION);
+    if ($ext != 'rrd') { $filename .= '.rrd'; } // Add rrd extension if not already set
+    $rrd_file .= safename($filename);
+
+    // Add rrd filename to global array $graph_return
+    $GLOBALS['graph_return']['rrds'][] = $rrd_file;
+  }
+
+  return $rrd_file;
 }
 
 /**
@@ -44,14 +61,14 @@ function rename_rrd($device, $old_rrd, $new_rrd)
   if (is_file($old_rrd))
   {
     $renamed = rename($old_rrd, $new_rrd);
-    print_warning('Moved RRD');
-    if (OBS_DEBUG > 1)
-    {
-      print_message("OLD RRD: $old_rrd\nNEW RRD: $new_rrd");
-    }
   } else {
     $renamed = FALSE;
   }
+  if ($renamed)
+  {
+    print_debug("RRD moved: '$old_rrd' -> '$new_rrd'");
+  }
+
   return $renamed;
 }
 
@@ -68,12 +85,12 @@ function rrdtool_pipe_open(&$rrd_process, &$rrd_pipes)
 {
   global $config;
 
-  $command = $config['rrdtool'] . " -"; // Waits for input via standard input (STDIN)
+  $command = $config['rrdtool'] . ' -'; // Waits for input via standard input (STDIN)
 
   $descriptorspec = array(
-     0 => array("pipe", "r"),  // stdin
-     1 => array("pipe", "w"),  // stdout
-     2 => array("pipe", "w")   // stderr
+     0 => array('pipe', 'r'),  // stdin
+     1 => array('pipe', 'w'),  // stdout
+     2 => array('pipe', 'w')   // stderr
   );
 
   $cwd = $config['rrd_dir'];
@@ -164,15 +181,17 @@ function rrdtool_pipe_close($rrd_process, &$rrd_pipes)
 // TESTME needs unit testing
 function rrdtool_graph($graph_file, $options)
 {
-  // Note, always use pipes, because standart comman line have limits!
-  if ($GLOBALS['config']['rrdcached'])
+  global $config;
+
+  // Note, always use pipes, because standard command line has limits!
+  if ($config['rrdcached'])
   {
-    $cmd = "graph --daemon " . $GLOBALS['config']['rrdcached'] . " $graph_file $options";
+    $cmd = 'graph --daemon ' . $config['rrdcached'] . " $graph_file $options";
   } else {
     $cmd = "graph $graph_file $options";
   }
   $GLOBALS['rrd_status']  = FALSE;
-  $GLOBALS['exec_status'] = array('command'  => $GLOBALS['config']['rrdtool'] . ' ' . $cmd,
+  $GLOBALS['exec_status'] = array('command'  => $config['rrdtool'] . ' ' . $cmd,
                                   'stdout'   => '',
                                   'exitcode' => -1);
 
@@ -223,6 +242,12 @@ function rrdtool_graph($graph_file, $options)
     $stdout  = NULL;
   }
   $GLOBALS['exec_status']['runtime']  = $runtime;
+  // Add some data to global array $graph_return
+  $GLOBALS['graph_return']['status']   = $GLOBALS['rrd_status'];
+  $GLOBALS['graph_return']['command']  = $GLOBALS['exec_status']['command'];
+  $GLOBALS['graph_return']['filename'] = $graph_file;
+  $GLOBALS['graph_return']['output']   = $stdout;
+  $GLOBALS['graph_return']['runtime']  = $GLOBALS['exec_status']['runtime'];
 
   if (OBS_DEBUG)
   {
@@ -237,6 +262,7 @@ function rrdtool_graph($graph_file, $options)
 
     print_message($debug_msg . PHP_EOL, 'console');
   }
+
   return $stdout;
 }
 
@@ -256,9 +282,9 @@ function rrdtool($command, $filename, $options)
   global $config, $rrd_pipes;
 
   $cmd = "$command $filename $options";
-  if ($command != "create" && $config['rrdcached'])
+  if ($command != 'create' && $config['rrdcached'])
   {
-    $cmd .= " --daemon " . $config['rrdcached'];
+    $cmd .= ' --daemon ' . $config['rrdcached'];
   }
 
   $GLOBALS['rrd_status'] = FALSE;
@@ -270,6 +296,7 @@ function rrdtool($command, $filename, $options)
     print_message("[%rRRD Disabled - $cmd%n]", 'color');
     return NULL;
   } else {
+    // FIXME, need add check if pipes exist
     $start = microtime(TRUE);
     fwrite($rrd_pipes[0], $cmd."\n");
     usleep(1000);
@@ -315,13 +342,13 @@ function rrdtool($command, $filename, $options)
 /**
  * Generates an rrd database at $filename using $options
  * Creates the file if it does not exist yet.
+ * DEPRECATED: use rrdtool_create_ng(), this will disappear and ng will be renamed when conversion is complete.
  *
  * @param array  device
  * @param string filename
  * @param string ds
  * @param string options
  */
-// TESTME needs unit testing
 function rrdtool_create($device, $filename, $ds, $options = '')
 {
   global $config;
@@ -356,21 +383,174 @@ function rrdtool_create($device, $filename, $ds, $options = '')
     return NULL;
   } else {
     $command = $config['rrdtool'] . " create $fsfilename $ds $step $options";
-    // FIXME not possible to run this through rrdtool() ?
+    return external_exec($command);
+  }
+}
+
+/**
+ * Generates an rrd database based on $type definition, using $options
+ * Only creates the file if it does not exist yet.
+ * Should most likely not be called on its own, as an update call will check for existence.
+ *
+ * @param array        device   Device array
+ * @param string/array type     rrd file type from $config['rrd_types'] or actual config array
+ * @param string       index    Index, if RRD type is indexed
+ * @param string       options  RRA options to pass (defaults to $config['rrd']['rra'])
+ */
+// TESTME needs unit testing
+function rrdtool_create_ng($device, $type, $index = NULL, $options = NULL)
+{
+  global $config;
+
+  if (!is_array($type)) // We were passed a string
+  {
+    if (!is_array($config['rrd_types'][$type])) // Check if definition exists
+    {
+      print_warning("Cannot create RRD for type $type - not found in definitions!");
+      return FALSE;
+    }
+
+    $definition = $config['rrd_types'][$type];
+  } else { // We were passed an array, use as-is
+    $definition = $type;
   }
 
-  return external_exec($command);
+  $filename = $definition['file'];
+
+  if (strstr($filename, '%index%') !== FALSE)
+  {
+    if ($index === NULL)
+    {
+      print_warning("Cannot create RRD for type $type - filename is indexed, but \$index is NULL!");
+      return FALSE;
+    } else {
+      $filename = str_replace('%index%', $index, $filename);
+    }
+  }
+
+  $fsfilename = get_rrd_path($device, $filename);
+
+  if (is_file($fsfilename))
+  {
+    print_debug("RRD $fsfilename already exists - no need to create.");
+    return FALSE; // Bail out if the file exists already
+  }
+
+  if ($options === NULL)
+  {
+    $options = preg_replace('/\s+/', ' ', $config['rrd']['rra']);
+  }
+
+  $step = '--step ' . $config['rrd']['step'];
+
+  // Create DS parameter based on the definition
+  $ds = array();
+
+  foreach ($definition['ds'] as $name => $def)
+  {
+    if (strlen($name) > 19) { print_warning("SEVERE: DS name $name is longer than 19 characters - over RRD limit!"); }
+
+    // Set defaults for missing attributes
+    if (!isset($def['type']))      { $def['type'] = 'COUNTER'; }
+    if (!isset($def['max']))       { $def['max'] = 'U'; }
+    if (!isset($def['min']))       { $def['min'] = 'U'; }
+    if (!isset($def['heartbeat'])) { $def['heartbeat'] = 2 * $config['rrd']['step']; }
+
+    // Create DS string to pass on the command line
+    $ds[] = "DS:$name:" . $def['type'] . ':' . $def['heartbeat'] . ':' . $def['min'] . ':' . $def['max'];
+  }
+
+  if ($config['norrd'])
+  {
+    print_message("[%rRRD Disabled - create $fsfilename%n]", 'color');
+    return NULL;
+  } else {
+    return rrdtool('create', $fsfilename, implode(' ', $ds) . " $step $options");
+  }
 }
 
 /**
  * Updates an rrd database at $filename using $options
  * Where $options is an array, each entry which is not a number is replaced with "U"
  *
+ * @param array        device  Device array
+ * @param string/array type    RRD file type from $config['rrd_types'] or actual config array
+ * @param array        ds      DS data (key/value)
+ * @param string       index   Index, if RRD type is indexed
+ * @param bool         create  Create RRD file if it does not exist
+ * @param string       options Options to pass to create function if file does not exist
+ */
+// TESTME needs unit testing
+function rrdtool_update_ng($device, $type, $ds, $index, $create = TRUE)
+{
+  global $config;
+
+  if (!is_array($type)) // We were passed a string
+  {
+    if (!is_array($config['rrd_types'][$type])) // Check if definition exists
+    {
+      print_warning("Cannot create RRD for type $type - not found in definitions!");
+      return FALSE;
+    }
+
+    $definition = $config['rrd_types'][$type];
+  } else { // We were passed an array, use as-is
+    $definition = $type;
+  }
+
+  $filename = $definition['file'];
+
+  if (strstr($filename, '%index%') !== FALSE)
+  {
+    if ($index === NULL)
+    {
+      print_warning("Cannot update RRD for type $type - filename is indexed, but \$index is NULL!");
+      return FALSE;
+    } else {
+      $filename = str_replace('%index%', $index, $filename);
+    }
+  }
+
+  $fsfilename = get_rrd_path($device, $filename);
+
+  // Create the file if missing, if we're allowed to create it
+  if ($create)
+  {
+    rrdtool_create_ng($device, $type, $index, $options);
+  }
+
+  $update = array('N');
+
+  foreach ($definition['ds'] as $name => $def)
+  {
+    if (isset($ds[$name]))
+    {
+      if (is_numeric($ds[$name]))
+      {
+        // Add data to DS update string
+        $update[] = $ds[$name];
+      } else {
+        // Data not numeric, mark unknown
+        $update[] = 'U';
+      }
+    } else {
+      // Data not sent, mark unknown
+      $update[] = 'U';
+    }
+  }
+
+  return rrdtool('update', $fsfilename, implode(':', $update));
+}
+
+/**
+ * Updates an rrd database at $filename using $options
+ * Where $options is an array, each entry which is not a number is replaced with "U"
+ * DEPRECATED: use rrdtool_update_ng(), this will disappear and ng will be renamed when conversion is complete.
+ *
  * @param array  device
  * @param string filename
  * @param array  options
  */
-// TESTME needs unit testing
 function rrdtool_update($device, $filename, $options)
 {
   // Do some sanitisation on the data if passed as an array.
@@ -400,21 +580,21 @@ function rrdtool_update($device, $filename, $options)
 // TESTME needs unit testing
 function rrdtool_fetch($filename, $options)
 {
-  return rrdtool("fetch", $filename, $options);
+  return rrdtool('fetch', $filename, $options);
 }
 
 // DOCME needs phpdoc block
 // TESTME needs unit testing
 function rrdtool_last($filename, $options)
 {
-  return rrdtool("last", $filename, $options);
+  return rrdtool('last', $filename, $options);
 }
 
 // DOCME needs phpdoc block
 // TESTME needs unit testing
 function rrdtool_lastupdate($filename, $options)
 {
-  return rrdtool("lastupdate", $filename, $options);
+  return rrdtool('lastupdate', $filename, $options);
 }
 
 // TESTME needs unit testing
@@ -430,14 +610,74 @@ function rrdtool_rename_ds($device, $filename, $oldname, $newname)
 {
   global $config;
 
+  $return = FALSE;
+  if ($config['norrd'])
+  {
+    print_message('[%gRRD Disabled%n] ');
+  } else {
+    $fsfilename = get_rrd_path($device, $filename);
+    if (is_file($fsfilename))
+    {
+      // this function used in discovery, where not exist rrd pipes
+      // FIXME shouldn't we fix that then? either pipes in discovery, or make the generic function aware of the lack of pipes?
+      //rrdtool("tune", $fsfilename, "--data-source-rename $oldname:$newname");
+      $command = $config['rrdtool'] . " tune $fsfilename --data-source-rename $oldname:$newname";
+      $return  = external_exec($command);
+      //print_vars($GLOBALS['exec_status']);
+      if ($GLOBALS['exec_status']['exitcode'] === 0)
+      {
+        print_debug("RRD DS renamed, file $fsfilename: '$oldname' -> '$newname'");
+      } else {
+        $return = FALSE;
+      }
+    }
+  }
+
+  return $return;
+}
+
+// TESTME needs unit testing
+/**
+ * Adds a DS to an RRD file
+ *
+ * @param array Device
+ * @param string Filename
+ * @param string New DS name
+ */
+function rrdtool_add_ds($device, $filename, $add)
+{
+  global $config;
+
+  $return = FALSE;
   if ($config['norrd'])
   {
     print_message("[%gRRD Disabled%n] ");
   } else {
     $fsfilename = get_rrd_path($device, $filename);
+    if (is_file($fsfilename))
+    {
+      // this function used in discovery, where not exist rrd pipes
+      //rrdtool("tune", $fsfilename, "--data-source-rename $oldname:$newname");
+      //$command = $config['rrdtool'] . " tune $fsfilename --data-source-rename $oldname:$newname";
+      // $return  = external_exec($command);
 
-    rrdtool("tune", $fsfilename, "--data-source-rename $oldname:$newname");
+      // FIXME -- in future do this via rrdtool tune -- requires 1.5, so not for old versions.
+
+      $fsfilename = get_rrd_path($device, $filename);
+
+      $return  = external_exec($config['install_dir'] . "/scripts/add_ds_to_rrd.pl ".dirname($fsfilename)." ".basename($fsfilename)." $add");
+
+      //print_vars($GLOBALS['exec_status']);
+      if ($GLOBALS['exec_status']['exitcode'] === 0)
+      {
+        print_debug("RRD DS added, file ".$fsfilename.": '".$add."'");
+      } else {
+        $return = FALSE;
+      }
+    }
   }
+
+  return $return;
 }
 
 // TESTME needs unit testing
@@ -454,7 +694,7 @@ function rrdtool_add_rra($device, $filename, $options)
 
   if ($config['norrd'])
   {
-    print_message("[%gRRD Disabled%n] ");
+    print_message('[%gRRD Disabled%n] ');
   } else {
     $fsfilename = get_rrd_path($device, $filename);
 
@@ -516,9 +756,11 @@ function rrd_strip_quotes($str)
 // TESTME needs unit testing
 function rrdtool_file_info($file)
 {
+  global $config;
+
   $info = array('filename'=>$file);
 
-  $rrd = array_filter(explode(PHP_EOL, external_exec($GLOBALS['config']['rrdtool'] . " info " . $file)), 'strlen');
+  $rrd = array_filter(explode(PHP_EOL, external_exec($config['rrdtool'] . ' info ' . $file)), 'strlen');
   if ($rrd)
   {
     foreach ($rrd as $s)

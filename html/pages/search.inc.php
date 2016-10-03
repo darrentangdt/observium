@@ -11,12 +11,14 @@
  *
  */
 
-$page_title[] = "Search";
+register_html_title("Search");
 
 $sections = array('ipv4' => 'IPv4 Address', 'ipv6' => 'IPv6 Address', 'mac' => 'MAC Address', 'arp' => 'ARP/NDP Tables', 'fdb' => 'FDB Tables');
 
 if (dbFetchCell("SELECT COUNT(wifi_session_id) FROM wifi_sessions") > '0')
-  $sections['dot1x'] = '.1x Sessions'; //Can be extended to include all dot1x sessions
+{
+  $sections['dot1x'] = '.1x Sessions'; // Can be extended to include all dot1x sessions
+}
 
 $navbar['brand'] = "Search";
 $navbar['class'] = "navbar-narrow";

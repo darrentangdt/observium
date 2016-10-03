@@ -47,10 +47,11 @@ if ($options['a'])
   $alert_assoc = cache_alert_assoc();
 
   $sql  = "SELECT * FROM `alert_table`";
-  $sql .= " LEFT JOIN `alert_table-state` ON `alert_table`.`alert_table_id` = `alert_table-state`.`alert_table_id`";
-  $sql .= " WHERE `alert_table`.`alert_table_id` = ?";
+  $sql .= " WHERE `alert_table_id` = ?";
 
   $entry = dbFetchRow($sql, array($options['a']));
+
+  //print_r($entry);
 
   alert_notifier($entry);
 

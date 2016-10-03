@@ -93,6 +93,7 @@ foreach (dbFetchRows("SELECT * FROM `hrDevice` WHERE `device_id` = ? ORDER BY `h
 echo("  </tbody>\n");
 echo("</table>\n");
 echo '</div>';
-$page_title[] = "Inventory";
+
+register_html_title("Inventory");
 
 // EOF

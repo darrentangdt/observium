@@ -11,10 +11,17 @@
  *
  */
 
+// Force rediscover os if os definition changed
+if (!isset($config['os'][$device['os']]))
+{
+  print_debug('OS name change detected, forced os rediscover.');
+  force_discovery($device, 'os');
+}
+
 // Cache hardware/version/serial info from ENTITY-MIB (if possible use inventory module data)
 if (is_device_mib($device, 'ENTITY-MIB') &&
     (in_array($device['os_group'], array('unix', 'cisco')) ||
-     in_array($device['os'], array('acme', 'nos', 'ibmnos', 'acsw', 'fabos', 'wlc', 'h3c', 'hh3c'))))
+     in_array($device['os'], array('acme', 'nos', 'ibmnos', 'acsw', 'fabos', 'wlc', 'h3c', 'hh3c', 'hpuww'))))
 {
   // Get entPhysical tables for some OS and OS groups
   if ($config['discovery_modules']['inventory'])
@@ -38,7 +45,7 @@ if (is_device_mib($device, 'ENTITY-MIB') &&
       default:
         $oids = 'entPhysicalDescr.1 entPhysicalSerialNum.1';
     }
-    $data = snmp_get_multi($device, $oids, '-OQUs', 'ENTITY-MIB', mib_dirs());
+    $data = snmp_get_multi($device, $oids, '-OQUs', 'ENTITY-MIB');
     $entPhysical = $data[1];
   }
 

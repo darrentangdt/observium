@@ -11,7 +11,8 @@
  *
  */
 
-$hardware = trim(snmp_get($device, ".1.3.6.1.4.1.17095.1.4.0", "-OQv", "", mib_dirs('akcp')),'"');
-$hardware .= ' ' . trim(snmp_get($device, ".1.3.6.1.4.1.17095.1.1.0", "-OQv", "", mib_dirs('akcp')),'" ');
+// FIXME OIDs
+$hardware = trim(snmp_get($device, '.1.3.6.1.4.1.17095.1.4.0', '-OQv', ''),'"');
+$hardware .= ' ' . trim(snmp_get($device, '.1.3.6.1.4.1.17095.1.1.0', '-OQv', ''),'" ');
 
 // EOF

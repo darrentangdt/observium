@@ -11,13 +11,11 @@
  *
  */
 
-echo(" HH3C-ENTITY-EXT-MIB ");
-
 $oids = array('h3cEntityExtStateTable', 'entPhysicalName');
 $entity_array = array();
 foreach ($oids as $oid)
 {
-  $entity_array = snmpwalk_cache_multi_oid($device, $oid, $entity_array, 'ENTITY-MIB:HH3C-ENTITY-EXT-MIB', mib_dirs('hh3c'));
+  $entity_array = snmpwalk_cache_multi_oid($device, $oid, $entity_array, 'ENTITY-MIB:HH3C-ENTITY-EXT-MIB');
 }
 
 foreach ($entity_array as $index => $entry)

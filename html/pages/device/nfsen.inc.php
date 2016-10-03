@@ -25,6 +25,6 @@ foreach ($datas as $name=>$type)
   include("includes/print-device-graph.php");
 }
 
-$page_title[] = "Netflow";
+register_html_title("Netflow");
 
 // EOF

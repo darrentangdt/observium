@@ -19,7 +19,7 @@ $netstat_tcp_array = dbFetchRows("SELECT `hostname` FROM `device_graphs`,`device
 
 if (count($netstat_tcp_array))
 {
-  echo ' Converting RRD ds type for tcpCurrEstab COUNTER->GAUGE: ';
+  echo 'Converting RRD ds type for tcpCurrEstab COUNTER->GAUGE: ';
   rrdtool_pipe_open($rrd_process, $rrd_pipes);
 
   foreach ($netstat_tcp_array as $entry)
@@ -31,7 +31,5 @@ if (count($netstat_tcp_array))
 
   rrdtool_pipe_close($rrd_process, $rrd_pipes);
 }
-
-echo(PHP_EOL);
 
 // EOF

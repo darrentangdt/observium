@@ -13,8 +13,6 @@
 
 // WWP-LEOS-CHASSIS-MIB::wwpLeosChassisTempSensorTable
 
-echo(" WWP-LEOS-CHASSIS-MIB ");
-
 $value  = snmp_get($device, ".1.3.6.1.4.1.6141.2.60.11.1.1.5.1.1.2.1", "-Oqv");
 $limits = array('limit_high' => snmp_get($device, ".1.3.6.1.4.1.6141.2.60.11.1.1.5.1.1.3.1", "-Oqv"),
                  'limit_low'  => snmp_get($device, ".1.3.6.1.4.1.6141.2.60.11.1.1.5.1.1.4.1", "-Oqv"));

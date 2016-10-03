@@ -89,6 +89,10 @@ if ($debug ) {
 else {
    ini_set('error_reporting', E_ERROR);
 }
+
+// Always preceded app identificator
+echo("<<<mysql>>>\n");
+
 ob_start(); # Catch all output such as notices of undefined array indexes.
 function error_handler($errno, $errstr, $errfile, $errline) {
    print("$errstr at $errfile line $errline\n");
@@ -129,7 +133,7 @@ if (!isset($called_by_script_server)) {
       ob_end_flush(); # In debugging mode, print out the errors.
    }
 
-   echo("<<<mysql>>>\n");
+   //echo("<<<mysql>>>\n");
 
    # Split the result up and extract only the desired parts of it.
    $options['items'] = "";

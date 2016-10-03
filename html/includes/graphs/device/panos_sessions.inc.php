@@ -24,6 +24,6 @@ $graph_max = 1;
 
 $unit_text = "Sessions";
 
-include("includes/graphs/generic_simplex.inc.php");
+include($config['html_dir']."/includes/graphs/generic_simplex.inc.php");
 
 ?>

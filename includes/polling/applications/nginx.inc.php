@@ -17,22 +17,23 @@ if (!empty($agent_data['app']['nginx']))
 
   $app_id = discover_app($device, 'nginx');
 
-  $rrd_filename = "app-nginx-$app_id.rrd";
-
-  echo(" nginx statistics".PHP_EOL);
+  echo(' nginx statistics'.PHP_EOL);
 
   list($active, $reading, $writing, $waiting, $req) = explode("\n", $nginx);
 
-  rrdtool_create($device, $rrd_filename, " \
-          DS:Requests:DERIVE:600:0:125000000000 \
-          DS:Active:GAUGE:600:0:125000000000 \
-          DS:Reading:GAUGE:600:0:125000000000 \
-          DS:Writing:GAUGE:600:0:125000000000 \
-          DS:Waiting:GAUGE:600:0:125000000000 ");
+  $data = array(
+    'Requests' => $req,
+    'Active'   => $active,
+    'Reading'  => $reading,
+    'Writing'  => $writing,
+    'Waiting'  => $waiting,
+  );
 
-  rrdtool_update($device, $rrd_filename, "N:$req:$active:$reading:$writing:$waiting");
+  rrdtool_update_ng($device, 'nginx', $data, $app_id);
 
-  unset($nginx,$rrd_filename,$active,$reading,$writing,$req);
+  update_application($app_id, $data);
+
+  unset($nginx,$active,$reading,$writing,$req);
 }
 
 // EOF

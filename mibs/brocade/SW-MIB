@@ -28,7 +28,7 @@ SW-MIB DEFINITIONS ::= BEGIN
 	  FROM FCMGMT-MIB;
 
   swMibModule MODULE-IDENTITY
-    LAST-UPDATED "201310041340Z" -- Oct 4,2013 01:40pm
+    LAST-UPDATED "201407011203Z" -- July 1, 2014 12:03pm
     ORGANIZATION "Brocade Communications Systems, Inc.,"
     CONTACT-INFO "Customer Support Group
 		  Brocade Communications Systems,
@@ -208,6 +208,20 @@ SW-MIB DEFINITIONS ::= BEGIN
 	DESCRIPTION "Added FEC Counters swConnUnitFECCorrectedCounter, swConnUnitFECUnCorrectedCounter"
 	REVISION	"201310041340Z" -- Oct 4, 2013 01:40pm
 	DESCRIPTION	"Added swZoneConfigChangeTrap"
+	REVISION	"201401161637Z" -- Jan 16, 2014 04:37pm
+	DESCRIPTION	"Added swBrcdBitObjVal in swSystem and swBrcdGenericTrap.
+				Added swVfId to swBrcdGenericTrap.
+				Included Routing Policy bit in swBrcdTrapBitMask"
+	REVISION	"201403041230Z" -- Mar 4, 2014 12:30pm
+	DESCRIPTION "Deprecated swTelnetShellAdmStatus"
+	REVISION "201403311730Z" -- Mar 31, 2014 17:30pm
+	DESCRIPTION "Added  D-Port in swBrcdTrapBitMask, swFCPortBrcdType, swFCPortPrevType"
+	REVISION	"201404151220Z" -- Apr 15, 2014 12:20pm
+	DESCRIPTION "Made obsolete for swTrackChangesInfo and swTrackChangesTrap"
+	REVISION "201405091113Z" -- May 9, 2014 11:13am
+	DESCRIPTION "Added Polling status field to swBrcdGenericTrap"
+	REVISION "201407011203Z" -- July 1, 2014 12:03pm
+	DESCRIPTION "Added swIODState in swSystem"
 	::=	{ bcsiModules 3 }
 	
     sw		    OBJECT-IDENTITY
@@ -445,7 +459,7 @@ SW-MIB DEFINITIONS ::= BEGIN
 				  terminated	(1)
 				}
 	MAX-ACCESS			read-write
-	STATUS			current
+	STATUS			deprecated
 	DESCRIPTION	"The desired administrative status of the Telnet
 		shell. By setting it to terminated(1), the current
 		Telnet shell task is deleted. When this variable instance
@@ -705,7 +719,7 @@ SW-MIB DEFINITIONS ::= BEGIN
   swTrackChangesInfo	OBJECT-TYPE
 	SYNTAX		DisplayString
 	MAX-ACCESS		read-only
-	STATUS		current
+	STATUS		obsolete
 	DESCRIPTION	"Track changes string. For trap only"
   ::= { swSystem 23 }
 
@@ -805,7 +819,8 @@ SW-MIB DEFINITIONS ::= BEGIN
                  0x01 - Fabric change event
                  0x02 - Device change event
 				 0x04 - Fapwwn change event
-				 0x08 - FDMI events."
+				 0x08 - FDMI events
+				 0x0A - Routing Policy change."
     ::= { swSystem 34 }
 
   swFCPortPrevType  OBJECT-TYPE
@@ -816,7 +831,8 @@ SW-MIB DEFINITIONS ::= BEGIN
 				f-port			(4),  -- fabric port
 				e-port			(5),  -- fabric expansion port
 				g-port			(6), -- generic fabric port
-				ex-port			(7)
+				ex-port			(7),
+				d-port          (8)   -- Diagnostic port
 			}
 	MAX-ACCESS  not-accessible 
 	STATUS      current
@@ -836,6 +852,25 @@ SW-MIB DEFINITIONS ::= BEGIN
 		The status will change whenever port/node goes to 
 		online/offline"
 	::= { swSystem 36 }
+
+	swBrcdBitObjVal OBJECT-TYPE
+		SYNTAX Integer32
+		MAX-ACCESS  not-accessible
+		STATUS      current
+		DESCRIPTION "It will have object value for each change mentioned in swBrcdGenericTrap. It will be
+				empty for the events which don't have any values."
+		::= { swSystem 37 }
+
+	swIODState OBJECT-TYPE
+		SYNTAX INTEGER {
+				enabled (1),
+				disabled (2),
+				unknown (3)
+			}
+		MAX-ACCESS read-only
+		STATUS   current
+		DESCRIPTION "This represents the in-order-delivery (IOD) feature state."
+		::= { swSystem 38 }
 
   --
   -- End of System Group
@@ -1224,8 +1259,8 @@ SW-MIB DEFINITIONS ::= BEGIN
 	SYNTAX		Integer32 (0..2147483647)
 	MAX-ACCESS		read-only
 	STATUS		current
-	DESCRIPTION	"The maximum number of of physical ports on the
-		switch. This will include ports of the protocol: FC, FCIP(GE ports), VE(FCIP)..."
+	DESCRIPTION	"The maximum number of physical FC ports on the
+		switch."
   ::= { swFCport 1 }
 
   swFCPortTable		OBJECT-TYPE
@@ -1707,7 +1742,8 @@ SW-MIB DEFINITIONS ::= BEGIN
 				f-port			(4),  -- fabric port
 				e-port			(5),  -- fabric expansion port
 				g-port			(6), -- generic fabric port
-				ex-port			(7)
+				ex-port			(7),
+				d-port          (8)   -- Diagnostic port
 			}
 		MAX-ACCESS  read-only
 		STATUS      current
@@ -4066,7 +4102,7 @@ swTopTalkerMntTable       OBJECT-TYPE
   swTrackChangesTrap	NOTIFICATION-TYPE
 	OBJECTS	{	swTrackChangesInfo, swSsn, swVfId
 					}
-	STATUS	current
+	STATUS	obsolete
 	DESCRIPTION	"trap to be sent for tracking login/logout/config changes."
 	--#TYPE		"Track changes has generated a trap"
 	--#SUMMARY	"%s and SSN is #%s"
@@ -4145,14 +4181,17 @@ swTopTalkerMntTable       OBJECT-TYPE
     ::= { swTrapsV2 13 }
 
   swBrcdGenericTrap NOTIFICATION-TYPE
-    OBJECTS { swBrcdTrapBitMask}
+    OBJECTS { swBrcdTrapBitMask, swBrcdBitObjVal, swVfId}
     STATUS current
     DESCRIPTION "This trap is sent when there is any one of the following 
                  event occured. 
 				 1. fabric change
 				 2. device change
 			     3. Fapwwn change
-				 4. fdmi event 
+				 4. fdmi event
+				 5. Routing Policy change
+				 6. Diagnostics Port Configuration Change
+				 7. Polling status
 				 This Trap is strictly for brocade's internal usage."
     ::= { swTrapsV2 14 }
 

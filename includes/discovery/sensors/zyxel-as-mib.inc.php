@@ -11,9 +11,7 @@
  *
  */
 
-echo(" ZYXEL-AS-MIB ");
-
-$oids = snmpwalk_cache_multi_oid($device, "accessSwitchSysTempTable", array(), "ZYXEL-AS-MIB", mib_dirs('zyxel'));
+$oids = snmpwalk_cache_multi_oid($device, "accessSwitchSysTempTable", array(), "ZYXEL-AS-MIB");
 
 foreach ($oids as $index => $entry)
 {
@@ -24,7 +22,7 @@ foreach ($oids as $index => $entry)
   discover_sensor($valid['sensor'], 'temperature', $device, $oid, $index, 'zyxel-ies', $descr, 1, $value, $limits);
 }
 
-$oids = snmpwalk_cache_multi_oid($device, "accessSwitchFanRpmTable", array(), "ZYXEL-AS-MIB", mib_dirs('zyxel'));
+$oids = snmpwalk_cache_multi_oid($device, "accessSwitchFanRpmTable", array(), "ZYXEL-AS-MIB");
 
 foreach ($oids as $index => $entry)
 {
@@ -35,7 +33,7 @@ foreach ($oids as $index => $entry)
   discover_sensor($valid['sensor'], 'fanspeed', $device, $oid, $index, 'zyxel-ies', $descr, 1, $value, $limits);
 }
 
-$oids = snmpwalk_cache_multi_oid($device, "accessSwitchVoltageTable", array(), "ZYXEL-AS-MIB", mib_dirs('zyxel'));
+$oids = snmpwalk_cache_multi_oid($device, "accessSwitchVoltageTable", array(), "ZYXEL-AS-MIB");
 
 foreach ($oids as $index => $entry)
 {

@@ -11,19 +11,34 @@
  *
  */
 
-// RFC1628 UPS-MIB
-echo(" UPS-MIB ");
-
 echo("Caching OIDs: ");
 $ups_array = array();
 echo("upsInput ");
-$ups_array = snmpwalk_cache_multi_oid($device, "upsInput", $ups_array, "UPS-MIB", mib_dirs());
+$ups_array = snmpwalk_cache_multi_oid($device, "upsInput", $ups_array, "UPS-MIB");
 echo("upsOutput ");
-$ups_array = snmpwalk_cache_multi_oid($device, "upsOutput", $ups_array, "UPS-MIB", mib_dirs());
+$ups_array = snmpwalk_cache_multi_oid($device, "upsOutput", $ups_array, "UPS-MIB");
 echo("upsBypass ");
-$ups_array = snmpwalk_cache_multi_oid($device, "upsBypass", $ups_array, "UPS-MIB", mib_dirs());
+$ups_array = snmpwalk_cache_multi_oid($device, "upsBypass", $ups_array, "UPS-MIB");
 
-$scale = 0.1;
+$scale         = 0.1;
+$scale_current = $scale;
+if ($device['os'] == 'poweralert')
+{
+  // For poweralert use "incorrect" scale, see: http://jira.observium.org/browse/OBSERVIUM-1432
+  // Fixed in firmware version 12.06.0068
+  if (!empty($device['version']))
+  {
+    $tl_version = $device['version'];
+  } else {
+    $tl_version = snmp_get($device, '.1.3.6.1.4.1.850.10.1.2.3.0', '-Ovq', 'TRIPPLITE-12X');
+  }
+  if (!version_compare($tl_version, '12.06.0068', '>='))
+  {
+    // incorrect
+    $scale_current = 1;
+  }
+}
+
 foreach (array_slice(array_keys($ups_array), 1) as $phase)
 {
   # Input
@@ -53,7 +68,7 @@ foreach (array_slice(array_keys($ups_array), 1) as $phase)
   if (isset($ups_array[$phase]['upsInputCurrent']))
   {
     $oid   = ".1.3.6.1.2.1.33.1.3.3.1.4.$index"; # UPS-MIB:upsInputCurrent.$index
-    discover_sensor($valid['sensor'], 'current', $device, $oid, "upsInputEntry.".$index, 'ups-mib', $descr, $scale, $ups_array[$phase]['upsInputCurrent']);
+    discover_sensor($valid['sensor'], 'current', $device, $oid, "upsInputEntry.".$index, 'ups-mib', $descr, $scale_current, $ups_array[$phase]['upsInputCurrent']);
   }
 
   ## Input power
@@ -82,7 +97,7 @@ foreach (array_slice(array_keys($ups_array), 1) as $phase)
   if (isset($ups_array[$phase]['upsOutputCurrent']))
   {
     $oid   = ".1.3.6.1.2.1.33.1.4.4.1.3.$index"; # UPS-MIB:upsOutputCurrent.$index
-    discover_sensor($valid['sensor'], 'current', $device, $oid, "upsOutputEntry.".$index, 'ups-mib', $descr, $scale, $ups_array[$phase]['upsOutputCurrent']);
+    discover_sensor($valid['sensor'], 'current', $device, $oid, "upsOutputEntry.".$index, 'ups-mib', $descr, $scale_current, $ups_array[$phase]['upsOutputCurrent']);
   }
 
   ## Output power
@@ -93,10 +108,11 @@ foreach (array_slice(array_keys($ups_array), 1) as $phase)
     discover_sensor($valid['sensor'], 'power', $device, $oid, "upsOutputEntry.".$index, 'ups-mib', $descr, 1, $ups_array[$phase]['upsOutputPower']);
   }
 
-  if (isset($ups_array[$phase]['upsOutputPower']))
+  if (isset($ups_array[$phase]['upsOutputPercentLoad']))
   {
     $oid   = ".1.3.6.1.2.1.33.1.4.4.1.5.$index"; # UPS-MIB:upsOutputPercentLoad.$index
-    discover_sensor($valid['sensor'], 'capacity', $device, $oid, "upsOutputPercentLoad.$index", 'ups-mib', $descr, 1, $ups_array[$phase]['upsOutputPower']);
+    rename_rrd($device, "sensor-capacity-ups-mib-upsOutputPercentLoad.${index}", "sensor-load-ups-mib-upsOutputPercentLoad.${index}");
+    discover_sensor($valid['sensor'], 'load', $device, $oid, "upsOutputPercentLoad.$index", 'ups-mib', $descr, 1, $ups_array[$phase]['upsOutputPercentLoad']);
   }
 
   # Bypass
@@ -116,7 +132,7 @@ foreach (array_slice(array_keys($ups_array), 1) as $phase)
     if (isset($ups_array[$phase]['upsBypassCurrent']))
     {
       $oid   = ".1.3.6.1.2.1.33.1.5.3.1.3.$index"; # UPS-MIB:upsBypassCurrent.$index
-      discover_sensor($valid['sensor'], 'current', $device, $oid, "upsBypassEntry.".$index, 'ups-mib', $descr, $scale, $ups_array[$phase]['upsBypassCurrent']);
+      discover_sensor($valid['sensor'], 'current', $device, $oid, "upsBypassEntry.".$index, 'ups-mib', $descr, $scale_current, $ups_array[$phase]['upsBypassCurrent']);
     }
 
     ## Bypass power
@@ -137,7 +153,7 @@ if (isset($ups_array[0]['upsOutputSource']))
   discover_status($device, $oid, "upsOutputSource.0", 'ups-mib-output-state', $descr, $value, array('entPhysicalClass' => 'other'));
 }
 
-$ups_array = snmpwalk_cache_multi_oid($device, "upsBattery", array(), "UPS-MIB", mib_dirs());
+$ups_array = snmpwalk_cache_multi_oid($device, "upsBattery", array(), "UPS-MIB");
 
 if (isset($ups_array[0]['upsBatteryTemperature']) && $ups_array[0]['upsBatteryTemperature'] != 0) // Battery won't be freezing, 0 means no sensor.
 {
@@ -150,7 +166,7 @@ if (isset($ups_array[0]['upsBatteryCurrent']))
 {
   $oid = ".1.3.6.1.2.1.33.1.2.6.0"; # UPS-MIB:upsBatteryCurrent.0
 
-  discover_sensor($valid['sensor'], 'current', $device, $oid, "upsBatteryCurrent", 'ups-mib', "Battery", $scale, $ups_array[0]['upsBatteryCurrent']);
+  discover_sensor($valid['sensor'], 'current', $device, $oid, "upsBatteryCurrent", 'ups-mib', "Battery", $scale_current, $ups_array[0]['upsBatteryCurrent']);
 }
 
 if (isset($ups_array[0]['upsBatteryVoltage']))
@@ -173,7 +189,7 @@ if (isset($ups_array[0]['upsEstimatedMinutesRemaining']))
 {
   $descr  = "Battery Runtime Remaining";
   $oid    = ".1.3.6.1.2.1.33.1.2.3.0";
-  $limits = array('limit_low' => snmp_get($device, "upsConfigLowBattTime.0", "-Oqv", "UPS-MIB", mib_dirs(), mib_dirs()));
+  $limits = array('limit_low' => snmp_get($device, "upsConfigLowBattTime.0", "-Oqv", "UPS-MIB"));
   $value  = $ups_array[0]['upsEstimatedMinutesRemaining'];
 
   // FIXME, why mge? seems as copy-paste
@@ -211,7 +227,7 @@ if (is_numeric($value))
 //UPS-MIB::upsTestResultsDetail.0 = STRING: No test initiated.
 //UPS-MIB::upsTestStartTime.0 = Timeticks: (0) 0:00:00.00
 //UPS-MIB::upsTestElapsedTime.0 = INTEGER: 0
-$ups_array = snmpwalk_cache_multi_oid($device, "upsTest", array(), "UPS-MIB", mib_dirs());
+$ups_array = snmpwalk_cache_multi_oid($device, "upsTest", array(), "UPS-MIB");
 if (isset($ups_array[0]['upsTestResultsSummary']) && $ups_array[0]['upsTestResultsSummary'] != 'noTestsInitiated')
 {
   $descr = "Diagnostics Results";
@@ -220,7 +236,7 @@ if (isset($ups_array[0]['upsTestResultsSummary']) && $ups_array[0]['upsTestResul
   $test_starttime = timeticks_to_sec($ups_array[0]['upsTestStartTime']);
   if ($test_starttime)
   {
-    $test_sysUpime = timeticks_to_sec(snmp_get($device, "sysUpTime.0", "-OQUs", "SNMPv2-MIB", mib_dirs()));
+    $test_sysUpime = timeticks_to_sec(snmp_get($device, "sysUpTime.0", "-OQUs", "SNMPv2-MIB"));
     if ($test_sysUpime)
     {
       $test_starttime = time() + $test_starttime - $test_sysUpime; // Unixtime of start test

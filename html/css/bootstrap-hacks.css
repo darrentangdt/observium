@@ -1,8 +1,8 @@
 body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-image: url('/images/subtle_grunge.png');
-    background-image: url('/images/lightbg2.png');
+    /** background-image: url('/images/subtle_grunge.png'); */
+    /** background-image: url('/images/lightbg2.png'); */
 }
 
 @media (-webkit-min-device-pixel-ratio: 2), 
@@ -117,7 +117,7 @@ legend, h1, h2, h3 {
 h2 {
   font-size: 21px;
   line-height: 40px;
-  //border-bottom: 1px solid #e5e5e5;
+  /*border-bottom: 1px solid #e5e5e5*/;
   margin-bottom: 10px;
 }
 
@@ -135,6 +135,7 @@ select[disabled]{cursor:default;}
     display: -ms-flexbox;
     display: -webkit-flex;
     display: flex;
+    /* align-items: center; */
 }
 .dropdown-menu a[role="menuitem"] span:first-child {
     -webkit-box-flex: 1;
@@ -148,6 +149,19 @@ select[disabled]{cursor:default;}
 .dropdown-menu a[role="menuitem"]:first-child:nth-last-child(2) .label,
 .dropdown-menu a[role="menuitem"]:first-child:nth-last-child(2) .badge {
     margin-right: 5px;
+}
+/* Fix vertical align */
+.dropdown-menu a[role="menuitem"] .label,
+.dropdown-menu a[role="menuitem"] .badge {
+    margin: auto;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+/* Fix label size inside some tables */
+td .label,
+td .badge {
+  line-height: 1.26;
 }
 
 @font-face{
@@ -175,7 +189,8 @@ select[disabled]{cursor:default;}
 }
 
 
-i.menu-icon {
+i.menu-icon,
+.dropdown-menu [class^="oicon-"], .dropdown-menu[class*=" oicon-"] {
     margin-right: 5px;
     margin-top: 1px;
 }
@@ -189,6 +204,7 @@ i.menu-icon {
 .box-header [class*=" oicon-"], 
 .box-header [class^="oicon-"] {
   margin-right: 5px;
+  margin-top: 0px;
 }
 
 .navbar-narrow [class^="oicon-"] {
@@ -237,9 +253,14 @@ i.menu-icon {
   box-shadow: none;
 }
 
-.box.box-solid > .box-header > .box-tools .btn {
-    margin-top: -1px;
-    background-color: #eee;
+.box.box-solid > .box-header > .box-tools .btn
+{
+  padding: 3px 10px;
+  margin-top: -1px;
+  background-color: #e5e5e5;
+  margin-right: -5px;
+  margin-left: 10px;
+  border-radius: 3px;
 }
 
 .btn-box-tool
@@ -255,17 +276,30 @@ i.menu-icon {
     margin-top: -4px;
 }
 
+/* Narrow divider inside bootstrap select optgroup */
+.bootstrap-select ul.inner > li.divider {
+    margin: 2px 1px;
+}
+
 /* Remove hover line under links */
 a [class^="icon-"],
 a [class*=" icon-"] {
   text-decoration: none;
 }
 
+
+
 /* http://stackoverflow.com/questions/20547819/vertical-align-with-bootstrap-3 */
-.vertical-align {
-  display: inline-block;
+.table tr.vertical-align td,
+.table.vertical-align td {
+  /*display: table-cell;*/
   vertical-align: middle;
-  float: none;
+}
+
+.vertical-align {
+  /*display: inline-block;*/
+  vertical-align: middle !important;
+  /*float: none;*/
 /*  display: flex;
   flex-direction: row;*/
 }
@@ -276,3 +310,175 @@ a [class*=" icon-"] {
   align-items: center;     /* Align the flex-items vertically */
   justify-content: center; /* Optional, to align inner flex-items horizontally within the column  */
 }
+
+.editing-only
+{
+  display: none;
+}
+
+/* FIXME, Not sure why empty elements here?
+.viewing-only
+{
+}
+
+.box-body .table tr:first-child td
+{
+  //border-top: none;
+}
+*/
+
+label {
+    display: inline-block;
+    max-width: 100%;
+    margin-bottom: 5px;
+    font-weight: 700;
+}
+
+/* Fixed in forms.less
+select, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input {
+    padding: 4px 10px;
+}
+*/
+
+button [class^="oicon-"], button [class*=" oicon-"], .dropdown-menu [class^="oicon-"], .dropdown-menu [class*=" oicon-"] {
+  margin-top: 1px;
+  margin-right: 5px;
+}
+
+button [class^="icon-"], button [class*=" icon-"] {
+  margin-right: 3px;
+}
+
+
+button.btn.dropdown-toggle.bs-placeholder.box {
+  border-radius: 0px;
+}
+
+/** Dyngraph **/
+
+.dygraph-axis-label  { font-size: 10px; font-weight: bold; }
+.dygraph-title  { font-size: 36px; }
+.dygraph-ylabel { font-size: 18px; }
+
+.chart { border: 1px dashed black; margin: 5px 5px 5px 50px; padding: 2px; }
+
+.c3 svg g g.c3-axis.c3-axis-x,
+.c3 svg g g.c3-axis.c3-axis-y,
+.c3-text {
+  font: 12px sans-serif;
+  font-weight: bold;
+  color: #555;
+}
+
+.c3-bar {
+  -moz-box-shadow: -5px -5px 5px #888;
+  -webkit-box-shadow: -5px -5px 5px #888;
+  box-shadow: -5px -5px 5px #888;
+}
+
+/** Donut **/
+
+.outer-circle,
+.inner-circle {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.outer-circle {
+  top: 3%;
+  left: 3%;
+  right: 3%;
+  bottom: 3%;
+  background-color: #fff;
+  box-shadow: inset 0 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+.inner-circle {
+  top: 25%;
+  left: 25%;
+  right: 25%;
+  bottom: 25%;
+  background-color: #f5f7fa;
+  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+.inner-circle-label,
+.inner-circle-value {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  display: block;
+  text-align: center;
+}
+
+.inner-circle-label {
+  font-size: 20px;
+  line-height: 1;
+  margin-top: -25px;
+  color: #656d78;
+}
+
+.inner-circle-value {
+  font-size: 24px;
+  line-height: 1;
+  font-weight: bold;
+  margin-top: -0px;
+  color: #656d78;
+}
+
+.wedge-container,
+.wedge,
+.wedge-extension,
+.wedge-label {
+  position: absolute;
+  border-radius: 50%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: all 0.4s linear;
+}
+
+.wedge,
+.wedge-extension {
+  box-shadow: inset 0 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+.wedge-value {
+  display: block;
+  position: absolute;
+  top: 6%;
+  left: 50%;
+  width: 30px;
+  margin-left: -15px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.wedge-extension {
+  z-index: 100;
+}
+
+.wedge {
+  z-index: 200;
+}
+
+.wedge-label {
+  z-index: 300;
+}
+
+.donut-chart {
+  position: relative;
+  overflow: hidden;
+  width: 175px;
+  height: 175px;
+  border-radius: 50%;
+  margin: auto;
+  background-color: #f5f7fa;
+  // background-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.24);
+}
+

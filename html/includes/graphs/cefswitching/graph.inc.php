@@ -32,7 +32,7 @@ if (is_file($rrd_filename))
   $nototal   = 1;
   $unit_text = "Errors";
 
-  include("includes/graphs/generic_multi_simplex_separated.inc.php");
+  include($config['html_dir']."/includes/graphs/generic_multi_simplex_separated.inc.php");
 } else {
   graph_error($type.'_'.$subtype); // Graph Template Missing;
 }

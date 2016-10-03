@@ -9,19 +9,20 @@ IMPORTS
     Unsigned32,
     MODULE-IDENTITY, OBJECT-TYPE, IpAddress                 FROM SNMPv2-SMI
     DisplayString, RowStatus, TruthValue,
-    TEXTUAL-CONVENTION                                      FROM SNMPv2-TC;
+    TEXTUAL-CONVENTION                                      FROM SNMPv2-TC
+    VlanList1, VlanList2, VlanList3, VlanList4              FROM CISCOSB-BRIDGEMIBOBJECTS-MIB;
 
 rsTunning  MODULE-IDENTITY
            LAST-UPDATED "200602120000Z"
-           ORGANIZATION "Cisco Small Business"
+           ORGANIZATION "Cisco Systems, Inc."
 
            CONTACT-INFO
            "Postal: 170 West Tasman Drive
            San Jose , CA 95134-1706
            USA
 
-           Website: Cisco Small Business Home http://www.cisco.com/smb>;,
-           Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
+           
+           Website:  Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
 
            DESCRIPTION
                 "The private MIB module definition for switch001 device tuning MIB."
@@ -948,7 +949,7 @@ rsMaxTraceRouteControlEntries OBJECT-TYPE
         "The maximum number of trace route control entries."
     ::= { rsMaxTraceRouteTuning  1 }
 
-rsMaxTraceRouteControEntriesAfterReset OBJECT-TYPE
+rsMaxTraceRouteControlEntriesAfterReset OBJECT-TYPE
     SYNTAX      INTEGER
     MAX-ACCESS  read-write
     STATUS      current
@@ -1220,6 +1221,26 @@ rsMaxIpv6GlobalAddressesAfterReset OBJECT-TYPE
     DESCRIPTION
       "FutureMaximal global number of IPV6 addresses. "
     ::=  { rsMaxIpv6FftEntriesTuning 12 }
+
+rsMaxArpTunnelStartEntries OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+      "Maximal global number of tunnel start and ARP entries.
+       Tunnel start refer to tunnel remote station"
+    ::=  { rsMaxIpv6FftEntriesTuning 13 }
+
+rsMaxArpTunnelStartEntriesAfterReset OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      "FutureMaximal global number of tunnel start and ARP entries.
+       Tunnel start refer to tunnel remote station"
+    ::=  { rsMaxIpv6FftEntriesTuning 14 }
+
+
 
 rsMaxIpv6InterfaceTuning OBJECT IDENTIFIER ::= { rsMaxEntriesTuning 27}
 
@@ -1849,35 +1870,136 @@ rlVlanDefaultVIDAfterReset OBJECT-TYPE
       "The default vlan vid after rest"
     ::= { rlVlanTuning 2 }
 
-rlUnauthMACsInnerVID OBJECT-TYPE
-    SYNTAX      INTEGER
-    MAX-ACCESS  read-only
+rlVlanUsageForbiddenListTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF RlVlanUsageForbiddenListEntry
+    MAX-ACCESS  not-accessible
     STATUS      current
-    DESCRIPTION
-      "The unauthorized MACs inner vlan vid."
+    DESCRIPTION "The list of vlan IDs that forbidden for internal usage."
     ::= { rlVlanTuning 3 }
-rlUnauthMACsInnerVIDAfterReset OBJECT-TYPE
-    SYNTAX      INTEGER
-    MAX-ACCESS  read-write
-    STATUS      current
-    DESCRIPTION
-      "The unauthorized MACs inner vlan vid after rest"
-    ::= { rlVlanTuning 4 }
-rlTunnnelSpecialVID OBJECT-TYPE
-    SYNTAX      INTEGER
-    MAX-ACCESS  read-only
-    STATUS      current
-    DESCRIPTION
-      "The default special tunnel vlan vid."
-    ::= { rlVlanTuning 5 }
 
-rlTunnnelSpecialVIDAfterReset OBJECT-TYPE
-    SYNTAX      INTEGER
-    MAX-ACCESS  read-write
+rlVlanUsageForbiddenListEntry OBJECT-TYPE
+    SYNTAX      RlVlanUsageForbiddenListEntry
+    MAX-ACCESS  not-accessible
     STATUS      current
-    DESCRIPTION
-      "The default special tunnel vlan vid after reset."
-    ::= { rlVlanTuning 6 }
+    DESCRIPTION "Statical created by local or network management VLAN list"
+    INDEX   {rlVlanUsageForbiddenListIndex}
+    ::= { rlVlanUsageForbiddenListTable 1 }
+
+RlVlanUsageForbiddenListEntry ::=SEQUENCE {
+    rlVlanUsageForbiddenListIndex            INTEGER,
+    rlVlanUsageForbiddenList1to1024          VlanList1,
+    rlVlanUsageForbiddenList1025to2048       VlanList2,
+    rlVlanUsageForbiddenList2049to3072       VlanList3,
+    rlVlanUsageForbiddenList3073to4094       VlanList4
+
+}
+
+rlVlanUsageForbiddenListIndex  OBJECT-TYPE
+   SYNTAX      INTEGER
+   MAX-ACCESS  read-only
+   STATUS      current
+   DESCRIPTION "An index is entrie's sequence."
+   DEFVAL{0}
+   ::= { rlVlanUsageForbiddenListEntry 1}
+
+rlVlanUsageForbiddenList1to1024 OBJECT-TYPE
+   SYNTAX      VlanList1
+   MAX-ACCESS  read-only
+   STATUS      current
+   DESCRIPTION "A list of staticaly created vlans from 1 to 1024."
+   DEFVAL {'00'H}
+   ::= { rlVlanUsageForbiddenListEntry 2}
+
+rlVlanUsageForbiddenList1025to2048 OBJECT-TYPE
+   SYNTAX      VlanList2
+   MAX-ACCESS  read-only
+   STATUS      current
+   DESCRIPTION "A list of according to the type field created vlans from 1025 to 2048."
+   DEFVAL {'00'H}
+   ::= { rlVlanUsageForbiddenListEntry 3}
+
+rlVlanUsageForbiddenList2049to3072 OBJECT-TYPE
+   SYNTAX      VlanList3
+   MAX-ACCESS  read-only
+   STATUS      current
+   DESCRIPTION "A list of according to the type field created vlans from 2049 to 3072."
+   DEFVAL {'00'H}
+   ::= { rlVlanUsageForbiddenListEntry 4}
+
+rlVlanUsageForbiddenList3073to4094 OBJECT-TYPE
+   SYNTAX      VlanList4
+   MAX-ACCESS  read-only
+   STATUS      current
+   DESCRIPTION "A list of according to the type field created vlans from 3073 to 4094."
+   DEFVAL {'00'H}
+   ::= { rlVlanUsageForbiddenListEntry 5}
+
+
+rlVlanUsageForbiddenListAfterResetTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF RlVlanUsageForbiddenListAfterResetEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "The list of vlan IDs that forbidden for internal usage.
+                 The configuration applied after the system reset."
+    ::= { rlVlanTuning 4 }
+
+rlVlanUsageForbiddenListAfterResetEntry  OBJECT-TYPE
+    SYNTAX      RlVlanUsageForbiddenListAfterResetEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Staticly created by local or network management vlan list"
+    INDEX   {rlVlanUsageForbiddenListAfterResetIndex}
+    ::= { rlVlanUsageForbiddenListAfterResetTable 1 }
+
+RlVlanUsageForbiddenListAfterResetEntry ::=SEQUENCE {
+    rlVlanUsageForbiddenListAfterResetIndex            INTEGER,
+    rlVlanUsageForbiddenListAfterReset1to1024          VlanList1,
+    rlVlanUsageForbiddenListAfterReset1025to2048       VlanList2,
+    rlVlanUsageForbiddenListAfterReset2049to3072       VlanList3,
+    rlVlanUsageForbiddenListAfterReset3073to4094       VlanList4
+
+}
+
+rlVlanUsageForbiddenListAfterResetIndex  OBJECT-TYPE
+   SYNTAX      INTEGER
+   MAX-ACCESS  read-write
+   STATUS      current
+   DESCRIPTION "An index is entrie's sequence."
+   DEFVAL{0}
+   ::= { rlVlanUsageForbiddenListAfterResetEntry 1}
+
+rlVlanUsageForbiddenListAfterReset1to1024 OBJECT-TYPE
+   SYNTAX      VlanList1
+   MAX-ACCESS  read-write
+   STATUS      current
+   DESCRIPTION "A list of staticaly created vlans from 1 to 1024."
+   DEFVAL {'00'H}
+   ::= { rlVlanUsageForbiddenListAfterResetEntry 2}
+
+rlVlanUsageForbiddenListAfterReset1025to2048 OBJECT-TYPE
+   SYNTAX      VlanList2
+   MAX-ACCESS  read-write
+   STATUS      current
+   DESCRIPTION "A list of according to the type field created vlans from 1025 to 2048."
+   DEFVAL {'00'H}
+   ::= { rlVlanUsageForbiddenListAfterResetEntry 3}
+
+rlVlanUsageForbiddenListAfterReset2049to3072 OBJECT-TYPE
+   SYNTAX      VlanList3
+   MAX-ACCESS  read-write
+   STATUS      current
+   DESCRIPTION "A list of according to the type field created vlans from 2049 to 3072."
+   DEFVAL {'00'H}
+   ::= { rlVlanUsageForbiddenListAfterResetEntry 4}
+
+rlVlanUsageForbiddenListAfterReset3073to4094 OBJECT-TYPE
+   SYNTAX      VlanList4
+   MAX-ACCESS  read-write
+   STATUS      current
+   DESCRIPTION "A list of according to the type field created vlans from 3073 to 4094."
+   DEFVAL {'00'H}
+   ::= { rlVlanUsageForbiddenListAfterResetEntry 5}
+
 
 rlDependendFeaturesEnableTuning OBJECT IDENTIFIER ::= { rsTunning 23 }
 rlDependendFeaturesEnabled OBJECT-TYPE

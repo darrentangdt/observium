@@ -15,6 +15,8 @@ if (!empty($agent_data['app']['zimbra']))
 {
   $app_id = discover_app($device, 'zimbra');
 
+  update_application($app_id, array());
+
   foreach ($agent_data['app']['zimbra'] as $key => $value)
   {
     # key is "vm", "mysql" etc, value is the csv output
@@ -27,20 +29,7 @@ if (!empty($agent_data['app']['zimbra']))
     timestamp, KBytes, requests
     04/23/2013 18:19:30, 0, 0
     */
-
-    $rrd_filename = "app-zimbra-mtaqueue.rrd";
-    unset($rrd_values);
-
-    foreach (array('KBytes','requests') as $key)
-    {
-      $rrd_values[] = (is_numeric($zimbra['mtaqueue'][0][$key]) ? $zimbra['mtaqueue'][0][$key] : "U");
-    }
-
-    rrdtool_create($device, $rrd_filename, " \
-        DS:kBytes:GAUGE:600:0:125000000000 \
-        DS:requests:GAUGE:600:0:125000000000 ");
-
-    rrdtool_update($device, $rrd_filename, "N:" . implode(':', $rrd_values));
+    rrdtool_update_ng($device, 'zimbra-mtaqueue', array('kBytes' => $zimbra['mtaqueue'][0]['KBytes'], 'requests' => $zimbra['mtaqueue'][0]['requests']));
   }
 
   if (is_array($zimbra['fd']))
@@ -50,19 +39,7 @@ if (!empty($agent_data['app']['zimbra']))
     04/23/2013 18:40:53, 5216, 1451
     */
 
-    $rrd_filename = "app-zimbra-fd.rrd";
-    unset($rrd_values);
-
-    foreach (array('fd_count','mailboxd_fd_count') as $key)
-    {
-      $rrd_values[] = (is_numeric($zimbra['fd'][0][$key]) ? $zimbra['fd'][0][$key] : "U");
-    }
-
-    rrdtool_create($device, $rrd_filename, " \
-        DS:fdSystem:GAUGE:600:0:125000000000 \
-        DS:fdMailboxd:GAUGE:600:0:125000000000 ");
-
-    rrdtool_update($device, $rrd_filename, "N:" . implode(':', $rrd_values));
+    rrdtool_update_ng($device, 'zimbra-fd', array('fdSystem' => $zimbra['mtaqueue'][0]['fd_count'], 'fdMailboxd' => $zimbra['mtaqueue'][0]['mailboxd_fd_count']));
   }
 
   if (is_array($zimbra['threads']))
@@ -72,34 +49,24 @@ if (!empty($agent_data['app']['zimbra']))
     04/23/2013 01:03:10,0,0,0,6,1,3,0,1,2,0,3,2,0,0,72,90
     */
 
-    $rrd_filename = "app-zimbra-threads.rrd";
-    unset($rrd_values);
-
-    foreach (array('AnonymousIoService','CloudRoutingReaderThread','GC','ImapSSLServer','ImapServer','LmtpServer','Pop3SSLServer','Pop3Server','ScheduledTask',
-      'SocketAcceptor','Thread','Timer','btpool','pool','other','total') as $key)
-    {
-      $rrd_values[] = (is_numeric($zimbra['threads'][0][$key]) ? $zimbra['threads'][0][$key] : "U");
-    }
-
-    rrdtool_create($device, $rrd_filename, " \
-        DS:AnonymousIoService:GAUGE:600:0:10000 \
-        DS:CloudRoutingReader:GAUGE:600:0:10000 \
-        DS:GC:GAUGE:600:0:10000 \
-        DS:ImapSSLServer:GAUGE:600:0:10000 \
-        DS:ImapServer:GAUGE:600:0:10000 \
-        DS:LmtpServer:GAUGE:600:0:10000 \
-        DS:Pop3SSLServer:GAUGE:600:0:10000 \
-        DS:Pop3Server:GAUGE:600:0:10000 \
-        DS:ScheduledTask:GAUGE:600:0:10000 \
-        DS:SocketAcceptor:GAUGE:600:0:10000 \
-        DS:Thread:GAUGE:600:0:10000 \
-        DS:Timer:GAUGE:600:0:10000 \
-        DS:btpool:GAUGE:600:0:10000 \
-        DS:pool:GAUGE:600:0:10000 \
-        DS:other:GAUGE:600:0:10000 \
-        DS:total:GAUGE:600:0:10000 ");
-
-    rrdtool_update($device, $rrd_filename, "N:" . implode(':', $rrd_values));
+    rrdtool_update_ng($device, 'zimbra-threads', array(
+      'AnonymousIoService' => $zimbra['threads'][0]['AnonymousIoService'],
+      'CloudRoutingReader' => $zimbra['threads'][0]['CloudRoutingReaderThread'],
+      'GC'                 => $zimbra['threads'][0]['GC'],
+      'ImapSSLServer'      => $zimbra['threads'][0]['ImapSSLServer'],
+      'ImapServer'         => $zimbra['threads'][0]['ImapServer'],
+      'LmtpServer'         => $zimbra['threads'][0]['LmtpServer'],
+      'Pop3SSLServer'      => $zimbra['threads'][0]['Pop3SSLServer'],
+      'Pop3Server'         => $zimbra['threads'][0]['Pop3Server'],
+      'ScheduledTask'      => $zimbra['threads'][0]['ScheduledTask'],
+      'SocketAcceptor'     => $zimbra['threads'][0]['SocketAcceptor'],
+      'Thread'             => $zimbra['threads'][0]['Thread'],
+      'Timer'              => $zimbra['threads'][0]['Timer'],
+      'btpool'             => $zimbra['threads'][0]['btpool'],
+      'pool'               => $zimbra['threads'][0]['pool'],
+      'other'              => $zimbra['threads'][0]['other'],
+      'total'              => $zimbra['threads'][0]['total'],
+    ));
   }
 
   if (is_array($zimbra['mailboxd']))
@@ -108,8 +75,6 @@ if (!empty($agent_data['app']['zimbra']))
     timestamp,lmtp_rcvd_msgs,lmtp_rcvd_bytes,lmtp_rcvd_rcpt,lmtp_dlvd_msgs,lmtp_dlvd_bytes,db_conn_count,db_conn_ms_avg,ldap_dc_count,ldap_dc_ms_avg,mbox_add_msg_count,mbox_add_msg_ms_avg,mbox_get_count,mbox_get_ms_avg,mbox_cache,mbox_msg_cache,mbox_item_cache,soap_count,soap_ms_avg,imap_count,imap_ms_avg,pop_count,pop_ms_avg,idx_wrt_avg,idx_wrt_opened,idx_wrt_opened_cache_hit,calcache_hit,calcache_mem_hit,calcache_lru_size,idx_bytes_written,idx_bytes_written_avg,idx_bytes_read,idx_bytes_read_avg,bis_read,bis_seek_rate,db_pool_size,innodb_bp_hit_rate,lmtp_conn,lmtp_threads,pop_conn,pop_threads,pop_ssl_conn,pop_ssl_threads,imap_conn,imap_threads,imap_ssl_conn,imap_ssl_threads,http_idle_threads,http_threads,soap_sessions,mbox_cache_size,msg_cache_size,fd_cache_size,fd_cache_hit_rate,acl_cache_hit_rate,account_cache_size,account_cache_hit_rate,cos_cache_size,cos_cache_hit_rate,domain_cache_size,domain_cache_hit_rate,server_cache_size,server_cache_hit_rate,ucservice_cache_size,ucservice_cache_hit_rate,zimlet_cache_size,zimlet_cache_hit_rate,group_cache_size,group_cache_hit_rate,xmpp_cache_size,xmpp_cache_hit_rate,gc_parnew_count,gc_parnew_ms,gc_concurrentmarksweep_count,gc_concurrentmarksweep_ms,gc_minor_count,gc_minor_ms,gc_major_count,gc_major_ms,mpool_code_cache_used,mpool_code_cache_free,mpool_par_eden_space_used,mpool_par_eden_space_free,mpool_par_survivor_space_used,mpool_par_survivor_space_free,mpool_cms_old_gen_used,mpool_cms_old_gen_free,mpool_cms_perm_gen_used,mpool_cms_perm_gen_free,heap_used,heap_free
     04/24/2013 00:23:23,1,6506,1,1,6506,81,0.32098765432098764,1,0.0,1,36.0,84,0.0,100.0,50.0,34.59119496855346,0,0.0,138,10.405797101449275,0,0.0,0.0,0,0,0.0,0.0,0.0,0,0.0,0,0.0,1,0.0,0,1000,0,1,0,1,0,0,1,1,24,3,2,18,2,132,2000,1000,96.99490867673337,99.73302998524733,133,99.78571547607365,1,99.02449324324324,7,99.24445818173449,1,99.99996904482866,0,0.0,28,57.52625437572929,31,67.36491311592478,0,0.0,29250,487518,1382,103802,29250,487518,1382,103802,26258688,480000,83049792,24429248,13369344,0,216226736,186426448,125015776,9201952,312645872,210855696
     */
-
-    print_r($zimbra['mailboxd']);
 
     foreach (array_keys($zimbra['mailboxd'][0]) as $key)
     {
@@ -146,116 +111,98 @@ if (!empty($agent_data['app']['zimbra']))
       }
     }
 
-    $rrd_filename = "app-zimbra-mailboxd.rrd";
-    unset($rrd_values);
-
-    foreach (array('lmtp_rcvd_msgs','lmtp_rcvd_bytes','lmtp_rcvd_rcpt','lmtp_dlvd_msgs','lmtp_dlvd_bytes','db_conn_count','db_conn_ms_avg','ldap_dc_count','ldap_dc_ms_avg','mbox_add_msg_count',
-      'mbox_add_msg_ms_avg','mbox_get_count','mbox_get_ms_avg','mbox_cache','mbox_msg_cache','mbox_item_cache','soap_count','soap_ms_avg','imap_count','imap_ms_avg','pop_count','pop_ms_avg',
-      'idx_wrt_avg','idx_wrt_opened','idx_wrt_opened_cache_hit','calcache_hit','calcache_mem_hit','calcache_lru_size','idx_bytes_written','idx_bytes_written_avg','idx_bytes_read','idx_bytes_read_avg',
-      'bis_read','bis_seek_rate','db_pool_size','innodb_bp_hit_rate','lmtp_conn','lmtp_threads','pop_conn','pop_threads','pop_ssl_conn','pop_ssl_threads','imap_conn','imap_threads','imap_ssl_conn',
-      'imap_ssl_threads','http_idle_threads','http_threads','soap_sessions','mbox_cache_size','msg_cache_size','fd_cache_size','fd_cache_hit_rate','acl_cache_hit_rate','account_cache_size',
-      'account_cache_hit_rate','cos_cache_size','cos_cache_hit_rate','domain_cache_size','domain_cache_hit_rate','server_cache_size','server_cache_hit_rate','ucservice_cache_size',
-      'ucservice_cache_hit_rate','zimlet_cache_size','zimlet_cache_hit_rate','group_cache_size','group_cache_hit_rate','xmpp_cache_size','xmpp_cache_hit_rate','gc_parnew_count','gc_parnew_ms',
-      'gc_concurrentmarksweep_count','gc_concurrentmarksweep_ms','gc_minor_count','gc_minor_ms','gc_major_count','gc_major_ms','mpool_code_cache_used','mpool_code_cache_free','mpool_par_eden_space_used',
-      'mpool_par_eden_space_free','mpool_par_survivor_space_used','mpool_par_survivor_space_free','mpool_cms_old_gen_used','mpool_cms_old_gen_free','mpool_cms_perm_gen_used','mpool_cms_perm_gen_free',
-      'heap_used','heap_free') as $key)
-    {
-      $rrd_values[] = (is_numeric($zimbra['mailboxd-total'][$key]) ? $zimbra['mailboxd-total'][$key] : "U");
-    }
-
-    rrdtool_create($device, $rrd_filename, " \
-        DS:lmtpRcvdMsgs:DERIVE:600:0:125000000000 \
-        DS:lmtpRcvdBytes:DERIVE:600:0:125000000000 \
-        DS:lmtpRcvdRcpt:DERIVE:600:0:125000000000 \
-        DS:lmtpDlvdMsgs:DERIVE:600:0:125000000000 \
-        DS:lmtpDlvdBytes:DERIVE:600:0:125000000000 \
-        DS:dbConnCount:GAUGE:600:0:125000000000 \
-        DS:dbConnMsAvg:GAUGE:600:0:125000000000 \
-        DS:ldapDcCount:GAUGE:600:0:125000000000 \
-        DS:ldapDcMsAvg:GAUGE:600:0:125000000000 \
-        DS:mboxAddMsgCount:DERIVE:600:0:125000000000 \
-        DS:mboxAddMsgMsAvg:GAUGE:600:0:125000000000 \
-        DS:mboxGetCount:DERIVE:600:0:125000000000 \
-        DS:mboxGetMsAvg:GAUGE:600:0:125000000000 \
-        DS:mboxCache:GAUGE:600:0:125000000000 \
-        DS:mboxMsgCache:GAUGE:600:0:125000000000 \
-        DS:mboxItemCache:GAUGE:600:0:125000000000 \
-        DS:soapCount:DERIVE:600:0:125000000000 \
-        DS:soapMsAvg:GAUGE:600:0:125000000000 \
-        DS:imapCount:DERIVE:600:0:125000000000 \
-        DS:imapMsAvg:GAUGE:600:0:125000000000 \
-        DS:popCount:DERIVE:600:0:125000000000 \
-        DS:popMsAvg:GAUGE:600:0:125000000000 \
-        DS:idxWrtAvg:GAUGE:600:0:125000000000 \
-        DS:idxWrtOpened:GAUGE:600:0:125000000000 \
-        DS:idxWrtOpenedCacheHt:GAUGE:600:0:125000000000 \
-        DS:calcacheHit:GAUGE:600:0:125000000000 \
-        DS:calcacheMemHit:GAUGE:600:0:125000000000 \
-        DS:calcacheLruSize:GAUGE:600:0:125000000000 \
-        DS:idxBytesWritten:DERIVE:600:0:125000000000 \
-        DS:idxBytesWrittenAvg:GAUGE:600:0:125000000000 \
-        DS:idxBytesRead:DERIVE:600:0:125000000000 \
-        DS:idxBytesReadAvg:GAUGE:600:0:125000000000 \
-        DS:bisRead:DERIVE:600:0:125000000000 \
-        DS:bisSeekRate:GAUGE:600:0:125000000000 \
-        DS:dbPoolSize:GAUGE:600:0:125000000000 \
-        DS:innodbBpHitRate:GAUGE:600:0:125000000000 \
-        DS:lmtpConn:GAUGE:600:0:125000000000 \
-        DS:lmtpThreads:GAUGE:600:0:125000000000 \
-        DS:popConn:GAUGE:600:0:125000000000 \
-        DS:popThreads:GAUGE:600:0:125000000000 \
-        DS:popSslConn:GAUGE:600:0:125000000000 \
-        DS:popSslThreads:GAUGE:600:0:125000000000 \
-        DS:imapConn:GAUGE:600:0:125000000000 \
-        DS:imapThreads:GAUGE:600:0:125000000000 \
-        DS:imapSslConn:GAUGE:600:0:125000000000 \
-        DS:imapSslThreads:GAUGE:600:0:125000000000 \
-        DS:httpIdleThreads:GAUGE:600:0:125000000000 \
-        DS:httpThreads:GAUGE:600:0:125000000000 \
-        DS:soapSessions:GAUGE:600:0:125000000000 \
-        DS:mboxCacheSize:GAUGE:600:0:125000000000 \
-        DS:msgCacheSize:GAUGE:600:0:125000000000 \
-        DS:fdCacheSize:GAUGE:600:0:125000000000 \
-        DS:fdCacheHitRate:GAUGE:600:0:125000000000 \
-        DS:aclCacheHitRate:GAUGE:600:0:125000000000 \
-        DS:accountCacheSize:GAUGE:600:0:125000000000 \
-        DS:accountCacheHitRate:GAUGE:600:0:125000000000 \
-        DS:cosCacheSize:GAUGE:600:0:125000000000 \
-        DS:cosCacheHitRate:GAUGE:600:0:125000000000 \
-        DS:domainCacheSize:GAUGE:600:0:125000000000 \
-        DS:domainCacheHitRate:GAUGE:600:0:125000000000 \
-        DS:serverCacheSize:GAUGE:600:0:125000000000 \
-        DS:serverCacheHitRate:GAUGE:600:0:125000000000 \
-        DS:ucsvcCacheSize:GAUGE:600:0:125000000000 \
-        DS:ucsvcCacheHitRate:GAUGE:600:0:125000000000 \
-        DS:zimletCacheSize:GAUGE:600:0:125000000000 \
-        DS:zimletCacheHitRate:GAUGE:600:0:125000000000 \
-        DS:groupCacheSize:GAUGE:600:0:125000000000 \
-        DS:groupCacheHitRate:GAUGE:600:0:125000000000 \
-        DS:xmppCacheSize:GAUGE:600:0:125000000000 \
-        DS:xmppCacheHitRate:GAUGE:600:0:125000000000 \
-        DS:gcParnewCount:GAUGE:600:0:125000000000 \
-        DS:gcParnewMs:GAUGE:600:0:125000000000 \
-        DS:gcConcmarksweepCnt:GAUGE:600:0:125000000000 \
-        DS:gcConcmarksweepMs:GAUGE:600:0:125000000000 \
-        DS:gcMinorCount:DERIVE:600:0:125000000000 \
-        DS:gcMinorMs:GAUGE:600:0:125000000000 \
-        DS:gcMajorCount:DERIVE:600:0:125000000000 \
-        DS:gcMajorMs:GAUGE:600:0:125000000000 \
-        DS:mpoolCodeCacheUsed:GAUGE:600:0:125000000000 \
-        DS:mpoolCodeCacheFree:GAUGE:600:0:125000000000 \
-        DS:mpoolParEdenSpcUsed:GAUGE:600:0:125000000000 \
-        DS:mpoolParEdenSpcFree:GAUGE:600:0:125000000000 \
-        DS:mpoolParSurvSpcUsed:GAUGE:600:0:125000000000 \
-        DS:mpoolParSurvSpcFree:GAUGE:600:0:125000000000 \
-        DS:mpoolCmsOldGenUsed:GAUGE:600:0:125000000000 \
-        DS:mpoolCmsOldGenFree:GAUGE:600:0:125000000000 \
-        DS:mpoolCmsPermGenUsed:GAUGE:600:0:125000000000 \
-        DS:mpoolCmsPermGenFree:GAUGE:600:0:125000000000 \
-        DS:heapUsed:GAUGE:600:0:125000000000 \
-        DS:heapFree:GAUGE:600:0:125000000000 ");
-
-    rrdtool_update($device, $rrd_filename, "N:" . implode(':', $rrd_values));
+    rrdtool_update_ng($device, 'zimbra-mailboxd', array(
+      'lmtpRcvdMsgs'        => $zimbra['mailboxd-total']['lmtp_rcvd_msgs'],
+      'lmtpRcvdBytes'       => $zimbra['mailboxd-total']['lmtp_rcvd_bytes'],
+      'lmtpRcvdRcpt'        => $zimbra['mailboxd-total']['lmtp_rcvd_rcpt'],
+      'lmtpDlvdMsgs'        => $zimbra['mailboxd-total']['lmtp_dlvd_msgs'],
+      'lmtpDlvdBytes'       => $zimbra['mailboxd-total']['lmtp_dlvd_bytes'],
+      'dbConnCount'         => $zimbra['mailboxd-total']['db_conn_count'],
+      'dbConnMsAvg'         => $zimbra['mailboxd-total']['db_conn_ms_avg'],
+      'ldapDcCount'         => $zimbra['mailboxd-total']['ldap_dc_count'],
+      'ldapDcMsAvg'         => $zimbra['mailboxd-total']['ldap_dc_ms_avg'],
+      'mboxAddMsgCount'     => $zimbra['mailboxd-total']['mbox_add_msg_count'],
+      'mboxAddMsgMsAvg'     => $zimbra['mailboxd-total']['mbox_add_msg_ms_avg'],
+      'mboxGetCount'        => $zimbra['mailboxd-total']['mbox_get_count'],
+      'mboxGetMsAvg'        => $zimbra['mailboxd-total']['mbox_get_ms_avg'],
+      'mboxCache'           => $zimbra['mailboxd-total']['mbox_cache'],
+      'mboxMsgCache'        => $zimbra['mailboxd-total']['mbox_msg_cache'],
+      'mboxItemCache'       => $zimbra['mailboxd-total']['mbox_item_cache'],
+      'soapCount'           => $zimbra['mailboxd-total']['soap_count'],
+      'soapMsAvg'           => $zimbra['mailboxd-total']['soap_ms_avg'],
+      'imapCount'           => $zimbra['mailboxd-total']['imap_count'],
+      'imapMsAvg'           => $zimbra['mailboxd-total']['imap_ms_avg'],
+      'popCount'            => $zimbra['mailboxd-total']['pop_count'],
+      'popMsAvg'            => $zimbra['mailboxd-total']['pop_ms_avg'],
+      'idxWrtAvg'           => $zimbra['mailboxd-total']['idx_wrt_avg'],
+      'idxWrtOpened'        => $zimbra['mailboxd-total']['idx_wrt_opened'],
+      'idxWrtOpenedCacheHt' => $zimbra['mailboxd-total']['idx_wrt_opened_cache_hit'],
+      'calcacheHit'         => $zimbra['mailboxd-total']['calcache_hit'],
+      'calcacheMemHit'      => $zimbra['mailboxd-total']['calcache_mem_hit'],
+      'calcacheLruSize'     => $zimbra['mailboxd-total']['calcache_lru_size'],
+      'idxBytesWritten'     => $zimbra['mailboxd-total']['idx_bytes_written'],
+      'idxBytesWrittenAvg'  => $zimbra['mailboxd-total']['idx_bytes_written_avg'],
+      'idxBytesRead'        => $zimbra['mailboxd-total']['idx_bytes_read'],
+      'idxBytesReadAvg'     => $zimbra['mailboxd-total']['idx_bytes_read_avg'],
+      'bisRead'             => $zimbra['mailboxd-total']['bis_read'],
+      'bisSeekRate'         => $zimbra['mailboxd-total']['bis_seek_rate'],
+      'dbPoolSize'          => $zimbra['mailboxd-total']['db_pool_size'],
+      'innodbBpHitRate'     => $zimbra['mailboxd-total']['innodb_bp_hit_rate'],
+      'lmtpConn'            => $zimbra['mailboxd-total']['lmtp_conn'],
+      'lmtpThreads'         => $zimbra['mailboxd-total']['lmtp_threads'],
+      'popConn'             => $zimbra['mailboxd-total']['pop_conn'],
+      'popThreads'          => $zimbra['mailboxd-total']['pop_threads'],
+      'popSslConn'          => $zimbra['mailboxd-total']['pop_ssl_conn'],
+      'popSslThreads'       => $zimbra['mailboxd-total']['pop_ssl_threads'],
+      'imapConn'            => $zimbra['mailboxd-total']['imap_conn'],
+      'imapThreads'         => $zimbra['mailboxd-total']['imap_threads'],
+      'imapSslConn'         => $zimbra['mailboxd-total']['imap_ssl_conn'],
+      'imapSslThreads'      => $zimbra['mailboxd-total']['imap_ssl_threads'],
+      'httpIdleThreads'     => $zimbra['mailboxd-total']['http_idle_threads'],
+      'httpThreads'         => $zimbra['mailboxd-total']['http_threads'],
+      'soapSessions'        => $zimbra['mailboxd-total']['soap_sessions'],
+      'mboxCacheSize'       => $zimbra['mailboxd-total']['mbox_cache_size'],
+      'msgCacheSize'        => $zimbra['mailboxd-total']['msg_cache_size'],
+      'fdCacheSize'         => $zimbra['mailboxd-total']['fd_cache_size'],
+      'fdCacheHitRate'      => $zimbra['mailboxd-total']['fd_cache_hit_rate'],
+      'aclCacheHitRate'     => $zimbra['mailboxd-total']['acl_cache_hit_rate'],
+      'accountCacheSize'    => $zimbra['mailboxd-total']['account_cache_size'],
+      'accountCacheHitRate' => $zimbra['mailboxd-total']['account_cache_hit_rate'],
+      'cosCacheSize'        => $zimbra['mailboxd-total']['cos_cache_size'],
+      'cosCacheHitRate'     => $zimbra['mailboxd-total']['cos_cache_hit_rate'],
+      'domainCacheSize'     => $zimbra['mailboxd-total']['domain_cache_size'],
+      'domainCacheHitRate'  => $zimbra['mailboxd-total']['domain_cache_hit_rate'],
+      'serverCacheSize'     => $zimbra['mailboxd-total']['server_cache_size'],
+      'serverCacheHitRate'  => $zimbra['mailboxd-total']['server_cache_hit_rate'],
+      'ucsvcCacheSize'      => $zimbra['mailboxd-total']['ucservice_cache_size'],
+      'ucsvcCacheHitRate'   => $zimbra['mailboxd-total']['ucservice_cache_hit_rate'],
+      'zimletCacheSize'     => $zimbra['mailboxd-total']['zimlet_cache_size'],
+      'zimletCacheHitRate'  => $zimbra['mailboxd-total']['zimlet_cache_hit_rate'],
+      'groupCacheSize'      => $zimbra['mailboxd-total']['group_cache_size'],
+      'groupCacheHitRate'   => $zimbra['mailboxd-total']['group_cache_hit_rate'],
+      'xmppCacheSize'       => $zimbra['mailboxd-total']['xmpp_cache_size'],
+      'xmppCacheHitRate'    => $zimbra['mailboxd-total']['xmpp_cache_hit_rate'],
+      'gcParnewCount'       => $zimbra['mailboxd-total']['gc_parnew_count'],
+      'gcParnewMs'          => $zimbra['mailboxd-total']['gc_parnew_ms'],
+      'gcConcmarksweepCnt'  => $zimbra['mailboxd-total']['gc_concurrentmarksweep_count'],
+      'gcConcmarksweepMs'   => $zimbra['mailboxd-total']['gc_concurrentmarksweep_ms'],
+      'gcMinorCount'        => $zimbra['mailboxd-total']['gc_minor_count'],
+      'gcMinorMs'           => $zimbra['mailboxd-total']['gc_minor_ms'],
+      'gcMajorCount'        => $zimbra['mailboxd-total']['gc_major_count'],
+      'gcMajorMs'           => $zimbra['mailboxd-total']['gc_major_ms'],
+      'mpoolCodeCacheUsed'  => $zimbra['mailboxd-total']['mpool_code_cache_used'],
+      'mpoolCodeCacheFree'  => $zimbra['mailboxd-total']['mpool_code_cache_free'],
+      'mpoolParEdenSpcUsed' => $zimbra['mailboxd-total']['mpool_par_eden_space_used'],
+      'mpoolParEdenSpcFree' => $zimbra['mailboxd-total']['mpool_par_eden_space_free'],
+      'mpoolParSurvSpcUsed' => $zimbra['mailboxd-total']['mpool_par_survivor_space_used'],
+      'mpoolParSurvSpcFree' => $zimbra['mailboxd-total']['mpool_par_survivor_space_free'],
+      'mpoolCmsOldGenUsed'  => $zimbra['mailboxd-total']['mpool_cms_old_gen_used'],
+      'mpoolCmsOldGenFree'  => $zimbra['mailboxd-total']['mpool_cms_old_gen_free'],
+      'mpoolCmsPermGenUsed' => $zimbra['mailboxd-total']['mpool_cms_perm_gen_used'],
+      'mpoolCmsPermGenFree' => $zimbra['mailboxd-total']['mpool_cms_perm_gen_free'],
+      'heapUsed'            => $zimbra['mailboxd-total']['heap_used'],
+      'heapFree'            => $zimbra['mailboxd-total']['heap_free'],
+    ));
   }
 
   if (is_array($zimbra['proc']))
@@ -267,26 +214,17 @@ if (!empty($agent_data['app']['zimbra']))
 
     foreach (array('mailbox', 'mysql', 'convertd', 'ldap', 'postfix', 'amavis', 'clam', 'zmstat') as $app)
     {
-      $rrd_filename = "app-zimbra-proc-$app.rrd";
-      unset($rrd_values);
-
       if ($zimbra['proc'][0][$app.'-process-count'])
       {
-        foreach (array('total-cpu','utime','stime','totalMB','rssMB','sharedMB','process-count') as $key)
-        {
-          $rrd_values[] = (is_numeric($zimbra['proc'][0][$app.'-'.$key]) ? $zimbra['proc'][0][$app.'-'.$key] : "U");
-        }
-
-        rrdtool_create($device, $rrd_filename, " \
-            DS:totalCPU:GAUGE:600:0:100 \
-            DS:utime:GAUGE:600:0:U \
-            DS:stime:GAUGE:600:0:U \
-            DS:totalMB:GAUGE:600:0:U \
-            DS:rssMB:GAUGE:600:0:U \
-            DS:sharedMB:GAUGE:600:0:U \
-            DS:processCount:GAUGE:600:0:U ");
-
-        rrdtool_update($device, $rrd_filename, "N:" . implode(':', $rrd_values));
+        rrdtool_update_ng($device, 'zimbra-proc', array(
+          'totalCPU'     => $zimbra['proc'][0]["$app-total-cpu"],
+          'utime'        => $zimbra['proc'][0]["$app-utime"],
+          'stime'        => $zimbra['proc'][0]["$app-stime"],
+          'totalMB'      => $zimbra['proc'][0]["$app-totalMB"],
+          'rssMB'        => $zimbra['proc'][0]["$app-rssMB"],
+          'sharedMB'     => $zimbra['proc'][0]["$app-sharedMB"],
+          'processCount' => $zimbra['proc'][0]["$app-process-count"],
+        ), $app);
       }
     }
   }

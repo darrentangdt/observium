@@ -20,7 +20,7 @@ if ($_SESSION['userlevel'] < 10)
 
 include($config['html_dir']."/pages/usermenu.inc.php");
 
-  $page_title[] = "Add User";
+  register_html_title("Add User");
 
   if (auth_usermanagement())
   {

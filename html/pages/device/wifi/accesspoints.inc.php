@@ -26,7 +26,7 @@ if ($device['type'] == 'wireless')
     $accesspoints = array_chunk($accesspoints, $vars['pagesize']);
     $accesspoints = $accesspoints[$vars['pageno']-1];
   }
-
+  echo generate_box_open();
   echo('<table class="table table-hover  table-condensed  table-striped" style="vertical-align: middle; margin-top: 5px; margin-bottom: 10px;">');
   echo('<thead><tr><th>Name</th><th>Model</th><th>Location</th><th>Serial/Fingerprint</th></tr></thead>');
 
@@ -41,9 +41,10 @@ if ($device['type'] == 'wireless')
   }
 
   echo('</table>');
+  echo generate_box_close();
   echo(pagination($vars, $accesspoints_count));
 }
 
-$page_title[] = 'Access-points';
+register_html_title('Access-points');
 
 // EOF

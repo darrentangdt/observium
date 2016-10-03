@@ -28,7 +28,7 @@ if ($port['ifInErrors_delta'] > 0 || $port['ifOutErrors_delta'] > 0)
 }
 
 echo("<tr valign=top onmouseover=\"this.style.backgroundColor='$list_highlight';\" onmouseout=\"this.style.backgroundColor='$row_colour';\"
-onclick=\"location.href='device/".$device['device_id']."/port/".$port['port_id']."/'\" style='cursor: pointer;'>
+onclick=\"openLink('device/".$device['device_id']."/port/".$port['port_id']."/')\" style='cursor: pointer;'>
  <td valign=top width=350>");
 echo("        <span class=entity-title>
               " . generate_port_link($port, $port['ifIndex'] . ". " . rewrite_ifname($port['port_label'])) . "
@@ -41,12 +41,12 @@ if ($port_details)
 {
   foreach (dbFetchRows("SELECT * FROM `ipv4_addresses` WHERE `port_id` = ?", array($port['port_id'])) as $ip)
   {
-    echo("$break <a class=small href=\"javascript:popUp('netcmd.php?cmd=whois&amp;query=".$ip['ipv4_address']."')\">".$ip['ipv4_address']."/".$ip['ipv4_prefixlen']."</a>");
+    echo($break . ' ' . generate_popup_link('ip', $ip['ipv4_address'].'/'.$ip['ipv4_prefixlen'], NULL, 'small'));
     $break = ",";
   }
   foreach (dbFetchRows("SELECT * FROM `ipv6_addresses` WHERE `port_id` = ?", array($port['port_id'])) as $ip6);
   {
-    echo("$break <a class=small href=\"javascript:popUp('netcmd.php?cmd=whois&amp;query=".$ip6['ipv6_address']."')\">".Net_IPv6::compress($ip6['ipv6_address'])."/".$ip6['ipv6_prefixlen']."</a>");
+    echo($break . ' ' . generate_popup_link('ip', $ip6['ipv6_address'].'/'.$ip6['ipv6_prefixlen'], NULL, 'small'));
     $break = ",";
   }
 }

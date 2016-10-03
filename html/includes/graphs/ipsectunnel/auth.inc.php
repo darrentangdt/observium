@@ -13,13 +13,20 @@
 
 if (is_numeric($vars['id']))
 {
-  $tunnel = dbFetchRow("SELECT * FROM `ipsec_tunnels` AS I, `devices` AS D WHERE I.tunnel_id = ? AND I.device_id = D.device_id", array($vars['id']));
+  $tunnel = dbFetchRow("SELECT * FROM `ipsec_tunnels`WHERE `tunnel_id` = ?", array($vars['id']));
 
   if (is_numeric($tunnel['device_id']) && ($auth || device_permitted($tunnel['device_id'])))
   {
     $device = device_by_id_cache($tunnel['device_id']);
 
-    $rrd_filename = get_rrd_path($device, "ipsectunnel-".$tunnel['peer_addr'].".rrd");
+    if ($tunnel['tunnel_endhash'])
+    {
+      // New index
+      $rrd_index = $tunnel['local_addr'] . '-' . $tunnel['peer_addr'] . '-' . $tunnel['tunnel_endhash'];
+    } else {
+      $rrd_index = $tunnel['peer_addr'];
+    }
+    $rrd_filename = get_rrd_path($device, "ipsectunnel-".$rrd_index.".rrd");
 
     $title  = generate_device_link($device);
     $title .= " :: IPSEC Tunnel :: " . escape_html($tunnel['peer_addr']);

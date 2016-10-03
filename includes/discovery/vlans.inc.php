@@ -62,7 +62,7 @@ foreach ($device['vlans'] as $domain_id => $vlans)
         $device_context = $device;
         $device_context['snmp_context'] = $vlan_id;  // Add vlan context
         $device_context['snmp_retries'] = 0;         // Set retries to 0 for speedup walking
-        $vlan_data = snmpwalk_cache_oid($device_context, "dot1dStpPortEntry", array(), "BRIDGE-MIB:Q-BRIDGE-MIB", mib_dirs());
+        $vlan_data = snmpwalk_cache_oid($device_context, "dot1dStpPortEntry", array(), "BRIDGE-MIB:Q-BRIDGE-MIB");
 
         // Detection shit snmpv3 authorization errors for contexts
         if ($exec_status['exitcode'] != 0)
@@ -76,7 +76,7 @@ foreach ($device['vlans'] as $domain_id => $vlans)
           }
           break;
         }
-        $vlan_data = snmpwalk_cache_oid($device_context, "dot1dBasePortEntry", $vlan_data, "BRIDGE-MIB:Q-BRIDGE-MIB", mib_dirs());
+        $vlan_data = snmpwalk_cache_oid($device_context, "dot1dBasePortEntry", $vlan_data, "BRIDGE-MIB:Q-BRIDGE-MIB");
         unset($device_context);
       }
 

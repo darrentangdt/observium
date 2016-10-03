@@ -12,7 +12,7 @@
  *
  */
 
-$page_title[] = "Pseudowires";
+register_html_title("Pseudowires");
 
 if(!isset($vars['view'])) { $vars['view'] = 'basic'; }
 

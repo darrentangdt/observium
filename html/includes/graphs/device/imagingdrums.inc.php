@@ -38,7 +38,7 @@ foreach ($drums as $drum => $letter)
   $rrd_options .= " LINE2:drum$iter#".$colour['left'].":'" . $descr . "'";
   $rrd_options .= " GPRINT:drum$iter:LAST:'%5.0lf%%'";
   $rrd_options .= " GPRINT:drum$iter:MIN:'%5.0lf%%'";
-  $rrd_options .= " GPRINT:drum$iter:MAX:%5.0lf%%\\\\l";
+  $rrd_options .= " GPRINT:drum$iter:MAX:%5.0lf%%\\l";
 
   $iter++;
 }

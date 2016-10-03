@@ -28,6 +28,6 @@ $colours_out = 'oranges';
 
 $graph_title .= "::packets";
 
-include("includes/graphs/generic_multi_separated.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_separated.inc.php");
 
 // EOF

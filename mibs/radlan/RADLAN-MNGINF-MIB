@@ -2,8 +2,8 @@ RADLAN-MNGINF-MIB DEFINITIONS ::= BEGIN
 
 -- Title:                RADLAN MNGINF ROS
 --                         This Private MIB supports the Management ACL for ROS
--- Version:                    7.30
--- Date:                       25 Mar 2003
+-- Version:                    7.46
+-- Date:                       20 Jan 2007
 
 
 
@@ -11,9 +11,9 @@ IMPORTS
     rnd                                     FROM RADLAN-MIB
     OBJECT-TYPE, IpAddress, Unsigned32,
     MODULE-IDENTITY                         FROM SNMPv2-SMI
-    DisplayString                           FROM SNMPv2-TC-v1
-    TEXTUAL-CONVENTION,
-    TruthValue, RowStatus                   FROM SNMPv2-TC;
+    TEXTUAL-CONVENTION, DisplayString,
+    TruthValue, RowStatus                   FROM SNMPv2-TC
+    InetAddressType,InetAddress             FROM INET-ADDRESS-MIB; -- RFC2851
 
 rlMngInf MODULE-IDENTITY
          LAST-UPDATED "200309210000Z"
@@ -78,7 +78,8 @@ rlMngInfListTable OBJECT-TYPE
     MAX-ACCESS not-accessible
     STATUS current
     DESCRIPTION
-        "The table specifies all defined Access Lists definitions"
+        "The table specifies all defined Access Lists definitions for IPv4 addresses.
+         Provide backward compatibility for previous versions."
     ::= {rlMngInf 4}
 
 rlMngInfListEntry  OBJECT-TYPE
@@ -179,6 +180,123 @@ rlMngInfAuditingEnable  OBJECT-TYPE
    should be issued on reject by rule"
     DEFVAL { true }
     ::= { rlMngInf 5 }
+
+rlMngInfListInetTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF RlMngInfListInetEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "The table specifies all defined Access Lists definitions  definitions
+        for both IPv4 and IPv6 addresses."
+    ::= {rlMngInf 6}
+
+rlMngInfListInetEntry  OBJECT-TYPE
+    SYNTAX RlMngInfListInetEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "Row definition for this table."
+    INDEX { rlMngInfListInetName, rlMngInfListInetPriority }
+    ::= { rlMngInfListInetTable 1}
+
+RlMngInfListInetEntry ::= SEQUENCE {
+    rlMngInfListInetName             DisplayString,
+    rlMngInfListInetPriority         Unsigned32,
+    rlMngInfListInetIfIndex          Unsigned32,
+    rlMngInfListInetIpAddrType       InetAddressType,
+    rlMngInfListInetIpAddr           InetAddress,
+    rlMngInfListInetIpNetMask        IpAddress,
+    rlMngInfListInetService          RlMngInfServiceType,
+    rlMngInfListInetAction           RlMngInfActionType,
+    rlMngInfListInetRowStatus        RowStatus,
+    rlMngInfListInetIPv6PrefixLength INTEGER
+}
+
+rlMngInfListInetName OBJECT-TYPE
+    SYNTAX  DisplayString (SIZE(1..32))
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The Name of the Access List."
+    ::= { rlMngInfListInetEntry 1}
+
+rlMngInfListInetPriority OBJECT-TYPE
+    SYNTAX  Unsigned32 (1..65535)
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The Priority value."
+    ::= { rlMngInfListInetEntry 2}
+
+rlMngInfListInetIfIndex OBJECT-TYPE
+    SYNTAX  Unsigned32
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "The IfIndex value. The IfIndex can be configured to be 0, which means don't care value."
+    ::= { rlMngInfListInetEntry 3}
+
+rlMngInfListInetIpAddrType OBJECT-TYPE
+    SYNTAX  InetAddressType
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "The Inet address type."
+    ::= { rlMngInfListInetEntry 4}
+
+rlMngInfListInetIpAddr OBJECT-TYPE
+    SYNTAX  InetAddress
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "The Inet address.Used for both IPv4 and IPv6 addresses.
+        The InetIpAddress can  be configured to be 0.0.0.0 and address type IPv4 ,
+        which means ignored value."
+    ::= { rlMngInfListInetEntry 5}
+
+rlMngInfListInetIpNetMask OBJECT-TYPE
+    SYNTAX  IpAddress
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "This field will used in case of IPv4 addresses . For IPv6 this field ignored.
+         Default value 255.255.255.255."
+    ::= { rlMngInfListInetEntry 6}
+
+rlMngInfListInetService  OBJECT-TYPE
+    SYNTAX  RlMngInfServiceType
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "Service type. The Service type address can be configured to be 0,
+         which means any of Telnet, SNMP, HTTP, HTTPS, SSH."
+    ::= { rlMngInfListInetEntry 7}
+
+rlMngInfListInetAction  OBJECT-TYPE
+    SYNTAX  RlMngInfActionType
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "Action type. Can be permit or deny."
+    ::= { rlMngInfListInetEntry 8}
+
+rlMngInfListInetRowStatus OBJECT-TYPE
+    SYNTAX   RowStatus
+    MAX-ACCESS read-write
+    STATUS   current
+    DESCRIPTION
+        "The row status variable, used according to
+         row installation and removal conventions."
+    ::= { rlMngInfListInetEntry 9}
+
+rlMngInfListInetIPv6PrefixLength OBJECT-TYPE
+        SYNTAX      INTEGER (0.. 128)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "IPv6 prefix length.This field provide IPv6 prefix length (mask)
+                     for IPv6 only.In case of IPv4 this field will ignored"
+        DEFVAL      { 128 }
+        ::= { rlMngInfListInetEntry 10}
 
 END
 

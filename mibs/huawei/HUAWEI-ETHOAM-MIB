@@ -1,11 +1,15 @@
 -- =================================================================
--- Copyright (C) 2010 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 --
 -- Description: HUAWEI-ETHOAM-MIB
 -- Reference:
--- Version:     V2.26
+-- Version:     V2.28
 -- History:
 -- Revision history
+--            REVISION     "201504240000Z"    
+--            DESCRIPTION  "V2.28, Add hwDot1agCfmGmacTraceTable, hwDot1agCfmGmacTraceReplyTable, hwDot1agCfmGmacTraceEnabled leaf node for Gmac Trace."
+--            REVISION     "201503030000Z"    
+--            DESCRIPTION  "V2.27, Add hwY1731TestIdQueuePriority leaf node in hwY1731TestIdTable."
 --            REVISION     "201501150000Z"    
 --            DESCRIPTION  "V2.26, Add table Index of hwY1731TestIdSingleLossSummaryStatTable"
 --            REVISION     "201501060000Z"    
@@ -109,7 +113,7 @@
 
 
         hwEthOamMib MODULE-IDENTITY
-            LAST-UPDATED "201501150000Z"        
+            LAST-UPDATED "201504240000Z"        
             ORGANIZATION
                 "Huawei Technologies Co.,Ltd."
             CONTACT-INFO
@@ -122,6 +126,10 @@
                  "
             DESCRIPTION
                 "Ethernet OAM MIB"
+              REVISION     "201504240000Z"    
+	      DESCRIPTION  "V2.28, Add hwDot1agCfmGmacTraceTable, hwDot1agCfmGmacTraceReplyTable, hwDot1agCfmGmacTraceEnabled leaf node for Gmac Trace."
+              REVISION     "201503030000Z"    
+              DESCRIPTION  "V2.27, Add hwY1731TestIdQueuePriority leaf node in hwY1731TestIdTable."
               REVISION     "201501150000Z"    
               DESCRIPTION  "V2.26, Add table Index of hwY1731TestIdSingleLossSummaryStatTable"
               REVISION     "201501060000Z"    
@@ -2183,8 +2191,496 @@
                 "
             ::= { hwDot1agCfmQueryMaIndexEntry 2 }
             
+	hwDot1agCfmGmacTraceObjects OBJECT IDENTIFIER ::= { hwEthOam1ag 11 }
+        
+        hwDot1agCfmGmacTraceEnabled OBJECT-TYPE
+            SYNTAX EnabledStatus
+            MAX-ACCESS read-write
+            STATUS current
+            DESCRIPTION
+                "
+                This object indicates whether GMAC trace function is enabled globally.
+                The value of this object can be:
+                  Enabled: indicates that GMAC trace function is enabled globally.
+                  Disabled: indicates that GMAC trace function is disabled globally.
+                "
+            ::= { hwDot1agCfmGmacTraceObjects 1 }    
             
-        hwDot1agCfmMPAddressModel OBJECT-TYPE
+        hwDot1agCfmGmacTraceTable OBJECT-TYPE
+            SYNTAX SEQUENCE OF HwDot1agCfmGmacTraceEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "
+                This table is used to configure the GMAC trace function.
+                "
+            ::= { hwDot1agCfmGmacTraceObjects 2 }
+
+
+        hwDot1agCfmGmacTraceEntry OBJECT-TYPE
+            SYNTAX HwDot1agCfmGmacTraceEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "
+                Indicates the GMAC Trace table entry.
+                "
+            INDEX { hwDot1agCfmGmacTraceIndex }
+            ::= { hwDot1agCfmGmacTraceTable 1 }
+
+
+        HwDot1agCfmGmacTraceEntry ::=
+            SEQUENCE {
+                hwDot1agCfmGmacTraceIndex
+                    Unsigned32,
+                hwDot1agCfmGmacTraceState
+                    EnabledStatus,
+                hwDot1agCfmGmacTraceMacAddress
+                    MacAddress,
+                hwDot1agCfmGmacTraceServiceType
+                    INTEGER,    
+                hwDot1agCfmGmacTraceVlanValue
+                    VlanIdOrNone,
+                hwDot1agCfmGmacTraceVsiName
+                    OCTET STRING,
+                hwDot1agCfmGmacTraceL2vcValue
+                    Unsigned32,
+                hwDot1agCfmGmacTraceL2vcType
+                    INTEGER,
+                hwDot1agCfmGmacTraceDot1qVlan
+                    VlanIdOrNone,
+                hwDot1agCfmGmacTracePeVlan
+                    VlanIdOrNone,
+                hwDot1agCfmGmacTraceCeVlan
+                    VlanIdOrNone,
+                hwDot1agCfmGmacTraceOutIfIndex
+                    InterfaceIndexOrZero,
+                hwDot1agCfmGmacTraceTimeOut
+                    Unsigned32,
+                hwDot1agCfmGmacTraceDisplayHostInfo
+                    TruthValue,            
+                hwDot1agCfmGmacTraceSendSeqNumber
+                    Unsigned32,
+                hwDot1agCfmGmacTraceResult
+                    INTEGER,
+                hwDot1agCfmGmacTraceRowStatus
+                    RowStatus
+             }
+
+        hwDot1agCfmGmacTraceIndex OBJECT-TYPE
+            SYNTAX Unsigned32
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "
+                This object indicates the index of this table.
+                "
+            ::= { hwDot1agCfmGmacTraceEntry 1 }
+
+
+        hwDot1agCfmGmacTraceState OBJECT-TYPE
+            SYNTAX EnabledStatus
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "
+                This object indicates whether the GMAC trace function is enabled.
+                The value can be:
+                  enabled
+                  disabled
+                By default, the value is disabled.
+                "
+            DEFVAL { disabled }
+	    ::= { hwDot1agCfmGmacTraceEntry 2 }
+
+
+	hwDot1agCfmGmacTraceMacAddress OBJECT-TYPE
+            SYNTAX MacAddress
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "
+                This object indicates the destination MAC address of the LTM.
+                "
+	    ::= { hwDot1agCfmGmacTraceEntry 3 }
+
+	
+	hwDot1agCfmGmacTraceServiceType OBJECT-TYPE
+		SYNTAX INTEGER
+			{
+			vlan(1),
+			invalid(255)
+			}
+		MAX-ACCESS read-create
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the service type associated with the gmac trace.
+			The value of this object can be:
+			  vlan: indicates that a VLAN is associated with the gmac trace.
+			  invalid: indicates that no service type is specified for the gmac trace.
+			By default, the value is invalid.
+			"
+		::= { hwDot1agCfmGmacTraceEntry 4}
+		
+	hwDot1agCfmGmacTraceVlanValue OBJECT-TYPE
+		SYNTAX VlanIdOrNone
+		MAX-ACCESS read-create
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the VLAN to the destination MAC address.
+			"
+		::= { hwDot1agCfmGmacTraceEntry 5 }
+		
+		
+	hwDot1agCfmGmacTraceVsiName OBJECT-TYPE
+		SYNTAX OCTET STRING (SIZE (1..31))
+		MAX-ACCESS read-create
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the name of the VSI associated with the GMAC trace.
+			"
+		::= { hwDot1agCfmGmacTraceEntry 6 }
+
+	
+	hwDot1agCfmGmacTraceL2vcValue OBJECT-TYPE
+		SYNTAX Unsigned32
+		MAX-ACCESS read-create
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the ID of the L2VC associated with the GMAC trace.
+			"
+		::= { hwDot1agCfmGmacTraceEntry 7 }
+
+	
+	hwDot1agCfmGmacTraceL2vcType OBJECT-TYPE
+		SYNTAX INTEGER
+			{
+			invalid(1),
+			l2vcRaw(2),
+			l2vcTagged(3)
+			}
+		MAX-ACCESS read-create
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the encapsulation type of the L2VC associated with the gmac trace.
+			The value of this object can be:
+			  invalid: indicates that no display shows that the L2VC is associated
+			           with the current gmac trace.
+			  l2vcRaw: indicates that the VLAN tag is not encapsulated into the packet.
+			  l2vcTagged: indicates that the VLAN tag is encapsulated into the packet.
+			By default, the value is invalid.
+			"
+		DEFVAL { invalid }
+		::= { hwDot1agCfmGmacTraceEntry 8 }
+
+	
+	hwDot1agCfmGmacTraceDot1qVlan OBJECT-TYPE
+		SYNTAX VlanIdOrNone
+		MAX-ACCESS read-create
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the DOT1Q VLAN ID to the destination MAC address.
+			"
+		::= { hwDot1agCfmGmacTraceEntry 9 }
+
+	
+	hwDot1agCfmGmacTracePeVlan OBJECT-TYPE
+		SYNTAX VlanIdOrNone
+		MAX-ACCESS read-create
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the QinQ PE VLAN bound to the GMAC trace.
+			"
+		::= { hwDot1agCfmGmacTraceEntry 10 }
+
+	
+	hwDot1agCfmGmacTraceCeVlan OBJECT-TYPE
+		SYNTAX VlanIdOrNone
+		MAX-ACCESS read-create
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the QinQ CE VLAN bound to the GMAC trace.
+			"
+		::= { hwDot1agCfmGmacTraceEntry 11 }
+
+	hwDot1agCfmGmacTraceOutIfIndex OBJECT-TYPE
+            SYNTAX InterfaceIndexOrZero
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "
+                This object indicates the outbound interface that sends the LTM.
+                "
+            DEFVAL { 0 }
+	    ::= { hwDot1agCfmGmacTraceEntry 12 }
+
+
+	hwDot1agCfmGmacTraceTimeOut OBJECT-TYPE
+		SYNTAX Unsigned32 (1..65535)
+		MAX-ACCESS read-create
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the timeout period for waiting for the LTR.
+			The value ranges from 1 to 65535, in milliseconds.
+			By default, the value is 2000.
+			"
+		DEFVAL { 2000 }
+		::= { hwDot1agCfmGmacTraceEntry 13 }
+
+	
+	hwDot1agCfmGmacTraceDisplayHostInfo OBJECT-TYPE
+		SYNTAX TruthValue
+		MAX-ACCESS read-create
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates whether the LTR include host information.
+			"
+		::= { hwDot1agCfmGmacTraceEntry 14 }
+		
+	hwDot1agCfmGmacTraceSendSeqNumber OBJECT-TYPE
+		SYNTAX Unsigned32
+		MAX-ACCESS read-only
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the sequence number of the sent LTR.
+			"
+		::= { hwDot1agCfmGmacTraceEntry 15 }
+
+	
+	hwDot1agCfmGmacTraceResult OBJECT-TYPE
+		SYNTAX INTEGER
+			{
+			invalid(1),
+			successful(2),
+			failed(3)
+			}
+		MAX-ACCESS read-only
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the result of the GMAC trace operation.
+			"
+		::= { hwDot1agCfmGmacTraceEntry 16 }
+
+		
+	hwDot1agCfmGmacTraceRowStatus OBJECT-TYPE
+		SYNTAX RowStatus
+		MAX-ACCESS read-create
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the row status of this table.
+			
+			The writable columns in a row can not be changed if the row
+			is active. All columns MUST have a valid value before a row
+			can be activated.
+			"
+		::= { hwDot1agCfmGmacTraceEntry 99 }
+
+	
+	hwDot1agCfmGmacTraceReplyTable OBJECT-TYPE
+		SYNTAX SEQUENCE OF HwDot1agCfmGmacTraceReplyEntry
+		MAX-ACCESS not-accessible
+		STATUS current
+		DESCRIPTION
+			"
+			This table is used to display information about the LTR for responding
+			to the GMAC trace operation.
+			"
+		::= { hwDot1agCfmGmacTraceObjects 3 }
+
+	
+	hwDot1agCfmGmacTraceReplyEntry OBJECT-TYPE
+		SYNTAX HwDot1agCfmGmacTraceReplyEntry
+		MAX-ACCESS not-accessible
+		STATUS current
+		DESCRIPTION
+			"
+			The GMAC Trace result table entry.
+			"
+		INDEX { hwDot1agCfmGmacTraceReplySeqNumber, hwDot1agCfmGmacTraceReplyRecvOrder }
+		::= { hwDot1agCfmGmacTraceReplyTable 1 }
+
+	
+	HwDot1agCfmGmacTraceReplyEntry ::=
+		SEQUENCE { 
+			hwDot1agCfmGmacTraceReplySeqNumber
+				Unsigned32,
+			hwDot1agCfmGmacTraceReplyRecvOrder
+				Unsigned32,
+			hwDot1agCfmGmacTraceReplyTTL
+				Unsigned32,
+			hwDot1agCfmGmacTraceReplyForwarded
+				TruthValue,
+			hwDot1agCfmGmacTraceReplyHostInfo
+				OCTET STRING,
+			hwDot1agCfmGmacTraceReplyRelayAction
+				HWDot1agCfmRelayActionFieldValue,
+			hwDot1agCfmGmacTraceReplyIngressAction
+				HWDot1agCfmIngressActionFieldValue,
+			hwDot1agCfmGmacTraceReplyIngressMac
+				MacAddress,
+			hwDot1agCfmGmacTraceReplyIngressIfName
+				OCTET STRING,
+			hwDot1agCfmGmacTraceReplyEgressAction
+				HWDot1agCfmEgressActionFieldValue,
+			hwDot1agCfmGmacTraceReplyEgressMac
+				MacAddress,
+			hwDot1agCfmGmacTraceReplyEgressIfName
+				OCTET STRING
+		 }
+
+	hwDot1agCfmGmacTraceReplySeqNumber OBJECT-TYPE
+		SYNTAX Unsigned32
+		MAX-ACCESS not-accessible
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the index of this table.
+			The value is the sequence number of the LTR.
+			"
+		REFERENCE
+			"802.1ag clause 12.14.7.5"
+		::= { hwDot1agCfmGmacTraceReplyEntry 1 }
+
+	
+	hwDot1agCfmGmacTraceReplyRecvOrder OBJECT-TYPE
+		SYNTAX Unsigned32
+		MAX-ACCESS not-accessible
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the index of this table.
+			The value is the sequence in which the GMAC trace results are displayed.
+			"
+		::= { hwDot1agCfmGmacTraceReplyEntry 2 }
+
+	
+	hwDot1agCfmGmacTraceReplyTTL OBJECT-TYPE
+		SYNTAX Unsigned32 (0..255)
+		MAX-ACCESS read-only
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the TTL of the LTR.
+			The value ranges from 0 to 255.
+			"
+		::= { hwDot1agCfmGmacTraceReplyEntry 3 }
+
+	
+	hwDot1agCfmGmacTraceReplyForwarded OBJECT-TYPE
+		SYNTAX TruthValue
+		MAX-ACCESS read-only
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates whether the device that sends the LTR keeps on
+			forwarding LTMs.
+			"
+		::= { hwDot1agCfmGmacTraceReplyEntry 4 }
+
+	
+	hwDot1agCfmGmacTraceReplyHostInfo OBJECT-TYPE
+		SYNTAX OCTET STRING
+		MAX-ACCESS read-only
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the host name and IP address of each hop.
+			"
+		::= { hwDot1agCfmGmacTraceReplyEntry 5 }
+
+	
+	hwDot1agCfmGmacTraceReplyRelayAction OBJECT-TYPE
+		SYNTAX HWDot1agCfmRelayActionFieldValue
+		MAX-ACCESS read-only
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the value of the Relay Action field in the LTR.
+			"
+		::= { hwDot1agCfmGmacTraceReplyEntry 6 }
+
+	
+	hwDot1agCfmGmacTraceReplyIngressAction OBJECT-TYPE
+		SYNTAX HWDot1agCfmIngressActionFieldValue
+		MAX-ACCESS read-only
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the value of the Ingress Action field in the LTR.
+			"
+		::= { hwDot1agCfmGmacTraceReplyEntry 7 }
+
+	
+	hwDot1agCfmGmacTraceReplyIngressMac OBJECT-TYPE
+		SYNTAX MacAddress
+		MAX-ACCESS read-only
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the physical MAC address carried in the ingress
+			MAC address field in the LTR.
+			"
+		::= { hwDot1agCfmGmacTraceReplyEntry 8 }
+
+	
+	hwDot1agCfmGmacTraceReplyIngressIfName OBJECT-TYPE
+		SYNTAX OCTET STRING
+		MAX-ACCESS read-only
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the name of the inbound interface of the LTR.
+			"
+		::= { hwDot1agCfmGmacTraceReplyEntry 9 }
+
+	
+	hwDot1agCfmGmacTraceReplyEgressAction OBJECT-TYPE
+		SYNTAX HWDot1agCfmEgressActionFieldValue
+		MAX-ACCESS read-only
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the value of the Egress Action field in the LTR.
+			"
+		::= { hwDot1agCfmGmacTraceReplyEntry 10 }
+
+	
+	hwDot1agCfmGmacTraceReplyEgressMac OBJECT-TYPE
+		SYNTAX MacAddress
+		MAX-ACCESS read-only
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the physical MAC address carried in the egress
+			MAC address field in the LTR.
+			"
+		::= { hwDot1agCfmGmacTraceReplyEntry 11 }
+
+	
+	hwDot1agCfmGmacTraceReplyEgressIfName OBJECT-TYPE
+		SYNTAX OCTET STRING
+		MAX-ACCESS read-only
+		STATUS current
+		DESCRIPTION
+			"
+			This object indicates the name of the interface that forwards the LTR.
+			"
+		::= { hwDot1agCfmGmacTraceReplyEntry 12 }
+
+	hwDot1agCfmMPAddressModel OBJECT-TYPE
             SYNTAX INTEGER
                 {
                 bridge(1),
@@ -5283,8 +5779,7 @@
             ::= { hwEthOamGroups 28 }
 
         hwY1731ConfigGroup OBJECT-GROUP
-            OBJECTS { hwY1731RemoteIp, hwY1731VcId, hwY1731MacAddress, hwY1731ResvIndex, hwY1731ServiceType,
-                      hwY1731SingleLossRecvEnable, hwY1731OneDelayRecvEnable, hwY1731OneDelayRecvEnableIsContinue, hwY1731TwoDelayRecvEnable,
+            OBJECTS { hwY1731ServiceType,hwY1731SingleLossRecvEnable, hwY1731OneDelayRecvEnable, hwY1731OneDelayRecvEnableIsContinue, hwY1731TwoDelayRecvEnable, 
                       hwY1731SingleLossEnable, hwY1731SingleLossIsContinue, hwY1731SingleLossMepId, hwY1731SingleLossDestIsMepId, hwY1731SingleLossDestMepId,
                       hwY1731SingleLossMacAddress, hwY1731SingleLossInterval, hwY1731SingleLossCount, hwY1731SingleLoss8021pValue,
                       hwY1731DualLossEnable, hwY1731DualLossMepId, hwY1731DualLossDestMepId,
@@ -5407,7 +5902,7 @@
         hwY1731TestIdGroup OBJECT-GROUP
             OBJECTS {  hwY1731TestIdentifier,hwY1731TestIdMdName,hwY1731TestIdMaName,hwY1731TestIdLocalMepId,hwY1731TestIdDestIsMepId,hwY1731TestIdDestMepId,
             hwY1731TestIdDestMepMacAddress,hwY1731TestIdOnwardMacAddress,hwY1731TestIdBackwardMacAddress,hwY1731TestIdIsUpdateOnwardMacAddress,hwY1731TestIdIsUpdateBackwardMacAddress,
-            hwY1731TestId8021pValue,hwY1731TestIdUplink8021p,hwY1731TestIdDownlink8021p, hwY1731TestIdDescription, hwY1731TestIdIsRecordFile, hwY1731TestIdRowStatus }
+            hwY1731TestId8021pValue,hwY1731TestIdUplink8021p,hwY1731TestIdDownlink8021p, hwY1731TestIdDescription, hwY1731TestIdIsRecordFile, hwY1731TestIdRowStatus, hwY1731TestIdQueuePriority }
             STATUS current
             DESCRIPTION
                 "A collection of objects for configuring the information about TestId."
@@ -5479,21 +5974,21 @@
             ::= { hwEthOamGroups 49 }
 
        hwY1731TestIdTwoDelaySummaryStatTableGroup OBJECT-GROUP
-            OBJECTS {hwY1731TestIdTwoDelayIndex,hwY1731TestIdTwoDelayNbrSamples,hwY1731TestIdTwoDelayMax,hwY1731TestIdTwoDelayMin,hwY1731TestIdTwoDelayAve,hwY1731TestIdTwoDelayExceedUpLimitNum,hwY1731TestIdTwoDelayBelowLowLimitNum,hwY1731TestIdTwoDelayVariationNbrSamples,hwY1731TestIdTwoDelayVariationMax,hwY1731TestIdTwoDelayVariationMin,hwY1731TestIdTwoDelayVariationAve,hwY1731TestIdTwoDelayVarExceedUpLimitNum,hwY1731TestIdTwoDelayVarBelowLowLimitNum}
+            OBJECTS {hwY1731TestIdTwoDelayNbrSamples,hwY1731TestIdTwoDelayMax,hwY1731TestIdTwoDelayMin,hwY1731TestIdTwoDelayAve,hwY1731TestIdTwoDelayExceedUpLimitNum,hwY1731TestIdTwoDelayBelowLowLimitNum,hwY1731TestIdTwoDelayVariationNbrSamples,hwY1731TestIdTwoDelayVariationMax,hwY1731TestIdTwoDelayVariationMin,hwY1731TestIdTwoDelayVariationAve,hwY1731TestIdTwoDelayVarExceedUpLimitNum,hwY1731TestIdTwoDelayVarBelowLowLimitNum}
             STATUS current
             DESCRIPTION
                 "A collection of objects for storing the statistics of two-way ETH-DM collected during the last period."
             ::= { hwEthOamGroups 50 }
             
         hwY1731TestIdSingleSynLossSummaryStatTableGroup OBJECT-GROUP
-            OBJECTS {hwY1731TestIdSingleSynLossIndex,hwY1731TestIdSingleSynLossNbrSamples,hwY1731TestIdSingleSynSendRemote,hwY1731TestIdSingleSynRecvLocal,hwY1731TestIdSingleSynLossLocal,hwY1731TestIdSingleSynExceedLocalUpLimitNum,hwY1731TestIdSingleSynBelowLocalLowLimitNum,hwY1731TestIdSingleSynSendLocal,hwY1731TestIdSingleSynRecvRemote,hwY1731TestIdSingleSynLossRemote,hwY1731TestIdSingleSynExceedRemoteUpLimitNum,hwY1731TestIdSingleSynBelowRemoteLowLimitNum}
+            OBJECTS {hwY1731TestIdSingleSynLossNbrSamples,hwY1731TestIdSingleSynSendRemote,hwY1731TestIdSingleSynRecvLocal,hwY1731TestIdSingleSynLossLocal,hwY1731TestIdSingleSynExceedLocalUpLimitNum,hwY1731TestIdSingleSynBelowLocalLowLimitNum,hwY1731TestIdSingleSynSendLocal,hwY1731TestIdSingleSynRecvRemote,hwY1731TestIdSingleSynLossRemote,hwY1731TestIdSingleSynExceedRemoteUpLimitNum,hwY1731TestIdSingleSynBelowRemoteLowLimitNum}
             STATUS current
             DESCRIPTION
                 "A collection of objects for storing the statistics of single-ended ETH-SLM collected during the last period."
             ::= { hwEthOamGroups 51 }
             
         hwY1731SingleLossSummaryStatTableGroup OBJECT-GROUP
-            OBJECTS {hwY1731SingleLossIndex,hwY1731SingleLossNbrSamples,hwY1731SingleLossSendRemote,hwY1731SingleLossRecvLocal,hwY1731SingleLossLossLocal,hwY1731SingleLossExceedLocalUpLimitNum,hwY1731SingleLossBelowLocallowLimitNum,hwY1731SingleLossSendLocal,hwY1731SingleLossRecvRemote,hwY1731SingleLossLossRemote,hwY1731SingleLossExceedRemoteUpLimitNum,hwY1731SingleLossBelowRemotelowLimitNum}
+            OBJECTS {hwY1731SingleLossNbrSamples,hwY1731SingleLossSendRemote,hwY1731SingleLossRecvLocal,hwY1731SingleLossLossLocal,hwY1731SingleLossExceedLocalUpLimitNum,hwY1731SingleLossBelowLocallowLimitNum,hwY1731SingleLossSendLocal,hwY1731SingleLossRecvRemote,hwY1731SingleLossLossRemote,hwY1731SingleLossExceedRemoteUpLimitNum,hwY1731SingleLossBelowRemotelowLimitNum}
             STATUS current
             DESCRIPTION
                 "A collection of objects for storing the statistics of single-ended ETH-LM collected during the last period."
@@ -5514,7 +6009,7 @@
             ::= { hwEthOamGroups 54 }
 			
         hwY1731TestIdSingleLossSummaryStatTableGroup OBJECT-GROUP
-            OBJECTS {hwY1731TestIdSingleLossIndex ,hwY1731TestIdSingleLossNbrSamples ,hwY1731TestIdSingleLossSendRemote ,hwY1731TestIdSingleLossRecvLocal, 
+            OBJECTS {hwY1731TestIdSingleLossNbrSamples ,hwY1731TestIdSingleLossSendRemote ,hwY1731TestIdSingleLossRecvLocal, 
 			hwY1731TestIdSingleLossLossLocal ,hwY1731TestIdSingleLossExceedLocalUpLimitNum ,hwY1731TestIdSingleLossBelowLocallowLimitNum ,
 			hwY1731TestIdSingleLossSendLocal ,hwY1731TestIdSingleLossRecvRemote ,hwY1731TestIdSingleLossLossRemote ,hwY1731TestIdSingleLossExceedRemoteUpLimitNum, 
 			hwY1731TestIdSingleLossBelowRemotelowLimitNum }
@@ -5524,7 +6019,7 @@
             ::= { hwEthOamGroups 55 }	
 
         hwY1731TestIdSingleSynLossStatTableGroup OBJECT-GROUP
-            OBJECTS { hwY1731TestIdSingleSynLossSequence,hwY1731TestIdSingleSynLossErrInfo,hwY1731TestIdSingleSynLossLocalSend,hwY1731TestIdSingleSynLossRemoteSend,			hwY1731TestIdSingleSynLossLocalReceive,hwY1731TestIdSingleSynLossUnack,hwY1731TestIdSingleSynLossLossLocal,hwY1731TestIdSingleSynLossLocalRatio,
+            OBJECTS { hwY1731TestIdSingleSynLossErrInfo,hwY1731TestIdSingleSynLossLocalSend,hwY1731TestIdSingleSynLossRemoteSend,			hwY1731TestIdSingleSynLossLocalReceive,hwY1731TestIdSingleSynLossUnack,hwY1731TestIdSingleSynLossLossLocal,hwY1731TestIdSingleSynLossLocalRatio,
 			hwY1731TestIdSingleSynLossLossRemote,hwY1731TestIdSingleSynLossRemoteRatio,hwY1731TestIdSingleSynLossOnDemandStartTime }
             STATUS current
             DESCRIPTION
@@ -7014,7 +7509,9 @@
                hwY1731TestIdIsRecordFile
 	TruthValue,
                 hwY1731TestIdRowStatus
-                    RowStatus
+                    RowStatus,
+               hwY1731TestIdQueuePriority
+                     INTEGER
              }
 
         hwY1731TestIdentifier OBJECT-TYPE
@@ -7170,7 +7667,7 @@
                 The default value is false.
                 "
             ::= { hwY1731TestIdEntry 16 }
-            
+
         hwY1731TestIdRowStatus OBJECT-TYPE
             SYNTAX RowStatus
             MAX-ACCESS read-create
@@ -7182,7 +7679,28 @@
                  can be activated.
                 "
             ::= { hwY1731TestIdEntry 99 }
-            
+   
+        hwY1731TestIdQueuePriority  OBJECT-TYPE
+            SYNTAX INTEGER
+                {
+                invalid(1),
+                af1(2),
+                af2(3),
+                af3(4),
+                af4(5),
+                be(6),
+                cs6(7),
+                cs7(8),
+                ef(9)            
+                }
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "This object indicates the queue priority.
+                 The queue priority can be (1..9).
+                "
+            ::= { hwY1731TestIdEntry 17 }
+       
         hwY1731TestIdSingleEndedLMSendTable OBJECT-TYPE
             SYNTAX SEQUENCE OF HwY1731TestIdSingleEndedLMSendEntry
             MAX-ACCESS not-accessible

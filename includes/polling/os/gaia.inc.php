@@ -13,12 +13,10 @@
 
 // SNMPv2-SMI::enterprises.2620.1.6.4.1.0 = STRING: "R76"
 
-$mib = 'CHECKPOINT-MIB';
-
-$version  = snmp_get($device, 'svnVersion.0', '-OQv', $mib);
-$hardware = snmp_get($device, 'svnApplianceProductName.0', '-OQv', $mib);
-$serial   = snmp_get($device, 'svnApplianceSerialNumber.0', '-OQv', $mib);
-$features = snmp_get($device, 'haState.0', '-OQv', $mib);
+$version  = snmp_get($device, 'svnVersion.0', '-OQv', 'CHECKPOINT-MIB');
+$hardware = snmp_get($device, 'svnApplianceProductName.0', '-OQv', 'CHECKPOINT-MIB');
+$serial   = snmp_get($device, 'svnApplianceSerialNumber.0', '-OQv', 'CHECKPOINT-MIB');
+$features = snmp_get($device, 'haState.0', '-OQv', 'CHECKPOINT-MIB');
 
 if (empty($hardware)) // Fallback since svnApplianceProductName is only supported since R77.10
 {

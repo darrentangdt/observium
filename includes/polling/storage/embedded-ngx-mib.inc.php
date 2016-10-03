@@ -15,7 +15,7 @@
 
 if (!is_array($cache_storage['embedded-ngx-mib']))
 {
-  $cache_storage['embedded-ngx-mib'] = snmpwalk_cache_oid($device, "swStorage", NULL, "EMBEDDED-NGX-MIB", mib_dirs("checkpoint"));
+  $cache_storage['embedded-ngx-mib'] = snmpwalk_cache_oid($device, "swStorage", NULL, "EMBEDDED-NGX-MIB");
   if (OBS_DEBUG && count($cache_storage['embedded-ngx-mib'])) { print_vars($cache_storage['embedded-ngx-mib']); }
 }
 

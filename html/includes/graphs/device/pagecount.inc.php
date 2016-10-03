@@ -13,16 +13,30 @@
 
 include_once($config['html_dir']."/includes/graphs/common.inc.php");
 
-$rrd_options .= " -l 0 -E ";
-
-$pagecount_rrd = get_rrd_path($device, "pagecount.rrd");
-
-if (is_file($pagecount_rrd))
+foreach (dbFetchRows("SELECT * FROM `sensors` WHERE `sensor_class` = ? AND `measured_class` = ? AND `device_id` = ? ORDER BY `sensor_index`", array('counter', 'printersupply', $device['device_id'])) as $sensor)
 {
-  $rrd_options .= " COMMENT:'                                      Cur\\n'";
-  $rrd_options .= " DEF:pagecount=".$pagecount_rrd.":pagecount:AVERAGE ";
-  $rrd_options .= " LINE1:pagecount#CC0000:'Pages printed                   ' ";
-  $rrd_options .= " GPRINT:pagecount:LAST:%3.0lf\\\l";
+  $rrd_filename = get_rrd_path($device, get_sensor_rrd($device, $sensor));
+
+  if (($config['allow_unauth_graphs'] == TRUE || is_entity_permitted($sensor['sensor_id'], 'sensor')) && is_file($rrd_filename))
+  {
+    if (!strstr($sensor['sensor_descr'], 'Total')) { continue; } // FIXME, currently show obly Total here
+
+    $descr = rewrite_hrDevice($sensor['sensor_descr']);
+    $rrd_list[$i]['filename'] = $rrd_filename;
+    $rrd_list[$i]['descr'] = $descr;
+    $rrd_list[$i]['ds'] = "sensor";
+    $i++;
+  }
 }
+
+$unit_text = $unit_long;
+
+$units = '%';
+$total_units = '%';
+$colours ='mixed-10c';
+$nototal = 1;
+$scale_rigid = FALSE;
+
+include($config['html_dir']."/includes/graphs/generic_multi_line.inc.php");
 
 // EOF

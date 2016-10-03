@@ -27,14 +27,12 @@
   FIXME: sgiKbMemoryUsed, sgiKbMemoryAvailable, sgiKbMemoryPoolAllocated (use HC bit)
 */
 
-echo("TIMETRA-SYSTEM-MIB ");
-
-$mempool_array = snmpwalk_cache_multi_oid($device, "sgiMemoryAvailable",      NULL, "TIMETRA-SYSTEM-MIB");
-$mempool_array = snmpwalk_cache_multi_oid($device, "sgiMemoryUsed", $mempool_array, "TIMETRA-SYSTEM-MIB");
+$mempool_array = snmpwalk_cache_multi_oid($device, 'sgiMemoryAvailable', array(), $mib);
+$mempool_array = snmpwalk_cache_multi_oid($device, 'sgiMemoryUsed', $mempool_array, $mib);
 
 if (is_numeric($mempool_array[0]['sgiMemoryUsed']))
 {
-  discover_mempool($valid['mempool'], $device, 0, "TIMETRA-SYSTEM-MIB", "Memory", 1, $mempool_array[0]['sgiMemoryAvailable'], $mempool_array[0]['sgiMemoryUsed']);
+  discover_mempool($valid['mempool'], $device, 0, 'TIMETRA-SYSTEM-MIB', 'Memory', 1, $mempool_array[0]['sgiMemoryAvailable'], $mempool_array[0]['sgiMemoryUsed']);
 }
 
 unset ($mempool_array);

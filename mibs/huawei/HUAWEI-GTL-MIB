@@ -1,9 +1,9 @@
 -- ==================================================================
--- Copyright (C) 2007 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- 
 -- Description: HUAWEI GTL MIB
 -- Reference:
--- Version: V2.04
+-- Version: V2.09
 -- History:
 -- <author>,  <date>,  <contents>
 -- WangHaiwei   2007-1-16
@@ -27,7 +27,7 @@
                 FROM SNMPv2-SMI;
 
         hwGtl MODULE-IDENTITY 
-            LAST-UPDATED "201403051428Z"        -- March 5, 2014 at 14:28 GMT
+            LAST-UPDATED "201508101714Z"        -- Aug 10, 2015 at 17:14 GMT
             ORGANIZATION 
                 "Huawei Technologies Co.,Ltd."
             CONTACT-INFO 
@@ -41,6 +41,21 @@
             DESCRIPTION 
                 "The private mib file includes the general extent 
                 information of the device.hwDatacomm(25).htGtl(142)"
+                
+            REVISION     "201508101714Z"                                                                                    
+            DESCRIPTION  "V2.09, Add hwGtlItemInactive, hwGtlItemInactiveCleared  "     
+ 
+            REVISION     "201507201148Z"                                                                                    
+            DESCRIPTION  "V2.08, Add hwGtlEsnMismatchCleared" 
+                
+            REVISION     "201507141538Z"                                                                                    
+            DESCRIPTION  "V2.07, Add hwGtlEsnMismatch" 
+
+            REVISION     "201506041538Z"                                                                                    
+            DESCRIPTION  "V2.06, Add hwGtlResourceOverload, hwGtlResourceOverloadCleared" 
+
+            REVISION     "201412041538Z"                                                                                    
+            DESCRIPTION  "V2.05, Add the hwGtlTrialFeatureNearDeadline, hwGtlTrialFeatureNearDeadlineCleared" 
 
             REVISION     "201403051428Z"                                                                                    
             DESCRIPTION  "V2.04, Add the hwGtlTrialFeatureEnable,hwGtlTrialFeatureDisable" 
@@ -310,7 +325,62 @@
                 "Notification represents the trial feature is disable ."
             ::= { hwGtlNotifications 15} 
 
-      
+       hwGtlTrialFeatureNearDeadline NOTIFICATION-TYPE
+            OBJECTS { hwGtlFeatureName, hwGtlRemainTime, hwGtlChassisID }
+            STATUS current
+            DESCRIPTION 
+                "The trial feature is about to expire."
+            ::= { hwGtlNotifications 16 }           
+
+       hwGtlTrialFeatureNearDeadlineCleared NOTIFICATION-TYPE
+            OBJECTS { hwGtlFeatureName, hwGtlRemainTime, hwGtlChassisID }
+            STATUS current
+            DESCRIPTION 
+                "The alarm indicating that the trial feature is about to expire is cleared."
+            ::= { hwGtlNotifications 17 }  
+
+        hwGtlResourceOverload NOTIFICATION-TYPE
+            OBJECTS { hwGtlResourceItem }
+            STATUS current
+            DESCRIPTION 
+                "Notification represents the resource has been used up."
+            ::= { hwGtlNotifications 18 }
+
+       hwGtlResourceOverloadCleared NOTIFICATION-TYPE
+            OBJECTS { hwGtlResourceItem }
+            STATUS current
+            DESCRIPTION 
+                "The notification represents the resource has been used up is cleared."
+            ::= { hwGtlNotifications 19 }
+            
+       hwGtlEsnMismatch NOTIFICATION-TYPE
+            OBJECTS { hwGtlChassisID }
+            STATUS current
+            DESCRIPTION 
+                "The notification represents the mismatch between the device ESN and license file."
+            ::= { hwGtlNotifications 20 }
+
+       hwGtlEsnMismatchCleared NOTIFICATION-TYPE
+            OBJECTS { hwGtlChassisID }
+            STATUS current
+            DESCRIPTION 
+                "The notification represents the mismatch between the device ESN and license file is cleared."
+            ::= { hwGtlNotifications 21 }
+            
+        hwGtlItemInactive NOTIFICATION-TYPE
+            OBJECTS { hwGtlResourceItem }
+            STATUS current
+            DESCRIPTION 
+                "Notification represents the item is inactive."
+            ::= { hwGtlNotifications 22 }
+            
+        hwGtlItemInactiveCleared NOTIFICATION-TYPE
+            OBJECTS { hwGtlResourceItem }
+            STATUS current
+            DESCRIPTION 
+                "The notification represents the item is inactive is cleared."
+            ::= { hwGtlNotifications 23 }
+            
 --    Conformance information            
         hwGtlConformance OBJECT IDENTIFIER ::= { hwGtl 3 }
 
@@ -336,7 +406,7 @@
             ::= { hwGtlGroups 1 }
 
         hwGtlNotificationGroup NOTIFICATION-GROUP
-            NOTIFICATIONS { hwGtlDefaultValue, hwGtlResourceUsedUp, hwGtlNearDeadline, hwGtlLicenseVerifyFailed, hwGtlExpired, hwGtlItemMismatch, hwGtlDefaultValueCleared, hwGtlNearDeadlineCleared, hwGtlItemMismatchCleared, hwGtlResourceUsedUpCleared, hwGtlLicenseNotCommeral, hwGtlEmergencyStart, hwGtlEmergencyStop, hwGtlTrialFeatureEnable, hwGtlTrialFeatureDisable }
+            NOTIFICATIONS { hwGtlDefaultValue, hwGtlResourceUsedUp, hwGtlNearDeadline, hwGtlLicenseVerifyFailed, hwGtlExpired, hwGtlItemMismatch, hwGtlDefaultValueCleared, hwGtlNearDeadlineCleared, hwGtlItemMismatchCleared, hwGtlResourceUsedUpCleared, hwGtlLicenseNotCommeral, hwGtlEmergencyStart, hwGtlEmergencyStop, hwGtlTrialFeatureEnable, hwGtlTrialFeatureDisable, hwGtlTrialFeatureNearDeadline, hwGtlTrialFeatureNearDeadlineCleared, hwGtlResourceOverload, hwGtlResourceOverloadCleared, hwGtlEsnMismatch, hwGtlEsnMismatchCleared, hwGtlItemInactive, hwGtlItemInactiveCleared }
             STATUS current
             DESCRIPTION 
                 "The notification group."

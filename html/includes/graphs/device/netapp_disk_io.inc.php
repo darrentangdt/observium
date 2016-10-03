@@ -17,6 +17,6 @@ $ds_in = "disk_rd";
 $ds_out = "disk_wr";
 $format = "octets";
 
-include("includes/graphs/generic_data.inc.php");
+include($config['html_dir']."/includes/graphs/generic_data.inc.php");
 
 ?>

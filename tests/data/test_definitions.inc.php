@@ -31,16 +31,23 @@ require("Console/Color2.php");
 */
 
 unset($config['os']['default']); // Override default for tests
-$config['os']['default']['graphs'][0]                 = "device_bits";
-$config['os']['default']['graphs'][1]                 = "device_uptime";
-$config['os']['default']['graphs'][2]                 = "device_ping";
+
+$config['os']['default']['graphs'][]                = "device_bits";
+$config['os']['default']['graphs'][]                = "device_uptime";
+$config['os']['default']['graphs'][]                = "device_ping";
+$config['os']['default']['comments']                = "/^\s*#/";
 // MIBs enabled for any os (except blacklisted mibs)
+$config['os']['default']['mibs'][]                  = "EtherLike-MIB"; // in ports module
 $config['os']['default']['mibs'][]                  = "ENTITY-MIB";
 $config['os']['default']['mibs'][]                  = "ENTITY-SENSOR-MIB";
+$config['os']['default']['mibs'][]                  = "CISCO-ENTITY-VENDORTYPE-OID-MIB"; // Inventory module
 $config['os']['default']['mibs'][]                  = "HOST-RESOURCES-MIB";
 $config['os']['default']['mibs'][]                  = "Q-BRIDGE-MIB";
-$config['os']['default']['mibs'][]                  = "LLDP-MIB";
-//$config['os']['default']['mibs'][]                  = "CISCO-CDP-MIB"; // FIXME. See in module discovery-protocols
+$config['os']['default']['mibs'][]                  = "LLDP-MIB";       // Should be before CISCO-CDP-MIB, but I not know why (in neighbours)
+$config['os']['default']['mibs'][]                  = "CISCO-CDP-MIB";
+$config['os']['default']['mibs'][]                  = "PW-STD-MIB";     // Pseudowires. FIXME, possible more os specific?
+$config['os']['default']['mibs'][]                  = "DISMAN-PING-MIB";// RFC4560, SLA
+$config['os']['default']['mibs'][]                  = "BGP4-MIB";
 
 $os_group = "test_unix";
 $config['os_group'][$os_group]['type']              = "server";
@@ -167,6 +174,17 @@ $config['os'][$os]['mibs'][]                = "DELL-RAC-MIB";
 $os = "test_dlinkfw";
 $config['os'][$os]['text']                  = "D-Link Firewall";
 $config['os'][$os]['type']                  = "firewall";
+$config['os'][$os]['vendor']                = "D-Link";
+$config['os'][$os]['sysDescr'][]            = "/D-Link Firewall /";
+$config['os'][$os]['sysObjectID'][]         = ".1.3.6.1.4.1.171.20.";
+$config['os'][$os]['mib_dirs'][]            = "d-link";
+$config['os'][$os]['mibs'][]                = "JUST-TEST-MIB";
+$config['os'][$os]['model']                 = "d-link";
+
+$os = "test_order";
+$config['os'][$os]['text']                  = "D-Link Firewall";
+$config['os'][$os]['type']                  = "firewall";
+$config['os'][$os]['group']                 = "test_black";
 $config['os'][$os]['vendor']                = "D-Link";
 $config['os'][$os]['sysDescr'][]            = "/D-Link Firewall /";
 $config['os'][$os]['sysObjectID'][]         = ".1.3.6.1.4.1.171.20.";

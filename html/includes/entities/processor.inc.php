@@ -54,7 +54,31 @@ function print_processor_table($vars)
     }
   }
 
-  $processors = array_sort_by($processors, 'hostname', SORT_ASC, SORT_STRING, 'processor_descr', SORT_ASC, SORT_STRING);
+  // Sorting
+  // FIXME. Sorting can be as function, but in must before print_table_header and after get table from db
+  switch ($vars['sort_order'])
+  {
+    case 'desc':
+      $sort_order = SORT_DESC;
+      $sort_neg   = SORT_ASC;
+      break;
+    case 'reset':
+      unset($vars['sort'], $vars['sort_order']);
+      // no break here
+    default:
+      $sort_order = SORT_ASC;
+      $sort_neg   = SORT_DESC;
+  }
+  switch($vars['sort'])
+  {
+    case 'usage':
+      $processors = array_sort_by($processors, 'processor_usage', $sort_neg, SORT_NUMERIC);
+      break;
+    default:
+      $processors = array_sort_by($processors, 'hostname', $sort_order, SORT_STRING, 'processor_descr', $sort_order, SORT_STRING);
+      break;
+  }
+
   $processors_count = count($processors);
 
   // Pagination
@@ -77,7 +101,7 @@ function print_processor_table($vars)
     print_processor_row($processor, $vars);
   }
 
-  echo("</table>");
+  echo("</tbody></table>");
 
   echo generate_box_close();
 
@@ -87,20 +111,29 @@ function print_processor_table($vars)
 
 function print_processor_table_header($vars)
 {
-  if ($vars['view'] == "graphs") { $stripe_class = "table-striped-two"; } else { $stripe_class = "table-striped"; }
+  if ($vars['view'] == "graphs")
+  {
+    $table_class = OBS_CLASS_TABLE_STRIPED_TWO;
+  } else {
+    $table_class = OBS_CLASS_TABLE_STRIPED;
+  }
 
-  echo('<table class="table '.$stripe_class.' table-condensed ">');
-  echo('  <thead>');
-  echo('    <tr>');
-  echo('      <th class="state-marker"></th>');
-  echo('      <th style="width: 1px;"></th>');
-  if ($vars['page'] != "device") { echo('      <th style="width: 200px;">Device</th>'); }
-  echo('      <th>Processor</th>');
-  echo('      <th style="width: 100px;"></th>');
-  echo('      <th style="width: 250px;">Usage</th>');
-  echo('    </tr>');
-  echo('  </thead>');
+  echo('<table class="' . $table_class . '">' . PHP_EOL);
+  $cols = array(
+                   array(NULL, 'class="state-marker"'),
+    'device'    => array('Device', 'style="width: 200px;"'),
+    'descr'     => array('Processor'),
+                   array('', 'style="width: 100px;"'),
+    'usage'     => array('Usage', 'style="width: 250px;"'),
+  );
 
+  if ($vars['page'] == "device")
+  {
+    unset($cols['device']);
+  }
+
+  echo(get_table_header($cols, $vars));
+  echo('<tbody>' . PHP_EOL);
 }
 
 function print_processor_row($processor, $vars)
@@ -140,7 +173,7 @@ function generate_processor_row($processor, $vars)
 
   $graph_array['width'] = 80;
   $graph_array['height'] = 20;
-  $graph_array['bg'] = 'ffffff00'; # the 00 at the end makes the area transparent.
+  $graph_array['bg'] = 'ffffff00';
   $graph_array['from'] = $config['time']['day'];
   $mini_graph =  generate_graph_tag($graph_array);
 
@@ -150,8 +183,7 @@ function generate_processor_row($processor, $vars)
   $processor['html_row_class'] = $background['class'];
 
   $row .= '<tr class="' . $processor['html_row_class'] . '">
-          <td class="state-marker"></td>
-          <td width="1px"></td>';
+          <td class="state-marker"></td>';
 
   if ($vars['page'] != "device" && $vars['popup'] != TRUE) { $row .= '<td class="entity">' . generate_device_link($processor) . '</td>'; }
 

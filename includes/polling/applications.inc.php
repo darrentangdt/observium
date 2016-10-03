@@ -11,27 +11,42 @@
  *
  */
 
-$app_rows = dbFetchRows("SELECT * FROM `applications` WHERE `device_id`  = ?", array($device['device_id']));
+$app_rows = dbFetchRows("SELECT * FROM `applications` WHERE `device_id` = ?", array($device['device_id']));
 
-if (count($app_rows))
+foreach ($app_rows as $app)
 {
-  echo('Applications: ');
-  foreach ($app_rows as $app)
+  $valid_applications[$app] = $app;
+}
+
+
+if (is_array($valid_applications) && count($valid_applications))
+{
+  print_cli_data_field("Applications", 2);
+  foreach ($valid_applications as $app_type)
   {
-    if (!isset($agent_data['app'][$app['app_type']]))
+    echo $app_type . ' ';
+
+    // One include per application type. Multiple instances currently handled within the application code
+    $app_include = $config['install_dir'].'/includes/polling/applications/'.$app_type.'.inc.php';
+    if (is_file($app_include))
     {
-      $app_include = $config['install_dir'].'/includes/polling/applications/'.$app['app_type'].'.inc.php';
-      if (is_file($app_include))
-      {
-        include($app_include);
-      }
-      else
-      {
-        echo($app['app_type'].' include missing! ');
-      }
+      include($app_include);
     }
+    else
+    {
+      echo($app['app_type'].' include missing! ');
+    }
+
   }
   echo(PHP_EOL);
 }
+
+$app_rows = dbFetchRows("SELECT * FROM `applications` WHERE `device_id` = ? AND `app_lastpolled` < ?", array($device['device_id'], time()-604800));
+foreach ($app_rows as $app)
+{
+  dbDelete('applications', '`app_id` = ?', array($app['app_id']));
+  echo '-';
+}
+
 
 // EOF

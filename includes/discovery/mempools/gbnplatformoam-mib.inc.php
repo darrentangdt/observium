@@ -14,12 +14,9 @@
 // GBNPlatformOAM-MIB::memorySize.0 = INTEGER: 128
 // GBNPlatformOAM-MIB::memoryIdle.0 = INTEGER: 51
 
-$mib = 'GBNPlatformOAM-MIB';
-echo("$mib ");
-
-$descr  = "Memory";
-$free   = snmp_get($device, "memoryIdle.0", "-OQUvs", $mib, mib_dirs('gcom'));
-$total  = snmp_get($device, "memorySize.0", "-OQUvs", $mib, mib_dirs('gcom'));
+$descr  = 'Memory';
+$free   = snmp_get($device, 'memoryIdle.0', '-OQUvs', $mib);
+$total  = snmp_get($device, 'memorySize.0', '-OQUvs', $mib);
 
 if (is_numeric($free) && is_numeric($total))
 {
@@ -27,7 +24,8 @@ if (is_numeric($free) && is_numeric($total))
   //$free  *= 1024*1024;
   $used   = $total - $free;
 
-  discover_mempool($valid['mempool'], $device, 0, strtolower($mib), $descr, 1024*1024, $total, $used);
+  discover_mempool($valid['mempool'], $device, 0, strtolower('GBNPlatformOAM-MIB'), $descr, 1024*1024, $total, $used);
+  // ^ FIXME why strtolower?
 }
 
 unset ($descr, $total, $used);

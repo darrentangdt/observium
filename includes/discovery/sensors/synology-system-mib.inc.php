@@ -17,9 +17,7 @@
 // SYNOLOGY-SYSTEM-MIB::systemFanStatus.0 = INTEGER: 1
 // SYNOLOGY-SYSTEM-MIB::cpuFanStatus.0 = INTEGER: 1
 
-echo(" SYNOLOGY-SYSTEM-MIB ");
-
-$value = snmp_get($device, "temperature.0", "-Oqv", "SYNOLOGY-SYSTEM-MIB", mib_dirs('synology'));
+$value = snmp_get($device, "temperature.0", "-Oqv", "SYNOLOGY-SYSTEM-MIB");
 
 if (is_numeric($value) && $value > 0)
 {
@@ -29,7 +27,7 @@ if (is_numeric($value) && $value > 0)
   discover_sensor($valid['sensor'], 'temperature', $device, $oid, "temperature.0", 'synology-system-mib', $descr, 1, $value);
 }
 
-$value = snmp_get($device, "systemStatus.0", "-Oqv", "SYNOLOGY-SYSTEM-MIB", mib_dirs('synology'));
+$value = snmp_get($device, "systemStatus.0", "-Oqv", "SYNOLOGY-SYSTEM-MIB");
 
 if (is_numeric($value) && $value > 0)
 {
@@ -39,7 +37,7 @@ if (is_numeric($value) && $value > 0)
   discover_sensor($valid['sensor'], 'state', $device, $oid, "systemStatus.0", 'synology-status-state', $descr, NULL, $value, array('entPhysicalClass' => 'chassis'));
 }
 
-$value = snmp_get($device, "powerStatus.0", "-Oqv", "SYNOLOGY-SYSTEM-MIB", mib_dirs('synology'));
+$value = snmp_get($device, "powerStatus.0", "-Oqv", "SYNOLOGY-SYSTEM-MIB");
 
 if (is_numeric($value) && $value > 0)
 {
@@ -49,7 +47,7 @@ if (is_numeric($value) && $value > 0)
   discover_sensor($valid['sensor'], 'state', $device, $oid, "powerStatus.0", 'synology-status-state', $descr, NULL, $value, array('entPhysicalClass' => 'power'));
 }
 
-$value = snmp_get($device, "systemFanStatus.0", "-Oqv", "SYNOLOGY-SYSTEM-MIB", mib_dirs('synology'));
+$value = snmp_get($device, "systemFanStatus.0", "-Oqv", "SYNOLOGY-SYSTEM-MIB");
 
 if (is_numeric($value) && $value > 0)
 {
@@ -59,7 +57,7 @@ if (is_numeric($value) && $value > 0)
   discover_sensor($valid['sensor'], 'state', $device, $oid, "systemFanStatus.0", 'synology-status-state', $descr, NULL, $value, array('entPhysicalClass' => 'fan'));
 }
 
-$value = snmp_get($device, "cpuFanStatus.0", "-Oqv", "SYNOLOGY-SYSTEM-MIB", mib_dirs('synology'));
+$value = snmp_get($device, "cpuFanStatus.0", "-Oqv", "SYNOLOGY-SYSTEM-MIB");
 
 if (is_numeric($value) && $value > 0)
 {

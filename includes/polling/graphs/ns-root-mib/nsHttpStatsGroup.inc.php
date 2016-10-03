@@ -18,7 +18,7 @@ $table_defs['NS-ROOT-MIB']['nsHttpStatsGroup'] = array (
   'mib_dir'   => 'citrix',
   'file'      => 'nsHttpStatsGroup.rrd',
   'descr'     => 'Netscaler HTTP Statistics',
-  'graphs'    => array('nsHttpRequests', 'nsHttpBytes', 'nsHttpSPDY'),
+  'graphs'    => array('nsHttpRequests', 'nsHttpReqResp', 'nsHttpBytes', 'nsHttpSPDY'),
   'ds_rename' => array('http' => ''),
   'oids'      => array(
     'httpTotGets'                 => array('numeric' => '45', 'descr' => 'Total number of HTTP requests received with the GET method.', 'ds_min' => '0'),
@@ -47,7 +47,12 @@ $table_defs['NS-ROOT-MIB']['nsHttpStatsGroup'] = array (
     'httpTot11Responses'          => array('numeric' => '69', 'descr' => 'Total number of HTTP/1.1 responses sent.', 'ds_min' => '0'),
     'httpTotNoClenChunkResponses' => array('numeric' => '70', 'descr' => 'Total number of FIN-terminated responses sent. In FIN-terminated responses, the server finishes sending the data and closes the connection.', 'ds_min' => '0'),
     'httpErrNoreuseMultipart'     => array('numeric' => '71', 'descr' => 'Total number of HTTP multi-part responses sent. In multi-part responses, one or more entities are encapsulated within the body of a single message.', 'ds_min' => '0'),
-    'spdy2TotStreams'             => array('numeric' => '72', 'descr' => 'Total number of requests received over SPDY.')
+    // 'spdy2TotStreams'             => array('numeric' => '72', 'descr' => 'Total number of requests received over SPDY.'),
+    'spdyTotStreams'              => array('numeric' => '73', 'descr' => 'Total number of requests received over SPDYv2 and SPDYv3'),
+    'spdyv2TotStreams'            => array('numeric' => '74', 'descr' => 'Total number of requests received over SPDYv2'),
+    'spdyv3TotStreams'            => array('numeric' => '75', 'descr' => 'Total number of requests received over SPDYv3.'),
+    'httpTotRequestsRate'         => array('numeric' => '76', 'descr' => 'Rate at which HTTP Requests are received in the system per second.'),
+    'httpTotResponsesRate'        => array('numeric' => '77', 'descr' => 'Rate at which HTTP Responses are received in the system per second.')
   )
 );
 

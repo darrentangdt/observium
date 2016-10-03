@@ -21,10 +21,16 @@ foreach (dbFetchRows("SELECT * FROM `netscaler_services` WHERE `device_id` = ?",
   {
     $rrd_list[$i]['filename']  = $rrd_filename;
     $rrd_list[$i]['descr']     = $svc['svc_name'];
-    $rrd_list[$i]['descr_in']  = $svc['svc_name'];
-    $rrd_list[$i]['descr_out'] = $svc['svc_ip'] . ":" . $svc['svc_port'];
-    $rrd_list[$i]['ds_in']     = $ds_in;
-    $rrd_list[$i]['ds_out']    = $ds_out;
+
+    if(isset($ds_in) && isset($ds_out))
+    {
+      $rrd_list[$i]['descr_in']  = $svc['svc_name'];
+      $rrd_list[$i]['descr_out'] = $svc['svc_ip'] . ":" . $svc['svc_port'];
+      $rrd_list[$i]['ds_in']     = $ds_in;
+      $rrd_list[$i]['ds_out']    = $ds_out;
+    } else {
+      $rrd_list[$i]['ds']     = $ds;
+    }
     $i++;
   }
 

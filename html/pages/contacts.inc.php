@@ -19,34 +19,34 @@ if ($_SESSION['userlevel'] < 7)
   return;
 }
 
-  include($config['html_dir']."/includes/alerting-navbar.inc.php");
-  include($config['html_dir']."/includes/contacts-navbar.inc.php");
+include($config['html_dir'].'/includes/alerting-navbar.inc.php');
+include($config['html_dir'].'/includes/contacts-navbar.inc.php');
 
-  if ($_SESSION['userlevel'] >= 10 && isset($vars['submit']) && $vars['submit'] == 'contact_add')
+if ($_SESSION['userlevel'] >= 10 && isset($vars['submit']) && $vars['submit'] == 'contact_add')
+{
+  // Only proceed if the contact_method is valid in our transports array
+  if (is_array($config['alerts']['transports'][$vars['contact_method']]))
   {
-    // Only proceed if the contact_method is valid in our transports array
-    if (is_array($config['alerts']['transports'][$vars['contact_method']]))
+    foreach ($config['alerts']['transports'][$vars['contact_method']]['parameters'] as $section => $parameters)
     {
-      foreach ($config['alerts']['transports'][$vars['contact_method']]['parameters'] as $section => $parameters)
+      foreach ($parameters as $parameter => $description)
       {
-        foreach ($parameters as $parameter => $description)
+        if (isset($vars['contact_' . $vars['contact_method'] . '_' . $parameter]))
         {
-          if (isset($vars['contact_' . $vars['contact_method'] . '_' . $parameter]))
-          {
-            $endpoint_data[$parameter] = $vars['contact_' . $vars['contact_method'] . '_' . $parameter];
-          }
+          $endpoint_data[$parameter] = $vars['contact_' . $vars['contact_method'] . '_' . $parameter];
         }
       }
-      
-      dbInsert('alert_contacts', array('contact_descr' => $vars['contact_descr'], 'contact_endpoint' => json_encode($endpoint_data), 'contact_method' => $vars['contact_method']));
     }
-  }
 
-  if ($_SESSION['userlevel'] >= 10 && isset($vars['submit']) && $vars['submit'] == 'contact_delete')
-  {
-    $rows_updated   = dbDelete('alert_contacts',       '`contact_id` = ?', array($vars['contact_id']));
-    $assocs_deleted = dbDelete('alert_contacts_assoc', '`contact_id` = ?', array($vars['contact_id']));
+    dbInsert('alert_contacts', array('contact_descr' => $vars['contact_descr'], 'contact_endpoint' => json_encode($endpoint_data), 'contact_method' => $vars['contact_method']));
   }
+}
+
+if ($_SESSION['userlevel'] >= 10 && isset($vars['submit']) && $vars['submit'] == 'contact_delete')
+{
+  $rows_updated   = dbDelete('alert_contacts',       '`contact_id` = ?', array($vars['contact_id']));
+  $assocs_deleted = dbDelete('alert_contacts_assoc', '`contact_id` = ?', array($vars['contact_id']));
+}
 
 ?>
 
@@ -55,14 +55,12 @@ if ($_SESSION['userlevel'] < 7)
 
 <?php
 
-  // FIXME. Show for anyone > 5 (also for non-ADMIN) and any contacts?
-  $contacts = dbFetchRows("SELECT * FROM `alert_contacts` WHERE 1");
-  if (count($contacts))
-  {
-    // We have contacts, print the table.
-
-
-    echo generate_box_open();
+// FIXME. Show for anyone > 5 (also for non-ADMIN) and any contacts?
+$contacts = dbFetchRows('SELECT * FROM `alert_contacts` WHERE 1');
+if (count($contacts))
+{
+  // We have contacts, print the table.
+  echo generate_box_open();
 ?>
 
 <table class="table table-condensed table-striped table-rounded table-hover">
@@ -82,59 +80,59 @@ if ($_SESSION['userlevel'] < 7)
 
 <?php
 
-    $modals = '';
+  $modals = '';
 
-    foreach ($contacts as $contact)
+  foreach ($contacts as $contact)
+  {
+    $num_assocs = dbFetchCell("SELECT COUNT(*) FROM `alert_contacts_assoc` WHERE `contact_id` = ?", array($contact['contact_id'])) + 0;
+
+    if ($contact['contact_disabled'] == 1) { $disabled = ""; }
+
+    // If we have "identifiers" set for this type of transport, use those to print a user friendly destination.
+    // If we don't, just dump the JSON array as we don't have a better idea what to do right now.
+    if (isset($config['alerts']['transports'][$contact['contact_method']]['identifiers']))
     {
-      $num_assocs = dbFetchCell("SELECT COUNT(*) FROM `alert_contacts_assoc` WHERE `contact_id` = ?", array($contact['contact_id'])) + 0;
+      // Decode JSON for use below
+      $contact['endpoint_variables'] = json_decode($contact['contact_endpoint'], TRUE);
 
-      if ($contact['contact_disabled'] == 1) { $disabled = ""; }
-
-      // If we have "identifiers" set for this type of transport, use those to print a user friendly destination.
-      // If we don't, just dump the JSON array as we don't have a better idea what to do right now.
-      if (isset($config['alerts']['transports'][$contact['contact_method']]['identifiers']))
+      // Add all identifier strings to an array and implode them into the description variable
+      // We can't just foreach the identifiers array as we don't know what section the variable is in
+      foreach ($config['alerts']['transports'][$contact['contact_method']]['identifiers'] as $key)
       {
-        // Decode JSON for use below
-        $contact['endpoint_variables'] = json_decode($contact['contact_endpoint'], TRUE);
-
-        // Add all identifier strings to an array and implode them into the description variable
-        // We can't just foreach the identifiers array as we don't know what section the variable is in
-        foreach ($config['alerts']['transports'][$contact['contact_method']]['identifiers'] as $key)
+        foreach ($config['alerts']['transports'][$contact['contact_method']]['parameters'] as $section => $parameters)
         {
-          foreach ($config['alerts']['transports'][$contact['contact_method']]['parameters'] as $section => $parameters)
+          if (isset($parameters[$key]) && isset($contact['endpoint_variables'][$key]))
           {
-            if (isset($parameters[$key]) && isset($contact['endpoint_variables'][$key]))
-            {
-              $contact['endpoint_identifiers'][] = escape_html($parameters[$key]['description'] . ': ' . $contact['endpoint_variables'][$key]);
-            }
+            $contact['endpoint_identifiers'][] = escape_html($parameters[$key]['description'] . ': ' . $contact['endpoint_variables'][$key]);
           }
         }
-
-        $contact['endpoint_descr'] = implode('<br />', $contact['endpoint_identifiers']);
-      }
-      else
-      {
-        $contact['endpoint_descr'] = escape_html($contact['contact_endpoint']);
       }
 
-      echo '    <tr>';
-      echo '      <td></td>';
-      echo '      <td>'.$contact['contact_id'].'</td>';
-      echo '      <td><span class="label">'.$config['alerts']['transports'][$contact['contact_method']]['name'].'</span></td>';
-      echo '      <td>'.escape_html($contact['contact_descr']).'</td>';
-      echo '      <td><a href="' . generate_url(array('page' => 'contact', 'contact_id' => $contact['contact_id'])) . '">' . $contact['endpoint_descr'] . '</a></td>';
-      echo '      <td><span class="label label-info">'.$num_assocs.'</span></td>';
-      echo '      <td>' . ($contact['contact_disabled'] ?  '<span class="label label-error">disabled</span>' : '<span class="label label-success">enabled</span>') . '</td>';
-      echo '      <td><a href="#contact_del_modal_' . $contact['contact_id'] . '" data-toggle="modal"><i class="oicon-minus-circle"></i></a></td>';
-      echo '    </tr>';
+      $contact['endpoint_descr'] = implode('<br />', $contact['endpoint_identifiers']);
+    }
+    else
+    {
+      $contact['endpoint_descr'] = escape_html($contact['contact_endpoint']);
+    }
 
-      $modals .= '
+    echo '    <tr>';
+    echo '      <td></td>';
+    echo '      <td>'.$contact['contact_id'].'</td>';
+    echo '      <td><span class="label">'.$config['alerts']['transports'][$contact['contact_method']]['name'].'</span></td>';
+    echo '      <td>'.escape_html($contact['contact_descr']).'</td>';
+    echo '      <td><a href="' . generate_url(array('page' => 'contact', 'contact_id' => $contact['contact_id'])) . '">' . $contact['endpoint_descr'] . '</a></td>';
+    echo '      <td><span class="label label-primary">'.$num_assocs.'</span></td>';
+    echo '      <td>' . ($contact['contact_disabled'] ?  '<span class="label label-error">disabled</span>' : '<span class="label label-success">enabled</span>') . '</td>';
+    echo '      <td><a href="#contact_del_modal_' . $contact['contact_id'] . '" class="btn btn-xs" data-toggle="modal"><i class="icon-trash text-danger"></i></a></td>';
+    echo '    </tr>';
+
+    $modals .= '
 <div id="contact_del_modal_'.$contact['contact_id'].'" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="contact_delete" aria-hidden="true">
  <form id="contact_del" name="contact_del" method="post" class="form" action="">
   <input type="hidden" name="contact_id" value="'. $contact['contact_id'].'">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="myModalLabel"><i class="oicon-minus-circle"></i> Delete Contact '.$contact['contact_id'].'</h3>
+    <h3 id="myModalLabel">Delete Contact '.$contact['contact_id'].'</h3>
   </div>
   <div class="modal-body">
 
@@ -171,7 +169,7 @@ if ($_SESSION['userlevel'] < 7)
 </div>
 ';
 
-    }
+  }
 
 ?>
 
@@ -180,19 +178,16 @@ if ($_SESSION['userlevel'] < 7)
 
 <?php
 
-    echo generate_box_close();
+  echo generate_box_close();
+} else {
+  // We don't have contacts. Say so.
+  print_warning("There are currently no contacts configured.");
+}
 
-  } else {
-    // We don't have contacts. Say so.
-    print_warning("There are currently no contacts configured.");
-  }
-
-  echo $modals;
+echo $modals;
 
 ?>
-
   </div> <!-- col-sm-12 -->
-
 </div> <!-- row -->
 
 <!-- Add association -->
@@ -247,7 +242,7 @@ if ($_SESSION['userlevel'] < 7)
         echo('        <div class="control-group">' . PHP_EOL);
         echo('          <label class="control-label" for="contact_' . $transport . '_' . $parameter . '">' . $param_data['description'] . '</label>' . PHP_EOL);
         echo('          <div class="controls">' . PHP_EOL);
-        echo('            <input type=text name="contact_' . $transport . '_' . $parameter . '" size="32" value=""/>' . PHP_EOL);
+        echo('            <input type=text name="contact_' . $transport . '_' . $parameter . '" size="32" value="'.(isset($param_data['default']) ? $param_data['default'] : '').'"/>' . PHP_EOL);
         if (isset($param_data['tooltip']))
         {
           echo(generate_tooltip_link(NULL, '<i class="oicon-question"></i>', $param_data['tooltip']));
@@ -264,7 +259,7 @@ if ($_SESSION['userlevel'] < 7)
       foreach ($data['parameters']['optional'] as $parameter => $param_data)
       {
         echo('        <div class="control-group">' . PHP_EOL);
-        echo('          <label class="control-label" for="contact_' . $transport . '_' . $parameter . '">' . $param_data['description'] . '<:label>' . PHP_EOL);
+        echo('          <label class="control-label" for="contact_' . $transport . '_' . $parameter . '">' . $param_data['description'] . '</label>' . PHP_EOL);
         echo('          <div class="controls">' . PHP_EOL);
         echo('            <input type=text name="contact_' . $transport . '_' . $parameter . '" size="32" value=""/>' . PHP_EOL);
         if (isset($param_data['tooltip']))
@@ -278,7 +273,7 @@ if ($_SESSION['userlevel'] < 7)
   
     echo('      </div>' . PHP_EOL);
   }
-                                                                           
+
 ?>
 
 <script type="text/javascript">

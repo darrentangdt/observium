@@ -32,6 +32,18 @@ function createInterfaces(index, target_id)
         $('.selectpicker').selectpicker('refresh');
 }
 
+function getEntityListNeo(device_id, target_id, entity_type)
+{
+        document.getElementById(target_id).options.length = 0;     // Empty city select box
+        if (device_id.length>0) {
+                var index = ajax.length;
+                ajax[index] = new sack();
+
+                ajax[index].requestFile = 'ajax/device_entities.php?device_id='+device_id+'&entity_type='+entity_type;    // Specifying which file to get
+                ajax[index].onCompletion = function() { createInterfaces(index, target_id) };       // Specify function that will be executed after file has been found
+                ajax[index].runAJAX();          // Execute AJAX function
+        }
+}
 
 function getEntityList(sel, target_id, entity_type)
 {

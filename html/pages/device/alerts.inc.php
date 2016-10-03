@@ -40,6 +40,19 @@ foreach ($alert_table as $entity_type => $thing)
   $navbar['options'][$entity_type]['text'] = escape_html(nicecase($entity_type));
 }
 
+if (isset($config['enable_syslog']) && $config['enable_syslog'] && OBSERVIUM_EDITION != 'community')
+{
+  $entity_type = "syslog";
+
+  if (!$vars['entity_type']) { $vars['entity_type'] = 'syslog'; }
+  if ($vars['entity_type'] == 'syslog') { $navbar['options'][$entity_type]['class'] = "active"; }
+
+  $navbar['options'][$entity_type]['url'] = generate_url(array('page' => 'device', 'device' => $device['device_id'],
+                                                  'tab' => 'alerts', 'entity_type' => $entity_type));
+  $navbar['options'][$entity_type]['icon'] = 'oicon-clipboard--exclamation';
+  $navbar['options'][$entity_type]['text'] = 'Syslog';
+}
+
 $navbar['options_right']['update']['url']  = generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'alerts', 'action'=>'update'));
 $navbar['options_right']['update']['text'] = 'Rebuild';
 $navbar['options_right']['update']['icon'] = 'oicon-arrow-circle';
@@ -99,14 +112,20 @@ unset($navbar);
 
 if($vars['action'] == 'update')
 {
-  echo '<div class="box box-solid">';
+  echo generate_box_open();
   update_device_alert_table($device);
   $alert_table = cache_device_alert_table($device['device_id']);
-  echo '</div>';
+  echo generate_box_close();
 }
 
 $vars['pagination'] = TRUE;
 
-print_alert_table($vars);
+if($vars['entity_type'] == "syslog")
+{
 
+  print_logalert_log($vars);
+
+} else {
+  print_alert_table($vars);
+}
 // EOF

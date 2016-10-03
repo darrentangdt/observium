@@ -32,10 +32,10 @@ if (preg_match('/^NetApp Release ([\w\.]+)(?: [\w\-]+)?:/', $poll_device['sysDes
   $version = $matches[1];
 }
 
-$hardware = snmp_get($device, 'productModel.0', '-Osqv', $mib, mib_dirs('netapp'));
-$serial   = snmp_get($device, 'productSerialNum.0', '-Osqv', $mib, mib_dirs('netapp'));
-$firmware = snmp_get($device, 'productFirmwareVersion.0', '-Osqv', $mib, mib_dirs('netapp'));
-$features = snmp_get($device, 'productCPUArch.0', '-Osqv', $mib, mib_dirs('netapp'));
+$hardware = snmp_get($device, 'productModel.0', '-Osqv', $mib);
+$serial   = snmp_get($device, 'productSerialNum.0', '-Osqv', $mib);
+$firmware = snmp_get($device, 'productFirmwareVersion.0', '-Osqv', $mib);
+$features = snmp_get($device, 'productCPUArch.0', '-Osqv', $mib);
 
 // FIXME --- remove this stuff soon
 
@@ -70,7 +70,7 @@ $rrd_create = '  \
      DS:tape_rd:COUNTER:600:0:10000000000 \
      DS:tape_wr:COUNTER:600:0:10000000000 ';
 
-$snmpdata = snmp_get_multi($device, 'iscsi64Ops.0 fcp64Ops.0 misc64NfsOps.0 misc64CifsOps.0 misc64HttpOps.0 misc64NetRcvdBytes.0 misc64NetSentBytes.0 misc64DiskReadBytes.0 misc64DiskWriteBytes.0 misc64TapeReadBytes.0 misc64TapeWriteBytes.0', '-OQUs', $mib, mib_dirs('netapp'));
+$snmpdata = snmp_get_multi($device, 'iscsi64Ops.0 fcp64Ops.0 misc64NfsOps.0 misc64CifsOps.0 misc64HttpOps.0 misc64NetRcvdBytes.0 misc64NetSentBytes.0 misc64DiskReadBytes.0 misc64DiskWriteBytes.0 misc64TapeReadBytes.0 misc64TapeWriteBytes.0', '-OQUs', $mib);
 
 rrdtool_create($device, $rrd_filename, $rrd_create);
 rrdtool_update($device, $rrd_filename, array($snmpdata[0]['iscsi64Ops'], $snmpdata[0]['fcp64Ops'], $snmpdata[0]['misc64NfsOps'], $snmpdata[0]['misc64CifsOps'], $snmpdata[0]['misc64HttpOps'], $snmpdata[0]['misc64NetRcvdBytes'], $snmpdata[0]['misc64NetSentBytes'], $snmpdata[0]['misc64DiskReadBytes'], $snmpdata[0]['misc64DiskWriteBytes'], $snmpdata[0]['misc64TapeReadBytes'], $snmpdata[0]['misc64TapeWriteBytes']));
@@ -101,28 +101,28 @@ if(is_file($host_rrd . '/netapp_cp.rrd'))
 // NETAPP-MIB::cpFromCpDeferredOps.0 = Counter32: 952
 // NETAPP-MIB::cpFromLowDatavecsOps.0 = Counter32: 0
 
-$rrd_filename = $host_rrd . '/netapp-cp.rrd';
+  $rrd_filename = $host_rrd . '/netapp-cp.rrd';
 
-$rrd_create = '\
-  DS:time:COUNTER:600:0:10000000000 \
-  DS:timer:COUNTER:600:0:10000000000 \
-  DS:snapshot:COUNTER:600:0:10000000000 \
-  DS:low_water:COUNTER:600:0:10000000000 \
-  DS:high_water:COUNTER:600:0:10000000000 \
-  DS:log_full:COUNTER:600:0:10000000000 \
-  DS:cp:COUNTER:600:0:10000000000 \
-  DS:flush:COUNTER:600:0:10000000000 \
-  DS:sync:COUNTER:600:0:10000000000 \
-  DS:low_vbuf:COUNTER:600:0:10000000000 \
-  DS:cp_deferred:COUNTER:600:0:10000000000 \
-  DS:low_datavecs:COUNTER:600:0:10000000000 ';
+  $rrd_create = '\
+    DS:time:COUNTER:600:0:10000000000 \
+    DS:timer:COUNTER:600:0:10000000000 \
+    DS:snapshot:COUNTER:600:0:10000000000 \
+    DS:low_water:COUNTER:600:0:10000000000 \
+    DS:high_water:COUNTER:600:0:10000000000 \
+    DS:log_full:COUNTER:600:0:10000000000 \
+    DS:cp:COUNTER:600:0:10000000000 \
+    DS:flush:COUNTER:600:0:10000000000 \
+    DS:sync:COUNTER:600:0:10000000000 \
+    DS:low_vbuf:COUNTER:600:0:10000000000 \
+    DS:cp_deferred:COUNTER:600:0:10000000000 \
+    DS:low_datavecs:COUNTER:600:0:10000000000 ';
 
-$snmpdata = snmp_get_multi($device, 'cpTime.0 cpFromTimerOps.0 cpFromSnapshotOps.0 cpFromLowWaterOps.0 cpFromHighWaterOps.0 cpFromLogFullOps.0 cpFromCpOps.0 cpFromFlushOps.0 cpFromSyncOps.0 cpFromLowVbufOps.0 cpFromCpDeferredOps.0 cpFromLowDatavecsOps.0', '-OQUs', $mib, mib_dirs('netapp'));
+  $snmpdata = snmp_get_multi($device, 'cpTime.0 cpFromTimerOps.0 cpFromSnapshotOps.0 cpFromLowWaterOps.0 cpFromHighWaterOps.0 cpFromLogFullOps.0 cpFromCpOps.0 cpFromFlushOps.0 cpFromSyncOps.0 cpFromLowVbufOps.0 cpFromCpDeferredOps.0 cpFromLowDatavecsOps.0', '-OQUs', $mib);
 
-rrdtool_create($device, $rrd_filename, $rrd_create);
-rrdtool_update($device, $rrd_filename, array($snmpdata[0]['cpTime'], $snmpdata[0]['cpFromTimerOps'], $snmpdata[0]['cpFromSnapshotOps'], $snmpdata[0]['cpFromLowWaterOps'], $snmpdata[0]['cpFromHighWaterOps'], $snmpdata[0]['cpFromLogFullOps'], $snmpdata[0]['cpFromCpOps'], $snmpdata[0]['cpFromFlushOps'], $snmpdata[0]['cpFromSyncOps'], $snmpdata[0]['cpFromLowVbufOps'], $snmpdata[0]['cpFromCpDeferredOps'], $snmpdata[0]['cpFromLowDatavecsOps']));
+  rrdtool_create($device, $rrd_filename, $rrd_create);
+  rrdtool_update($device, $rrd_filename, array($snmpdata[0]['cpTime'], $snmpdata[0]['cpFromTimerOps'], $snmpdata[0]['cpFromSnapshotOps'], $snmpdata[0]['cpFromLowWaterOps'], $snmpdata[0]['cpFromHighWaterOps'], $snmpdata[0]['cpFromLogFullOps'], $snmpdata[0]['cpFromCpOps'], $snmpdata[0]['cpFromFlushOps'], $snmpdata[0]['cpFromSyncOps'], $snmpdata[0]['cpFromLowVbufOps'], $snmpdata[0]['cpFromCpDeferredOps'], $snmpdata[0]['cpFromLowDatavecsOps']));
 
-$graphs['netapp_cp_ops'] = TRUE;
+  $graphs['netapp_cp_ops'] = TRUE;
 
 }
 

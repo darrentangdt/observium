@@ -272,15 +272,12 @@ if (!empty($agent_data['app']['bind']['global']))
   }
 
   // req-in
-  $rrd_filename = "app-bind-$app_id-req-in.rrd";
-
-  rrdtool_create($device, $rrd_filename, " \
-        DS:query:DERIVE:600:0:7500000 \
-        DS:status:DERIVE:600:0:7500000 \
-        DS:notify:DERIVE:600:0:7500000 \
-        DS:update:DERIVE:600:0:7500000 ");
-
-  rrdtool_update($device, $rrd_filename, 'N:'.$req_in['QUERY'].':'.$req_in['STATUS'].':'.$req_in['NOTIFY'].':'.$req_in['UPDATE']);
+  rrdtool_update_ng($device, 'bind-req-in', array(
+    'query'  => $req_in['QUERY'],
+    'status' => $req_in['STATUS'],
+    'notify' => $req_in['NOTIFY'],
+    'update' => $req_in['UPDATE'],
+  ), $app_id);
 
   // query-in
   $rrd_filename = "app-bind-$app_id-query-in.rrd";
@@ -388,6 +385,11 @@ if (!empty($agent_data['app']['bind']['global']))
     }
     rrdtool_update($device, $rrd_filename,  "N".$rrd_data);
   }
+
+
+  // FIXME
+  update_application($app_id, array());
+
 }
 
 // EOF

@@ -17,64 +17,61 @@
 
 <?php
 
-$where = ' WHERE 1 ';
-$where .= generate_query_permitted(array('port'), array('port_table' => 'M'));
-
-$devices_array = array();
-//$devices_array[''] = 'All Devices';
 // Select the devices only with ARP/NDP tables
-foreach (dbFetchRows('SELECT `device_id` FROM `ip_mac` AS M
-                     LEFT JOIN `ports` AS I ON I.`port_id` = M.`port_id`' .
-                     $where . 'GROUP BY `device_id`;') as $data)
-{
-  $device_id = $data['device_id'];
-  if ($cache['devices']['id'][$device_id]['hostname'])
-  {
-    $devices_array[$device_id] = $cache['devices']['id'][$device_id]['hostname'];
-  }
-}
-natcasesort($devices_array);
+$form_devices = dbFetchColumn('SELECT DISTINCT `device_id` FROM `ip_mac` LEFT JOIN `ports` USING(`port_id`)');
+$form_items['devices'] = generate_form_values('device', $form_devices);
 
-$search = array();
-//Device field
-$search[] = array('type'    => 'multiselect',
-                  'name'    => 'Device',
-                  'id'      => 'device_id',
-                  'width'   => '130px',
-                  'value'   => $vars['device_id'],
-                  'values'  => $devices_array);
-//IP version field
-$search[] = array('type'    => 'select',
-                  'name'    => 'IP',
-                  'id'      => 'ip_version',
-                  'width'   => '120px',
-                  'value'   => $vars['ip_version'],
-                  'values'  => array('' => 'IPv4 & IPv6', '4' => 'IPv4 only', '6' => 'IPv6 only'));
-//Search by field
-$search[] = array('type'    => 'select',
-                  'title'   => 'Search By',
-                  'id'      => 'searchby',
-                  'width'   => '120px',
-                  'onchange' => "$('#address').prop('placeholder', $('#searchby option:selected').text())",
-                  'value'   => $vars['searchby'],
-                  'values'  => array('mac' => 'MAC Address', 'ip' => 'IP Address'));
-//Address field
-$search[] = array('type'    => 'text',
-                  'name'    => ($vars['searchby'] == 'ip' ? 'IP Address' : 'MAC Address'),
-                  'id'      => 'address',
-                  'placeholder' => TRUE,
-                  'submit_by_key' => TRUE,
-                  'width'   => '200px',
-                  'value'   => $vars['address']);
+$form = array('type'  => 'rows',
+              'space' => '5px',
+              'submit_by_key' => TRUE,
+              'url'   => 'search/search=arp/');
+$form['row'][0]['device_id'] = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'Device',
+                                'width'       => '100%',
+                                'value'       => $vars['device_id'],
+                                'groups'      => array('', 'UP', 'DOWN', 'DISABLED'), // This is optgroup order for values (if required)
+                                'values'      => $form_items['devices']);
 
-print_search($search, 'ARP/NDP', NULL, 'search/search=arp/');
+$form['row'][0]['ip_version'] = array(
+                                'type'        => 'select',
+                                'name'        => 'IP',
+                                'width'       => '100%',
+                                'value'       => $vars['ip_version'],
+                                'values'      => array('' => 'IPv4 & IPv6', '4' => 'IPv4 only', '6' => 'IPv6 only'));
+$form['row'][0]['searchby'] = array(
+                                'type'        => 'select',
+                                'name'        => 'Search By',
+                                'width'       => '100%',
+                                'onchange'    => "$('#address').prop('placeholder', $('#searchby option:selected').text())",
+                                'value'       => $vars['searchby'],
+                                'values'      => array('mac' => 'MAC Address', 'ip' => 'IP Address'));
+$form['row'][0]['address']  = array(
+                                'type'        => 'text',
+                                'name'        => ($vars['searchby'] == 'ip' ? 'IP Address' : 'MAC Address'),
+                                'width'       => '100%',
+                                'grid'        => 3,
+                                'placeholder' => TRUE,
+                                'submit_by_key' => TRUE,
+                                'value'       => escape_html($vars['address']));
+// search button
+$form['row'][0]['search']   = array(
+                                'type'        => 'submit',
+                                'grid'        => 3,
+                                //'name'        => 'Search',
+                                //'icon'        => 'icon-search',
+                                'value'       => 'arp',
+                                'right'       => TRUE);
+
+print_form($form);
+unset($form, $form_items, $form_devices);
 
 // Pagination
 $vars['pagination'] = TRUE;
 
 print_arptable($vars);
 
-$page_title[] = 'ARP/NDP Search';
+register_html_title('ARP/NDP Search');
 
 ?>
 

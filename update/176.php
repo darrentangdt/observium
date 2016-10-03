@@ -11,7 +11,7 @@
  *
  */
 
-echo(' Clean incorrect syslog entries: ');
+echo('Clean incorrect syslog entries: ');
 
 $entries_deteted = dbDelete('syslog', "`msg` = ''");
 if ($entries_deteted)
@@ -39,7 +39,5 @@ if (count($devices_iosxr))
     echo("$entries_fixed fixed");
   }
 }
-
-echo(PHP_EOL);
 
 // EOF

@@ -1,9 +1,9 @@
 -- =================================================================
--- Copyright (C) 2003 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 --
 -- Description:The HUAWEI-PORTAL-MIB  provides information about portal server
 -- Reference:
--- Version: V2.09
+-- Version: V2.11
 -- History:
 --     
 -- =================================================================
@@ -28,7 +28,7 @@
     
     
         hwPortal MODULE-IDENTITY 
-            LAST-UPDATED "201408231936Z"
+            LAST-UPDATED "201507302040Z"
             ORGANIZATION 
                 "Huawei Technologies Co.,Ltd."
             CONTACT-INFO 
@@ -41,6 +41,10 @@
                     "
             DESCRIPTION 
                 "The MIB contains objects of module PORTAL." 
+
+           REVISION "201507302040Z"              -- JULY 30, 2015 at 20:40 GMT
+            DESCRIPTION
+                "Modify hwWebAuthServerServerDetectInterval hwWebAuthServerServerDetectMaxTimes add value 0 "  
 
            REVISION "201408231936Z"              -- August 23, 2014 at 19:36 GMT
             DESCRIPTION
@@ -74,8 +78,13 @@
 
             REVISION "201409231425Z"              -- JULY 23, 2014 at 19:36 GMT
             DESCRIPTION
-                "Add  hwPortalFreeRuleACLID."        
+                "Add  hwPortalFreeRuleACLID."     
+
+            REVISION "201503262210Z"
+            DESCRIPTION
+            "Add hwPortalUserAlarmPercentageLower, hwPortalUserAlarmPercentageUpper and hwPortalCaptiveBypassEnable"   
             ::= { huaweiMgmt 4 }
+
 
         hwPortalMibObjects OBJECT IDENTIFIER ::= { hwPortal 1 }
 
@@ -1141,7 +1150,7 @@
 	::= { hwWebAuthServerCfgEntry 7 }
 
 	hwWebAuthServerServerDetectInterval OBJECT-TYPE
-	SYNTAX Integer32 (30..65535)
+	SYNTAX Integer32 (0 | 30..65535)
 	UNITS "s"
 	MAX-ACCESS read-create
 	STATUS current
@@ -1151,7 +1160,7 @@
 	::= { hwWebAuthServerCfgEntry 8 }
 
 	hwWebAuthServerServerDetectMaxTimes OBJECT-TYPE
-	SYNTAX Integer32 (1..255)
+	SYNTAX Integer32 (0 | 1..255)
 	MAX-ACCESS read-create
 	STATUS current
 	DESCRIPTION
@@ -1535,6 +1544,34 @@
 	DESCRIPTION                                                 
 		"Specify an operate type."                                
 	::= { hwPortalFreeRuleACLIDCfgEntry 2 }  
+
+                     hwPortalUserAlarmPercentageLower OBJECT-TYPE
+	SYNTAX Integer32 (1..100)
+	MAX-ACCESS read-write
+	STATUS current
+	DESCRIPTION
+		"Portal user alarm percentage lower."
+	DEFVAL { 50 }
+	::= { hwPortalMibObjects 25 } 
+	
+	hwPortalUserAlarmPercentageUpper OBJECT-TYPE
+	SYNTAX Integer32 (1..100)
+	MAX-ACCESS read-write
+	STATUS current
+	DESCRIPTION
+		"Portal user alarm percentage upper."
+	DEFVAL { 100 }
+	::= { hwPortalMibObjects 26 } 
+	
+	hwPortalCaptiveBypassEnable OBJECT-TYPE
+	SYNTAX TruthValue
+	MAX-ACCESS read-write
+	STATUS current
+	DESCRIPTION
+		"Portal captive bypass enable."
+	DEFVAL { false }
+	::= { hwPortalMibObjects 27 }
+
 
     --  ============== hwPortalFreeRuleTable  define ending ==============
     --  ============== hwPortalServerV2Table  define end ==============     			

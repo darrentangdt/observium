@@ -15,9 +15,9 @@
 // mHardwareVersion.1.0 = STRING: 1.0.0.0
 // mDeviceVersion.1.0 = STRING: 1.0.0.0
 
-$version = snmp_get($device, "mFirmwareVersion.1", "-OQv", 'ES-RACKTIVITY-MIB', mib_dirs('racktivity'));
+$version = snmp_get($device, 'mFirmwareVersion.1', '-OQv', 'ES-RACKTIVITY-MIB');
 
 // sysDescr.0 = STRING: Racktivity AC2Meter.
-$hardware = str_replace("Racktivity ","",trim($poll_device['sysDescr'],'.'));
+$hardware = str_replace('Racktivity ', '', trim($poll_device['sysDescr'], '.'));
 
 // EOF

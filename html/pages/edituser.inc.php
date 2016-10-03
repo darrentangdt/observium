@@ -11,7 +11,8 @@
  *
  */
 
-$page_title[] = "Edit user";
+register_html_title("Edit user");
+
 if ($_SESSION['userlevel'] < 10)
 {
   print_error_permission();
@@ -21,8 +22,8 @@ if ($_SESSION['userlevel'] < 10)
 include($config['html_dir']."/pages/usermenu.inc.php");
 
 // Load JS entity picker
-$GLOBALS['cache_html']['js'][] = 'js/tw-sack.js';
-$GLOBALS['cache_html']['js'][] = 'js/observium-entities.js';
+register_html_resource('js', 'tw-sack.js');
+register_html_resource('js', 'observium-entities.js');
 
 ?>
 
@@ -42,8 +43,14 @@ $GLOBALS['cache_html']['js'][] = 'js/observium-entities.js';
     humanize_user($entry);
     $user_list[$entry['user_id']]            = $entry;
     $user_list[$entry['user_id']]['name']    = escape_html($entry['username']);
-    $user_list[$entry['user_id']]['subtext'] = $entry['realname'].' ('.$entry['level_label'].')';
+    if ($entry['row_class'])
+    {
+      $user_list[$entry['user_id']]['class']   = 'bg-'.$entry['row_class'];
+    }
+    $user_list[$entry['user_id']]['group']   = $entry['level_label'];
+    $user_list[$entry['user_id']]['subtext'] = $entry['realname'];
   }
+  //r($user_list);
   unset($user_list_sort);
 
   echo('<li>');
@@ -97,6 +104,11 @@ $GLOBALS['cache_html']['js'][] = 'js/observium-entities.js';
 <?php
   if ($vars['user_id'])
   {
+    // Check if correct auth secret passed
+    $auth_secret_fail = empty($_SESSION['auth_secret']) || empty($vars['auth_secret']) || $_SESSION['auth_secret'] != $vars['auth_secret'];
+    //print_vars($auth_secret_fail);
+    //$auth_secret_fail = TRUE;
+
     if ($vars['action'] == "deleteuser")
     {
       include($config['html_dir']."/pages/edituser/deleteuser.inc.php");
@@ -113,6 +125,11 @@ $GLOBALS['cache_html']['js'][] = 'js/observium-entities.js';
           {
             print_warning("Password cannot be blank.");
           }
+          else if ($auth_secret_fail)
+          {
+            // Incorrect auth secret, seems as someone try to hack system ;)
+            print_debug("Incorrect admin auth, get out from here nasty hacker.");
+          }
           else if ($vars['new_pass'] == $vars['new_pass2'])
           {
             $status = auth_change_password($user_data['username'], $vars['new_pass']);
@@ -128,31 +145,39 @@ $GLOBALS['cache_html']['js'][] = 'js/observium-entities.js';
           break;
 
         case "change_user":
-          $update_array = array();
-          $vars['new_can_modify_passwd'] = (isset($vars['new_can_modify_passwd']) && $vars['new_can_modify_passwd'] ? 1 : 0);
-          foreach (array('realname', 'level', 'email', 'descr', 'can_modify_passwd') as $param)
+          if ($auth_secret_fail)
           {
-            if ($vars['new_' . $param] != $user_data[$param]) { $update_array[$param] = $vars['new_' . $param]; }
-          }
-          if (count($update_array))
-          {
-            $status = dbUpdate($update_array, 'users', '`user_id` = ?', array($vars['user_id']));
-          }
-          if ($status)
-          {
-            print_success("User Info Changed.");
+            // Incorrect auth secret, seems as someone try to hack system ;)
+            print_debug("Incorrect admin auth, get out from here nasty hacker.");
           } else {
-            print_error("User Info not changed.");
+            $update_array = array();
+            $vars['new_can_modify_passwd'] = (isset($vars['new_can_modify_passwd']) && $vars['new_can_modify_passwd'] ? 1 : 0);
+            foreach (array('realname', 'level', 'email', 'descr', 'can_modify_passwd') as $param)
+            {
+              if ($vars['new_' . $param] != $user_data[$param]) { $update_array[$param] = $vars['new_' . $param]; }
+            }
+            if (count($update_array))
+            {
+              $status = dbUpdate($update_array, 'users', '`user_id` = ?', array($vars['user_id']));
+            }
+            if ($status)
+            {
+              print_success("User Info Changed.");
+            } else {
+              print_error("User Info not changed.");
+            }
           }
           break;
       }
+
       if ($status)
       {
         // Reload user info
-        $user_data = dbFetchRow("SELECT * FROM `users` WHERE `user_id` = ?", array($vars['user_id']));
+        //$user_data = dbFetchRow("SELECT * FROM `users` WHERE `user_id` = ?", array($vars['user_id']));
         $user_data['username'] = auth_username_by_id($vars['user_id']);
+        $user_data             = auth_user_info($user_data['username']);
         $user_data['level']    = auth_user_level($user_data['username']);
-        humanize_user($user_data); // Get level_label, level_real, row_class, etc
+        humanize_user($user_data); // Get level_label, level_real, label_class, row_class, etc
       }
     }
 
@@ -172,38 +197,53 @@ $GLOBALS['cache_html']['js'][] = 'js/observium-entities.js';
     // FIXME -- output messages!
     if ($vars['submit'] == "user_perm_del" || $vars['action'] == "user_perm_del")
     {
-      if      (isset($vars['entity_id'])) {} // use entity_id
-      else if (isset($vars[$vars['entity_type'].'_entity_id'])) // use type_entity_id
+      if ($auth_secret_fail)
       {
-        $vars['entity_id'] = $vars[$vars['entity_type'].'_entity_id'];
-      }
+        // Incorrect auth secret, seems as someone try to hack system ;)
+        print_debug("Incorrect admin auth, get out from here nasty hacker.");
+      } else {
+        if (isset($vars['entity_id'])) {} // use entity_id
+        else if (isset($vars[$vars['entity_type'].'_entity_id'])) // use type_entity_id
+        {
+          $vars['entity_id'] = $vars[$vars['entity_type'].'_entity_id'];
+        }
 
-      $where = '`user_id` = ? AND `entity_type` = ?' . generate_query_values($vars['entity_id'], 'entity_id');
-      if (@dbFetchCell("SELECT COUNT(*) FROM `entity_permissions` WHERE " . $where, array($vars['user_id'], $vars['entity_type'])))
-      {
-        dbDelete('entity_permissions', $where, array($vars['user_id'], $vars['entity_type']));
+        $where = '`user_id` = ? AND `entity_type` = ?' . generate_query_values($vars['entity_id'], 'entity_id');
+        if (@dbFetchCell("SELECT COUNT(*) FROM `entity_permissions` WHERE " . $where, array($vars['user_id'], $vars['entity_type'])))
+        {
+          dbDelete('entity_permissions', $where, array($vars['user_id'], $vars['entity_type']));
+        }
       }
     }
-    if ($vars['submit'] == "user_perm_add" || $vars['action'] == "user_perm_add")
+    else if ($vars['submit'] == "user_perm_add" || $vars['action'] == "user_perm_add")
     {
-      if      (isset($vars['entity_id'])) {} // use entity_id
-      else if (isset($vars[$vars['entity_type'].'_entity_id'])) // use type_entity_id
+      if ($auth_secret_fail)
       {
-        $vars['entity_id'] = $vars[$vars['entity_type'].'_entity_id'];
-      }
-      if (!is_array($vars['entity_id'])) { $vars['entity_id'] = array($vars['entity_id']); }
-
-      foreach ($vars['entity_id'] as $entry)
-      {
-        if (get_entity_by_id_cache($vars['entity_type'], $entry)) // Skip not exist entities
+        // Incorrect auth secret, seems as someone try to hack system ;)
+        print_debug("Incorrect admin auth, get out from here nasty hacker.");
+      } else {
+        if      (isset($vars['entity_id'])) {} // use entity_id
+        else if (isset($vars[$vars['entity_type'].'_entity_id'])) // use type_entity_id
         {
-          if (!dbFetchCell("SELECT COUNT(*) FROM `entity_permissions` WHERE `user_id` = ? AND `entity_type` = ? AND `entity_id` = ?", array($vars['user_id'], $vars['entity_type'], $entry)))
+          $vars['entity_id'] = $vars[$vars['entity_type'].'_entity_id'];
+        }
+        if (!is_array($vars['entity_id'])) { $vars['entity_id'] = array($vars['entity_id']); }
+
+        foreach ($vars['entity_id'] as $entry)
+        {
+          if (get_entity_by_id_cache($vars['entity_type'], $entry)) // Skip not exist entities
           {
-            dbInsert(array('entity_id' => $entry, 'entity_type' => $vars['entity_type'], 'user_id' => $vars['user_id']), 'entity_permissions');
+            if (!dbFetchCell("SELECT COUNT(*) FROM `entity_permissions` WHERE `user_id` = ? AND `entity_type` = ? AND `entity_id` = ?", array($vars['user_id'], $vars['entity_type'], $entry)))
+            {
+              dbInsert(array('entity_id' => $entry, 'entity_type' => $vars['entity_type'], 'user_id' => $vars['user_id']), 'entity_permissions');
+            }
           }
         }
       }
     }
+
+    // Generate new auth secret
+    $_SESSION['auth_secret'] = md5(strgen());
 
 ?>
   <div class="row"> <!-- main row begin -->
@@ -221,6 +261,10 @@ $GLOBALS['cache_html']['js'][] = 'js/observium-entities.js';
 
           <table class="table table-striped table-condensed">
             <tr>
+              <th style="width: 100px;">User ID</th>
+              <td><?php echo(escape_html($user_data['user_id'])); ?></td>
+            </tr>
+            <tr>
               <th style="width: 100px;">Username</th>
               <td><?php echo(escape_html($user_data['username'])); ?></td>
             </tr>
@@ -230,7 +274,7 @@ $GLOBALS['cache_html']['js'][] = 'js/observium-entities.js';
             </tr>
             <tr>
               <th>User Level</th>
-              <td><?php echo('<span class="label label-'.$user_data['row_class'].'">'.$user_data['level_label'].'</span>'); ?></td>
+              <td><?php echo('<span class="label label-'.$user_data['label_class'].'">'.$user_data['level_label'].'</span>'); ?></td>
             </tr>
             <tr>
               <th>Email</th>
@@ -244,7 +288,7 @@ $GLOBALS['cache_html']['js'][] = 'js/observium-entities.js';
 
           <div class="form-actions" style="margin: 0;">
 <?php       if (auth_usermanagement()) { ?>
-            <button class="btn pull-right" style="line-height: 20px;" data-toggle="modal" data-target="#edituser_modal"><i class="oicon-user--pencil"></i>&nbsp;Edit&nbsp;User</button>
+            <button class="btn btn-default pull-right" data-toggle="modal" data-target="#edituser_modal"><i class="oicon-user--pencil"></i>&nbsp;Edit&nbsp;User</button>
 <?php       } ?>
           </div>
         </div>
@@ -270,6 +314,10 @@ $GLOBALS['cache_html']['js'][] = 'js/observium-entities.js';
     $item = array('id'    => 'user_id',
                   'type'  => 'hidden',
                   'value' => $user_data['user_id']);
+    echo(generate_form_element($item));
+    $item = array('id'    => 'auth_secret',
+                  'type'  => 'hidden',
+                  'value' => $_SESSION['auth_secret']);
     echo(generate_form_element($item));
 ?>
 
@@ -369,19 +417,22 @@ $GLOBALS['cache_html']['js'][] = 'js/observium-entities.js';
       $form['row'][0]['action']   = array(
                                       'type'     => 'hidden',
                                       'value'    => 'changepass');
-      $form['row'][1]['new_pass'] = array(
+      $form['row'][1]['auth_secret'] = array(
+                                      'type'     => 'hidden',
+                                      'value'    => $_SESSION['auth_secret']);
+      $form['row'][2]['new_pass'] = array(
                                       'type'        => 'password',
                                       'fieldset'    => 'change_password', // Group by fieldset
                                       'name'        => 'New Password',
                                       'width'       => '95%',
                                       'value'       => '');
-      $form['row'][2]['new_pass2']  = array(
+      $form['row'][3]['new_pass2']  = array(
                                       'type'        => 'password',
                                       'fieldset'    => 'change_password', // Group by fieldset
                                       'name'        => 'Retype Password',
                                       'width'       => '95%',
                                       'value'       => '');
-      $form['row'][3]['submit']     = array(
+      $form['row'][10]['submit']    = array(
                                       'type'        => 'submit',
                                       'name'        => 'Update&nbsp;Password',
                                       'icon'        => 'oicon-lock-warning',
@@ -404,10 +455,19 @@ $GLOBALS['cache_html']['js'][] = 'js/observium-entities.js';
 
 <?php
 
-if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS_PERMIT_ALL ^ OBS_PERMIT_ACCESS, $user_data['permission']))
-{
+// Begin main permissions block
+//if ($user_data['permission_access'] === FALSE || $user_data['permission_read'] === FALSE || $user_data['permission_admin'])
+//{
+  echo generate_box_open(array('header-border' => TRUE, 'title' => 'Permission level'));
+  echo('<p class="text-center text-uppercase text-'.$user_data['row_class'].' bg-'.$user_data['row_class'].'" style="padding: 10px; margin: 0px;"><strong>'.$user_data['subtext'].'</strong></p>');
+  echo generate_box_close();
+  //print_error($user_data['subtext']);
+//} else {
   // if user has access and not has read/secure read/edit use individual permissions
-  echo generate_box_open();
+  //echo generate_box_open();
+//}
+
+// Always display (and edit permissions) also if user disabled or has global read or admin permissions
 
   // Cache user permissions
   foreach (dbFetchRows("SELECT * FROM `entity_permissions` WHERE `user_id` = ?", array($vars['user_id'])) as $entity)
@@ -437,6 +497,9 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
                       //'url'   => generate_url($vars)
                       );
         // Elements
+        $form['row'][0]['auth_secret'] = array(
+                                               'type'     => 'hidden',
+                                               'value'    => $_SESSION['auth_secret']);
         $form['row'][0]['entity_id']   = array('type'     => 'hidden',
                                                'value'    => $bill['bill_id']);
         $form['row'][0]['entity_type'] = array('type'     => 'hidden',
@@ -454,7 +517,8 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
       echo('</table>' . PHP_EOL);
 
     } else {
-      print_warning("This user currently has no permitted bills");
+      echo('<p class="text-center text-warning bg-warning" style="padding: 10px; margin: 0px;"><strong>This user currently has no permitted bills</strong></p>');
+      //print_warning("This user currently has no permitted bills");
     }
 
     // Bills
@@ -466,6 +530,9 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
                   //'url'   => generate_url($vars)
                   );
     // Elements
+    $form['row'][0]['auth_secret'] = array(
+                                           'type'     => 'hidden',
+                                           'value'    => $_SESSION['auth_secret']);
     $form['row'][0]['user_id']     = array('type'     => 'hidden',
                                            'value'    => $vars['user_id']);
     $form['row'][0]['entity_type'] = array('type'     => 'hidden',
@@ -523,6 +590,9 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
                       //'url'   => generate_url($vars)
                       );
         // Elements
+        $form['row'][0]['auth_secret'] = array(
+                                               'type'     => 'hidden',
+                                               'value'    => $_SESSION['auth_secret']);
         $form['row'][0]['entity_id']   = array('type'     => 'hidden',
                                                'value'    => $group['group_id']);
         $form['row'][0]['entity_type'] = array('type'     => 'hidden',
@@ -540,7 +610,8 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
       echo('</table>' . PHP_EOL);
 
     } else {
-      print_warning("This user currently has no permitted groups");
+      echo('<p class="text-center text-warning bg-warning" style="padding: 10px; margin: 0px;"><strong>This user currently has no permitted groups</strong></p>');
+      //print_warning("This user currently has no permitted groups");
     }
 
     // Groups
@@ -552,6 +623,9 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
                   //'url'   => generate_url($vars)
                   );
     // Elements
+    $form['row'][0]['auth_secret'] = array(
+                                           'type'     => 'hidden',
+                                           'value'    => $_SESSION['auth_secret']);
     $form['row'][0]['user_id']     = array('type'     => 'hidden',
                                            'value'    => $vars['user_id']);
     $form['row'][0]['entity_type'] = array('type'     => 'hidden',
@@ -607,6 +681,9 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
                     //'url'   => generate_url($vars)
                     );
       // Elements
+      $form['row'][0]['auth_secret'] = array(
+                                             'type'     => 'hidden',
+                                             'value'    => $_SESSION['auth_secret']);
       $form['row'][0]['entity_id']   = array('type'     => 'hidden',
                                              'value'    => $device['device_id']);
       $form['row'][0]['entity_type'] = array('type'     => 'hidden',
@@ -624,7 +701,8 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
     echo('</table>' . PHP_EOL);
 
   } else {
-    print_warning("This user currently has no permitted devices");
+    echo('<p class="text-center text-warning bg-warning" style="padding: 10px; margin: 0px;"><strong>This user currently has no permitted devices</strong></p>');
+    //print_warning("This user currently has no permitted devices");
   }
 
   // Devices
@@ -636,6 +714,9 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
                 //'url'   => generate_url($vars)
                 );
   // Elements
+  $form['row'][0]['auth_secret'] = array(
+                                         'type'     => 'hidden',
+                                         'value'    => $_SESSION['auth_secret']);
   $form['row'][0]['user_id']     = array('type'     => 'hidden',
                                          'value'    => $vars['user_id']);
   $form['row'][0]['entity_type'] = array('type'     => 'hidden',
@@ -693,6 +774,9 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
                     //'url'   => generate_url($vars)
                     );
       // Elements
+      $form['row'][0]['auth_secret'] = array(
+                                             'type'     => 'hidden',
+                                             'value'    => $_SESSION['auth_secret']);
       $form['row'][0]['entity_id']   = array('type'     => 'hidden',
                                              'value'    => $port['port_id']);
       $form['row'][0]['entity_type'] = array('type'     => 'hidden',
@@ -710,7 +794,8 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
     echo('</table>' . PHP_EOL);
 
   } else {
-    print_warning('This user currently has no permitted ports');
+    echo('<p class="text-center text-warning bg-warning" style="padding: 10px; margin: 0px;"><strong>This user currently has no permitted ports</strong></p>');
+    //print_warning('This user currently has no permitted ports');
   }
 
   // Ports
@@ -723,6 +808,9 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
                 //'url'   => generate_url($vars)
                 );
   // Elements
+  $form['row'][0]['auth_secret'] = array(
+                                         'type'     => 'hidden',
+                                         'value'    => $_SESSION['auth_secret']);
   $form['row'][0]['user_id']     = array('type'     => 'hidden',
                                          'value'    => $vars['user_id']);
   $form['row'][0]['entity_type'] = array('type'     => 'hidden',
@@ -782,6 +870,9 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
                     //'url'   => generate_url($vars)
                     );
       // Elements
+      $form['row'][0]['auth_secret'] = array(
+                                             'type'     => 'hidden',
+                                             'value'    => $_SESSION['auth_secret']);
       $form['row'][0]['entity_id']   = array('type'     => 'hidden',
                                              'value'    => $sensor['sensor_id']);
       $form['row'][0]['entity_type'] = array('type'     => 'hidden',
@@ -799,7 +890,8 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
     echo('</table>' . PHP_EOL);
 
     } else {
-      print_warning('This user currently has no permitted sensors');
+      echo('<p class="text-center text-warning bg-warning" style="padding: 10px; margin: 0px;"><strong>This user currently has no permitted sensors</strong></p>');
+      //print_warning('This user currently has no permitted sensors');
     }
 
     $permissions_list = array_keys($user_permissions['sensor']);
@@ -810,6 +902,9 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
                   //'url'   => generate_url($vars)
                   );
     // Elements
+    $form['row'][0]['auth_secret'] = array(
+                                           'type'     => 'hidden',
+                                           'value'    => $_SESSION['auth_secret']);
     $form['row'][0]['user_id']     = array('type'     => 'hidden',
                                            'value'    => $vars['user_id']);
     $form['row'][0]['entity_type'] = array('type'     => 'hidden',
@@ -848,12 +943,8 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
   echo generate_box_close();
   // End sensor permissions
 
-} else {
-  // All not normal users
-  echo generate_box_open(array('header-border' => TRUE, 'title' => 'Permissions'));
-  print_warning($user_data['subtext']);
-}
-echo generate_box_close();
+// End main permissions block
+//echo generate_box_close();
 
 ?>
 
@@ -867,14 +958,30 @@ echo generate_box_close();
 
   } else {
 
-    $users = dbFetchRows("SELECT * FROM `users` ORDER BY `username`");
+    //$users = dbFetchRows("SELECT * FROM `users` ORDER BY `username`");
 
-    if (count($users))
+    $count = count($user_list);
+    if ($count)
     {
-      echo('<div class="box box-solid"><table class="table table-hover table-condensed">');
+      pagination($vars, 0, TRUE); // Get default pagesize/pageno
+      $pageno   = $vars['pageno'];
+      $pagesize = $vars['pagesize'];
+      $start    = $pagesize * $pageno - $pagesize;
+      $pagination = $count >= $pagesize;
+      if ($pagination)
+      {
+        $users = array_slice($user_list, $start, $pagesize);
+        echo(pagination($vars, $count));
+      } else {
+        $users = $user_list;
+      }
+
+      echo(generate_box_open());
+      echo('<table class="table table-hover table-condensed">');
 
       $cols = array(
                       array('', 'class="state-marker"'),
+        'user_id'  => array('User ID', 'style="width: 80px;"'),
         'user'     => 'Username',
         'access'   => 'Access',
         'realname' => 'Real Name',
@@ -890,17 +997,23 @@ echo generate_box_close();
 
         echo('<tr class="'.$user['row_class'].'">');
         echo('<td class="state-marker"></td>');
+        echo('<td>'.$user['user_id'].'</td>');
         echo('<td><strong><a href="'.$user['edit_url'].'">'.escape_html($user['username']).'</a></strong></td>');
         //echo('<td><strong>'.$user['level'].'</strong></td>');
-        echo('<td><i class="'.$user['icon'].'"></i> <span class="label label-'.$user['row_class'].'">'.$user['level_label'].'</span></td>');
+        echo('<td><i class="'.$user['icon'].'"></i> <span class="label label-'.$user['label_class'].'">'.$user['level_label'].'</span></td>');
         echo('<td><strong>'.escape_html($user['realname']).'</strong></td>');
         echo('<td><strong>'.escape_html($user['email']).'</strong></td>');
 
         echo('</tr>');
       }
 
-      echo('</table></div>');
+      echo('</table>');
+      echo(generate_box_close());
 
+      if ($pagination)
+      {
+        echo(pagination($vars, $count));
+      }
     } else {
       print_warning('There are no users in the database.');
     }

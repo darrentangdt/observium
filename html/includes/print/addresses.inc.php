@@ -29,15 +29,12 @@ function print_addresses($vars)
   $pagesize = $vars['pagesize'];
   $start    = $pagesize * $pageno - $pagesize;
 
-  switch($vars['search'])
+  if (in_array($vars['search'], array('6', 'v6', 'ipv6')) ||
+      in_array($vars['view'],   array('6', 'v6', 'ipv6')))
   {
-    case '6':
-    case 'ipv6':
-    case 'v6':
-      $address_type = 'ipv6';
-      break;
-    default:
-      $address_type = 'ipv4';
+    $address_type = 'ipv6';
+  } else {
+    $address_type = 'ipv4';
   }
 
   $ip_array = array();
@@ -54,11 +51,14 @@ function print_addresses($vars)
         case 'device':
         case 'device_id':
           $where .= generate_query_values($value, 'I.device_id');
+          $where_netscaler .= generate_query_values($value, 'N.device_id');
           break;
         case 'interface':
           $where .= generate_query_values($value, 'I.ifDescr', 'LIKE%');
           break;
         case 'network':
+          list($net, $mask) = explode('/', $value);
+          if (is_numeric(stripos($net, ':abcdef'))) { $address_type = 'ipv6'; }
           $where .= generate_query_values($value, 'N.ip_network', 'LIKE%');
           break;
         case 'address':

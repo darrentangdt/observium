@@ -49,34 +49,22 @@ if (is_device_mib($device, 'CISCO-REMOTE-ACCESS-MONITOR-MIB'))
   $data = snmp_get_multi($device, $oid_list, "-OUQs", "CISCO-REMOTE-ACCESS-MONITOR-MIB");
   $data = $data[0];
 
-  $rrd_filename = "cras_sessions.rrd";
-
-  $rrd_create .= " DS:email:GAUGE:600:0:U";
-  $rrd_create .= " DS:ipsec:GAUGE:600:0:U";
-  $rrd_create .= " DS:l2l:GAUGE:600:0:U";
-  $rrd_create .= " DS:lb:GAUGE:600:0:U";
-  $rrd_create .= " DS:svc:GAUGE:600:0:U";
-  $rrd_create .= " DS:webvpn:GAUGE:600:0:U";
-
-  if (is_file(get_rrd_path($device, $rrd_filename)) || $data['crasEmailNumSessions'] || $data['crasIPSecNumSessions'] || $data['crasL2LNumSessions'] || $data['crasLBNumSessions'] || $data['crasSVCNumSessions'] || $data['crasWebvpnSessions'])
+  if ($data['crasEmailNumSessions'] || $data['crasIPSecNumSessions'] || $data['crasL2LNumSessions'] || $data['crasLBNumSessions'] || $data['crasSVCNumSessions'] || $data['crasWebvpnSessions'])
   {
-    rrdtool_create($device, $rrd_filename, $rrd_create);
-
-    $rrd_update  = "N";
-    $rrd_update .= ":".$data['crasEmailNumSessions'];
-    $rrd_update .= ":".$data['crasIPSecNumSessions'];
-    $rrd_update .= ":".$data['crasL2LNumSessions'];
-    $rrd_update .= ":".$data['crasLBNumSessions'];
-    $rrd_update .= ":".$data['crasSVCNumSessions'];
-    $rrd_update .= ":".$data['crasWebvpnNumSessions'];
-
-    rrdtool_update($device, $rrd_filename, $rrd_update);
-
+    rrdtool_update_ng($device, 'cisco-cras-sessions', array(
+      'email'  => $data['crasEmailNumSessions'],
+      'ipsec'  => $data['crasIPSecNumSessions'],
+      'l2l'    => $data['crasL2LNumSessions'],
+      'lb'     => $data['crasLBNumSessions'],
+      'svc'    => $data['crasSVCNumSessions'],
+      'webvpn' => $data['crasWebvpnNumSessions'],
+    ));
+    
     $graphs['cras_sessions'] = TRUE;
     echo(" CRAS Sessions");
   }
 
-  unset($data, $$rrd_filename, $rrd_create, $rrd_update);
+  unset($data);
 }
 
 // EOF

@@ -23,11 +23,7 @@
 // FIXME; Above data is (currently) not used here, serial number is present in ENTITY-MIB for inventory, other data is not.
 //        Possibly useful to include there as well (somehow?)?
 
-echo(" HH3C-TRANSCEIVER-INFO-MIB ");
-
-$oids = snmpwalk_cache_oid($device, "h3cTransceiver", array(), "HH3C-TRANSCEIVER-INFO-MIB", mib_dirs('hh3c'));
-
-if (OBS_DEBUG > 1) { print_vars($oids); }
+$oids = snmpwalk_cache_oid($device, 'h3cTransceiver', array(), 'HH3C-TRANSCEIVER-INFO-MIB');
 
 // Index = ifIndex
 foreach ($oids as $index => $entry)
@@ -46,7 +42,7 @@ foreach ($oids as $index => $entry)
   }
 
   // hh3cTransceiverTemperature.54 = INTEGER: 39
-  $descr = $ifDescr . " Temperature";
+  $descr = $ifDescr . ' Temperature';
   $value = $entry['hh3cTransceiverTemperature'];
   $scale = 1;
   $oid   = "1.3.6.1.4.1.25506.2.70.1.1.1.15.$index";
@@ -57,7 +53,7 @@ foreach ($oids as $index => $entry)
   }
 
   // hh3cTransceiverBiasCurrent.54 = INTEGER: 532
-  $descr = $ifDescr . " Bias Current";
+  $descr = $ifDescr . ' Bias Current';
   $value = $entry['hh3cTransceiverBiasCurrent'];
   $scale = 0.00001;
   $oid   = "1.3.6.1.4.1.25506.2.70.1.1.1.17.$index";
@@ -68,7 +64,7 @@ foreach ($oids as $index => $entry)
   }
 
   // hh3cTransceiverVoltage.54 = INTEGER: 325
-  $descr = $ifDescr . " Voltage";
+  $descr = $ifDescr . ' Voltage';
   $value = $entry['hh3cTransceiverVoltage'];
   $scale = 0.01;
   $oid   = "1.3.6.1.4.1.25506.2.70.1.1.1.16.$index";
@@ -79,7 +75,7 @@ foreach ($oids as $index => $entry)
   }
 
   // hh3cTransceiverCurTXPower.54 = INTEGER: -251
-  $descr = $ifDescr . " TX Power";
+  $descr = $ifDescr . ' TX Power';
   $value = $entry['hh3cTransceiverCurTXPower'];
   $scale = 0.01;
   $oid   = "1.3.6.1.4.1.25506.2.70.1.1.1.9.$index";
@@ -90,7 +86,7 @@ foreach ($oids as $index => $entry)
   }
 
   // hh3cTransceiverCurRXPower.54 = INTEGER: -834
-  $descr = $ifDescr . " RX Power";
+  $descr = $ifDescr . ' RX Power';
   $value = $entry['hh3cTransceiverCurRXPower'];
   $scale = 0.01;
   $oid   = "1.3.6.1.4.1.25506.2.70.1.1.1.12.$index";

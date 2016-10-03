@@ -2,14 +2,9 @@
 
 $scale_min = 0;
 
-include("includes/graphs/common.inc.php");
+include($config['html_dir']."/includes/graphs/common.inc.php");
 
-$lighttpd_rrd   = $config['rrd_dir'] . "/" . $device['hostname'] . "/app-lighttpd-".$app['app_id'].".rrd";
-
-if (is_file($lighttpd_rrd))
-{
-  $rrd_filename = $lighttpd_rrd;
-}
+$rrd_filename = get_rrd_path($device, "app-lighttpd-".$app['app_id']);
 
 $ds = "totalkbytes";
 
@@ -23,6 +18,6 @@ $multiplier = 8;
 
 $unit_text = "Kbps";
 
-include("includes/graphs/generic_simplex.inc.php");
+include($config['html_dir']."/includes/graphs/generic_simplex.inc.php");
 
 ?>

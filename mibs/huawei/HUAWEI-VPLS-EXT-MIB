@@ -1,9 +1,9 @@
 -- ==================================================================
--- Copyright (C) 2006 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- 
 -- Description: HUAWEI VPLS Management Extended MIB
 -- Reference:
--- Version:     V2.35
+-- Version:     V2.37
 -- History:
 --              V1.0 PanJun, 2006-05-08, publish
 -- ==================================================================
@@ -34,7 +34,7 @@
 
 
         hwL2VpnVplsExt MODULE-IDENTITY 
-            LAST-UPDATED "201410271600Z"           -- Oct 27, 2014 at 16:00 GMT
+            LAST-UPDATED "201501071000Z"            --Jan 7, 2015 at 10:00 GMT 
             ORGANIZATION 
                 "Huawei Technologies Co.,Ltd."
             CONTACT-INFO 
@@ -48,6 +48,23 @@
             DESCRIPTION 
                 "The HUAWEI-VPLS-EXT-MIB contains objects to
                 manage VPLS."
+
+              REVISION "201501071000Z"           --Jan 7, 2015 at 10:00 GMT 
+             DESCRIPTION "add change reason
+                Aging(91)
+                Verification(92)"  
+
+              REVISION "201412081000Z"           --Dec 8, 2014 at 10:00 GMT 
+             DESCRIPTION               
+             "Add OBJECT(hwVplsVsiProtectGroupMode) to VPLS MIB Trap(hwVplsPwRedundancyDegraded)." 
+
+              REVISION "201412081000Z"           --Dec 8, 2014 at 10:00 GMT 
+             DESCRIPTION               
+             "Add OBJECT(hwVplsVsiProtectGroupMode) to VPLS MIB Trap(hwVplsPwRedundancyDegradedClear)." 
+
+              REVISION "201412081000Z"           --Dec 8, 2014 at 10:00 GMT 
+             DESCRIPTION               
+             "Add Leaf Node(hwVplsVsiProtectGroupMode) to hwVplsVsiProtectGroupEntry" 
 
              REVISION "201410271600Z"           --Oct 27, 2014 at 16:00 GMT 
              DESCRIPTION               
@@ -259,6 +276,8 @@
                 PW APS Switch(88) 
                 Route Unreachable(89)
                 Route Reachable(90)
+                Aging(91)
+                Verification(92)
                 "
             SYNTAX INTEGER
                 {
@@ -351,7 +370,9 @@
                 notificationReceived(87),
                 pwApsSwitch(88),                   
                 routeUnreachable(89),
-                routeReachable(90)
+                routeReachable(90),
+                aging(91),
+                verification(92)
                 }
 
     
@@ -2712,9 +2733,10 @@
         HWVplsVsiProtectGroupEntry ::=
             SEQUENCE { 
                 hwVplsVsiProtectGroupName
-                    DisplayString
+                    DisplayString,
+                hwVplsVsiProtectGroupMode
+                    INTEGER
             }
-
 
         hwVplsVsiProtectGroupName OBJECT-TYPE
             SYNTAX DisplayString (SIZE (1..15))
@@ -2723,6 +2745,20 @@
             DESCRIPTION
                 "This object indicates the VPLS protect group's name."
             ::= { hwVplsVsiProtectGroupEntry 1 }
+
+        hwVplsVsiProtectGroupMode OBJECT-TYPE
+            SYNTAX INTEGER
+                {
+                none(0),
+                frr(1),
+                master(2),
+                independent(3)
+                }
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "This object indicates the VPLS protect group's mode."
+            ::= { hwVplsVsiProtectGroupEntry 2 }
 
 
 --           
@@ -2827,12 +2863,14 @@
             ::= { hwVplsMIBTraps 12 }
 
         hwVplsPwRedundancyDegraded NOTIFICATION-TYPE
+            OBJECTS { hwVplsVsiProtectGroupMode }
             STATUS current
             DESCRIPTION 
                 "VPLS PW redundancy reported a protect degraded alarm."
             ::= { hwVplsMIBTraps 13 }
 			
         hwVplsPwRedundancyDegradedClear NOTIFICATION-TYPE
+            OBJECTS { hwVplsVsiProtectGroupMode }
             STATUS current
             DESCRIPTION 
                 "VPLS PW redundancy reported the clearing of the protect degraded alarm."

@@ -12,15 +12,15 @@ IMPORTS
 
 rlSNMP MODULE-IDENTITY
           LAST-UPDATED "200709100000Z"
-          ORGANIZATION "Cisco Small Business"
+          ORGANIZATION "Cisco Systems, Inc."
 
           CONTACT-INFO
           "Postal: 170 West Tasman Drive
           San Jose , CA 95134-1706
           USA
 
-          Website: Cisco Small Business Home http://www.cisco.com/smb>;,
-          Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
+          
+          Website:  Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
 
           DESCRIPTION
                   "Private MIB module for SNMP support in CISCOSB devices."
@@ -572,7 +572,7 @@ rlEventsPollerId OBJECT-TYPE
      ::=  { rlEvents 1 }
 
 rlEventsDefaultPollingInterval OBJECT-TYPE
-   SYNTAX TimeTicks (1..65535)
+   SYNTAX TimeTicks
    MAX-ACCESS read-write
    STATUS     current
    DESCRIPTION
@@ -735,7 +735,7 @@ rlEventsPollingControlPollerId  OBJECT-TYPE
 
 
 rlEventsPollingControlPollingInterval OBJECT-TYPE
-   SYNTAX     TimeTicks (1..65535)
+   SYNTAX     TimeTicks
    MAX-ACCESS read-create
    STATUS     current
    DESCRIPTION

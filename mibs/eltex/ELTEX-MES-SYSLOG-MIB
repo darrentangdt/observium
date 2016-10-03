@@ -1,0 +1,35 @@
+ELTEX-MES-SYSLOG-MIB DEFINITIONS ::= BEGIN
+
+-- Title:      ELTEX MES SYSLOG Private MIB
+-- Version:    2.0
+-- Date:       11 May 2016
+--
+-- 11-May-2016 Added eltSyslogUserCmdEnable
+
+IMPORTS
+    eltMes                                  FROM ELTEX-MES
+    OBJECT-TYPE, IpAddress, Unsigned32,Counter32,
+    MODULE-IDENTITY                         FROM SNMPv2-SMI
+    DisplayString, TEXTUAL-CONVENTION,
+    TruthValue, RowStatus                   FROM SNMPv2-TC;
+
+eltMesSyslog MODULE-IDENTITY
+          LAST-UPDATED "201605110000Z"
+          ORGANIZATION "Eltex Ltd."
+          CONTACT-INFO
+                  "eltex.nsk.ru"
+          DESCRIPTION
+                  "The private MIB module definition for SYSLOG services in Eltex devices."
+          ::= { eltMes 10 }
+
+eltSyslogUserCmdEnable OBJECT-TYPE
+    SYNTAX  TruthValue
+    MAX-ACCESS  read-write
+    STATUS  current
+    DESCRIPTION
+        "User commands enter enable for syslog flash, syslog cache and syslog UDP.
+         When set to true, generating syslog entry for user commands entered."
+    DEFVAL  { false }
+    ::= { eltMesSyslog 3 }
+    
+END

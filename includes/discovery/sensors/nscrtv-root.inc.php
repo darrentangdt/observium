@@ -13,7 +13,6 @@
 
 /* Detection for JDSU OEM Erbium Dotted Fibre Amplifiers */
 
-echo(" NSCRTV-ROOT ");
 /// FIXME rewrite
 
 // Voltage Sensors

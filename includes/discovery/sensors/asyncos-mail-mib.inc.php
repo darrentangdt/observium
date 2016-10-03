@@ -11,9 +11,7 @@
  *
  */
 
-echo(" ASYNCOS-MAIL-MIB ");
-
-$oids = snmpwalk_cache_oid($device, "fanTable", array(), "ASYNCOS-MAIL-MIB", mib_dirs('cisco'));
+$oids = snmpwalk_cache_oid($device, 'fanTable', array(), 'ASYNCOS-MAIL-MIB');
 
 foreach ($oids as $index => $entry)
 {
@@ -27,7 +25,7 @@ foreach ($oids as $index => $entry)
   }
 }
 
-$oids = snmpwalk_cache_oid($device, "temperatureTable", array(), "ASYNCOS-MAIL-MIB", mib_dirs('cisco'));
+$oids = snmpwalk_cache_oid($device, 'temperatureTable', array(), 'ASYNCOS-MAIL-MIB');
 
 foreach ($oids as $index => $entry)
 {
@@ -41,5 +39,7 @@ foreach ($oids as $index => $entry)
     discover_sensor($valid['sensor'], 'temperature', $device, $oid, $index, 'asyncos-temp', $descr, 1, $value, $limits);
   }
 }
+
+unset($oids);
 
 // EOF

@@ -43,9 +43,9 @@ if (!$GLOBALS[OBS_DB_LINK])
 {
   if (defined('OBS_DB_SKIP') && OBS_DB_SKIP === TRUE)
   {
-    print_warning("WARNING: In PHP Unit tests we can skip MySQL connect. But if you test mysql functions, check your configs.");
+    print_warning("WARNING: In PHP Unit tests we can skip DB connect. But if you test db functions, check your configs.");
   } else {
-    print_error("MySQL Error " . dbErrorNo() . ": " . dbError());
+    print_error("DB Error " . dbErrorNo() . ": " . dbError());
     die; // Die if not PHP Unit tests
   }
 }
@@ -58,6 +58,15 @@ else if (!get_db_version() && !(isset($options['u']) || isset($options['V'])))
     die;
   }
 } else {
+  // Disable STRICT mode for DB session (we not fully support them)
+  $db_modes = explode(',', dbFetchCell("SELECT @@SESSION.sql_mode;"));
+  $db_mode_exclude = 'STRICT_TRANS_TABLES';
+  if (in_array($db_mode_exclude, $db_modes))
+  {
+    $db_modes = array_diff($db_modes, array($db_mode_exclude));
+    dbQuery('SET SESSION `sql_mode` = ?', array(implode(',', $db_modes)));
+    print_debug('DB STRICT mode disabled');
+  }
   //register_shutdown_function('dbClose');
   // Maybe better in another place, but at least here it runs always; keep track of what svn revision we last saw, and eventlog the upgrade versions.
   // We have versions here from the includes above, and we just connected to the DB.
@@ -89,7 +98,10 @@ if (OBSERVIUM_EDITION == 'community')
   $config['api']['enabled'] = 0;
 
   // Disabled (not exist) modules
-  unset($config['poller_modules']['oids'], $config['poller_modules']['loadbalancer'], $config['poller_modules']['aruba-controller']);
+  unset($config['poller_modules']['oids'],
+        $config['poller_modules']['loadbalancer'],
+        $config['poller_modules']['aruba-controller'],
+        $config['poller_modules']['netscaler-vsvr']);
 }
 
 // Self hostname for observium server
@@ -138,6 +150,20 @@ if (is_ssl())
 if (isset($config['rancid_configs']) && !is_array($config['rancid_configs'])) { $config['rancid_configs'] = array($config['rancid_configs']); }
 if (isset($config['auth_ldap_group']) && !is_array($config['auth_ldap_group'])) { $config['auth_ldap_group'] = array($config['auth_ldap_group']); }
 if (isset($config['auth_ldap_kerberized']) && $config['auth_ldap_kerberized'] && $config['auth_mechanism'] == 'ldap') { $config['auth']['remote_user'] = TRUE; }
+
+//print_vars($config['location_map']);
+if (isset($config['location_map']))
+{
+  $config['location']['map'] = array_merge((array)$config['location_map'], (array)$config['location']['map']);
+  unset($config['location_map']);
+}
+//print_vars($config['location']['map']);
+//print_vars($config['location']['map_regexp']);
+if ($config['location']['menu']['type'] == 'geocoded')
+{
+  if (isset($config['geocoding']['enable']) && !$config['geocoding']['enable'])            { $config['location']['menu']['type'] = 'plain'; }
+  else if (isset($config['location_menu_geocoded']) && !$config['location_menu_geocoded']) { $config['location']['menu']['type'] = 'plain'; }
+}
 
 // Security fallback check
 if (isset($config['auth']['remote_user']) && $config['auth']['remote_user'] && !isset($_SERVER['REMOTE_USER']))

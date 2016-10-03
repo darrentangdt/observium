@@ -12,14 +12,10 @@
  */
 
 //  Polling of AP and radios status for Juniper Wireless (ex Trapeze)
-//
-//  TRAPEZE-NETWORKS-AP-STATUS-MIB
-
-echo(" TRAPEZE-NETWORKS-AP-STATUS-MIB ");
 
 // getting APs and radios
 
-$radios_snmp = snmpwalk_cache_twopart_oid($device, "trpzApStatRadioOpStatisticsTable", $radios_snmp, "TRAPEZE-NETWORKS-AP-STATUS-MIB", mib_dirs('trapeze'));
+$radios_snmp = snmpwalk_cache_twopart_oid($device, 'trpzApStatRadioOpStatisticsTable', $radios_snmp, 'TRAPEZE-NETWORKS-AP-STATUS-MIB');
 if (OBS_DEBUG > 1 && count($radios_snmp)) { print_vars($radios_snmp); }
 
 // OIDs to graph
@@ -58,11 +54,11 @@ foreach ($radios_snmp as $ap_serial => $ap_radios)
 {
   foreach ($ap_radios as $radio_number => $radio)
   {
-    $rrdupdate = "N";
-    $rrd_create = "";
-    if ($radio_number == "radio-1")      { $radio_number = 1; } // FIXME just get number from radio-X ?
-    else if ($radio_number == "radio-2") { $radio_number = 2; }
-    $rrd_file = "wifi-radio-". $ap_serial . '-' . $radio_number.".rrd";
+    $rrdupdate = 'N';
+    $rrd_create = '';
+    if ($radio_number == 'radio-1')      { $radio_number = 1; } // FIXME just get number from radio-X ?
+    else if ($radio_number == 'radio-2') { $radio_number = 2; }
+    $rrd_file = 'wifi-radio-'. $ap_serial . '-' . $radio_number.'.rrd';
 
     foreach ($oids_gauge as $oid)
     {
@@ -73,7 +69,7 @@ foreach ($radios_snmp as $ap_serial => $ap_radios)
       {
         $value = $radio['trpzApStatRadioOpStats'.$oid];
       } else {
-        $value = "0";
+        $value = '0';
       }
       $rrdupdate .= ":$value";
     }
@@ -86,7 +82,7 @@ foreach ($radios_snmp as $ap_serial => $ap_radios)
       {
         $value = $radio['trpzApStatRadioOpStats'.$oid];
       } else {
-        $value = "0";
+        $value = '0';
       }
       $rrdupdate .= ":$value";
     }

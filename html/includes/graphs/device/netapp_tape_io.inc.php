@@ -17,6 +17,6 @@ $format = "bytes";
 $ds_in = "tape_rd";
 $ds_out = "tape_wr";
 
-include("includes/graphs/generic_data.inc.php");
+include($config['html_dir']."/includes/graphs/generic_data.inc.php");
 
 ?>

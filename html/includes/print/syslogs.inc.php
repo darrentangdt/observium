@@ -164,7 +164,7 @@ See <a href="'.OBSERVIUM_URL.'/wiki/Category:Documentation" target="_blank">docu
         $timediff = $GLOBALS['config']['time']['now'] - strtotime($entry['timestamp']);
         $string .= generate_tooltip_link('', formatUptime($timediff, "short-3"), format_timestamp($entry['timestamp']), NULL) . '</td>' . PHP_EOL;
       } else {
-        $string .= '    <td width="160">';
+        $string .= '    <td width="130">';
         $string .= format_timestamp($entry['timestamp']) . '</td>' . PHP_EOL;
       }
 
@@ -179,16 +179,16 @@ See <a href="'.OBSERVIUM_URL.'/wiki/Category:Documentation" target="_blank">docu
       }
       if ($list['priority'])
       {
-        if (!$short) { $string .= '    <td style="color: ' . $priorities[$entry['priority']]['color'] . '; white-space: nowrap;">' . nicecase($priorities[$entry['priority']]['name']) . ' (' . $entry['priority'] . ')</td>' . PHP_EOL; }
+        if (!$short) { $string .= '    <td style="color: ' . $priorities[$entry['priority']]['color'] . '; white-space: nowrap; width: 95px;"><span class="label label-' . $priorities[$entry['priority']]['label-class'] . '">' . nicecase($priorities[$entry['priority']]['name']) . ' (' . $entry['priority'] . ')</span></td>' . PHP_EOL; }
       }
       $entry['program'] = (empty($entry['program'])) ? '[[EMPTY]]' : $entry['program'];
       if ($short)
       {
         $string .= '    <td class="syslog">';
-        $string .= '<strong style="color: ' . $priorities[$entry['priority']]['color'] . ';">' . $entry['program'] . '</strong> : ';
+        $string .= '<span class="label label-' . $priorities[$entry['priority']]['label-class'] . '"><strong>' . $entry['program'] . '</strong></span> ';
       } else {
         $string .= '    <td>';
-        $string .= '<strong>' . $entry['program'] . '</strong> : ';
+        $string .= '<span class="label label-' . $priorities[$entry['priority']]['label-class'] . '">' . $entry['program'] . '</span>';
       }
       $string .= escape_html($entry['msg']) . '</td>' . PHP_EOL;
       $string .= '  </tr>' . PHP_EOL;
@@ -205,6 +205,64 @@ See <a href="'.OBSERVIUM_URL.'/wiki/Category:Documentation" target="_blank">docu
     // Print syslog
     echo $string;
   }
+}
+
+function generate_syslog_form_values($form_filter = FALSE, $column = NULL)
+{
+  //global $cache;
+
+  $form_items = array();
+  $filter = is_array($form_filter); // Use filer or not
+
+  switch ($column)
+  {
+    case 'priorities':
+    case 'priority':
+      foreach ($GLOBALS['config']['syslog']['priorities'] as $p => $priority)
+      {
+        if ($filter && !in_array($p, $form_filter)) { continue; } // Skip filtered entries
+        else if ($p > 7)                            { continue; }
+
+        $form_items[$p] = $priority;
+        $form_items[$p]['name'] = nicecase($priority['name']);
+
+        switch ($p)
+        {
+          case 0: // Emergency
+          case 1: // Alert
+          case 2: // Critical
+          case 3: // Error
+            $form_items[$p]['class'] = "bg-danger";
+            break;
+          case 4: // Warning
+            $form_items[$p]['class'] = "bg-warning";
+            break;
+          case 5: // Notification
+            $form_items[$p]['class'] = "bg-success";
+            break;
+          case 6: // Informational
+            $form_items[$p]['class'] = "bg-info";
+            break;
+          case 7: // Debugging
+            $form_items[$p]['class'] = "bg-suppressed";
+            break;
+          default:
+            $form_items[$p]['class'] = "bg-disabled";
+        }
+      }
+      krsort($form_items);
+      break;
+    case 'programs':
+    case 'program':
+      // Use filter as items
+      foreach ($form_filter as $program)
+      {
+        $name = ($program != '' ? $program : OBS_VAR_UNSET);
+        $form_items[$program] = $name;
+      }
+      break;
+  }
+  return $form_items;
 }
 
 // EOF

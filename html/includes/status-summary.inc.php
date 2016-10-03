@@ -23,16 +23,18 @@ if ($ports['down'])    { $ports['class']    = "error"; } else { $ports['class'] 
 <table class="table table-condensed-more table-striped">
   <thead>
     <tr>
+      <th class="state-marker"></th>
       <th></th>
-      <th style="width: 14%">Total</th>
+      <th style="width: 10%">Total</th>
       <th style="width: 14%">Up</th>
-      <th style="width: 15%">Down</th>
-      <th style="width: 16%">Ignored</th>
-      <th style="width: 20%">Disabled</th>
+      <th style="width: 14%">Down</th>
+      <th style="width: 20%">Ignored (Dev)</th>
+      <th style="width: 20%">Disabled / Shut</th>
     </tr>
   </thead>
   <tbody>
     <tr class="<?php echo($devices['class']); ?>">
+      <td class="state-marker"></td>
       <td><strong><a       href="<?php echo(generate_url(array('page' => 'devices'))); ?>">Devices</a></strong></td>
       <td><a               href="<?php echo(generate_url(array('page' => 'devices')));                                   ?>"><?php echo($devices['count'])    ?></a></td>
       <td><a class="green" href="<?php echo(generate_url(array('page' => 'devices', 'status' => '1')));                  ?>"><?php echo($devices['up'])       ?> up</a></td>
@@ -41,11 +43,12 @@ if ($ports['down'])    { $ports['class']    = "error"; } else { $ports['class'] 
       <td><a class="grey"  href="<?php echo(generate_url(array('page' => 'devices', 'disabled' => '1')));                ?>"><?php echo($devices['disabled']) ?> disabled</a></td>
     </tr>
     <tr class="<?php echo($ports['class']) ?>">
+      <td class="state-marker"></td>
       <td><strong><a       href="<?php echo(generate_url(array('page' => 'ports'))); ?>">Ports</a></strong></td>
       <td><a               href="<?php echo(generate_url(array('page' => 'ports')));                                     ?>"><?php echo($ports['count'])      ?></a></td>
       <td><a class="green" href="<?php echo(generate_url(array('page' => 'ports', 'state' => 'up')));                    ?>"><?php echo($ports['up'])         ?> up</a></td>
       <td><a class="red"   href="<?php echo(generate_url(array('page' => 'ports', 'state' => 'down', 'ignore' => '0'))); ?>"><?php echo($ports['down'])       ?> down</a></td>
-      <td><a class="black" href="<?php echo(generate_url(array('page' => 'ports', 'ignore' => '1')));                    ?>"><?php echo($ports['ignored'] + count($cache['ports']['device_ignored'])) ?> ignored </a></td>
+      <td><a class="black" href="<?php echo(generate_url(array('page' => 'ports', 'ignore' => '1')));                    ?>"><?php echo($ports['ignored']); ?> (<?php echo (count($cache['ports']['device_ignored'])) ?>) ignored</a></td>
       <td><a class="grey"  href="<?php echo(generate_url(array('page' => 'ports', 'state' => 'admindown')));             ?>"><?php echo($ports['shutdown'])   ?> shutdown</a></td>
     </tr>
 <?php
@@ -54,6 +57,7 @@ if ($ports['down'])    { $ports['class']    = "error"; } else { $ports['class'] 
     if ($sensors['alert']) { $sensors['class'] = "error"; } else { $sensors['class'] = ""; }
 ?>
     <tr class="<?php echo($sensors['class']) ?>">
+      <td class="state-marker"></td>
       <td><strong><a       href="<?php echo(generate_url(array('page' => 'health'))); ?>">Sensors</a></strong></td>
       <td><a               href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'sensors')));                             ?>"><?php echo($sensors['count'])    ?></a></td>
       <td><a class="green" href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'sensors', 'event' => 'ok')));            ?>"><?php echo($sensors['ok'])       ?> ok</a></td>
@@ -68,6 +72,7 @@ if ($ports['down'])    { $ports['class']    = "error"; } else { $ports['class'] 
     if ($statuses['alert']) { $statuses['class'] = "error"; } else { $statuses['class'] = ""; }
 ?>
     <tr class="<?php echo($statuses['class']) ?>">
+      <td class="state-marker"></td>
       <td><strong><a       href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'status'))); ?>">Statuses</a></strong></td>
       <td><a               href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'status')));                              ?>"><?php echo($statuses['count'])   ?></a></td>
       <td><a class="green" href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'status', 'event' => 'ok,warning')));     ?>"><?php echo($statuses['ok'])      ?> ok</a></td>
@@ -85,56 +90,21 @@ if ($ports['down'])    { $ports['class']    = "error"; } else { $ports['class'] 
 
 <?php
 
-  // Fetch a quick set of alert_status values to build the alert check status text
-  $query = 'SELECT `alert_status` FROM `alert_table`';
-  $query .= ' WHERE 1' . generate_query_permitted(array('alert'));
-  //r($query);
-  //$query .= ' LEFT JOIN `alert_table-state` USING (`alert_table_id`)';
-
-  $check['entities'] = dbFetchRows($query);
-  $check['entity_status'] = array('up'       => 0,
-                                  'down'     => 0,
-                                  'unknown'  => 0,
-                                  'delay'    => 0,
-                                  'suppress' => 0);
-  foreach ($check['entities'] as $alert_table_id => $alert_table_entry)
-  {
-    switch ($alert_table_entry['alert_status'])
-    {
-      case '0':
-        ++$check['entity_status']['down'];
-        break;
-      case '1':
-        ++$check['entity_status']['up'];
-        break;
-      case '2':
-        ++$check['entity_status']['delay'];
-        break;
-      case '3':
-        ++$check['entity_status']['suppress'];
-        break;
-      case '-1': // FIXME, what mean status '-1'?
-      default:
-        //r($alert_table_entry);
-        ++$check['entity_status']['unknown'];
-    }
-  }
-
   switch (TRUE)
   {
-    case ($check['entity_status']['up'] == count($check['entities'])):
+    case ($cache['alert_entries']['up'] == $cache['alert_entries']['count']):
       $check['class']  = "green";  $check['table_tab_colour'] = "#194b7f"; $check['html_row_class'] = "";
       break;
-    case ($check['entity_status']['down'] > 0):
+    case ($cache['alert_entries']['down'] > 0):
       $check['class']  = "red";    $check['table_tab_colour'] = "#cc0000"; $check['html_row_class'] = "error";
       break;
-    case ($check['entity_status']['delay'] > 0):
+    case ($cache['alert_entries']['delay'] > 0):
       $check['class']  = "orange"; $check['table_tab_colour'] = "#ff6600"; $check['html_row_class'] = "warning";
       break;
-    case ($check['entity_status']['suppress'] > 0):
+    case ($cache['alert_entries']['suppress'] > 0):
       $check['class']  = "purple"; $check['table_tab_colour'] = "#740074"; $check['html_row_class'] = "suppressed";
       break;
-    case ($check['entity_status']['up'] > 0):
+    case ($cache['alert_entries']['up'] > 0):
       $check['class']  = "green";  $check['table_tab_colour'] = "#194b7f"; $check['html_row_class'] = "";
       break;
     default:
@@ -142,11 +112,11 @@ if ($ports['down'])    { $ports['class']    = "error"; } else { $ports['class'] 
   }
 
   $check['status_numbers'] = '
-          <span class="green">'  . $check['entity_status']['up']       . '</span>/
-          <span class="purple">' . $check['entity_status']['suppress'] . '</span>/
-          <span class="red">'    . $check['entity_status']['down']     . '</span>/
-          <span class="orange">' . $check['entity_status']['delay']    . '</span>/
-          <span class="gray">'   . $check['entity_status']['unknown']  . '</span>';
+          <span class="green">'  . $cache['alert_entries']['up']       . '</span>/
+          <span class="purple">' . $cache['alert_entries']['suppress'] . '</span>/
+          <span class="red">'    . $cache['alert_entries']['down']     . '</span>/
+          <span class="orange">' . $cache['alert_entries']['delay']    . '</span>/
+          <span class="gray">'   . $cache['alert_entries']['unknown']  . '</span>';
 ?>
 
 <div class="<?php echo($div_class); ?>">
@@ -154,6 +124,7 @@ if ($ports['down'])    { $ports['class']    = "error"; } else { $ports['class'] 
   <table class="table  table-condensed-more  table-striped">
   <thead>
     <tr>
+     <th class="state-marker"></th>
      <th></th>
      <th>Ok</th>
      <th>Fail</th>
@@ -164,12 +135,13 @@ if ($ports['down'])    { $ports['class']    = "error"; } else { $ports['class'] 
   </thead>
     <tbody>
       <tr class="<?php echo($check['html_row_class']); ?>">
+        <td class="state-marker"></td>
         <td><a href="/alerts/"><strong>Alerts</strong></a></td>
-        <td><span class="green"><?php  echo $check['entity_status']['up'];       ?></span></td>
-        <td><span class="red"><?php    echo $check['entity_status']['down'];     ?></span></td>
-        <td><span class="orange"><?php echo $check['entity_status']['delay'];    ?></span></td>
-        <td><span class="purple"><?php echo $check['entity_status']['suppress']; ?></span></td>
-        <td><span class="gray"><?php   echo $check['entity_status']['unknown'];  ?></span></td>
+        <td><span class="green"><?php  echo $cache['alert_entries']['up'];       ?></span></td>
+        <td><span class="red"><?php    echo $cache['alert_entries']['down'];     ?></span></td>
+        <td><span class="orange"><?php echo $cache['alert_entries']['delay'];    ?></span></td>
+        <td><span class="purple"><?php echo $cache['alert_entries']['suppress']; ?></span></td>
+        <td><span class="gray"><?php   echo $cache['alert_entries']['unknown'];  ?></span></td>
       </tr>
     </tbody>
   </table>
@@ -177,6 +149,7 @@ if ($ports['down'])    { $ports['class']    = "error"; } else { $ports['class'] 
 <?php
 
 
+$navbar = array();
 $navbar['class'] = 'navbar-narrow';
 $navbar['brand'] = 'Groups';
 $navbar['style'] = 'margin-top: 10px';

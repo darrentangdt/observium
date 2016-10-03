@@ -48,7 +48,7 @@ if ($width > "500")
 $i = 0;
 $colours = "mixed-10b";
 
-$rrd_filename = get_rrd_path($device, "netscaler-stats-tcp.rrd");
+//$rrd_filename = get_rrd_path($device, "netscaler-stats-tcp.rrd"); // CLEANME, Hrm, what this do here?
 
 $device_state = unserialize($device['device_state']);
 
@@ -61,7 +61,7 @@ $cpu_oids = array('ssCpuRawUser' => array('colour' => 'c02020'),
                   'ssCpuRawKernel' => array(),
                   'ssCpuRawIdle' => array('colour' => 'f5f5e5'),
                   );
-
+$bstack = '';
 foreach ($cpu_oids as $stat => $data)
 {
 
@@ -79,18 +79,14 @@ foreach ($cpu_oids as $stat => $data)
 
     $rrd_filename = get_rrd_path($device, "ucd_".$stat.".rrd");
 
-    $graph_return['rrds'][] = $rrd_filename;
-
-
     $rrd_options .= " DEF:". $stat . "=".$rrd_filename.":value:AVERAGE";
     $totals[]  = $stat.",UN,0," . $stat . ",IF";
     $rrd_options_b .= " CDEF:". $stat . "_perc=".$stat.",total,/,100,*";
 
-    $rrd_optionsc .= " AREA:".$stat."_perc#".$colour.":'".rrdtool_escape(str_replace("ssCpuRaw", "", $stat), $descr_len)."':$bstack";
+    $rrd_optionsc .= " AREA:".$stat."_perc#".$colour.":'".rrdtool_escape(str_replace("ssCpuRaw", "", $stat), $descr_len)."'$bstack";
     $rrd_optionsc .= " GPRINT:".$stat."_perc:LAST:%5.1lf%% GPRINT:".$stat."_perc:MIN:%5.1lf%%";
     $rrd_optionsc .= " GPRINT:".$stat."_perc:MAX:%5.1lf%% GPRINT:".$stat."_perc:AVERAGE:%5.1lf%%\\n";
-    $bstack = "STACK";
-
+    $bstack = ":STACK";
   }
 
 }
@@ -103,6 +99,6 @@ $rrd_options .= " HRULE:0#555555";
 $rrd_options .= $rrd_optionsc;
 
 // Clean
-unset($rrd_multi, $thingX, $plusesX);
+unset($rrd_multi, $thingX, $plusesX, $bstack);
 
 // EOF

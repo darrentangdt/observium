@@ -82,8 +82,10 @@ function print_dot1xtable($vars)
   $list = array('device' => FALSE, 'port' => FALSE); // A radio is like a port
   if (!isset($vars['device']) || empty($vars['device']) || $vars['page'] == 'search') { $list['device'] = TRUE; }
   if (!isset($vars['port']) || empty($vars['port']) || $vars['page'] == 'search') { $list['port'] = TRUE; }
-
-  $string = '<table class="table  table-striped table-hover table-condensed">' . PHP_EOL;
+  
+  $string = generate_box_open();
+  
+  $string .= '<table class="table  table-striped table-hover table-condensed">' . PHP_EOL;
   if (!$short)
   {
     $string .= '  <thead>' . PHP_EOL;
@@ -124,6 +126,8 @@ function print_dot1xtable($vars)
 
   $string .= '  </tbody>' . PHP_EOL;
   $string .= '</table>';
+  
+  $string .= generate_box_close();
 
   // Print pagination header
   if ($pagination) { $string = pagination($vars, $count) . $string . pagination($vars, $count); }

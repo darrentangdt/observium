@@ -39,16 +39,20 @@ $pws = snmpwalk_cache_oid($device, "cpwVcMplsPeerLdpID",  $pws, "CISCO-IETF-PW-M
 
   foreach ($pws as $pw_id => $pw)
   {
-    $peer_addr_type = $pw['cpwVcPeerAddrType'];
-    if ($peer_addr_type == "ipv4" || $peer_addr_type == "ipv6") { $peer_addr = hex2ip($pw['cpwVcPeerAddr']); }
+    $peer_addr         = hex2ip($pw['cpwVcPeerAddr']);
+    $peer_addr_type    = $pw['cpwVcPeerAddrType'];
+
     if (!get_ip_version($peer_addr) && $pw['cpwVcMplsPeerLdpID'])
     {
       // Sometime return wrong peer addr (not hex string):
       // cpwVcPeerAddr.8 = "\\<h&"
       $peer_addr = preg_replace('/:\d+$/', '', $pw['cpwVcMplsPeerLdpID']);
     }
-    if (get_ip_version($peer_addr))
+
+    $peer_addr_version = get_ip_version($peer_addr);
+    if ($peer_addr_version)
     {
+      $peer_addr_type = 'ipv' . $peer_addr_version; // Override address type, because snmp sometime return incorrect
       $peer_rdns = gethostbyaddr6($peer_addr); // PTR name
       if ($peer_addr_type == 'ipv6')
       {

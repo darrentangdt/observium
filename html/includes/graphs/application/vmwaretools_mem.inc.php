@@ -68,7 +68,7 @@ if (is_file($rrd_filename))
 
   $rrd_option .= " 'HRULE:0:#00000'";
 
-  $graph_return   = array('descr' => 'Reservation shows the guaranteed memory allocation on this virtual machine, Limit is the upper limit for memory useage on this virtual machine, vSwap show the memory swapped to the ESX host from this virtual machine, Balloon show how much memory is being ballooned on this virtual machine.', 'rrds' => array($rrd_filename));
+  $graph_return['descr'] = 'Reservation shows the guaranteed memory allocation on this virtual machine, Limit is the upper limit for memory useage on this virtual machine, vSwap show the memory swapped to the ESX host from this virtual machine, Balloon show how much memory is being ballooned on this virtual machine.';
 
 }
 

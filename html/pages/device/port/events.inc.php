@@ -19,6 +19,6 @@ $vars['entity_type'] = "port";
 
 print_events($vars);
 
-$page_title[] = "Events";
+register_html_title("Events");
 
 // EOF

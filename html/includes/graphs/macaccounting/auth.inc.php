@@ -27,6 +27,7 @@ if (is_numeric($vars['id']))
 
     if ($auth || port_permitted($ma['port_id']))
     {
+      $device = device_by_id_cache($ma['device_id']);
       $rrd_filename = get_rrd_path($device, "mac_acc-" . $ma['ifIndex'] . "-" . $ma['vlan_id'] ."-" . $ma['mac'] . ".rrd");
 
       if (is_file($rrd_filename))

@@ -11,10 +11,6 @@
  *
  */
 
-// APNL-MODULAR-PDU-MIB
-
-echo(" APNL-MODULAR-PDU-MIB ");
-
 // Power
 
 $oids_power = snmpwalk_cache_multi_oid($device, "pdu.nodeTable.nodeEntry.nodePower", array(), "APNL-MODULAR-PDU-MIB");

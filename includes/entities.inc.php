@@ -197,13 +197,15 @@ function get_device_entities($device_id, $entity_types = NULL)
   }
   $all = empty($entity_types);
   $entities = array();
-  foreach ($GLOBALS['config']['entities'] as $entity_type => $entry)
+  foreach (array_keys($GLOBALS['config']['entities']) as $entity_type)
   {
     if ($all || in_array($entity_type, $entity_types))
     {
-      $query = 'SELECT `' . $entry['id_field'] . '` FROM `' . $entry['table'] . '` WHERE `device_id` = ?;';
+      $translate = entity_type_translate_array($entity_type);
+      if (!$translate['device_id_field']) { continue; }
+      $query = 'SELECT `' . $translate['id_field'] . '` FROM `' . $translate['table'] . '` WHERE `' . $translate['device_id_field'] . '` = ?;';
       $entity_ids = dbFetchColumn($query, array($device_id));
-      if (count($entity_ids))
+      if (is_array($entity_ids) && count($entity_ids))
       {
         $entities[$entity_type] = $entity_ids;
       }
@@ -381,24 +383,21 @@ function entity_type_translate_array($entity_type)
     {
       $data[$field] = $transtale[$field];
     }
-    else if(isset($GLOBALS['config']['entities']['default'][$field]))
+    else if (isset($GLOBALS['config']['entities']['default'][$field]))
     {
       $data[$field] = $GLOBALS['config']['entities']['default'][$field];
     }
   }
 
   // Table fields
-  $fields_table = array('id', 'index', 'mib', 'name', 'shortname', 'descr', 'ignore', 'disable', 'deleted', 'limit_high', 'limit_low');
+  $fields_table = array('id', 'device_id', 'index', 'mib', 'name', 'shortname', 'descr', 'ignore', 'disable', 'deleted', 'limit_high', 'limit_low');
   if (isset($transtale['table_fields']))
   {
     // New definition style
     foreach ($transtale['table_fields'] as $field => $entry)
     {
-      if (in_array($field, $fields_table))
-      {
-        // Add old style name (ie 'id_field') for compatibility
-        $data[$field . '_field'] = $entry;
-      }
+      // Add old style name (ie 'id_field') for compatibility
+      $data[$field . '_field'] = $entry;
     }
   } else {
     // Old definition style
@@ -413,10 +412,6 @@ function entity_type_translate_array($entity_type)
       }
     }
   }
-
-  // State fields. Note, state fields not converted to old style (*_field), since not used before
-  $fields_state = array('value', 'status', 'event', 'uptime', 'last_change');
-  //r($data);
 
   return $data;
 }
@@ -450,8 +445,9 @@ function is_entity_permitted($entity_id, $entity_type, $device_id = NULL, $permi
 
   if (!is_numeric($device_id)) { $device_id = get_device_id_by_entity_id($entity_id, $entity_type); }
 
-  if ($_SESSION['userlevel'] >= 7) // 7 is global read
+  if (isset($_SESSION['user_limited']) && !$_SESSION['user_limited'])
   {
+    // User not limited (userlevel >= 5)
     $allowed = TRUE;
   }
   else if (is_numeric($device_id) && device_permitted($device_id))
@@ -547,7 +543,6 @@ function entity_rewrite($entity_type, &$entity)
 // TESTME needs unit testing
 function generate_entity_link($entity_type, $entity, $text = NULL, $graph_type = NULL, $escape = TRUE, $short = FALSE)
 {
-
   if (is_numeric($entity))
   {
     $entity = get_entity_by_id_cache($entity_type, $entity);
@@ -572,8 +567,8 @@ function generate_entity_link($entity_type, $entity, $text = NULL, $graph_type =
     case "sensor":
       $url = generate_url(array('page' => 'device', 'device' => $entity['device_id'], 'tab' => 'health', 'metric' => $entity['sensor_class'], 'id' => $entity['sensor_id']));
       break;
-    case "toner":
-      $url = generate_url(array('page' => 'device', 'device' => $entity['device_id'], 'tab' => 'printing', 'toner' => $entity['toner_id']));
+    case "printersupply":
+      $url = generate_url(array('page' => 'device', 'device' => $entity['device_id'], 'tab' => 'printing', 'supply' => $entity['supply_type']));
       break;
     case "port":
       $link = generate_port_link($entity, NULL, $graph_type, $escape, $short);
@@ -584,11 +579,14 @@ function generate_entity_link($entity_type, $entity, $text = NULL, $graph_type =
     case "bgp_peer":
       $url = generate_url(array('page' => 'device', 'device' => ($entity['peer_device_id'] ? $entity['peer_device_id'] : $entity['device_id']), 'tab' => 'routing', 'proto' => 'bgp'));
       break;
-    case "netscaler_vsvr":
+    case "netscalervsvr":
       $url = generate_url(array('page' => 'device', 'device' => $entity['device_id'], 'tab' => 'loadbalancer', 'type' => 'netscaler_vsvr', 'vsvr' => $entity['vsvr_id']));
       break;
-    case "netscaler_svc":
+    case "netscalersvc":
       $url = generate_url(array('page' => 'device', 'device' => $entity['device_id'], 'tab' => 'loadbalancer', 'type' => 'netscaler_services', 'svc' => $entity['svc_id']));
+      break;
+    case "netscalersvcgrpmem":
+      $url = generate_url(array('page' => 'device', 'device' => $entity['device_id'], 'tab' => 'loadbalancer', 'type' => 'netscaler_servicegroupmembers', 'svc' => $entity['svc_id']));
       break;
     case "sla":
       $url = generate_url(array('page' => 'device', 'device' => $entity['device_id'], 'tab' => 'slas', 'id' => $entity['sla_id']));
@@ -601,6 +599,16 @@ function generate_entity_link($entity_type, $entity, $text = NULL, $graph_type =
       break;
     case "group":
       $url = generate_url(array('page' => 'group', 'group_id' => $entity['group_id']));
+      break;
+    case "virtualmachine":
+      // If we know this device by its vm name in our system, create a link to it, else just print the name.
+      if (get_device_id_by_hostname($entity['vm_name']))
+      {
+        $link = generate_device_link(device_by_name($entity['vm_name']));
+      } else {
+        // Hardcode $link to just show the name, no actual link
+        $link = $entity['vm_name'];
+      }
       break;
     default:
       $url = NULL;
@@ -622,6 +630,83 @@ function generate_entity_link($entity_type, $entity, $text = NULL, $graph_type =
   }
 
   return($link);
+}
+
+// Entity specific, moved from common
+
+// Get port id  by ip address (using cache)
+// DOCME needs phpdoc block
+// TESTME needs unit testing
+function get_port_id_by_ip_cache($device, $ip)
+{
+  global $cache;
+
+  $ip_version = get_ip_version($ip);
+
+  if (is_array($device) && isset($device['device_id']))
+  {
+    $device_id = $device['device_id'];
+  }
+  else if (is_numeric($device))
+  {
+    $device_id = $device;
+  }
+  if (!isset($device_id) || !$ip_version)
+  {
+    print_error("Invalid arguments passed into function get_port_id_by_ip_cache(). Please report to developers.");
+    return FALSE;
+  }
+
+  if ($ip_version == 6)
+  {
+    $ip = Net_IPv6::uncompress($ip, TRUE);
+  }
+
+  if (isset($cache['port_ip'][$device_id][$ip]))
+  {
+    return $cache['port_ip'][$device_id][$ip];
+  }
+
+  $ips = dbFetchRows('SELECT `port_id`, `ifOperStatus`, `ifAdminStatus` FROM `ipv'.$ip_version.'_addresses`
+                      LEFT JOIN `ports` USING(`port_id`)
+                      WHERE `deleted` = 0 AND `device_id` = ? AND `ipv'.$ip_version.'_address` = ?', array($device_id, $ip));
+  if (count($ips) === 1)
+  {
+    // Simple
+    $port = current($ips);
+    //return $port['port_id'];
+  } else {
+    foreach ($ips as $entry)
+    {
+      if ($entry['ifAdminStatus'] == 'up' && $entry['ifOperStatus'] == 'up')
+      {
+        // First UP entry
+        $port = $entry;
+        break;
+      }
+      else if ($entry['ifAdminStatus'] == 'up')
+      {
+        // Admin up, but port down or other state
+        $ips_up[]   = $entry;
+      } else {
+        // Admin down
+        $ips_down[] = $entry;
+      }
+    }
+    if (!isset($port))
+    {
+      if ($ips_up)
+      {
+        $port = current($ips_up);
+      } else {
+        $port = current($ips_down);
+      }
+    }
+  }
+  $cache['port_ip'][$device_id][$ip] = $port['port_id'] ? $port['port_id'] : FALSE;
+
+  return $cache['port_ip'][$device_id][$ip];
+
 }
 
 // EOF

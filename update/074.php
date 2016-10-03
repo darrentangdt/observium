@@ -11,7 +11,7 @@
  *
  */
 
-echo(" Updating netscaler service RRDs\n");
+echo("Updating netscaler service RRDs.");
 
 //foreach (dbFetchRows("SELECT * FROM `netscaler_services`") as $svc)
 if (FALSE)
@@ -37,8 +37,6 @@ if (FALSE)
 
     rename($rrd_file, $rrd_file_new);
   }
-
-  echo("\n");
 }
 
 // EOF

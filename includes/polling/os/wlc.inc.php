@@ -17,7 +17,7 @@
 //AIRESPACE-SWITCHING-MIB::agentInventoryProductName.0 = STRING: Cisco Controller
 //AIRESPACE-SWITCHING-MIB::agentInventoryProductVersion.0 = STRING: 7.6.100.0
 
-$data = snmp_get_multi($device, 'agentInventoryMachineModel.0 agentInventoryProductVersion.0 agentInventorySerialNumber.0', "-OQUs", "AIRESPACE-SWITCHING-MIB");
+$data = snmp_get_multi($device, 'agentInventoryMachineModel.0 agentInventoryProductVersion.0 agentInventorySerialNumber.0', '-OQUs', 'AIRESPACE-SWITCHING-MIB');
 
 if (is_array($data[0]))
 {
@@ -35,12 +35,12 @@ else if ($entPhysical['entPhysicalModelName'])
 if (empty($hardware) && $poll_device['sysObjectID'])
 {
   // Try translate instead duplicate get sysObjectID
-  $hardware = snmp_translate($poll_device['sysObjectID'], "SNMPv2-MIB:CISCO-PRODUCTS-MIB:CISCO-ENTITY-VENDORTYPE-OID-MIB");
+  $hardware = snmp_translate($poll_device['sysObjectID'], 'SNMPv2-MIB:CISCO-PRODUCTS-MIB:CISCO-ENTITY-VENDORTYPE-OID-MIB');
 }
 if (empty($hardware))
 {
   // If translate false, try get sysObjectID again
-  $hardware = snmp_get($device, "sysObjectID.0", "-Osqv", "SNMPv2-MIB:CISCO-PRODUCTS-MIB:CISCO-ENTITY-VENDORTYPE-OID-MIB");
+  $hardware = snmp_get($device, 'sysObjectID.0', '-Osqv', 'SNMPv2-MIB:CISCO-PRODUCTS-MIB:CISCO-ENTITY-VENDORTYPE-OID-MIB');
 }
 
 unset($data);

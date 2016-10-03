@@ -11,9 +11,7 @@
  *
  */
 
-$mib = 'RAPID-CITY';
-
-$cache_mempool = snmp_get_multi($device, "rcSysDramSize.0 rcSysDramFree.0", "-OQUs", "RAPID-CITY", mib_dirs('nortel'));
+$cache_mempool = snmp_get_multi($device, 'rcSysDramSize.0 rcSysDramFree.0', '-OQUs', 'RAPID-CITY');
 
 $mempool['total'] = $cache_mempool[$index]['rcSysDramSize'] * 1024;
 $mempool['free']  = $cache_mempool[$index]['rcSysDramFree'];

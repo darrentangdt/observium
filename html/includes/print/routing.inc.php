@@ -83,18 +83,58 @@ function print_bgp_table($vars)
     {
       $local_dev = device_by_id_cache($peer['device_id']);
       $local_as  = ($list['device'] ? ' (AS'.$peer['bgpLocalAs'].')' : '');
-      $local_name = generate_device_link($local_dev, short_hostname($local_dev['hostname']), array('tab' => 'routing', 'proto' => 'bgp'));
+      $local_name = generate_device_link($local_dev, short_hostname($local_dev['hostname'], 18), array('tab' => 'routing', 'proto' => 'bgp'));
       $local_ip  = generate_device_link($local_dev, $peer['human_localip'].$local_as, array('tab' => 'routing', 'proto' => 'bgp'));
       $peer_as   = 'AS'.$peer['bgpPeerRemoteAs'];
       if ($peer['peer_device_id'])
       {
         $peer_dev = device_by_id_cache($peer['peer_device_id']);
-        $peer_name = generate_device_link($peer_dev, short_hostname($peer_dev['hostname']), array('tab' => 'routing', 'proto' => 'bgp'));
+        $peer_name = generate_device_link($peer_dev, short_hostname($peer_dev['hostname'], 18), array('tab' => 'routing', 'proto' => 'bgp'));
       } else {
         $peer_name = $peer['reverse_dns'];
       }
       $peer_ip   = generate_entity_link("bgp_peer", $peer, $peer['human_remoteip']);
       $peer_afis = &$entries['afisafi'][$peer['device_id']][$peer['bgpPeerRemoteAddr']];
+      $peer_afis_html = array();
+
+      foreach($peer_afis AS $peer_afi)
+      {
+        $peer_afi_html = '<span class="label-group">';
+        switch($peer_afi['afi'])
+        {
+          case 'ipv4':
+          case 'ipv4z':
+            $afi_class = 'success';
+            break;
+          case 'ipv6':
+          case 'ipv6z':
+            $afi_class = 'primary';
+            break;
+          default:
+            $afi_class = 'default';
+        }
+
+        switch($peer_afi['safi'])
+        {
+          case 'unicast':
+            $safi_class = 'delayed';
+            break;
+          case 'multicast':
+            $safi_class = 'warning';
+            break;
+          case 'vpn':
+            $safi_class = 'suppressed';
+            break;
+          default:
+            $safi_class = 'default';
+        }
+
+        $peer_afi_html .= '<span class="label label-'.$afi_class.'">'.$peer_afi['afi'].'</span>';
+        $peer_afi_html .= '<span class="label label-'.$safi_class.'">'.$peer_afi['safi'].'</span>';
+        $peer_afi_html .= '</span>';
+        $peer_afis_html[] = $peer_afi_html;
+      }
+
 
       $string .= '  <tr class="'.$peer['html_row_class'].'">' . PHP_EOL;
       $string .= '     <td class="state-marker"></td>' . PHP_EOL;
@@ -103,11 +143,11 @@ function print_bgp_table($vars)
       $string .= '     <td><span class="text-success"><i class="glyphicon glyphicon-arrow-right"></i></span></td>' . PHP_EOL;
       $string .= '     <td style="white-space: nowrap" class="entity">' . $peer_ip  . '<br />' . $peer_name . '</td>' . PHP_EOL;
       $string .= '     <td><span class="label label-'.$peer['peer_type_class'].'">' . $peer['peer_type'] . '</span></td>' . PHP_EOL;
-      $string .= '     <td><small>' . implode('<br />', $peer_afis) . '</small></td>' . PHP_EOL;
+      $string .= '     <td>' . implode('<br />', $peer_afis_html) . '</td>' . PHP_EOL;
       $string .= '     <td><strong>' . $peer_as . '</strong><br />' . $peer['astext'] . '</td>' . PHP_EOL;
       $string .= '     <td><strong><span class=" label label-'.$peer['admin_class'].'">' . $peer['bgpPeerAdminStatus'] . '</span><br /><span class="label label-'.$peer['state_class'].'">' . $peer['bgpPeerState'] . '</span></strong></td>' . PHP_EOL;
       $string .= '     <td style="white-space: nowrap">' .formatUptime($peer['bgpPeerFsmEstablishedTime']). '<br />
-                Updates: <i class="icon-circle-arrow-down" style="color: #008C00;"></i> ' . format_si($peer['bgpPeerInUpdates']) . ' <i class="icon-circle-arrow-up" style="color: #394182;"></i> ' . format_si($peer['bgpPeerOutUpdates']) . '</td>' . PHP_EOL;
+                Updates: <i class="icon-circle-arrow-down text-success"></i> ' . format_si($peer['bgpPeerInUpdates']) . ' <i class="icon-circle-arrow-up text-primary"></i> ' . format_si($peer['bgpPeerOutUpdates']) . '</td>' . PHP_EOL;
       $string .= '  </tr>' . PHP_EOL;
 
       // Graphs
@@ -120,7 +160,7 @@ function print_bgp_table($vars)
         case 'prefixes_ipv6unicast':
         case 'prefixes_ipv6multicast':
           $afisafi = preg_replace('/prefixes_(ipv[46])(\w+)/', '$1.$2', $vars['graph']); // prefixes_ipv6unicast ->> ipv6.unicast
-          if (in_array($afisafi, $peer_afis) && $peer['bgpPeer_id'])
+          if (isset($peer_afis[$afisafi]) && $peer['bgpPeer_id'])
           {
             $graph_array['type'] = 'bgp_'.$vars['graph'];
             $graph_array['id']   = $peer['bgpPeer_id'];
@@ -218,6 +258,22 @@ function get_bgp_array($vars)
         case 'device_id':
           $where .= generate_query_values($value, 'B.device_id');
           break;
+        case 'peer':
+        case 'peer_id':
+          $where .= generate_query_values($value, 'B.peer_device_id');
+          break;
+        case 'local_ip':
+          $where .= generate_query_values($value, 'B.bgpPeerLocalAddr');
+          break;
+        case 'peer_ip':
+          $where .= generate_query_values($value, 'B.bgpPeerRemoteAddr');
+          break;
+        case 'local_as':
+          $where .= generate_query_values($value, 'D.bgpLocalAs');
+          break;
+        case 'peer_as':
+          $where .= generate_query_values($value, 'B.bgpPeerRemoteAs');
+          break;
         case 'type':
           if ($value == 'external' || $value == 'ebgp')
           {
@@ -279,10 +335,13 @@ function get_bgp_array($vars)
   }
 
   // Query AFI/SAFI
-  $query_afi = 'SELECT * FROM `bgpPeers_cbgp` WHERE 1'.generate_query_values(array_keys($peer_devices), 'device_id');
-  foreach (dbFetchRows($query_afi) as $entry)
+  if (count($peer_devices))
   {
-    $array['afisafi'][$entry['device_id']][$entry['bgpPeerRemoteAddr']][] = $entry['afi'].'.'.$entry['safi'];
+    $query_afi = 'SELECT * FROM `bgpPeers_cbgp` WHERE 1'.generate_query_values(array_keys($peer_devices), 'device_id');
+    foreach (dbFetchRows($query_afi) as $entry)
+    {
+      $array['afisafi'][$entry['device_id']][$entry['bgpPeerRemoteAddr']][$entry['afi'].'.'.$entry['safi']] = array('afi' => $entry['afi'], 'safi' => $entry['safi']);
+    }
   }
 
   // Query BGP peers count

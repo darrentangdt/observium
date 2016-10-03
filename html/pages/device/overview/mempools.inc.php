@@ -15,23 +15,19 @@ $graph_type = "mempool_usage";
 
 $sql  = "SELECT *, `mempools`.mempool_id as mempool_id";
 $sql .= " FROM  `mempools`";
-$sql .= " LEFT JOIN  `mempools-state` ON `mempools`.mempool_id = `mempools-state`.mempool_id";
+$sql .= " LEFT JOIN  `mempools-state` USING(`mempool_id`)";
 $sql .= " WHERE `device_id` = ?";
 
 $mempools = dbFetchRows($sql, array($device['device_id']));
 
 if (count($mempools))
-{ ?>
+{
+  $box_args = array('title' => 'Memory', 
+                    'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => 'mempool')), 
+                    'icon' => 'oicon-memory',
+                    ); 
+  echo generate_box_open($box_args);
 
-    <div class="box box-solid">
-      <div class="box-header ">
-        <a href="<?php echo(generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => 'mempool'))); ?>">
-          <i class="oicon-memory"></i><h3 class="box-title">Memory</h3>
-        </a>
-      </div>
-      <div class="box-body no-padding">
-
-<?php
   echo('<table class="table table-condensed table-striped">');
 
   foreach ($mempools as $mempool)
@@ -68,7 +64,7 @@ if (count($mempools))
 
     $overlib_content = generate_overlib_content($graph_array, $device['hostname'] . " - " . $text_descr);
 
-    $graph_array['width'] = 80; $graph_array['height'] = 20; $graph_array['bg'] = 'ffffff00'; # the 00 at the end makes the area transparent.
+    $graph_array['width'] = 80; $graph_array['height'] = 20; $graph_array['bg'] = 'ffffff00';
 //    $graph_array['style'][] = 'margin-top: -6px';
 
     $minigraph =  generate_graph_tag($graph_array);
@@ -83,7 +79,7 @@ if (count($mempools))
   }
 
   echo("</table>");
-  echo("</div></div>");
+  echo generate_box_close();
 }
 
 // EOF

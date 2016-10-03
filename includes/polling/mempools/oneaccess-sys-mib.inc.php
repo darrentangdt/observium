@@ -11,9 +11,7 @@
  *
  */
 
-$mib = 'ONEACCESS-SYS-MIB';
-
-$cache_mempool = snmpwalk_cache_multi_oid($device, 'oacSysMemStatistics', $cache_mempool, $mib, mib_dirs('oneaccess'));
+$cache_mempool = snmpwalk_cache_multi_oid($device, 'oacSysMemStatistics', $cache_mempool, 'ONEACCESS-SYS-MIB');
 
 $index            = $mempool['mempool_index'];
 $mempool['total'] = $cache_mempool[$index]['oacSysMemoryTotal'];

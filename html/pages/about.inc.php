@@ -63,80 +63,95 @@ print_versions();
       </div>
 
   <div class="box box-solid">
-    <div class="box-header"></i><h3 class="box-title">Statistics</h3></div>
+    <div class="box-header"><h3 class="box-title">Statistics</h3></div>
     <div class="box-body no-padding">
 
 <?php
-$stat_devices   = dbFetchCell("SELECT COUNT(*) FROM `devices`;");
-$stat_ports     = dbFetchCell("SELECT COUNT(*) FROM `ports`;");
-$stat_syslog    = dbFetchCell("SELECT COUNT(*) FROM `syslog`;");
-$stat_events    = dbFetchCell("SELECT COUNT(*) FROM `eventlog`;");
-$stat_apps      = dbFetchCell("SELECT COUNT(*) FROM `applications`;");
-$stat_services  = dbFetchCell("SELECT COUNT(*) FROM `services`;");
-$stat_storage   = dbFetchCell("SELECT COUNT(*) FROM `storage`;");
-$stat_diskio    = dbFetchCell("SELECT COUNT(*) FROM `ucd_diskio`;");
-$stat_processors = dbFetchCell("SELECT COUNT(*) FROM `processors`;");
-$stat_memory    = dbFetchCell("SELECT COUNT(*) FROM `mempools`;");
-$stat_sensors   = dbFetchCell("SELECT COUNT(*) FROM `sensors`;");
-$stat_sensors  += dbFetchCell("SELECT COUNT(*) FROM `status`;");
-$stat_toner     = dbFetchCell("SELECT COUNT(*) FROM `toner`;");
-$stat_hrdev     = dbFetchCell("SELECT COUNT(*) FROM `hrDevice`;");
-$stat_entphys   = dbFetchCell("SELECT COUNT(*) FROM `entPhysical`;");
 
-$stat_ipv4_addy = dbFetchCell("SELECT COUNT(*) FROM `ipv4_addresses`;");
-$stat_ipv4_nets = dbFetchCell("SELECT COUNT(*) FROM `ipv4_networks`;");
-$stat_ipv6_addy = dbFetchCell("SELECT COUNT(*) FROM `ipv6_addresses`;");
-$stat_ipv6_nets = dbFetchCell("SELECT COUNT(*) FROM `ipv6_networks`;");
+$stat_devices         = dbFetchCell('SELECT COUNT(*) FROM `devices`');
+$stat_ports           = dbFetchCell('SELECT COUNT(*) FROM `ports`');
+$stat_syslog          = dbFetchCell('SELECT COUNT(*) FROM `syslog`');
+$stat_events          = dbFetchCell('SELECT COUNT(*) FROM `eventlog`');
+$stat_apps            = dbFetchCell('SELECT COUNT(*) FROM `applications`');
+$stat_services        = dbFetchCell('SELECT COUNT(*) FROM `services`');
+$stat_storage         = dbFetchCell('SELECT COUNT(*) FROM `storage`');
+$stat_diskio          = dbFetchCell('SELECT COUNT(*) FROM `ucd_diskio`');
+$stat_processors      = dbFetchCell('SELECT COUNT(*) FROM `processors`');
+$stat_memory          = dbFetchCell('SELECT COUNT(*) FROM `mempools`');
+$stat_sensors         = dbFetchCell('SELECT COUNT(*) FROM `sensors`');
+$stat_sensors        += dbFetchCell('SELECT COUNT(*) FROM `status`');
+$stat_printersupplies = dbFetchCell('SELECT COUNT(*) FROM `printersupplies`');
+$stat_hrdev           = dbFetchCell('SELECT COUNT(*) FROM `hrDevice`');
+$stat_entphys         = dbFetchCell('SELECT COUNT(*) FROM `entPhysical`');
 
-$stat_pw    = dbFetchCell("SELECT COUNT(*) FROM `pseudowires`;");
-$stat_vrf   = dbFetchCell("SELECT COUNT(*) FROM `vrfs`;");
-$stat_vlans = dbFetchCell("SELECT COUNT(*) FROM `vlans`;");
+$stat_ipv4_addy       = dbFetchCell('SELECT COUNT(*) FROM `ipv4_addresses`');
+$stat_ipv4_nets       = dbFetchCell('SELECT COUNT(*) FROM `ipv4_networks`');
+$stat_ipv6_addy       = dbFetchCell('SELECT COUNT(*) FROM `ipv6_addresses`');
+$stat_ipv6_nets       = dbFetchCell('SELECT COUNT(*) FROM `ipv6_networks`');
 
-$stat_db    = get_db_size();
-$stat_rrd   = get_dir_size($config['rrd_dir']);
+$stat_pw              = dbFetchCell('SELECT COUNT(*) FROM `pseudowires`');
+$stat_vrf             = dbFetchCell('SELECT COUNT(*) FROM `vrfs`');
+$stat_vlans           = dbFetchCell('SELECT COUNT(*) FROM `vlans`');
+
+$stat_ns_vsvrs        = dbFetchCell('SELECT COUNT(*) FROM `netscaler_vservers`');
+$stat_ns_svcs         = dbFetchCell('SELECT COUNT(*) FROM `netscaler_services`');
+
+$stat_vms             = dbFetchCell('SELECT COUNT(*) FROM `vminfo`');
+$stat_ip_sla          = dbFetchCell('SELECT COUNT(*) FROM `slas`');
+
+$stat_db              = get_db_size();
+$stat_rrd             = get_dir_size($config['rrd_dir']);
 
 ?>
-      <table class="table  table-striped table-condensed">
+      <table class="table table-striped table-condensed">
         <tbody>
           <tr>
-            <td style='width: 45%;'><i class='oicon-database'></i> <strong>DB size</strong></td><td><span class='pull-right'><?php echo(formatStorage($stat_db)); ?></span></td>
-            <td style='width: 45%;'><i class='oicon-box-zipper'></i> <strong>RRD size</strong></td><td><span class='pull-right'><?php echo(formatStorage($stat_rrd)); ?></span></td>
+            <td style="width: 45%;"><i class="oicon-database"></i> <strong>DB size</strong></td><td><span class="pull-right"><?php echo(formatStorage($stat_db)); ?></span></td>
+            <td style="width: 45%;"><i class="oicon-box-zipper"></i> <strong>RRD size</strong></td><td><span class="pull-right"><?php echo(formatStorage($stat_rrd)); ?></span></td>
           </tr>
           <tr>
-            <td><i class='oicon-servers'></i> <strong>Devices</strong></td><td><span class='pull-right'><?php echo($stat_devices); ?></span></td>
-            <td><i class='oicon-network-ethernet'></i> <strong>Ports</strong></td><td><span class='pull-right'><?php echo($stat_ports); ?></span></td>
+            <td><i class="oicon-servers"></i> <strong>Devices</strong></td><td><span class="pull-right"><?php echo($stat_devices); ?></span></td>
+            <td><i class="oicon-network-ethernet"></i> <strong>Ports</strong></td><td><span class="pull-right"><?php echo($stat_ports); ?></span></td>
           </tr>
           <tr>
-            <td><i class='oicon-ipv4'></i> <strong>IPv4 Addresses</strong></td><td><span class='pull-right'><?php echo($stat_ipv4_addy); ?></span></td>
-            <td><i class='oicon-ipv4'></i> <strong>IPv4 Networks</strong></td><td><span class='pull-right'><?php echo($stat_ipv4_nets); ?></span></td>
+            <td><i class="oicon-ipv4"></i> <strong>IPv4 Addresses</strong></td><td><span class="pull-right"><?php echo($stat_ipv4_addy); ?></span></td>
+            <td><i class="oicon-ipv4"></i> <strong>IPv4 Networks</strong></td><td><span class="pull-right"><?php echo($stat_ipv4_nets); ?></span></td>
           </tr>
           <tr>
-            <td><i class='oicon-ipv6'></i> <strong>IPv6 Addresses</strong></td><td><span class='pull-right'><?php echo($stat_ipv6_addy); ?></span></td>
-            <td><i class='oicon-ipv6'></i> <strong>IPv6 Networks</strong></td><td><span class='pull-right'><?php echo($stat_ipv6_nets); ?></span></td>
+            <td><i class="oicon-ipv6"></i> <strong>IPv6 Addresses</strong></td><td><span class="pull-right"><?php echo($stat_ipv6_addy); ?></span></td>
+            <td><i class="oicon-ipv6"></i> <strong>IPv6 Networks</strong></td><td><span class="pull-right"><?php echo($stat_ipv6_nets); ?></span></td>
            </tr>
          <tr>
-            <td><i class='oicon-gear'></i> <strong>Services</strong></td><td><span class='pull-right'><?php echo($stat_services); ?></span></td>
-            <td><i class='oicon-application-icon-large'></i> <strong>Applications</strong></td><td><span class='pull-right'><?php echo($stat_apps); ?></span></td>
+            <td><i class="oicon-gear"></i> <strong>Services</strong></td><td><span class="pull-right"><?php echo($stat_services); ?></span></td>
+            <td><i class="oicon-application-icon-large"></i> <strong>Applications</strong></td><td><span class="pull-right"><?php echo($stat_apps); ?></span></td>
           </tr>
           <tr>
-            <td><i class='oicon-processor'></i> <strong>Processors</strong></td><td><span class='pull-right'><?php echo($stat_processors); ?></span></td>
-            <td><i class='oicon-memory'></i> <strong>Memory</strong></td><td><span class='pull-right'><?php echo($stat_memory); ?></span></td>
+            <td><i class="oicon-processor"></i> <strong>Processors</strong></td><td><span class="pull-right"><?php echo($stat_processors); ?></span></td>
+            <td><i class="oicon-memory"></i> <strong>Memory pools</strong></td><td><span class="pull-right"><?php echo($stat_memory); ?></span></td>
           </tr>
           <tr>
-            <td><i class='oicon-drive'></i> <strong>Storage</strong></td><td><span class='pull-right'><?php echo($stat_storage); ?></span></td>
-            <td><i class='oicon-drive--arrow'></i> <strong>Disk I/O</strong></td><td><span class='pull-right'><?php echo($stat_diskio); ?></span></td>
+            <td><i class="oicon-drive"></i> <strong>Storage Entries</strong></td><td><span class="pull-right"><?php echo($stat_storage); ?></span></td>
+            <td><i class="oicon-drive--arrow"></i> <strong>Disk I/O Entries</strong></td><td><span class="pull-right"><?php echo($stat_diskio); ?></span></td>
           </tr>
           <tr>
-            <td><i class='oicon-wooden-box'></i> <strong>HR-MIB</strong></td><td><span class='pull-right'><?php echo($stat_hrdev); ?></span></td>
-            <td><i class='oicon-wooden-box'></i> <strong>Entity-MIB</strong></td><td><span class='pull-right'><?php echo($stat_entphys); ?></span></td>
+            <td><i class="oicon-wooden-box"></i> <strong>HR-MIB Entries</strong></td><td><span class="pull-right"><?php echo($stat_hrdev); ?></span></td>
+            <td><i class="oicon-wooden-box"></i> <strong>Entity-MIB Entries</strong></td><td><span class="pull-right"><?php echo($stat_entphys); ?></span></td>
           </tr>
           <tr>
-            <td><i class='oicon-clipboard-eye'></i> <strong>Syslog Entries</strong></td><td><span class='pull-right'><?php echo($stat_syslog); ?></span></td>
-            <td><i class='oicon-clipboard-audit'></i> <strong>Eventlog Entries</strong></td><td><span class='pull-right'><?php echo($stat_events); ?></span></td>
+            <td><i class="oicon-clipboard-eye"></i> <strong>Syslog Entries</strong></td><td><span class="pull-right"><?php echo($stat_syslog); ?></span></td>
+            <td><i class="oicon-clipboard-audit"></i> <strong>Eventlog Entries</strong></td><td><span class="pull-right"><?php echo($stat_events); ?></span></td>
           </tr>
           <tr>
             <td><i class='oicon-system-monitor'></i> <strong>Sensors</strong></td><td><span class='pull-right'><?php echo($stat_sensors); ?></span></td>
-            <td><i class='oicon-printer-color'></i> <strong>Toner</strong></td><td><span class='pull-right'><?php echo($stat_toner); ?></span></td>
+            <td><i class='oicon-printer-color'></i> <strong>Printer Supplies</strong></td><td><span class='pull-right'><?php echo($stat_printersupplies); ?></span></td>
+          </tr>
+          <tr>
+            <td><i class="oicon-arrow-split"></i> <strong>Netscaler VServers</strong></td><td><span class="pull-right"><?php echo($stat_ns_vsvrs); ?></span></td>
+            <td><i class="oicon-arrow-split"></i> <strong>Netscaler Services</strong></td><td><span class="pull-right"><?php echo($stat_ns_svcs); ?></span></td>
+          </tr>
+          <tr>
+            <td><i class="oicon-network-cloud"></i> <strong>Virtual Machines</strong></td><td><span class="pull-right"><?php echo($stat_vms); ?></span></td>
+            <td><i class="oicon-network-cloud"></i> <strong>IP SLAs</strong></td><td><span class="pull-right"><?php echo($stat_ip_sla); ?></span></td>
           </tr>
         </tbody>
       </table>

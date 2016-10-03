@@ -11,13 +11,9 @@
  *
  */
 
-$mib = 'CHECKPOINT-MIB';
-
-echo(" $mib ");
-
-$chkpnt['temp'] = snmpwalk_cache_oid($device, 'tempertureSensorEntry', array(), $mib);
-$chkpnt['fan']  = snmpwalk_cache_oid($device, 'fanSpeedSensorEntry',  array(), $mib);
-$chkpnt['volt'] = snmpwalk_cache_oid($device, 'voltageSensorEntry', array(), $mib);
+$chkpnt['temp'] = snmpwalk_cache_oid($device, 'tempertureSensorEntry', array(), 'CHECKPOINT-MIB');
+$chkpnt['fan']  = snmpwalk_cache_oid($device, 'fanSpeedSensorEntry',  array(), 'CHECKPOINT-MIB');
+$chkpnt['volt'] = snmpwalk_cache_oid($device, 'voltageSensorEntry', array(), 'CHECKPOINT-MIB');
 
 foreach ($chkpnt['temp'] as $index => $entry)
 {
@@ -57,7 +53,7 @@ foreach ($chkpnt['volt'] as $index => $entry)
 # CHECKPOINT-MIB::haStarted.0 = STRING: yes
 # CHECKPOINT-MIB::haState.0 = STRING: standby
 # CHECKPOINT-MIB::haStatCode.0 = INTEGER: 0
-$chkpnt['ha'] = snmp_get_multi($device, 'haProdName.0 haStarted.0 haState.0 haStatCode.0', '-OQUs', $mib);
+$chkpnt['ha'] = snmp_get_multi($device, 'haProdName.0 haStarted.0 haState.0 haStatCode.0', '-OQUs', 'CHECKPOINT-MIB');
 
 if (isset($chkpnt['ha'][0]) && $chkpnt['ha'][0]['haStarted'] == 'yes')
 {

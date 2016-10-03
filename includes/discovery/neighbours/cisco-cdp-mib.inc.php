@@ -12,16 +12,14 @@
  *
  */
 
-echo(" CISCO-CDP-MIB ");
-
-$cdp_array = snmpwalk_cache_twopart_oid($device, "cdpCache", array(), "CISCO-CDP-MIB", mib_dirs('cisco'));
+$cdp_array = snmpwalk_cache_twopart_oid($device, "cdpCache", array(), "CISCO-CDP-MIB");
 
 // If we get timeout error and device has 'CISCO-FLASH-MIB', sleep and try re-walk
 if ($GLOBALS['snmp_status'] === FALSE && $GLOBALS['snmp_error_code'] == 1002 && is_device_mib($device, 'CISCO-FLASH-MIB'))
 {
   print_debug('Try to re-walk "CISCO-CDP-MIB"..');
   sleep(5); // Additional sleep, see comments in includes/discovery/storage/cisco-flash-mib-inc.php
-  $cdp_array = snmpwalk_cache_twopart_oid($device, "cdpCache", array(), "CISCO-CDP-MIB", mib_dirs('cisco'));
+  $cdp_array = snmpwalk_cache_twopart_oid($device, "cdpCache", array(), "CISCO-CDP-MIB");
 }
 
 if ($cdp_array)

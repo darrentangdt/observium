@@ -1,8 +1,8 @@
 -- ============================================================================
--- Copyright (C) by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- Description: This mib is used for defining huawei's energy management MIB objects
 -- Reference: None
--- Version:   V0.10
+-- Version:   V2.03
 -- ============================================================================
 HUAWEI-ENERGYMNGT-MIB DEFINITIONS ::= BEGIN
 
@@ -21,7 +21,7 @@ HUAWEI-ENERGYMNGT-MIB DEFINITIONS ::= BEGIN
 				FROM HUAWEI-MIB	;
 
 hwEnergyMngt MODULE-IDENTITY
-       LAST-UPDATED "201401230000Z"
+       LAST-UPDATED "201505300000Z"
        ORGANIZATION "Huawei Technologies Co.,Ltd."
        CONTACT-INFO
 "Huawei Industrial Base
@@ -32,6 +32,9 @@ hwEnergyMngt MODULE-IDENTITY
    Email: support@huawei.com
  "
 			DESCRIPTION "huawei energy management MIB."
+            REVISION    "201505300000Z"
+			DESCRIPTION "V2.03. Add enum of hwEnergySavingMode:optimal.
+			                    This is a draft version." 
 
             REVISION    "201401230000Z"
 			DESCRIPTION "V2.02. Add hwEnergyDevId, hwEnergyDevChangeToSleep.
@@ -141,6 +144,7 @@ hwEnergyMngt MODULE-IDENTITY
 				oneWeek(5):         The power statistics generated every week.
 				oneMonth(6):        The power statistics generated every month.
 				The defaut statistics intervalue is one hour."
+			DEFVAL {oneHour}
 			::= { hwSysPowerMgnt 2 }
 
 		
@@ -333,7 +337,8 @@ hwEnergyMngt MODULE-IDENTITY
 				userDefined(1),
 				standard(2),
 				basic(3),
-				deep(4)
+				deep(4),
+                                                                            optimal(5)
 				}
 			MAX-ACCESS read-write
 			STATUS current
@@ -343,6 +348,7 @@ hwEnergyMngt MODULE-IDENTITY
 				 Standard(2): standard energy-saving mode
 				 Basic(3): basic energy-saving mode, many basic energy-saving strategy included.
 				 Deep(4): Deep energy-saving mode, many complex energy-saving strategy included, which may effect service.
+                                                                              Optimal(5): Optimal energy-saving mode, many complex energy-saving strategy included, which may effect service.
 				"
 			::= { hwEnergySavingMngt 1 }
 
@@ -870,11 +876,3 @@ hwEnergyMngt MODULE-IDENTITY
 --
 -- HUAWEI-ENERGYMNGT-MIB
 --
-
-
-
-
-
-
-
-

@@ -27,7 +27,7 @@ else if (preg_match('/Linux .*? (?<kernel>[\d\.]+-MELLANOXuni-\w+) EFM_(?<arch>[
   // Linux c2-ibsw1 2.6.27-MELLANOXuni-m460ex EFM_PPC_M460EX EFM_1.1.2500 #1 2011-02-22 15:51:54 ppc
 
   //$hardware = $matches['hardware'];
-  $hardware = "IS50XX"; // FIXME. Required devices for tests
+  $hardware = 'IS50XX'; // FIXME. Required devices for tests
   $version  = $matches['version'];
   $kernel   = $matches['kernel'];
   $arch     = $matches['arch'];

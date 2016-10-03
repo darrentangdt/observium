@@ -69,12 +69,7 @@ if ($agent_data['edac'] != '')
           if (isset($errors[$errortype]))
           {
             $row_id = ($row === 'unknown' ? 'unknown' : "csrow$row"); // Yes, ===, otherwise PHP thinks unknown means 0.
-            $rrd_filename = "edac-errors-$mc-$row_id-$channel-$errortype.rrd";
-
-            rrdtool_create($device, $rrd_filename, " \
-                DS:errors:GAUGE:600:0:125000000000 ");
-
-            rrdtool_update($device, $rrd_filename, "N:" . $errors[$errortype]);
+            rrdtool_update_ng($device, 'edac-errors', array('errors' => $errors[$errortype]), "$mc-$row_id-$channel-$errortype");
           }
         }
       }

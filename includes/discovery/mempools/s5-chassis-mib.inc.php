@@ -14,12 +14,10 @@
 //S5-CHASSIS-MIB::s5ChasUtilMemoryTotalMB.3.10.0 = Gauge32: 128 MegaBytes
 //S5-CHASSIS-MIB::s5ChasUtilMemoryAvailableMB.3.10.0 = Gauge32: 65 MegaBytes
 
-$mib = 'S5-CHASSIS-MIB';
-echo("$mib ");
-
-$mempool_array = snmpwalk_cache_oid($device, "s5ChasUtilEntry", NULL, $mib, mib_dirs('nortel'));
-//$mempool_array = snmpwalk_cache_oid($device, "s5ChasComTable", $mempool_array, "$mib:S5-REG-MIB", mib_dirs('nortel'));
+$mempool_array = snmpwalk_cache_oid($device, 's5ChasUtilEntry', array(), $mib);
+//$mempool_array = snmpwalk_cache_oid($device, 's5ChasComTable', $mempool_array, 'S5-CHASSIS-MIB:S5-REG-MIB');
 //print_vars($mempool_array);
+
 if (is_array($mempool_array))
 {
   $i = 1;
@@ -33,12 +31,13 @@ if (is_array($mempool_array))
       $free      = $entry['s5ChasUtilMemoryAvailableMB'];
       //$free     *= $precision;
       $used      = $total - $free;
-      $descr = "Memory Unit " . $i;
-      discover_mempool($valid['mempool'], $device, $index, $mib, $descr, $precision, $total, $used);
+      $descr = "Memory Unit $i";
+      discover_mempool($valid['mempool'], $device, $index, 'S5-CHASSIS-MIB', $descr, $precision, $total, $used);
       $i++;
     }
   }
 }
+
 unset ($mempool_array, $index, $descr, $precision, $total, $used, $free);
 
 // EOF

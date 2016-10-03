@@ -22,7 +22,7 @@ $debug=0;
 include("includes/sql-config.inc.php");
 include_once("includes/polling/functions.inc.php");
 include_once("includes/discovery/functions.inc.php");
-include_once('Net/SmartIRC.php');
+include_once("Net/SmartIRC.php");
 
 mysql_close();
 
@@ -160,7 +160,7 @@ class observiumbot
 
     $sql  = "SELECT *, `ports`.`port_id` as `port_id`";
     $sql .= " FROM  `ports`";
-    $sql .= " LEFT JOIN  `ports-state` ON  `ports`.port_id =  `ports-state`.port_id";
+    //$sql .= " LEFT JOIN  `ports-state` ON  `ports`.port_id =  `ports-state`.port_id";
     $sql .= " WHERE ports.`ifName` = ? OR ports.`ifDescr` = ? AND ports.device_id = ?";
 
     $port = dbFetchRow($sql, array($ifname, $ifname, $device['device_id']));

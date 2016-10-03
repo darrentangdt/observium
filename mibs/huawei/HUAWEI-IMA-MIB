@@ -1,5 +1,5 @@
 -- =================================================================
--- Copyright (C) 2007 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2009 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- 
 -- Description: HUAWEI Private IMA Interface MIB
 -- Version: V1.0
@@ -202,6 +202,7 @@ HUAWEI-IMA-MIB DEFINITIONS ::= BEGIN
         STATUS current
         DESCRIPTION
             "Symmetry of the IMA group."
+        DEFVAL { symmetricOperation }
         ::= { hwImaGroupEntry 4 }
         
     hwImaGroupMinNumTxLinks OBJECT-TYPE
@@ -298,6 +299,7 @@ HUAWEI-IMA-MIB DEFINITIONS ::= BEGIN
             "This indicates the 'alpha' value used to specify the number
             of consecutive invalid ICP cells to be detected before moving
             to the IMA Hunt state from the IMA Sync state."
+        DEFVAL { 2 }
         ::= { hwImaGroupEntry 14 }
         
     hwImaGroupBetaValue OBJECT-TYPE
@@ -308,6 +310,7 @@ HUAWEI-IMA-MIB DEFINITIONS ::= BEGIN
             "This indicates the 'beta' value used to specify the number
             of consecutive errored ICP cells to be detected before moving
             to the IMA Hunt state from the IMA Sync state."
+        DEFVAL { 2 }
         ::= { hwImaGroupEntry 15 }  
         
     hwImaGroupGammaValue OBJECT-TYPE
@@ -318,6 +321,7 @@ HUAWEI-IMA-MIB DEFINITIONS ::= BEGIN
             "This indicates the 'gamma' value used to specify the number
             of consecutive valid ICP cells to be detected before moving
             to the IMA Sync state from the IMA PreSync state."
+        DEFVAL { 1 }
         ::= { hwImaGroupEntry 16 }
         
 -- hwImaGroupNumTxActLinks is used by a network operator to tell how many

@@ -11,45 +11,78 @@
  *
  */
 
-if (!empty($agent_data['app']['drbd'][$app['app_instance']]))
+$outerregex = '~
+                ^version:\s
+                (?P<version>[\d.]+)\s
+                \(
+                    api:(?P<api>\d+).+?
+                    proto:(?P<proto>[-\d]+)
+                \)\R
+                (GIT\-hash)?(srcversion)?:\s(?P<srcversion>.+)\R{1,2}
+                (?P<devices>(?:\s\d(?:.+\R){2,4})+)
+              ~xm';
+
+$innerregex = '~
+                ^\s(?P<devno>\d+):\s+
+                cs:(?P<cs>\w+)\s+
+                ro:(?P<ro>\S+)\s+
+                ds:(?P<ds>\S+)\s+
+                (?P<rep>\S+)\s+
+                (?P<io>\S+)\R\s+
+                ns:(?P<ns>\S+)\s+
+                nr:(?P<nr>\S+)\s+
+                dw:(?P<dw>\S+)\s+
+                dr:(?P<dr>\S+)\s+
+                al:(?P<al>\S+)\s+
+                bm:(?P<bm>\S+)\s+
+                lo:(?P<lo>\S+)\s+
+                pe:(?P<pe>\S+)\s+
+                ua:(?P<ua>\S+)\s+
+                ap:(?P<ap>\S+)\s+
+                ep:(?P<ep>\S+)\s+
+                wo:(?P<wo>\S+)\s+
+                oos:(?P<oos>\S+)\R
+               ~xm';
+
+$outerkeys = array("version", "api", "proto", "srcversion");
+$innerkeys = array("devno", "cs", "ro", "ds", "rep", "io", 'ns', 'nr', 'dw', 'dr', 'al', 'bm', 'lo', 'pe', 'ua', 'ap', 'ep', 'wo','oos');
+
+$output = array();
+preg_match_all($outerregex, $agent_data['app']['drbd'].PHP_EOL, $matches, PREG_SET_ORDER);
+
+foreach ($matches as $match)
 {
-  $app_id = discover_app($device, 'drbd', $app['app_instance']);
-
-  $rrd_filename = "app-drbd-".$app['app_instance'].".rrd";
-
-  foreach (explode("|", $agent_data['app']['drbd'][$app['app_instance']]) as $part)
+  foreach ($outerkeys as $key)
   {
-    list($stat, $val) = explode("=", $part, 2);
-    if (!empty($stat))
-    {
-      $drbd[$stat] = $val;
-    }
+    $arr[$key] = $match[$key];
   }
 
-  rrdtool_create($device, $rrd_filename, " \
-        DS:ns:DERIVE:600:0:125000000000 \
-        DS:nr:DERIVE:600:0:125000000000 \
-        DS:dw:DERIVE:600:0:125000000000 \
-        DS:dr:DERIVE:600:0:125000000000 \
-        DS:al:DERIVE:600:0:125000000000 \
-        DS:bm:DERIVE:600:0:125000000000 \
-        DS:lo:GAUGE:600:0:125000000000 \
-        DS:pe:GAUGE:600:0:125000000000 \
-        DS:ua:GAUGE:600:0:125000000000 \
-        DS:ap:GAUGE:600:0:125000000000 \
-        DS:oos:GAUGE:600:0:125000000000 ");
+  preg_match_all($innerregex, $match["devices"], $innermatches, PREG_SET_ORDER);
+  $arr["devices"] = array();
 
-  $ds_list = array('ns','nr','dw','dr','al','bm','lo','pe','ua','ap','oos');
-  foreach ($ds_list as $ds)
+  foreach ($innermatches as $innermatch)
   {
-    if (!is_numeric($drbd[$ds]))
+    $tmp = array();
+    foreach ($innerkeys as $key)
     {
-      $drbd[$ds] = "U";
+      $tmp[$key] = $innermatch[$key];
     }
+    $arr["devices"][] = $tmp;
   }
 
-  rrdtool_update($device, $rrd_filename, "N:".$drbd['ns'].":".$drbd['nr'].":".$drbd['dw'].":".$drbd['dr'].":".$drbd['al'].":".$drbd['bm'].":".$drbd['lo'].":".$drbd['pe'].":".$drbd['ua'].":".$drbd['ap'].":".$drbd['oos']);
-  unset($drbd);
+  $output = $arr;
+}
+
+foreach ($output['devices'] as $drbd_dev)
+{
+  $app_instance = "drbd".$drbd_dev['devno'];
+  $app_id = discover_app($device, 'drbd', $app_instance);
+
+  update_application($app_id, $drbd_dev);
+
+  rrdtool_update_ng($device, 'drbd', $drbd_dev, $app_instance);
+
+  unset($drbd_dev);
 }
 
 // EOF

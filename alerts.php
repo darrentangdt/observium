@@ -17,7 +17,7 @@ chdir(dirname($argv[0]));
 $scriptname = basename($argv[0]);
 
 $options = getopt("d");
-if (isset($options['d'])) { array_shift($argv); } // for compatability
+if (isset($options['d'])) { array_shift($argv); } // for compatibility
 
 include("includes/sql-config.inc.php");
 

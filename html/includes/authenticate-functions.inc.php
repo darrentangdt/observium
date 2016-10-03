@@ -123,6 +123,36 @@ function auth_user_level($username)
 }
 
 // DOCME needs phpdoc block
+function auth_user_level_permissions($user_level)
+{
+  $user = array('level' => -1, 'permission' => 0); // level -1 equals "not exist" user
+
+  if (is_numeric($user_level))
+  {
+    krsort($GLOBALS['config']['user_level']); // Order levels from max to low
+    foreach ($GLOBALS['config']['user_level'] as $level => $entry)
+    {
+      if ($user_level >= $level)
+      {
+        $user['level']      = $level; // Real (normalized) user level
+        $user['permission'] = $entry['permission'];
+        break;
+      }
+    }
+  }
+  // Convert permission flags to Boolean permissions
+  $user['permission_admin']  = is_flag_set(OBS_PERMIT_ALL,    $user['permission'], TRUE); // Administrator
+  $user['permission_edit']   = is_flag_set(OBS_PERMIT_EDIT,   $user['permission']); // Limited Edit
+  $user['permission_secure'] = is_flag_set(OBS_PERMIT_SECURE, $user['permission']); // Secure Read
+  $user['permission_read']   = is_flag_set(OBS_PERMIT_READ,   $user['permission']); // Global Read
+  $user['permission_access'] = is_flag_set(OBS_PERMIT_ACCESS, $user['permission']); // Access (logon) allowed
+  // Set quick boolen flag that user limited
+  $user['limited']           = !$user['permission_read'] && !$user['permission_secure'] && !$user['permission_edit'] && !$user['permission_admin'];
+
+  return $user;
+}
+
+// DOCME needs phpdoc block
 function auth_user_id($username)
 {
   global $config;
@@ -171,6 +201,17 @@ function auth_user_list()
     return call_user_func($config['auth_mechanism'] . '_auth_user_list');
   } else {
     return call_user_func('mysql_auth_user_list');
+  }
+}
+
+// DOCME needs phpdoc block
+function auth_user_info($username)
+{
+  if (function_exists($GLOBALS['config']['auth_mechanism'] . '_auth_user_info'))
+  {
+    return call_user_func($GLOBALS['config']['auth_mechanism'] . '_auth_user_info', $username);
+  } else {
+    return call_user_func('mysql_auth_user_info', $username);
   }
 }
 

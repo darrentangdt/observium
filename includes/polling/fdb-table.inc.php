@@ -16,7 +16,7 @@ $table_rows = array();
 // Build ifIndex > port and port-id > port cache table
 $port_ifIndex_table = array();
 $port_table = array();
-foreach (dbFetchRows("SELECT `ifIndex`,`port_id`,`port_label_short` FROM `ports` WHERE `device_id` = ?", array($device['device_id'])) as $cache_port)
+foreach (dbFetchRows('SELECT `ifIndex`,`port_id`,`port_label_short` FROM `ports` WHERE `device_id` = ?', array($device['device_id'])) as $cache_port)
 {
   $port_ifIndex_table[$cache_port['ifIndex']] = $cache_port;
   $port_table[$cache_port['port_id']] = $cache_port;
@@ -27,7 +27,7 @@ $dot1dBasePort_table = array();
 
 // Build table of existing vlan/mac table
 $fdbs_db = array();
-$fdbs_q = dbFetchRows("SELECT * FROM `vlans_fdb` WHERE `device_id` = ?", array($device['device_id']));
+$fdbs_q = dbFetchRows('SELECT * FROM `vlans_fdb` WHERE `device_id` = ?', array($device['device_id']));
 foreach ($fdbs_q as $fdb_db) { $fdbs_db[$fdb_db['vlan_id']][$fdb_db['mac_address']] = $fdb_db; }
 
 // Fetch data and build array of data for each vlan&mac
@@ -38,9 +38,9 @@ if ($device['os_group'] == 'cisco')
   {
     list($ios_version) = explode('(', $device['version']);
     // vlan context not worked on Cisco IOS <= 12.1 (SNMPv3)
-    if ($device['snmp_version'] == 'v3' && $device['os'] == "ios" && ($ios_version * 10) <= 121)
+    if ($device['snmp_version'] == 'v3' && $device['os'] == 'ios' && ($ios_version * 10) <= 121)
     {
-      print_error("ERROR: For proper work please use SNMP v2/v1 for this device.");
+      print_error('ERROR: For proper work please use SNMP v2/v1 for this device.');
       break;
     }
 
@@ -53,7 +53,7 @@ if ($device['os_group'] == 'cisco')
     //dot1dTpFdbAddress[0:7:e:6d:55:41] 0:7:e:6d:55:41
     //dot1dTpFdbPort[0:7:e:6d:55:41] 28
     //dot1dTpFdbStatus[0:7:e:6d:55:41] learned
-    $dot1dTpFdbEntry_table = snmp_walk($device_context, 'dot1dTpFdbEntry', '-OqsX', 'BRIDGE-MIB', mib_dirs());
+    $dot1dTpFdbEntry_table = snmp_walk($device_context, 'dot1dTpFdbEntry', '-OqsX', 'BRIDGE-MIB');
     // Detection shit snmpv3 authorization errors for contexts
     if ($exec_status['exitcode'] != 0)
     {
@@ -62,7 +62,7 @@ if ($device['os_group'] == 'cisco')
       {
         print_error("ERROR: For proper work of 'vlan-' context on cisco device with SNMPv3, it is necessary to add 'match prefix' in snmp-server config.");
       } else {
-        print_error("ERROR: Device does not support per-VLAN community.");
+        print_error('ERROR: Device does not support per-VLAN community.');
       }
       break;
     }
@@ -74,7 +74,7 @@ if ($device['os_group'] == 'cisco')
     }
 
     //dot1dBasePortIfIndex.28 = 10128
-    $dot1dBasePortIfIndex = snmpwalk_cache_oid($device_context, 'dot1dBasePortIfIndex', $port_stats, 'BRIDGE-MIB', mib_dirs());
+    $dot1dBasePortIfIndex = snmpwalk_cache_oid($device_context, 'dot1dBasePortIfIndex', $port_stats, 'BRIDGE-MIB');
     unset($device_context);
 
     foreach ($dot1dBasePortIfIndex as $dot1dbaseport => $data)
@@ -114,10 +114,10 @@ if ($device['os_group'] == 'cisco')
     }
     // getting the names as listed by Q-BRIDGE-MIB
     // and making a mapping to the real vlan ids
-    $dot1qVlanStaticName_table = snmp_walk($device, 'dot1qVlanStaticName', '-OqsX', 'Q-BRIDGE-MIB', mib_dirs());
+    $dot1qVlanStaticName_table = snmp_walk($device, 'dot1qVlanStaticName', '-OqsX', 'Q-BRIDGE-MIB');
     foreach (explode("\n", $dot1qVlanStaticName_table) as $text)
     {
-      list($oid, $value) = explode(" ", $text);
+      list($oid, $value) = explode(' ', $text);
       preg_match('/(\w+)\[(\d+)\]\s+/', $text, $oid);
       $fakejunipervlans[$oid[2]]=$vlanidsbyname[$value];
     }
@@ -127,14 +127,14 @@ if ($device['os_group'] == 'cisco')
   if ($GLOBALS['snmp_status'] !== FALSE)
   {
     // Build dot1dBasePort
-    foreach (snmpwalk_cache_oid($device, "dot1dBasePortIfIndex", $port_stats, "BRIDGE-MIB") as $dot1dbaseport => $data)
+    foreach (snmpwalk_cache_oid($device, 'dot1dBasePortIfIndex', $port_stats, 'BRIDGE-MIB') as $dot1dbaseport => $data)
     {
       $dot1dBasePort_table[$dot1dbaseport] = $port_ifIndex_table[$data['dot1dBasePortIfIndex']];
     }
 
     foreach (explode("\n", $dot1qTpFdbEntry_table) as $text)
     {
-      list($oid, $value) = explode(" ", $text);
+      list($oid, $value) = explode(' ', $text);
       preg_match('/(\w+)\[(\d+)\]\[([a-f0-9:]+)\]/', $text, $oid);
       if (!empty($value))
       {
@@ -162,8 +162,8 @@ if (count($fdbs))
   {
     print_vars($fdbs);
   }
-  //echo(str_pad("Vlan", 8) . " | " . str_pad("MAC",12) . " | " .  "Port                  (dot1d|ifIndex)" ." | ". str_pad("Status",16) . "\n".
-  //str_pad("", 90, "-")."\n");
+  //echo(str_pad('Vlan', 8) . ' | ' . str_pad('MAC',12) . ' | ' .  'Port                  (dot1d|ifIndex)' .' | '. str_pad('Status',16) . "\n".
+  //str_pad('', 90, '-')."\n");
 }
 
 $fdb_portcount = array();
@@ -185,7 +185,7 @@ foreach ($fdbs as $vlan => $macs)
     $port_id = $dot1dBasePort_table[$fdb_port]['port_id'];
     $ifIndex = $dot1dBasePort_table[$fdb_port]['ifIndex'];
     $port_name = $dot1dBasePort_table[$fdb_port]['port_label_short'];
-    //echo(str_pad($vlan, 8) . " | " . str_pad($mac,12) . " | " .  str_pad($port_name."|".$port_id,18) . str_pad("(".$fdb_port."|".$ifIndex.")",19," ",STR_PAD_LEFT) ." | ". str_pad($fdb_status,10));
+    //echo(str_pad($vlan, 8) . ' | ' . str_pad($mac,12) . ' | ' .  str_pad($port_name.'|'.$port_id,18) . str_pad('('.$fdb_port.'|'.$ifIndex.')',19,' ',STR_PAD_LEFT) .' | '. str_pad($fdb_status,10));
 
     $table_row = array();
     $table_row[] = $vlan;
@@ -211,7 +211,7 @@ foreach ($fdbs as $vlan => $macs)
         $q_update['port_id'] = array('NULL');
       }
       dbInsert($q_update, 'vlans_fdb');
-      //echo("+");
+      //echo('+');
     } else {
       unset($q_update);
       // if port/status are different, build an update array and update the db
@@ -228,7 +228,7 @@ foreach ($fdbs as $vlan => $macs)
       if (is_array($q_update))
       {
         dbUpdate($q_update, 'vlans_fdb', '`device_id` = ? AND `vlan_id` = ? AND `mac_address` = ?', array($device['device_id'], $vlan, $mac));
-        //echo("U");
+        //echo('U');
       } else {
       }
       // remove it from the existing list
@@ -246,19 +246,18 @@ foreach ($fdbs as $vlan => $macs)
 // FDB count for HP ProCurve
 if (!$fdb_count && is_device_mib($device, 'STATISTICS-MIB'))
 {
-  $fdb_count = snmp_get($device, "hpSwitchFdbAddressCount.0", "-Ovqn", "STATISTICS-MIB", mib_dirs('hp'));
+  $fdb_count = snmp_get($device, 'hpSwitchFdbAddressCount.0', '-Ovqn', 'STATISTICS-MIB');
 }
 
 if (is_numeric($fdb_count) && $fdb_count > 0)
 {
-  $rrd_file = "fdb_count.rrd";
-  rrdtool_create($device, $rrd_file, "DS:value:GAUGE:600:0:U ");
-  rrdtool_update($device, $rrd_file, "N:".$fdb_count);
+  rrdtool_update_ng($device, 'fdb_count', array('value' => $fdb_count));
   $graphs['fdb_count'] = TRUE;
 } else {
   $graphs['fdb_count'] = FALSE;
 }
 
+// FIXME should non-global fdb count be in the ports poller?
 $fdbcount_module = 'enable_ports_fdbcount';
 if ($attribs[$fdbcount_module] || ($config[$fdbcount_module] && !isset($attribs[$fdbcount_module])))
 {
@@ -270,9 +269,9 @@ if ($attribs[$fdbcount_module] || ($config[$fdbcount_module] && !isset($attribs[
       print_debug("No entry in port table for $port");
       continue;
     }
-    $rrd_file = get_port_rrdfilename($port_info, "fdbcount");
-    rrdtool_create($device, $rrd_file, "DS:value:GAUGE:600:0:U ");
-    rrdtool_update($device, $rrd_file, "N:".$count);
+
+    rrdtool_update_ng($device, 'port-fdbcount', array('value' => $count), get_port_rrdindex($port_info));
+
     $graphs['port_fdb_count'] = TRUE;
   }
 }
@@ -292,9 +291,9 @@ foreach ($fdbs_db as $vlan => $fdb_macs)
     $table_row[] = $data['port_id'];
     //$table_row[] = $fdb_port;
     //$table_row[] = $data['ifIndex'];
-    $table_row[] = "%rdeleted%n";
+    $table_row[] = '%rdeleted%n';
     $table_rows[] = $table_row;
-    //echo(str_pad($vlan, 8) . " | " . str_pad($mac,12) . " | " .  str_pad($data['port_id'],25) ." | ". str_pad($data['fdb_status'],16));
+    //echo(str_pad($vlan, 8) . ' | ' . str_pad($mac,12) . ' | ' .  str_pad($data['port_id'],25) .' | '. str_pad($data['fdb_status'],16));
     //echo("-\n");
     dbDelete('vlans_fdb', '`device_id` = ? AND `vlan_id` = ? AND `mac_address` = ?', array($device['device_id'], $vlan, $mac));
   }

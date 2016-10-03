@@ -21,8 +21,8 @@ $nototal = 1;
 $ds_in  = "read";
 $ds_out = "written";
 
-include("includes/graphs/device/diskio_common.inc.php");
+include($config['html_dir']."/includes/graphs/device/diskio_common.inc.php");
 
-include("includes/graphs/generic_multi_bits_separated.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_bits_separated.inc.php");
 
 // EOF

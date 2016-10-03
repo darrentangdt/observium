@@ -40,8 +40,8 @@ $colours   = "mixed";
 $nototal   = 0;
 $unit_text = "Channels";
 
-include("includes/graphs/generic_multi_line.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_line.inc.php");
 
-#include("includes/graphs/generic_multi_simplex_separated.inc.php");
+#include($config['html_dir']."/includes/graphs/generic_multi_simplex_separated.inc.php");
 
 // EOF

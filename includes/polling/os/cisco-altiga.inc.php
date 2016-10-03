@@ -11,7 +11,7 @@
  *
  */
 
-$data = snmp_get_multi($device, 'alHardwareChassis.0 alHardwareSerialNumber.0', '-OQUs', 'ALTIGA-HARDWARE-STATS-MIB', mib_dirs('cisco'));
+$data = snmp_get_multi($device, 'alHardwareChassis.0 alHardwareSerialNumber.0', '-OQUs', 'ALTIGA-HARDWARE-STATS-MIB');
 if (isset($data[0]))
 {
   $hardware = strtoupper($data[0]['alHardwareChassis']);
@@ -28,7 +28,7 @@ if (preg_match('/VPN 3000 Concentrator (Series )?Version (?<version>[\w\.]+)/', 
   //Cisco Systems, Inc./VPN 3000 Concentrator Version 4.7.Rel built by vmurphy on Mar 10 2005 14:58:16
   $version  = $matches['version'];
 } else {
-  $version  = snmp_get($device, 'alVersionString.0', '-OQv', 'ALTIGA-VERSION-STATS-MIB', mib_dirs('cisco'));
+  $version  = snmp_get($device, 'alVersionString.0', '-OQv', 'ALTIGA-VERSION-STATS-MIB');
 }
 $version = str_replace('.Rel', '', $version);
 

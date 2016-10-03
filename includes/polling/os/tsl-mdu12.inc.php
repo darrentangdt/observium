@@ -11,8 +11,8 @@
  *
  */
 
-$ident = snmp_get($device, "mdu12Ident.0", "-Oqv", "TSL-MIB", mib_dirs('tsl'));
+$ident = snmp_get($device, 'mdu12Ident.0', '-Oqv', 'TSL-MIB');
 
-list($hardware, $version) = explode(" ", $ident);
+list($hardware, $version) = explode(' ', $ident);
 
 // EOF

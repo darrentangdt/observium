@@ -13,11 +13,18 @@
 
 $mib = 'F10-S-SERIES-CHASSIS-MIB';
 
-$cache_mempool = snmpwalk_cache_multi_oid($device, 'chStackUnitMemUsageUtil', $cache_mempool, $mib, mib_dirs('force10'));
-$cache_mempool = snmpwalk_cache_multi_oid($device, 'chSysProcessorMemSize',   $cache_mempool, $mib, mib_dirs('force10'));
+if (!is_array($cache_storage[$mib]))
+{
+  $cache_storage[$mib] = snmpwalk_cache_multi_oid($device, 'chStackUnitMemUsageUtil',            array(), $mib);
+  $cache_storage[$mib] = snmpwalk_cache_multi_oid($device, 'chSysProcessorMemSize', $cache_storage[$mib], $mib);
+} else {
+  print_debug("Cached!");
+}
 
 $index            = $mempool['mempool_index'];
-$mempool['total'] = $cache_mempool[$index]['chSysProcessorMemSize'];
-$mempool['perc']  = $cache_mempool[$index]['chStackUnitMemUsageUtil'];
+$cache_mempool    = $cache_storage[$mib][$index];
+
+$mempool['total'] = $cache_mempool['chSysProcessorMemSize'];
+$mempool['perc']  = $cache_mempool['chStackUnitMemUsageUtil'];
 
 // EOF

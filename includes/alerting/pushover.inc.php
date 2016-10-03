@@ -11,7 +11,7 @@
  *
  */
 
-$message = $title . PHP_EOL;
+$message = $message_tags['TITLE'] . PHP_EOL;
 $message .= str_replace("             ", "", $message_tags['METRICS']);
 
 // POST data

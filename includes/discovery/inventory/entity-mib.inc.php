@@ -15,9 +15,17 @@ echo("ENTITY-MIB ");
 
 $mibs = 'ENTITY-MIB';
 $mib_dirs = mib_dirs();
-foreach (array('ACMEPACKET', 'H3C', 'HH3C', 'CISCO') as $vendor_mib)
+
+// Vendor specific MIBs
+$vendor_mibs = array('ACMEPACKET-ENTITY-VENDORTYPE-OID-MIB',
+                     'HUAWEI-TC-MIB',
+                     'HPN-ICF-ENTITY-VENDORTYPE-OID-MIB',
+                     'H3C-ENTITY-VENDORTYPE-OID-MIB',
+                     'HH3C-ENTITY-VENDORTYPE-OID-MIB',
+                     'CISCO-STACK-MIB',
+                     'CISCO-ENTITY-VENDORTYPE-OID-MIB'); // Leave this mib always last
+foreach ($vendor_mibs as $vendor_mib)
 {
-  $vendor_mib .= '-ENTITY-VENDORTYPE-OID-MIB';
   if (is_device_mib($device, $vendor_mib, FALSE))
   {
     $mibs .= ':'.$vendor_mib;
@@ -25,15 +33,23 @@ foreach (array('ACMEPACKET', 'H3C', 'HH3C', 'CISCO') as $vendor_mib)
     break;
   }
 }
+
 $entity_array = snmpwalk_cache_oid($device, "entPhysicalEntry", array(), $mibs, $mib_dirs);
 if ($GLOBALS['snmp_status'])
 {
-  $entity_array = snmpwalk_cache_twopart_oid($device, "entAliasMappingIdentifier", $entity_array, "ENTITY-MIB:IF-MIB", mib_dirs());
+  $entity_array = snmpwalk_cache_twopart_oid($device, "entAliasMappingIdentifier", $entity_array, 'ENTITY-MIB:IF-MIB');
 
   $GLOBALS['cache']['entity-mib'] = $entity_array; // Cache this array for sensors discovery (see in cisco-entity-sensor-mib or entity-sensor-mib)
 
   foreach ($entity_array as $entPhysicalIndex => $entry)
   {
+    if($device['os'] == "hpuww") // Root-Container does not have ContainedIn = 0, so Inventory can not be shown
+    {
+      if($entPhysicalIndex == 1)
+      {
+        $entry['entPhysicalContainedIn'] = 0;
+      }
+    }
     if (isset($entity_array[$entPhysicalIndex]['0']['entAliasMappingIdentifier']))
     {
       $ifIndex = $entity_array[$entPhysicalIndex]['0']['entAliasMappingIdentifier'];

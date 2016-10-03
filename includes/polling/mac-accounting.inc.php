@@ -15,15 +15,15 @@
 
 /// FIXME FIXME REWRITE ME please ;)
 
-print_cli_data_field("MIBs", 2);
+print_cli_data_field('MIBs', 2);
 
-#dbQuery("TRUNCATE TABLE `mac_accounting`");
-#dbQuery("TRUNCATE TABLE `mac_accounting-state`");
+#dbQuery('TRUNCATE TABLE `mac_accounting`');
+#dbQuery('TRUNCATE TABLE `mac_accounting-state`');
 
 // Cache DB entries
-$sql  = "SELECT * FROM `mac_accounting`";
-$sql .= " LEFT JOIN `mac_accounting-state` USING(`ma_id`)";
-$sql .= " WHERE `device_id` = ?";
+$sql  = 'SELECT * FROM `mac_accounting`';
+$sql .= ' LEFT JOIN `mac_accounting-state` USING(`ma_id`)';
+$sql .= ' WHERE `device_id` = ?';
 
 $acc_id_db = array();
 foreach (dbFetchRows($sql, array($device['device_id'])) as $acc)
@@ -45,23 +45,23 @@ if (OBS_DEBUG > 1 && count($ma_db_array))
 
 if (is_device_mib($device, 'JUNIPER-MAC-MIB'))
 {
-  $datas = snmp_walk($device, "jnxMacStatsEntry", "-OUqsX", "JUNIPER-MAC-MIB", mib_dirs("juniper"));
+  $datas = snmp_walk($device, 'jnxMacStatsEntry', '-OUqsX', 'JUNIPER-MAC-MIB');
   if ($GLOBALS['snmp_status'])
   {
     foreach (explode("\n", $datas) as $data)
     {
       list($oid,$ifIndex,$vlan,$mac,$value) = parse_oid2($data);
-      list($a_a, $a_b, $a_c, $a_d, $a_e, $a_f) = explode(":", $mac);
+      list($a_a, $a_b, $a_c, $a_d, $a_e, $a_f) = explode(':', $mac);
       $ah_a = zeropad($a_a); $ah_b = zeropad($a_b); $ah_c = zeropad($a_c); $ah_d = zeropad($a_d); $ah_e = zeropad($a_e); $ah_f = zeropad($a_f);
       $mac = "$ah_a$ah_b$ah_c$ah_d$ah_e$ah_f";
       if ($mac == '000000000000') { continue; } // Skip entries with "zero" mac
 
-      $oid = str_replace(array("cipMacSwitchedBytes", "cipMacSwitchedPkts"), array("bytes", "pkts"), $oid);
+      $oid = str_replace(array('cipMacSwitchedBytes', 'cipMacSwitchedPkts'), array('bytes', 'pkts'), $oid);
 
-      if ($oid == "jnxMacHCOutFrames") { $oid = "pkts"; $dir = "output"; }
-      if ($oid == "jnxMacHCInFrames")  { $oid = "pkts"; $dir = "input"; }
-      if ($oid == "jnxMacHCOutOctets") { $oid = "bytes"; $dir = "output"; }
-      if ($oid == "jnxMacHCInOctets")  { $oid = "bytes"; $dir = "input"; }
+      if ($oid == 'jnxMacHCOutFrames') { $oid = 'pkts'; $dir = 'output'; }
+      if ($oid == 'jnxMacHCInFrames')  { $oid = 'pkts'; $dir = 'input'; }
+      if ($oid == 'jnxMacHCOutOctets') { $oid = 'bytes'; $dir = 'output'; }
+      if ($oid == 'jnxMacHCInOctets')  { $oid = 'bytes'; $dir = 'input'; }
 
       $ma_array[$ifIndex.'-'.$vlan.'-'.$mac]['ifIndex'] = $ifIndex;
       $ma_array[$ifIndex.'-'.$vlan.'-'.$mac]['vlan'] = $vlan;
@@ -75,7 +75,7 @@ if (is_device_mib($device, 'JUNIPER-MAC-MIB'))
 // FIXME. Rewrite
 if (is_device_mib($device, 'CISCO-IP-STAT-MIB'))
 {
-  echo("Cisco ");
+  echo('Cisco ');
 
   $device_context = $device;
   if (!count($ma_db_array))
@@ -83,32 +83,32 @@ if (is_device_mib($device, 'CISCO-IP-STAT-MIB'))
     // Set retries to 0 for speedup first walking, only if previously polling also empty (DB empty)
     $device_context['snmp_retries'] = 0;
   }
-  $datas32 = snmp_walk($device_context, "cipMacSwitchedBytes", "-OUqsX", "CISCO-IP-STAT-MIB", mib_dirs('cisco'));
+  $datas32 = snmp_walk($device_context, 'cipMacSwitchedBytes', '-OUqsX', 'CISCO-IP-STAT-MIB');
   unset($device_context);
   if ($GLOBALS['snmp_status'])
   {
-    $datas = snmp_walk($device, "cipMacHCSwitchedBytes", "-OUqsX", "CISCO-IP-STAT-MIB", mib_dirs('cisco'));
+    $datas = snmp_walk($device, 'cipMacHCSwitchedBytes', '-OUqsX', 'CISCO-IP-STAT-MIB');
     if ($GLOBALS['snmp_status'])
     {
-      $datas .= "\n".snmp_walk($device, "cipMacHCSwitchedPkts", "-OUqsX", "CISCO-IP-STAT-MIB", mib_dirs('cisco'));
+      $datas .= "\n".snmp_walk($device, 'cipMacHCSwitchedPkts', '-OUqsX', 'CISCO-IP-STAT-MIB');
     } else {
       // No 64-bit counters? Try 32-bit. How necessary is this? How lacking is 64-bit support?
       $datas = $datas32;
-      $datas .= "\n".snmp_walk($device, "cipMacSwitchedPkts", "-OUqsX", "CISCO-IP-STAT-MIB", mib_dirs('cisco'));
+      $datas .= "\n".snmp_walk($device, 'cipMacSwitchedPkts', '-OUqsX', 'CISCO-IP-STAT-MIB');
     }
 
     foreach (explode("\n", $datas) as $data)
     {
       list($oid,$ifIndex,$dir,$mac,$value) = parse_oid2($data);
-      list($a_a, $a_b, $a_c, $a_d, $a_e, $a_f) = explode(":", $mac);
+      list($a_a, $a_b, $a_c, $a_d, $a_e, $a_f) = explode(':', $mac);
       $ah_a = zeropad($a_a); $ah_b = zeropad($a_b); $ah_c = zeropad($a_c); $ah_d = zeropad($a_d); $ah_e = zeropad($a_e); $ah_f = zeropad($a_f);
       $mac = "$ah_a$ah_b$ah_c$ah_d$ah_e$ah_f";
       if ($mac == '000000000000') { continue; } // Skip entries with "zero" mac
 
       // Cisco isn't per-VLAN.
-      $vlan = "0";
+      $vlan = '0';
 
-      $oid = str_replace(array("cipMacSwitchedBytes", "cipMacSwitchedPkts", "cipMacHCSwitchedBytes", "cipMacHCSwitchedPkts"), array("bytes", "pkts", "bytes", "pkts"), $oid);
+      $oid = str_replace(array('cipMacSwitchedBytes', 'cipMacSwitchedPkts', 'cipMacHCSwitchedBytes', 'cipMacHCSwitchedPkts'), array('bytes', 'pkts', 'bytes', 'pkts'), $oid);
       $ma_array[$ifIndex.'-'.$vlan.'-'.$mac]['ifIndex'] = $ifIndex;
       $ma_array[$ifIndex.'-'.$vlan.'-'.$mac]['vlan'] = $vlan;
       $ma_array[$ifIndex.'-'.$vlan.'-'.$mac]['mac'] = $mac;
@@ -140,7 +140,7 @@ if (count($ma_array))
   if (OBS_DEBUG > 1) { print_vars($ma_array); }
   $polled = time();
   $mac_entries = 0;
-  echo("Entries: ".count($ma_array).PHP_EOL);
+  echo('Entries: '.count($ma_array).PHP_EOL);
 
   foreach ($ma_array as $id => $ma)
   {
@@ -153,16 +153,16 @@ if (count($ma_array))
       $ma_id = dbInsert(array('port_id' => $port['port_id'], 'device_id' => $device['device_id'], 'vlan_id' => $ma['vlan'], 'mac' => $ma['mac'] ), 'mac_accounting');
       if ($ma_id)
       {
-        //$ma_id = dbFetchCell("SELECT * FROM mac_accounting WHERE port_id = ? AND device_id = ? AND vlan_id = ? AND mac = ?", array($port['port_id'], $device['device_id'], $ma['vlan'], $ma['mac']));
+        //$ma_id = dbFetchCell('SELECT * FROM mac_accounting WHERE port_id = ? AND device_id = ? AND vlan_id = ? AND mac = ?', array($port['port_id'], $device['device_id'], $ma['vlan'], $ma['mac']));
         dbInsert(array('ma_id' => $ma_id), 'mac_accounting-state');
-        echo("+");
+        echo('+');
         $acc_id[$ma_id] = $ma_id;
       } else {
-        echo("-");
+        echo('-');
         continue; // wrong adding to DB, not exist id - delete
       }
     } else {
-      echo(".");
+      echo('.');
       $ma_db = $ma_db_array[$id];
       $acc_id[$ma_db['ma_id']] = $ma_db['ma_id'];
     }
@@ -179,14 +179,14 @@ if (count($ma_array))
     $p_in = $ma['pkts']['input'];
     $p_out = $ma['pkts']['output'];
 
-    echo(" ".$port['ifDescr']."(".$ifIndex.") -> ".$mac);
+    echo(' '.$port['ifDescr'].'('.$ifIndex.') -> '.$mac);
 
     // Update metrics
     foreach (array('bytes','pkts') as $oid)
     {
       foreach (array('input','output') as $dir)
       {
-        $oid_dir = $oid . "_" . $dir;
+        $oid_dir = $oid . '_' . $dir;
         $ma['update'][$oid_dir] = $ma[$oid][$dir];
 
         if ($ma[$oid][$dir] && $ma_db[$oid_dir])
@@ -199,18 +199,15 @@ if (count($ma_array))
         }
       }
 
-      print_debug($ma['hostname']." ".$ma['ifDescr'] . "  $mac -> $b_in:$b_out:$p_in:$p_out ");
-
-      $rrdfile = "mac_acc-" . $port['ifIndex'] . "-" . $ma['vlan'] ."-" . $ma['mac'] . ".rrd";
-
-      rrdtool_create($device, $rrdfile,"DS:IN:COUNTER:600:0:12500000000 \
-          DS:OUT:COUNTER:600:0:12500000000 \
-          DS:PIN:COUNTER:600:0:12500000000 \
-          DS:POUT:COUNTER:600:0:12500000000 " );
+      print_debug($ma['hostname'].' '.$ma['ifDescr'] . "  $mac -> $b_in:$b_out:$p_in:$p_out ");
 
       // FIXME - use memory tables to make sure these values don't go backwards?
-      $rrdupdate = array($b_in, $b_out, $p_in, $p_out);
-      rrdtool_update($device, $rrdfile, $rrdupdate);
+      rrdtool_update_ng($device, 'mac_acc', array(
+        'IN'   => $b_in,
+        'OUT'  => $b_out,
+        'PIN'  => $p_in,
+        'POUT' => $p_out,
+      ), $port['ifIndex'] . '-' . $ma['vlan'] .'-' . $ma['mac']);
 
       if (OBS_DEBUG > 1) { print_vars($ma['update']); }
 

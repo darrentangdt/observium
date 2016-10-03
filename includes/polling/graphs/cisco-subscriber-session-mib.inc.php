@@ -18,7 +18,7 @@ $graphs[$graph] = FALSE;           // Disable graph by default
 if (!isset($graphs_db[$graph]) || $graphs_db[$graph] === TRUE)
 {
   //walk BNG-sessions from all RSPs
-  $rsp_sessions = snmpwalk_cache_oid($device, "1.3.6.1.4.1.9.9.786.1.2.1.1.5.1", array(), "CISCO-SUBSCRIBER-SESSION-MIB", mib_dirs("cisco"));
+  $rsp_sessions = snmpwalk_cache_oid($device, "1.3.6.1.4.1.9.9.786.1.2.1.1.5.1", array(), "CISCO-SUBSCRIBER-SESSION-MIB");
   //the active RSP will have most or all of the sessions, return only the value for the active RSP
   $session_count = max($rsp_sessions);
   if (is_numeric($session_count['csubAggStatsUpSessions']))

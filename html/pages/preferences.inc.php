@@ -11,7 +11,7 @@
  *
  */
 
-$page_title[] = "User preferences";
+register_html_title("User preferences");
 
 $navbar['class'] = 'navbar-narrow';
 $navbar['brand'] = 'User Preferences';

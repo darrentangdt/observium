@@ -108,8 +108,8 @@ zone.slave=0
 
 if (!empty($agent_data['app']['nsd']))
 {
-  discover_app($device, 'nsd');
-  
+  $app_id = discover_app($device, 'nsd');
+
   foreach (explode("\n",$agent_data['app']['nsd']) as $line)
   {
     list($key,$value) = explode("=",$line,2);
@@ -126,7 +126,7 @@ if (!empty($agent_data['app']['nsd']))
     DS:memConfDisk:GAUGE:600:0:125000000000 \
     DS:memConfMem:GAUGE:600:0:125000000000 ");
 
-  foreach(array("size.db.disk","size.db.mem","size.xfrd.mem","size.config.disk","size.config.disk") as $key)
+  foreach (array("size.db.disk","size.db.mem","size.xfrd.mem","size.config.disk","size.config.disk") as $key)
   {
     $rrd_values[] = $nsd[$key];
   }
@@ -142,7 +142,7 @@ if (!empty($agent_data['app']['nsd']))
     DS:zoneMaster:GAUGE:600:0:125000000000 \
     DS:zoneSlave:GAUGE:600:0:125000000000 ");
 
-  foreach(array("zone.master","zone.slave") as $key)
+  foreach (array("zone.master","zone.slave") as $key)
   {
     $rrd_values[] = $nsd[$key];
   }
@@ -177,7 +177,7 @@ if (!empty($agent_data['app']['nsd']))
 
   $rrd_queries .= "DS:numQueries:DERIVE:600:0:125000000000 ";
 
-  $rrd_queries .= 
+  $rrd_queries .=
     "DS:numQueryUDP:DERIVE:600:0:125000000000 \
     DS:numQueryUDP6:DERIVE:600:0:125000000000 \
     DS:numQueryTCP:DERIVE:600:0:125000000000 \
@@ -208,24 +208,24 @@ if (!empty($agent_data['app']['nsd']))
 
   $rrd_values[] = $nsd["num.opcode.IN"];
   $rrd_values[] = $nsd["num.queries"];
-  
 
   foreach (array('num.udp','num.udp6', 'num.tcp','num.tcp6', 'num.edns','num.ednserr','num.rxerr','num.txerr','num.raxfr','num.truncated','num.dropped','num.answer_wo_aa') as $key)
   {
     $rrd_values[] = $nsd[$key];
   }
 
+  update_application($app_id, $nsd);
   rrdtool_update($device, $rrd_filename, "N:" . implode(':', $rrd_values));
 
   unset($rrd_values);
 
   $serverNum = 0;
   while (1)
-  {    
+  {
     if (isset($nsd["server$serverNum.queries"]))
     {
       $rrd_filename = "app-nsd-server$serverNum.rrd";
-      
+
       rrdtool_create($device, $rrd_filename, "DS:numQueries:DERIVE:600:0:125000000000");
 
       rrdtool_update($device, $rrd_filename, "N:" . $nsd["server$serverNum.queries"]);

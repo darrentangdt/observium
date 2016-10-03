@@ -11,12 +11,17 @@
  *
  */
 
-$table_rows = array();
+$sla_db_count   = 0;
+$sla_snmp_count = 0;
+$table_rows     = array();
 
 // WARNING. Discovered all SLAs, but polled only 'active'
-$sql = "SELECT * FROM `slas` LEFT JOIN `slas-state` USING (`sla_id`) WHERE `device_id` = ? AND `deleted` = 0 AND `sla_status` = 'active';";
+$sql = "SELECT * FROM `slas` LEFT JOIN `slas-state` USING (`sla_id`) WHERE `device_id` = ? AND `deleted` = 0;"; // AND `sla_status` = 'active';";
 foreach (dbFetchRows($sql, array($device['device_id'])) as $entry)
 {
+  $sla_db_count++; // Fetch all entries for correct counting, but skip inactive/deleted
+  if ($entry['sla_status'] != 'active') { continue; }
+
   if (!isset($entry['sla_mib'])) { $entry['sla_mib'] = 'CISCO-RTTMON-MIB'; } // CLEANME, remove in r7500, but not before CE 0.16.1
 
   $index = $entry['sla_index'];
@@ -44,10 +49,13 @@ foreach (array_keys($sla_db) as $mib_lower)
   } else {
     continue;
   }
-  if (OBS_DEBUG > 1) { print_vars($cache_sla); }
-
   $sla_polled_time = time(); // Store polled time for current MIB
 
+  if (OBS_DEBUG > 1) { print_vars($cache_sla); }
+
+  //$sla_db_count   += count($sla_db[$mib_lower]);
+  $sla_snmp_count += count($cache_sla[$mib_lower]);
+  
   foreach ($sla_db[$mib_lower] as $sla)
   {
 
@@ -113,7 +121,7 @@ foreach (array_keys($sla_db) as $mib_lower)
         $sla_state['rtt_last_change'] = $sla_polled_time;
         if ($sla['rtt_sense']) // Log only if old sense not empty
         {
-          log_event('SLA changed: [#'.$index.', '.$sla['sla_tag'].'] ' . $sla['rtt_sense'] . ' -> ' . $sla_state['rtt_sense'] . ' (value: '.$sla_state['rtt_value'].'ms, event: '.$sla_state['rtt_event'].$limit_msg.')', $device, 'sla', $sla['sla_id'], 'warning');
+          log_event('SLA changed: [#'.$index.', '.$sla['sla_tag'].'] ' . $sla['rtt_event'] . ' -> ' . $sla_state['rtt_event'] . ' (value: '.$sla_state['rtt_value'].'ms, event: '.$sla_state['rtt_sense'].$limit_msg.')', $device, 'sla', $sla['sla_id'], 'warning');
         }
       } else {
         // If sense not changed, leave old last_change
@@ -125,9 +133,9 @@ foreach (array_keys($sla_db) as $mib_lower)
       {
         if (stripos($sla['rtt_type'], 'jitter') !== FALSE)
         {
-          $sla['sla_graph'] = "jitter";
+          $sla['sla_graph'] = 'jitter';
         } else {
-          $sla['sla_graph'] = "echo";
+          $sla['sla_graph'] = 'echo';
         }
       }
 
@@ -144,20 +152,10 @@ foreach (array_keys($sla_db) as $mib_lower)
           }
           //var_dump($rrd_ds);
           //$graphs['sla-'.$sla['rtt_type']] = TRUE;
-
-          // CLEANME, remove in r7500, but not before CE 0.16.1
-          $old_rrd  = $config['rrd_dir'] . '/'.$device['hostname'].'/sla_jitter-'.$sla['sla_index'].'.rrd';
-          $new_rrd  = $config['rrd_dir'] . '/'.$device['hostname'].'/sla_jitter-'.$rrd_index.'.rrd';
-          if (is_file($old_rrd) && !is_file($new_rrd)) { rename($old_rrd, $new_rrd); print_warning('Moved RRD'); }
           break;
         case 'echo':
         default:
           //$graphs['sla'] = TRUE;
-
-          // CLEANME, remove in r7500, but not before CE 0.16.1
-          $old_rrd  = $config['rrd_dir'] . '/'.$device['hostname'].'/sla-'.$sla['sla_index'].'.rrd';
-          $new_rrd  = $config['rrd_dir'] . '/'.$device['hostname'].'/sla-'.$rrd_index.'.rrd';
-          if (is_file($old_rrd) && !is_file($new_rrd)) { rename($old_rrd, $new_rrd); print_warning('Moved RRD'); }
       }
 
       // Update SQL State
@@ -193,20 +191,19 @@ foreach (array_keys($sla_db) as $mib_lower)
       $table_row[] = $sla['sla_owner'];
       $table_row[] = $sla['sla_tag'];
       $table_row[] = $sla_state['rtt_sense'];
-      $table_row[] = $sla_state['rtt_value']."ms";
+      $table_row[] = $sla_state['rtt_value'].'ms';
       $table_rows[] = $table_row;
       unset($table_row);
 
     } else {
-      echo("NaN");
+      echo('NaN');
       $rrd_value = 'U';
     }
 
     rrdtool_create($device, $rrd_filename, $rrd_ds);
-    rrdtool_update($device, $rrd_filename, "N:".$rrd_value);
+    rrdtool_update($device, $rrd_filename, 'N:'.$rrd_value);
 
     unset($rrd_ds, $rrd_value, $rrd_filename);
-
   }
 }
 
@@ -214,5 +211,12 @@ echo(PHP_EOL);
 
 $headers = array('%WLabel%n', '%WMIB%n', '%WType%n', '%WOwner%n', '%WTag%n', '%WSense%n', '%WResponse%n');
 print_cli_table($table_rows, $headers);
+
+if ($sla_db_count != $sla_snmp_count)
+{
+  // Force rediscover slas
+  print_debug("SLA total count for this device changed (DB: $sla_db_count, SNMP: $sla_snmp_count), force rediscover SLAs.");
+  force_discovery($device, 'sla');
+}
 
 // EOF

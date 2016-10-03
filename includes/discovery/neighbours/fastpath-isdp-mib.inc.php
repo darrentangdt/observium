@@ -12,10 +12,9 @@
  *
  */
 
-echo(" FASTPATH-ISDP-MIB ");
+$isdp_array = snmpwalk_cache_twopart_oid($device, "agentIsdpCache", array(), "FASTPATH-ISDP-MIB");
 
-$isdp_array = snmpwalk_cache_twopart_oid($device, "agentIsdpCache", array(), "FASTPATH-ISDP-MIB", mib_dirs(array('broadcom', 'dell')));
-
+// FIXME, make this code generic for all *-ISDP-MIB
 if ($isdp_array)
 {
   foreach ($isdp_array as $ifIndex => $port_neighbours)

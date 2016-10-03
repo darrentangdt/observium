@@ -11,12 +11,10 @@
  *
  */
 
-echo(" UBNT-AirFIBER-MIB ");
-
 // Getting Radios
 
-$table = snmpwalk_cache_oid($device, "radio0TempC", array(), "UBNT-AirFIBER-MIB", mib_dirs('ubiquiti'));
-$table = snmpwalk_cache_oid($device, "radio1TempC", $table, "UBNT-AirFIBER-MIB", mib_dirs('ubiquiti'));
+$table = snmpwalk_cache_oid($device, 'radio0TempC', array(), 'UBNT-AirFIBER-MIB');
+$table = snmpwalk_cache_oid($device, 'radio1TempC', $table, 'UBNT-AirFIBER-MIB');
 
 // Goes through the SNMP radio data
 foreach ($table as $index => $entry)
@@ -26,12 +24,12 @@ foreach ($table as $index => $entry)
 
   if (is_numeric($entry['radio0TempC']))
   {
-      discover_sensor($valid['sensor'], 'temperature', $device, '.1.3.6.1.4.1.41112.1.3.2.1.8.'.$index, $index, 'UBNT-AirFIBER-MIB::radio0TempC', "Radio 0", '1', $entry['radio0TempC'], $options);
+      discover_sensor($valid['sensor'], 'temperature', $device, '.1.3.6.1.4.1.41112.1.3.2.1.8.'.$index, $index, 'UBNT-AirFIBER-MIB::radio0TempC', 'Radio 0', '1', $entry['radio0TempC'], $options);
   }
 
   if (is_numeric($entry['radio1TempC']))
   {
-      discover_sensor($valid['sensor'], 'temperature', $device, '.1.3.6.1.4.1.41112.1.3.2.1.10.'.$index, $index, 'UBNT-AirFIBER-MIB::radio1TempC', "Radio 1", '1', $entry['radio0TempC'], $options);
+      discover_sensor($valid['sensor'], 'temperature', $device, '.1.3.6.1.4.1.41112.1.3.2.1.10.'.$index, $index, 'UBNT-AirFIBER-MIB::radio1TempC', 'Radio 1', '1', $entry['radio0TempC'], $options);
   }
 
 }

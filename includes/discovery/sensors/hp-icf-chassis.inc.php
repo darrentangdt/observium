@@ -11,11 +11,7 @@
  *
  */
 
-$mib = 'HP-ICF-CHASSIS';
-echo(" $mib ");
-
-$type_state = 'hp-icf-chassis-state';
-$sensor_array = snmpwalk_cache_oid($device, 'hpicfSensorTable', array(), $mib, mib_dirs('hp'));
+$sensor_array = snmpwalk_cache_oid($device, 'hpicfSensorTable', array(), 'HP-ICF-CHASSIS');
 
 foreach ($sensor_array as $index => $entry)
 {
@@ -42,10 +38,10 @@ foreach ($sensor_array as $index => $entry)
 
   if ($entry['hpicfSensorStatus'] != 'notPresent')
   {
-    discover_sensor($valid['sensor'], 'state', $device, $oid, $index, $type_state, $descr, 1, $value, array('entPhysicalClass' => $entPhysicalClass));
+    discover_sensor($valid['sensor'], 'state', $device, $oid, $index, 'hp-icf-chassis-state', $descr, 1, $value, array('entPhysicalClass' => $entPhysicalClass));
   }
 }
 
-unset($sensor_array, $index, $value, $descr, $type_state);
+unset($sensor_array, $index, $value, $descr);
 
 // EOF

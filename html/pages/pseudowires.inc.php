@@ -11,7 +11,7 @@
  *
  */
 
-$page_title[] = "Pseudowires";
+register_html_title("Pseudowires");
 
 $link_array = array('page'    => 'pseudowires');
 $link_array = array_merge($link_array, $vars);

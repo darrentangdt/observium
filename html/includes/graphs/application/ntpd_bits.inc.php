@@ -30,6 +30,6 @@ if (is_file($ntpdserver_rrd))
   $rrd_filename = $ntpdserver_rrd;
 }
 
-include("includes/graphs/generic_duplex.inc.php");
+include($config['html_dir']."/includes/graphs/generic_duplex.inc.php");
 
 // EOF

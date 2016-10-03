@@ -19,7 +19,7 @@
 //TiMOS-B-6.0.R6 both/mpc ALCATEL SAS-M 24F 2XFP 7210 Copyright (c) 2000-2014 Alcatel-Lucent.
 //TiMOS-B-4.0.R11 both/hops ALCATEL SR 7750 Copyright (c) 2000-2007 Alcatel-Lucent.
 
-if (preg_match('/TiMOS-B-(?P<version>[\w\.]+) .+?ALCATEL (?P<hw2>.+?) (?P<hw1>\d+ )Copyright/', $poll_device['sysDescr'], $matches))
+if (preg_match('/TiMOS\-\w\-(?<version>[\w\.]+) .+?ALCATEL (?<hw2>.+?) (?<hw1>\d+ )Copyright/', $poll_device['sysDescr'], $matches))
 {
   $hardware = $matches['hw1'].$matches['hw2'];
   $version  = $matches['version'];

@@ -11,18 +11,18 @@
  *
  */
 
-$os = preg_replace("/(\(R\)|®|«|Â)/", "", $wmi['os']['Caption']);
-$os = str_replace("Microsoft Windows ", "", $os);
-if ($wmi['os']['CSDVersion']) { $os .= " ". str_replace("Service Pack ", "SP", $wmi['os']['CSDVersion']); }
-$os .= " (".$wmi['os']['Version'].")";
+$os = preg_replace("/(\(R\)|®|«|Â)/", '', $wmi['os']['Caption']);
+$os = str_replace('Microsoft Windows ', '', $os);
+if ($wmi['os']['CSDVersion']) { $os .= ' '. str_replace('Service Pack ', 'SP', $wmi['os']['CSDVersion']); }
+$os .= ' ('.$wmi['os']['Version'].')';
 
 if ($device['os'] != $os)
 {
-  echo(" Windows version updated:");
+  echo(' Windows version updated:');
 }
 
 $version = $os;
 
-echo(" ".$os."\n");
+echo(' '.$os."\n");
 
 // EOF

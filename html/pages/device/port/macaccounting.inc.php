@@ -77,10 +77,11 @@ else
 
   if ($vars['subview'] == "graphs") { $table_class = "table-striped-two"; } else { $table_class = "table-striped"; }
 
-  echo('<table class="table table-hover table-condensed   '.$table_class.'">');
-  echo('  <thead>');
+  echo generate_box_open();
+  echo '<table class="table table-hover table-condensed '.$table_class.'">';
+  echo '  <thead>';
 
-  echo('<tr>');
+  echo '<tr>';
   $cols = array(
               'BLANK' => NULL,
               'mac' => 'MAC Address',
@@ -109,6 +110,10 @@ foreach ($cols as $sort => $col)
 
   echo("      </tr>");
   echo('  </thead>');
+
+  } else {
+
+    echo '<div class="row">';
 
   }
 
@@ -159,6 +164,8 @@ foreach ($cols as $sort => $col)
       unset ($as); unset ($astext); unset($asn);
     }
 
+    $name = format_mac($acc['mac']);
+
     if (!isset($vars['graph'])) { $vars['graph'] = "bits"; }
     $graph_type = "macaccounting_" . $vars['graph'];
 
@@ -166,16 +173,19 @@ foreach ($cols as $sort => $col)
     {
       if (!$asn) { $asn = "No Session"; }
 
-     echo("<div style='display: block; padding: 3px; margin: 3px; min-width: 221px; max-width:221px; min-height:90px; max-height:90px; text-align: center; float: left; background-color: #e5e5e5;'>
-      ".$addy['ipv4_address']." - ".$asn."
-          <a href='#' onmouseover=\"return overlib('\
-     <div style=\'font-size: 16px; padding:5px; font-weight: bold; color: #555555;\'>".$name." - ".$addy['ipv4_address']." - ".$asn."</div>\
-     <img src=\'graph.php?id=" . $acc['ma_id'] . "&amp;type=$graph_type&amp;from=".$config['time']['twoday']."&amp;to=".$config['time']['now']."&amp;width=450&amp;height=150\'>\
-     ', CENTER, LEFT, FGCOLOR, '#e5e5e5', BGCOLOR, '#e5e5e5', WIDTH, 400, HEIGHT, 150);\" onmouseout=\"return nd();\" >
-          <img src='graph.php?id=" . $acc['ma_id'] . "&amp;type=$graph_type&amp;from=".$config['time']['twoday']."&amp;to=".$config['time']['now']."&amp;width=213&amp;height=45'></a>
+      $graph_array = array('id' => $acc['ma_id'], 'type' => $graph_type, 'from' => $config['time']['twoday'], 'to' => $config['time']['now'], 'width' => '215', 'height' => '100');
 
-          <span style='font-size: 10px;'>".$name."</span>
-         </div>");
+
+      echo '<div class="col-md-3">';
+      echo generate_box_open(array('title' => $name,
+                                   /** 'url' => generate_device_url($device), */
+                                   'header-border' => TRUE,
+                                   ));
+
+      print_graph_popup($graph_array);
+
+      echo generate_box_close(array());
+      echo '</div>';
 
    }
    else
@@ -210,7 +220,8 @@ foreach ($cols as $sort => $col)
       }
     }
   }
-  echo("</table>");
+  echo '</table>';
+  echo generate_box_close();
 }
 
 // EOF

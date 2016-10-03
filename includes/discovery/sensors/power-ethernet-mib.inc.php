@@ -11,17 +11,16 @@
  *
  */
 
-echo(" POWER-ETHERNET-MIB ");
-
 // pethMainPsePower.1 = Gauge32: 370 Watts
 // pethMainPseOperStatus.1 = INTEGER: on(1)
 // pethMainPseConsumptionPower.1 = Gauge32: 16 Watts
 // pethMainPseUsageThreshold.1 = INTEGER: 80 %
 
-$oids = snmpwalk_cache_oid($device, "pethMainPseTable", array(), "POWER-ETHERNET-MIB", mib_dirs('rfc'));
+$oids = snmpwalk_cache_oid($device, 'pethMainPseTable', array(), 'POWER-ETHERNET-MIB');
 
 foreach ($oids as $index => $entry)
 {
+  $scale   = 1;
   $descr   = "PSE $index Power";
   $oid     = ".1.3.6.1.2.1.105.1.3.1.1.4.$index";
   $value   = $entry['pethMainPseConsumptionPower'];
@@ -36,9 +35,18 @@ foreach ($oids as $index => $entry)
     $limits['limit_high_warn'] = $entry['pethMainPsePower'] * $entry['pethMainPseUsageThreshold'] / 100;
   }
 
+  // If usage is >1000 and larger than the actual PSE power, this device is supplying data in mW.
+  // Hello POWER-ETHERNET-MIB, this should be Watts obviously. Correct scale in this case.
+  // If the device is not supplying power at discovery time, we will not know what the scale is and might get it wrong.
+  // This will then only be corrected at the next discovery cycle, unfortunately.
+  if ($entry['pethMainPseConsumptionPower'] > 1000 && $entry['pethMainPseConsumptionPower'] > $entry['pethMainPsePower'])
+  {
+    $scale = 0.001;
+  }
+
   if ($value != '')
   {
-    discover_sensor($valid['sensor'], 'power', $device, $oid, "pethMainPseConsumptionPower.$index", 'power-ethernet-mib', $descr, 1, $value, $limits);
+    discover_sensor($valid['sensor'], 'power', $device, $oid, "pethMainPseConsumptionPower.$index", 'power-ethernet-mib', $descr, $scale, $value, $limits);
   }
 
   $descr   = "PSE $index Status";
@@ -49,7 +57,6 @@ foreach ($oids as $index => $entry)
   {
     discover_sensor($valid['sensor'], 'state', $device, $oid, "pethMainPseOperStatus.$index", 'power-ethernet-mib-pse-state', $descr, 1, $value);
   }
-
 }
 
 // EOF

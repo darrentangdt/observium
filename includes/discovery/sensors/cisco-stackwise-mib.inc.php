@@ -11,8 +11,6 @@
  *
  */
 
-$mib = 'CISCO-STACKWISE-MIB';
-
 // CISCO-STACKWISE-MIB::cswSwitchNumCurrent.1001 = Gauge32: 1
 // CISCO-STACKWISE-MIB::cswSwitchNumNextReload.1001 = Gauge32: 1
 // CISCO-STACKWISE-MIB::cswSwitchRole.1001 = INTEGER: master(1)
@@ -34,11 +32,11 @@ $device_tmp = $device;
 // Disable snmp bulk and retries, because some 2960S freeze on this walks
 $device_tmp['snmp_retries'] = 1;
 $device_tmp['snmp_nobulk'] = TRUE;
-$stackredundant = snmp_get($device_tmp, 'cswRingRedundant.0', '-Oqv', $mib, mib_dirs('cisco'));
+$stackredundant = snmp_get($device_tmp, 'cswRingRedundant.0', '-Oqv', 'CISCO-STACKWISE-MIB');
 if ($GLOBALS['snmp_status'])
 {
-  $stackstatus   = snmpwalk_cache_multi_oid($device_tmp, 'cswSwitchInfoEntry', array(), $mib, mib_dirs('cisco'));
-  $stackportoper = snmpwalk_cache_oid($device_tmp, 'cswStackPortOperStatus', array(), $mib, mib_dirs('cisco'));
+  $stackstatus   = snmpwalk_cache_multi_oid($device_tmp, 'cswSwitchInfoEntry', array(), 'CISCO-STACKWISE-MIB');
+  $stackportoper = snmpwalk_cache_oid($device_tmp, 'cswStackPortOperStatus', array(), 'CISCO-STACKWISE-MIB');
 
   $ports_down = 0;
   foreach ($stackportoper as $entry)

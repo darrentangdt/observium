@@ -11,12 +11,11 @@
  *
  */
 
-
 echo(" UBNT-AirFIBER-MIB ");
 
 // Getting Radios
 
-$radios_snmp = snmpwalk_cache_oid($device, "airFiberConfigIndex", array(), "UBNT-AirFIBER-MIB", mib_dirs('ubiquiti'));
+$radios_snmp = snmpwalk_cache_oid($device, "airFiberConfigIndex", array(), "UBNT-AirFIBER-MIB");
 
 $oids = array('radioLinkMode', 'radioEnable', 'radioDuplex', 'txFrequency', 'rxFrequency', 'regDomain', 'txPower', 'rxGain', 'linkName', 'curTXModRate', 'radioLinkDistM',
               'rxCapacity', 'txCapacity', 'radioLinkState', 'rxPower0', 'rxPower1',  'linkUpTime', 'remoteMAC', 'remoteIP',
@@ -29,12 +28,12 @@ foreach ($radios_snmp as $index => $radio)
 {
 
   $get_oids = array();
-  foreach($oids as $oid)
+  foreach ($oids as $oid)
   {
     $get_oids[] = $oid . '.' . $index;
   }
 
-  $data = snmp_get_multi($device, $get_oids, "-OQUs", "UBNT-AirFIBER-MIB", mib_dirs('ubiquiti'));
+  $data = snmp_get_multi($device, $get_oids, "-OQUs", "UBNT-AirFIBER-MIB");
   $data = $data[$index];
 
   print_r($data);

@@ -11,7 +11,7 @@
  *
  */
 
-$page_title[] = 'Ports';
+register_html_title('Ports');
 
 // Set Defaults here
 
@@ -41,8 +41,6 @@ if (!$config['web_show_disabled'] && count($cache['devices']['disabled']) > 0)
 $where .= implode('', $where_array);
 //r($where_array);
 
-echo '<div class="row">';
-
 $form_items = array();
 
 foreach (get_locations() as $entry)
@@ -59,6 +57,7 @@ foreach (get_type_groups('port') as $entry)
 foreach (array('ifType', 'ifSpeed', 'port_descr_type') as $entry)
 {
   $query  = "SELECT `$entry` FROM `ports`";
+  $query .= " LEFT JOIN `devices` USING (`device_id`)";
 
   if (isset($where_array[$entry]))
   {
@@ -85,15 +84,9 @@ foreach (array('ifType', 'ifSpeed', 'port_descr_type') as $entry)
   }
 }
 
-foreach (dbFetchRows('SELECT `device_id`, `hostname` FROM `devices` GROUP BY `hostname` ORDER BY `hostname`') as $data)
-{
-  if (device_permitted($data['device_id']))
-  {
-    $form_items['devices'][$data['device_id']] = $data['hostname'];
-  }
-}
+$form_items['devices'] = generate_form_values('device'); // Always all devices
 
- asort($form_items['ifType']);
+asort($form_items['ifType']);
  
 $form_items['sort'] = array('device' => 'Device',
             'port' => 'Port',
@@ -211,16 +204,14 @@ $form['row'][1]['search']   = array(
                                 //'icon'        => 'icon-search',
                                 'right'       => TRUE,
                                 );
-?>
-<div class="col-xl-4 visible-xl">
-<?php
 
 $panel_form = array('type'  => 'rows',
-              'space' => '10px',
-              //'brand' => NULL,
-              'class' => '',
-              'submit_by_key' => TRUE,
-              'url'   => generate_url($vars));
+                    'title' => 'Search Ports',
+                    'space' => '10px',
+                    //'brand' => NULL,
+                    //'class' => '',
+                    'submit_by_key' => TRUE,
+                    'url'   => generate_url($vars));
 
 $panel_form['row'][0]['device_id'] = $form['row'][0]['device_id'];
 $panel_form['row'][0]['hostname'] = $form['row'][1]['hostname'];
@@ -240,27 +231,16 @@ $panel_form['row'][4]['location'] = $form['row'][1]['location'];
 $panel_form['row'][5]['sort'] = $form['row'][0]['sort'];
 $panel_form['row'][5]['search'] = $form['row'][1]['search'];
 
-echo '<div class="box box-solid">';
-echo '<div class="box-header with-border"><h3 class="box-title">Search Ports</h3></div>';
-print_form($panel_form);
-echo '</div>';
-
-?>
-</div>
-<div class="col-xl-8">
-
-<?php
+// Register custom panel
+register_html_panel(generate_form($panel_form));
 
 if ($vars['searchbar'] != "hide")
 {
-
-  echo '<div class="box box-solid hidden-xl">';
-  $form['class'] = '';
+  echo '<div class="hidden-xl">';
   print_form($form);
   echo '</div>';
-
-  unset($form, $form_items);
 }
+unset($form, $panel_form, $form_items);
 
 $navbar = array('brand' => "Ports", 'class' => "navbar-narrow");
 
@@ -293,7 +273,7 @@ foreach (array('graphs') as $type)
 
   if ($vars['searchbar'] == "hide")
   {
-    $navbar['options_right']['searchbar']     = array('text' => 'Show Search', 'url' => generate_url($vars, array('searchbar' => NULL)));
+    $navbar['options_right']['searchbar']     = array('text' => 'Show Search',  'url' => generate_url($vars, array('searchbar' => NULL)));
   } else {
     $navbar['options_right']['searchbar']     = array('text' => 'Hide Search' , 'url' => generate_url($vars, array('searchbar' => 'hide')));
   }
@@ -314,8 +294,8 @@ include($config['html_dir'].'/includes/port-sort-select.inc.php');
 
 $sql  = "SELECT " . $select;
 $sql .= " FROM `ports`";
-$sql .= " INNER JOIN `devices` ON `ports`.`device_id` = `devices`.`device_id`";
-$sql .= " LEFT JOIN `ports-state` ON `ports`.`port_id` = `ports-state`.`port_id`";
+$sql .= " INNER JOIN `devices` USING (`device_id`)";
+//$sql .= " LEFT JOIN `ports-state` USING (`port_id`)";
 $sql .= " ".$where;
 
 $row = 1;

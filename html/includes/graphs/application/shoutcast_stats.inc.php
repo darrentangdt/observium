@@ -12,10 +12,8 @@
  */
 
 $hostname     = (isset($_GET['hostname']) ? $_GET['hostname'] : "unknown");
-$rrddir       = $config['rrd_dir']."/".$device['hostname'];
 
-// FIXME should use get_rrd_path (but no $device)
-$rrd_filename = $rrddir."/app-shoutcast-".$app['app_id']."-".$hostname.".rrd";
+$rrd_filename = get_rrd_path($device, "app-shoutcast-".$app['app_id']."-".$hostname);
 
 include_once($config['html_dir']."/includes/graphs/common.inc.php");
 

@@ -93,6 +93,6 @@ elseif (is_file($config['html_dir']."/pages/device/health/".$vars['metric'].".in
 
 }
 
-$page_title[] = "Health";
+register_html_title("Health");
 
 // EOF

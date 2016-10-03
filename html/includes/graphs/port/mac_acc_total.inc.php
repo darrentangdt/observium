@@ -58,7 +58,7 @@ $port    = get_port_by_id($port);
 $device =  device_by_id_cache($port['device_id']);
 
 $pluses = ""; $iter = '0';
-$rrd_options .= " COMMENT:'                                     In\: Current     Maximum      Total      Out\: Current     Maximum     Total\\\\n'";
+$rrd_options .= " COMMENT:'                                     In\: Current     Maximum      Total      Out\: Current     Maximum     Total\\n'";
 
 foreach ($mas as $ma)
 {
@@ -119,7 +119,7 @@ foreach ($mas as $ma)
     $rrd_options .= "  HRULE:999999999999999#" . $colour_out . ":' ':";
     $rrd_options .= " GPRINT:outB".$this_id."temp:LAST:%6.2lf%s$units";
     $rrd_options .= " GPRINT:outB".$this_id."temp:MAX:%6.2lf%s$units";
-    $rrd_options .= " GPRINT:totout".$this_id.":%6.2lf%s$unit\\\\n";
+    $rrd_options .= " GPRINT:totout".$this_id.":%6.2lf%s$unit\\n";
     $iter++;
   }
 }

@@ -15,15 +15,15 @@ IMPORTS
 
 rlDhcpCl MODULE-IDENTITY
                 LAST-UPDATED "200701020000Z"
-                ORGANIZATION "Cisco Small Business"
+                ORGANIZATION "Cisco Systems, Inc."
 
                 CONTACT-INFO
                 "Postal: 170 West Tasman Drive
                 San Jose , CA 95134-1706
                 USA
 
-                Website: Cisco Small Business Home http://www.cisco.com/smb>;,
-                Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
+                
+                Website:  Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
 
                 DESCRIPTION
                       "This private MIB module defines DHCP CL private MIBs."
@@ -495,7 +495,7 @@ rlDhcpClManualAutoConfigDataTable OBJECT-TYPE
     MAX-ACCESS     not-accessible
     STATUS     current
     DESCRIPTION
-            " A table for configuring default values for auto-config process.
+            " A table for configuring default values for auto-config/ auto-update process.
               These values during the process, in case no appropriate
               data was received from the DHCP server."
     ::= { rlDhcpCl 26 }
@@ -512,7 +512,8 @@ rlDhcpClManualAutoConfigDataEntry OBJECT-TYPE
 RlDhcpClManualAutoConfigDataEntry ::= SEQUENCE {
     rlDhcpClManualAutoConfigDataIndex     INTEGER,
     rlDhcpClManualServerInetAddressType   InetAddressType,
-    rlDhcpClManualServerInetAddress       InetAddress
+    rlDhcpClManualServerInetAddress       InetAddress,
+    rlDhcpClManualImageIndirectFileName   DisplayString
 }
 
 rlDhcpClManualAutoConfigDataIndex OBJECT-TYPE
@@ -536,6 +537,14 @@ rlDhcpClManualServerInetAddress OBJECT-TYPE
     STATUS      current
     DESCRIPTION "Manually configured inet Address of remote server."
     ::= { rlDhcpClManualAutoConfigDataEntry  3 }
+
+rlDhcpClManualImageIndirectFileName OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Manually configured indirect file name, that holds the
+                 name of the image file to download."
+    ::= { rlDhcpClManualAutoConfigDataEntry  4 }
 
 -- rlDhcpClInformationTable
 

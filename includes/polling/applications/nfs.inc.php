@@ -94,6 +94,7 @@ if (!empty($agent_data['app']['nfs']))
     }
   }
 
+  update_application($app_id, $datas);
   rrdtool_update($device, $rrd_filename,  "N:".implode(':', $datas));
 }
 

@@ -11,7 +11,7 @@
  *
  */
 
-echo ' Converting alert serialize() arrays to JSON: ';
+echo 'Converting alert serialize() arrays to JSON: ';
 
 foreach (dbFetchRows("SELECT * FROM `alert_tests`") as $entry)
 {
@@ -32,7 +32,5 @@ foreach (dbFetchRows("SELECT * FROM `alert_assoc`") as $entry)
   dbUpdate(array('attributes' => $attributes_json, 'device_attributes' => $device_attributes_json), 'alert_assoc', '`alert_assoc_id` = ?', array($entry['alert_assoc_id']));
   echo('.');
 }
-
-echo(PHP_EOL);
 
 // EOF

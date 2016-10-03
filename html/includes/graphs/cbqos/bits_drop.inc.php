@@ -13,7 +13,7 @@
 
 $scale_min = 0;
 
-include("includes/graphs/common.inc.php");
+include($config['html_dir']."/includes/graphs/common.inc.php");
 
 $ds = "DropByte";
 
@@ -27,6 +27,6 @@ $multiplier = 8;
 
 $unit_text = "Bps";
 
-include("includes/graphs/generic_simplex.inc.php");
+include($config['html_dir']."/includes/graphs/generic_simplex.inc.php");
 
 ?>

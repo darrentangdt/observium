@@ -13,7 +13,7 @@
 
 // Display devices as a list in detailed format
 ?>
-<div class="box box-solid">
+
 <table class="table table-hover table-striped  table-condensed " style="margin-top: 10px;">
   <thead>
     <tr>
@@ -36,6 +36,6 @@ foreach ($devices as $device)
   }
 }
 
-echo("</table></div>");
+echo("</table>");
 
 // EOF

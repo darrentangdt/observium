@@ -77,23 +77,15 @@ function print_status($status)
     if (filter_var($config['uptime_warning'], FILTER_VALIDATE_FLOAT) !== FALSE && $config['uptime_warning'] > 0)
     {
       $query = 'SELECT * FROM `devices` AS D';
-      $query .= ' WHERE D.`status` = 1 AND D.`uptime` > 0 AND D.`uptime` < ' . $config['uptime_warning'];
+      // Since reboot event more complicated than just device uptime less than some time
+      //$query .= ' WHERE D.`status` = 1 AND D.`uptime` > 0 AND D.`uptime` < ' . $config['uptime_warning'];
+      $query .= ' WHERE D.`status` = 1 AND D.`uptime` > 0 AND D.`last_rebooted` > ?';
       $query .= $query_device_permitted;
       $query .= 'ORDER BY D.`hostname` ASC';
-      $entries = dbFetchRows($query);
-
-      // Since reboot event more complicated than just device uptime less than some time,
-      // additionally check reboot events
-      if (count($entries))
-      {
-        $rebooted_devices = dbFetchColumn('SELECT DISTINCT(`device_id`) FROM `eventlog` WHERE `message` LIKE ? AND `entity_type` = ? AND (`timestamp` BETWEEN NOW() - INTERVAL ? SECOND AND NOW());', array('%rebooted%', 'device', $config['uptime_warning']));
-      }
+      $entries = dbFetchRows($query, array($config['time']['now'] - $config['uptime_warning'] - 10));
 
       foreach ($entries as $device)
       {
-        // Skip, because device not really rebooted, but just uptime counter wrapped
-        if (!in_array($device['device_id'], $rebooted_devices)) { continue; }
-
         $string .= '  <tr>' . PHP_EOL;
         $string .= '    <td class="entity">' . generate_device_link($device, short_hostname($device['hostname'])) . '</td>' . PHP_EOL;
         // $string .= '    <td><span class="badge badge-inverse">Device</span></td>' . PHP_EOL;
@@ -156,9 +148,9 @@ function print_status($status)
   if ($status['errors'])
   {
     $query = 'SELECT * FROM `ports` AS I ';
-    $query .= 'LEFT JOIN `ports-state` AS E ON I.`port_id` = E.`port_id` ';
+    //$query .= 'LEFT JOIN `ports-state` AS E ON I.`port_id` = E.`port_id` ';
     $query .= 'LEFT JOIN `devices` AS D ON I.`device_id` = D.`device_id` ';
-    $query .= "WHERE D.`status` = 1 AND I.`ifOperStatus` = 'up' AND (E.`ifInErrors_delta` > 0 OR E.`ifOutErrors_delta` > 0)";
+    $query .= "WHERE D.`status` = 1 AND I.`ifOperStatus` = 'up' AND (I.`ifInErrors_delta` > 0 OR I.`ifOutErrors_delta` > 0)";
     $query .= $query_port_permitted;
     $query .= 'ORDER BY D.`hostname` ASC, I.`ifDescr` * 1 ASC';
     $entries = dbFetchRows($query);
@@ -315,23 +307,15 @@ function get_status_array($status)
     if (filter_var($config['uptime_warning'], FILTER_VALIDATE_FLOAT) !== FALSE && $config['uptime_warning'] > 0)
     {
       $query = 'SELECT * FROM `devices` AS D ';
-      $query .= 'WHERE D.`status` = 1 AND D.`uptime` > 0 AND D.`uptime` < ' . $config['uptime_warning'];
+      // Since reboot event more complicated than just device uptime less than some time
+      //$query .= ' WHERE D.`status` = 1 AND D.`uptime` > 0 AND D.`uptime` < ' . $config['uptime_warning'];
+      $query .= ' WHERE D.`status` = 1 AND D.`uptime` > 0 AND D.`last_rebooted` > ?';
       $query .= $query_device_permitted;
       $query .= 'ORDER BY D.`hostname` ASC';
-      $entries = dbFetchRows($query);
-
-      // Since reboot event more complicated than just device uptime less than some time,
-      // additionally check reboot events
-      if (count($entries))
-      {
-        $rebooted_devices = dbFetchColumn('SELECT DISTINCT(`device_id`) FROM `eventlog` WHERE `message` LIKE ? AND `entity_type` = ? AND (`timestamp` BETWEEN NOW() - INTERVAL ? SECOND AND NOW());', array('%rebooted%', 'device', $config['uptime_warning']));
-      }
+      $entries = dbFetchRows($query, array($config['time']['now'] - $config['uptime_warning'] - 10));
 
       foreach ($entries as $device)
       {
-        // Skip, because device not really rebooted, but just uptime counter wrapped
-        if (!in_array($device['device_id'], $rebooted_devices)) { continue; }
-
         $boxes[] = array('sev' => 10, 'class' => 'Device', 'event' => 'Rebooted', 'device_link' => generate_device_link($device, short_hostname($device['hostname'])),
                          'time' => deviceUptime($device, 'short-3'), 'location' => $device['location']);
       }

@@ -11,7 +11,7 @@
  *
  */
 
-$lgpAgentDeviceId = snmp_get($device, 'lgpAgentDeviceId.1', '-Oqvs', 'LIEBERT-GP-AGENT-MIB', mib_dirs('liebert'));
+$lgpAgentDeviceId = snmp_get($device, 'lgpAgentDeviceId.1', '-Oqvs', 'LIEBERT-GP-AGENT-MIB');
 
 if ($GLOBALS['snmp_status'])
 {
@@ -21,7 +21,7 @@ if ($GLOBALS['snmp_status'])
   switch ($GLOBALS['rewrite_liebert_hardware'][$lgpAgentDeviceId]['type'])
   {
     case 'ups':
-      include("includes/polling/os/ups-mib.inc.php");
+      include('includes/polling/os/ups-mib.inc.php');
       break;
     case 'environment':
     case 'network':
@@ -36,7 +36,7 @@ if ($GLOBALS['snmp_status'])
       //LIEBERT-GP-AGENT-MIB::lgpAgentIdentSerialNumber.0 = STRING: 417831G209J2014APR240173
       //LIEBERT-GP-AGENT-MIB::lgpAgentIdentPartNumber.0 = STRING: IS-UNITY_4.0.0.0_84525
       //LIEBERT-GP-AGENT-MIB::lgpAgentDeviceId.1 = OID: LIEBERT-GP-REGISTRATION-MIB::lgpIcomPAtypeDeluxeSys3
-      $lgpAgentIdent = snmpwalk_cache_oid($device, 'lgpAgentIdent', array(), 'LIEBERT-GP-AGENT-MIB', mib_dirs('liebert'));
+      $lgpAgentIdent = snmpwalk_cache_oid($device, 'lgpAgentIdent', array(), 'LIEBERT-GP-AGENT-MIB');
 
       $manufacturer = $lgpAgentIdent[0]['lgpAgentIdentManufacturer'];
       //$hardware     = $lgpAgentIdent[0]['lgpAgentIdentModel'];
@@ -45,7 +45,7 @@ if ($GLOBALS['snmp_status'])
   }
 } else {
   // Uses UPS-MIB
-  include("includes/polling/os/ups-mib.inc.php");
+  include('includes/polling/os/ups-mib.inc.php');
 }
 
 // EOF

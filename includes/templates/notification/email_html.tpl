@@ -36,7 +36,9 @@
   <tbody>
     <tr><td class="header">{{ALERT_STATE}}</td><td><a style="float: right;" href="{{{ALERT_URL}}}">Modify</a></td></tr>
     <tr><td><strong>Alert</strong></td><td class="red">{{ALERT_MESSAGE}}</td></tr>
+    {{#ENTITY_LINK}}
     <tr><td><strong>Entity</strong></td><td>{{{ENTITY_LINK}}}</td></tr>
+    {{/ENTITY_LINK}}
     {{#ENTITY_DESCRIPTION}}
     <tr><td><strong>Descr</strong></td><td>{{ENTITY_DESCRIPTION}}</td></tr>
     {{/ENTITY_DESCRIPTION}}

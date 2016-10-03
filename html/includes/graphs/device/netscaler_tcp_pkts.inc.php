@@ -27,6 +27,6 @@ $colour_area_out_max = "FFefaa";
 $graph_max = 1;
 $unit_text = "Packets";
 
-include("includes/graphs/generic_duplex.inc.php");
+include($config['html_dir']."/includes/graphs/generic_duplex.inc.php");
 
 // EOF

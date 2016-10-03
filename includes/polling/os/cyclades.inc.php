@@ -11,8 +11,8 @@
  *
  */
 
-$hardware = snmp_get($device, "acsProductModel.0",    "-Osqv", "ACS-MIB");
-$serial   = snmp_get($device, "acsSerialNumber.0",    "-Osqv", "ACS-MIB");
-$version  = snmp_get($device, "acsFirmwareVersion.0", "-Osqv", "ACS-MIB");
+$hardware = snmp_get($device, 'acsProductModel.0',    '-Osqv', 'ACS-MIB');
+$serial   = snmp_get($device, 'acsSerialNumber.0',    '-Osqv', 'ACS-MIB');
+$version  = snmp_get($device, 'acsFirmwareVersion.0', '-Osqv', 'ACS-MIB');
 
 // EOF

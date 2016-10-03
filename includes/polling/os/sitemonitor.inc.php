@@ -15,10 +15,10 @@
 // .1.3.6.1.4.1.32050.2.1.25.3.0 = STRING: "Jul 29 2012"
 // .1.3.6.1.4.1.32050.2.1.25.4.0 = INTEGER: 0
 
-$hardware = trim(snmp_get($device, ".1.3.6.1.4.1.32050.2.1.25.2.0", "-Oqvn", 'SNMPv2-SMI', mib_dirs()),'"');
+$hardware = trim(snmp_get($device, '.1.3.6.1.4.1.32050.2.1.25.2.0', '-Oqvn', 'SNMPv2-SMI'),'"');
 $hardware = "SiteMonitor $hardware";
-$version = trim(snmp_get($device, ".1.3.6.1.4.1.32050.2.1.25.3.0", "-Oqvn", 'SNMPv2-SMI', mib_dirs()),'"');
-$serial = snmp_get($device, ".1.3.6.1.4.1.32050.2.1.25.4.0", "-Oqvn", 'SNMPv2-SMI', mib_dirs());
+$version = trim(snmp_get($device, '.1.3.6.1.4.1.32050.2.1.25.3.0', '-Oqvn', 'SNMPv2-SMI'),'"');
+$serial = snmp_get($device, '.1.3.6.1.4.1.32050.2.1.25.4.0', '-Oqvn', 'SNMPv2-SMI');
 if (!$serial) { unset($serial); }
 
 // EOF

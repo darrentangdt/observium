@@ -16,7 +16,7 @@
 
 // eqlMemberName.1.443914937 = hostname-1
 // eqlMemberName.1.1664046123 = hostname-2
-$eqlgrpmembers = snmpwalk_cache_multi_oid($device, 'eqlMemberName', array(), 'EQLMEMBER-MIB', mib_dirs('equallogic'));
+$eqlgrpmembers = snmpwalk_cache_multi_oid($device, 'eqlMemberName', array(), 'EQLMEMBER-MIB');
 
 foreach ($eqlgrpmembers as $index => $entry)
 {
@@ -31,13 +31,13 @@ foreach ($eqlgrpmembers as $index => $entry)
 if (!isset($eqlgrpmemid))
 {
   // Fall-back to old method.
-  $eqlgrpmemid = snmp_get($device, "eqliscsiLocalMemberId.0", "-OQv", "EQLVOLUME-MIB", mib_dirs("equallogic"));
+  $eqlgrpmemid = snmp_get($device, 'eqliscsiLocalMemberId.0', '-OQv', 'EQLVOLUME-MIB');
 }
 
 if (is_numeric($eqlgrpmemid) && $eqlgrpmemid != $attribs['eqlgrpmemid'])
 {
   // Store member id when detected
-  set_dev_attrib($device, "eqlgrpmemid", $eqlgrpmemid);
+  set_dev_attrib($device, 'eqlgrpmemid', $eqlgrpmemid);
   $attribs['eqlgrpmemid'] = $eqlgrpmemid;
   print_debug("\neqlgrpmemid: $eqlgrpmemid");
 }
@@ -49,15 +49,15 @@ if (is_numeric($eqlgrpmemid) && $eqlgrpmemid != $attribs['eqlgrpmemid'])
 // EQLMEMBER-MIB::eqlMemberSerialNumber.1.$eqlgrpmemid = STRING: XXXNNNNNNNXNNNN
 // EQLMEMBER-MIB::eqlMemberServiceTag.1.$eqlgrpmemid = STRING: XXXXXXX
 
-$hardware = "Dell EqualLogic ".trim(snmp_get($device, "eqlMemberProductFamily.1.".$eqlgrpmemid, "-OQv", "EQLMEMBER-MIB", mib_dirs("equallogic")),'" ');
+$hardware = 'Dell EqualLogic '.trim(snmp_get($device, 'eqlMemberProductFamily.1.'.$eqlgrpmemid, '-OQv', 'EQLMEMBER-MIB'),'" ');
 
-$serial = trim(snmp_get($device, "eqlMemberSerialNumber.1.".$eqlgrpmemid, "-OQv", "EQLMEMBER-MIB", mib_dirs("equallogic")),'" ');
-$serial .= ' ['.trim(snmp_get($device, "eqlMemberServiceTag.1.".$eqlgrpmemid, "-OQv", "EQLMEMBER-MIB", mib_dirs("equallogic")),'" ').']';
+$serial = trim(snmp_get($device, 'eqlMemberSerialNumber.1.'.$eqlgrpmemid, '-OQv', 'EQLMEMBER-MIB'),'" ');
+$serial .= ' ['.trim(snmp_get($device, 'eqlMemberServiceTag.1.'.$eqlgrpmemid, '-OQv', 'EQLMEMBER-MIB'),'" ').']';
 
-$eqlmajor = snmp_get($device, "eqlMemberControllerMajorVersion.1.".$eqlgrpmemid, "-OQv", "EQLMEMBER-MIB", mib_dirs("equallogic"));
-$eqlminor = snmp_get($device, "eqlMemberControllerMinorVersion.1.".$eqlgrpmemid, "-OQv", "EQLMEMBER-MIB", mib_dirs("equallogic"));
-$eqlmaint = snmp_get($device, "eqlMemberControllerMaintenanceVersion.1.".$eqlgrpmemid, "-OQv", "EQLMEMBER-MIB", mib_dirs("equallogic"));
-$version = sprintf("V%d.%d.%d",$eqlmajor, $eqlminor, $eqlmaint);
+$eqlmajor = snmp_get($device, 'eqlMemberControllerMajorVersion.1.'.$eqlgrpmemid, '-OQv', 'EQLMEMBER-MIB');
+$eqlminor = snmp_get($device, 'eqlMemberControllerMinorVersion.1.'.$eqlgrpmemid, '-OQv', 'EQLMEMBER-MIB');
+$eqlmaint = snmp_get($device, 'eqlMemberControllerMaintenanceVersion.1.'.$eqlgrpmemid, '-OQv', 'EQLMEMBER-MIB');
+$version = sprintf('V%d.%d.%d',$eqlmajor, $eqlminor, $eqlmaint);
 
 unset($eqlgrpmemid, $eqlgrpmembers, $eqlgrpmem, $eqlmajor, $eqlminor, $eqlmaint, $index);
 

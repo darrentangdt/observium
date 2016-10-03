@@ -1,9 +1,9 @@
 -- ==================================================================
--- Copyright (C) 2007 by HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by HUAWEI TECHNOLOGIES. All rights reserved.
 -- 
 -- Description: HUAWEI SMARTLINK MIB
 -- Reference:
--- Version: V2.00
+-- Version: V3.03
 -- History:
 -- ==================================================================
 
@@ -29,7 +29,7 @@
                         
         hwSmartLinkMib MODULE-IDENTITY 
 
-			      LAST-UPDATED "201308291443Z"		-- Aug 29, 2013 at 14:47 GMT
+			      LAST-UPDATED "201507271717Z"		-- Jul 27, 2015 at 17:17 GMT
 			      ORGANIZATION 
 				        "Huawei Technologies Co.,Ltd."
 			      CONTACT-INFO 
@@ -44,6 +44,12 @@
                 "This module includes the information about smart link.
                 The information can be read and some of them can be set."
             
+            REVISION  "201507271717Z"
+            DESCRIPTION  "Update to increase  hwSmartLinkRpcRevAuthMode and hwSmartLinkMulRpcRevAuthMode ENUM elemt as null(0)."
+
+            REVISION  "201504301443Z"
+            DESCRIPTION  "Update DESCRIPTION of hwMonitorLinkDlArrayIndex."
+
             REVISION  "201308291443Z"
             DESCRIPTION  "Update DESCRIPTION of hwSmartLinkRevLastFlushTime and hwSmartLinkPcSendFlushTime."
           
@@ -173,7 +179,7 @@
             STATUS current
             DESCRIPTION
                 "Set the VLAN ID to verify the validity of flush packets received.
-                Ranging from 1 to 4094."
+                Ranging from 0 to 4095."
             ::= { hwSmartLinkRevPortCfgEntry 2 }
         
         hwSmartLinkRpcRevPassword OBJECT-TYPE
@@ -186,7 +192,8 @@
         
         hwSmartLinkRpcRevAuthMode OBJECT-TYPE
             SYNTAX INTEGER
-            {
+            {   
+            null(0),
             simple(1),
             sha(2)
             }
@@ -374,6 +381,7 @@
         hwSmartLinkGcAuthMode OBJECT-TYPE
             SYNTAX INTEGER
             {
+            null(0),
             simple(1),                  
             sha(2)
             }
@@ -707,7 +715,7 @@
             ::= { hwMonitorLinkDownLinkPortEntry 1 }
         
         hwMonitorLinkDlArrayIndex OBJECT-TYPE
-            SYNTAX Integer32 (1..16)
+            SYNTAX Integer32 (1..24)
             MAX-ACCESS not-accessible
             STATUS current
             DESCRIPTION
@@ -820,7 +828,8 @@
         
         hwSmartLinkMulRpcRevAuthMode OBJECT-TYPE
             SYNTAX INTEGER
-            {
+            {         
+            null(0),
             simple(1),
             sha(2)
             }

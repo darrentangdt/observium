@@ -1,6 +1,6 @@
--- G3-AVAYA-MIB Version 5.2.1.0
+-- G3-AVAYA-MIB Version 6.3
 --
--- Copyright (C) 2006 - 2009 by Avaya Inc. All rights reserved.
+-- Copyright (C) 2006 - 2013 by Avaya Inc. All rights reserved.
 --
 -- Contact: Avaya Customer Services
 --
@@ -30,7 +30,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
 --  the Avaya MIB branch may also need to be commented out (possibly
 --  along with the lines defining the mibs and products sub-branches
 --  underneath avaya).
---    iso             OBJECT IDENTIFIER ::= { 1 }
+    iso             OBJECT IDENTIFIER ::= { 1 }
     org             OBJECT IDENTIFIER ::= { iso 3 }
     dod             OBJECT IDENTIFIER ::= { org 6 }
     internet        OBJECT IDENTIFIER ::= { dod 1 }
@@ -64,6 +64,9 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
     crossfire-board         OBJECT IDENTIFIER ::= { g3-products 53 }
     blade-server            OBJECT IDENTIFIER ::= { g3-products 55 }
     avaya-s8400             OBJECT IDENTIFIER ::= { g3-products 56 }
+    cm-on-xen               OBJECT IDENTIFIER ::= { g3-products 57 }
+    avaya-aura-cm           OBJECT IDENTIFIER ::= { g3-products 58 }
+    avaya-aura-cm-vm        OBJECT IDENTIFIER ::= { g3-products 59 }
 
 
     -- object groups for G3 Proxy MIB
@@ -228,6 +231,11 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
     g3rtdelay	OBJECT IDENTIFIER ::= { g3-mib 148 }
     g3esmainsrv	OBJECT IDENTIFIER ::= { g3-mib 149 }
     g3survprocess	OBJECT IDENTIFIER ::= { g3-mib 150 }
+    g3nodenameipv4	OBJECT IDENTIFIER ::= { g3-mib 151 }
+    g3nodenameipv6	OBJECT IDENTIFIER ::= { g3-mib 152 }
+    g3lspall	OBJECT IDENTIFIER ::= { g3-mib 153 }
+    g3trunkstaOptions	OBJECT IDENTIFIER ::= { g3-mib 154 }
+    g3statstaOptions	OBJECT IDENTIFIER ::= { g3-mib 155 }
     g3busyrls	OBJECT IDENTIFIER ::= { g3-mib 250 }
 
     -- the connect group
@@ -1656,7 +1664,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3alarmsEntry 25 }
 
     g3alarmsIPAddress	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..16))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -4346,7 +4354,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3statstaEntry 15 }
 
     g3statstaSwitchIPAddr	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..15))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -4364,7 +4372,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3statstaEntry 17 }
 
     g3statstaSetIPAddr	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..15))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -26160,7 +26168,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         DESCRIPTION
             "An object containing the network region of the IP media processors being 
             region number is assigned on the Ip-interfaces screen during switch    
-            administration. Range:1-44"
+            administration. Range:1-2000"
         ::= { g3ipregionEntry 1 }
 
     g3ipregionName	OBJECT-TYPE
@@ -28272,7 +28280,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3nodenameEntry 2 }
 
     g3nodenameIP1	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..3))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -30106,7 +30114,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3gatewayEntry 3 }
 
     g3gatewayIPAddress	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..15))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -31878,7 +31886,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3ipserverEntry 6 }
 
     g3ipserverPrimIP1	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..3))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -31967,7 +31975,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3ipserverEntry 17 }
 
     g3ipserverSecIP1	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..3))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -36455,7 +36463,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3lsplistEntry 1 }
 
     g3lsplistIPAddr1	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..15))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -37319,7 +37327,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         STATUS    mandatory
         DESCRIPTION
             "An INTEGER object containing the IP network region number (value
-            1-250)."
+            1-2000)."
         ::= { g3ipnetregionEntry 1 }
 
     g3ipnetregionCCPHB	OBJECT-TYPE
@@ -37575,6 +37583,16 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         g3statmedproDupAlarmWrn
             DisplayString,
         g3statmedproLocked
+            DisplayString,
+        g3statmedproSourceIPV6
+            DisplayString,
+        g3statmedproIPV6SubnetMask
+            DisplayString,
+        g3statmedproIPV6GatewayAddr
+            DisplayString,
+        g3statmedproIPV6NodeName
+            DisplayString,
+        g3statmedproIPV6EtherEnable
             DisplayString
         }
 
@@ -37609,7 +37627,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
-            "A DisplayString Object that contains the source IP address for
+            "A DisplayString Object that contains the source IPV4 address for
             the media processor board."
         ::= { g3statmedproEntry 4 }
 
@@ -37618,7 +37636,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
-            "A DisplayString Object that contains the subnet mask for the
+            "A DisplayString Object that contains the IPV4 subnet mask for the
             media processor board."
         ::= { g3statmedproEntry 5 }
 
@@ -37951,6 +37969,50 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
             "A DisplayString Object that indicates whether the set medpro
             override and lock command argument is in use (yes or no)."
         ::= { g3statmedproEntry 42 }
+
+    g3statmedproSourceIPV6	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..40))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the source IPV6 address for
+            the media processor board."
+        ::= { g3statmedproEntry 43 }
+
+    g3statmedproIPV6SubnetMask	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..40))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the IPV6 subnet mask for the 
+            media processor board."
+        ::= { g3statmedproEntry 44 }
+
+    g3statmedproIPV6GatewayAddr	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..40))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the IPV6 address of the Gateway."
+        ::= { g3statmedproEntry 45 }
+
+    g3statmedproIPV6NodeName	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..15))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the IPV6 node name for the	
+            media processor board."
+        ::= { g3statmedproEntry 46 }
+
+    g3statmedproIPV6EtherEnable	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..3))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that designates whether or not the IPV6 
+            interface is enabled (yes or no) for the media processor board.	"
+        ::= { g3statmedproEntry 47 }
 
 
     -- the g3ipunreg group
@@ -41923,6 +41985,18 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         g3survprocessLocalPref
             DisplayString,
         g3survprocessLocalOnly
+            DisplayString,
+        g3survprocessActvservV6NodeName
+            DisplayString,
+        g3survprocessActivesrvV6IP
+            DisplayString,
+        g3survprocessServerAV6NodeName
+            DisplayString,
+        g3survprocessServerAV6IP
+            DisplayString,
+        g3survprocessServerBV6NodeName
+            DisplayString,
+        g3survprocessServerBV6IP
             DisplayString
         }
 
@@ -41977,7 +42051,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3survprocessEntry 6 }
 
     g3survprocessServerAIP	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..16))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -42001,7 +42075,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3survprocessEntry 9 }
 
     g3survprocessServerBIP	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..16))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -42047,9 +42121,849 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         DESCRIPTION
             "An object containing a flag indicating that only clusters in the
             same network community can provide service (values can be 'y'
-            or 'n'; default is 'n').
-            "
+            or 'n'; default is 'n')."
         ::= { g3survprocessEntry 14 }
+
+    g3survprocessActvservV6NodeName	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..20))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An Object containing the IPV6 name of the survivable processor."
+        ::= { g3survprocessEntry 15 }
+
+    g3survprocessActivesrvV6IP	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..40))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the  V6IP Address for Active Server in case of
+            Duplex-ESS."
+        ::= { g3survprocessEntry 16 }
+
+    g3survprocessServerAV6NodeName	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..20))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the V6 nodename of Server A in case of Duplex-ess."
+        ::= { g3survprocessEntry 17 }
+
+    g3survprocessServerAV6IP	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..40))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the  IPV6 Address for Server A."
+        ::= { g3survprocessEntry 18 }
+
+    g3survprocessServerBV6NodeName	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..20))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the V6 nodename of ServerB in case of Duplex-ess."
+        ::= { g3survprocessEntry 19 }
+
+    g3survprocessServerBV6IP	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..40))
+        ACCESS    read-only
+        STATUS    mandatory
+        ::= { g3survprocessEntry 20 }
+
+
+    -- the g3nodenameipv4 group
+
+    g3nodenameipv4Tage	OBJECT-TYPE
+        SYNTAX    INTEGER
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "The number of timeticks since the node name data was last
+            extracted from the switch by the MVSubAgent.  This object
+            along with the g3nodenameintvl object allows the Network Manager
+            to determine the validity of the node name data in the cache and to
+            control when the MVSubAgent extracts the data from the switch.	"
+        ::= { g3nodenameipv4 1 }
+
+    g3nodenameipv4Tintvl	OBJECT-TYPE
+        SYNTAX    INTEGER
+        ACCESS    read-write
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the interval for which the node name
+            data extracted from the switch is considered valid by the
+            MVSubAgent. When a GET or GET-NEXT request for these node name
+            objects is received by the agent it uses the g3nodenameTage
+            and g3nodenameTintvl objects to determine whether it should refresh
+            the cached nodenameTable.  If g3nodenamestmp + g3nodenameintvl is
+            less than the current value of the sysUpTime object then the agent
+            refreshes the nodenameTable cache.  In either case it responds to
+            the requests it receives with the data it currently has in the cache."
+        ::= { g3nodenameipv4 2 }
+
+    g3nodenameipv4Tdelay	OBJECT-TYPE
+        SYNTAX    INTEGER
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the delay encountered in updating the cached data."
+        ::= { g3nodenameipv4 3 }
+
+    g3nodenameipv4Tretrieve	OBJECT-TYPE
+        SYNTAX    INTEGER
+		  {
+			failed(1),	-- cache data is corrupted
+			update(2),	-- update the cached data
+			current(3)	-- cached data is current
+		  }
+        ACCESS    read-write
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing a flag that is 'update' if the cached data
+            is being retrieved and otherwise 'current'.  This object may be set 
+            to 'update' to force a refresh of the cache."
+        ::= { g3nodenameipv4 4 }
+
+    g3nodenameipv4Tcount	OBJECT-TYPE
+        SYNTAX    Gauge
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A Gauge object containing the number of data records in the cache."
+        ::= { g3nodenameipv4 5 }
+
+    g3nodenameipv4Table	OBJECT-TYPE
+        SYNTAX    SEQUENCE OF G3nodenameipv4Entry
+        ACCESS    not-accessible
+        STATUS    mandatory
+        DESCRIPTION
+            "A list of g3nodenameipv4 entries."
+        ::= { g3nodenameipv4 6 }
+
+    g3nodenameipv4Entry	OBJECT-TYPE
+        SYNTAX    G3nodenameipv4Entry
+        ACCESS    not-accessible
+        STATUS    mandatory
+        DESCRIPTION
+            "A g3nodenameipv4 entry containing objects of the
+            g3nodenameipv4 information sent by the switch."
+        INDEX    { g3nodenameipv4Name }
+        ::= { g3nodenameipv4Table 1 }
+
+    G3nodenameipv4Entry ::= SEQUENCE {
+        g3nodenameipv4Name
+            DisplayString,
+        g3nodenameipv4Type
+            DisplayString,
+        g3nodenameipv4IP
+            DisplayString
+        }
+
+    g3nodenameipv4Name	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..15))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "This MIB variable displays the names of all the nodes that are
+            administered on the system."
+        ::= { g3nodenameipv4Entry 1 }
+
+    g3nodenameipv4Type	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..5))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the type of the node."
+        ::= { g3nodenameipv4Entry 2 }
+
+    g3nodenameipv4IP	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..40))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An Object displaying the IPAddress of the node name"
+        ::= { g3nodenameipv4Entry 3 }
+
+
+    -- the g3nodenameipv6 group
+
+    g3nodenameipv6Tage	OBJECT-TYPE
+        SYNTAX    INTEGER
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "The number of timeticks since the node name data was last
+            extracted from the switch by the MVSubAgent.  This object
+            along with the g3nodenameintvl object allows the Network Manager
+            to determine the validity of the node name data in the cache and to
+            control when the MVSubAgent extracts the data from the switch."
+        ::= { g3nodenameipv6 1 }
+
+    g3nodenameipv6Tintvl	OBJECT-TYPE
+        SYNTAX    INTEGER
+        ACCESS    read-write
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the interval for which the node name
+            data extracted from the switch is considered valid by the
+            MVSubAgent.  When a GET or GET-NEXT request for these node name
+            objects is received by the agent it uses the g3nodenameage
+            and g3nodenameintvl objects to determine whether it should refresh
+            the cached nodenameTable.  If g3nodenamestmp +
+            g3nodenameintvl is less than the current value of the sysUpTime
+            object then the agent refreshes the nodenameTable cache.  In
+            either case it responds to the requests it receives with the data
+             currently has in the cache."
+        ::= { g3nodenameipv6 2 }
+
+    g3nodenameipv6Tdelay	OBJECT-TYPE
+        SYNTAX    INTEGER
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the delay encountered in updating
+            the cached data."
+        ::= { g3nodenameipv6 3 }
+
+    g3nodenameipv6Tretrieve	OBJECT-TYPE
+        SYNTAX    INTEGER
+		  {
+			failed(1),	-- cache data is corrupted
+			update(2),	-- update the cached data
+			current(3)	-- cached data is current
+		  }
+        ACCESS    read-write
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing a flag that is 'update' if the cached data
+            is being retrieved and otherwise 'current'.  This object may
+            be set to 'update' to force a refresh of the cache."
+        ::= { g3nodenameipv6 4 }
+
+    g3nodenameipv6Tcount	OBJECT-TYPE
+        SYNTAX    Gauge
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A Gauge object containing the number of data records in the cache."
+        ::= { g3nodenameipv6 5 }
+
+    g3nodenameipv6Table	OBJECT-TYPE
+        SYNTAX    SEQUENCE OF G3nodenameipv6Entry
+        ACCESS    not-accessible
+        STATUS    mandatory
+        DESCRIPTION
+            "A list of g3nodenameipv6 entries."
+        ::= { g3nodenameipv6 6 }
+
+    g3nodenameipv6Entry	OBJECT-TYPE
+        SYNTAX    G3nodenameipv6Entry
+        ACCESS    not-accessible
+        STATUS    mandatory
+        DESCRIPTION
+            "A g3nodenameipv6 entry containing objects of the
+            g3nodenameipv6 information sent by the switch."
+        INDEX    { g3nodenameipv6Name }
+        ::= { g3nodenameipv6Table 1 }
+
+    G3nodenameipv6Entry ::= SEQUENCE {
+        g3nodenameipv6Name
+            DisplayString,
+        g3nodenameipv6Type
+            DisplayString,
+        g3nodenameipv6IP
+            DisplayString
+        }
+
+    g3nodenameipv6Name	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..13))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "This MIB variable displays the names of all the nodes that are
+            administered on the system."
+        ::= { g3nodenameipv6Entry 1 }
+
+    g3nodenameipv6Type	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..5))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the type of the node"
+        ::= { g3nodenameipv6Entry 2 }
+
+    g3nodenameipv6IP	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..40))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An Object displaying the IPAddress"
+        ::= { g3nodenameipv6Entry 3 }
+
+
+    -- the g3lspall group
+
+    g3lspallTage	OBJECT-TYPE
+        SYNTAX    INTEGER
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "The number of timeticks since the survivable processor"
+        ::= { g3lspall 1 }
+
+    g3lspallTintvl	OBJECT-TYPE
+        SYNTAX    INTEGER
+        ACCESS    read-write
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the interval for which the data extracted"
+        ::= { g3lspall 2 }
+
+    g3lspallTdelay	OBJECT-TYPE
+        SYNTAX    INTEGER
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the delay encountered in updating the cached data"
+        ::= { g3lspall 3 }
+
+    g3lspallTretrieve	OBJECT-TYPE
+        SYNTAX    INTEGER
+		  {
+			failed(1),	-- cache data is corrupted
+			update(2),	-- update the cached data
+			current(3)	-- cached data is current
+		  }
+        ACCESS    read-write
+        STATUS    mandatory
+        DESCRIPTION
+            " An INTEGER object containing a flag that is 'update' if the cached"
+        ::= { g3lspall 4 }
+
+    g3lspallTcount	OBJECT-TYPE
+        SYNTAX    Gauge
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A Gauge object containing the number of data records in the cache."
+        ::= { g3lspall 5 }
+
+    g3lspallTable	OBJECT-TYPE
+        SYNTAX    SEQUENCE OF G3lspallEntry
+        ACCESS    not-accessible
+        STATUS    mandatory
+        DESCRIPTION
+            "A list of g3lspall entries."
+        ::= { g3lspall 6 }
+
+    g3lspallEntry	OBJECT-TYPE
+        SYNTAX    G3lspallEntry
+        ACCESS    not-accessible
+        STATUS    mandatory
+        DESCRIPTION
+            "A g3lspall entry containing objects of the
+            g3lspall information sent by the switch."
+        INDEX    { g3lspallLSP }
+        ::= { g3lspallTable 1 }
+
+    G3lspallEntry ::= SEQUENCE {
+        g3lspallLSP
+            INTEGER,
+        g3lspallV4NodeName
+            DisplayString,
+        g3lspallV6NodeName
+            DisplayString,
+        g3lspallIPV4Addr
+            DisplayString,
+        g3lspallIPV6Addr
+            DisplayString,
+        g3lspallXlnUpdated
+            DisplayString,
+        g3lspallNetworkRegion
+            DisplayString,
+        g3lspallType
+            DisplayString,
+        g3lspallRegistered
+            DisplayString,
+        g3lspallActive
+            DisplayString
+        }
+
+    g3lspallLSP	OBJECT-TYPE
+        SYNTAX    INTEGER
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An INTEGER object containing an index numbering the LSP records"
+        ::= { g3lspallEntry 1 }
+
+    g3lspallV4NodeName	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..20))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the V4  node name of the survivable processor."
+        ::= { g3lspallEntry 2 }
+
+    g3lspallV6NodeName	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..20))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the IPV6 node name of the survivable processor."
+        ::= { g3lspallEntry 3 }
+
+    g3lspallIPV4Addr	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..40))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the IPV4  address of the survivable processor."
+        ::= { g3lspallEntry 4 }
+
+    g3lspallIPV6Addr	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..40))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the IPV6 Address of the survivable processor."
+        ::= { g3lspallEntry 5 }
+
+    g3lspallXlnUpdated	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..17))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the date and time of the last translation"
+        ::= { g3lspallEntry 6 }
+
+    g3lspallNetworkRegion	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..3))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the network region of the survivable processor."
+        ::= { g3lspallEntry 7 }
+
+    g3lspallType	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..5))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the type of the survivable processor (LSP"
+        ::= { g3lspallEntry 8 }
+
+    g3lspallRegistered	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..1))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object indicating whether the survivable processor is"
+        ::= { g3lspallEntry 9 }
+
+    g3lspallActive	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..1))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An object indicating the active state of survivable processor"
+        ::= { g3lspallEntry 10 }
+
+
+    -- the g3trunkstaOptions group
+
+    g3trunkstaOptionsBeginAt	OBJECT-TYPE
+        SYNTAX    INTEGER
+        ACCESS    read-write
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the position to start from."
+        ::= { g3trunkstaOptions 1 }
+
+    g3trunkstaOptionsNumTrkGrps	OBJECT-TYPE
+        SYNTAX    INTEGER
+        ACCESS    read-write
+        STATUS    mandatory
+        DESCRIPTION
+            "An object stating the Number of Trunk Groups to query."
+        ::= { g3trunkstaOptions 2 }
+
+    g3trunkstaOptionsTable	OBJECT-TYPE
+        SYNTAX    SEQUENCE OF G3trunkstaOptionsEntry
+        ACCESS    not-accessible
+        STATUS    mandatory
+        DESCRIPTION
+            "A list of g3trunkstaOptions entries."
+        ::= { g3trunkstaOptions 3 }
+
+    g3trunkstaOptionsEntry	OBJECT-TYPE
+        SYNTAX    G3trunkstaOptionsEntry
+        ACCESS    not-accessible
+        STATUS    mandatory
+        DESCRIPTION
+            "A g3trunkstaOptions entry containing objects of the
+            g3trunkstaOptions information sent by the switch."
+        INDEX    { g3trunkstaOptionsTrunkGroup, g3trunkstaOptionsMember }
+        ::= { g3trunkstaOptionsTable 1 }
+
+    G3trunkstaOptionsEntry ::= SEQUENCE {
+        g3trunkstaOptionsTrunkGroup
+            INTEGER,
+        g3trunkstaOptionsMember
+            INTEGER,
+        g3trunkstaOptionsServiceState
+            DisplayString,
+        g3trunkstaOptionsMaintBusy
+            DisplayString,
+        g3trunkstaOptionsConnPort1
+            DisplayString,
+        g3trunkstaOptionsConnPort2
+            DisplayString,
+        g3trunkstaOptionsConnPort3
+            DisplayString,
+        g3trunkstaOptionsConnPort4
+            DisplayString,
+        g3trunkstaOptionsConnPort5
+            DisplayString,
+        g3trunkstaOptionsConnPort6
+            DisplayString,
+        g3trunkstaOptionsConnPort7
+            DisplayString,
+        g3trunkstaOptionsConnPort8
+            DisplayString,
+        g3trunkstaOptionsConnPort9
+            DisplayString
+        }
+
+    g3trunkstaOptionsTrunkGroup	OBJECT-TYPE
+        SYNTAX    INTEGER
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An INTEGER Object that uniquely identifies an administered."
+        ::= { g3trunkstaOptionsEntry 1 }
+
+    g3trunkstaOptionsMember	OBJECT-TYPE
+        SYNTAX    INTEGER
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "An INTEGER Object that uniquely identifies a trunk group member."
+        ::= { g3trunkstaOptionsEntry 2 }
+
+    g3trunkstaOptionsServiceState	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..18))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object containing the service state of the trunk."
+        ::= { g3trunkstaOptionsEntry 3 }
+
+    g3trunkstaOptionsMaintBusy	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..4))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that indicates whether the trunk has
+            been busiedfor maintenance."
+        ::= { g3trunkstaOptionsEntry 4 }
+
+    g3trunkstaOptionsConnPort1	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..10))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the nth port connected"
+        ::= { g3trunkstaOptionsEntry 5 }
+
+    g3trunkstaOptionsConnPort2	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..10))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the nth port connected"
+        ::= { g3trunkstaOptionsEntry 6 }
+
+    g3trunkstaOptionsConnPort3	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..10))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the nth port connected"
+        ::= { g3trunkstaOptionsEntry 7 }
+
+    g3trunkstaOptionsConnPort4	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..10))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the nth port connected"
+        ::= { g3trunkstaOptionsEntry 8 }
+
+    g3trunkstaOptionsConnPort5	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..10))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the nth port connected"
+        ::= { g3trunkstaOptionsEntry 9 }
+
+    g3trunkstaOptionsConnPort6	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..10))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the nth port connected"
+        ::= { g3trunkstaOptionsEntry 10 }
+
+    g3trunkstaOptionsConnPort7	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..10))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the nth port connected"
+        ::= { g3trunkstaOptionsEntry 11 }
+
+    g3trunkstaOptionsConnPort8	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..10))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the nth port connected"
+        ::= { g3trunkstaOptionsEntry 12 }
+
+    g3trunkstaOptionsConnPort9	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..10))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the nth port connected"
+        ::= { g3trunkstaOptionsEntry 13 }
+
+
+    -- the g3statstaOptions group
+
+    g3statstaOptionsBeginAt	OBJECT-TYPE
+        SYNTAX    INTEGER
+        ACCESS    read-write
+        STATUS    mandatory
+        DESCRIPTION
+            "An object containing the position to start from."
+        ::= { g3statstaOptions 1 }
+
+    g3statstaOptionsNumStations	OBJECT-TYPE
+        SYNTAX    INTEGER
+        ACCESS    read-write
+        STATUS    mandatory
+        DESCRIPTION
+            "An object stating the number of stations to query."
+        ::= { g3statstaOptions 2 }
+
+    g3statstaOptionsTable	OBJECT-TYPE
+        SYNTAX    SEQUENCE OF G3statstaOptionsEntry
+        ACCESS    not-accessible
+        STATUS    mandatory
+        DESCRIPTION
+            "A list of g3statstaOptions entries."
+        ::= { g3statstaOptions 3 }
+
+    g3statstaOptionsEntry	OBJECT-TYPE
+        SYNTAX    G3statstaOptionsEntry
+        ACCESS    not-accessible
+        STATUS    mandatory
+        DESCRIPTION
+            "A g3statstaOptions entry containing objects of the
+            g3statstaOptions information sent by the switch."
+        INDEX    { g3statstaOptionsExtension }
+        ::= { g3statstaOptionsTable 1 }
+
+    G3statstaOptionsEntry ::= SEQUENCE {
+        g3statstaOptionsExtension
+            DisplayString,
+        g3statstaOptionsServiceState
+            DisplayString,
+        g3statstaOptionsMaintBusy
+            DisplayString,
+        g3statstaOptionsConnPort1
+            DisplayString,
+        g3statstaOptionsConnPort2
+            DisplayString,
+        g3statstaOptionsConnPort3
+            DisplayString,
+        g3statstaOptionsConnPort4
+            DisplayString,
+        g3statstaOptionsConnPort5
+            DisplayString,
+        g3statstaOptionsConnPort6
+            DisplayString,
+        g3statstaOptionsSACactive
+            DisplayString,
+        g3statstaOptionsCFdestExt
+            DisplayString,
+        g3statstaOptionsRingCutOff
+            DisplayString,
+        g3statstaOptionsSerialNbr
+            DisplayString,
+        g3statstaOptionsPartID
+            DisplayString,
+        g3statstaOptionsSwitchPort
+            DisplayString,
+        g3statstaOptionsSwitchIPAddr
+            DisplayString,
+        g3statstaOptionsSwitchIPPort
+            DisplayString,
+        g3statstaOptionsSetIPAddr
+            DisplayString,
+        g3statstaOptionsSetIPPort
+            DisplayString
+        }
+
+    g3statstaOptionsExtension	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..15))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that uniquely identifies an administered station."
+        ::= { g3statstaOptionsEntry 1 }
+
+    g3statstaOptionsServiceState	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..22))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object containing the service state of the station."
+        ::= { g3statstaOptionsEntry 2 }
+
+    g3statstaOptionsMaintBusy	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..4))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that indicates whether the station has
+            been busied for maintenance."
+        ::= { g3statstaOptionsEntry 3 }
+
+    g3statstaOptionsConnPort1	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..10))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the first port connected to 
+            the station."
+        ::= { g3statstaOptionsEntry 4 }
+
+    g3statstaOptionsConnPort2	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..10))
+        ACCESS    read-only
+        STATUS    mandatory
+        ::= { g3statstaOptionsEntry 5 }
+
+    g3statstaOptionsConnPort3	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..10))
+        ACCESS    read-only
+        STATUS    mandatory
+        ::= { g3statstaOptionsEntry 6 }
+
+    g3statstaOptionsConnPort4	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..10))
+        ACCESS    read-only
+        STATUS    mandatory
+        ::= { g3statstaOptionsEntry 7 }
+
+    g3statstaOptionsConnPort5	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..10))
+        ACCESS    read-only
+        STATUS    mandatory
+        ::= { g3statstaOptionsEntry 8 }
+
+    g3statstaOptionsConnPort6	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..10))
+        ACCESS    read-only
+        STATUS    mandatory
+        ::= { g3statstaOptionsEntry 9 }
+
+    g3statstaOptionsSACactive	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..4))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that indicates whether SAC has been"
+        ::= { g3statstaOptionsEntry 10 }
+
+    g3statstaOptionsCFdestExt	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..17))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the CF Destination Extension"
+        ::= { g3statstaOptionsEntry 11 }
+
+    g3statstaOptionsRingCutOff	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..8))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that indicates whether Ring Cut Off has
+            been activated for the station."
+        ::= { g3statstaOptionsEntry 12 }
+
+    g3statstaOptionsSerialNbr	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..12))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the serial number for the station."
+        ::= { g3statstaOptionsEntry 13 }
+
+    g3statstaOptionsPartID	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..11))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the part id for the"
+        ::= { g3statstaOptionsEntry 14 }
+
+    g3statstaOptionsSwitchPort	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..8))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the switch port for the station."
+        ::= { g3statstaOptionsEntry 15 }
+
+    g3statstaOptionsSwitchIPAddr	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..40))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the switch-end IP address for the
+            station."
+        ::= { g3statstaOptionsEntry 16 }
+
+    g3statstaOptionsSwitchIPPort	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..6))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the switch-end IP port nbr for the"
+        ::= { g3statstaOptionsEntry 17 }
+
+    g3statstaOptionsSetIPAddr	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..40))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the set-end IP address for the"
+        ::= { g3statstaOptionsEntry 18 }
+
+    g3statstaOptionsSetIPPort	OBJECT-TYPE
+        SYNTAX    DisplayString (SIZE (0..6))
+        ACCESS    read-only
+        STATUS    mandatory
+        DESCRIPTION
+            "A DisplayString Object that contains the set-end IP port nbr for the"
+        ::= { g3statstaOptionsEntry 19 }
 
 
 
@@ -42505,7 +43419,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3agent 9 }
 
     g3agentActiveIP	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..16))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -42522,7 +43436,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3agent 11 }
 
     g3agentServer1IP	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..16))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -42553,7 +43467,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3agent 14 }
 
     g3agentServer2IP	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..16))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -42576,7 +43490,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3agent 16 }
 
     g3agentCLANIP	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..16))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -42586,7 +43500,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3agent 17 }
 
     g3agentPrim1IP	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..16))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -42597,7 +43511,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3agent 18 }
 
     g3agentPrim2IP	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..16))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -42644,7 +43558,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3agent 23 }
 
     g3agentPrim3IP	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..16))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -42655,7 +43569,7 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         ::= { g3agent 24 }
 
     g3agentPrim4IP	OBJECT-TYPE
-        SYNTAX    DisplayString (SIZE (0..16))
+        SYNTAX    DisplayString (SIZE (0..40))
         ACCESS    read-only
         STATUS    mandatory
         DESCRIPTION
@@ -44222,3 +45136,264 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
 	::= { g3rstfiltEntry 12 }
 END
 
+
+--  The following is the definition of the Traps issued by the 
+--  DEFINITY(r) G3 Proxy Agent.  These traps are defined using the
+--  TRAP-TYPE macro defined in RFC1215.
+
+G3-AVAYA-TRAP DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        
+        g3-products, g3alarmsPort, g3alarmsMaintName, g3alarmsOnBrd,
+	g3alarmsAlarmType, g3extdevAltName, g3extdevDescription, g3extdevID,
+	g3extdevBuilding, g3extdevAddress, g3clientExternalName,
+	g3alarmsAlarmNumber, g3alarmsProductID, g3restartDateTime,
+	g3restartLevel, g3restartCarrier, g3restartCraftDemand,
+	g3restartEscalated, g3restartInterchange, g3restartUnavailable,
+	g3restartCause, g3vintageSpeArelease, g3vintageSpeBrelease,
+	g3vintageSpeAupID, g3vintageSpeBupID, g3alarmsIPAddress, 
+	g3alarmsCategory, g3alarmsErrorCodes, g3alarmsSrcIPAddr, 
+	g3alarmsSrcMACAddr, g3alarmsDestIPAddr, g3alarmsDestPort, 
+	g3alarmsProtocol, g3alarmsCount, g3alarmsViolationType,
+	g3alarmsCode, g3alarmsData, g3alarmsICMPType, g3alarmsEventID,
+	g3alarmsStatus
+            FROM G3-AVAYA-MIB
+        sysName
+            FROM RFC1213-MIB
+        TRAP-TYPE
+            FROM RFC-1215;
+            
+    
+    alarmClear          TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       { g3clientExternalName,g3alarmsProductID,g3alarmsAlarmNumber }
+        DESCRIPTION     "A Cleared Alarm Notification has been issued by
+			the switch indicating that all alarms have been
+                        cleared."
+        ::= 0
+
+    alarmCritical       TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       {
+	g3clientExternalName,g3alarmsProductID,g3alarmsAlarmNumber,g3alarmsPort,g3alarmsMaintName,g3alarmsOnBrd,g3alarmsAlarmType,g3alarmsIPAddress,g3alarmsCategory,g3alarmsErrorCodes }
+        DESCRIPTION     "This trap is defined for future use."
+        ::= 1
+        
+    alarmMajor          TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       {
+	g3clientExternalName,g3alarmsProductID,g3alarmsAlarmNumber,g3alarmsPort,g3alarmsMaintName,g3alarmsOnBrd,g3alarmsAlarmType,g3alarmsIPAddress,g3alarmsCategory,g3alarmsErrorCodes }
+        DESCRIPTION     "A Major alarm has been issued by the switch. The 
+			MIB variables provide attributes of the alarm. The 
+			information contained in the g3alarmsPort, 
+			g3alarmsMaintName, g3alarmsOnBrd trap variables 
+			differ depending on the kind of alarm. If the 
+			alarm is a voice server alarm these fields 
+			contain, respectively, an equipment location, 
+			maintenance object name, and flag indicating 
+			whether or not the alarm was on-board. For 
+			server platform alarms and messaging alarms these 
+			fields contain, respectively, an alarm description
+			including the source of the alarm, a string 
+			indicating the resource from which the alarm 
+			was generated, and an event ID associated with that 
+			resource. More details on the contents of these 
+			fields can be found in the appropriate product 
+			maintenance documentation."
+        ::= 2
+
+    alarmMinor          TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       {
+	g3clientExternalName,g3alarmsProductID,g3alarmsAlarmNumber,g3alarmsPort,g3alarmsMaintName,g3alarmsOnBrd,g3alarmsAlarmType,g3alarmsIPAddress,g3alarmsCategory,g3alarmsErrorCodes }
+        DESCRIPTION     "A Minor alarm has been issued by the switch. 
+			The fields in this trap type has the same 
+			differences, for g3alarmsPort, g3alarmsMaintName, 
+			and g3alarmsOnBrd, as described above for the 
+			alarmMajor trap type."
+        ::= 3
+
+    alarmWarning        TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       {
+	g3clientExternalName,g3alarmsProductID,g3alarmsAlarmNumber,g3alarmsPort,g3alarmsMaintName,g3alarmsOnBrd,g3alarmsAlarmType,g3alarmsIPAddress,g3alarmsCategory,g3alarmsErrorCodes }
+        DESCRIPTION     "A Warning alarm has been issued by the switch.
+			The fields in this trap type has the same 
+			differences, for g3alarmsPort, g3alarmsMaintName, 
+			and g3alarmsOnBrd, as described above for the 
+			alarmMajor trap type."
+        ::= 4
+
+    alarmResolved        TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       {
+	g3clientExternalName,g3alarmsProductID,g3alarmsAlarmNumber,g3alarmsPort,g3alarmsMaintName,g3alarmsOnBrd,g3alarmsAlarmType,g3alarmsIPAddress,g3alarmsCategory,g3alarmsErrorCodes }
+        DESCRIPTION     "An alarm has been resolved on the switch.
+			The fields in this trap type has the same 
+			differences, for g3alarmsPort, g3alarmsMaintName, 
+			and g3alarmsOnBrd, as described above for the 
+			alarmMajor trap type."
+        ::= 12
+
+    alarmRMS        TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       {
+	g3clientExternalName,g3alarmsProductID,g3alarmsAlarmNumber,g3alarmsPort,g3alarmsAlarmType,g3alarmsCategory,g3alarmsSrcIPAddr,g3alarmsSrcMACAddr,g3alarmsDestIPAddr,g3alarmsDestPort,g3alarmsProtocol,g3alarmsCount,g3alarmsViolationType,g3alarmsCode,g3alarmsData,g3alarmsICMPType,g3alarmsEventID,g3alarmsStatus }
+        DESCRIPTION     "An alarm associated with security related events
+			has been issued by the server."
+        ::= 13
+        
+    extalarmMajor       TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       {
+	g3clientExternalName,g3alarmsProductID,g3alarmsAlarmNumber,g3alarmsPort,g3alarmsMaintName,g3alarmsOnBrd,g3alarmsAlarmType,g3extdevAltName,g3extdevDescription,g3extdevID,g3extdevBuilding,g3extdevAddress,g3alarmsIPAddress,g3alarmsCategory,g3alarmsErrorCodes }
+        DESCRIPTION     "An external device Major alarm has been issued
+			by the switch. The variables describe the location 
+			and nature of the alarm. This trap type only
+			applies to voice server alarms."
+        ::= 5
+
+    extalarmMinor       TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       {
+	g3clientExternalName,g3alarmsProductID,g3alarmsAlarmNumber,g3alarmsPort,g3alarmsMaintName,g3alarmsOnBrd,g3alarmsAlarmType,g3extdevAltName,g3extdevDescription,g3extdevID,g3extdevBuilding,g3extdevAddress,g3alarmsIPAddress,g3alarmsCategory,g3alarmsErrorCodes }
+        DESCRIPTION     "An external device Minor alarm has been issued
+			by the switch. The variables describe the location 
+			and nature of the alarm. This trap type only
+			applies to voice server alarms."
+        ::= 6
+
+    extalarmWarning     TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       {
+	g3clientExternalName,g3alarmsProductID,g3alarmsAlarmNumber,g3alarmsPort,g3alarmsMaintName,g3alarmsOnBrd,g3alarmsAlarmType,g3extdevAltName,g3extdevDescription,g3extdevID,g3extdevBuilding,g3extdevAddress,g3alarmsIPAddress,g3alarmsCategory,g3alarmsErrorCodes }
+        DESCRIPTION     "An external device Warning alarm has been issued
+			by the switch. The variables describe the location 
+			and nature of the alarm. This trap type only
+			applies to voice server alarms."
+        ::= 14
+
+    extalarmResolved    TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       {
+	g3clientExternalName,g3alarmsProductID,g3alarmsAlarmNumber,g3alarmsPort,g3alarmsMaintName,g3alarmsOnBrd,g3alarmsAlarmType,g3extdevAltName,g3extdevDescription,g3extdevID,g3extdevBuilding,g3extdevAddress,g3alarmsIPAddress,g3alarmsCategory,g3alarmsErrorCodes }
+        DESCRIPTION     "An external device alarm has been resolved
+			by the switch. The variables describe the location 
+			and nature of the alarm. This trap type only
+			applies to voice server alarms."
+        ::= 15
+    
+    alarmDispatch       TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       { g3clientExternalName,g3alarmsProductID,g3alarmsAlarmNumber }
+        DESCRIPTION     "INADS has dispatched the alarm."
+        ::= 7
+    
+    alarmClose          TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       { g3clientExternalName,g3alarmsProductID,g3alarmsAlarmNumber }
+        DESCRIPTION     "INADS has closed the alarm."
+        ::= 8
+    
+    alarmRestart        TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       { g3clientExternalName,g3alarmsProductID,g3alarmsAlarmNumber,g3restartDateTime,g3restartLevel,g3restartCarrier,g3restartCraftDemand,g3restartEscalated,g3restartInterchange,g3restartUnavailable, g3restartCause, g3vintageSpeArelease, g3vintageSpeBrelease, g3vintageSpeAupID, g3vintageSpeBupID}
+        DESCRIPTION     "A system restart has occurred on the switch.
+                        The variables describe the location and nature of 
+                        the restart."
+        ::= 9
+            
+    alarmNak            TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       { g3clientExternalName,g3alarmsProductID,g3alarmsAlarmNumber }
+        DESCRIPTION     "A NAK was received in an attempt to forward the
+			alarm to INADS."
+        ::= 10
+            
+    alarmNoAck          TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       { g3clientExternalName,g3alarmsProductID,g3alarmsAlarmNumber }
+        DESCRIPTION     "A response other than an ACK or NAK was received
+			in an attempt to forward the alarm to INADS."
+        ::= 11
+
+    connectOther        TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       { g3clientExternalName }
+        DESCRIPTION     "The connection status of the PBX/ECS has changed
+                        to OTHER. This status indicates that the connect is
+                        in an unknown state."
+        ::= 101
+
+    connectOff          TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       { g3clientExternalName }
+        DESCRIPTION     "The connection status of the PBX/ECS has changed
+                        to OFF. This status indicates that user set the
+                        connection state to off so that the Proxy Agent
+                        will not start up a connection with the PBX/ECS."
+        ::= 102
+
+    connectDown         TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       { g3clientExternalName }
+        DESCRIPTION     "The connection status of the PBX/ECS has changed
+                        to DOWN. This status indicates that the Proxy
+                        Agent attempted to establish a connection with the
+                        PBX/ECS and failed."
+        ::= 103
+
+    connectInit         TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       { g3clientExternalName }
+        DESCRIPTION     "The connection status of the PBX/ECS has changed
+			to INIT. This status indicates that the Proxy
+			Agent is in the process of attempting to connect
+			to the PBX/ECS."
+        ::= 104
+
+    connectUp           TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       { g3clientExternalName }
+        DESCRIPTION     "The connection status of the PBX/ECS has changed
+			to UP. This status indicates that the Proxy
+			Agent has a connection established with the PBX/ECS."
+        ::= 105
+
+    connectIdle         TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       { g3clientExternalName }
+        DESCRIPTION     "The connection status of the PBX/ECS has changed
+			to IDLE. This status indicates that a connection
+			with the PBX/ECS is currently inactive due to the 
+			dynamic timeout having been reached without any 
+			activity. The connection will stay in the IDLE state
+			until an SNMP request or alarm is received. This 
+			connection status only applies if the connection 
+			type is 'dynamic'."
+        ::= 106
+
+    connectMax         TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       { g3clientExternalName }
+        DESCRIPTION     "The connection to a PBX/ECS could not be established
+			due to the maximum allowed number of simultaneous
+			connections already being active."
+        ::= 110
+
+    proxyDown           TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       { sysName }
+        DESCRIPTION     "The user has issued a stop proxy-agent command to
+			bring down the Proxy Agent."
+        ::= 150
+
+    proxyUp             TRAP-TYPE
+        ENTERPRISE      g3-products
+        VARIABLES       { sysName }
+        DESCRIPTION     "The user has issued a start proxy-agent command to
+			bring up the Proxy Agent."
+        ::= 151
+
+END

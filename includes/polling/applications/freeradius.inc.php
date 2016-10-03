@@ -17,8 +17,6 @@ if (!empty($agent_data['app']['freeradius']))
 
   $data = explode("\n",$agent_data['app']['freeradius']);
 
-  $rrd_filename = "app-freeradius-$app_id.rrd";
-
   $map = array();
   foreach ($data as $str)
   {
@@ -26,53 +24,31 @@ if (!empty($agent_data['app']['freeradius']))
     $map[$key] = (float)trim($value);
   }
 
-  // General Stats
-  $mapping = array(
-    'AccessAccepts' => 'FreeRADIUS-Total-Access-Accepts',
-    'AccessChallenges' => 'FreeRADIUS-Total-Access-Challenges',
-    'AccessRejects' => 'FreeRADIUS-Total-Access-Rejects',
-    'AccessReqs' => 'FreeRADIUS-Total-Access-Requests',
-    'AccountingReqs' => 'FreeRADIUS-Total-Accounting-Requests',
-    'AccountingResponses' => 'FreeRADIUS-Total-Accounting-Responses',
-    'AcctDroppedReqs' => 'FreeRADIUS-Total-Acct-Dropped-Requests',
-    'AcctDuplicateReqs' => 'FreeRADIUS-Total-Acct-Duplicate-Requests',
-    'AcctInvalidReqs' => 'FreeRADIUS-Total-Acct-Invalid-Requests',
-    'AcctMalformedReqs' => 'FreeRADIUS-Total-Acct-Malformed-Requests',
-    'AcctUnknownTypes' => 'FreeRADIUS-Total-Acct-Unknown-Types',
-    'AuthDroppedReqs' => 'FreeRADIUS-Total-Auth-Dropped-Requests',
-    'AuthDuplicateReqs' => 'FreeRADIUS-Total-Auth-Duplicate-Requests',
-    'AuthInvalidReqs' => 'FreeRADIUS-Total-Auth-Invalid-Requests',
-    'AuthMalformedReqs' => 'FreeRADIUS-Total-Auth-Malformed-Requests',
-    'AuthResponses' => 'FreeRADIUS-Total-Auth-Responses',
-    'AuthUnknownTypes' => 'FreeRADIUS-Total-Auth-Unknown-Types',
+  $data = array(
+    'AccessAccepts'       => $map['FreeRADIUS-Total-Access-Accepts'],
+    'AccessChallenges'    => $map['FreeRADIUS-Total-Access-Challenges'],
+    'AccessRejects'       => $map['FreeRADIUS-Total-Access-Rejects'],
+    'AccessReqs'          => $map['FreeRADIUS-Total-Access-Requests'],
+    'AccountingReqs'      => $map['FreeRADIUS-Total-Accounting-Requests'],
+    'AccountingResponses' => $map['FreeRADIUS-Total-Accounting-Responses'],
+    'AcctDroppedReqs'     => $map['FreeRADIUS-Total-Acct-Dropped-Requests'],
+    'AcctDuplicateReqs'   => $map['FreeRADIUS-Total-Acct-Duplicate-Requests'],
+    'AcctInvalidReqs'     => $map['FreeRADIUS-Total-Acct-Invalid-Requests'],
+    'AcctMalformedReqs'   => $map['FreeRADIUS-Total-Acct-Malformed-Requests'],
+    'AcctUnknownTypes'    => $map['FreeRADIUS-Total-Acct-Unknown-Types'],
+    'AuthDroppedReqs'     => $map['FreeRADIUS-Total-Auth-Dropped-Requests'],
+    'AuthDuplicateReqs'   => $map['FreeRADIUS-Total-Auth-Duplicate-Requests'],
+    'AuthInvalidReqs'     => $map['FreeRADIUS-Total-Auth-Invalid-Requests'],
+    'AuthMalformedReqs'   => $map['FreeRADIUS-Total-Auth-Malformed-Requests'],
+    'AuthResponses'       => $map['FreeRADIUS-Total-Auth-Responses'],
+    'AuthUnknownTypes'    => $map['FreeRADIUS-Total-Auth-Unknown-Types'],
   );
 
-  $values = array();
-  foreach ($mapping as $key)
-  {
-    $values[] = isset($map[$key]) ? $map[$key] : -1;
-  }
+  update_application($app_id, $data);
 
-  rrdtool_create($device, $rrd_filename, " \
-        DS:AccessAccepts:COUNTER:600:0:125000000000 \
-        DS:AccessChallenges:COUNTER:600:0:125000000000 \
-        DS:AccessRejects:COUNTER:600:0:125000000000 \
-        DS:AccessReqs:COUNTER:600:0:125000000000 \
-        DS:AccountingReqs:COUNTER:600:0:125000000000 \
-        DS:AccountingResponses:COUNTER:600:0:125000000000 \
-        DS:AcctDroppedReqs:COUNTER:600:0:125000000000 \
-        DS:AcctDuplicateReqs:COUNTER:600:0:125000000000 \
-        DS:AcctInvalidReqs:COUNTER:600:0:125000000000 \
-        DS:AcctMalformedReqs:COUNTER:600:0:125000000000 \
-        DS:AcctUnknownTypes:COUNTER:600:0:125000000000 \
-        DS:AuthDroppedReqs:COUNTER:600:0:125000000000 \
-        DS:AuthDuplicateReqs:COUNTER:600:0:125000000000 \
-        DS:AuthInvalidReqs:COUNTER:600:0:125000000000 \
-        DS:AuthMalformedReqs:COUNTER:600:0:125000000000 \
-        DS:AuthResponses:COUNTER:600:0:125000000000 \
-        DS:AuthUnknownTypes:COUNTER:600:0:125000000000 ");
+  rrdtool_update_ng($device, 'freeradius', $data, $app_id);
 
-  rrdtool_update($device, $rrd_filename, "N:" . implode(':', $values));
+  unset($map);
 }
 
 // EOF

@@ -45,7 +45,7 @@ foreach ($types as $thing)
 $navbar['options_right']['filters']['url']       = '#';
 $navbar['options_right']['filters']['text']      = 'Filter';
 $navbar['options_right']['filters']['icon']      = 'oicon-filter';
-$navbar['options_right']['filters']['link_opts'] = 'data-hover="dropdown" data-toggle="dropdown"';
+//$navbar['options_right']['filters']['link_opts'] = 'data-hover="dropdown" data-toggle="dropdown"';
 
 $filters = array('all'     => array('url'   => generate_url($vars, array('page' => 'alerts', 'status' => 'all')),
                                        'url_o' => generate_url($vars, array('page' => 'alerts', 'status' => 'all')),

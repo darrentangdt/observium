@@ -148,7 +148,7 @@ $rrd_options .= ":'In '";
 $rrd_options .= " GPRINT:in".$format.":LAST:%6.2lf%s";
 $rrd_options .= " GPRINT:in".$format.":AVERAGE:%6.2lf%s";
 $rrd_options .= " GPRINT:in".$format."_max:MAX:%6.2lf%s";
-$rrd_options .= " GPRINT:95thin:%6.2lf%s\\\\n";
+$rrd_options .= " GPRINT:95thin:%6.2lf%s\\n";
 
 if ($graph_max)
 {
@@ -168,7 +168,7 @@ $rrd_options .= " LINE1.25:dout".$format."#323B7C:'Out'";
 $rrd_options .= " GPRINT:out".$format.":LAST:%6.2lf%s";
 $rrd_options .= " GPRINT:out".$format.":AVERAGE:%6.2lf%s";
 $rrd_options .= " GPRINT:out".$format."_max:MAX:%6.2lf%s";
-$rrd_options .= " GPRINT:95thout:%6.2lf%s\\\\n";
+$rrd_options .= " GPRINT:95thout:%6.2lf%s\\n";
 
 if ($config['rrdgraph_real_95th'])
 {
@@ -181,11 +181,11 @@ if ($config['rrdgraph_real_95th'])
 
 $rrd_options .= " GPRINT:tot:'Total %6.2lf%s'";
 $rrd_options .= " GPRINT:totin:'(In %6.2lf%s'";
-$rrd_options .= " GPRINT:totout:'Out %6.2lf%s)\\\\l'";
+$rrd_options .= " GPRINT:totout:'Out %6.2lf%s)\\l'";
 
 if ($vars['previous'] == "yes")
 {
-  $rrd_options .= " LINE1.25:in".$format."X#009900:'Prev In \\\\n'";
+  $rrd_options .= " LINE1.25:in".$format."X#009900:'Prev In \\n'";
   $rrd_options .= " LINE1.25:dout".$format."X#000099:'Prev Out'";
 } else {
   $rrd_options .= " AREA:wrongin#FFF2F2";

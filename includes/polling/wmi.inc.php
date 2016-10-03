@@ -29,11 +29,11 @@ if ($device['os'] == "windows")
     }
   }
 
-  foreach ($GLOBALS['config']['wmi']['modules'] as $module => $module_status)
+  foreach ($GLOBALS['config']['wmi']['modules'] as $wmi_module => $wmi_module_status)
   {
-    if (!array_key_exists("wmi_poll_".$module, $wmi_attribs))
+    if (!array_key_exists("wmi_poll_".$wmi_module, $wmi_attribs))
     {
-      $wmi_attribs['wmi_poll_'.$module] = $module_status;
+      $wmi_attribs['wmi_poll_'.$wmi_module] = $wmi_module_status;
     }
   }
 

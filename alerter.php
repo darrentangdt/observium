@@ -95,7 +95,7 @@ DEBUGGING OPTIONS:
   exit;
 }
 
-print_cli_heading("%WStarting discovery run at ".date("Y-m-d H:i:s"), 0);
+print_cli_heading("%WStarting alerter run at ".date("Y-m-d H:i:s"), 0);
 
 $polled_devices = 0;
 
@@ -121,9 +121,12 @@ foreach (dbFetch($query, $params) as $device)
   $config['base_url'] = $config['external_url'];
 
   process_alerts($device);
+  process_notifications($device); // Send all notifications (also for syslog from queue)
+
+  dbUpdate(array('last_alerter' => array('NOW()')), 'devices', '`device_id` = ?', array($device['device_id']));
 
 }
 
-print_cli_heading("%WFinished discovery run at ".date("Y-m-d H:i:s"), 0);
+print_cli_heading("%WFinished alerter run at ".date("Y-m-d H:i:s"), 0);
 
 // EOF

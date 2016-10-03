@@ -63,7 +63,7 @@ foreach ($device['state']['poller_mod_perf'] as $module => $time)
 
     echo('    <tr>
       <td><strong>'.$module.'</strong></td>
-      <td style="width: 80px;">'.$time.'s</td>
+      <td style="width: 80px;">'.number_format($time, 4).'s</td>
       <td style="width: 70px;">'.$perc.'%</td>
     </tr>');
   }

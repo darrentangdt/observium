@@ -21,6 +21,6 @@ $unit_text = "Clients";
 $line_text = 'Clients';
 $scale_min = 0;
 
-include("includes/graphs/generic_simplex.inc.php");
+include($config['html_dir']."/includes/graphs/generic_simplex.inc.php");
 
 // EOF

@@ -15,8 +15,8 @@ if (is_device_mib($device, 'CISCO-CONFIG-MAN-MIB'))
 {
   // Check Cisco configuration age
 
-  $oids = "sysUpTime.0 ccmHistoryRunningLastChanged.0 ccmHistoryRunningLastSaved.0 ccmHistoryStartupLastChanged.0";
-  $data = snmp_get_multi($device, $oids, "-OQUst", "SNMPv2-MIB:CISCO-CONFIG-MAN-MIB", mib_dirs(array("cisco")));
+  $oids = 'sysUpTime.0 ccmHistoryRunningLastChanged.0 ccmHistoryRunningLastSaved.0 ccmHistoryStartupLastChanged.0';
+  $data = snmp_get_multi($device, $oids, '-OQUst', 'SNMPv2-MIB:CISCO-CONFIG-MAN-MIB');
   $config_age = $data[0];
 
   foreach ($config_age as $key => $val)
@@ -33,7 +33,7 @@ if (is_device_mib($device, 'CISCO-CONFIG-MAN-MIB'))
 
   $sysUptimeTS = time() - $config_age['sysUpTime'];
 
-  $os_additional_info["Cisco configuration ages"] = array(
+  $os_additional_info['Cisco configuration ages'] = array(
     'sysUptime' => format_unixtime($sysUptimeTS)         .' | '.formatUptime($config_age['sysUpTime']),
     'Running'   => format_unixtime($RunningLastChangedTS).' | '.formatUptime($RunningLastChanged),
     'Saved'     => format_unixtime($RunningLastSavedTS)  .' | '.formatUptime($RunningLastSaved),
@@ -41,7 +41,7 @@ if (is_device_mib($device, 'CISCO-CONFIG-MAN-MIB'))
   );
 }
 
-$sysDescr = preg_replace("/\s+/", " ", $poll_device['sysDescr']); // Replace all spaces and newline to single space
+$sysDescr = preg_replace('/\s+/', ' ', $poll_device['sysDescr']); // Replace all spaces and newline to single space
 // Generic IOS/IOS-XE/IES/IOS-XR sysDescr
 if (preg_match('/^Cisco IOS Software, .+? Software \([^\-]+-([\w\d]+)-\w\),.+?Version ([^, ]+)/', $sysDescr, $matches))
 {
@@ -75,6 +75,30 @@ else if (preg_match('/^Cisco NX-OS\(tm\) (?<hw1>\w+), Software \((?<hw2>.+?)\),.
   //Cisco NX-OS(tm) n7000, Software (n7000-s2-dk9), Version 6.2(8a), RELEASE SOFTWARE Copyright (c) 2002-2013 by Cisco Systems, Inc. Compiled 5/15/2014 20:00:00
   //Cisco NX-OS(tm) n3000, Software (n3000-uk9), Version 6.0(2)U2(2), RELEASE SOFTWARE Copyright (c) 2002-2012 by Cisco Systems, Inc. Device Manager Version nms.sro not found, Compiled 2/12/2014 8:00:00
   list(, $features) = explode('-', $matches['hw2'], 2);
+  $version  = $matches['version'];
+}
+else if (preg_match('/Software \(\w+-(?<features>[\w\d]+)-\w\),.+?Version (?<version>[^, ]+),(?:[\w ]+)? RELEASE SOFTWARE/', $sysDescr, $matches))
+{
+  //C800 Software (C800-UNIVERSALK9-M), Version 15.2(2)T2, RELEASE SOFTWARE (fc1) Technical Support: http://www.cisco.com/techsupport Compiled Thu 02-Aug-12 02:09 by prod_rel_team
+  //Cisco IOS Software, Catalyst 4500 L3 Switch Software (cat4500e-ENTSERVICESK9-M), Version 15.2(1)E3, RELEASE SOFTWARE (fc1) Technical Support: http://www.cisco.com/techsupport Copyright (c) 1986-2014 by Cisco Systems, Inc. Compiled Mon 05-May-14 07:56 b
+  //Cisco IOS Software, ASR900 Software (PPC_LINUX_IOSD-UNIVERSALK9_NPE-M), Version 15.5(1)S, RELEASE SOFTWARE (fc5) Technical Support: http://www.cisco.com/techsupport Copyright (c) 1986-2014 by Cisco Systems, Inc. Compiled Thu 20-Nov-14 18:16 by mcpre
+  //Cisco IOS Software, IOS-XE Software (PPC_LINUX_IOSD-IPBASEK9-M), Version 15.2(2)S, RELEASE SOFTWARE (fc1) Technical Support: http://www.cisco.com/techsupport Copyright (c) 1986-2012 by Cisco Systems, Inc. Compiled Mon 26-Mar-12 15:23 by mcpre
+  //Cisco IOS Software, IES Software (IES-LANBASEK9-M), Version 12.2(52)SE1, RELEASE SOFTWARE (fc1) Technical Support: http://www.cisco.com/techsupport Copyright (c) 1986-2010 by Cisco Systems, Inc. Compiled Tue 09-Feb-10 03:17 by prod_rel_team
+
+  //Cisco Internetwork Operating System Software IOS (tm) 7200 Software (UBR7200-IK8SU2-M), Version 12.3(17b)BC8, RELEASE SOFTWARE (fc1) Technical Support: http://www.cisco.com/techsupport Copyright (c) 1986-2007 by cisco Systems, Inc. Compiled Fri 29-Ju
+  //Cisco Internetwork Operating System Software IOS (tm) C1700 Software (C1700-Y-M), Version 12.2(4)YA2, EARLY DEPLOYMENT RELEASE SOFTWARE (fc1) Synched to technology version 12.2(5.4)T TAC Support: http://www.cisco.com/tac Copyright (c) 1986-2002 by ci
+
+  $features = $matches['features'];
+  $version  = $matches['version'];
+}
+else if (preg_match('/Software, Version (?<version>\d[\d\.\(\)]+)/', $sysDescr, $matches))
+{
+  //Cisco Systems WS-C6509-E Cisco Catalyst Operating System Software, Version 8.4(3) Copyright (c) 1995-2005 by Cisco Systems
+  //Cisco Systems, Inc. WS-C2948 Cisco Catalyst Operating System Software, Version 4.5(9) Copyright (c) 1995-2000 by Cisco Systems, Inc.
+  //Cisco Systems, Inc. WS-C2948G-GE-TX Cisco Catalyst Operating System Software, Version 8.4(5)GLX Copyright (c) 1995-2005 by Cisco Systems, Inc.
+  //Cisco Systems, Inc. WS-C4912 Cisco Catalyst Operating System Software, Version 7.2(2) Copyright (c) 1995-2002 by Cisco Systems, Inc.
+
+  //$features = $matches['features'];
   $version  = $matches['version'];
 }
 
@@ -155,25 +179,18 @@ if (is_array($entPhysical))
 if (empty($hardware) && $poll_device['sysObjectID'])
 {
   // Try translate instead duplicate get sysObjectID
-  $hardware = snmp_translate($poll_device['sysObjectID'], "SNMPv2-MIB:CISCO-PRODUCTS-MIB:CISCO-ENTITY-VENDORTYPE-OID-MIB", mib_dirs(array("cisco")));
+  $hardware = snmp_translate($poll_device['sysObjectID'], 'SNMPv2-MIB:CISCO-PRODUCTS-MIB:CISCO-ENTITY-VENDORTYPE-OID-MIB');
 }
 if (empty($hardware))
 {
   // If translate false, try get sysObjectID again
-  $hardware = snmp_get($device, "sysObjectID.0", "-Osqv", "SNMPv2-MIB:CISCO-PRODUCTS-MIB:CISCO-ENTITY-VENDORTYPE-OID-MIB", mib_dirs(array("cisco")));
+  $hardware = snmp_get($device, 'sysObjectID.0', '-Osqv', 'SNMPv2-MIB:CISCO-PRODUCTS-MIB:CISCO-ENTITY-VENDORTYPE-OID-MIB');
 }
 
 // Additional checks for IOS devices
 if ($device['os'] == 'ios')
 {
   if (stristr($hardware, 'AIRAP') || substr($hardware,0,4) == 'AIR-') { $ios_type = 'wireless'; }
-
-  // Set type to a predefined type for the OS if it's not already set
-  if (isset($ios_type) && $device['type'] != $ios_type)
-  {
-    $type = $ios_type;
-  }
-  unset($ios_type);
 
   // Disable max-rep for 2960S and other stacked switches (causes a heavy load)
   if ($hardware == 'cat29xxStack' || strpos($hardware, 'C2960S'))
@@ -182,6 +199,17 @@ if ($device['os'] == 'ios')
   }
 }
 
-unset($chassis, $model);
+// Set type to a predefined type for the OS if it's not already set
+if (empty($ios_type))
+{
+  $ios_type = rewrite_definition_type($device, $poll_device['sysObjectID']);
+}
+
+if (!empty($ios_type) && $device['type'] != $ios_type)
+{
+  $type = $ios_type;
+}
+
+unset($chassis, $model, $ios_type);
 
 // EOF

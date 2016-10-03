@@ -24,7 +24,7 @@ foreach (dbFetchRows("SELECT * FROM `eigrp_ports` WHERE `device_id` = ?", array(
 {
 
   $port = get_port_by_id($eigrp_port['port_id']);
-  echo('<tr class="'.$port['row_class'].'" onclick="location.href=\'' . generate_port_url($port) . '/\'" style="cursor: pointer;">
+  echo('<tr class="'.$port['row_class'].'" onclick="openLink(\'' . generate_port_url($port) . '/\')" style="cursor: pointer;">
 
           <td class="state-marker"></td>
           <td style="width: 1px;"></td>

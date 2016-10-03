@@ -1,10 +1,10 @@
 -- ============================================================================
--- Copyright (C) 2008 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- 
 -- Description: HUAWEI-BGP-VPN-MIB , this Mib module for management 
 --              of BGP/VPN protocol.
 -- Reference: This MIB was extracted from RFC 4271 
--- Version: V2.06
+-- Version: V2.09
 -- History:
 --    <wangchong >, <2008-12-28>, <publish>
 --    <xiaoyaqun>, <2009-09-14>, <publish>
@@ -31,9 +31,9 @@
                         mplsL3VpnVrfPerfCurrNumRoutes, mplsL3VpnVrfConfMidRteThresh
                             FROM MPLS-L3VPN-STD-MIB;    
     
--- March 18, 2014 at 15:02 GMT
+-- Jan 19, 2015 at 15:02 GMT
         hwBgpMIB MODULE-IDENTITY 
-            LAST-UPDATED "201411201115Z"        -- June 18, 2014 at 11:40 GMT
+            LAST-UPDATED "201502101010Z"        -- Feb 10, 2015 at 10:10 GMT
             ORGANIZATION 
                 "Huawei Technologies Co.,Ltd."
             CONTACT-INFO 
@@ -49,6 +49,18 @@
                 "The Mib module for management of BGP/VPN. Huawei Technologies co.,Ltd. 
                 Supplementary information may be available at: 
                 http://www.huawei.com"
+
+           REVISION "201502101010Z"
+           DESCRIPTION 
+           "Modify trap nodes name, include: 'hwBgpPeerSessionMaxNum', 'hwBgpPeerSessionExceed', 'hwBgpPeerSessionExceedClear'"
+
+           REVISION "201501311435Z"
+           DESCRIPTION 
+           "Add two trap node for sending the number threshold alarms of BGP peers, include: 'hwBgpPeerSessionNumMaxNum', 'hwBgpPeerSessionNumMaxExceed', 'hwBgpPeerSessionNumMaxClear' "
+
+           REVISION "201501191115Z"
+           DESCRIPTION 
+           "Update"
 
            REVISION "201411201115Z"
            DESCRIPTION 
@@ -964,6 +976,22 @@
                 "This notification is generated when the number of routes decreases below the maximum number."
             ::= { hwBgpTraps 14 }
 
+        -- 1.3.6.1.4.1.2011.5.25.177.1.3.15
+        hwBgpPeerSessionExceed NOTIFICATION-TYPE
+            OBJECTS { hwBgpPeerSessionMaxNum }
+            STATUS current
+            DESCRIPTION 
+                "This notification is generated when the number of peer sessions exceeds the maximum number."
+            ::= { hwBgpTraps 15 }
+
+        -- 1.3.6.1.4.1.2011.5.25.177.1.3.16
+        hwBgpPeerSessionExceedClear NOTIFICATION-TYPE
+            OBJECTS { hwBgpPeerSessionMaxNum, hwBgpPeerSessionNum }
+            STATUS current
+            DESCRIPTION 
+                "This notification is generated when the number of peer sessions decreases below the maximum number."
+            ::= { hwBgpTraps 16 }
+
         -- 1.3.6.1.4.1.2011.5.25.177.1.4
         hwBgpScalars OBJECT IDENTIFIER ::= { hwBgpObjects 4 }
         
@@ -993,6 +1021,15 @@
             DESCRIPTION
                 "The total number of External BGP peer sessions configured."
             ::= { hwBgpScalars 3 }
+
+        -- 1.3.6.1.4.1.2011.5.25.177.1.4.4
+        hwBgpPeerSessionMaxNum   OBJECT-TYPE
+            SYNTAX        Unsigned32
+            MAX-ACCESS    read-only
+            STATUS        current
+            DESCRIPTION
+                "The max number of BGP peer sessions configured."
+            ::= { hwBgpScalars 4 }
 
         -- 1.3.6.1.4.1.2011.5.25.177.2
         hwBgpVpnObjects OBJECT IDENTIFIER ::= { hwBgpMIB 2 }
@@ -1798,99 +1835,6 @@
                 "Trap Group for RPKI Sessions.  
                 This table contains members of the traps of RPKI Sessions."
             ::= { hwRpkiGroups 2 }
-
-        -- 1.3.6.1.4.1.2011.5.25.177.12
-        hwFlowSpecObjects OBJECT IDENTIFIER ::= { hwBgpMIB 12 }
-        
-        -- 1.3.6.1.4.1.2011.5.25.177.12.1
-        hwFlowSpecStatisticsTable OBJECT-TYPE
-            SYNTAX SEQUENCE OF HwFlowSpecStatisticsEntry
-            MAX-ACCESS not-accessible
-            STATUS current
-            DESCRIPTION
-                "FlowSpec Statistics Table.  
-                This table contains information about the FlowSpec Statistics."
-            ::= { hwFlowSpecObjects 1 }
-        
-        -- 1.3.6.1.4.1.2011.5.25.177.12.1.1
-        hwFlowSpecStatisticsEntry OBJECT-TYPE
-            SYNTAX HwFlowSpecStatisticsEntry
-            MAX-ACCESS not-accessible
-            STATUS current
-            DESCRIPTION
-                "The information about the FlowSpec Statistics."
-            INDEX { hwReIndex }
-            ::= { hwFlowSpecStatisticsTable 1 }
-        
-        HwFlowSpecStatisticsEntry ::=
-            SEQUENCE { 
-                hwReIndex
-                    Unsigned32,
-                hwRuleNumber
-                    Counter64,
-                hwMatchPackets
-                    Counter64,
-                hwMatchBytes
-                    Counter64,
-                hwMchPacketPerSec
-                    Counter64,
-                hwMchBitPerSec
-                    Counter64       
-             }
-       
-        -- 1.3.6.1.4.1.2011.5.25.177.12.1.1.1
-        hwReIndex OBJECT-TYPE
-            SYNTAX Unsigned32
-            MAX-ACCESS read-only
-            STATUS current
-            DESCRIPTION
-                "The index of the flow route."
-            ::= { hwFlowSpecStatisticsEntry 1 }
-                    
-        -- 1.3.6.1.4.1.2011.5.25.177.12.1.1.2
-        hwRuleNumber OBJECT-TYPE
-            SYNTAX Counter64
-            MAX-ACCESS read-only
-            STATUS current
-            DESCRIPTION
-                "The rule number."
-            ::= { hwFlowSpecStatisticsEntry 2 } 
-            
-        -- 1.3.6.1.4.1.2011.5.25.177.12.1.1.3
-        hwMatchPackets OBJECT-TYPE
-            SYNTAX Counter64
-            MAX-ACCESS read-only
-            STATUS current
-            DESCRIPTION
-                "The match packets."
-            ::= { hwFlowSpecStatisticsEntry 3 }
-
-        -- 1.3.6.1.4.1.2011.5.25.177.12.1.1.4
-        hwMatchBytes OBJECT-TYPE
-            SYNTAX Counter64
-            MAX-ACCESS read-only
-            STATUS current
-            DESCRIPTION
-                "The match bytes."
-            ::= { hwFlowSpecStatisticsEntry 4 }
-
-        -- 1.3.6.1.4.1.2011.5.25.177.12.1.1.5
-        hwMchPacketPerSec OBJECT-TYPE
-            SYNTAX Counter64
-            MAX-ACCESS read-only
-            STATUS current
-            DESCRIPTION
-                "The match packets per sec."
-            ::= { hwFlowSpecStatisticsEntry 5 }
-
-        -- 1.3.6.1.4.1.2011.5.25.177.12.1.1.6
-        hwMchBitPerSec OBJECT-TYPE
-            SYNTAX Counter64
-            MAX-ACCESS read-only
-            STATUS current
-            DESCRIPTION
-                "The match bits per sec."
-            ::= { hwFlowSpecStatisticsEntry 6 }
 
 END
 

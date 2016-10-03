@@ -27,7 +27,7 @@ if (is_numeric($vars['id']) && $alert = get_alert_entry_by_id($vars['id']))
 
     $auth   = TRUE;
 
-    $rrd_filename = $config['rrd_dir'] . "/".$device['hostname']."/" . safename("alert-".$alert['alert_table_id'].".rrd");
+    $rrd_filename = get_rrd_path($device, "alert-".$alert['alert_table_id']);
 
   }
 } else {

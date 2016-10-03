@@ -12,8 +12,7 @@
  */
 
 echo('
-<div class="box box-solid">
-  <table class="table table-hover table-striped  table-condensed " style="margin-top: 10px;">');
+  <table class="table table-hover table-striped  table-condensed ">');
 
 foreach ($devices as $device)
 {
@@ -22,12 +21,10 @@ foreach ($devices as $device)
     if (!$location_filter || $device['location'] == $location_filter)
     {
       print_device_row($device, 'basic');
-      //include("includes/hostbox-basic.inc.php");
     }
   }
 }
 
-echo("  </table>
-</div>");
+echo("  </table>");
 
 // EOF

@@ -18,62 +18,67 @@
 
 <?php
 
-unset($search);
-
 if (!is_array($alert_rules)) { $alert_rules = cache_alert_rules(); }
 
-// Check Field
-foreach (dbFetchRows('SELECT `alert_test_id` FROM `alert_log` WHERE `device_id` = ? ' .
-                     'GROUP BY `alert_test_id`', array($vars['device'])) as $data)
-{
-  $alert_test_id = $data['alert_test_id'];
-  if (is_array($alert_rules[$alert_test_id]))
-  {
-    $alert_test_array[$alert_test_id] = $alert_rules[$alert_test_id]['alert_name'];
-  }
-}
+// Note, this form have more complex grid and class elements for responsive datetime field
+$form = array('type'          => 'rows',
+              'space'         => '5px',
+              'submit_by_key' => TRUE,
+              'url'           => generate_url($vars));
 
-natcasesort($alert_test_array);
-$search[] = array('type'    => 'multiselect',
-                  'name'    => 'Checkers',
-                  'id'      => 'alert_test_id',
-                  'width'   => '125px',
-                  'value'   => $vars['alert_test_id'],
-                  'values'  => $alert_test_array);
+$where = ' WHERE 1 ' . generate_query_values($device['device_id'], 'device_id');
 
-#ALERT_NOTIFY,FAIL,FAIL_DELAYED,FAIL_SUPPRESSED,OK,RECOVER_NOTIFY,RECOVER_SUPPRESSED
+// Checkers Field
+$form_filter = dbFetchColumn('SELECT DISTINCT `alert_test_id` FROM `alert_log`' . $where);
+$form_items['checkers'] = generate_form_values('alert_log', $form_filter, 'alert_test_id');
+$form['row'][0]['alert_test_id'] = array(
+                              'type'        => 'multiselect',
+                              'name'        => 'Checkers',
+                              'width'       => '100%',
+                              'div_class'   => 'col-lg-2 col-md-2 col-sm-4',
+                              'subtext'     => TRUE,
+                              'value'       => $vars['alert_test_id'],
+                              'values'      => $form_items['checkers']);
 
-// Status Field
-foreach (array('ALERT_NOTIFY','FAIL','FAIL_DELAYED','FAIL_SUPPRESSED','OK','RECOVER_NOTIFY') AS $status_type)
-{
-  $status_types[$status_type] = $status_type;
-}
-$search[] = array('type'    => 'multiselect',
-                  'name'    => 'Status Type',
-                  'id'      => 'log_type',
-                  'width'   => '125px',
-//                  'subtext' => TRUE,
-                  'value'   => $vars['log_type'],
-                  'values'  => $status_types);
+// Status Type Field
+$form_filter = dbFetchColumn('SELECT DISTINCT `log_type` FROM `alert_log`' . $where);
+$form_items['statuses'] = generate_form_values('alert_log', $form_filter, 'log_type');
+$form['row'][0]['log_type'] = array(
+                              'type'        => 'multiselect',
+                              'name'        => 'Status Type',
+                              'width'       => '100%',
+                              'div_class'   => 'col-lg-2 col-md-2 col-sm-4',
+                              'size'        => '15',
+                              'value'       => $vars['log_type'],
+                              'values'      => $form_items['statuses']);
 
-//Message field
-#$search[] = array('type'    => 'text',
-#                  'name'    => 'Message',
-#                  'id'      => 'message',
-#                  'width'   => '130px',
-#                  'value'   => $vars['message']);
+// Datetime Field
+$form['row'][0]['timestamp'] = array(
+                              'type'        => 'datetime',
+                              //'grid'        => 5,
+                              //'width'       => '70%',
+                              'div_class'   => 'col-lg-5 col-md-7 col-sm-9',
+                              'presets'     => TRUE,
+                              'min'         => dbFetchCell('SELECT `timestamp` FROM `alert_log`' . $where . ' ORDER BY `timestamp` LIMIT 0,1;'),
+                              'max'         => dbFetchCell('SELECT `timestamp` FROM `alert_log`' . $where . ' ORDER BY `timestamp` DESC LIMIT 0,1;'),
+                              'from'        => $vars['timestamp_from'],
+                              'to'          => $vars['timestamp_to']);
+// Second row with timestamp for sm
+//$form['row_options'][1]  = array('class' => 'hidden-lg hidden-md hidden-xs');
+//$form['row'][1]['timestamp'] = $form['row'][0]['timestamp'];
+//$form['row'][1]['timestamp']['div_class'] = 'text-nowrap col-sm-9';
 
-// $search[] = array('type'    => 'newline',
-//                  'hr'      => TRUE);
-$search[] = array('type'    => 'datetime',
-                  'id'      => 'timestamp',
-                  'presets' => TRUE,
-                  'min'     => dbFetchCell('SELECT `timestamp` FROM `alert_log` WHERE `device_id` = ? ORDER BY `timestamp` LIMIT 0,1;', array($vars['device'])),
-                  'max'     => dbFetchCell('SELECT `timestamp` FROM `alert_log` WHERE `device_id` = ? ORDER BY `timestamp` DESC LIMIT 0,1;', array($vars['device'])),
-                  'from'    => $vars['timestamp_from'],
-                  'to'      => $vars['timestamp_to']);
+// search button
+$form['row'][0]['search']   = array(
+                              'type'        => 'submit',
+                              //'name'        => 'Search',
+                              //'icon'        => 'icon-search',
+                              'div_class'   => 'col-lg-3 col-md-1 col-sm-3',
+                              //'grid'        => 1,
+                              'right'       => TRUE);
 
-print_search($search, 'Alert log', 'search');
+print_form($form);
+unset($form, $form_items, $form_filter);
 
 // Pagination
 $vars['pagination'] = TRUE;
@@ -81,7 +86,7 @@ $vars['pagination'] = TRUE;
 // Print Alert Log
 print_alert_log($vars);
 
-$page_title[] = 'Alert Log';
+register_html_title('Alert Log');
 
 ?>
   </div> <!-- col-md-12 -->

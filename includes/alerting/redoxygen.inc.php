@@ -24,7 +24,7 @@
  * recipient: Recipient phone number/s
  */
 
-$message = $title . PHP_EOL;
+$message = $message_tags['TITLE'] . PHP_EOL;
 $message .= str_replace("             ", "", $message_tags['METRICS']);
 
 // Default URL if not set

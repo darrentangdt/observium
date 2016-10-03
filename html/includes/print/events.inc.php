@@ -264,4 +264,45 @@ function get_events_array($vars)
   return $array;
 }
 
+function generate_eventlog_form_values($form_filter = FALSE, $column = NULL)
+{
+  //global $cache;
+  global $config;
+
+  $form_items = array();
+  $filter = is_array($form_filter); // Use filer or not
+
+  switch ($column)
+  {
+    case 'severities':
+    case 'severity':
+      // These complete same as syslog priorities
+      return generate_form_values('syslog', $form_filter, 'priorities');
+      break;
+    case 'entity_type':
+    case 'type':
+    case 'types':
+      // Use filter as items
+      if ($filter && in_array('device', $form_filter))
+      {
+        // Device always first
+        $form_filter = array_unique(array_merge(array('device'), $form_filter));
+      }
+      foreach ($form_filter as $type)
+      {
+        $name = ($type != '' ? $type : OBS_VAR_UNSET);
+        $form_items[$type]['name'] = nicecase($name);
+
+        if (!isset($config['entities'][$type]['icon']))
+        {
+          $form_items[$type]['icon'] = $config['entity_default']['icon'];
+        } else {
+          $form_items[$type]['icon'] = $config['entities'][$type]['icon'];
+        }
+      }
+      break;
+  }
+  return $form_items;
+}
+
 // EOF

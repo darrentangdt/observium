@@ -180,8 +180,8 @@ hikDeviceStatus OBJECT-TYPE
 hikDeviceLanguage OBJECT-TYPE
     SYNTAX  INTEGER{
                     English(1),
-                    Simple Chinese(2),
-                    Traditional Chinese(3),
+                    Simple_Chinese(2),
+                    Traditional_Chinese(3),
                     Japanese(4),
                     Korea(5),
                     Unknown(255)

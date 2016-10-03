@@ -1,5 +1,5 @@
 -- ===================================================================
--- Copyright (C) 2011 by HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2014 by HUAWEI TECHNOLOGIES. All rights reserved.
 -- Description: This MIB contains private managed object and notification 
 --              trap definitions for MPLS LDP.
 -- Reference:

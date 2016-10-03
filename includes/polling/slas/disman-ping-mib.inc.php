@@ -15,7 +15,7 @@ $mib = 'DISMAN-PING-MIB';
 echo("$mib ");
 
 // Base results table
-$sla_poll = snmpwalk_cache_multi_oid($device, "pingResultsEntry", array(), $mib, mib_dirs());
+$sla_poll = snmpwalk_cache_multi_oid($device, "pingResultsEntry", array(), $mib);
 
 // Additional mibs for vendor specific Types
 $vendor_mib = FALSE;
@@ -24,19 +24,19 @@ if (is_device_mib($device, 'JUNIPER-PING-MIB', FALSE))
   // JUNIPER-PING-MIB
   echo("JUNIPER-PING-MIB ");
   $vendor_mib = 'JUNIPER-PING-MIB';
-  $sla_poll = snmpwalk_cache_multi_oid($device, "jnxPingResultsEntry", $sla_poll, $vendor_mib, mib_dirs("juniper"));
-  //$sla_poll = snmpwalk_cache_multi_oid($device, "jnxPingResultsStatus", $sla_poll, $vendor_mib, mib_dirs("juniper"));
-  //$sla_poll = snmpwalk_cache_multi_oid($device, "jnxPingResultsTime", $sla_poll, $vendor_mib, mib_dirs("juniper"));
+  $sla_poll = snmpwalk_cache_multi_oid($device, "jnxPingResultsEntry", $sla_poll, $vendor_mib);
+  //$sla_poll = snmpwalk_cache_multi_oid($device, "jnxPingResultsStatus", $sla_poll, $vendor_mib);
+  //$sla_poll = snmpwalk_cache_multi_oid($device, "jnxPingResultsTime", $sla_poll, $vendor_mib);
 }
 else if (is_device_mib($device, 'HH3C-NQA-MIB', FALSE))
 {
   // HH3C-NQA-MIB
   echo("HH3C-NQA-MIB ");
   $vendor_mib = 'HH3C-NQA-MIB';
-  $sla_poll = snmpwalk_cache_multi_oid($device, "hh3cNqaResultsEntry", $sla_poll, $vendor_mib, mib_dirs("hh3c"));
+  $sla_poll = snmpwalk_cache_multi_oid($device, "hh3cNqaResultsEntry", $sla_poll, $vendor_mib);
 
   //$flags = OBS_SNMP_ALL ^ OBS_QUOTES_STRIP;
-  //$sla_history = snmpwalk_cache_threepart_oid($device, "Hh3cNqaStatisticsResultsEntry", array(), $vendor_mib, mib_dirs("hh3c"), $flags);
+  //$sla_history = snmpwalk_cache_threepart_oid($device, "Hh3cNqaStatisticsResultsEntry", array(), $vendor_mib, NULL, $flags);
   // walk of separate oids not do sppedup and in some situations longer
   //foreach ($sla_history as $sla_owner => $data)
   //{
@@ -55,8 +55,8 @@ else if (is_device_mib($device, 'HH3C-NQA-MIB', FALSE))
   // Heh, DISMAN-PING-MIB stores correct timestamp and states in huge history table, here trick for get last one
   // FIXME need found more speedup way! but currently only vendor specific is best!
   $flags = OBS_SNMP_ALL ^ OBS_QUOTES_STRIP;
-  $sla_history = snmpwalk_cache_threepart_oid($device, "pingProbeHistoryStatus", array(), $mib, mib_dirs(), $flags);
-  //$sla_history = snmpwalk_cache_threepart_oid($device, "pingProbeHistoryTime", $sla_history, $mib, mib_dirs(), $flags);
+  $sla_history = snmpwalk_cache_threepart_oid($device, "pingProbeHistoryStatus", array(), $mib, NULL, $flags);
+  //$sla_history = snmpwalk_cache_threepart_oid($device, "pingProbeHistoryTime", $sla_history, $mib, NULL, $flags);
   foreach ($sla_history as $sla_owner => $data)
   {
     foreach ($data as $sla_index => $entry)

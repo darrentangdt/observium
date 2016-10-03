@@ -16,10 +16,10 @@
 # Copyright(c) 2004-2010 Hangzhou H3C Tech. Co.,Ltd. All rights reserved.
 # SNMPv2-MIB::sysObjectID.0 = OID: HH3C-PRODUCT-ID-MIB::hh3c-S3100-8TP-EI
 
-$hardware = snmp_get($device, "sysObjectID.0", "-OQsv", "SNMPv2-MIB:HH3C-PRODUCT-ID-MIB", mib_dirs("h3c"));
+$hardware = snmp_get($device, 'sysObjectID.0', '-OQsv', 'SNMPv2-MIB:HH3C-PRODUCT-ID-MIB');
 
-list(,$version,$features) = explode(",", $poll_device['sysDescr']);
-list(,,,$version) = explode(" ", $version);
-list(,,$features) = explode(" ", $features);
+list(,$version,$features) = explode(',', $poll_device['sysDescr']);
+list(,,,$version) = explode(' ', $version);
+list(,,$features) = explode(' ', $features);
 
 // EOF

@@ -12,9 +12,8 @@
  */
 
 // ProxyAV devices hide their CPUs/Memory/Interfaces in here
-echo(" BLUECOAT-SG-USAGE-MIB ");
 
-$av_array = snmpwalk_cache_oid($device, "deviceUsage", array(), "BLUECOAT-SG-USAGE-MIB", mib_dirs('bluecoat'));
+$av_array = snmpwalk_cache_oid($device, 'deviceUsage', array(), 'BLUECOAT-SG-USAGE-MIB');
 
 $mempool['perc'] = $av_array[$mempool['mempool_index']]['deviceUsagePercent'];;
 

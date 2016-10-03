@@ -21,9 +21,9 @@
 //PAN-COMMON-MIB::panSysAvVersion.0 = STRING: 1151-1607
 //PAN-COMMON-MIB::panSysThreatVersion.0 = STRING: 405-2020
 
-$hardware  = trim(snmp_get($device, 'panChassisType.0',     '-OQv', 'PAN-COMMON-MIB', mib_dirs('paloalto')),'" ');
-$version   = trim(snmp_get($device, 'panSysSwVersion.0',    '-OQv', 'PAN-COMMON-MIB', mib_dirs('paloalto')),'" ');
-$features  = trim(snmp_get($device, 'panSysHwVersion.0',    '-OQv', 'PAN-COMMON-MIB', mib_dirs('paloalto')),'" ');
-$serial    = trim(snmp_get($device, 'panSysSerialNumber.0', '-OQv', 'PAN-COMMON-MIB', mib_dirs('paloalto')),'" ');
+$hardware  = trim(snmp_get($device, 'panChassisType.0',     '-OQv', 'PAN-COMMON-MIB'),'" ');
+$version   = trim(snmp_get($device, 'panSysSwVersion.0',    '-OQv', 'PAN-COMMON-MIB'),'" ');
+$features  = trim(snmp_get($device, 'panSysHwVersion.0',    '-OQv', 'PAN-COMMON-MIB'),'" ');
+$serial    = trim(snmp_get($device, 'panSysSerialNumber.0', '-OQv', 'PAN-COMMON-MIB'),'" ');
 
 // EOF

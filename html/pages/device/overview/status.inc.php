@@ -19,17 +19,11 @@
 
   if (count($status))
   {
-?>
-
-  <div class="box box-solid">
-    <div class="box-header ">
-      <a href="<?php echo(generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => 'status'))); ?>">
-        <i class="<?php echo($config['entities']['status']['icon']); ?>"></i><h3 class="box-title">Status Indicators</h3>
-      </a>
-    </div>
-    <div class="box-body no-padding">
-
-<?php
+    $box_args = array('title' => 'Status Indicators', 
+                      'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => 'status')), 
+                      'icon' => $config['entities']['status']['icon'],
+                      ); 
+    echo generate_box_open($box_args);
 
     echo('<table class="table table-condensed table-striped">');
     foreach ($status as $status)
@@ -40,7 +34,7 @@
     }
 
     echo("</table>");
-    echo("</div></div>");
+    echo generate_box_close();
   }
 
 // EOF

@@ -24,18 +24,18 @@
 // sysDescr.0 = STRING: Microsoft Windows CE Version 5.0 (Build 1400)
 // sysDescr.0 = STRING: Microsoft Windows CE Version 6.0 (Build 0)
 
-if (strstr($poll_device['sysDescr'], "x86"))     { $hardware = "Generic x86"; }
-if (strstr($poll_device['sysDescr'], "ia64"))    { $hardware = "Intel Itanium IA64"; }
-if (strstr($poll_device['sysDescr'], "EM64"))    { $hardware = "Intel x64"; }
-if (strstr($poll_device['sysDescr'], "AMD64"))   { $hardware = "AMD x64"; }
-if (strstr($poll_device['sysDescr'], "Intel64")) { $hardware = "Intel x64"; }
+if (strstr($poll_device['sysDescr'], 'x86'))     { $hardware = 'Generic x86'; }
+if (strstr($poll_device['sysDescr'], 'ia64'))    { $hardware = 'Intel Itanium IA64'; }
+if (strstr($poll_device['sysDescr'], 'EM64'))    { $hardware = 'Intel x64'; }
+if (strstr($poll_device['sysDescr'], 'AMD64'))   { $hardware = 'AMD x64'; }
+if (strstr($poll_device['sysDescr'], 'Intel64')) { $hardware = 'Intel x64'; }
 
 if (preg_match('/Version ([\d\.]+) +\(Build (?:Number: )?(\d+)/', $poll_device['sysDescr'], $matches))
 {
   $windows['version'] = $matches[1];
   $windows['build'] = $matches[2];
 }
-if ($poll_device['sysObjectID'] == ".1.3.6.1.4.1.311.1.1.3.1.1") // Workstation
+if ($poll_device['sysObjectID'] == '.1.3.6.1.4.1.311.1.1.3.1.1') // Workstation
 {
   switch ($windows['version'])
   {
@@ -81,12 +81,12 @@ if ($poll_device['sysObjectID'] == ".1.3.6.1.4.1.311.1.1.3.1.1") // Workstation
     default:
       $icon = 'windows_old'; $version = 'NT '.$windows['version'].' Workstation';
   }
-  $windows['type'] = "workstation";
+  $windows['type'] = 'workstation';
 }
-else if ($poll_device['sysObjectID'] == ".1.3.6.1.4.1.311.1.1.3.1.2" || // Server
-         $poll_device['sysObjectID'] == ".1.3.6.1.4.1.311.1.1.3.1.3")   // Datacentre Server
+else if ($poll_device['sysObjectID'] == '.1.3.6.1.4.1.311.1.1.3.1.2' || // Server
+         $poll_device['sysObjectID'] == '.1.3.6.1.4.1.311.1.1.3.1.3')   // Datacenter Server
 {
-  $windows['subtype'] = ($poll_device['sysObjectID'] == ".1.3.6.1.4.1.311.1.1.3.1.3") ? 'Datacenter ' : '';
+  $windows['subtype'] = ($poll_device['sysObjectID'] == '.1.3.6.1.4.1.311.1.1.3.1.3') ? 'Datacenter ' : '';
   switch ($windows['version'])
   {
     case '3.1':
@@ -121,19 +121,19 @@ else if ($poll_device['sysObjectID'] == ".1.3.6.1.4.1.311.1.1.3.1.2" || // Serve
         if ($windows['build'] >  '9200') { $windows['sp'] = ', Update 1'; }
         $version = 'Server 2012 '.$windows['subtype'].'R2'.$windows['sp'].' (NT 6.3)';
       } else {
-        $version = 'Server 10 '.$windows['subtype'].'(NT '.$windows['version'].')'; // FIXME, currently unknown name
+        $version = 'Server 2016 '.$windows['subtype'].'(NT '.$windows['version'].')';
         $icon = 'windows10';
       }
       break;
     default:
         $icon = 'windows_old'; $version = 'NT '.$windows['subtype'].'Server '.$windows['version'];
   }
-  $windows['type'] = "server";
+  $windows['type'] = 'server';
 }
-else if ($poll_device['sysObjectID'] == ".1.3.6.1.4.1.311.1.1.3.3") // Windows CE
+else if ($poll_device['sysObjectID'] == '.1.3.6.1.4.1.311.1.1.3.3') // Windows CE
 {
   $icon = 'windows_old'; $version = 'CE '.$windows['version'];
-  $windows['type'] = "workstation";
+  $windows['type'] = 'workstation';
 }
 
 if (isset($windows['type']))
@@ -141,19 +141,30 @@ if (isset($windows['type']))
   $type = $windows['type'];
 }
 
-if (strstr($poll_device['sysDescr'], "Uniprocessor"))   { $features = "Uniprocessor"; }
-if (strstr($poll_device['sysDescr'], "Multiprocessor")) { $features = "Multiprocessor"; }
+if (strstr($poll_device['sysDescr'], 'Uniprocessor'))   { $features = 'Uniprocessor'; }
+if (strstr($poll_device['sysDescr'], 'Multiprocessor')) { $features = 'Multiprocessor'; }
 
 // Detect processor type? : I.E.  x86 Family 15 Model 2 Stepping 7
 
+// This is duplicate code also used in the unix poller :-(
 // Detect Dell hardware via OpenManage SNMP
-$hw = snmp_get($device, ".1.3.6.1.4.1.674.10892.1.300.10.1.9.1", "-Oqv", "MIB-Dell-10892", mib_dirs('dell'));
-$hw = trim(str_replace("\"", "", $hw));
+$hw = snmp_get($device, 'chassisModelName.1', '-Oqv', 'MIB-Dell-10892');
+
 if ($hw)
 {
-  $hardware = "Dell " . $hw;
-  $serial = snmp_get($device, ".1.3.6.1.4.1.674.10892.1.300.10.1.11.1", "-Oqv", "MIB-Dell-10892", mib_dirs('dell'));
-  $serial = trim(str_replace("\"", "", $serial));
+  $hardware  = 'Dell ' . $hw;
+  $serial    = snmp_get($device, 'chassisServiceTagName.1', '-Oqv', 'MIB-Dell-10892');
+  $asset_tag = snmp_get($device, 'chassisAssetTagName.1', '-Oqv', 'MIB-Dell-10892');
+} else {
+  // Detect HP hardware via hp-snmp-agents
+  $hw = snmp_get($device, 'cpqSiProductName.0', '-Oqv', 'CPQSINFO-MIB');
+
+  if ($hw)
+  {
+    $hardware  = 'HP ' . $hw;
+    $serial    = snmp_get($device, 'cpqSiSysSerialNum.0', '-Oqv', 'CPQSINFO-MIB');
+    $asset_tag = snmp_get($device, 'cpqSiAssetTag.0', '-Oqv', 'CPQSINFO-MIB');
+  }
 }
 
 unset($windows, $hw);

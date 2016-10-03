@@ -12,15 +12,13 @@
  *
  */
 
-echo(" LLDP-MIB ");
-
-$lldp_array = snmpwalk_cache_threepart_oid($device, "lldpRemoteSystemsData", array(), "LLDP-MIB", mib_dirs(), OBS_SNMP_ALL | OBS_SNMP_CONCAT);
+$lldp_array = snmpwalk_cache_threepart_oid($device, "lldpRemoteSystemsData", array(), "LLDP-MIB", NULL, OBS_SNMP_ALL | OBS_SNMP_CONCAT);
 
 if ($lldp_array)
 {
   if (OBS_DEBUG > 1) { print_vars($lldp_array); }
-  $dot1d_array = snmpwalk_cache_oid($device, "dot1dBasePortIfIndex", array(), "BRIDGE-MIB", mib_dirs());
-  $lldp_local_array = snmpwalk_cache_oid($device, "lldpLocalSystemData", array(), "LLDP-MIB", mib_dirs());
+  $dot1d_array = snmpwalk_cache_oid($device, "dot1dBasePortIfIndex", array(), "BRIDGE-MIB");
+  $lldp_local_array = snmpwalk_cache_oid($device, "lldpLocalSystemData", array(), "LLDP-MIB");
 
   foreach ($lldp_array as $key => $lldp_if_array)
   {
@@ -61,7 +59,7 @@ if ($lldp_array)
             // Overwrite remote hostname with the one we know, for devices that we identify by sysName
             if ($remote_device['hostname']) { $lldp['lldpRemSysName'] = $remote_device['hostname']; }
 
-            // If we don't know this device, try to discover it, as long as it's not matching our exclusion filters        
+            // If we don't know this device, try to discover it, as long as it's not matching our exclusion filters
             if (!$remote_device_id && !is_bad_xdp($lldp['lldpRemSysName'], $lldp['lldpRemSysDesc'])) // NOTE, LLDP not have any usable Platform name, here we use lldpRemSysDesc
             {
               $remote_device_id = discover_new_device($lldp['lldpRemSysName'], 'xdp', 'LLDP', $device, $port);
@@ -119,8 +117,14 @@ if ($lldp_array)
                 $remote_port_id = dbFetchCell("SELECT `port_id` FROM `ipv".$ip_version."_addresses` LEFT JOIN `ports` USING (`port_id`) WHERE `ipv".$ip_version."_address` = ? AND `device_id` = ?", array($ip, $remote_device_id));
               }
               break;
-            case 'ifIndex':
             case 'local':
+              // local not always ifIndex or FIXME (see: http://jira.observium.org/browse/OBSERVIUM-1716)
+              if (!ctype_digit($id))
+              {
+                // Not sure what should be if $id ifName and it just numeric
+                $remote_port_id = dbFetchCell("SELECT `port_id` FROM `ports` WHERE (`ifName`= ? OR `ifDescr` = ?) AND `device_id` = ?", array($id, $if, $remote_device_id));
+              }
+            case 'ifIndex':
               // These cases are handled by the ifDescr/ifIndex combination fallback below
             default:
               break;

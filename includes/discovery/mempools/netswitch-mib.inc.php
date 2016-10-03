@@ -27,10 +27,7 @@
 #NETSWITCH-MIB::hpGlobalMemFreeBytes.1 = INTEGER: 9669104
 #NETSWITCH-MIB::hpGlobalMemAllocBytes.1 = INTEGER: 1668728
 
-$mib = 'NETSWITCH-MIB';
-echo("$mib ");
-
-$mempool_array = snmpwalk_cache_oid($device, "hpLocal", NULL, $mib, mib_dirs('hp'));
+$mempool_array = snmpwalk_cache_oid($device, 'hpLocal', array(), $mib);
 
 if (is_array($mempool_array))
 {
@@ -40,10 +37,11 @@ if (is_array($mempool_array))
     {
       $total = $entry['hpLocalMemTotalBytes'];
       $used  = $entry['hpLocalMemAllocBytes'];
-      discover_mempool($valid['mempool'], $device, $index, $mib, "Memory ".$index, 1, $total, $used);
+      discover_mempool($valid['mempool'], $device, $index, 'NETSWITCH-MIB', "Memory $index", 1, $total, $used);
     }
   }
 }
+
 unset ($mempool_array, $index, $total, $used);
 
 // EOF

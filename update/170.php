@@ -11,7 +11,7 @@
  *
  */
 
-echo(' Move old GEO data if exist: ');
+echo('Move old GEO data if exist: ');
 
 foreach (dbFetchRows("SELECT `device_id`, `location`, `location_lat`, `location_lon`, `location_city`, `location_county`, `location_state`, `location_country`, `location_geoapi` FROM `devices` WHERE `status` = 0 OR `disabled` = 1;") as $entry)
 {
@@ -27,7 +27,5 @@ foreach (dbFetchRows("SELECT `device_id`, `location`, `location_lat`, `location_
     echo('-');
   }
 }
-
-echo(PHP_EOL);
 
 // EOF

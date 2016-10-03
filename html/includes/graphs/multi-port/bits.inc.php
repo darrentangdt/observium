@@ -39,6 +39,6 @@ $colours_out = 'blues';
 $ds_in  = "INOCTETS";
 $ds_out = "OUTOCTETS";
 
-include("includes/graphs/generic_multi_bits_separated.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_bits_separated.inc.php");
 
 // EOF

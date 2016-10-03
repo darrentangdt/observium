@@ -14,17 +14,15 @@
 // Display devices as a list in detailed format
 ?>
 
-<div class="box box-solid">
-<table class="table table-hover table-striped  table-condensed " style="margin-top: 10px;">
+<table class="table table-hover table-striped  table-condensed ">
   <thead>
     <tr>
       <th class="state-marker"></th>
       <th></th>
-      <th>Device/Location</th>
+      <th>Device / Location</th>
       <th></th>
-      <th>Platform</th>
-      <th>Operating System</th>
-      <th>Uptime/sysName</th>
+      <th>Operating System / Hardware Platform</th>
+      <th>Uptime / sysName</th>
     </tr>
   </thead>
 
@@ -43,4 +41,7 @@ foreach ($devices as $device)
 ?>
 
 </table>
-</div>
+
+<?php
+
+// EOF

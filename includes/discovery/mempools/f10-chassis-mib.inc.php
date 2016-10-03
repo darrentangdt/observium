@@ -18,14 +18,11 @@
 #F10-CHASSIS-MIB::chRpmMemUsageUtil.2 = 36
 #F10-CHASSIS-MIB::chRpmMemUsageUtil.3 = 9
 
-$mib = 'F10-CHASSIS-MIB';
-echo("$mib ");
-
-$mempool_array = snmpwalk_cache_oid($device, "chRpmMemUsageUtil", NULL, $mib, mib_dirs('force10'));
+$mempool_array = snmpwalk_cache_oid($device, 'chRpmMemUsageUtil', NULL, $mib);
 
 if (is_array($mempool_array))
 {
-  $total_array = snmpwalk_cache_oid($device, "chSysProcessorMemSize.1", NULL, $mib, mib_dirs('force10'));
+  $total_array = snmpwalk_cache_oid($device, 'chSysProcessorMemSize.1', NULL, $mib);
   if (OBS_DEBUG > 1 && count($total_array)) { print_vars($total_array); }
   foreach ($mempool_array as $index => $entry)
   {
@@ -42,11 +39,12 @@ if (is_array($mempool_array))
       }
       $percent = $entry['chRpmMemUsageUtil'];
       $used    = $total * $percent / 100;
-      $descr   = ($index == 1 ? "CP" : "RP" . strval($index - 1));
-      discover_mempool($valid['mempool'], $device, $index, $mib, $descr, $precision, $total, $used);
+      $descr   = ($index == 1 ? 'CP' : 'RP' . strval($index - 1));
+      discover_mempool($valid['mempool'], $device, $index, 'F10-CHASSIS-MIB', $descr, $precision, $total, $used);
     }
   }
 }
+
 unset ($mempool_array, $total_array, $index, $descr, $precision, $total, $used, $percent);
 
 // EOF

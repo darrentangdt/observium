@@ -11,16 +11,7 @@
  *
  */
 
-$mib = 'DNOS-BOXSERVICES-PRIVATE-MIB';
-echo(" $mib ");
-
 // Temperature
-
-// DNOS-BOXSERVICES-PRIVATE-MIB::boxServicesNormalTempRangeMin.0 = INTEGER: 0
-// DNOS-BOXSERVICES-PRIVATE-MIB::boxServicesNormalTempRangeMax.0 = INTEGER: 45
-
-$boxServicesNormalTempRangeMin = snmp_get($device, 'boxServicesNormalTempRangeMin.0', '-Ovq', $mib);
-$boxServicesNormalTempRangeMax = snmp_get($device, 'boxServicesNormalTempRangeMax.0', '-Ovq', $mib);
 
 // DNOS-BOXSERVICES-PRIVATE-MIB::boxServicesUnitIndex.1.0 = Gauge32: 1
 // DNOS-BOXSERVICES-PRIVATE-MIB::boxServicesUnitIndex.1.1 = Gauge32: 1
@@ -41,6 +32,21 @@ $boxServicesNormalTempRangeMax = snmp_get($device, 'boxServicesNormalTempRangeMa
 
 $oid  = 'boxServicesTempSensorsTable';
 $oids = snmpwalk_cache_multi_oid($device, $oid, array(), $mib);
+
+// By first detect if device used old FAST-BOXSERVICES-PRIVATE-MIB, it use single key in boxServicesTempSensorsTable
+$index = explode('.', key($oids));
+if (count($oids) && count($index) === 1)
+{
+  print_debug('Device must use OLD-DNOS-BOXSERVICES-PRIVATE-MIB');
+  return; // Exit from mib discovery
+}
+
+
+// DNOS-BOXSERVICES-PRIVATE-MIB::boxServicesNormalTempRangeMin.0 = INTEGER: 0
+// DNOS-BOXSERVICES-PRIVATE-MIB::boxServicesNormalTempRangeMax.0 = INTEGER: 45
+
+$boxServicesNormalTempRangeMin = snmp_get($device, 'boxServicesNormalTempRangeMin.0', '-Ovq', $mib);
+$boxServicesNormalTempRangeMax = snmp_get($device, 'boxServicesNormalTempRangeMax.0', '-Ovq', $mib);
 
 foreach ($oids as $index => $entry)
 {

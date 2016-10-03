@@ -19,7 +19,7 @@ if (preg_match('/^Rittal (?<hardware>.+) SN (?<serial>\d+) HW V(?<rev>[\d\.\-_]+
   $version  = $matches['version'];
 }
 
-//$version = snmp_get($device, "cmcIIIUnitOSRev.0", "-OQv", "RITTAL-CMC-III-MIB").' FW '.snmp_get($device, "cmcIIIUnitFWRev.0", "-OQv", "RITTAL-CMC-III-MIB");
-//$serial  = snmp_get($device, "cmcIIIUnitSerial.0", "-OQv", "RITTAL-CMC-III-MIB");
+//$version = snmp_get($device, 'cmcIIIUnitOSRev.0', '-OQv', 'RITTAL-CMC-III-MIB').' FW '.snmp_get($device, 'cmcIIIUnitFWRev.0', '-OQv', 'RITTAL-CMC-III-MIB');
+//$serial  = snmp_get($device, 'cmcIIIUnitSerial.0', '-OQv', 'RITTAL-CMC-III-MIB');
 
 // EOF

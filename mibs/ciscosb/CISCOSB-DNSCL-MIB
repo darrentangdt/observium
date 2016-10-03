@@ -27,15 +27,15 @@ IMPORTS
 
 rlDnsCl MODULE-IDENTITY
       LAST-UPDATED "201304010000Z"  -- April 1, 2013
-      ORGANIZATION "Cisco Small Business"
+      ORGANIZATION "Cisco Systems, Inc."
 
       CONTACT-INFO
       "Postal: 170 West Tasman Drive
       San Jose , CA 95134-1706
       USA
 
-      Website: Cisco Small Business Home http://www.cisco.com/smb>;,
-      Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
+      
+      Website:  Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
 
       DESCRIPTION
               "The MIB module describes the private MIB for DNS supported
@@ -610,7 +610,7 @@ rlDnsClMaxNumOfRetransmissions OBJECT-TYPE
     STATUS      current
     DESCRIPTION
         "The maximum number of retransmissions for each query."
-    DEFVAL      { 2 }
+    DEFVAL      { 1 }
 ::= { rlDnsCl 4 }
 
 rlDnsClMinRetransmissionInterval OBJECT-TYPE
@@ -620,7 +620,7 @@ rlDnsClMinRetransmissionInterval OBJECT-TYPE
     DESCRIPTION
         "The minimum number of seconds that must elapsed before
          retransmission for each query."
-    DEFVAL      { 3 }
+    DEFVAL      { 2 }
 ::= { rlDnsCl 5 }
 
 rlDnsClNamesTable OBJECT-TYPE

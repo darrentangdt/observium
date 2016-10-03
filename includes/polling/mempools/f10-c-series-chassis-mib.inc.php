@@ -15,12 +15,12 @@ $mib = 'F10-C-SERIES-CHASSIS-MIB';
 
 $index = $mempool['mempool_index'];
 
-$cache_mempool = snmpwalk_cache_multi_oid($device, 'chRpmMemUsageUtil', $cache_mempool, $mib, mib_dirs('force10'));
+$cache_mempool = snmpwalk_cache_multi_oid($device, 'chRpmMemUsageUtil', $cache_mempool, $mib);
 if ($mempool['mempool_precision'] == 1)
 {
   $mempool['total'] = 1090519040; // Hardcoded total.
 } else {
-  $cache_mempool    = snmpwalk_cache_multi_oid($device, 'chSysProcessorMemSize', $cache_mempool, $mib, mib_dirs('force10'));
+  $cache_mempool    = snmpwalk_cache_multi_oid($device, 'chSysProcessorMemSize', $cache_mempool, $mib);
   $mempool['total'] = $cache_mempool[$index]['chSysProcessorMemSize'];
 }
 $mempool['perc'] = $cache_mempool[$index]['chRpmMemUsageUtil'];

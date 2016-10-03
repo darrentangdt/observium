@@ -11,7 +11,7 @@
  *
  */
 
-echo(' Clean incorrect manual geolocation: ');
+echo('Clean incorrect manual geolocation: ');
 
 foreach (dbFetchRows("SELECT * FROM `devices_locations` WHERE `location_manual` = '1';") as $entry)
 {
@@ -22,7 +22,5 @@ foreach (dbFetchRows("SELECT * FROM `devices_locations` WHERE `location_manual` 
     echo('.');
   }
 }
-
-echo(PHP_EOL);
 
 // EOF

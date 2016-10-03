@@ -11,16 +11,16 @@
  *
  */
 
-$page_title[] = "Poller/Discovery Timing";
+register_html_title("Poller/Discovery Timing");
 
 $rrd_file = $config['rrd_dir'].'/poller-wrapper.rrd';
 if (is_file($rrd_file) && $_SESSION['userlevel'] >= 7)
 {
-  echo generate_box_open(array('header-border' => TRUE, 'title' => 'Poller Wrapper Graphs'));
+  echo generate_box_open(array('header-border' => TRUE, 'title' => 'Poller Wrapper History'));
 
   $graph_array = array('type'   => 'poller_wrapper_threads',
                        //'operation' => 'poll',
-                       'width'  => 1095,
+                       'width'  => 1158,
                        'height' => 100,
                        'from'   => $config['time']['week'],
                        'to'     => $config['time']['now'],
@@ -29,17 +29,14 @@ if (is_file($rrd_file) && $_SESSION['userlevel'] >= 7)
   //echo "<h3>Poller wrapper Total time</h3>";
   $graph_array = array('type'   => 'poller_wrapper_times',
                        //'operation' => 'poll',
-                       'width'  => 1095,
+                       'width'  => 1158,
                        'height' => 100,
                        'from'   => $config['time']['week'],
                        'to'     => $config['time']['now'],
                        );
   echo(generate_graph_tag($graph_array));
-  echo('<blockquote>
-  <footer><i>NOTE. Total time for poller wrapper not same as mentioned below.<br />Total poller wrapper time is real polling time for all devices considering threads. But below shows the amount of all polling times for all devices.</i></footer>
-</blockquote>');
 
-  echo generate_box_close();
+  echo generate_box_close(array('footer_content' => '<b>Please note:</b> The total time for the poller wrapper is not the same as the timings below. Total poller wrapper time is real polling time for all devices and all threads.'));
 }
 
 echo generate_box_open(array('header-border' => TRUE, 'title' => 'Poller/Discovery Timing'));
@@ -115,7 +112,7 @@ foreach ($poller_table as $row)
       <td class="state-marker"></td>
       <td class="entity">'.$row['device_link'].'</td>
       <td style="width: 12%;">
-        <div class="progress progress-'.$proc['color']['poller'].' active" style="margin: 2px 0 1px;"><div class="bar" style="text-align: right; width: '.$proc['time']['poller'].'%;"></div></div>
+        <div class="progress" style="margin: 2px 0 1px;"><div class="progress-bar progress-bar-'.$proc['color']['poller'].'" style="text-align: right; width: '.$proc['time']['poller'].'%;"></div></div>
       </td>
       <td style="width: 7%">
         '.$row['last_polled_timetaken'].'s
@@ -126,7 +123,7 @@ foreach ($poller_table as $row)
   // Discovery times
   echo('
       <td style="width: 12%;">
-        <div class="progress progress-'.$proc['color']['discovery'].' active" style="margin: 2px 0 1px;"><div class="bar" style="text-align: right; width: '.$proc['time']['discovery'].'%;"></div></div>
+        <div class="progress progress-'.$proc['color']['discovery'].' active" style="margin: 2px 0 1px;"><div class="progress-bar progress-bar-'.$proc['color']['poller'].'" style="text-align: right; width: '.$proc['time']['discovery'].'%;"></div></div>
       </td>
       <td style="width: 7%">
         '.$row['last_discovered_timetaken'].'s

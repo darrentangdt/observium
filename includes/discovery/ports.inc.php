@@ -21,8 +21,13 @@ print_cli_data_field("Caching OIDs", 3);
 foreach ($port_oids as $oid)
 {
   print_cli($oid." ");
-  $port_stats = snmpwalk_cache_oid($device, $oid,      $port_stats, "IF-MIB", mib_dirs());
+  $port_stats = snmpwalk_cache_oid($device, $oid, $port_stats, "IF-MIB");
 }
+
+// Additionaly include per MIB functions and snmpwalks (uses include_once)
+$include_lib = TRUE;
+$include_dir = "includes/discovery/ports/";
+include("includes/include-dir-mib.inc.php");
 
 print_cli(PHP_EOL);
 
@@ -53,15 +58,19 @@ $table_rows = array();
 // New interface detection
 foreach ($port_stats as $ifIndex => $port)
 {
+  $port['ifIndex'] = $ifIndex;
+
+  $table_row = array($ifIndex, truncate($port['ifDescr'], 30), $port['ifName'], truncate($port['ifAlias'], 20), $port['ifType'], $port['ifOperStatus']);
   // Check the port against our filters.
   if (is_port_valid($port, $device))
   {
-
-    $table_rows[] = array(truncate($port['ifDescr'], 30), $port['ifName'], truncate($port['ifAlias'], 20), $port['ifType'], $port['ifOperStatus']);
+    $table_row[]  = '%gno%n';
 
     if (!is_array($ports_db[$ifIndex]))
     {
       process_port_label($port, $device); // Process ifDescr if needed
+      $table_row[1] = truncate($port['ifDescr'], 30);
+
       $port_id = dbInsert(array('device_id' => $device['device_id'], 'ifIndex' => $ifIndex, 'ifAlias' => $port['ifAlias'], 'ifDescr' => $port['ifDescr'], 'ifName' => $port['ifName'], 'ifType' => $port['ifType']), 'ports');
       $ports_db[$ifIndex] = dbFetchRow("SELECT * FROM `ports` WHERE `device_id` = ? AND `ifIndex` = ?", array($device['device_id'], $ifIndex));
       echo(" ".$port['ifName']."(".$ifIndex.")[".$ports_db[$ifIndex]['port_id']."]");
@@ -78,6 +87,7 @@ foreach ($port_stats as $ifIndex => $port)
     // We've seen it. Remove it from the cache.
     unset($ports_l[$ifIndex]);
   } else {
+    $table_row[] = '%ryes%n';
     if (is_array($ports_db[$port['ifIndex']])) {
       if ($ports_db[$port['ifIndex']]['deleted'] != "1")
       {
@@ -89,6 +99,7 @@ foreach ($port_stats as $ifIndex => $port)
     }
     echo("X");
   }
+  $table_rows[] = $table_row;
 }
 // End New interface detection
 
@@ -106,7 +117,7 @@ foreach ($ports_l as $ifIndex => $port_id)
 // End interface deletion
 echo(PHP_EOL);
 
-$table_headers = array('%WifDescr%n', '%WifName%n', '%WifAlias%n', '%WifType%n', '%WOper Status%n');
+$table_headers = array('%WifIndex%n', '%WifDescr%n', '%WifName%n', '%WifAlias%n', '%WifType%n', '%WOper Status%n', '%WIgnored%n');
 print_cli_table($table_rows, $table_headers);
 
 // Clear Variables Here

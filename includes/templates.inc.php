@@ -242,9 +242,9 @@ function simple_template_replace($string, $tags)
   // EOL patern should be: /((\r?\n)|(\n?\r))/
   $patterns = array(
     // {{#var}} some text {{/var}}
-    'list_condition'     => '![ \t]*{{#[ \t]*([ \w[:punct:]]+?)[ \t]*}}[ \t]*[\r\n]?(.*?) {{/[ \t]*\1[ \t]*}}[ \t]*([\r\n]?)!s',
+    'list_condition'     => '![ \t]*{{#[ \t]*([ \w[:punct:]]+?)[ \t]*}}[ \t]*[\r\n]?(.*?){{/[ \t]*\1[ \t]*}}[ \t]*([\r\n]?)!s',
     // {{^var}} some text {{/var}}
-    'negative_condition' => '![ \t]*{{\^[ \t]*([ \w[:punct:]]+?)[ \t]*}}[ \t]*[\r\n]?(.*?) {{/[ \t]*\1[ \t]*}}[ \t]*([\r\n]?)!s',
+    'negative_condition' => '![ \t]*{{\^[ \t]*([ \w[:punct:]]+?)[ \t]*}}[ \t]*[\r\n]?(.*?){{/[ \t]*\1[ \t]*}}[ \t]*([\r\n]?)!s',
     // {{{var}}}
     'var_noescape'       => '!{{{[ \t]*([^}{#\^\?/]+?)[ \t]*}}}!',
     // {{var}}
@@ -703,8 +703,8 @@ function print_xml($xml, $formatted = TRUE)
     echo generate_box_open(array('title' => 'Output', 'padding' => TRUE));
     echo '
     <pre class="prettyprint lang-xml small">' . escape_html($xml) . '</pre>
-    <span><em>NOTE. XML values always escaped, that why you can see this chars <mark>' . escape_html(escape_html('< > & " \'')) .
-              '</mark> instead this <mark>' . escape_html('< > & " \'') . '</mark>. <u>Leave them as is</u>.</em></span>
+    <span><em>NOTE: XML values are always escaped, that\'s why you can see this <mark>' . escape_html(escape_html('< > & " \'')) .
+              '</mark> instead of this <mark>' . escape_html('< > & " \'') . '</mark>. <u>Leave them as is</u>.</em></span>
     <script type="text/javascript">window.prettyPrint && prettyPrint();</script>' . PHP_EOL;
     echo generate_box_close();
   }

@@ -11,13 +11,11 @@
  *
  */
 
-echo("JUNIPER-MIB ");
-
-$jnxBoxDescr = snmp_get($device, 'jnxBoxDescr.0', '-OQv', 'JUNIPER-MIB', mib_dirs('juniper'));
+$jnxBoxDescr = snmp_get($device, 'jnxBoxDescr.0', '-OQv', 'JUNIPER-MIB');
 
 if ($jnxBoxDescr)
 {
-  $jnxBoxSerialNo = snmp_get($device, 'jnxBoxSerialNo.0', '-OQv', 'JUNIPER-MIB', mib_dirs('juniper'));
+  $jnxBoxSerialNo = snmp_get($device, 'jnxBoxSerialNo.0', '-OQv', 'JUNIPER-MIB');
 
   // Insert chassis as index 1, everything hangs off of this.
   $system_index = 1;

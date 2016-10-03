@@ -1,10 +1,10 @@
 -- =================================================================
--- Copyright (C) 2004 by  HUAWEI TECHNOLOGIES. All rights reserved
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved
 -- 
 -- Description: This mib file is used for management of huawei Class Based 
 --              QoS information. 
 -- Reference:
--- Version:     V2.32
+-- Version:     V2.39
 -- History:
 --              v1.0 tianli,2004.4.10,publish  
 --              v1.1
@@ -44,7 +44,20 @@
 --                  modified by luyanyan 
 --              V2.32
 --                  modified by wangjing
-
+--              V2.33
+--                  modified by wangjing
+--              V2.34
+--                  modified by wangxiaoyan
+--              V2.35
+--	modified by zhoushujie
+--              V2.36
+--	modified by wangjing
+--              V2.37
+--	modified by wangjing  
+--              V2.38  
+--      modified by liuxiaoyan
+--              V2.39
+--                  modified by songjian 
 -- =================================================================
 
 HUAWEI-XQoS-MIB DEFINITIONS ::= BEGIN
@@ -82,7 +95,7 @@ HUAWEI-XQoS-MIB DEFINITIONS ::= BEGIN
 
 
     hwXQoSMIB MODULE-IDENTITY 
-        LAST-UPDATED "201404091525Z"        -- April 9, 2014 at 15:25 GMT
+        LAST-UPDATED "201505201025Z"       
         ORGANIZATION 
             "Huawei Technologies Co.,Ltd."
         CONTACT-INFO 
@@ -98,7 +111,7 @@ HUAWEI-XQoS-MIB DEFINITIONS ::= BEGIN
             Manage configuration and Monitor running state 
             for Class Based QoS feature."   
 			
-	   REVISION "201404091525Z"
+	   REVISION "201505201025Z"
        DESCRIPTION
           "ADD hwXQoSIf8021PCarCfgInfoTable "
 		  
@@ -192,6 +205,39 @@ HUAWEI-XQoS-MIB DEFINITIONS ::= BEGIN
       REVISION "201412161428Z"
        DESCRIPTION
           "ADD hwXQoSVpnAclConflictAlarm, hwXQoSVpnAclConflictAlarmClear and hwXQoSVpnAclConflictAlarmTable"   
+
+      --add by wangjing 00280821    
+      REVISION "201412161428Z"
+       DESCRIPTION
+          "Modify hwXQoSVpnAclConflictAlarm, hwXQoSVpnAclConflictAlarmClear information "   
+		  
+     REVISION "201504241025Z"
+       DESCRIPTION
+          "Modify hwXQoSStormControlTrap"
+
+     REVISION "201505201025Z"
+      DESCRIPTION
+         "CP-CAR Add hwXQoSCpDefendProtocolDescirption"	
+
+     --add by wangjing 00280821      
+     REVISION "201506061428Z"
+      DESCRIPTION
+         "rename hwXQoSRuleFaileAlarm and hwXQoSRuleFaileAlarmCancel to hwXQoSRuleFailAlarm and hwXQoSRuleFailAlarmCancel"
+	
+     --add by wangjing 00280821      
+     REVISION "201507161050Z"
+      DESCRIPTION
+         "renew description of  hwXQoSRuleFailAlarm, hwXQoSRuleFailInfo and hwXQoSRuleFailAlarmCancel"	
+  
+      --add by wangzhensheng 00163673
+     REVISION "201509081050Z"
+      DESCRIPTION
+         "add hwXQoSTrunkProfileNotEffectAlarm"	
+ 
+     --add by songjian 00280711
+     REVISION "201509161050Z"
+      DESCRIPTION
+         "add hwXQoSQppbPolicyApplyFailAlarm, hwXQoSQppbPolicyApplyFailAlarmClear, hwXQoSQppbPolicyApplyFailAlarmObjects"	
 
         ::= { hwQoS 4 }  
 --   1.3.6.1.4.1.2011.5.25.32.4          
@@ -10897,7 +10943,9 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
                 hwXQoSCpDefendDiscardedThreshold
                     Counter32,
                 hwXQoSCpDefendChassisID
-                    Integer32                    
+                    Integer32,
+				hwXQoSCpDefendProtocolDescirption
+					OCTET STRING
              }
 
         hwXQoSCpDefendSlotId OBJECT-TYPE
@@ -10995,6 +11043,13 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
             DESCRIPTION
                 "Chassis number of statistics for attack defense."
             ::= { hwXQoSCpDefendStatisticsEntry 20 }
+	hwXQoSCpDefendProtocolDescirption OBJECT-TYPE
+          SYNTAX OCTET STRING
+          MAX-ACCESS read-only
+          STATUS current
+          DESCRIPTION
+              "The descirption of Protocol."
+          ::= { hwXQoSCpDefendStatisticsEntry 21 }
 
 -- Urpf discard statistics
         hwXQoSUrpfObjects OBJECT IDENTIFIER ::= { hwXQoSObjects 7 }
@@ -11279,7 +11334,8 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
         hwXQoSCpDefendObjectIndex,
         hwXQoSCpDefendDiscardedPackets,
         hwXQoSCpDefendDiscardedThreshold,
-        hwXQoSCpDefendChassisID
+        hwXQoSCpDefendChassisID,
+		hwXQoSCpDefendProtocolDescirption
         }
      STATUS current
      DESCRIPTION 
@@ -11292,7 +11348,8 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
         hwXQoSCpDefendObjectIndex,
         hwXQoSCpDefendDiscardedPackets,
         hwXQoSCpDefendDiscardedThreshold,
-        hwXQoSCpDefendChassisID         
+        hwXQoSCpDefendChassisID,
+		hwXQoSCpDefendProtocolDescirption
         }
      STATUS current
      DESCRIPTION 
@@ -11375,13 +11432,13 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
     ::= { hwXQoSNotifications 10 }      
 
          
-    hwXQoSRuleFaileAlarm NOTIFICATION-TYPE
+    hwXQoSRuleFailAlarm NOTIFICATION-TYPE
     OBJECTS {
         hwXQoSRuleFailInfo
         }
      STATUS current
      DESCRIPTION 
-    "hwXQoSRuleFaileAlarm."
+    "ACL Rule Exhaustion Alarm"
     ::= { hwXQoSNotifications 11 } 
     hwXQoSProfileUsedAlarm NOTIFICATION-TYPE
     OBJECTS {
@@ -11446,16 +11503,16 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
        "The SNMP trap is generated when the specific car resource is not enough."
        ::= { hwXQoSNotifications 17 }
 --end add by wangyonggui 176838, CAR/STAT Alarm
---begin add by l00241571, RuleFaileAlarmCancel 
-  hwXQoSRuleFaileAlarmCancel NOTIFICATION-TYPE   
+--begin add by l00241571, RuleFailAlarmCancel 
+  hwXQoSRuleFailAlarmCancel NOTIFICATION-TYPE   
     OBJECTS {
         hwXQoSRuleFailInfo
         }
      STATUS current
      DESCRIPTION 
-    "hwXQoSRuleFaileAlarmCancel."
+    "Clearance of ACL Rule Exhaustion Alarm"
     ::= { hwXQoSNotifications 18 } 
---end add by l00241571, RuleFaileAlarmCancel
+--end add by l00241571, RuleFailAlarmCancel
 --begin add by jinxiaoyan
     hwXQoSHardPipeAlarm NOTIFICATION-TYPE
 			OBJECTS { 
@@ -11565,7 +11622,7 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
 			hwXQoSSlotNum}
      STATUS current
      DESCRIPTION 
-    "Traffic policy of vpn-instance not effective, report alarm."
+    "The traffic policy of a VPN instance did not take effect."
     ::= { hwXQoSNotifications 29 }   
     
 --1.3.6.1.4.1.2011.5.25.32.4.1.11.30
@@ -11574,8 +11631,22 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
 			hwXQoSSlotNum}
      STATUS current
      DESCRIPTION 
-    "Traffic policy of vpn-instance effecive or deleted, report alarm-cancel."
-    ::= { hwXQoSNotifications 30 }    
+    "The alarm indicating the traffic policy ineffectiveness of a VPN instance was cleared, because the traffic policy took effect or was deleted."
+    ::= { hwXQoSNotifications 30 }   
+    
+    
+    --begin add by liuxiaoyan   
+    --1.3.6.1.4.1.2011.5.25.32.4.1.11.31
+    hwXQoSTrunkProfileNotEffectAlarm NOTIFICATION-TYPE
+			OBJECTS { 
+			hwXQoSTrunkProfileNotEffectAlarmIfName, 
+			hwXQoSTrunkProfileNotEffectAlarmSlotid}
+     STATUS current
+     DESCRIPTION 
+    "hwXQoSTrunkProfileNotEffectAlarm."
+    ::= { hwXQoSNotifications 31 } 
+    --end add by liuxiaoyan
+ 
 
 		
 		-- 1.3.6.1.4.1.2011.5.25.32.4.1.24
@@ -11668,7 +11739,32 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
 				"The SNMP trap is when the FCoE packet priority alarm is clearing."
 		    ::= { hwXQoSNotifications 28 }
 --end add by renxiaoyuan 209321, FCoE Priority Alram
-
+--begin add by songjian 00280711 for QPPB
+		hwXQoSQppbPolicyApplyFailAlarm NOTIFICATION-TYPE
+			OBJECTS { 
+				  hwXQoSQppbPolicyApplyFailChassisID,
+				  hwXQoSQppbPolicyApplyFailSlotId, 
+				  hwXQoSQppbPolicyApplyFailInterfaceName,
+				  hwXQoSQppbPolicyApplyFailDirection,
+				  hwXQoSQppbPolicyApplyFailLocalID }
+			STATUS current
+			DESCRIPTION 
+			    "The SNMP trap is generated when the qppb policy applied failed."
+			::= { hwXQoSNotifications 32 }
+			
+		hwXQoSQppbPolicyApplyFailAlarmClear NOTIFICATION-TYPE
+			OBJECTS { 
+				  hwXQoSQppbPolicyApplyFailChassisID,
+				  hwXQoSQppbPolicyApplyFailSlotId, 
+				  hwXQoSQppbPolicyApplyFailInterfaceName,
+				  hwXQoSQppbPolicyApplyFailDirection,
+				  hwXQoSQppbPolicyApplyFailLocalID }
+			STATUS current
+			DESCRIPTION 
+			    "Clear the SNMP trap is generated when the qppb policy applied failed."
+			::= { hwXQoSNotifications 33 }
+			
+--end   add by songjian 00280711 for QPPB
     hwXQoSGeneral OBJECT IDENTIFIER ::= { hwXQoSObjects 12 }
     
     hwXQoSFrameId  OBJECT-TYPE
@@ -11768,7 +11864,14 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
                 hwXQoSStormControlUcMode
                     INTEGER,
                 hwXQoSStormControlIfName
-                   OCTET STRING
+                   OCTET STRING,
+               hwXQoSStormControlUnknownUnicastMinRate
+                    Integer32,
+                hwXQoSStormControlUnknownUnicastMaxRate
+                    Integer32,
+                hwXQoSStormControlUnknownUcMode
+                    INTEGER
+
              }
              
         hwXQoSStormControlIfIndex OBJECT-TYPE
@@ -11984,11 +12087,51 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
                 "The interface name."
             ::= { hwXQoSStormControlEntry 16 }
 
+       hwXQoSStormControlUnknownUnicastMinRate OBJECT-TYPE
+            SYNTAX Integer32 (0..14881000)
+            MAX-ACCESS read-write
+            STATUS current
+            DESCRIPTION
+                "The low water mark of unknwon unicast packets rate. Unit: pps (packets per second).
+                zero : storm-control function is not enable for unknown unicast packets."
+            DEFVAL { 0 }
+            ::= { hwXQoSStormControlEntry 17 }    
+
+        hwXQoSStormControlUnknownUnicastMaxRate OBJECT-TYPE
+            SYNTAX Integer32 (0..14881000)
+            MAX-ACCESS read-write
+            STATUS current
+            DESCRIPTION
+                "The high water mark of unknown unicast packets rate. Unit: pps (packets per second).
+                zero : storm-control function is not enable for unknown unicast packets."
+            DEFVAL { 0 }
+            ::= { hwXQoSStormControlEntry 18 }
+
+       hwXQoSStormControlUnknownUcMode OBJECT-TYPE
+            SYNTAX INTEGER {
+                pps(0),
+                kbps(1),
+                percent(2),
+                none(3)
+                }
+            MAX-ACCESS read-write
+            STATUS current
+            DESCRIPTION
+                "The mode of unknown unicast packets.
+                pps : (packets per second).
+                kbps : (kbit per second).
+                percent : (%).
+                none: initialization."
+            DEFVAL { 3 }
+            ::= { hwXQoSStormControlEntry 19} 
+
+
         hwXQoSStormControlNotification OBJECT IDENTIFIER ::= { hwXQoSObjects 14 }
 
         hwXQoSStormControlTrap NOTIFICATION-TYPE
             OBJECTS { hwXQoSStormControlBroadcastMinRate, hwXQoSStormControlBroadcastMaxRate, hwXQoSStormControlMulticastMinRate, hwXQoSStormControlMulticastMaxRate,  
-                hwXQoSStormControlAction, hwXQoSStormControlInterval, hwXQoSStormControlStatus, hwXQoSStormControlUnicastMinRate, hwXQoSStormControlUnicastMaxRate, hwXQoSStormControlBcMode ,hwXQoSStormControlMcMode ,hwXQoSStormControlUcMode }
+                hwXQoSStormControlAction, hwXQoSStormControlInterval, hwXQoSStormControlStatus, hwXQoSStormControlUnicastMinRate, hwXQoSStormControlUnicastMaxRate, hwXQoSStormControlBcMode ,hwXQoSStormControlMcMode, 
+                hwXQoSStormControlUcMode,  hwXQoSStormControlUnknownUcMode,  hwXQoSStormControlUnknownUnicastMinRate, hwXQoSStormControlUnknownUnicastMaxRate}
             STATUS current
             DESCRIPTION 
                 "The SNMP trap is generated when the status of interface is changed for storm-control.
@@ -12003,7 +12146,10 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
                 hwXQoSStormControlUniicastMaxRate: The high water mark of unicast packets rate.
                 hwXQoSStormControlBcMode: The mode of Broadcast packets.
                 hwXQoSStormControlMcMode: The mode of multicast packets.
-                hwXQoSStormControlUcMode: The mode of unicast packets."
+                hwXQoSStormControlUcMode: The mode of unicast packets.
+                hwXQoSStormControlUnknownUcMode: The mode of unknown unicast packets.
+                hwXQoSStormControlUnknownUnicastMinRate: The low water mark of unknown unicast packets rate.
+                hwXQoSStormControlUnknownUnicastMaxRate: The high water mark of unknown unicast packets rate."
             ::= { hwXQoSStormControlNotification 1 }
 
                 
@@ -12350,7 +12496,7 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
             MAX-ACCESS read-only
             STATUS current
             DESCRIPTION
-                "hwXQoSRuleFailInfo."
+                "ACL Rule Exhaustion Information"
             ::= { hwXQoSRuleFailEntry 1 }
                        
                
@@ -12807,7 +12953,59 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
 				"The usage of qos hard-pipe bandwidth."
 			::= { hwXQoSHardPipeAlarmEntry 2 }
 			
---end add by jinxiaoyan                       
+--end add by jinxiaoyan      
+
+--begin add by liuxiaoyan 
+--sq alarm
+ 		-- 1.3.6.1.4.1.2011.5.25.32.4.1.25
+		hwXQoSTrunkProfileNotEffectAlarmObjects OBJECT IDENTIFIER ::= { hwXQoSObjects 25 }
+		
+		-- 1.3.6.1.4.1.2011.5.25.32.4.1.25.1
+		hwXQoSTrunkProfileNotEffectAlarmTable OBJECT-TYPE
+			SYNTAX SEQUENCE OF HwXQoSTrunkProfileNotEffectAlarmEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"hwXQoSTrunkProfileNotEffectAlarmTable"
+			::= { hwXQoSTrunkProfileNotEffectAlarmObjects 1 }
+		
+		-- 1.3.6.1.4.1.2011.5.25.32.4.1.25.1.1
+		hwXQoSTrunkProfileNotEffectAlarmEntry OBJECT-TYPE
+			SYNTAX HwXQoSTrunkProfileNotEffectAlarmEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"hwXQoSTrunkProfileNotEffectAlarmEntry"
+			INDEX { hwXQoSTrunkProfileNotEffectAlarmIfName , hwXQoSTrunkProfileNotEffectAlarmSlotid }
+			::= { hwXQoSTrunkProfileNotEffectAlarmTable 1 }
+		
+		HwXQoSTrunkProfileNotEffectAlarmEntry ::=
+			SEQUENCE { 
+				hwXQoSTrunkProfileNotEffectAlarmIfName
+					OCTET STRING,
+			    hwXQoSTrunkProfileNotEffectAlarmSlotid
+			        Integer32
+			 }
+
+		-- 1.3.6.1.4.1.2011.5.25.32.4.1.25.1.1.1
+		hwXQoSTrunkProfileNotEffectAlarmIfName OBJECT-TYPE
+			SYNTAX OCTET STRING
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"The interface name."
+			::= { hwXQoSTrunkProfileNotEffectAlarmEntry 1 }
+			
+		-- 1.3.6.1.4.1.2011.5.25.32.4.1.25.1.1.2
+		hwXQoSTrunkProfileNotEffectAlarmSlotid OBJECT-TYPE
+			SYNTAX Integer32
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"The slotid of trunk member."
+			::= { hwXQoSTrunkProfileNotEffectAlarmEntry 2 }
+			
+--end add by liuxiaoyan                  
                  
 -- ******************************************************************
 --
@@ -13627,7 +13825,8 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
         hwXQoSCpDefendDiscardedPacketRate,
         hwXQoSCpDefendDiscardedByteRate,
         hwXQoSCpDefendDiscardedThreshold,
-        hwXQoSCpDefendChassisID        
+        hwXQoSCpDefendChassisID,
+		hwXQoSCpDefendProtocolDescirption
         }
         STATUS      current
         DESCRIPTION
@@ -13648,13 +13847,13 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
         hwXQoSIrsmSynFrameDropAlarm,
         hwXQoSStatResouceNotEnoughAlarm,
         hwXQoSIrsmDropPacketAlarm,
-        hwXQoSRuleFaileAlarm,
+        hwXQoSRuleFailAlarm,
         hwXQoSCpDefendDiscardedPacketAlarmClear,
         hwXQoSCARResouceNotEnoughAlarm,
         hwXQoSPortQueueAlarmClear,
         hwXQoSProfileUsedAlarm,
         hwXQoSPortQueueAlarm,
-        hwXQoSRuleFaileAlarmCancel,   -- add by l00241571, RuleFaileAlarmCancel
+        hwXQoSRuleFailAlarmCancel,   -- add by l00241571, RuleFailAlarmCancel
         hwXQoSHardPipeAlarm,
         hwXQoSHardPipeAlarmClear,
 		hwXQOSQueueBufferOverrunAlarm,
@@ -13687,7 +13886,6 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
         
     hwXQoSSredGroup OBJECT-GROUP
         OBJECTS {
-        hwXQoSIfSredQueueIndex,
         hwXQoSIfSredRedStartDiscardPoint,
         hwXQoSIfSredRedDiscardProbability,                           
         hwXQoSIfSredYellowStartDiscardPoint,
@@ -13733,9 +13931,7 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
      ::= { hwXQoSGroups 9 }
       
      hwXQoSShapingGroup OBJECT-GROUP
-        OBJECTS {
-            hwXQoSIfShapingIfIndex,
-            hwXQoSIfShapingQueueIndex, 
+        OBJECTS { 
             hwXQoSIfShapingQueueCir,
             hwXQoSIfShapingQueuePir,
             hwXQoSIfShapingRowStatus
@@ -13748,7 +13944,6 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
 
      hwXQoSUrpfDiscardStatisticsGroup OBJECT-GROUP
         OBJECTS {        
-               hwXQoSUrpfSlotPhysicalIndex,
        hwXQoSUrpfDiscardedPackets                
         }
         STATUS  current
@@ -13830,7 +14025,7 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
 
         
         hwXQoSBaPhbGroup OBJECT-GROUP
-            OBJECTS { hwXQoSBaPhbType, hwXQoSBaPhbPri, hwXQoSBaPhbCos, hwXQoSBaPhbColour, hwXQoSBaPhbRowStatus
+            OBJECTS { hwXQoSBaPhbCos, hwXQoSBaPhbColour, hwXQoSBaPhbRowStatus
                  }
             STATUS current
             DESCRIPTION 
@@ -13839,7 +14034,7 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
 
         
         hwXQoSBaMapGroup OBJECT-GROUP
-            OBJECTS { hwXQoSBaMapType, hwXQoSBaMapCos, hwXQoSBaMapColour, hwXQoSBaMapPri, hwXQoSBaMapRowStatus
+            OBJECTS { hwXQoSBaMapPri, hwXQoSBaMapRowStatus
                  }
             STATUS current
             DESCRIPTION 
@@ -13847,7 +14042,7 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
             ::= { hwXQoSGroups 21 }
 
         hwXQoSIfTrustGroup OBJECT-GROUP
-            OBJECTS { hwXQoSIfTrustIfIndex, hwXQoSIfTrustVlanID1, hwXQoSIfTrustVlanID2, hwXQoSBaType, hwXQoSIfTrustAction, 
+            OBJECTS { hwXQoSIfTrustAction, 
                 hwXQoSIfTrustRowStatus}
             STATUS current
             DESCRIPTION 
@@ -14300,7 +14495,83 @@ AF4(5),AF3(4),AF2(3),AF1(2),BE(1)."
             DESCRIPTION
                 "The value of this object identifies the VLAN ID of the interface."
             ::= { hwXQoSSecurityStormControlInterfaceEntry 4 }
-       
+
+        hwXQoSQppbPolicyApplyFailAlarmObjects OBJECT IDENTIFIER ::= { hwXQoSObjects 26 }
+		
+        hwXQoSQppbPolicyApplyFailAlarmTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF HwXQoSQppbPolicyApplyFailAlarmEntry
+                MAX-ACCESS not-accessible
+                STATUS current
+                DESCRIPTION
+                "It will alarm when the qos-local-id has exceed the upper-limit."
+               ::= { hwXQoSQppbPolicyApplyFailAlarmObjects 1 }
+			
+        hwXQoSQppbPolicyApplyFailAlarmEntry OBJECT-TYPE
+                SYNTAX HwXQoSQppbPolicyApplyFailAlarmEntry
+                MAX-ACCESS not-accessible
+                STATUS current
+                DESCRIPTION
+                "It will alarm when the qos-local-id has exceed the upper-limit."
+                INDEX { hwXQoSQppbPolicyApplyFailChassisID, hwXQoSQppbPolicyApplyFailSlotId, hwXQoSQppbPolicyApplyFailInterfaceName, hwXQoSQppbPolicyApplyFailDirection, hwXQoSQppbPolicyApplyFailLocalID }
+                ::= { hwXQoSQppbPolicyApplyFailAlarmTable 1 }
+			
+            HwXQoSQppbPolicyApplyFailAlarmEntry ::=
+            SEQUENCE { 
+                                     hwXQoSQppbPolicyApplyFailChassisID
+                                          Integer32,
+                                    hwXQoSQppbPolicyApplyFailSlotId      
+                                          Integer32,
+	               hwXQoSQppbPolicyApplyFailInterfaceName
+	                    OCTET STRING,
+	               hwXQoSQppbPolicyApplyFailDirection
+                                         INTEGER,
+	               hwXQoSQppbPolicyApplyFailLocalID
+	                   Integer32
+                                    }
+			
+             hwXQoSQppbPolicyApplyFailChassisID OBJECT-TYPE
+	SYNTAX Integer32 (1..128)
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"Chassis ID of the LPU where the qppb policy been applied failed."
+	 ::= { hwXQoSQppbPolicyApplyFailAlarmEntry 1 } 
+			 
+             hwXQoSQppbPolicyApplyFailSlotId OBJECT-TYPE
+	SYNTAX Integer32 (1..128)
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"Slot ID of the LPU where the qppb policy been applied failed."
+	 ::= { hwXQoSQppbPolicyApplyFailAlarmEntry 2 } 
+				 
+              hwXQoSQppbPolicyApplyFailInterfaceName OBJECT-TYPE
+                      SYNTAX OCTET STRING
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	 "Name of the interface where the qppb policy been applied failed."
+	 ::= { hwXQoSQppbPolicyApplyFailAlarmEntry 3 }
+			 
+              hwXQoSQppbPolicyApplyFailDirection OBJECT-TYPE
+	SYNTAX INTEGER
+                     {
+                           inbound(1),
+                          outbound(2) 
+                     }
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"Direction of the qppb policy."
+	::= { hwXQoSQppbPolicyApplyFailAlarmEntry 4 }
+			
+            hwXQoSQppbPolicyApplyFailLocalID OBJECT-TYPE
+	SYNTAX Integer32 (1..128)
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"LocalID of the qppb policy."
+	::= { hwXQoSQppbPolicyApplyFailAlarmEntry 5 }       
 -- BEGIN: Added by w00218179, 2013/6/13            
         -- 1.3.6.1.4.1.2011.5.25.32.4.2.2.50
 		hwXQosCarResourceGroup OBJECT-GROUP

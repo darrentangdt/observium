@@ -13,7 +13,7 @@
 
 $scale_min = 0;
 
-include("includes/graphs/common.inc.php");
+include($config['html_dir']."/includes/graphs/common.inc.php");
 
 $ds = "DropPkt";
 
@@ -27,6 +27,6 @@ $graph_max = 1;
 
 $unit_text = "Pkts";
 
-include("includes/graphs/generic_simplex.inc.php");
+include($config['html_dir']."/includes/graphs/generic_simplex.inc.php");
 
 ?>

@@ -2,8 +2,8 @@
 --
 -- Title: iDRAC MIB
 --
--- Version: 2.1
--- Date: 22 Aug 2013
+-- Version: 3.2
+-- Date: 19 January 2015
 --
 -- Description: This MIB defines MIB objects that make iDRAC data available
 -- to SNMP management applications.
@@ -12,7 +12,7 @@
 -- of Managed Information) notations: SMIv1 and SMIv2. This copy of the iDRAC
 -- MIB file is the SMIv2 version of the MIB file.
 --
--- Copyright (c) 2012-2013 Dell Inc.
+-- Copyright (c) 2012-2015 Dell Inc.
 -- All Rights Reserved.
 --
 -- Note: The information and functionality described by this MIB file,
@@ -35,14 +35,13 @@
 IDRAC-MIB-SMIv2 DEFINITIONS ::= BEGIN
 
 IMPORTS
-    MODULE-IDENTITY, OBJECT-TYPE, Counter32, Integer32,
-    TimeTicks, NOTIFICATION-TYPE,
-    OBJECT-IDENTITY, enterprises FROM SNMPv2-SMI
-    TEXTUAL-CONVENTION, DisplayString FROM SNMPv2-TC
-    MODULE-COMPLIANCE, OBJECT-GROUP FROM SNMPv2-CONF;
+    MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE, enterprises
+        FROM SNMPv2-SMI
+    TEXTUAL-CONVENTION, DisplayString
+        FROM SNMPv2-TC;
 
 outOfBandGroup MODULE-IDENTITY
-    LAST-UPDATED "201308220000Z" -- 22 Aug 2013
+    LAST-UPDATED "201501190000Z" -- 19 January 2015
     ORGANIZATION "Dell Inc."
     CONTACT-INFO
         "Visit the Dell Support website at: support.dell.com"
@@ -51,6 +50,68 @@ outOfBandGroup MODULE-IDENTITY
          available to SNMP management applications. It also defines the traps
          that iDRAC supports."
     -- Revision history, in reverse chronological order.
+
+    REVISION "201501190000Z" -- 19 January 2015
+    DESCRIPTION
+        "Version: 3.2
+         * Renamed powerSupplyInputVoltage to powerSupplyMaximumInputVoltage
+           and updated description.
+         * Added powerSupplyCurrentInputVoltage.
+         * Updated memoryDeviceSpeed description.
+         * Added memoryDeviceCurrentOperatingSpeed.
+         * Removed hyphens from enumeration value names.
+         * Added alertRacFQDN variable to all traps.
+         * Added the following traps:
+           alertCableFailure
+           alertCMCWarning
+           alertCMCFailure
+           alertIOVirtualizationFailure
+           alertLinkStatusInformation
+           alertLinkStatusWarning
+           alertLinkStatusFailure
+           alertSecurityWarning
+           alertSoftwareConfigurationInformation
+           alertSoftwareConfigurationWarning
+           alertSoftwareConfigurationFailure
+           alertStorageSecurityInformation
+           alertStorageSecurityWarning
+           alertStorageSecurityFailure
+           alertSoftwareChangeUpdateWarning
+           alertCMCAuditInformation
+           alertCMCAuditWarning
+           alertCMCAuditFailure
+           alertPCIDeviceAuditWarning
+           alertPowerSupplyAuditWarning
+           alertPowerSupplyAuditFailure
+           alertPowerUsageAuditInformation
+           alertPowerUsageAuditWarning
+           alertPowerUsageAuditFailure
+           alertIPAddressConfigurationInformation
+           alertJobControlConfigurationInformation
+           alertPCIDeviceConfigurationInformation
+           alertSecurityConfigurationWarning
+           alertSWCConfigurationWarning
+           alertSWCConfigurationFailure
+         "
+
+    REVISION "201410030000Z" -- 03 October 2014
+    DESCRIPTION
+        "Version: 3.1
+         * Added deviceTypeIsDDR4 to MemoryDeviceTypeEnum."
+
+    REVISION "201407070000Z" -- 07 July 2014
+    DESCRIPTION
+        "Version: 3.0
+         * Updated physicalDiskPowerState.
+         * Updated RacTypeEnum for iDRAC8.
+         * Added alertRACInformation trap.
+         * Added alertSystemPerformanceWarning trap.
+         * Added alertUserTrackingWarning trap.
+         * Added physicalDiskProtocolVersion.
+         * Added physicalDiskPCIeNegotiatedLinkWidth.
+         * Added physicalDiskPCIeCapableLinkWidth.
+         * Added enclosureType."
+    
     REVISION "201308220000Z" -- 22 Aug 2013
     DESCRIPTION
         "Version: 2.1
@@ -151,12 +212,6 @@ FQDDString              ::= TEXTUAL-CONVENTION
         "String type for FQDD strings."
     SYNTAX              OCTET STRING (SIZE (0..512))
 
-SecurityString          ::= TEXTUAL-CONVENTION
-    STATUS current
-    DESCRIPTION
-        "String type for security strings."
-    SYNTAX              OCTET STRING (SIZE (0..255))
-
 MACAddress              ::= TEXTUAL-CONVENTION
     STATUS current
     DESCRIPTION
@@ -184,8 +239,8 @@ Unsigned16BitRange      ::= TEXTUAL-CONVENTION
 Unsigned32BitRange      ::= TEXTUAL-CONVENTION
     STATUS current
     DESCRIPTION
-        "Integer with a range of (0..4294967295)."
-    SYNTAX              INTEGER (0..4294967295)
+        "Integer with a range of (0..2147483647)."
+    SYNTAX              INTEGER (0..2147483647)
 
 Signed32BitRange        ::= TEXTUAL-CONVENTION
     STATUS current
@@ -198,25 +253,7 @@ BooleanType             ::= TEXTUAL-CONVENTION
     DESCRIPTION
         "Integer with a range of (0..1).
          Where 0 = FALSE, 1 = TRUE"
-    SYNTAX              INTEGER (1..128)
-
--- (Note: The following definition is in the SMIv1 version of the iDRAC MIB
---  file. In order to keep this SMIv2 copy of the iDRAC MIB file as closely in
---  sync with the SMIv1 version, this definition has been kept, and is used,
---  in this SMIv2 version of the MIB file.)
---
--- This definition is required because SNMP V1 does not support 64 bit ranges.
--- The information sent back by this subagent will have the most significant
--- byte of the information as the first byte (i.e. network byte order).
--- E.G. The integer value 0x1029384754657687 will be sent as:
--- Byte:   1         2         3         4         ...
--- Hex:    10        29        38        47        ...
--- Binary: 0001 0000 0010 1001 0011 1000 0100 0111 ...
-Unsigned64BitRange      ::= TEXTUAL-CONVENTION
-    STATUS current
-    DESCRIPTION
-        "String type used to effectively store an unsigned 64-bit integer."
-    SYNTAX              OCTET STRING (SIZE (8))
+    SYNTAX              INTEGER (0..1)
 
 -- DateName dates are defined in the displayable format
 --   yyyymmddHHMMSS.uuuuuu+ooo
@@ -359,7 +396,9 @@ RacTypeEnum             ::= TEXTUAL-CONVENTION
     other(1),               -- the RAC type is not one of the following
     unknown(2),             -- the RAC type is unknown
     idrac7monolithic(16),   -- iDRAC7 Monolithic
-    idrac7modular(17)       -- iDRAC7 Modular
+    idrac7modular(17),       -- iDRAC7 Modular
+    idrac8monolithic(32),   -- iDRAC8 Monolithic
+    idrac8modular(33)       -- iDRAC8 Modular
 }
 
 SystemFormFactorEnum    ::= TEXTUAL-CONVENTION
@@ -659,7 +698,7 @@ systemRoomName OBJECT-TYPE
     ::= { systemInfoGroup 15 }
 
 systemChassisSystemHeight OBJECT-TYPE
-    SYNTAX          INTEGER
+    SYNTAX          Unsigned8BitRange
     MAX-ACCESS      read-only
     STATUS          current
     DESCRIPTION
@@ -734,7 +773,7 @@ systemPowerState OBJECT-TYPE
 systemPowerUpTime OBJECT-TYPE
     SYNTAX          Unsigned32BitRange
     MAX-ACCESS      read-only
-    STATUS          mandatory
+    STATUS          current
     DESCRIPTION
         "This attribute defines the power-up time of the system in seconds."
     ::= { statusGroup 5 }
@@ -842,6 +881,14 @@ alertChassisName OBJECT-TYPE
          length)."
     ::= { alertVariablesGroup 10 }
 
+alertRacFQDN OBJECT-TYPE
+    SYNTAX          StringType
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "Fully qualified domain name of the remote access card."
+    ::= { alertVariablesGroup 11 }
+
 
 -------------------------------------------------------------------------------
 -- System Details Group
@@ -902,52 +949,52 @@ SystemStateTableEntry                              ::= SEQUENCE {
     systemStateGlobalSystemStatus                  ObjectStatusEnum,
     systemStateChassisState                        StateSettingsFlags,
     systemStateChassisStatus                       ObjectStatusEnum,
-    systemStatePowerUnitStateDetails               OCTET STRING (SIZE(1..128)),
+    systemStatePowerUnitStateDetails               OCTET STRING,
     systemStatePowerUnitStatusRedundancy           StatusRedundancyEnum,
-    systemStatePowerUnitStatusDetails              OCTET STRING (SIZE(1..128)),
-    systemStatePowerSupplyStateDetails             OCTET STRING (SIZE(1..128)),
+    systemStatePowerUnitStatusDetails              OCTET STRING,
+    systemStatePowerSupplyStateDetails             OCTET STRING,
     systemStatePowerSupplyStatusCombined           ObjectStatusEnum,
-    systemStatePowerSupplyStatusDetails            OCTET STRING (SIZE(1..128)),
-    systemStateVoltageStateDetails                 OCTET STRING (SIZE(1..128)),
+    systemStatePowerSupplyStatusDetails            OCTET STRING,
+    systemStateVoltageStateDetails                 OCTET STRING,
     systemStateVoltageStatusCombined               ObjectStatusEnum,
-    systemStateVoltageStatusDetails                OCTET STRING (SIZE(1..128)),
-    systemStateAmperageStateDetails                OCTET STRING (SIZE(1..128)),
+    systemStateVoltageStatusDetails                OCTET STRING,
+    systemStateAmperageStateDetails                OCTET STRING,
     systemStateAmperageStatusCombined              ObjectStatusEnum,
-    systemStateAmperageStatusDetails               OCTET STRING (SIZE(1..128)),
-    systemStateCoolingUnitStateDetails             OCTET STRING (SIZE(1..128)),
+    systemStateAmperageStatusDetails               OCTET STRING,
+    systemStateCoolingUnitStateDetails             OCTET STRING,
     systemStateCoolingUnitStatusRedundancy         StatusRedundancyEnum,
-    systemStateCoolingUnitStatusDetails            OCTET STRING (SIZE(1..128)),
-    systemStateCoolingDeviceStateDetails           OCTET STRING (SIZE(1..128)),
+    systemStateCoolingUnitStatusDetails            OCTET STRING,
+    systemStateCoolingDeviceStateDetails           OCTET STRING,
     systemStateCoolingDeviceStatusCombined         ObjectStatusEnum,
-    systemStateCoolingDeviceStatusDetails          OCTET STRING (SIZE(1..128)),
-    systemStateTemperatureStateDetails             OCTET STRING (SIZE(1..128)),
+    systemStateCoolingDeviceStatusDetails          OCTET STRING,
+    systemStateTemperatureStateDetails             OCTET STRING,
     systemStateTemperatureStatusCombined           ObjectStatusEnum,
-    systemStateTemperatureStatusDetails            OCTET STRING (SIZE(1..128)),
-    systemStateMemoryDeviceStateDetails            OCTET STRING (SIZE(1..128)),
+    systemStateTemperatureStatusDetails            OCTET STRING,
+    systemStateMemoryDeviceStateDetails            OCTET STRING,
     systemStateMemoryDeviceStatusCombined          ObjectStatusEnum,
-    systemStateMemoryDeviceStatusDetails           OCTET STRING (SIZE(1..128)),
-    systemStateChassisIntrusionStateDetails        OCTET STRING (SIZE(1..128)),
+    systemStateMemoryDeviceStatusDetails           OCTET STRING,
+    systemStateChassisIntrusionStateDetails        OCTET STRING,
     systemStateChassisIntrusionStatusCombined      ObjectStatusEnum,
-    systemStateChassisIntrusionStatusDetails       OCTET STRING (SIZE(1..128)),
+    systemStateChassisIntrusionStatusDetails       OCTET STRING,
     systemStatePowerUnitStatusCombined             ObjectStatusEnum,
-    systemStatePowerUnitStatusList                 OCTET STRING (SIZE(1..128)),
+    systemStatePowerUnitStatusList                 OCTET STRING,
     systemStateCoolingUnitStatusCombined           ObjectStatusEnum,
-    systemStateCoolingUnitStatusList               OCTET STRING (SIZE(1..128)),
+    systemStateCoolingUnitStatusList               OCTET STRING,
     systemStateProcessorDeviceStatusCombined       ObjectStatusEnum,
-    systemStateProcessorDeviceStatusList           OCTET STRING (SIZE(1..128)),
+    systemStateProcessorDeviceStatusList           OCTET STRING,
     systemStateBatteryStatusCombined               ObjectStatusEnum,
-    systemStateBatteryStatusList                   OCTET STRING (SIZE(1..128)),
+    systemStateBatteryStatusList                   OCTET STRING,
     systemStateSDCardUnitStatusCombined            ObjectStatusEnum,
-    systemStateSDCardUnitStatusList                OCTET STRING (SIZE(1..128)),
+    systemStateSDCardUnitStatusList                OCTET STRING,
     systemStateSDCardDeviceStatusCombined          ObjectStatusEnum,
-    systemStateSDCardDeviceStatusList              OCTET STRING (SIZE(1..128)),
+    systemStateSDCardDeviceStatusList              OCTET STRING,
     systemStateIDSDMCardUnitStatusCombined         ObjectStatusEnum,
-    systemStateIDSDMCardUnitStatusList             OCTET STRING (SIZE(1..128)),
+    systemStateIDSDMCardUnitStatusList             OCTET STRING,
     systemStateIDSDMCardDeviceStatusCombined       ObjectStatusEnum,
-    systemStateIDSDMCardDeviceStatusList           OCTET STRING (SIZE(1..128)),
-    systemStateTemperatureStatisticsStateDetails   OCTET STRING (SIZE(1..128)),
+    systemStateIDSDMCardDeviceStatusList           OCTET STRING,
+    systemStateTemperatureStatisticsStateDetails   OCTET STRING,
     systemStateTemperatureStatisticsStatusCombined ObjectStatusEnum,
-    systemStateTemperatureStatisticsStatusDetails  OCTET STRING (SIZE(1..128))
+    systemStateTemperatureStatisticsStatusDetails  OCTET STRING
 }
 
 systemStateTable                                OBJECT-TYPE
@@ -1827,8 +1874,8 @@ ChassisInformationTableEntry                    ::= SEQUENCE {
     chassisName                                 String64,
     chassisManufacturerName                     String64,
     chassisModelTypeName                        String64,
-    chassisAssetTagName                         OCTET STRING (SIZE (0..10)),
-    chassisServiceTagName                       OCTET STRING (SIZE (0..7)),
+    chassisAssetTagName                         OCTET STRING,
+    chassisServiceTagName                       OCTET STRING,
     chassisID                                   Unsigned8BitRange,
     chassisIDExtension                          Unsigned16BitRange,
     chassisSystemClass                          ChassisSystemClassEnum,
@@ -2176,7 +2223,7 @@ EventLogTableEntry                              ::= SEQUENCE {
     eventLogRecordIndex                         Unsigned32BitRange,
     eventLogStateCapabilitiesUnique             StateCapabilitiesLogUniqueFlags,
     eventLogStateSettingsUnique                 StateSettingsLogUniqueFlags,
-    eventLogRecord                              OCTET STRING (SIZE (0..1024)),
+    eventLogRecord                              OCTET STRING,
     eventLogFormat                              LogFormatType,
     eventLogSeverityStatus                      ObjectStatusEnum,
     eventLogDateName                            DateName
@@ -2392,7 +2439,8 @@ FirmwareType                                    ::= TEXTUAL-CONVENTION
     other(1),                                   -- type is other than following values
     unknown(2),                                 -- type is unknown
     lifecycleController(20),                    -- type is Lifecycle Controller
-    iDRAC7(21)                                  -- type is Integrated Dell Remote Access Controller 7
+    iDRAC7(21),                                 -- type is Integrated Dell Remote Access Controller 7
+    iDRAC8(22)                                  -- type is Integrated Dell Remote Access Controller 8
 }
 
 FirmwareTableEntry                              ::= SEQUENCE {
@@ -2668,11 +2716,11 @@ LcLogTableEntry                                 ::= SEQUENCE {
     lcLogSeverityStatus                         ObjectStatusEnum,
     lcLogDateName                               DateName,
     lcLogFQDD                                   FQDDString,
-    lcLogMessageID                              OCTET STRING (SIZE (0..8)),
-    lcLogMessage                                OCTET STRING (SIZE (0..512)),
-    lcLogDetailedDescription                    OCTET STRING (SIZE (0..2048)),
-    lcLogRecommededAction                       OCTET STRING (SIZE (0..2048)),
-    lcLogComment                                OCTET STRING (SIZE (0..128))
+    lcLogMessageID                              OCTET STRING,
+    lcLogMessage                                OCTET STRING,
+    lcLogDetailedDescription                    OCTET STRING,
+    lcLogRecommededAction                       OCTET STRING,
+    lcLogComment                                OCTET STRING
 }
 
 -- Note: You can only access the lcLogTable table via SNMPv3 queries.
@@ -3012,13 +3060,14 @@ PowerSupplyTableEntry                           ::= SEQUENCE {
     powerSupplyOutputWatts                      Signed32BitRange,
     powerSupplyType                             PowerSupplyTypeEnum,
     powerSupplyLocationName                     String64,
-    powerSupplyInputVoltage                     Signed32BitRange,
+    powerSupplyMaximumInputVoltage              Signed32BitRange,
     powerSupplypowerUnitIndexReference          ObjectRange,
     powerSupplySensorState                      PowerSupplySensorStateFlags,
     powerSupplyConfigurationErrorType           PowerSupplyConfigurationErrorTypeEnum,
     powerSupplyPowerMonitorCapable              BooleanType,
     powerSupplyRatedInputWattage                Signed32BitRange,
-    powerSupplyFQDD                             FQDDString
+    powerSupplyFQDD                             FQDDString,
+    powerSupplyCurrentInputVoltage              Signed32BitRange
 }
 
 powerSupplyTable                                OBJECT-TYPE
@@ -3108,13 +3157,13 @@ powerSupplyLocationName                         OBJECT-TYPE
         "0600.0012.0001.0008 This attribute defines the location of the power supply."
     ::= { powerSupplyTableEntry 8 }
 
-powerSupplyInputVoltage                         OBJECT-TYPE
+powerSupplyMaximumInputVoltage                  OBJECT-TYPE
     SYNTAX      Signed32BitRange
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
-        "0600.0012.0001.0009 This attribute defines the input voltage to the power
-        supply (in Volts)."
+        "0600.0012.0001.0009 This attribute defines the maximum input voltage of the
+        power supply (in Volts)."
     ::= { powerSupplyTableEntry 9 }
 
 powerSupplypowerUnitIndexReference              OBJECT-TYPE
@@ -3173,6 +3222,15 @@ powerSupplyFQDD                                 OBJECT-TYPE
         "0600.0012.0001.0015 Fully qualified device descriptor (FQDD) of the
         power supply."
     ::= { powerSupplyTableEntry 15 }
+
+powerSupplyCurrentInputVoltage                  OBJECT-TYPE
+    SYNTAX      Signed32BitRange
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "0600.0012.0001.0016 This attribute defines the current input voltage to the
+        power supply (in Volts)."
+    ::= { powerSupplyTableEntry 16 }
 
 
 -------------------------------------------------------------------------------
@@ -4698,11 +4756,11 @@ ProcessorDeviceFamily                           ::= TEXTUAL-CONVENTION
     deviceFamilyIsIntelItanium2(24),            -- family is Intel Itanium 2 processor
     deviceFamilyIsK5(25),                       -- family is K5 Family
     deviceFamilyIsK6(26),                       -- family is K6 Family
-    deviceFamilyIsK6-2(27),                     -- family is K6-2
-    deviceFamilyIsK6-3(28),                     -- family is K6-3
+    deviceFamilyIsK6Dash2(27),                  -- family is K6-2
+    deviceFamilyIsK6Dash3(28),                  -- family is K6-3
     deviceFamilyIsAMDAthlon(29),                -- family is AMD Athlon Processor Family
     deviceFamilyIsAMD2900(30),                  -- family is AMD2900 Family
-    deviceFamilyIsK6-2Plus(31),                 -- family is K6-2+
+    deviceFamilyIsK6Dash2Plus(31),              -- family is K6-2+
     deviceFamilyIsPowerPC(32),                  -- family is Power PC Family
     deviceFamilyIsPowerPC601(33),               -- family is Power PC 601
     deviceFamilyIsPowerPC603(34),               -- family is Power PC 603
@@ -4770,13 +4828,13 @@ ProcessorDeviceFamily                           ::= TEXTUAL-CONVENTION
     deviceFamilyIsAMDPhenomX4QuadCore(141),     -- family is AMD Phenom(TM) X4 Quad-Core Processor Family
     deviceFamilyIsAMDPhenomX2DualCore(142),     -- family is AMD Phenom(TM) X2 Dual-Core Processor Family
     deviceFamilyIsAMDAthlonX2DualCore(143),     -- family is AMD Athlon(TM) X2 Dual-Core Processor Family
-    deviceFamilyIsPA-RISC(144),                 -- family is PA-RISC Family
-    deviceFamilyIsPA-RISC8500(145),             -- family is PA-RISC 8500
-    deviceFamilyIsPA-RISC8000(146),             -- family is PA-RISC 8000
-    deviceFamilyIsPA-RISC7300LC(147),           -- family is PA-RISC 7300LC
-    deviceFamilyIsPA-RISC7200(148),             -- family is PA-RISC 7200
-    deviceFamilyIsPA-RISC7100LC(149),           -- family is PA-RISC 7100LC
-    deviceFamilyIsPA-RISC7100(150),             -- family is PA-RISC 7100
+    deviceFamilyIsPARISC(144),                  -- family is PA-RISC Family
+    deviceFamilyIsPARISC8500(145),              -- family is PA-RISC 8500
+    deviceFamilyIsPARISC8000(146),              -- family is PA-RISC 8000
+    deviceFamilyIsPARISC7300LC(147),            -- family is PA-RISC 7300LC
+    deviceFamilyIsPARISC7200(148),              -- family is PA-RISC 7200
+    deviceFamilyIsPARISC7100LC(149),            -- family is PA-RISC 7100LC
+    deviceFamilyIsPARISC7100(150),              -- family is PA-RISC 7100
     deviceFamilyIsV30(160),                     -- family is V30 Family
     deviceFamilyIsQuadCoreIntelXeon3200(161),   -- family is Quad-Core Intel(R) Xeon(R) processor 3200 Series
     deviceFamilyIsDualCoreIntelXeon3000(162),   -- family is Dual-Core Intel(R) Xeon(R) processor 3000 Series
@@ -4822,8 +4880,8 @@ ProcessorDeviceFamily                           ::= TEXTUAL-CONVENTION
     deviceFamilyIszArchitectur(204),            -- family is z/Architectur base
     deviceFamilyIsIntelCorei5(205),             -- family is Intel(R) Core(TM) i5 processor
     deviceFamilyIsIntelCorei3(206),             -- family is Intel(R) Core(TM) i3 processor
-    deviceFamilyIsVIAC7-M(210),                 -- family is VIA C7(TM)-M Processor Family
-    deviceFamilyIsVIAC7-D(211),                 -- family is VIA C7(TM)-D Processor Family
+    deviceFamilyIsVIAC7M(210),                  -- family is VIA C7(TM)-M Processor Family
+    deviceFamilyIsVIAC7D(211),                  -- family is VIA C7(TM)-D Processor Family
     deviceFamilyIsVIAC7(212),                   -- family is VIA C7(TM) Processor Family
     deviceFamilyIsVIAEden(213),                 -- family is VIA Eden(TM) Processor Family
     deviceFamilyIsMultiCoreIntelXeon(214),      -- family is Multi-Core Intel(R) Xeon(R) processor
@@ -5284,7 +5342,8 @@ MemoryDeviceTypeEnum                            ::= TEXTUAL-CONVENTION
     deviceTypeIsDDR2(19),                       -- type is DDR2
     deviceTypeIsDDR2FBDIMM(20),                 -- type is DDR2 FB-DIMM
     deviceTypeIsDDR3(24),                       -- type is DDR3
-    deviceTypeIsFBD2(25)                        -- type is FBD2
+    deviceTypeIsFBD2(25),                       -- type is FBD2
+    deviceTypeIsDDR4(26)                        -- type is DDR4
 }
 
 MemoryDeviceTableEntry                          ::= SEQUENCE {
@@ -5301,7 +5360,8 @@ MemoryDeviceTableEntry                          ::= SEQUENCE {
     memoryDeviceManufacturerName                String64,
     memoryDevicePartNumberName                  String64,
     memoryDeviceSerialNumberName                String64,
-    memoryDeviceFQDD                            FQDDString
+    memoryDeviceFQDD                            FQDDString,
+    memoryDeviceCurrentOperatingSpeed           Unsigned32BitRange
 }
 
 memoryDeviceTable                               OBJECT-TYPE
@@ -5406,8 +5466,8 @@ memoryDeviceSpeed                               OBJECT-TYPE
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
-        "1100.0050.0001.0015 This attribute defines the speed in nanoseconds
-        of the memory device.  Zero indicates an unknown speed."
+        "1100.0050.0001.0015 This attribute defines the maximum capable speed
+        in megahertz (MHz) of the memory device.  Zero indicates an unknown speed."
     ::= { memoryDeviceTableEntry 15 }
 
 memoryDeviceManufacturerName                    OBJECT-TYPE
@@ -5445,6 +5505,15 @@ memoryDeviceFQDD                                OBJECT-TYPE
         "1100.0050.0001.0026 Fully qualified device descriptor (FQDD) of the
         memory device."
     ::= { memoryDeviceTableEntry 26 }
+
+memoryDeviceCurrentOperatingSpeed               OBJECT-TYPE
+    SYNTAX      Unsigned32BitRange
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "1100.0050.0001.0027 This attribute defines the current operating speed
+        in megahertz (MHz) of the memory device.  Zero indicates an unknown speed."
+    ::= { memoryDeviceTableEntry 27 }
 
 
 -------------------------------------------------------------------------------
@@ -6088,10 +6157,10 @@ FruTableEntry                                   ::= SEQUENCE {
     fruChassisIndex                             ObjectRange,
     fruIndex                                    ObjectRange,
     fruInformationStatus                        ObjectStatusEnum,
-    fruManufacturerName                         OCTET STRING (SIZE (0..64)),
-    fruSerialNumberName                         OCTET STRING (SIZE (0..64)),
-    fruPartNumberName                           OCTET STRING (SIZE (0..64)),
-    fruRevisionName                             OCTET STRING (SIZE (0..64)),
+    fruManufacturerName                         OCTET STRING,
+    fruSerialNumberName                         OCTET STRING,
+    fruPartNumberName                           OCTET STRING,
+    fruRevisionName                             OCTET STRING,
     fruFQDD                                     FQDDString
 }
 
@@ -6409,7 +6478,7 @@ controllerRebuildRate OBJECT-TYPE
     MAX-ACCESS     read-only
     STATUS         current
     DESCRIPTION
-        "The rebuild rate is the percentage of the controller’s 
+        "The rebuild rate is the percentage of the controller's 
         resources dedicated to rebuilding a failed disk when a rebuild 
         is necessary.
         "
@@ -6490,7 +6559,7 @@ controllerReconstructRate OBJECT-TYPE
     MAX-ACCESS     read-only
     STATUS         current
     DESCRIPTION
-        "The reconstruct rate is the percentage of the controller’s resources 
+        "The reconstruct rate is the percentage of the controller's resources 
         dedicated to reconstructing a disk group after adding a physical disk 
         or changing the RAID level of a virtual disk residing on the disk 
         group.
@@ -6502,7 +6571,7 @@ controllerPatrolReadRate OBJECT-TYPE
     MAX-ACCESS     read-only
     STATUS         current
     DESCRIPTION
-        "The patrol read rate is the percentage of the controller’s 
+        "The patrol read rate is the percentage of the controller's 
         resources dedicated to perform a patrol read on disks participating
         in a virtual disk or hot spares.
         "
@@ -6514,7 +6583,7 @@ controllerBGIRate OBJECT-TYPE
     STATUS         current
     DESCRIPTION
         "The background initialization (BGI) rate is the percentage of the 
-        controller’s resources dedicated to performing the background 
+        controller's resources dedicated to performing the background 
         initialization of a redundant virtual disk after it is created.
         "
     ::= { controllerTableEntry 50 }
@@ -6525,7 +6594,7 @@ controllerCheckConsistencyRate OBJECT-TYPE
     STATUS         current
     DESCRIPTION
         "The check consistency rate is the percentage of the 
-        controller’s resources dedicated to performing a check consistency 
+        controller's resources dedicated to performing a check consistency 
         on a redundant virtual disk.
         "
     ::= { controllerTableEntry 51 }
@@ -6544,7 +6613,7 @@ controllerPatrolReadMode OBJECT-TYPE
     DESCRIPTION
         "Identifies the patrol read mode setting for the controller.
         Possible values:
-        1: Not one of the following.
+        1: Not one of the following or could not be determined.
         2: Not Supported on this controller. 
         3: Disabled.
         4: Automatic.
@@ -6564,7 +6633,7 @@ controllerPatrolReadState OBJECT-TYPE
     DESCRIPTION
         "This property displays the current state of the patrol read process.
          Possible values:
-        1: Not one of the following.
+        1: Not one of the following or could not be determined.
         2: Patrol read is not running.
         3: Patrol read is running.
         "
@@ -6911,7 +6980,10 @@ PhysicalDiskTableEntry                          ::=SEQUENCE {
     physicalDiskFQDD                            FQDDString,
     physicalDiskDisplayName                     DisplayString,
     physicalDiskT10PICapability			INTEGER,
-    physicalDiskBlockSizeInBytes                INTEGER
+    physicalDiskBlockSizeInBytes                INTEGER,
+    physicalDiskProtocolVersion                 DisplayString,
+    physicalDiskPCIeNegotiatedLinkWidth         INTEGER,
+    physicalDiskPCIeCapableLinkWidth            INTEGER
  }
 
 physicalDiskTable OBJECT-TYPE
@@ -6975,8 +7047,9 @@ physicalDiskState OBJECT-TYPE
                     offline(5),
                     blocked(6),
                     failed(7),
-                    non-raid(8),
-                    removed(9)
+                    nonraid(8),
+                    removed(9),
+                    readonly(10)
                     }
     MAX-ACCESS      read-only
     STATUS          current
@@ -6995,7 +7068,8 @@ physicalDiskState OBJECT-TYPE
         controller.
         7: The physical disk is not operational.
         8: The physical disk is not a RAID capable disk 
-        9: The physical disk has been removed.        
+        9: The physical disk has been removed.
+        10:The physical disk media has been placed in read only mode.
         "
     ::= { physicalDiskTableEntry 4 }
 
@@ -7042,7 +7116,7 @@ physicalDiskUsedSpaceInMB OBJECT-TYPE
     STATUS          current
     DESCRIPTION
         "The amount of used space in megabytes on the physical
-        disk.
+        disk. This is not applicable for NVMe devices.
         "
     ::= { physicalDiskTableEntry 17 }
 
@@ -7052,7 +7126,7 @@ physicalDiskFreeSpaceInMB OBJECT-TYPE
     STATUS          current
     DESCRIPTION
         "The amount of free space in megabytes on the physical
-        disk.
+        disk. This is not applicable for NVMe devices.
         "
     ::= { physicalDiskTableEntry 19 }    
 
@@ -7063,7 +7137,8 @@ physicalDiskBusType OBJECT-TYPE
                     scsi(2),
                     sas(3),
                     sata(4),
-                    fibre(5)                    
+                    fibre(5),
+                    pcie(6)
                     }
     MAX-ACCESS      read-only
     STATUS          current
@@ -7074,7 +7149,8 @@ physicalDiskBusType OBJECT-TYPE
         2: Small Computer System Interface (SCSI).
         3: Serial Attached SCSI (SAS).
         4: Serial Advanced Technology Attachment (SATA).
-        5: Fibre channel        
+        5: Fibre channel.
+        6: PCIe.
         "
     ::= { physicalDiskTableEntry 21 }    
 
@@ -7137,7 +7213,9 @@ physicalDiskNegotiatedSpeed OBJECT-TYPE
                     oneDotFiveGbps(2),
                     threeGbps(3),
                     sixGbps(4),
-                    twelveGbps(5)
+                    twelveGbps(5),
+                    fiveGTps(6),
+                    eightGTps(7)
                     }
     MAX-ACCESS      read-only
     STATUS          current
@@ -7150,6 +7228,8 @@ physicalDiskNegotiatedSpeed OBJECT-TYPE
         3: 3.0 Gbps
         4: 6.0 Gbps
         5: 12.0 Gbps
+        6: 5 GT/s (applicable for NVMe devices).
+        7: 8 GT/s (applicable for NVMe devices).
         "
     ::= { physicalDiskTableEntry 29 }
 
@@ -7160,7 +7240,9 @@ physicalDiskCapableSpeed OBJECT-TYPE
                     oneDotFiveGbps(2),
                     threeGbps(3),
                     sixGbps(4),
-                    twelveGbps(5)
+                    twelveGbps(5),
+                    fiveGTps(6),
+                    eightGTps(7)
                     }
     MAX-ACCESS      read-only
     STATUS          current
@@ -7173,6 +7255,8 @@ physicalDiskCapableSpeed OBJECT-TYPE
         3: 3.0 Gbps
         4: 6.0 Gbps
         5: 12.0 Gbps
+        6: 5 GT/s (applicable for NVMe devices).
+        7: 8 GT/s (applicable for NVMe devices).
         "
     ::= { physicalDiskTableEntry 30 }
 
@@ -7229,7 +7313,7 @@ physicalDiskMediaType OBJECT-TYPE
         Possible Values:
         1: The media type could not be determined.
         2: Hard Disk Drive (HDD).
-        3: Solid State Drive (SSD).
+        3: Solid State Device (SSD).
         "
     ::= { physicalDiskTableEntry 35 }
 
@@ -7239,7 +7323,8 @@ physicalDiskPowerState OBJECT-TYPE
                     other(1),
                     spunUp(2),
                     spunDown(3),
-                    transition(4)
+                    transition(4),
+                    on(5)
                     }
     MAX-ACCESS      read-only
     STATUS          current
@@ -7251,6 +7336,7 @@ physicalDiskPowerState OBJECT-TYPE
         3: The physical disk is in the spun down state.
         4: The physical disk is changing from spun down state
         to spun up state or vice versa.
+        5: The Solid State Device (SSD) is powered on.
         "
     ::= { physicalDiskTableEntry 42 }
 
@@ -7303,7 +7389,7 @@ physicalDiskProgress OBJECT-TYPE
 physicalDiskSecurityStatus OBJECT-TYPE
     SYNTAX          INTEGER
                     {
-                    other(1),
+                    supported(1),
                     notSupported(2),
                     secured(3),
                     locked(4),
@@ -7314,7 +7400,7 @@ physicalDiskSecurityStatus OBJECT-TYPE
     DESCRIPTION
         "The security/encryption status of the physical disk.
         Possible Values:
-        1: Not one of the following.
+        1: The physical disk supports encryption.
         2: The physical disk does not support encryption
         3: The physical disk is encrypted.
         4: The physical disk is locked by a key.
@@ -7387,12 +7473,62 @@ physicalDiskBlockSizeInBytes OBJECT-TYPE
     MAX-ACCESS      read-only
     STATUS          current
     DESCRIPTION
-        "The block size (in bytes) of the physical disk.
-        Possible values:
+        "The block size (in bytes) of the physical disk. This is not 
+        applicable for NVMe devices.
         1: 512.
         2: 4096
         "
     ::= { physicalDiskTableEntry 58 }
+
+physicalDiskProtocolVersion OBJECT-TYPE
+    SYNTAX          DisplayString
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "Applicable for NVMe devices only. The NVMe protocol version supported 
+        by the device.
+        "
+    ::= { physicalDiskTableEntry 59 }
+
+physicalDiskPCIeNegotiatedLinkWidth OBJECT-TYPE
+    SYNTAX          INTEGER
+                    {
+                    other(1),
+                    notApplicable(2),
+                    byOne(3),
+                    byTwp(4),
+                    byFour(5),
+                    byEight(6),
+                    bySixteen(7),
+                    byThirtyTwp(8)
+                    }
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "Applicable for NVMe devices  only. The PCIe link width negotiated with the host
+        during device initialization.
+        "
+    ::= { physicalDiskTableEntry 60 }
+
+physicalDiskPCIeCapableLinkWidth OBJECT-TYPE
+    SYNTAX          INTEGER
+                    {
+                    other(1),
+                    notApplicable(2),
+                    byOne(3),
+                    byTwp(4),
+                    byFour(5),
+                    byEight(6),
+                    bySixteen(7),
+                    byThirtyTwp(8)
+                    }
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "Applicable for NVMe devices only. The PCIe link widths the device is capable of 
+        supporting.
+        "
+    ::= { physicalDiskTableEntry 61 }
 
 -------------------------------------------------------------------------------
 -- Virtual Disk Table
@@ -7549,8 +7685,8 @@ virtualDiskLayout OBJECT-TYPE
                     r10(6),
                     r50(7),
                     r60(8),
-                    concatRaid-1(9),
-                    concatRaid-5(10)
+                    concatRaid1(9),
+                    concatRaid5(10)
                     }
     MAX-ACCESS      read-only
     STATUS          current
@@ -7737,7 +7873,7 @@ virtualDiskMediaType OBJECT-TYPE
     STATUS          current
     DESCRIPTION
         "List of media types of the physical disks part of this virtual
-        disk. For e.g. HDD for Hard Disk Drive or SSD for Solid State Drive.
+        disk. For e.g. HDD for Hard Disk Drive or SSD for Solid State Device.
         "
     ::= { virtualDiskTableEntry 33 }
 
@@ -7788,7 +7924,7 @@ virtualDiskT10PIStatus OBJECT-TYPE
         Possible values:
         1: Not one of the following.
         2: Enabled.
-        3: Disabled..
+        3: Disabled.
         "
     ::= { virtualDiskTableEntry 37 }
 
@@ -7832,7 +7968,8 @@ EnclosureTableEntry                             ::=SEQUENCE {
     enclosurePosition                           DisplayString,
     enclosureBackplaneBayID                     DisplayString,
     enclosureFQDD                               FQDDString,
-    enclosureDisplayName                        DisplayString
+    enclosureDisplayName                        DisplayString,
+    enclosureType                               INTEGER
 }
 
 enclosureTable OBJECT-TYPE
@@ -8086,6 +8223,28 @@ enclosureDisplayName OBJECT-TYPE
         Storage Management.
         "
     ::= { enclosureTableEntry 48 }
+
+enclosureType OBJECT-TYPE        
+    SYNTAX          INTEGER
+                    {
+                    other(1),
+                    notApplicable(2),
+                    sassata(3),
+                    pcie(4),
+                    universal(5)
+                    }
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+        "The protocol supported by the backplane.
+        Possible states:
+        1: Not one of the following or could not be determined.
+        2: Not applicable (i.e. object is not a backplane).
+        3: Supports SAS/SATA.
+        4: Supports PCIe.
+        5: Both SAS/SATA and PCIe.
+        "
+    ::= { enclosureTableEntry 49 }
 
 
 -------------------------------------------------------------------------------
@@ -8707,7 +8866,8 @@ alertAmperageProbeNormal NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Current sensor reading is within range."
@@ -8716,8 +8876,9 @@ alertAmperageProbeNormal NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -8733,7 +8894,8 @@ alertAmperageProbeWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Current sensor has detected a warning value."
@@ -8742,8 +8904,9 @@ alertAmperageProbeWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -8759,7 +8922,8 @@ alertAmperageProbeFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Current sensor has detected a failure value."
@@ -8768,8 +8932,9 @@ alertAmperageProbeFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -8792,7 +8957,8 @@ alertAutomaticSystemRecovery NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Automatic system recovery (ASR) was performed."
@@ -8801,8 +8967,9 @@ alertAutomaticSystemRecovery NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -8825,7 +8992,8 @@ alertBatteryNormal NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Battery state has returned to normal;
@@ -8835,8 +9003,9 @@ alertBatteryNormal NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -8852,7 +9021,8 @@ alertBatteryWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Battery is low."
@@ -8861,8 +9031,9 @@ alertBatteryWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -8878,7 +9049,8 @@ alertBatteryFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Battery has failed or battery is absent."
@@ -8887,12 +9059,111 @@ alertBatteryFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
     ::= { systemAlertTrapGroup 0 2225 }
+
+------------------------------------------------------------------------------
+-- Cable Traps
+--
+-- Category: System/1
+-- Subcategory: CBL/43
+------------------------------------------------------------------------------
+
+alertCableFailure NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Cable failure or critical event."
+    --#TYPE       "System: Cable Failure"
+    --#SEVERITY   CRITICAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Error Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { systemAlertTrapGroup 0 2393 }
+
+------------------------------------------------------------------------------
+-- CMC Traps
+--
+-- Category: System/1
+-- Subcategory: CMC/62
+------------------------------------------------------------------------------
+
+alertCMCWarning NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Chassis Management Controller detected a warning."
+    --#TYPE       "System: CMC Warning"
+    --#SEVERITY   MINOR
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { systemAlertTrapGroup 0 2546 }
+
+alertCMCFailure NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Chassis Management Controller detected an error."
+    --#TYPE       "System: CMC Failure"
+    --#SEVERITY   CRITICAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Error Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { systemAlertTrapGroup 0 2545 }
 
 ------------------------------------------------------------------------------
 -- Processor Device Status Traps
@@ -8911,7 +9182,8 @@ alertProcessorDeviceStatusNormal NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Processor device status has returned to normal."
@@ -8920,8 +9192,9 @@ alertProcessorDeviceStatusNormal NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -8937,7 +9210,8 @@ alertProcessorDeviceStatusWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Processor device status has detected a warning."
@@ -8946,8 +9220,9 @@ alertProcessorDeviceStatusWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -8963,7 +9238,8 @@ alertProcessorDeviceStatusFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Processor device status has detected a failure."
@@ -8972,8 +9248,9 @@ alertProcessorDeviceStatusFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -8996,7 +9273,8 @@ alertProcessorDeviceAbsent NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Processor device is absent."
@@ -9005,8 +9283,9 @@ alertProcessorDeviceAbsent NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9029,7 +9308,8 @@ alertFanInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Fan information."
@@ -9038,8 +9318,9 @@ alertFanInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -9055,7 +9336,8 @@ alertFanWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Fan warning."
@@ -9064,8 +9346,9 @@ alertFanWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9081,7 +9364,8 @@ alertFanFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Fan failure."
@@ -9090,8 +9374,9 @@ alertFanFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9114,7 +9399,8 @@ alertFiberChannelInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Fiber Channel information."
@@ -9123,11 +9409,12 @@ alertFiberChannelInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
-    --#STATUS     MANDATORY
+    --#STATUS     current
     ::= { systemAlertTrapGroup 0 2539 }
 
 alertFiberChannelWarning NOTIFICATION-TYPE
@@ -9140,7 +9427,8 @@ alertFiberChannelWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Fiber Channel warning."
@@ -9149,11 +9437,12 @@ alertFiberChannelWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
-    --#STATUS     MANDATORY
+    --#STATUS     current
     ::= { systemAlertTrapGroup 0 2538 }
 
 alertFiberChannelFailure NOTIFICATION-TYPE
@@ -9166,7 +9455,8 @@ alertFiberChannelFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Fiber Channel failure or critical event."
@@ -9175,11 +9465,12 @@ alertFiberChannelFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
-    --#STATUS     MANDATORY
+    --#STATUS     current
     ::= { systemAlertTrapGroup 0 2537 }
 
 ------------------------------------------------------------------------------
@@ -9199,7 +9490,8 @@ alertHardwareConfigurationInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Hardware configuration information."
@@ -9208,8 +9500,9 @@ alertHardwareConfigurationInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -9225,7 +9518,8 @@ alertHardwareConfigurationWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Hardware configuration warning."
@@ -9234,8 +9528,9 @@ alertHardwareConfigurationWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9251,7 +9546,8 @@ alertHardwareConfigurationFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Hardware configuration failure or critical event."
@@ -9260,12 +9556,139 @@ alertHardwareConfigurationFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
     ::= { systemAlertTrapGroup 0 2329 }
+
+------------------------------------------------------------------------------
+-- IO Virtualization Traps
+--
+-- Category: System/1
+-- Subcategory: IOV/63
+------------------------------------------------------------------------------
+
+alertIOVirtualizationFailure NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "IO Virtualization failure or critical event."
+    --#TYPE       "System: IO Virtualization Failure"
+    --#SEVERITY   CRITICAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Error Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { systemAlertTrapGroup 0 2553 }
+
+------------------------------------------------------------------------------
+-- Link Status Traps
+--
+-- Category: System/1
+-- Subcategory: LNK/25
+------------------------------------------------------------------------------
+
+alertLinkStatusInformation NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Link status information."
+    --#TYPE       "System: Link Status Information"
+    --#SEVERITY   INFORMATIONAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      OPERATIONAL
+    --#STATUS     current
+    ::= { systemAlertTrapGroup 0 2251 }
+
+alertLinkStatusWarning NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Link status warning."
+    --#TYPE       "System: Link Status Warning"
+    --#SEVERITY   MINOR
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { systemAlertTrapGroup 0 2250 }
+
+alertLinkStatusFailure NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Link status failure or critical event."
+    --#TYPE       "System: Link Status Failure"
+    --#SEVERITY   CRITICAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Error Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { systemAlertTrapGroup 0 2249 }
 
 ------------------------------------------------------------------------------
 -- Memory Device Traps
@@ -9284,7 +9707,8 @@ alertMemoryDeviceInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Memory device informational event."
@@ -9293,8 +9717,9 @@ alertMemoryDeviceInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -9310,7 +9735,8 @@ alertMemoryDeviceWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Memory device status is noncritical."
@@ -9319,8 +9745,9 @@ alertMemoryDeviceWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9336,7 +9763,8 @@ alertMemoryDeviceFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Memory device status is critical."
@@ -9345,8 +9773,9 @@ alertMemoryDeviceFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9369,7 +9798,8 @@ alertNetworkInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Network information."
@@ -9378,8 +9808,9 @@ alertNetworkInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -9395,7 +9826,8 @@ alertNetworkWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Network warning."
@@ -9404,8 +9836,9 @@ alertNetworkWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9421,7 +9854,8 @@ alertNetworkFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Network failure or critical event."
@@ -9430,8 +9864,9 @@ alertNetworkFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9454,7 +9889,8 @@ alertOSInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "An OS graceful stop occurred;
@@ -9464,8 +9900,9 @@ alertOSInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -9481,7 +9918,8 @@ alertOSFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "A critical stop occurred during OS load;
@@ -9491,8 +9929,9 @@ alertOSFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9515,7 +9954,8 @@ alertPCIDeviceInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "An informational event was detected for a PCI device."
@@ -9524,8 +9964,9 @@ alertPCIDeviceInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -9541,7 +9982,8 @@ alertPCIDeviceWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "A warning event was detected for a PCI device."
@@ -9550,8 +9992,9 @@ alertPCIDeviceWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9567,7 +10010,8 @@ alertPCIDeviceFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "An error was detected for a PCI device."
@@ -9576,8 +10020,9 @@ alertPCIDeviceFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9600,7 +10045,8 @@ alertPhysicalDiskInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Physical disk information."
@@ -9609,8 +10055,9 @@ alertPhysicalDiskInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -9626,7 +10073,8 @@ alertPhysicalDiskWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Physical disk warning."
@@ -9635,8 +10083,9 @@ alertPhysicalDiskWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9652,7 +10101,8 @@ alertPhysicalDiskFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Physical disk failure."
@@ -9661,8 +10111,9 @@ alertPhysicalDiskFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      FAILED
     --#STATUS     current
@@ -9685,7 +10136,8 @@ alertBiosPostFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "System BIOS detected a failure."
@@ -9694,8 +10146,9 @@ alertBiosPostFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      FAILED
     --#STATUS     current
@@ -9718,7 +10171,8 @@ alertPowerSupplyNormal NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Power supply has returned to normal."
@@ -9727,8 +10181,9 @@ alertPowerSupplyNormal NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -9744,7 +10199,8 @@ alertPowerSupplyWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Power supply has detected a warning."
@@ -9753,8 +10209,9 @@ alertPowerSupplyWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9770,7 +10227,8 @@ alertPowerSupplyFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Power supply has detected a failure."
@@ -9779,8 +10237,9 @@ alertPowerSupplyFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9803,7 +10262,8 @@ alertPowerSupplyAbsent NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Power supply is absent."
@@ -9812,8 +10272,9 @@ alertPowerSupplyAbsent NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9836,7 +10297,8 @@ alertPowerUsageInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "System performance restored."
@@ -9845,8 +10307,9 @@ alertPowerUsageInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -9862,7 +10325,8 @@ alertPowerUsageWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "System performance degraded."
@@ -9871,8 +10335,9 @@ alertPowerUsageWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9888,7 +10353,8 @@ alertPowerUsageFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "The system halted because system power exceeds capacity;
@@ -9899,8 +10365,9 @@ alertPowerUsageFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9923,7 +10390,8 @@ alertRedundancyInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Redundancy information."
@@ -9932,8 +10400,9 @@ alertRedundancyInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -9949,7 +10418,8 @@ alertRedundancyDegraded NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Redundancy is degraded."
@@ -9958,8 +10428,9 @@ alertRedundancyDegraded NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -9975,7 +10446,8 @@ alertRedundancyLost NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Redundancy is lost."
@@ -9984,8 +10456,9 @@ alertRedundancyLost NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -10008,7 +10481,8 @@ alertIntegratedDualSDModuleInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Integrated Dual SD Module information."
@@ -10017,8 +10491,9 @@ alertIntegratedDualSDModuleInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -10034,7 +10509,8 @@ alertIntegratedDualSDModuleWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Integrated Dual SD Module warning."
@@ -10043,8 +10519,9 @@ alertIntegratedDualSDModuleWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -10060,7 +10537,8 @@ alertIntegratedDualSDModuleFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Integrated Dual SD Module failure."
@@ -10069,8 +10547,9 @@ alertIntegratedDualSDModuleFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -10093,7 +10572,8 @@ alertIntegratedDualSDModuleAbsent NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Integrated Dual SD Module is absent."
@@ -10102,8 +10582,9 @@ alertIntegratedDualSDModuleAbsent NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -10126,7 +10607,8 @@ alertIntegratedDualSDModuleRedundancyInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Integrated Dual SD Module redundancy information."
@@ -10135,8 +10617,9 @@ alertIntegratedDualSDModuleRedundancyInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -10152,7 +10635,8 @@ alertIntegratedDualSDModuleRedundancyDegraded NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Integrated Dual SD Module redundancy is degraded."
@@ -10161,8 +10645,9 @@ alertIntegratedDualSDModuleRedundancyDegraded NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -10178,7 +10663,8 @@ alertIntegratedDualSDModuleRedundancyLost NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Integrated Dual SD Module redundancy is lost."
@@ -10187,8 +10673,9 @@ alertIntegratedDualSDModuleRedundancyLost NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -10211,7 +10698,8 @@ alertSecurityInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Security information."
@@ -10220,12 +10708,41 @@ alertSecurityInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
     ::= { systemAlertTrapGroup 0 2387 }
+
+alertSecurityWarning NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Security warning."
+    --#TYPE       "System: Security Warning"
+    --#SEVERITY   MINOR
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      OPERATIONAL
+    --#STATUS     current
+    ::= { systemAlertTrapGroup 0 2386 }
 
 alertSecurityFailure NOTIFICATION-TYPE
     OBJECTS { alertMessageID,
@@ -10237,7 +10754,8 @@ alertSecurityFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Security failure or critical event."
@@ -10246,8 +10764,9 @@ alertSecurityFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -10270,7 +10789,8 @@ alertSystemEventLogInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "System Event Log information."
@@ -10279,8 +10799,9 @@ alertSystemEventLogInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -10296,7 +10817,8 @@ alertSystemEventLogWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "System Event Log warning."
@@ -10305,8 +10827,9 @@ alertSystemEventLogWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -10322,7 +10845,8 @@ alertSystemEventLogFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "System Event Log failure or critical event."
@@ -10331,12 +10855,104 @@ alertSystemEventLogFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
     ::= { systemAlertTrapGroup 0 2377 }
+
+------------------------------------------------------------------------------
+-- Software Configuration Traps
+--
+-- Category: System/1
+-- Subcategory: SWC/36
+------------------------------------------------------------------------------
+
+alertSoftwareConfigurationInformation NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Software configuration information."
+    --#TYPE       "System: Software Configuration Information"
+    --#SEVERITY   INFORMATIONAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      OPERATIONAL
+    --#STATUS     current
+    ::= { systemAlertTrapGroup 0 2339 }
+
+alertSoftwareConfigurationWarning NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Software configuration warning."
+    --#TYPE       "System: Software Configuration Warning"
+    --#SEVERITY   MINOR
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { systemAlertTrapGroup 0 2338 }
+
+alertSoftwareConfigurationFailure NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Software configuration failure."
+    --#TYPE       "System: Software Configuration Failure"
+    --#SEVERITY   CRITICAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Error Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { systemAlertTrapGroup 0 2337 }
 
 ------------------------------------------------------------------------------
 -- Temperature Probe Traps
@@ -10355,7 +10971,8 @@ alertTemperatureProbeNormal NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Temperature sensor value is within range."
@@ -10364,8 +10981,9 @@ alertTemperatureProbeNormal NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -10381,7 +10999,8 @@ alertTemperatureProbeWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Temperature sensor has detected a warning value."
@@ -10390,8 +11009,9 @@ alertTemperatureProbeWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -10407,7 +11027,8 @@ alertTemperatureProbeFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Temperature sensor has detected a failure value."
@@ -10416,8 +11037,9 @@ alertTemperatureProbeFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -10440,7 +11062,8 @@ alertTemperatureStatisticsWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Temperature has been above the warning or critical threshold level
@@ -10450,8 +11073,9 @@ alertTemperatureStatisticsWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -10467,7 +11091,8 @@ alertTemperatureStatisticsFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Temperature has been above the warning or critical threshold level
@@ -10477,8 +11102,9 @@ alertTemperatureStatisticsFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -10501,7 +11127,8 @@ alertvFlashMediaDeviceInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "vFlash Media device information."
@@ -10510,8 +11137,9 @@ alertvFlashMediaDeviceInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -10527,7 +11155,8 @@ alertvFlashMediaDeviceWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "vFlash Media device warning."
@@ -10536,8 +11165,9 @@ alertvFlashMediaDeviceWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -10553,7 +11183,8 @@ alertvFlashMediaDeviceFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "vFlash Media device failure."
@@ -10562,8 +11193,9 @@ alertvFlashMediaDeviceFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -10586,7 +11218,8 @@ alertvFlashMediaDeviceAbsent NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "vFlash Media device is absent."
@@ -10595,8 +11228,9 @@ alertvFlashMediaDeviceAbsent NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -10619,7 +11253,8 @@ alertVoltageProbeNormal NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Voltage sensor reading is within range."
@@ -10628,8 +11263,9 @@ alertVoltageProbeNormal NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -10645,7 +11281,8 @@ alertVoltageProbeWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Voltage sensor has detected a warning value."
@@ -10654,8 +11291,9 @@ alertVoltageProbeWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -10671,7 +11309,8 @@ alertVoltageProbeFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Voltage sensor has detected a failure value."
@@ -10680,12 +11319,83 @@ alertVoltageProbeFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
     ::= { systemAlertTrapGroup 0 2169 }
+
+------------------------------------------------------------------------------
+-- RAC Traps
+--
+-- Category: System/1
+-- Subcategory: RAC/60
+------------------------------------------------------------------------------
+
+alertRACInformation NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "RAC information."
+    --#TYPE       "System: RAC Information"
+    --#SEVERITY   INFORMATIONAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      OPERATIONAL
+    --#STATUS     current
+    ::= { systemAlertTrapGroup 0 2531 }
+
+------------------------------------------------------------------------------
+-- System Performance Traps
+--
+-- Category: System/1
+-- Subcategory: PFM/75
+------------------------------------------------------------------------------
+
+alertSystemPerformanceWarning NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "System Performance warning."
+    --#TYPE       "System: Performance Warning"
+    --#SEVERITY   MINOR
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { systemAlertTrapGroup 0 2650 }
 
 
 ------------------------------------------------------------------------------
@@ -10713,7 +11423,8 @@ alertStorageBatteryInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Battery information."
@@ -10722,8 +11433,9 @@ alertStorageBatteryInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -10739,7 +11451,8 @@ alertStorageBatteryWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Battery warning."
@@ -10748,8 +11461,9 @@ alertStorageBatteryWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -10765,7 +11479,8 @@ alertStorageBatteryFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Battery failure."
@@ -10774,8 +11489,9 @@ alertStorageBatteryFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      FAILED
     --#STATUS     current
@@ -10798,7 +11514,8 @@ alertStorageControllerInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Controller information."
@@ -10807,8 +11524,9 @@ alertStorageControllerInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -10824,7 +11542,8 @@ alertStorageControllerWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Controller warning."
@@ -10833,8 +11552,9 @@ alertStorageControllerWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -10850,7 +11570,8 @@ alertStorageControllerFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Controller failure."
@@ -10859,8 +11580,9 @@ alertStorageControllerFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      FAILED
     --#STATUS     current
@@ -10883,7 +11605,8 @@ alertStorageEnclosureInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Enclosure information."
@@ -10892,8 +11615,9 @@ alertStorageEnclosureInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -10909,7 +11633,8 @@ alertStorageEnclosureWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Enclosure warning."
@@ -10918,8 +11643,9 @@ alertStorageEnclosureWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -10935,7 +11661,8 @@ alertStorageEnclosureFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Enclosure failure."
@@ -10944,8 +11671,9 @@ alertStorageEnclosureFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      FAILED
     --#STATUS     current
@@ -10968,7 +11696,8 @@ alertStorageFanInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Fan information."
@@ -10977,8 +11706,9 @@ alertStorageFanInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -10994,7 +11724,8 @@ alertStorageFanWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Fan warning."
@@ -11003,8 +11734,9 @@ alertStorageFanWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -11020,7 +11752,8 @@ alertStorageFanFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Fan failure."
@@ -11029,8 +11762,9 @@ alertStorageFanFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      FAILED
     --#STATUS     current
@@ -11053,7 +11787,8 @@ alertStoragePhysicalDiskInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Physical disk information."
@@ -11062,8 +11797,9 @@ alertStoragePhysicalDiskInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -11079,7 +11815,8 @@ alertStoragePhysicalDiskWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Physical disk warning."
@@ -11088,8 +11825,9 @@ alertStoragePhysicalDiskWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -11105,7 +11843,8 @@ alertStoragePhysicalDiskFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Physical disk failure."
@@ -11114,8 +11853,9 @@ alertStoragePhysicalDiskFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      FAILED
     --#STATUS     current
@@ -11138,7 +11878,8 @@ alertStoragePowerSupplyInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Power supply information."
@@ -11147,8 +11888,9 @@ alertStoragePowerSupplyInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -11164,7 +11906,8 @@ alertStoragePowerSupplyWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Power supply warning."
@@ -11173,8 +11916,9 @@ alertStoragePowerSupplyWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -11190,7 +11934,8 @@ alertStoragePowerSupplyFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Power supply failure."
@@ -11199,12 +11944,104 @@ alertStoragePowerSupplyFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      FAILED
     --#STATUS     current
     ::= { storageAlertTrapGroup 0 4233 }
+
+------------------------------------------------------------------------------
+-- Security Event Traps
+--
+-- Category: Storage/2
+-- Subcategory: SEC/42
+------------------------------------------------------------------------------
+
+alertStorageSecurityInformation NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Storage Security information."
+    --#TYPE       "Storage: Security Information"
+    --#SEVERITY   INFORMATIONAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      OPERATIONAL
+    --#STATUS     current
+    ::= { storageAlertTrapGroup 0 4435 }
+
+alertStorageSecurityWarning NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Storage Security warning."
+    --#TYPE       "Storage: Security Warning"
+    --#SEVERITY   MINOR
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      OPERATIONAL
+    --#STATUS     current
+    ::= { storageAlertTrapGroup 0 4434 }
+
+alertStorageSecurityFailure NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Storage Security failure or critical event."
+    --#TYPE       "Storage: Security Failure"
+    --#SEVERITY   CRITICAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Error Events"
+    --#STATE      OPERATIONAL
+    --#STATUS     current
+    ::= { storageAlertTrapGroup 0 4433 }
 
 ------------------------------------------------------------------------------
 -- Storage Management Status Traps
@@ -11223,7 +12060,8 @@ alertStorageManagementInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Storage Management Information.
@@ -11233,8 +12071,9 @@ alertStorageManagementInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -11250,7 +12089,8 @@ alertStorageManagementWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Storage Management has detected a device independent warning
@@ -11261,8 +12101,9 @@ alertStorageManagementWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -11278,7 +12119,8 @@ alertStorageManagementFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Storage Management has detected a device independent error condition.
@@ -11288,8 +12130,9 @@ alertStorageManagementFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      FAILED
     --#STATUS     current
@@ -11312,7 +12155,8 @@ alertStorageTemperatureProbeInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Temperature probe information."
@@ -11321,8 +12165,9 @@ alertStorageTemperatureProbeInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -11338,7 +12183,8 @@ alertStorageTemperatureProbeWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Temperature probe warning."
@@ -11347,8 +12193,9 @@ alertStorageTemperatureProbeWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -11364,7 +12211,8 @@ alertStorageTemperatureProbeFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Temperature probe failure."
@@ -11373,8 +12221,9 @@ alertStorageTemperatureProbeFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      FAILED
     --#STATUS     current
@@ -11397,7 +12246,8 @@ alertStorageVirtualDiskInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Virtual disk information."
@@ -11406,8 +12256,9 @@ alertStorageVirtualDiskInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -11423,7 +12274,8 @@ alertStorageVirtualDiskWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Virtual disk warning."
@@ -11432,8 +12284,9 @@ alertStorageVirtualDiskWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -11449,7 +12302,8 @@ alertStorageVirtualDiskFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Virtual disk failure."
@@ -11458,8 +12312,9 @@ alertStorageVirtualDiskFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      FAILED
     --#STATUS     current
@@ -11491,7 +12346,8 @@ alertUpdateJobInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Update job information."
@@ -11500,12 +12356,48 @@ alertUpdateJobInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
     ::= { updatesAlertTrapGroup 0 6211 }
+
+------------------------------------------------------------------------------
+-- Software Change Traps
+--
+-- Category: Updates/3
+-- Subcategory: SWU/21
+------------------------------------------------------------------------------
+
+alertSoftwareChangeUpdateWarning NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Software change update warning."
+    --#TYPE       "Updates: Software Change Warning"
+    --#SEVERITY   MINOR
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { updatesAlertTrapGroup 0 6314 }
 
 
 ------------------------------------------------------------------------------
@@ -11515,6 +12407,97 @@ alertUpdateJobInformation NOTIFICATION-TYPE
 --
 -- OID Format: 1.3.6.1.4.1.674.10892.5.3.2.4
 ------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+-- CMC Traps
+--
+-- Category: Audit/4
+-- Subcategory: CMC/62
+------------------------------------------------------------------------------
+
+alertCMCAuditInformation NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Chassis Management Controller audit information."
+    --#TYPE       "Audit: CMC Information"
+    --#SEVERITY   INFORMATIONAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      OPERATIONAL
+    --#STATUS     current
+    ::= { auditAlertTrapGroup 0 8691 }
+
+alertCMCAuditWarning NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Chassis Management Controller audit warning."
+    --#TYPE       "Audit: CMC Warning"
+    --#SEVERITY   MINOR
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { auditAlertTrapGroup 0 8690 }
+
+alertCMCAuditFailure NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Chassis Management Controller audit failure or critical event."
+    --#TYPE       "Audit: CMC Failure"
+    --#SEVERITY   CRITICAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Error Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { auditAlertTrapGroup 0 8689 }
 
 ------------------------------------------------------------------------------
 -- Debug Traps
@@ -11533,7 +12516,8 @@ alertDebugInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Debug authorized."
@@ -11542,8 +12526,9 @@ alertDebugInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -11559,7 +12544,8 @@ alertDebugWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Debug authorization failed."
@@ -11568,8 +12554,9 @@ alertDebugWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -11592,7 +12579,8 @@ alertiDRACIPAddressChange NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "iDRAC IP address has changed."
@@ -11601,8 +12589,9 @@ alertiDRACIPAddressChange NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -11626,7 +12615,8 @@ alertLicenseInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "License information."
@@ -11635,8 +12625,9 @@ alertLicenseInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -11652,7 +12643,8 @@ alertLicenseWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "License warning."
@@ -11661,8 +12653,9 @@ alertLicenseWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
@@ -11678,7 +12671,8 @@ alertLicenseFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "License failure."
@@ -11687,12 +12681,202 @@ alertLicenseFailure NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
     ::= { auditAlertTrapGroup 0 8513 }
+
+------------------------------------------------------------------------------
+-- PCI Device Traps
+--
+-- Category: Audit/4
+-- Subcategory: PCI/46
+------------------------------------------------------------------------------
+
+alertPCIDeviceAuditWarning NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "PCI device audit warning."
+    --#TYPE       "Audit: PCI Device Warning"
+    --#SEVERITY   MINOR
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { auditAlertTrapGroup 0 8562 }
+
+------------------------------------------------------------------------------
+-- Power Supply Traps
+--
+-- Category: Audit/4
+-- Subcategory: PSU/17
+------------------------------------------------------------------------------
+
+alertPowerSupplyAuditWarning NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Power Supply audit warning."
+    --#TYPE       "Audit: Power Supply Warning"
+    --#SEVERITY   MINOR
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { auditAlertTrapGroup 0 8330 }
+
+alertPowerSupplyAuditFailure NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Power Supply audit failure or critical event."
+    --#TYPE       "Audit: Power Supply Failure"
+    --#SEVERITY   CRITICAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Error Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { auditAlertTrapGroup 0 8329 }
+
+------------------------------------------------------------------------------
+-- Power Usage Traps
+--
+-- Category: Audit/4
+-- Subcategory: PWR/28
+------------------------------------------------------------------------------
+
+alertPowerUsageAuditInformation NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Power usage audit information."
+    --#TYPE       "Audit: Power Usage Information"
+    --#SEVERITY   INFORMATIONAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      OPERATIONAL
+    --#STATUS     current
+    ::= { auditAlertTrapGroup 0 8419 }
+
+alertPowerUsageAuditWarning NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Power usage audit warning."
+    --#TYPE       "Audit: Power Usage Warning"
+    --#SEVERITY   MINOR
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { auditAlertTrapGroup 0 8418 }
+
+alertPowerUsageAuditFailure NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Power usage audit failure or critical event."
+    --#TYPE       "Audit: Power Usage Failure"
+    --#SEVERITY   CRITICAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Error Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { auditAlertTrapGroup 0 8417 }
 
 ------------------------------------------------------------------------------
 -- System Power State Change Trap
@@ -11711,7 +12895,8 @@ alertSystemPowerStateChangeInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Host is going through a power state change
@@ -11721,30 +12906,22 @@ alertSystemPowerStateChangeInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
     ::= { auditAlertTrapGroup 0 8579 }
 
-
 ------------------------------------------------------------------------------
--- Configuration Alert Trap Group
--- Configuration Traps
--- Category: Configuration/5
+-- User Tracking Trap
 --
--- OID Format: 1.3.6.1.4.1.674.10892.5.3.2.5
+-- Category: Audit/4
+-- Subcategory: USR/37
 ------------------------------------------------------------------------------
 
-------------------------------------------------------------------------------
--- Test Trap
---
--- Category: Configuration/5
--- Subcategory: TST/19
-------------------------------------------------------------------------------
-
-alertTestTrapEvent NOTIFICATION-TYPE
+alertUserTrackingWarning NOTIFICATION-TYPE
     OBJECTS { alertMessageID,
               alertMessage,
               alertCurrentStatus,
@@ -11754,21 +12931,32 @@ alertTestTrapEvent NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
-        "The iDRAC generated a test trap event in response to a user request."
-    --#TYPE       "Configuration: iDRAC Test Trap Event"
-    --#SEVERITY   INFORMATIONAL
+         "User Tracking warning."
+    --#TYPE       "Audit: User Tracking"
+    --#SEVERITY   MINOR
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
-    --#STATE      OPERATIONAL
+    --#STATE      DEGRADED
     --#STATUS     current
-    ::= { configurationAlertTrapGroup 0 10395 }
+    ::= { auditAlertTrapGroup 0 8490 }
+	
+
+------------------------------------------------------------------------------
+-- Configuration Alert Trap Group
+-- Configuration Traps
+-- Category: Configuration/5
+--
+-- OID Format: 1.3.6.1.4.1.674.10892.5.3.2.5
+------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
 -- AutoDiscovery Traps
@@ -11787,7 +12975,8 @@ alertAutoDiscoveryInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Auto discovery information."
@@ -11796,8 +12985,9 @@ alertAutoDiscoveryInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -11821,7 +13011,8 @@ alertNetworkConfigurationInformation NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Network configuration information."
@@ -11830,8 +13021,9 @@ alertNetworkConfigurationInformation NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      OPERATIONAL
     --#STATUS     current
@@ -11847,7 +13039,8 @@ alertNetworkConfigurationWarning NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
         "Network configuration warning."
@@ -11856,14 +13049,22 @@ alertNetworkConfigurationWarning NOTIFICATION-TYPE
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Status Events"
     --#STATE      DEGRADED
     --#STATUS     current
     ::= { configurationAlertTrapGroup 0 10770 }
 
-alertNetworkConfigurationFailure NOTIFICATION-TYPE
+------------------------------------------------------------------------------
+-- IP Address Traps
+--
+-- Category: Configuration/5
+-- Subcategory: IPA/38
+------------------------------------------------------------------------------
+
+alertIPAddressConfigurationInformation NOTIFICATION-TYPE
     OBJECTS { alertMessageID,
               alertMessage,
               alertCurrentStatus,
@@ -11873,24 +13074,230 @@ alertNetworkConfigurationFailure NOTIFICATION-TYPE
               alertDeviceDisplayName,
               alertMessageArguments,
               alertChassisServiceTag,
-              alertChassisName }
+              alertChassisName,
+              alertRacFQDN }
     STATUS current
     DESCRIPTION
-        "Network configuration failure."
-    --#TYPE       "Configuration: Network Configuration Failure"
+        "IP Address configuration information."
+    --#TYPE       "Configuration: IP Address Information"
+    --#SEVERITY   INFORMATIONAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      OPERATIONAL
+    --#STATUS     current
+    ::= { configurationAlertTrapGroup 0 10547 }
+
+------------------------------------------------------------------------------
+-- Job Control Traps
+--
+-- Category: Configuration/5
+-- Subcategory: JCP/3
+------------------------------------------------------------------------------
+
+alertJobControlConfigurationInformation NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Job Control configuration information."
+    --#TYPE       "Configuration: Job Control Information"
+    --#SEVERITY   INFORMATIONAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      OPERATIONAL
+    --#STATUS     current
+    ::= { configurationAlertTrapGroup 0 10267 }
+
+------------------------------------------------------------------------------
+-- PCI Device Traps
+--
+-- Category: Configuration/5
+-- Subcategory: PCI/46
+------------------------------------------------------------------------------
+
+alertPCIDeviceConfigurationInformation NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "PCI device configuration information."
+    --#TYPE       "Configuration: PCI Device Information"
+    --#SEVERITY   INFORMATIONAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      OPERATIONAL
+    --#STATUS     current
+    ::= { configurationAlertTrapGroup 0 10611 }
+
+------------------------------------------------------------------------------
+-- Security Event Traps
+--
+-- Category: Configuration/5
+-- Subcategory: SEC/42
+------------------------------------------------------------------------------
+
+alertSecurityConfigurationWarning NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Security configuration warning."
+    --#TYPE       "Configuration: Security Warning"
+    --#SEVERITY   MINOR
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { configurationAlertTrapGroup 0 10578 }
+
+------------------------------------------------------------------------------
+-- Software Configuration Traps
+--
+-- Category: Configuration/5
+-- Subcategory: SWC/36
+------------------------------------------------------------------------------
+
+alertSWCConfigurationWarning NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Software configuration warning."
+    --#TYPE       "Configuration: Software Configuration Warning"
+    --#SEVERITY   MINOR
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      DEGRADED
+    --#STATUS     current
+    ::= { configurationAlertTrapGroup 0 10530 }
+
+alertSWCConfigurationFailure NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "Software configuration failure."
+    --#TYPE       "Configuration: Software Configuration Failure"
     --#SEVERITY   CRITICAL
     --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
     --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
     --#SUMMARY    "System Service Tag: %s, System Name: %s,"
-    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s"
-    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9}
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
     --#CATEGORY   "Error Events"
     --#STATE      DEGRADED
     --#STATUS     current
-    ::= { configurationAlertTrapGroup 0 10769 }
+    ::= { configurationAlertTrapGroup 0 10529 }
+
+------------------------------------------------------------------------------
+-- Test Trap
+--
+-- Category: Configuration/5
+-- Subcategory: TST/19
+------------------------------------------------------------------------------
+
+alertTestTrapEvent NOTIFICATION-TYPE
+    OBJECTS { alertMessageID,
+              alertMessage,
+              alertCurrentStatus,
+              alertSystemServiceTag,
+              alertSystemFQDN,
+              alertFQDD,
+              alertDeviceDisplayName,
+              alertMessageArguments,
+              alertChassisServiceTag,
+              alertChassisName,
+              alertRacFQDN }
+    STATUS current
+    DESCRIPTION
+        "The iDRAC generated a test trap event in response to a user request."
+    --#TYPE       "Configuration: iDRAC Test Trap Event"
+    --#SEVERITY   INFORMATIONAL
+    --#SUMMARY    "Message ID: %s, Device Display Name: %s, Message: %s,"
+    --#SUMMARY    "Device Status: %d, Device FQDD: %s,"
+    --#SUMMARY    "System Service Tag: %s, System Name: %s,"
+    --#SUMMARY    "Chassis Service Tag: %s, Chassis Name: %s,"
+    --#SUMMARY    "RAC FQDN: %s"
+    --#ARGUMENTS  {0, 6, 1, 2, 5, 3, 4, 8, 9, 10}
+    --#CATEGORY   "Status Events"
+    --#STATE      OPERATIONAL
+    --#STATUS     current
+    ::= { configurationAlertTrapGroup 0 10395 }
 
 END
 
 ------------------------------------------------------------------------------
 -- End MIB
 ------------------------------------------------------------------------------
+

@@ -11,10 +11,8 @@
  *
  */
 
-$mib = 'EMBEDDED-NGX-MIB';
-
-$mempool['free']  = snmp_get($device, "swMemRamFree.0",  "-OQUvs", $mib, mib_dirs('checkpoint'));
-$mempool['total'] = snmp_get($device, "swMemRamTotal.0", "-OQUvs", $mib, mib_dirs('checkpoint'));
+$mempool['free']  = snmp_get($device, 'swMemRamFree.0',  '-OQUvs', 'EMBEDDED-NGX-MIB');
+$mempool['total'] = snmp_get($device, 'swMemRamTotal.0', '-OQUvs', 'EMBEDDED-NGX-MIB');
 $mempool['used']  = $mempool['total'] - $mempool['free'];
 
 // EOF

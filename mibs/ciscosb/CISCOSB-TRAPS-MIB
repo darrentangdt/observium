@@ -13,15 +13,15 @@ IMPORTS
 
 rndNotifications MODULE-IDENTITY
                 LAST-UPDATED "201006250000Z"
-				ORGANIZATION "Cisco Small Business"
+				ORGANIZATION "Cisco Systems, Inc."
 
 				CONTACT-INFO
 				"Postal: 170 West Tasman Drive
 				San Jose , CA 95134-1706
 				USA
 
-				Website: Cisco Small Business Home http://www.cisco.com/smb>;,
-				Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
+				
+				Website:  Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
 
                 DESCRIPTION
                       "This private MIB module defines switch private notifications"
@@ -728,8 +728,9 @@ rlStackVersionDowngradeTrap NOTIFICATION-TYPE
 
 -- Trap 227 reserved for rlbrgIgmpSnoopQrrDuplicateIP
 
--- 228-237 used by FHS
+-- 228-239 used by FHS
 
+-- 240-245 used by PoE
 
 -- 240 used by Poe Inrush - rlPethPowerPseInrushTestEnabled
 pseInrushPort NOTIFICATION-TYPE
@@ -739,13 +740,57 @@ pseInrushPort NOTIFICATION-TYPE
         "Informational trap indicating that port in PD does not meet the inrush-current standard."
     ::=  { rndNotifications 240 }
 
+pseOverloadPort NOTIFICATION-TYPE
+    OBJECTS   { rndErrorDesc, rndErrorSeverity }
+    STATUS  current
+    DESCRIPTION
+        "Informational trap indicating that Port (x) requires more power than it should require."
+    ::=  { rndNotifications 241 }
+
 -- Storm control
 rlStormControlMinRateTrap NOTIFICATION-TYPE
     OBJECTS   { rndErrorDesc, rndErrorSeverity }
     STATUS  current
     DESCRIPTION
         "Warning trap indicating that port storm control rate limit is configured to minumum rate."
-    ::=  { rndNotifications 241 }
+    ::=  { rndNotifications 246 }
+
+-- AP
+rlApBackplanePortResolutionTrap NOTIFICATION-TYPE
+    OBJECTS   { rndErrorDesc, rndErrorSeverity }
+    STATUS  current
+    DESCRIPTION
+        "Informational trap indicating about backplane ethernet port resolution."
+    ::=  { rndNotifications 247 }
+    
+-- Sfp
+sfpPortPresent NOTIFICATION-TYPE
+    OBJECTS   { rndErrorDesc, rndErrorSeverity }
+    STATUS  current
+    DESCRIPTION
+        "Informational trap indicating that gbic is now present on port (X)."
+    ::=  { rndNotifications 248}
+        
+sfpPortNotPresent NOTIFICATION-TYPE
+    OBJECTS   { rndErrorDesc, rndErrorSeverity }
+    STATUS  current
+    DESCRIPTION
+        "Informational trap indicating that gbic is not present anymore on port (X)."
+    ::=  { rndNotifications 249 }    
+    
+sfpPortLoss NOTIFICATION-TYPE
+    OBJECTS   { rndErrorDesc, rndErrorSeverity }
+    STATUS  current
+    DESCRIPTION
+        "Informational trap indicating that loss Diagnosed on port (X)."
+    ::=  { rndNotifications 250} 
+
+sfpPortNotLoss NOTIFICATION-TYPE
+    OBJECTS   { rndErrorDesc, rndErrorSeverity }
+    STATUS  current
+    DESCRIPTION
+        "Informational trap indicating that loss isn't active anymore on port (X)."
+    ::=  { rndNotifications 251 }     
 
 END
 

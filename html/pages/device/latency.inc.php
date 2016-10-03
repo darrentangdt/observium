@@ -131,6 +131,6 @@ echo '</table>';
 
 echo generate_box_close();
 
-$page_title[] = "Latency";
+register_html_title("Latency");
 
 // EOF

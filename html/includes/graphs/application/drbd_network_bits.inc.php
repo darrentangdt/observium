@@ -25,8 +25,8 @@ if (is_file($drbd_rrd))
 $ds_in = "nr";
 $ds_out = "ns";
 
-$multiplier = "8";
+$multiplier = "1024";
 
-include("includes/graphs/generic_data.inc.php");
+include($config['html_dir']."/includes/graphs/generic_data.inc.php");
 
 // EOF

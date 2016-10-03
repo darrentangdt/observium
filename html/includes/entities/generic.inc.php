@@ -127,12 +127,12 @@ function generate_entity_popup_header($entity, $vars)
       $contents .= generate_box_open();
       $contents .= '
       <table class="'. OBS_CLASS_TABLE .'">
-        <tr class="' . $entity['row_class'] . '" style="font-size: 10pt;">
+        <tr class="' . $entity['row_class'] . ' vertical-align" style="font-size: 10pt;">
           <td class="state-marker"></td>
           <td style="width: 10px;"></td>
-          <td style="width: 10px; vertical-align: middle;"><i class="'.$translate['icon'].'"></i></td>
-          <td style="vertical-align: middle;"><a class="entity-popup" style="font-size: 15px; font-weight: bold;">'.$entity['entity_shortname'].'</a>'.$peer_name.'</td>
-          <td style="width: 20%; white-space: nowrap;">'.$astext.'</td>
+          <td style="width: 10px;"><i class="'.$translate['icon'].'"></i></td>
+          <td><a class="entity-popup" style="font-size: 15px; font-weight: bold;">'.$entity['entity_shortname'].'</a>'.$peer_name.'</td>
+          <td class="text-nowrap" style="width: 20%;">'.$astext.'</td>
           <td></td>
         </tr>
       </table>';
@@ -194,6 +194,36 @@ function generate_entity_popup_header($entity, $vars)
       $contents .= generate_box_open();
       $contents .= '<table class="'. OBS_CLASS_TABLE .'">';
       $contents .= generate_storage_row($entity, $vars);
+      $contents .= '</table>';
+      $contents .= generate_box_close();
+
+      break;
+
+    case "netscalervsvr":
+
+      $contents .= generate_box_open();
+      $contents .= '<table class="'. OBS_CLASS_TABLE .'">';
+      $contents .= generate_netscalervsvr_row($entity, $vars);
+      $contents .= '</table>';
+      $contents .= generate_box_close();
+
+      break;
+
+    case "netscalersvc":
+
+      $contents .= generate_box_open();
+      $contents .= '<table class="'. OBS_CLASS_TABLE .'">';
+      $contents .= generate_netscalersvc_row($entity, $vars);
+      $contents .= '</table>';
+      $contents .= generate_box_close();
+
+      break;
+
+    case "netscalersvcgrpmem":
+
+      $contents .= generate_box_open();
+      $contents .= '<table class="'. OBS_CLASS_TABLE .'">';
+      $contents .= generate_netscalersvcmem_row($entity, $vars);
       $contents .= '</table>';
       $contents .= generate_box_close();
 

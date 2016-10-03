@@ -39,7 +39,8 @@ echo("</div>");
 /* Begin Right Pane */
 echo('<div class="col-md-6">');
 
-if ($device['os_group'] == "unix")
+if (isset($device['graphs']['ucd_ss_cpu']) ||
+    ($device['os_group'] == 'unix' && isset($device['graphs']['hr_processes'])))
 {
   include("overview/processors-unix.inc.php");
 } else {
@@ -60,7 +61,7 @@ if (is_array($entity_state['group']['c6kxbar']))
   include("overview/c6kxbar.inc.php");
 }
 
-include("overview/toner.inc.php");
+include("overview/printersupplies.inc.php");
 include("overview/status.inc.php");
 include("overview/sensors.inc.php");
 

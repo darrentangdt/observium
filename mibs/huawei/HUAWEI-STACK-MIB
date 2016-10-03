@@ -1,9 +1,9 @@
 -- =====================================================================
--- Copyright (C) 2009 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 --
 -- Description: Huawei Stack MIB
 -- Reference:   HUAWEI Stack MIB
--- Version:     V1.41
+-- Version:  V1.47
 -- History:
 -- Friday, May 06, 2011 at 15:29:31
 --
@@ -25,7 +25,7 @@ HUAWEI-STACK-MIB DEFINITIONS ::= BEGIN
             FROM HUAWEI-MIB;
 
     huaweiStackMIB MODULE-IDENTITY
-                  LAST-UPDATED "201412171425Z"		-- Dec 17, 2014 at 14:25 GMT                         
+                  LAST-UPDATED "201508070925Z"		-- August 07, 2015 at 9:25 GMT                      
                   ORGANIZATION 
                   "Huawei Technologies Co.,Ltd."
                   CONTACT-INFO  
@@ -37,7 +37,25 @@ HUAWEI-STACK-MIB DEFINITIONS ::= BEGIN
             Email: support@huawei.com
            "           
         DESCRIPTION 
-        " " 
+        " "
+
+        REVISION "201508070925Z"   
+        DESCRIPTION "Updated to include support for STACK" 
+
+        REVISION "201506240925Z"   
+        DESCRIPTION "Updated to include support for STACK" 
+
+        REVISION "201504150925Z"   
+        DESCRIPTION "Updated to include support for STACK"   
+
+        REVISION "201503060925Z"   
+        DESCRIPTION "Updated to include support for STACK"   
+
+        REVISION "201502150925Z"   
+        DESCRIPTION "Updated to include support for STACK"   
+ 
+        REVISION "201502101425Z"   
+        DESCRIPTION "Updated to include support for STACK"   
 
         REVISION "201412171425Z"   
         DESCRIPTION "Updated to include support for STACK"   
@@ -48,13 +66,13 @@ HUAWEI-STACK-MIB DEFINITIONS ::= BEGIN
         REVISION "201410211521Z"   
         DESCRIPTION "Updated to include support for STACK"   
 
-		REVISION "201409181650Z"   
+        REVISION "201409181650Z"   
         DESCRIPTION "Updated to include support for STACK" 
 	
-		REVISION "201409011434Z"   
+        REVISION "201409011434Z"   
         DESCRIPTION "Updated to include support for STACK" 
 	    
-		REVISION "201408192109Z"   
+        REVISION "201408192109Z"   
         DESCRIPTION "Updated to include support for STACK" 
 		
         REVISION "201408041711Z"   
@@ -266,7 +284,61 @@ HUAWEI-STACK-MIB DEFINITIONS ::= BEGIN
             DESCRIPTION
                 "The maximum number of leaf switches on the LPU."   
             ::= { hwStackObject 13 }
+
+        hwFabricCurrentForwardModel OBJECT-TYPE
+            SYNTAX INTEGER
+            {
+                distributed(1),
+                centralized(2),
+                hybrid(3),
+                unknown(255)
+            }
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The current forwarding model type of svf system"
+            ::= { hwStackObject 14 }
+		
+        hwFabricConfigForwardModel OBJECT-TYPE
+            SYNTAX INTEGER
+            {
+                distributed(1),
+                centralized(2),
+                hybrid(3),
+                unknown(255)
+            }
+            MAX-ACCESS read-write
+            STATUS current
+            DESCRIPTION
+                "The config forwarding model type of svf system"
+            ::= { hwStackObject 15 }
+			
+       hwLeafSingleHomedAlarmEnable OBJECT-TYPE
+            SYNTAX INTEGER
+            {
+                enabled(1),
+                disabled(2),
+                unknown(255)
+            }
+            MAX-ACCESS read-write
+            STATUS current
+            DESCRIPTION
+                "The single-homed alarm of leaf switches is enable or disable."
+            ::= { hwStackObject 16 }
       
+	    hwFabricExcludeLeafType OBJECT-TYPE
+            SYNTAX INTEGER
+            {
+                default(0),
+                ce5810ei(1),
+                unknown(255)
+            }
+            MAX-ACCESS read-write
+            STATUS current
+            DESCRIPTION
+                "The spine exclude leaf type."
+            ::= { hwStackObject 17 }
+  
 
 --
 --  TABLE: hwStackMemberInfoTable definition
@@ -318,7 +390,7 @@ HUAWEI-STACK-MIB DEFINITIONS ::= BEGIN
 
 
         hwMemberStackPriority  OBJECT-TYPE
-            SYNTAX Integer32 (1..255)
+            SYNTAX Integer32 (-1..255)
             MAX-ACCESS read-write
             STATUS current
             DESCRIPTION
@@ -423,12 +495,19 @@ HUAWEI-STACK-MIB DEFINITIONS ::= BEGIN
                 hwStackSysOid 
                     OCTET STRING,
                 hwStackDescription 
-                    OCTET STRING
-             }
-            
+                    OCTET STRING,
+                hwStackCurrentUplinkPort 
+                    INTEGER,
+                hwStackConfigUplinkPort 
+                    INTEGER,
+                hwStackCurrentSwitchMode
+                    INTEGER,
+                hwStackConfigSwitchMode 
+                    INTEGER
+             }            
         hwStackIdIndex OBJECT-TYPE
             SYNTAX Integer32 (0..254)          
-            MAX-ACCESS not-accessible        
+            MAX-ACCESS not-accessible     
             STATUS current
             DESCRIPTION
                 "Stack ID Index. "
@@ -450,7 +529,8 @@ HUAWEI-STACK-MIB DEFINITIONS ::= BEGIN
                master(1),
                standby(2),
                slave(3),
-               leaf(4)                        
+               leaf(4),
+               spine(5)                        
             }
             MAX-ACCESS read-only
             STATUS current
@@ -506,7 +586,72 @@ HUAWEI-STACK-MIB DEFINITIONS ::= BEGIN
             STATUS current
             DESCRIPTION
                 "Description of the stack device."
-            ::= { hwStackMemberInformationEntry 9 }	
+            ::= { hwStackMemberInformationEntry 9 }
+
+			
+       hwStackCurrentUplinkPort OBJECT-TYPE
+            SYNTAX INTEGER
+            {
+               autoNegotiation(1),
+               port8x10ge(2),
+               port4x40ge(3),
+               port4x10ge(4),
+               port2x40ge(5),	
+               unknown(255)
+            }
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The current leaf Fabric-Port type of the stack device. "
+            ::= { hwStackMemberInformationEntry 10 }	
+			
+         hwStackConfigUplinkPort OBJECT-TYPE
+            SYNTAX INTEGER
+            {
+                 autoNegotiation(1),
+                 port8x10ge(2),
+                 port4x40ge(3),
+                 port4x10ge(4),
+                 port2x40ge(5)	,
+                 unknown(255)
+            }
+            MAX-ACCESS read-write
+            STATUS current
+            DESCRIPTION
+                "The config leaf Fabric-Port type of the stack device."
+            ::= { hwStackMemberInformationEntry 11 }
+		
+         hwStackCurrentSwitchMode OBJECT-TYPE
+            SYNTAX INTEGER
+            {
+                 autoNegotiation(1), 
+                 leaf(2),
+                 stack(3),
+                 unknown(255)
+            }
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The current switch mode type of the stack device."
+            ::= { hwStackMemberInformationEntry 12 }
+			
+			
+			
+         hwStackConfigSwitchMode OBJECT-TYPE
+            SYNTAX INTEGER
+            {
+                  autoNegotiation(1), 
+                  leaf(2),
+                  stack(3),
+                  unknown(255)
+            }
+            MAX-ACCESS read-write
+            STATUS current
+            DESCRIPTION
+                "The config switch mode type of the stack device."
+            ::= { hwStackMemberInformationEntry 13 }	
+		
+
 
 --
 --  TABLE: hwFabricPhyLinkTable definition           
@@ -1022,6 +1167,19 @@ HUAWEI-STACK-MIB DEFINITIONS ::= BEGIN
                 send a SNMP trap to network manager."
             ::= { hwStackEventsV2  40 }
 
+        hwPhyStackPortErrorDown  NOTIFICATION-TYPE
+            OBJECTS {hwStackLocalIfName}
+            STATUS current
+            DESCRIPTION
+                "When the runts-error-down occured, send a SNMP trap to network manager."
+            ::= { hwStackEventsV2  41 }
+    
+    	hwPhyStackPortErrorDownRecover  NOTIFICATION-TYPE
+            OBJECTS {hwStackLocalIfName, hwStackErrorDownRecoverReason}
+            STATUS current
+            DESCRIPTION
+                "When the runts-error-down recovered, send a SNMP trap to network manager."
+            ::= { hwStackEventsV2  42 }
  
 --
 --  TABLE: hwStackUpgradeTable definition
@@ -1360,7 +1518,7 @@ HUAWEI-STACK-MIB DEFINITIONS ::= BEGIN
             ::= { hwAddingPhyPortToFabricPortEntry 1 }
             
         hwFabricPortID OBJECT-TYPE
-            SYNTAX Integer32 (0..24)
+            SYNTAX Integer32 (0..32)
             MAX-ACCESS read-write
             STATUS current
             DESCRIPTION
@@ -1705,6 +1863,14 @@ HUAWEI-STACK-MIB DEFINITIONS ::= BEGIN
             DESCRIPTION
                 " The current number of member port in Fabric-Port, which protocol state is up."
             ::= { hwStackTrapObject 15 }
+
+      hwStackErrorDownRecoverReason OBJECT-TYPE
+            SYNTAX OCTET STRING
+            MAX-ACCESS accessible-for-notify
+            STATUS current
+            DESCRIPTION
+                " Error-down reason."
+            ::= { hwStackTrapObject 16 } 
 				     	           
     hwCssObject OBJECT IDENTIFIER ::= { huaweiStackMIB 3 }
     
@@ -2482,15 +2648,15 @@ hwCssPortInfoTable OBJECT-TYPE
                   hwStackSystemMac, hwStackIsStackDevice,hwStackReservedVlanId,
                   hwStackClearUnsupportCfg,hwStackLinkAlarmThreshold, hwStackMemberThreshold,
                   hwStackMode, hwStackMemberSpec,
-                  hwLeafMaxNumber,
-                  hwMemberCurrentStackId,hwMemberStackPriority, 
+                  hwLeafMaxNumber, hwFabricCurrentForwardModel, hwFabricConfigForwardModel,hwLeafSingleHomedAlarmEnable,
+                  hwFabricExcludeLeafType, hwMemberCurrentStackId, hwMemberStackPriority, 
                   hwMemberStackRole, hwMemberStackMacAddress,hwMemberStackDeviceType,
                   hwMemberConfigStackId, hwMemberStackObjectId, 
-                  hwStackIdIndex, hwStackPriority, hwStackRole, hwStackMacAddress, hwStackDeviceType, 
-                  hwStackId, hwStackConfigId, hwStackSysOid, hwStackDescription,
-                  hwEnabledStackModePortIndex, hwFabricPortID,
+                  hwStackPriority, hwStackRole, hwStackMacAddress, hwStackDeviceType, 
+                  hwStackId, hwStackConfigId, hwStackSysOid, hwStackDescription, hwStackCurrentUplinkPort, hwStackConfigUplinkPort,
+                  hwStackCurrentSwitchMode, hwStackConfigSwitchMode, hwEnabledStackModePortIndex, hwFabricPortID,
                   hwFabricPortIndex, hwFabricMemberID, hwFabricLoadBalance, hwFabricProtocolState, hwFabricConfiguredLinkNum ,
-                  hwSpinePortIndex, hwSpineStackId, hwSpinePortName, hwSpinePortStatus, 
+                  hwSpineStackId, hwSpinePortName, hwSpinePortStatus, 
                   hwLeafPortIndex, hwLeafStackId,  hwLeafPortName, hwLeafPortStatus,
                   hwStackPortStackId, hwStackPortId , hwStackPortName,hwStackNeighborInfo, 
                   hwStackPortStatus, hwStackUpgradeGrpType, hwStackUpgradeGrpValue, 
@@ -2518,7 +2684,8 @@ hwCssPortInfoTable OBJECT-TYPE
                         hwStackMemberAdd, hwStackMemberLeave, hwStackConfigDifferent, hwStackLeafConfigConflict,
                         hwStackChipSingleHomedAlarm, hwStackChipSingleHomedAlarmResume, hwStackLeafMemberAdd,
                         hwFabricLinkLimitAlarm, hwFabricLinkLimitAlarmResume,hwStackMemberExceedSpec ,hwStackMacInconsistence,hwStackMacInconsistenceResume,
-                        hwFabricLinkProtocolAlarm, hwFabricLinkProtocolAlarmResume, hwFabricMemberPortProtocolAlarm, hwFabricMemberPortProtocolAlarmResume, hwLeafMaxNumberExceededAlarm, hwLeafMaxNumberExceededAlarmResume
+                        hwFabricLinkProtocolAlarm, hwFabricLinkProtocolAlarmResume, hwFabricMemberPortProtocolAlarm, hwFabricMemberPortProtocolAlarmResume, hwLeafMaxNumberExceededAlarm, hwLeafMaxNumberExceededAlarmResume,
+                        hwPhyStackPortErrorDown, hwPhyStackPortErrorDownRecover
                         }
         STATUS current
         DESCRIPTION
@@ -2531,7 +2698,7 @@ hwCssPortInfoTable OBJECT-TYPE
                  hwStackConnectErrReason, hwCssTrapErrorPortId, hwStackConnectMethod,
                  hwStackCfgConflictStackId, hwStackFabricPort, hwStackFabricMemberPort,
                  hwStackMemberId, hwStackLeafMemberId, hwStackReason, hwStackLeafPort,
-                 hwStackCurrentLinkNum, hwFabricCurrentLinkNum 
+                 hwStackCurrentLinkNum, hwFabricCurrentLinkNum, hwStackErrorDownRecoverReason  
                  }
         STATUS current
         DESCRIPTION

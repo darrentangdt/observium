@@ -83,8 +83,8 @@ foreach (dbFetchRows("SELECT * FROM `packages` WHERE 1 $where GROUP BY `name`", 
     }
   }
 
-  echo("      </td>\n");
-  echo("    </tr>\n");
+  echo '      </td>'.PHP_EOL;
+  echo '    </tr>'.PHP_EOL;
 }
 
 echo '  </tbody>';

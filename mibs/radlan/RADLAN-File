@@ -11,9 +11,35 @@ RADLAN-File DEFINITIONS ::= BEGIN
 
 
 IMPORTS
-    rlFile                                      FROM RADLAN-MIB
-    DisplayString, RowStatus, TruthValue        FROM SNMPv2-TC
-    OBJECT-TYPE                                 FROM SNMPv2-SMI;
+    rnd                                     	FROM RADLAN-MIB
+    DisplayString, RowStatus, TEXTUAL-CONVENTION, TruthValue        FROM SNMPv2-TC
+    OBJECT-TYPE, MODULE-IDENTITY                FROM SNMPv2-SMI;
+
+
+rlFile MODULE-IDENTITY
+      LAST-UPDATED "201304010000Z"  -- April 1, 2013
+      ORGANIZATION "Marvell Semiconductor, Inc."
+      CONTACT-INFO
+              "www.marvell.com"
+      DESCRIPTION
+              "The MIB module describes the private MIB for File Private Extension 
+               supported by Marvell MTS software and products."      
+      REVISION     "201304010000Z"  -- April 1, 2013
+      DESCRIPTION
+              "Added MODULE-IDENTITY"
+      ::= { rnd 96  }
+      
+FilePermission ::= TEXTUAL-CONVENTION
+    STATUS      current
+    DESCRIPTION
+        "File permission"
+    SYNTAX      BITS {
+            read(0),
+            write(1),
+            execute(2),
+            dir(3)
+    }
+
 
 rlFileMibVersion OBJECT-TYPE
     SYNTAX      INTEGER
@@ -38,21 +64,22 @@ rlFileEntry  OBJECT-TYPE
     STATUS      current
     DESCRIPTION
         " An entry (conceptual row) in the FileTable."
-    INDEX {rlFileName }
+    INDEX { IMPLIED rlFileName }
     ::= {rlFileTable  1 }
 
 RlFileEntry ::= SEQUENCE {
-    rlFileName                          DisplayString,
-    rlFilePermission                    INTEGER,
+    rlFileName                          OCTET STRING,
+    rlFilePermission                    FilePermission,
     rlFileSize                          INTEGER,
     rlFileModificationDate              DisplayString,
     rlFileModificationTime              DisplayString,
     rlFileRowStatus                     RowStatus,
-    rlFileFlashSize                     INTEGER
+    rlFileFlashSize                     INTEGER,
+    rlFileFullNormalizedName            OCTET STRING
 }
 
 rlFileName OBJECT-TYPE
-    SYNTAX      DisplayString
+    SYNTAX      OCTET STRING(SIZE(1..160))
     MAX-ACCESS  read-write
     STATUS      current
     DESCRIPTION
@@ -60,16 +87,11 @@ rlFileName OBJECT-TYPE
     ::=  { rlFileEntry 1 }
 
 rlFilePermission OBJECT-TYPE
-    SYNTAX  INTEGER {
-        read(1),
-        write(2),
-        readWrite(3),
-        noReadNoWrite(4)
-    }
+    SYNTAX  FilePermission
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
-        "Specifies the permission level in which this file can be accessed. "
+        "permission level bitmap. "
     ::= { rlFileEntry 2 }
 
 rlFileSize OBJECT-TYPE
@@ -116,6 +138,15 @@ rlFileFlashSize OBJECT-TYPE
         "The size allocated for the file in bytes (allocated size)."
     ::=  { rlFileEntry 7 }
 
+rlFileFullNormalizedName OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The full normalized name - up to max OCTET STRING length and
+         not containing '..' and '.' path components."
+    ::=  { rlFileEntry 8 }
+
 rlFileActionTable OBJECT-TYPE
     SYNTAX SEQUENCE OF RlFileActionEntry
     MAX-ACCESS  not-accessible
@@ -135,14 +166,14 @@ rlFileActionEntry  OBJECT-TYPE
     ::= {rlFileActionTable  1 }
 
 RlFileActionEntry ::= SEQUENCE {
-    rlFileActionName                    DisplayString,
-    rlFileActionNewName                 DisplayString,
+    rlFileActionName                    OCTET STRING,
+    rlFileActionNewName                 OCTET STRING,
     rlFileActionRowStatus               RowStatus,
     rlFileActionCommand                 INTEGER
 }
 
 rlFileActionName OBJECT-TYPE
-    SYNTAX      DisplayString
+    SYNTAX      OCTET STRING (SIZE(1..160))
     MAX-ACCESS  read-write
     STATUS      current
     DESCRIPTION
@@ -150,7 +181,7 @@ rlFileActionName OBJECT-TYPE
     ::=  { rlFileActionEntry 1 }
 
 rlFileActionNewName OBJECT-TYPE
-    SYNTAX      DisplayString
+    SYNTAX      OCTET STRING (SIZE(1..160))
     MAX-ACCESS  read-write
     STATUS      current
     DESCRIPTION
@@ -202,5 +233,21 @@ rlFileAuditingEnable  OBJECT-TYPE
          should be issued on file rename/delete events"
     DEFVAL { true }
     ::= { rlFile 6 }
+
+rlFileTotalSizeOfUSB OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the total size of the USB in bytes."
+    ::= {rlFile 7 }
+
+rlFileFreeSizeOfUSB OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of free bytes in the USB."
+    ::= {rlFile 8 }
 
 END

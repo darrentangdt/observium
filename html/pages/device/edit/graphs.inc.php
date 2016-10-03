@@ -104,7 +104,7 @@ foreach ($graphs_sections as $section => $entry)
                                              'value'    => 'graph_toggle');
       print_form($form); unset($form);
     } else {
-      echo('<span style="line-height: 20px;" class="btn btn-mini disabled pull-right"><i class="icon-lock"></i>&nbsp;Required</span>');
+      echo('<button id="submit" name="submit" type="submit" class="btn btn-default btn-mini pull-right disabled text-nowrap" disabled="1" value="Toggle"><i class="icon-lock"></i>&nbsp;Required</button>');
     }
 
     echo('</td></tr>');

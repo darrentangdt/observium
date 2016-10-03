@@ -1,5 +1,5 @@
 -- =================================================================
--- Copyright (C) 2014 by HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by HUAWEI TECHNOLOGIES. All rights reserved.
 -- Description: MIB interface of BFD protocol configuration.
 --              The Bidirectional Forwarding Detection (BFD) protocol
 --              is standardized by the IETF. BFD detects the
@@ -7,7 +7,7 @@
 --              quickly sending BFD control packets (the UDP packets in
 --              a specified format) at intervals between two nodes.
 -- Reference:
--- Version:     V1.47
+-- Version:     V1.51
 --
 -- =================================================================
 
@@ -32,7 +32,7 @@
 
 
         hwBFDMIB MODULE-IDENTITY
-            LAST-UPDATED "201409040000Z"
+            LAST-UPDATED "201508040000Z"
             ORGANIZATION "Huawei Technologies Co.,Ltd."
             CONTACT-INFO
                 "Huawei Industrial Base
@@ -52,6 +52,18 @@
                 "
 
             -- Revision history
+            REVISION    "201508040000Z"
+            DESCRIPTION "V1.51, add hwBfdSessFaultDown and hwBfdSessResume."
+
+            REVISION    "201507290000Z"
+            DESCRIPTION "V1.50, modify the DESCRIPTION of hwBfdSessGlobalDefaultIpAddr."
+
+            REVISION    "201507140000Z"
+            DESCRIPTION "V1.49, move hwBfdSessCfgRemoteFailType from hwBfdAlarmTraps  to hwBfdNotifications."
+
+            REVISION    "201507030000Z"
+            DESCRIPTION "V1.48, add hwBfdSessCfgRemoteFailType and hwBfdSessCfgRemoteFail for virtual access."
+
             REVISION    "201409040000Z"
             DESCRIPTION "V1.47, modified the revision history."
 			
@@ -63,7 +75,7 @@
 			             Add hwBfdSessPeerAddr,hwBfdSessBindType,hwBfdSessVrfIndex for hwBfdSessUpTrap and hwBfdSessDownTrap, add hwBfdv6SingleHopSessUpTrap,hwBfdv6SingleHopSessDownTrap for IPv6 SingleHop.
 						 Add hwBfdDynamicSessionTos for dynamic session tos."
 						 
-	        REVISION     "201405230000Z"
+            REVISION     "201405230000Z"
             DESCRIPTION  "V1.44, modified the scope of hwBfdIfConfName ."
 			
             REVISION     "201401220000Z"
@@ -247,7 +259,7 @@
             STATUS current
             DESCRIPTION
                 "Define the default multicast IP address used in BFD multicast detection.
-                 Default: 0
+                 Default: 224.0.0.184
                 "
             ::= { hwBfdScalarsObjects 7 }
 
@@ -374,6 +386,22 @@
                  Default: 7
                 "
             ::= { hwBfdScalarsObjects 18 }
+
+            hwBfdSessCfgRemoteFailType OBJECT-TYPE
+            SYNTAX INTEGER
+                {
+                localDiscriminatorNonsupport(101),
+                localDiscriminatorConflict(102)
+                }
+            MAX-ACCESS accessible-for-notify
+            STATUS current
+            DESCRIPTION
+                "The virtual access AP notify process bfd session configuration failed.
+                 Options:
+                 1. localDiscriminatorNonsupport(101)
+                 2. localDiscriminatorConflict(102)
+                "
+            ::= { hwBfdScalarsObjects 19 }
 
         hwBfdObjects OBJECT IDENTIFIER ::= { hwBFDMIB 2 }
 
@@ -3135,7 +3163,33 @@
                 "There is the notify when the session number reach the interface limit was cleared. "
             ::= { hwBfdNotifications 6 }
 
+        hwBfdSessCfgRemoteFail NOTIFICATION-TYPE
+            OBJECTS { hwBfdSessCfgName, hwBfdSessLocalDiscr, hwBfdSessCfgRemoteFailType }
+            STATUS current
+            DESCRIPTION
+                "This notification is generated when the virtual access AP process BFD configuration failed."
+            ::= { hwBfdNotifications 7 }
 
+        hwBfdSessFaultDown NOTIFICATION-TYPE
+            OBJECTS { hwBfdSessCfgName, hwBfdSessLocalDiscr, hwBfdSessDiag, hwBfdSessBindIfName }
+            STATUS current
+            DESCRIPTION
+                "This trap occurred when the state of the BFD session
+                 became down. The BFD session is characterized
+                 by the objects in this node.
+                "
+            ::= { hwBfdNotifications 8 }  
+            
+
+        hwBfdSessResume NOTIFICATION-TYPE
+            OBJECTS { hwBfdSessCfgName, hwBfdSessLocalDiscr, hwBfdSessDiag, hwBfdSessBindIfName }
+            STATUS current
+            DESCRIPTION
+                "This trap occurred when the state of the BFD session
+                 resume from down state. The BFD session is characterized
+                 by the objects in this node.
+                "
+            ::= { hwBfdNotifications 9 }
 
         hwBfdConformance OBJECT IDENTIFIER ::= { hwBFDMIB 4 }
 
@@ -3207,7 +3261,7 @@
 
 
         hwBfdNotificationGroup NOTIFICATION-GROUP
-            NOTIFICATIONS { hwBfdSessDown, hwBfdSessUp, hwBfdSessReachLimit, hwBfdSessReachLimitResume, hwBfdSessReachLimitBindIf, hwBfdSessReachLimitBindIfResume }
+            NOTIFICATIONS { hwBfdSessDown, hwBfdSessUp, hwBfdSessReachLimit, hwBfdSessReachLimitResume, hwBfdSessReachLimitBindIf, hwBfdSessReachLimitBindIfResume, hwBfdSessCfgRemoteFail }
             STATUS current
             DESCRIPTION
                 "A collection of traps."
@@ -3339,8 +3393,6 @@
                 "
             ::= { hwBfdAlarmTraps 0 6 }
             
-            
-
     END  
          
 --       

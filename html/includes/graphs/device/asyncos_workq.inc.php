@@ -24,6 +24,6 @@ $colour_area_max = "9999cc";
 
 $unit_text = "Messages";
 
-include("includes/graphs/generic_simplex.inc.php");
+include($config['html_dir']."/includes/graphs/generic_simplex.inc.php");
 
 // EOF

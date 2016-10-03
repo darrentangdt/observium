@@ -80,6 +80,11 @@ function get_instance_stats()
     $stats['app_types'][$data['app_type']] = $data['count'];
   }
 
+  $stats['misc']['max_len']['port_label']       = dbFetchCell("SELECT MAX(LENGTH(`port_label`)) FROM `ports`");
+  $stats['misc']['max_len']['port_label_short'] = dbFetchCell("SELECT MAX(LENGTH(`port_label_short`)) FROM `ports`");
+  $stats['misc']['max_len']['port_label_base']  = dbFetchCell("SELECT MAX(LENGTH(`port_label_base`)) FROM `ports`");
+  $stats['misc']['max_len']['port_label_num']   = dbFetchCell("SELECT MAX(LENGTH(`port_label_num`)) FROM `ports`");
+
   $stats['version'] = OBSERVIUM_VERSION;
   $stats['uuid'] = get_unique_id();
 

@@ -20,6 +20,6 @@ $scale_min = 0;
 $unit_text = "Utilisation";
 $units     = "%";
 
-include("includes/graphs/generic_simplex.inc.php");
+include($config['html_dir']."/includes/graphs/generic_simplex.inc.php");
 
 ?>

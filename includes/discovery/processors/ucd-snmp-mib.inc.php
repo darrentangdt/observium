@@ -12,20 +12,20 @@
  *
  */
 
-$count = @dbFetchCell("SELECT COUNT(*) FROM processors WHERE device_id = ? AND processor_type != 'ucd-old'", array($device['device_id']));
+// FIXME. UCD-CPU already polled by ucd-mib poller
+$count_processors = dbFetchCell("SELECT COUNT(*) FROM `processors` WHERE `device_id` = ? AND `processor_type` != ?", array($device['device_id'], 'ucd-old'));
 
-if ($device['os_group'] == "unix" && $count == "0")
+//if ($device['os_group'] == 'unix' && $count == 0)
+if ($count_processors == 0)
 {
-  echo("UCD-SNMP-MIB ");
+  //$system = snmp_get($device, 'ssCpuSystem.0', '-OvQ', $mib);
+  //$user   = snmp_get($device, 'ssCpuUser.0'  , '-OvQ', $mib);
+  $idle   = snmp_get($device, 'ssCpuIdle.0'  , '-OvQ', $mib);
 
-  $system = snmp_get($device, "ssCpuSystem.0", "-OvQ", "UCD-SNMP-MIB", mib_dirs());
-  $user   = snmp_get($device, "ssCpuUser.0"  , "-OvQ", "UCD-SNMP-MIB", mib_dirs());
-  $idle   = snmp_get($device, "ssCpuIdle.0"  , "-OvQ", "UCD-SNMP-MIB", mib_dirs());
-
-  if (is_numeric($system))
+  if (is_numeric($idle))
   {
-    $percent = $system + $user + $idle;
-    discover_processor($valid['processor'], $device, 0, 0, "ucd-old", "CPU", 1, $system+$user, NULL, NULL);
+    //$percent = $system + $user + $idle;
+    discover_processor($valid['processor'], $device, 0, 0, 'ucd-old', 'CPU', 1, $idle, NULL, NULL, 1);
   }
 }
 

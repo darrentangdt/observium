@@ -19,9 +19,9 @@ iso.3.6.1.4.1.38783.1.2.1.1.0 = Hex-STRING: D8 80 39 28 BE 87
 iso.3.6.1.4.1.38783.1.2.1.2.0 = STRING: "TCW240B        "
 */
 
-$hardware = trim(snmp_get($device, "1.3.6.1.4.1.38783.1.1.1.0", "-OQv", "TERACOM-MIB", mib_dirs('teracom')),'"');
-$hardware = str_replace("SNMP Agent", "I/O Controller", $hardware);
-$version = trim(snmp_get($device, "1.3.6.1.4.1.38783.1.1.2.0", "-OQv", "TERACOM-MIB", mib_dirs('teracom')),'"');
-$serial = trim(snmp_get($device, "1.3.6.1.4.1.38783.1.2.1.1.0", "-OQv", "TERACOM-MIB", mib_dirs('teracom')),'"');
+$hardware = trim(snmp_get($device, '1.3.6.1.4.1.38783.1.1.1.0', '-OQv', 'TERACOM-MIB'),'"');
+$hardware = str_replace('SNMP Agent', 'I/O Controller', $hardware);
+$version = trim(snmp_get($device, '1.3.6.1.4.1.38783.1.1.2.0', '-OQv', 'TERACOM-MIB'),'"');
+$serial = trim(snmp_get($device, '1.3.6.1.4.1.38783.1.2.1.1.0', '-OQv', 'TERACOM-MIB'),'"');
 
 // EOF

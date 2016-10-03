@@ -11,12 +11,10 @@
  *
  */
 
-echo(" LM-SENSORS-MIB ");
-
-$lm_array['temp'] = snmpwalk_cache_multi_oid($device, "lmTempSensorsEntry", array(), "LM-SENSORS-MIB", mib_dirs());
-$lm_array['fan']  = snmpwalk_cache_multi_oid($device, "lmFanSensorsEntry",  array(), "LM-SENSORS-MIB", mib_dirs());
-$lm_array['volt'] = snmpwalk_cache_multi_oid($device, "lmVoltSensorsEntry", array(), "LM-SENSORS-MIB", mib_dirs());
-//$lm_array['misc'] = snmpwalk_cache_multi_oid($device, "lmMiscSensorsEntry", array(), "LM-SENSORS-MIB", mib_dirs());
+$lm_array['temp'] = snmpwalk_cache_multi_oid($device, 'lmTempSensorsEntry', array(), 'LM-SENSORS-MIB');
+$lm_array['fan']  = snmpwalk_cache_multi_oid($device, 'lmFanSensorsEntry',  array(), 'LM-SENSORS-MIB');
+$lm_array['volt'] = snmpwalk_cache_multi_oid($device, 'lmVoltSensorsEntry', array(), 'LM-SENSORS-MIB');
+//$lm_array['misc'] = snmpwalk_cache_multi_oid($device, 'lmMiscSensorsEntry', array(), 'LM-SENSORS-MIB');
 
 $scale = 0.001;
 foreach ($lm_array['temp'] as $index => $entry)

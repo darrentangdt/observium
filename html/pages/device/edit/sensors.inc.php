@@ -11,11 +11,18 @@
  *
  */
 
-$query = 'SELECT * FROM `sensors`,`sensors-state` WHERE `sensors-state`.`sensor_id` = `sensors`.`sensor_id`
-          AND `device_id` = ? ORDER BY `sensor_type`,`sensor_class`,`sensor_index`;';
+
+
+$query = 'SELECT * FROM `sensors`
+            LEFT JOIN `sensors-state` USING(`sensor_id`)
+            WHERE `device_id` = ?
+            ORDER BY `sensor_class`,`sensor_type`,`sensor_index`;';
+
 $sensors = dbFetchRows($query, array($device['device_id']));
 
 $warn_enable = (OBS_DEBUG ? TRUE: FALSE); // For enable edit warn limits, set this to TRUE
+
+$warn_enable = TRUE;
 
 if ($vars['submit'] == "update-sensors")
 {
@@ -112,7 +119,7 @@ unset($limits_reset_array);
    <h3 class="box-title">Sensor Properties</h3>
   </div>
 <div class="box-body no-padding">
-<table class="table  table-striped table-condensed">
+<table class="table table-striped table-condensed vertical-align">
   <thead>
     <tr>
       <th class="state-marker"></th>
@@ -136,7 +143,7 @@ unset($limits_reset_array);
   <tbody>
 
 <?php
-$row=1;
+$row =1;
 foreach ($sensors as $sensor)
 {
   humanize_sensor($sensor);
@@ -154,10 +161,10 @@ foreach ($sensors as $sensor)
 
   echo('<tr class="'.$sensor['row_class'].'">');
   echo('<td class="state-marker"></td>');
-  echo('<td style="vertical-align: middle;">'.escape_html($sensor['sensor_index']).'</td>');
+  echo('<td>'.escape_html($sensor['sensor_index']).'</td>');
   echo('<td>'.$sensor['sensor_type'].'</td>');
   echo('<td>'.$sensor['sensor_class'].'</td>');
-  echo('<td><span class="entity">'.generate_entity_link('sensor', $sensor).'</span></td>');
+  echo('<td><span class="entity text-nowrap">'.generate_entity_link('sensor', $sensor).'</span></td>');
   echo('<td><span class="'.$sensor['state_class'].'">' . $sensor_value . $sensor['sensor_symbol'] . '</span></td>');
   echo('<td><input class="'.$limit_class.'" name="sensors['.$sensor['sensor_id'].'][sensor_limit_low]" size="4" value="'.escape_html($sensor['sensor_limit_low']).'" /></td>');
   if ($warn_enable)

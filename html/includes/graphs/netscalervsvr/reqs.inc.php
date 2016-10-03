@@ -22,12 +22,14 @@ $colour_line_out = "FF6600";
 $colour_area_in_max = "cc88cc";
 $colour_area_out_max = "FFefaa";
 
+$unit_text = "Requests";
+
 $in_text  = "Requests";
 $out_text = "Responses";
 
 $graph_max = 1;
-$unit_text = "";
+$unit_text = "Req/Resp";
 
-include("includes/graphs/generic_duplex.inc.php");
+include($config['html_dir']."/includes/graphs/generic_duplex.inc.php");
 
 ?>

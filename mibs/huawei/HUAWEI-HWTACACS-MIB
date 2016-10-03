@@ -1,9 +1,9 @@
 -- =================================================================
-    -- Copyright (C) 2003 by  HUAWEI TECHNOLOGIES. All rights reserved
+    -- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved
     -- 
     -- Description:HUAWEI-HWTACACS-MIB
     -- Reference:
-    -- Version: V2.04
+    -- Version: V2.07
     -- History:
     --    <d30957>,<2003-03-20>,<create>
     -- =================================================================
@@ -26,7 +26,7 @@ IMPORTS
         FROM RFC1155-SMI; 
         
     hwTACACS MODULE-IDENTITY 
-            LAST-UPDATED "201308241100Z"        -- March 03, 2004 at 09:00 GMT
+            LAST-UPDATED "201507291915Z"        -- Jul 29, 2015 at 09:00 GMT
             ORGANIZATION 
                   "Huawei Technologies Co.,Ltd."
             CONTACT-INFO 
@@ -36,7 +36,13 @@ IMPORTS
                      People's Republic of China
                      Website: http://www.huawei.com
                      Email: support@huawei.com
-                  "
+                  " 
+            DESCRIPTION 
+                "Update descriptions of hwtacacsClientAuthenServerType, hwtacacsClientAuthorServerType, hwtacacsClientAccountServerType, hwtacacsClientCommonServerType nodes"
+            REVISION    "201507291915Z" 
+            DESCRIPTION 
+                "hwTACACSServerGroupKey range is changed from 0-255 to 0-392"
+            REVISION    "201505061600Z" 
             DESCRIPTION 
                 "Modify hwTACACSServerGroupTimer value range."
             REVISION    "201308241100Z"   
@@ -49,6 +55,9 @@ IMPORTS
             DESCRIPTION 
                 "The MIB contains objects of module HWTACACS."
            REVISION    "201402251600Z" 
+           DESCRIPTION 
+                "Shared-key range is changed from 0-255 to 0-392"
+            REVISION    "201504011600Z" 
            DESCRIPTION 
                 "Added common server mib table"            
             ::= { hwDatacomm 20 }
@@ -223,7 +232,7 @@ IMPORTS
     ::={ hwTACACSServerGroupEntry 3 }
 
   hwTACACSServerGroupKey OBJECT-TYPE
-    SYNTAX      OCTET STRING(SIZE(0..255))
+    SYNTAX      OCTET STRING(SIZE(0..392))
     MAX-ACCESS  read-create
     STATUS      current
     DESCRIPTION
@@ -1544,7 +1553,7 @@ hwTACACSServerGroupRowStatus OBJECT-TYPE
 --  1.3.6.1.4.1.2011.5.25.20.3.1.10.1.3
         -- 1.3.6.1.4.1.2011.5.25.20.3.1.10.1.3
         hwtacacsClientSharedKey OBJECT-TYPE
-            SYNTAX OCTET STRING (SIZE (0..255))
+            SYNTAX OCTET STRING (SIZE (0..392))
             MAX-ACCESS read-create
             STATUS current
             DESCRIPTION
@@ -1757,10 +1766,9 @@ hwTACACSServerGroupRowStatus OBJECT-TYPE
             MAX-ACCESS read-create
             STATUS current
             DESCRIPTION
-                "The Server Type indicates the type of server. Default value is Primary
+                "The Server Type indicates the type of server.
                 0 - Primary
                 1 - Secondary."
-		DEFVAL      { 0 }
             ::= { hwtacacsClientAuthenServerEntry 5 }
 
         
@@ -2164,10 +2172,9 @@ hwTACACSServerGroupRowStatus OBJECT-TYPE
             MAX-ACCESS read-create
             STATUS current
             DESCRIPTION
-                "The Server Type indicates the type of server.Default value is Primary
+                "The Server Type indicates the type of server.
                 0 - Primary
                 1 - Secondary."
-            DEFVAL      { 0 }
             ::= { hwtacacsClientAuthorServerEntry 5 }
 
         
@@ -2440,10 +2447,9 @@ hwTACACSServerGroupRowStatus OBJECT-TYPE
             MAX-ACCESS read-create
             STATUS current
             DESCRIPTION
-                "The Server Type indicates the type of server.Default value is Primary
+                "The Server Type indicates the type of server.
                 0 - Primary
                 1 - Secondary."
-            DEFVAL      { 0 }
             ::= { hwtacacsClientAccountServerEntry 5 }
 
         
@@ -2756,10 +2762,9 @@ hwTACACSServerGroupRowStatus OBJECT-TYPE
 			MAX-ACCESS read-create
 			STATUS current
 			DESCRIPTION
-				"The Server Type indicates the type of server.Default value is Primary
+				"The Server Type indicates the type of server.
 				0 - Primary
 				1 - Secondary."
-			DEFVAL      { 0 }
 			::= { hwtacacsClientCommonServerEntry 5 }
 
 		hwtacacsClientCommonServerState OBJECT-TYPE

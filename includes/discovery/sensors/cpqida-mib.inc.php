@@ -11,11 +11,9 @@
  *
  */
 
-echo(" CPQIDA-MIB ");
-
 // Controllers
 
-$oids = snmpwalk_cache_oid($device, 'cpqDaCntlrEntry', array(), 'CPQIDA-MIB', mib_dirs('hp'));
+$oids = snmpwalk_cache_oid($device, 'cpqDaCntlrEntry', array(), 'CPQIDA-MIB');
 
 foreach ($oids as $index => $entry)
 {
@@ -40,7 +38,7 @@ foreach ($oids as $index => $entry)
 
 // Physical Disks
 
-$oids = snmpwalk_cache_oid($device, 'cpqDaPhyDrv', array(), 'CPQIDA-MIB', mib_dirs('hp'));
+$oids = snmpwalk_cache_oid($device, 'cpqDaPhyDrv', array(), 'CPQIDA-MIB');
 
 foreach ($oids as $index => $entry)
 {
@@ -66,7 +64,7 @@ foreach ($oids as $index => $entry)
 
 // Logical Disks
 
-$oids = snmpwalk_cache_oid($device, 'cpqDaLogDrv', array(), 'CPQIDA-MIB', mib_dirs('hp'));
+$oids = snmpwalk_cache_oid($device, 'cpqDaLogDrv', array(), 'CPQIDA-MIB');
 
 foreach ($oids as $index => $entry)
 {

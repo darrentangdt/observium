@@ -74,73 +74,63 @@ if (!empty($agent_data['app']['powerdns-recursor']))
     $powerdns_recursor[$key] = $value;
   }
 
-  $rrd_filename = "app-powerdns-recursor-$app_id.rrd";
+  $data = array(
+    'outQ_all'           => $powerdns_recursor['all-outqueries'],
+    'outQ_dont'          => $powerdns_recursor['dont-outqueries'],
+    'outQ_tcp'           => $powerdns_recursor['tcp-outqueries'],
+    'outQ_throttled'     => $powerdns_recursor['throttled-out'],
+    'outQ_ipv6'          => $powerdns_recursor['ipv6-outqueries'],
+    'outQ_noEDNS'        => $powerdns_recursor['noedns-outqueries'],
+    'outQ_noPing'        => $powerdns_recursor['noping-outqueries'],
+    'drop_reqDlgOnly'    => $powerdns_recursor['dlg-only-drops'],
+    'drop_overCap'       => $powerdns_recursor['over-capacity-drops'],
+    'timeoutOutgoing'    => $powerdns_recursor['outgoing-timeouts'],
+    'unreachables'       => $powerdns_recursor['unreachables'],
+    'answers_1s'         => $powerdns_recursor['answers-slow'],
+    'answers_1ms'        => $powerdns_recursor['answers0-1'],
+    'answers_10ms'       => $powerdns_recursor['answers1-10'],
+    'answers_100ms'      => $powerdns_recursor['answers10-100'],
+    'answers_1000ms'     => $powerdns_recursor['answers100-1000'],
+    'answers_noerror'    => $powerdns_recursor['noerror-answers'],
+    'answers_nxdomain'   => $powerdns_recursor['nxdomain-answers'],
+    'answers_servfail'   => $powerdns_recursor['servfail-answers'],
+    'caseMismatch'       => $powerdns_recursor['case-mismatches'],
+    'chainResends'       => $powerdns_recursor['chain-resends'],
+    'clientParseErrors'  => $powerdns_recursor['client-parse-errors'],
+    'ednsPingMatch'      => $powerdns_recursor['edns-ping-matches'],
+    'ednsPingMismatch'   => $powerdns_recursor['edns-ping-mismatches'],
+    'noPacketError'      => $powerdns_recursor['no-packet-error'],
+    'nssetInvalidations' => $powerdns_recursor['nsset-invalidations'],
+    'qaLatency'          => $powerdns_recursor['qa-latency'],
+    'questions'          => $powerdns_recursor['questions'],
+    'resourceLimits'     => $powerdns_recursor['resource-limits'],
+    'serverParseErrors'  => $powerdns_recursor['server-parse-errors'],
+    'spoofPrevents'      => $powerdns_recursor['spoof-prevents'],
+    'tcpClientOverflow'  => $powerdns_recursor['tcp-client-overflow'],
+    'tcpQuestions'       => $powerdns_recursor['tcp-questions'],
+    'tcpUnauthorized'    => $powerdns_recursor['unauthorized-tcp'],
+    'udpUnauthorized'    => $powerdns_recursor['unauthorized-udp'],
+    'cacheEntries'       => $powerdns_recursor['cache-entries'],
+    'cacheHits'          => $powerdns_recursor['cache-hits'],
+    'cacheMisses'        => $powerdns_recursor['cache-misses'],
+    'negcacheEntries'    => $powerdns_recursor['negcache-entries'],
+    'nsSpeedsEntries'    => $powerdns_recursor['nsspeeds-entries'],
+    'packetCacheEntries' => $powerdns_recursor['packetcache-entries'],
+    'packetCacheHits'    => $powerdns_recursor['packetcache-hits'],
+    'packetCacheMisses'  => $powerdns_recursor['packetcache-misses'],
+    'unexpectedPkts'     => $powerdns_recursor['unexpected-packets'],
+    'concurrentQueries'  => $powerdns_recursor['concurrent-queries'],
+    'tcpClients'         => $powerdns_recursor['tcp-clients'],
+    'throttleEntries'    => $powerdns_recursor['throttle-entries'],
+    'uptime'             => $powerdns_recursor['uptime'],
+    'cpuTimeSys'         => $powerdns_recursor['sys-msec'],
+    'cpuTimeUser'        => $powerdns_recursor['user-msec']);
 
-  unset($rrd_values);
+  rrdtool_update_ng($device, 'powerdns-recursor', $data, $app_id);
 
-  foreach (array('all-outqueries', 'dont-outqueries', 'tcp-outqueries', 'throttled-out', 'ipv6-outqueries', 'noedns-outqueries', 'noping-outqueries',
-    'dlg-only-drops', 'over-capacity-drops', 'outgoing-timeouts', 'unreachables', 'answers-slow', 'answers0-1', 'answers1-10', 'answers10-100',
-    'answers100-1000', 'noerror-answers', 'nxdomain-answers', 'servfail-answers', 'case-mismatches', 'chain-resends', 'client-parse-errors',
-    'edns-ping-matches', 'edns-ping-mismatches', 'no-packet-error', 'nsset-invalidations', 'qa-latency', 'questions', 'resource-limits',
-    'server-parse-errors', 'spoof-prevents', 'tcp-client-overflow', 'tcp-questions', 'unauthorized-tcp', 'unauthorized-udp', 'cache-entries',
-    'cache-hits', 'cache-misses', 'negcache-entries', 'nsspeeds-entries', 'packetcache-entries', 'packetcache-hits', 'packetcache-misses',
-    'unexpected-packets', 'concurrent-queries', 'tcp-clients', 'throttle-entries', 'uptime', 'sys-msec', 'user-msec') as $key)
-  {
-    $rrd_values[] = (is_numeric($powerdns_recursor[$key]) ? $powerdns_recursor[$key] : "U");
-  }
+  update_application($app_id, $data);
 
-  rrdtool_create($device, $rrd_filename, " DS:outQ_all:DERIVE:600:0:125000000000 \
-        DS:outQ_dont:DERIVE:600:0:125000000000 \
-        DS:outQ_tcp:DERIVE:600:0:125000000000 \
-        DS:outQ_throttled:DERIVE:600:0:125000000000 \
-        DS:outQ_ipv6:DERIVE:600:0:125000000000 \
-        DS:outQ_noEDNS:DERIVE:600:0:125000000000 \
-        DS:outQ_noPing:DERIVE:600:0:125000000000 \
-        DS:drop_reqDlgOnly:DERIVE:600:0:125000000000 \
-        DS:drop_overCap:DERIVE:600:0:125000000000 \
-        DS:timeoutOutgoing:DERIVE:600:0:125000000000 \
-        DS:unreachables:DERIVE:600:0:125000000000 \
-        DS:answers_1s:DERIVE:600:0:125000000000 \
-        DS:answers_1ms:DERIVE:600:0:125000000000 \
-        DS:answers_10ms:DERIVE:600:0:125000000000 \
-        DS:answers_100ms:DERIVE:600:0:125000000000 \
-        DS:answers_1000ms:DERIVE:600:0:125000000000 \
-        DS:answers_noerror:DERIVE:600:0:125000000000 \
-        DS:answers_nxdomain:DERIVE:600:0:125000000000 \
-        DS:answers_servfail:DERIVE:600:0:125000000000 \
-        DS:caseMismatch:DERIVE:600:0:125000000000 \
-        DS:chainResends:DERIVE:600:0:125000000000 \
-        DS:clientParseErrors:DERIVE:600:0:125000000000 \
-        DS:ednsPingMatch:DERIVE:600:0:125000000000 \
-        DS:ednsPingMismatch:DERIVE:600:0:125000000000 \
-        DS:noPacketError:DERIVE:600:0:125000000000 \
-        DS:nssetInvalidations:DERIVE:600:0:125000000000 \
-        DS:qaLatency:DERIVE:600:0:125000000000 \
-        DS:questions:DERIVE:600:0:125000000000 \
-        DS:resourceLimits:DERIVE:600:0:125000000000 \
-        DS:serverParseErrors:DERIVE:600:0:125000000000 \
-        DS:spoofPrevents:DERIVE:600:0:125000000000 \
-        DS:tcpClientOverflow:DERIVE:600:0:125000000000 \
-        DS:tcpQuestions:DERIVE:600:0:125000000000 \
-        DS:tcpUnauthorized:DERIVE:600:0:125000000000 \
-        DS:udpUnauthorized:DERIVE:600:0:125000000000 \
-        DS:cacheEntries:DERIVE:600:0:125000000000 \
-        DS:cacheHits:DERIVE:600:0:125000000000 \
-        DS:cacheMisses:DERIVE:600:0:125000000000 \
-        DS:negcacheEntries:DERIVE:600:0:125000000000 \
-        DS:nsSpeedsEntries:DERIVE:600:0:125000000000 \
-        DS:packetCacheEntries:DERIVE:600:0:125000000000 \
-        DS:packetCacheHits:DERIVE:600:0:125000000000 \
-        DS:packetCacheMisses:DERIVE:600:0:125000000000 \
-        DS:unexpectedPkts:DERIVE:600:0:125000000000 \
-        DS:concurrentQueries:DERIVE:600:0:125000000000 \
-        DS:tcpClients:DERIVE:600:0:125000000000 \
-        DS:throttleEntries:DERIVE:600:0:125000000000 \
-        DS:uptime:DERIVE:600:0:125000000000 \
-        DS:cpuTimeSys:DERIVE:600:0:125000000000 \
-        DS:cpuTimeUser:DERIVE:600:0:125000000000 ");
-
-  rrdtool_update($device, $rrd_filename, "N:" . implode(':', $rrd_values));
+  unset($powerdns_recursor);
 }
 
 // EOF

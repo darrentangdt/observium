@@ -13,10 +13,16 @@
 
 // Simple poller for UCD old style CPU. will always poll the same index.
 
-#$system = snmp_get($device, "ssCpuSystem.0", "-OvQ", "UCD-SNMP-MIB", mib_dirs());
-#$user = snmp_get($device, "ssCpuUser.0", "-OvQ", "UCD-SNMP-MIB", mib_dirs());
-$idle = snmp_get($device, "ssCpuIdle.0", "-OvQ", "UCD-SNMP-MIB", mib_dirs());
+//$system = snmp_get($device, 'ssCpuSystem.0', '-OvQ', 'UCD-SNMP-MIB');
+//$user = snmp_get($device, 'ssCpuUser.0', '-OvQ', 'UCD-SNMP-MIB');
+$idle = snmp_get($device, 'ssCpuIdle.0', '-OvQ', 'UCD-SNMP-MIB');
 
-$proc = 100 - $idle;
+if ($processor['processor_returns_idle'] == 1)
+{
+  // Just compat before processor not updated
+  $proc = $idle;
+} else {
+  $proc = 100 - $idle;
+}
 
 // EOF

@@ -11,22 +11,8 @@
  *
  */
 
-echo('<table class="table table-hover  table-striped table-condensed ">');
-echo('<thead><tr>
-        <th>Server Name</th>
-        <th>Status</th>
-        <th>Operating System</th>
-        <th>Memory</th>
-        <th>CPU</th>
-      </tr></thead>');
+print_vm_table($vars);
 
-foreach (dbFetchRows("SELECT * FROM vminfo WHERE device_id = ? ORDER BY vm_name", array($device['device_id'])) as $vm)
-{
-  print_vm_row($vm, $device);
-}
-
-echo("</table>");
-
-$page_title[] = "Virtual Machines";
+register_html_title("Virtual Machines");
 
 // EOF

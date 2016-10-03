@@ -32,34 +32,6 @@ elseif (isset($config['allow_unauth_graphs_cidr']) && count($config['allow_unaut
     $auth = TRUE; // hardcode authenticated for matched subnet
     print_debug("Authentication by matched CIDR.");
   }
-  //foreach ($config['allow_unauth_graphs_cidr'] as $range)
-  //{
-  //  list($net, $mask) = explode('/', trim($range));
-  //  if (Net_IPv4::validateIP($net))
-  //  {
-  //    // IPv4
-  //    $mask = ($mask != NULL) ? $mask : '32';
-  //    $range = $net.'/'.$mask;
-  //    if ($mask >= 0 && $mask <= 32 && Net_IPv4::ipInNetwork($_SERVER['REMOTE_ADDR'], $range))
-  //    {
-  //      $auth = TRUE; // hardcode authenticated for matched subnet
-  //      print_debug("Authentication by CIDR matched IPv4 $range.");
-  //      break;
-  //    }
-  //  }
-  //  elseif (Net_IPv6::checkIPv6($net))
-  //  {
-  //    // IPv6
-  //    $mask = ($mask != NULL) ? $mask : '128';
-  //    $range = $net.'/'.$mask;
-  //    if ($mask >= 0 && $mask <= 128 && Net_IPv6::isInNetmask($_SERVER['REMOTE_ADDR'], $range))
-  //    {
-  //      $auth = TRUE; // hardcode authenticated for matched subnet
-  //      print_debug("Authentication by CIDR matched IPv6 $range");
-  //      break;
-  //    }
-  //  }
-  //}
 }
 
 if (!$auth)

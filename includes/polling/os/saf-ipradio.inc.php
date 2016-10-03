@@ -22,10 +22,10 @@
 //RFC1213-MIB::sysDescr.0 = STRING: "SAF microwave radio;CFIP Lumina FODU v2.64.33;Model:2;HW:15;SN: 3690205xxxxx;PC: I11HJT05HA;IDU PCB: I0BMDB05_R07"
 //RFC1213-MIB::sysObjectID.0 = OID: SAF-IPRADIO::ipRadio
 
-$sysDescr_array = explode(";", $poll_device['sysDescr']);
-list(,$serial) = explode(" ", $sysDescr_array[4]);
+$sysDescr_array = explode(';', $poll_device['sysDescr']);
+list(,$serial) = explode(' ', $sysDescr_array[4]);
 preg_match('/v(?P<version>.+)/', $sysDescr_array['1'], $matches);
 $version = $matches['version'];
-$hardware = snmp_get($device, 'product.0', '-Osqv', "SAF-IPRADIO", mib_dirs('saf'));
+$hardware = snmp_get($device, 'product.0', '-Osqv', 'SAF-IPRADIO');
 
 // EOF

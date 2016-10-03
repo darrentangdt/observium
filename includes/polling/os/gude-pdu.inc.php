@@ -17,7 +17,7 @@
 
 if (preg_match('/^Expert PDU (.*)/', $device['sysDescr'], $matches))
 {
-  $hardware = "Expert PDU " . ucfirst($matches[1]);
+  $hardware = 'Expert PDU ' . ucfirst($matches[1]);
 }
 
 // EOF

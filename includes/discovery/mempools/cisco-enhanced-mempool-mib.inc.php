@@ -11,10 +11,7 @@
  *
  */
 
-$mib = 'CISCO-ENHANCED-MEMPOOL-MIB';
-echo("$mib ");
-
-$mempool_array = snmpwalk_cache_multi_oid($device, "cempMemPoolEntry", NULL, $mib, mib_dirs('cisco'));
+$mempool_array = snmpwalk_cache_multi_oid($device, 'cempMemPoolEntry', array(), $mib);
 
 if (is_array($mempool_array))
 {
@@ -37,19 +34,20 @@ if (is_array($mempool_array))
       }
       $total = $used + $free;
 
-      list($entPhysicalIndex) = explode(".", $index);
-      $entPhysicalName = trim(snmp_get($device, "entPhysicalName.".$entPhysicalIndex, "-Oqv", "ENTITY-MIB", mib_dirs()));
+      list($entPhysicalIndex) = explode('.', $index);
+      $entPhysicalName = trim(snmp_get($device, "entPhysicalName.$entPhysicalIndex", '-Oqv', 'ENTITY-MIB'));
 
-      $descr = $entPhysicalName." (".$entry['cempMemPoolName'].")";
-      $descr = str_replace("Cisco ", "", $descr);
-      $descr = str_replace("Network Processing Engine", "", $descr);
-      $descr = str_replace("CPU of", "", $descr);
-      $descr = preg_replace("/Sub-Module ([0-9]+) CFC Card/", "Module \\1 CFC", $descr);
+      $descr = $entPhysicalName.' ('.$entry['cempMemPoolName'].')';
+      $descr = str_replace('Cisco ', '', $descr);
+      $descr = str_replace('Network Processing Engine', '', $descr);
+      $descr = str_replace('CPU of', '', $descr);
+      $descr = preg_replace('/Sub-Module ([0-9]+) CFC Card/', "Module \\1 CFC", $descr);
 
-      discover_mempool($valid['mempool'], $device, $index, $mib, $descr, 1, $total, $used, $hc);
+      discover_mempool($valid['mempool'], $device, $index, 'CISCO-ENHANCED-MEMPOOL-MIB', $descr, 1, $total, $used, $hc);
     }
   }
 }
+
 unset ($mempool_array, $index, $descr, $total, $used, $free, $entPhysicalIndex, $entPhysicalName);
 
 // EOF

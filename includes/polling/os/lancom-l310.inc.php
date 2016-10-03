@@ -15,11 +15,9 @@
 // LANCOM-L54-dual-MIB::firVerVer.ifc = STRING: "8.62.0103RU7 / 24.01.2013"
 // LANCOM-L54-dual-MIB::firVerSer.ifc = STRING: "104671800120"
 
-echo("LANCOM");
+$data = snmp_get_multi($device, 'firVerMod.ifc firVerVer.ifc firVerSer.ifc', '-OQUs', 'LANCOM-L310-MIB');
 
-$data = snmp_get_multi($device, 'firVerMod.ifc firVerVer.ifc firVerSer.ifc', '-OQUs', 'LANCOM-L310-MIB', mib_dirs('lancom'));
-
-print_r($data);
+// print_r($data);
 
 $hardware = $data['ifc']['firVerMod'];
 list($version, $features) = explode(" / ", $data['ifc']['firVerVer']);

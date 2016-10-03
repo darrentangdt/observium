@@ -11,15 +11,13 @@
  *
  */
 
-echo("E7-Calix-MIB ");
-
 // This device not have self Indexes.
 // Use workaround ($base_vendor_index * 100000) + ($e7CardBank * 1000) + $e7CardIndex
 $base_vendor_index = 6321;
 $inventory_mib = 'e7-calix';
 
 // System
-$e7SystemId = snmp_get($device, 'e7SystemId.0', '-OQUs', 'E7-Calix-MIB', mib_dirs('calix'));
+$e7SystemId = snmp_get($device, 'e7SystemId.0', '-OQUs', 'E7-Calix-MIB');
 if ($e7SystemId)
 {
   $e7SystemChassisSerialNumber = snmp_get($device, '.1.3.6.1.4.1.6321.1.2.2.2.1.7.10.0', '-Oqvn');
@@ -38,7 +36,7 @@ if ($e7SystemId)
   discover_inventory($valid['inventory'], $device, $system_index, $inventory[$system_index], $inventory_mib);
 
   // Cards
-  $E7CardEntry = snmpwalk_cache_twopart_oid($device, 'E7CardEntry', array(), 'E7-Calix-MIB', mib_dirs('calix'));
+  $E7CardEntry = snmpwalk_cache_twopart_oid($device, 'E7CardEntry', array(), 'E7-Calix-MIB');
   foreach ($E7CardEntry as $e7CardBank => $entries)
   {
     $bank_index = $system_index + $e7CardBank * 1000;

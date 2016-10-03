@@ -11,19 +11,18 @@
  *
  */
 
-echo(" RADLAN-HWENVIROMENT ");
-
 // RADLAN-HWENVIROMENT::rlEnvMonFanStatusDescr.67109249 = STRING: "fan1"
 // RADLAN-HWENVIROMENT::rlEnvMonFanStatusDescr.67109250 = STRING: "fan2"
 // RADLAN-HWENVIROMENT::rlEnvMonFanState.67109249 = INTEGER: normal(1)
 // RADLAN-HWENVIROMENT::rlEnvMonFanState.67109250 = INTEGER: normal(1)
 
-$oids = snmpwalk_cache_multi_oid($device, "rlEnvMonFanStatusTable", array(), "RADLAN-HWENVIROMENT", mib_dirs('radlan'));
+$oids = snmpwalk_cache_multi_oid($device, 'rlEnvMonFanStatusTable', array(), 'RADLAN-HWENVIROMENT');
 
 foreach ($oids as $index => $entry)
 {
   $descr = ucfirst($entry['rlEnvMonFanStatusDescr']);
-  $oid   = ".1.3.6.1.4.1.89.83.1.1.1.3.".$index;
+  $descr = str_replace('_unit', ' Unit', $descr);
+  $oid   = ".1.3.6.1.4.1.89.83.1.1.1.3.$index";
   $value = $entry['rlEnvMonFanState'];
 
   if ($entry['rlEnvMonFanState'] != 'notPresent')
@@ -39,12 +38,13 @@ foreach ($oids as $index => $entry)
 // RADLAN-HWENVIROMENT::rlEnvMonSupplySource.67109185 = INTEGER: ac(2)
 // RADLAN-HWENVIROMENT::rlEnvMonSupplySource.67109186 = INTEGER: unknown(1)
 
-$oids = snmpwalk_cache_multi_oid($device, "rlEnvMonSupplyStatusTable", array(), "RADLAN-HWENVIROMENT", mib_dirs('radlan'));
+$oids = snmpwalk_cache_multi_oid($device, 'rlEnvMonSupplyStatusTable', array(), 'RADLAN-HWENVIROMENT');
 
 foreach ($oids as $index => $entry)
 {
   $descr = ucfirst($entry['rlEnvMonSupplyStatusDescr']);
-  $oid   = ".1.3.6.1.4.1.89.83.1.2.1.3.".$index;
+  $descr = str_replace('_unit', ' Unit', $descr);
+  $oid   = ".1.3.6.1.4.1.89.83.1.2.1.3.$index";
   $value = $entry['rlEnvMonSupplyState'];
 
   if ($entry['rlEnvMonSupplyState'] != 'notPresent')

@@ -31,6 +31,6 @@ $colour_area_out     = "bEbEFFAA";
 $colour_area_in_max  = "CC88CC";
 $colour_area_out_max = "FFEFAA";
 
-include("includes/graphs/generic_duplex.inc.php");
+include($config['html_dir']."/includes/graphs/generic_duplex.inc.php");
 
 // EOF

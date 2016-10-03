@@ -11,16 +11,13 @@
  *
  */
 
-echo(" G6-SYSTEM-MIB ");
-
-$value = snmp_get($device, "systemTemperature.0", "-Ovq", "G6-SYSTEM-MIB", mib_dirs('microsens-g6'));
-$oid   = ".1.3.6.1.4.1.3181.10.6.1.30.104.0";
+$value = snmp_get($device, 'systemTemperature.0', '-Ovq', 'G6-SYSTEM-MIB');
 
 if (is_numeric($value))
 {
-  discover_sensor($valid['sensor'], 'temperature', $device, $oid, '0', 'microsens', 'wireway', 1, $value);
+  discover_sensor($valid['sensor'], 'temperature', $device, '.1.3.6.1.4.1.3181.10.6.1.30.104.0', '0', 'microsens', 'wireway', 1, $value);
 }
 
-unset($data, $oid, $descr, $limits, $value);
+unset($value);
 
 // EOF

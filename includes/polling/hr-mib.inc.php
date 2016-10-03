@@ -22,18 +22,14 @@ if (is_device_mib($device, 'HOST-RESOURCES-MIB'))
 
   if (is_numeric($hrSystem[0]['hrSystemProcesses']))
   {
-    $rrd_file = "hr_processes.rrd";
-    rrdtool_create($device, $rrd_file,"DS:procs:GAUGE:600:0:U ");
-    rrdtool_update($device, $rrd_file,  "N:".$hrSystem[0]['hrSystemProcesses']);
+    rrdtool_update_ng($device, 'hr_processes', array('procs' => $hrSystem[0]['hrSystemProcesses']));
     $graphs['hr_processes'] = TRUE;
     echo(" Processes");
   }
 
   if (is_numeric($hrSystem[0]['hrSystemNumUsers']))
   {
-    $rrd_file = "hr_users.rrd";
-    rrdtool_create($device, $rrd_file,"DS:users:GAUGE:600:0:U ");
-    rrdtool_update($device, $rrd_file,  "N:".$hrSystem[0]['hrSystemNumUsers']);
+    rrdtool_update_ng($device, 'hr_users', array('users' => $hrSystem[0]['hrSystemNumUsers']));
     $graphs['hr_users'] = TRUE;
     echo(" Users");
   }

@@ -11,8 +11,6 @@
  *
  */
 
-echo(" Sentry3-MIB ");
-
 $scale = 0.01;
 $scale_voltage = 0.1;
 
@@ -107,8 +105,6 @@ foreach ($sentry3_TempHumidSensorEntry as $index => $entry)
     if ($entry['tempHumidSensorTempScale'] == 'fahrenheit')
     {
       $options['sensor_unit'] = 'F';
-      $options['limit_high'] = f2c($options['limit_high']);
-      $options['limit_low']  = f2c($options['limit_low']);
     }
 
     discover_sensor($valid['sensor'], 'temperature', $device, $oid, "tempHumidSensor.$index", 'sentry3', $descr, $scale_temp, $value, $options);

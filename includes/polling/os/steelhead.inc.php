@@ -34,25 +34,25 @@
 // RBT-MIB::products.51.2.11.1.1.2.2 = STRING: "SSL_Peering_CAs"
 
 // CX models, most common
-$serial = trim(snmp_get($device, ".1.3.6.1.4.1.17163.1.1.1.2.0", "-OQv", "STEELHEAD-MIB", mib_dirs('riverbed')),'" ');
+$serial = snmp_get($device, '.1.3.6.1.4.1.17163.1.1.1.2.0', '-OQv', 'STEELHEAD-MIB');
 $model_oid = '.1.3.6.1.4.1.17163.1.1.1.1.0';
 $version_oid = '.1.3.6.1.4.1.17163.1.1.1.3.0';
 
 if ($serial == '')
 {
-  $serial = trim(snmp_get($device, ".1.3.6.1.4.1.17163.1.51.1.2.0", "-OQv", "STEELHEAD-MIB", mib_dirs('riverbed')),'" ');
+  $serial = snmp_get($device, '.1.3.6.1.4.1.17163.1.51.1.2.0', '-OQv', 'STEELHEAD-MIB');
   $model_oid = '.1.3.6.1.4.1.17163.1.51.1.1.0';
   $version_oid = '.1.3.6.1.4.1.17163.1.51.1.3.0';
 }
 
 if ($serial != '')
 {
-  if (preg_match('/^(rbt[a-zA-Z_\-]+) ([a-zA-Z\.\-_0-9]+) (.*)/', trim(snmp_get($device, $version_oid, "-OQv", "STEELHEAD-MIB", mib_dirs('riverbed')),'" '), $regexp_result))
+  if (preg_match('/^(rbt[a-zA-Z_\-]+) ([a-zA-Z\.\-_0-9]+) (.*)/', snmp_get($device, $version_oid, '-OQv', 'STEELHEAD-MIB'), $regexp_result))
   {
     $version = $regexp_result[2];
   }
 
-  $hw = trim(snmp_get($device, $model_oid, "-OQv", "STEELHEAD-MIB", mib_dirs('riverbed')),'" ');
+  $hw = snmp_get($device, $model_oid, '-OQv', 'STEELHEAD-MIB');
   if (preg_match('/([a-zA-Z0-9\.\-_]+) \(([a-zA-Z0-9\.\-_]+)\)/', $hw, $regexp_result))
   {
     $hardware = $regexp_result[2];

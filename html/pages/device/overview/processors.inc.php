@@ -22,7 +22,7 @@ $processors_db = dbFetchRows($sql, array($device['device_id']));
 if (count($processors_db))
 {
   $processors = array();
-  // Combinate multiple same processors
+  // Combine multiple same processors
   foreach ($processors_db as $proc)
   {
     $text_descr = rewrite_entity_name($proc['processor_descr']);
@@ -32,17 +32,13 @@ if (count($processors_db))
     $processors[$text_descr]['usage'] += $proc['processor_usage'];
     $processors[$text_descr]['count']++;
   }
-?>
 
-        <div class="box box-solid">
-          <div class="box-header ">
-            <a href="<?php echo(generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => 'processor'))); ?>">
-              <i class="oicon-processor"></i><h3 class="box-title">Processors</h3>
-            </a>
-          </div>
-          <div class="box-body no-padding">
-
-<?php
+  $box_args = array('title' => 'Processors', 
+                    'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => 'processor')), 
+                    'icon' => 'oicon-processor',
+                    ); 
+  echo generate_box_open($box_args);
+  
   echo('<table class="table table-condensed table-striped">');
 
   foreach ($processors as $text_descr => $proc)
@@ -70,22 +66,22 @@ if (count($processors_db))
 
     $overlib_content = generate_overlib_content($graph_array, $device['hostname'] . " - " . $text_descr);
 
-    $graph_array['width'] = 80; $graph_array['height'] = 20; $graph_array['bg'] = 'ffffff00'; # the 00 at the end makes the area transparent.
+    $graph_array['width'] = 80; $graph_array['height'] = 20; $graph_array['bg'] = 'ffffff00';
 //    $graph_array['style'][] = 'margin-top: -6px';
 
     $minigraph =  generate_graph_tag($graph_array);
 
-    $count_button = ($proc['count'] > 1 ? '<span class="label pull-right" style="margin-top: 2px; font-size: 11px;"><i class="icon-remove"></i> '.$proc['count'].'</span>' : '');
+    $count_button = ($proc['count'] > 1 ? '<span class="label pull-right" style="margin-top: 2px;"><i class="icon-remove"></i> '.$proc['count'].'</span>' : '');
     echo('<tr class="'.$background['class'].'">
            <td class="state-marker"></td>
-           <td><span class="entity">'.generate_entity_link('processor', $proc, $text_descr).'</span>'.$count_button.'</td>
+           <td><span class="entity text-nowrap">'.generate_entity_link('processor', $proc, $text_descr).'</span>'.$count_button.'</td>
            <td style="width: 90px">'.overlib_link($link, $minigraph, $overlib_content).'</td>
            <td style="width: 200px">'.overlib_link($link, print_percentage_bar(200, 20, $percent, NULL, "ffffff", $background['left'], $percent . "%", "ffffff", $background['right']), $overlib_content).'</td>
          </tr>');
   }
 
   echo("</table>");
-  echo("</div></div>");
+  echo generate_box_close();
 }
 
 // EOF

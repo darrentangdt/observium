@@ -51,7 +51,7 @@ if (is_file($rrd_filename))
   }
 } else { echo("file missing: $file");  }
 
-include("includes/graphs/generic_multi_simplex_separated.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_simplex_separated.inc.php");
 
 unset($rrd_list);
 
@@ -73,6 +73,6 @@ if (is_file($rrd_filename))
   }
 } else { echo("file missing: $file"); }
 
-include("includes/graphs/generic_multi_line.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_line.inc.php");
 
 // EOF

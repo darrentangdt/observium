@@ -11,7 +11,36 @@
  *
  */
 
-$page_title[] = "Services";
+$navbar['class'] = 'navbar-narrow';
+$navbar['brand'] = 'Services';
+
+$navbar['options']['basic']['text']   = 'Basic';
+$navbar['options']['details']['text'] = 'Details';
+
+$service_types = array();
+foreach ($service_list as $service)
+{
+  if ($vars['app'] == $service['service_type'])
+  {
+    $navbar['options'][$service['service_type']]['class'] = 'active';
+  }
+  $navbar['options'][$service['service_type']]['url']  = generate_url(array('page' => 'apps', 'app' => $service['service_type']));
+  $navbar['options'][$service['service_type']]['text'] = nicecase($service['service_type']);
+
+  $navbar['options'][$service['service_type']]['image'] = 'images/apps/'.$icon.'.png';
+  if (is_file($config['html_dir'].'/images/apps/'.$icon.'_2x.png'))
+  {
+    // HiDPI icon
+    $navbar['options'][$service['service_type']]['image_2x'] = 'images/apps/'.$icon.'_2x.png';
+  }
+
+  $service_types[$service['service_type']] = array();
+}
+
+print_navbar($navbar);
+unset($navbar);
+
+register_html_title("Services");
 
 print_optionbar_start();
 
@@ -41,7 +70,9 @@ if ($_GET['status'] == '0') { $where = " AND service_status = '0'"; } else { uns
 
 if ($vars['view'] == "details") { $stripe_class = "table-striped-two"; } else { $stripe_class = "table-striped"; }
 
-echo('<table class="table table-condensed '.$stripe_class.'" style="margin-top: 10px;">');
+echo '<div class="box box-solid">';
+echo '<table class="table table-condensed '.$stripe_class.'" style="margin-top: 10px;">';
+
 //echo("<tr class=small bgcolor='#e5e5e5'><td>Device</td><td>Service</td><td>Status</td><td>Changed</td><td>Checked</td><td>Message</td></tr>");
 
 if ($_SESSION['userlevel'] >= '5')
@@ -81,6 +112,6 @@ foreach (dbFetchRows($host_sql, $host_par) as $device)
   unset ($samehost);
 }
 
-echo("</table></div>");
+echo '</table></div>';
 
 // EOF

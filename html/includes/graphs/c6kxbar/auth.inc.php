@@ -11,7 +11,7 @@
  *
  */
 
-include("includes/graphs/device/auth.inc.php");
+include($config['html_dir']."/includes/graphs/device/auth.inc.php");
 
 if ($auth && is_numeric($_GET['mod']) && is_numeric($_GET['chan']))
 {

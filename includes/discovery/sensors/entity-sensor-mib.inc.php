@@ -12,15 +12,13 @@
  *
  */
 
-echo(" ENTITY-SENSOR-MIB ");
-
-$entity_array = snmpwalk_cache_multi_oid($device, 'entPhySensorValue', $entity_array, 'ENTITY-MIB:ENTITY-SENSOR-MIB', mib_dirs());
+$entity_array = snmpwalk_cache_multi_oid($device, 'entPhySensorValue', $entity_array, 'ENTITY-MIB:ENTITY-SENSOR-MIB');
 if ($GLOBALS['snmp_status'])
 {
   $oids = array('entPhySensorType', 'entPhySensorScale', 'entPhySensorPrecision', 'entPhySensorOperStatus');
   foreach ($oids as $oid)
   {
-    $entity_array = snmpwalk_cache_multi_oid($device, $oid, $entity_array, 'ENTITY-MIB:ENTITY-SENSOR-MIB', mib_dirs());
+    $entity_array = snmpwalk_cache_multi_oid($device, $oid, $entity_array, 'ENTITY-MIB:ENTITY-SENSOR-MIB');
   }
 
   if (is_array($GLOBALS['cache']['entity-mib']))
@@ -35,7 +33,7 @@ if ($GLOBALS['snmp_status'])
         $entity_array[$index] = $entry;
       }
     }
-    print_debug("ENTITY-MIB already cached");
+    print_debug('ENTITY-MIB already cached');
   } else {
     $oids = array('entPhysicalDescr', 'entPhysicalName', 'entPhysicalClass', 'entPhysicalContainedIn', 'entPhysicalParentRelPos');
     if (is_device_mib($device, 'ARISTA-ENTITY-SENSOR-MIB'))
@@ -44,10 +42,10 @@ if ($GLOBALS['snmp_status'])
     }
     foreach ($oids as $oid)
     {
-      $entity_array = snmpwalk_cache_multi_oid($device, $oid, $entity_array, "ENTITY-MIB:CISCO-ENTITY-VENDORTYPE-OID-MIB", mib_dirs('cisco'));
+      $entity_array = snmpwalk_cache_multi_oid($device, $oid, $entity_array, 'ENTITY-MIB:CISCO-ENTITY-VENDORTYPE-OID-MIB');
       if (!$GLOBALS['snmp_status']) { break; }
     }
-    $entity_array = snmpwalk_cache_twopart_oid($device, "entAliasMappingIdentifier", $entity_array, "ENTITY-MIB:IF-MIB", mib_dirs());
+    $entity_array = snmpwalk_cache_twopart_oid($device, 'entAliasMappingIdentifier', $entity_array, 'ENTITY-MIB:IF-MIB');
   }
 
   if (is_device_mib($device, 'ARISTA-ENTITY-SENSOR-MIB'))
@@ -56,7 +54,7 @@ if ($GLOBALS['snmp_status'])
                          'aristaEntSensorThresholdHighWarning', 'aristaEntSensorThresholdHighCritical');
     foreach ($oids_arista as $oid)
     {
-      $entity_array = snmpwalk_cache_multi_oid($device, $oid, $entity_array, "ARISTA-ENTITY-SENSOR-MIB", mib_dirs('arista'));
+      $entity_array = snmpwalk_cache_multi_oid($device, $oid, $entity_array, 'ARISTA-ENTITY-SENSOR-MIB');
       if (!$GLOBALS['snmp_status']) { break; }
     }
   }
@@ -91,7 +89,7 @@ if ($GLOBALS['snmp_status'])
         // Also compare like this: 'TenGigabitEthernet2/1 Bias Current' and 'Te2/1 Bias Current'
         if (strpos($entry['entPhysicalDescr'], substr($entry['entPhysicalName'], 2)) === FALSE)
         {
-          $descr = rewrite_entity_name($entry['entPhysicalDescr']) . " - " . rewrite_entity_name($entry['entPhysicalName']);
+          $descr = rewrite_entity_name($entry['entPhysicalDescr']) . ' - ' . rewrite_entity_name($entry['entPhysicalName']);
         }
       }
       else if (!$entry['entPhysicalDescr'] && $entry['entPhysicalName'])
@@ -119,11 +117,11 @@ if ($GLOBALS['snmp_status'])
       }
       $value = $entry['entPhySensorValue'];
 
-      if ($type == "temperature")
+      if ($type == 'temperature')
       {
         if ($value * $scale > 200 || $value == 0) { $ok = FALSE; }
       }
-      if ($value == "-127") { $ok = FALSE; }
+      if ($value == -127) { $ok = FALSE; }
 
       // Now try to search port bounded with sensor by ENTITY-MIB
       if ($ok && in_array($type, array('temperature', 'voltage', 'current', 'dbm', 'power')))
@@ -137,9 +135,9 @@ if ($GLOBALS['snmp_status'])
           {
             // Port found, get mapped ifIndex
             if (isset($sensor_port['0']['entAliasMappingIdentifier']) &&
-                strpos($sensor_port['0']['entAliasMappingIdentifier'], "fIndex"))
+                strpos($sensor_port['0']['entAliasMappingIdentifier'], 'fIndex'))
             {
-              list(, $ifIndex) = explode(".", $sensor_port['0']['entAliasMappingIdentifier']);
+              list(, $ifIndex) = explode('.', $sensor_port['0']['entAliasMappingIdentifier']);
 
               $port = get_port_by_index_cache($device['device_id'], $ifIndex);
               if (is_array($port))

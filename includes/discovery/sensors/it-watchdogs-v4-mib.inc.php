@@ -11,8 +11,6 @@
  *
  */
 
-echo(" IT-WATCHDOGS-V4-MIB ");
-
 //IT-WATCHDOGS-V4-MIB::productTitle.0 = STRING: WatchDog 15
 //IT-WATCHDOGS-V4-MIB::productVersion.0 = STRING: 1.5.4
 //IT-WATCHDOGS-V4-MIB::productFriendlyName.0 = STRING: ENV5003
@@ -28,12 +26,12 @@ echo(" IT-WATCHDOGS-V4-MIB ");
 //IT-WATCHDOGS-V4-MIB::internalHumidity.1 = INTEGER: 25 %
 //IT-WATCHDOGS-V4-MIB::internalDewPoint.1 = INTEGER: 394 0.1 Degrees
 
-$temperatureUnits = snmp_get($device, 'temperatureUnits.0', "-Oqv", "IT-WATCHDOGS-V4-MIB", mib_dirs('itwatchdogs'));
-$oids = snmpwalk_cache_multi_oid($device, "internalTable", array(), "IT-WATCHDOGS-V4-MIB", mib_dirs('itwatchdogs'));
+$temperatureUnits = snmp_get($device, 'temperatureUnits.0', '-Oqv', 'IT-WATCHDOGS-V4-MIB');
+$oids = snmpwalk_cache_multi_oid($device, 'internalTable', array(), 'IT-WATCHDOGS-V4-MIB');
 
 foreach ($oids as $index => $entry)
 {
-  $descr = "Sensor ".$entry['internalName'];
+  $descr = 'Sensor '.$entry['internalName'];
   // internalTemp
   $oid   = ".1.3.6.1.4.1.17373.4.1.2.1.5.$index";
   $scale = 0.1;

@@ -11,10 +11,7 @@
  *
  */
 
-$mib = 'SW-MIB';
-echo(" $mib ");
-
-$sensor_array = snmpwalk_cache_multi_oid($device, 'swSensorTable', array(), $mib, mib_dirs('brocade'));
+$sensor_array = snmpwalk_cache_multi_oid($device, 'swSensorTable', array(), 'SW-MIB');
 
 $sensor_type_map = array(
   'temperature'  => 'temperature',

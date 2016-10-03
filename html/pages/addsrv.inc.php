@@ -54,7 +54,7 @@ if ($_SESSION['userlevel'] < 10)
 
   if ($updated) { print_message("Device Settings Saved"); }
 
-  $page_title[] = "Add service";
+  register_html_title("Add service");
 
   echo("
 <h4>Add Service</h4>

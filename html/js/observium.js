@@ -13,6 +13,7 @@ function url_from_form(form_id) {
   var url = document.getElementById(form_id).action;
   var partFields = document.getElementById(form_id).elements;
 
+  var seen = {};
   for (var el, i = 0, n = partFields.length; i < n; i++) {
     el = partFields[i];
     if (el.value != '' && el.name != '') {
@@ -23,20 +24,25 @@ function url_from_form(form_id) {
           part = el[ii];
           if (part.selected) {
             val = part.value.replace(/\//g, '%7F'); // %7F (DEL, delete) - not defined in HTML 4 standard
-            val = val.replace(/,/g, '%1F'); // %1F (US, unit separator) - not defined in HTML 4 standard
+            val = val.replace(/,/g, '%1F');         // %1F (US, unit separator) - not defined in HTML 4 standard
             multi.push(encodeURIComponent(val));
             //console.log(part.value);
           }
         }
-        if (multi.length) {
-          url += encodeURIComponent(el.name.replace('[]', '')) + '=' +
-                 multi.join(',') + '/';
+        el.name = el.name.replace('[]', '');
+        if (multi.length && seen[el.name] !== 1) {
+          seen[el.name] = 1;
+          url = url.replace(new RegExp(encodeURIComponent(el.name) + '=[^\/]+\/', 'g'), ''); // remove old var from url
+          url += encodeURIComponent(el.name) + '=' + multi.join(',') + '/';
         }
       } else if (el.checked || el.type !== "checkbox") {
         val = el.value.replace(/\//g, '%7F'); // %7F (DEL, delete) - not defined in HTML 4 standard
-        val = val.replace(/,/g, '%1F'); // %1F (US, unit separator) - not defined in HTML 4 standard
-        url += encodeURIComponent(el.name) + '=' +
-               encodeURIComponent(val) + '/';
+        val = val.replace(/,/g, '%1F');       // %1F (US, unit separator) - not defined in HTML 4 standard
+        if (seen[el.name] !== 1) {            // Skip duplicate vars
+          seen[el.name] = 1;
+          url = url.replace(new RegExp(encodeURIComponent(el.name) + '=[^\/]+\/', 'g'), ''); // remove old var from url
+          url += encodeURIComponent(el.name) + '=' + encodeURIComponent(val) + '/';
+        }
       }
     }
   }
@@ -52,13 +58,6 @@ function form_to_path(form_id) {
 function submitURL(form_id) {
   url = url_from_form(form_id);
   $(document.getElementById(form_id)).attr('action', url);
-}
-
-// This popup currently used only for netcmd.inc.php
-function popUp(URL) {
-  day = new Date();
-  id = day.getTime();
-  eval("page" + id + " = window.open(URL, '" + id + "', 'toolbar=0,scrollbars=1,location=0,statusbar=0,        menubar=0,resizable=1,width=550,height=600');");
 }
 
 // toggle attributes readonly,disabled by form id
@@ -83,6 +82,11 @@ function toggleAttrib(attrib, form_id) {
       // bootstrap select
       element.selectpicker('refresh'); // re-render selectpicker
       //console.log('bootstrap-select');
+    }
+    else if (toggle.hasAttribute('data-toggle') && toggle.getAttribute('data-toggle') == 'tagsinput') {
+      // bootstrap tagsinput
+      element.tagsinput('refresh'); // re-render tagsinput
+      //console.log('bootstrap-tagsinput');
     }
   } else if (toggle.hasAttribute('data-toggle') && toggle.getAttribute('data-toggle').substr(0,6) == 'switch') {
     // bootstrap switch
@@ -109,6 +113,26 @@ function showDiv(checked, id) {
     $(id).hide();
   } else {
     $(id).show();
+  }
+}
+
+// This function open links by onclick event and prevent duplicate windows when Meta/Ctrl key pressed
+function openLink(url) {
+  document.onclick = function (event) {
+    //console.log(link);
+    //console.log(event);
+    //console.log(event.target, event.target.nodeName);
+    //console.log("Meta: " + event.metaKey, "Ctrl: " + event.ctrlKey);
+
+    if (event.metaKey || event.ctrlKey) {
+      // Open link in new tab (except on A tags)
+      if (event.target.nodeName != "A") {
+        window.open(url, '_blank');
+      }
+    } else {
+      // open link in current window/tab
+      location.href=url;
+    }
   }
 }
 
@@ -188,13 +212,13 @@ jQuery(document).ready(function() {
                 method: 'shift'
             }
     }
-  })
+  });
 
   $('.entity-popup').each(function() {
-      var entity_id   = $(this).data('eid');
-      var entity_type = $(this).data('etype');
+    var entity_id   = $(this).data('eid');
+    var entity_type = $(this).data('etype');
 
-      $(this).qtip({
+    $(this).qtip({
 
       content:{
           //text: '<img class="" style"margin: 0 auto;" src="images/loading.gif" alt="Loading..." />',
@@ -228,7 +252,7 @@ jQuery(document).ready(function() {
         //leave: 'window', // Hide when we leave the window
         //distance: false // Don't hide after a set distance
       },
-  });
+    });
   });
 
   $('.tooltip-from-data').qtip({
@@ -250,22 +274,25 @@ jQuery(document).ready(function() {
     hide: {
               fixed: true // Non-hoverable by default
     }
-  })
-
-  // Ajax autocomplete for input
-  // <input type='text' class='ajax-typeahead' data-link='your-json-link' />
-  $('.ajax-typeahead').typeahead({
-    source: function(query, process) {
-        return $.ajax({
-            //url: $(this)[0].$element[0].dataset.link,
-            url: $(this)[0].$element.data('link'),
-            type: 'get',
-            data: {query: query},
-            dataType: 'json',
-            success: function(json) {
-                return typeof json.options == 'undefined' ? false : process(json.options);
-            }
-        });
-    }
   });
+
 });
+
+var toggle_visibility = (function(){
+   function toggle(cl){
+       var els = document.getElementsByClassName(cl);
+       for(var i=0; i<els.length; ++i){
+          var s = els[i].style;
+          s.display = s.display==='none' ? 'block' : 'none';
+       };
+   }
+   return function(cl){
+      if(cl instanceof Array){
+         for(var i=0; i<cl.length; ++i){
+            toggle(cl[i]);
+         }
+      }else{
+         toggle(cl);
+      }
+   };
+})();

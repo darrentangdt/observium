@@ -23,10 +23,7 @@
 # AGENT-GENERAL-MIB::agentDRAMutilizationUsedDRAM.1 = INTEGER: 12431462 KB
 # AGENT-GENERAL-MIB::agentDRAMutilization.1 = INTEGER: 55
 
-$mib = 'AGENT-GENERAL-MIB';
-echo("$mib ");
-
-$mempool_array = snmpwalk_cache_oid($device, "agentDRAMutilizationEntry", NULL, $mib, mib_dirs('d-link'));
+$mempool_array = snmpwalk_cache_oid($device, 'agentDRAMutilizationEntry', array(), $mib);
 
 if (is_array($mempool_array))
 {
@@ -34,16 +31,17 @@ if (is_array($mempool_array))
   {
     if (is_numeric($entry['agentDRAMutilizationUsedDRAM']))
     {
-      $descr     = ($index === 0 ? "Memory" : "Unit " . $index);
+      $descr     = ($index === 0 ? 'Memory' : 'Unit ' . $index);
       $used      = $entry['agentDRAMutilizationUsedDRAM'];
       $total     = $entry['agentDRAMutilizationTotalDRAM'];
       $precision = (strlen($total) > 7 ? 1 : 1024); // Stacking swiches uses wrong units
       //$used     *= $precision;
       //$total    *= $precision;
-      discover_mempool($valid['mempool'], $device, $index, $mib, $descr, $precision, $total, $used);
+      discover_mempool($valid['mempool'], $device, $index, 'AGENT-GENERAL-MIB', $descr, $precision, $total, $used);
     }
   }
 }
+
 unset ($mempool_array, $index, $descr, $precision, $total, $used);
 
 // EOF

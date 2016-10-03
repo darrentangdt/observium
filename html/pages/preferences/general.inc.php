@@ -11,13 +11,67 @@
  *
  */
 
-$user_data = array('user_id' => $_SESSION['user_id'], 'level' => $_SESSION['userlevel']);
-humanize_user($user_data);
+$user_data = array('user_id'  => $_SESSION['user_id'],
+                   'username' => $_SESSION['username'],
+                   'level'    => $_SESSION['userlevel']);
+
+// Additional info (only for mysql auth)
+
+//$user_data2 = dbFetchRow("SELECT * FROM `users` WHERE `user_id` = ?", array($_SESSION['user_id']));
+$user_data2 = ldap_auth_user_info($_SESSION['username']);
+if (is_array($user_data2))
+{
+  $user_data = array_merge($user_data, $user_data2);
+  unset($user_data2);
+}
+humanize_user($user_data); // Get level_label, level_real, row_class, etc
+
 //r($user_data);
 
 ?>
 
 <div class="row">
+
+      <div class="col-md-6"> <!-- userinfo begin -->
+
+      <div class="box box-solid">
+        <div class="box-header">
+          <h3 class="box-title">User Information</h3>
+        </div>
+        <div class="box-body no-padding">
+
+          <table class="table table-striped table-condensed">
+            <tr>
+              <th style="width: 100px;">User ID</th>
+              <td><?php echo(escape_html($user_data['user_id'])); ?></td>
+            </tr>
+            <tr>
+              <th style="width: 100px;">Username</th>
+              <td><?php echo(escape_html($user_data['username'])); ?></td>
+            </tr>
+            <tr>
+              <th>Real Name</th>
+              <td><?php echo(escape_html($user_data['realname'])); ?></td>
+            </tr>
+            <tr>
+              <th>User Level</th>
+              <td><?php echo('<span class="label label-'.$user_data['text_class'].'">'.$user_data['level_label'].'</span>'); ?></td>
+            </tr>
+            <tr>
+              <th>Email</th>
+              <td><?php echo(escape_html($user_data['email'])); ?></td>
+            </tr>
+            <tr>
+              <th>Description</th>
+              <td><?php echo(escape_html($user_data['descr'])); ?></td>
+            </tr>
+          </table>
+
+        </div>
+      </div>
+
+      </div> <!-- userinfo end -->
+
 
   <div class="col-lg-6">
 <?php
@@ -93,11 +147,13 @@ humanize_user($user_data);
 
 <?php
 
-if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS_PERMIT_ALL ^ OBS_PERMIT_ACCESS, $user_data['permission']))
-{
-  // if user has access and not has read/secure read/edit use individual permissions
-  echo generate_box_open();
+echo generate_box_open(array('header-border' => TRUE, 'title' => 'Permission level'));
+echo('<p class="text-center text-uppercase text-'.$user_data['text_class'].' bg-'.$user_data['text_class'].'" style="padding: 10px; margin: 0px;"><strong>'.$user_data['subtext'].'</strong></p>');
+echo generate_box_close();
 
+// Show entity permissions only for Normal users
+if ($user_data['permission_access'] && !$user_data['permission_read'])
+{
   // Cache user permissions
   foreach (dbFetchRows("SELECT * FROM `entity_permissions` WHERE `user_id` = ?", array($user_data['user_id'])) as $entity)
   {
@@ -125,7 +181,8 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
       echo('</table>' . PHP_EOL);
 
     //} else {
-    //  print_warning("This user currently has no permitted bills");
+    //  echo('<p class="text-center text-warning bg-warning" style="padding: 10px; margin: 0px;"><strong>This user currently has no permitted bills</strong></p>');
+    //  //print_warning("This user currently has no permitted bills");
     //}
 
     echo generate_box_close();
@@ -152,7 +209,8 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
       }
       echo('</table>' . PHP_EOL);
     } else {
-      print_warning("This user currently has no permitted groups");
+      echo('<p class="text-center text-warning bg-warning" style="padding: 10px; margin: 0px;"><strong>This user currently has no permitted groups</strong></p>');
+      //print_warning("This user currently has no permitted groups");
     }
 
     echo generate_box_close();
@@ -178,7 +236,8 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
     echo('</table>' . PHP_EOL);
 
   } else {
-    print_warning("This user currently has no permitted devices");
+    echo('<p class="text-center text-warning bg-warning" style="padding: 10px; margin: 0px;"><strong>This user currently has no permitted devices</strong></p>');
+    //print_warning("This user currently has no permitted devices");
   }
 
   echo generate_box_close();
@@ -204,7 +263,8 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
     echo('</table>' . PHP_EOL);
 
   } else {
-    print_warning('This user currently has no permitted ports');
+    echo('<p class="text-center text-warning bg-warning" style="padding: 10px; margin: 0px;"><strong>This user currently has no permitted ports</strong></p>');
+    //print_warning('This user currently has no permitted ports');
   }
 
   echo generate_box_close();
@@ -230,18 +290,14 @@ if (is_flag_set(OBS_PERMIT_ACCESS, $user_data['permission']) && !is_flag_set(OBS
     echo('</table>' . PHP_EOL);
 
   } else {
-    print_warning('This user currently has no permitted sensors');
+    echo('<p class="text-center text-warning bg-warning" style="padding: 10px; margin: 0px;"><strong>This user currently has no permitted sensors</strong></p>');
+    //print_warning('This user currently has no permitted sensors');
   }
 
   echo generate_box_close();
   // End sensor permissions
 
-} else {
-  // All not normal users
-  echo generate_box_open(array('header-border' => TRUE, 'title' => 'Permissions', 'padding' => TRUE, 'body-style' => 'padding-bottom: 0px;'));
-  print_warning($user_data['subtext']);
 }
-echo generate_box_close();
 
 ?>
 
@@ -250,5 +306,8 @@ echo generate_box_close();
 </div> <!-- end row -->
 
 <?php
+
+
+if($config['debug_user_perms']) { r($_SESSION); r($permissions); }
 
 // EOF

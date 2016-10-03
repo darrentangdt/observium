@@ -11,15 +11,13 @@
  *
  */
 
-//SONICWALL-FIREWALL-IP-STATISTICS-MIB::sonicCurrentRAMUtil.0 = Wrong Type (should be Gauge32 or Unsigned32): Counter32: 98
+// SONICWALL-FIREWALL-IP-STATISTICS-MIB::sonicCurrentRAMUtil.0 = Wrong Type (should be Gauge32 or Unsigned32): Counter32: 98
 
-echo("SONICWALL-FIREWALL-IP-STATISTICS-MIB ");
-
-$percent = snmp_get($device, "sonicCurrentRAMUtil.0", "-OUQnv", "SONICWALL-FIREWALL-IP-STATISTICS-MIB");
+$percent = snmp_get($device, 'sonicCurrentRAMUtil.0', '-OUQnv', $mib);
 
 if (is_numeric($percent))
 {
-  discover_mempool($valid['mempool'], $device, 0, "SONICWALL-FIREWALL-IP-STATISTICS-MIB", "Memory", 1, 100, $percent);
+  discover_mempool($valid['mempool'], $device, 0, 'SONICWALL-FIREWALL-IP-STATISTICS-MIB', 'Memory', 1, 100, $percent);
 }
 
 unset ($percent);

@@ -11,16 +11,14 @@
  *
  */
 
-echo(" SPAGENT-MIB ");
-
 echo("Caching OIDs: ");
 $akcp_array = array();
 echo("sensorProbeTempTable ");
-$akcp_array = snmpwalk_cache_multi_oid($device, "sensorProbeTempTable", $akcp_array, "SPAGENT-MIB", mib_dirs('akcp'));
+$akcp_array = snmpwalk_cache_multi_oid($device, "sensorProbeTempTable", $akcp_array, "SPAGENT-MIB");
 echo("sensorProbeHumidityTable ");
-$akcp_array = snmpwalk_cache_multi_oid($device, "sensorProbeHumidityTable", $akcp_array, "SPAGENT-MIB", mib_dirs('akcp'));
+$akcp_array = snmpwalk_cache_multi_oid($device, "sensorProbeHumidityTable", $akcp_array, "SPAGENT-MIB");
 echo("sensorProbeSwitchTable ");
-$akcp_array = snmpwalk_cache_multi_oid($device, "sensorProbeSwitchTable", $akcp_array, "SPAGENT-MIB", mib_dirs('akcp'));
+$akcp_array = snmpwalk_cache_multi_oid($device, "sensorProbeSwitchTable", $akcp_array, "SPAGENT-MIB");
 
 foreach ($akcp_array as $index => $entry)
 {
@@ -42,11 +40,6 @@ foreach ($akcp_array as $index => $entry)
     if ($entry['sensorProbeTempDegreeType'] == 'fahr')
     {
       $options['sensor_unit'] = 'F';
-
-      foreach (array('limit_high', 'limit_low', 'limit_high_warn', 'limit_low_warn') as $param)
-      {
-        $options[$param] = f2c($options[$param]); // Convert limits from fahrenheit to celsius
-      }
     }
 
     if ($entry['sensorProbeTempStatus'] != 'noStatus')

@@ -30,7 +30,7 @@ $colours='mixed';
 $nototal = 1;
 $simple_rrd = 1;
 
-include("includes/graphs/generic_multi_line.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_line.inc.php");
 
 // EOF
 

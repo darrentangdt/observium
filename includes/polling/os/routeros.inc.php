@@ -11,13 +11,13 @@
  *
  */
 
-$version  = snmp_get($device, "mtxrLicVersion.0", "-OQv", "MIKROTIK-MIB");
-$features = "Level " . snmp_get($device, "mtxrLicLevel.0", "-OQv", "MIKROTIK-MIB");
-$serial   = snmp_get($device, "mtxrSerialNumber.0", "-OQv", "MIKROTIK-MIB");
+$version  = snmp_get($device, 'mtxrLicVersion.0', '-OQv', 'MIKROTIK-MIB');
+$features = 'Level ' . snmp_get($device, 'mtxrLicLevel.0', '-OQv', 'MIKROTIK-MIB');
+$serial   = snmp_get($device, 'mtxrSerialNumber.0', '-OQv', 'MIKROTIK-MIB');
 
 if ($serial == '')
 {
-  $serial = snmp_get($device, "mtxrLicSoftwareId.0", "-OQv", "MIKROTIK-MIB");
+  $serial = snmp_get($device, 'mtxrLicSoftwareId.0', '-OQv', 'MIKROTIK-MIB');
 }
 
 if (preg_match('/^RouterOS (.*)/', $poll_device['sysDescr'], $matches))

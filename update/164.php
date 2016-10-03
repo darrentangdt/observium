@@ -11,6 +11,6 @@
  *
  */
 
-echo(" Superseded by update 165" . PHP_EOL);
+echo("Superseded by update 165.");
 
 // EOF

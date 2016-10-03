@@ -24,5 +24,5 @@ $nototal   = 1;
 $unit_text = "Established Sessions";
 $scale_min = "0";
 
-include("includes/graphs/generic_multi_line.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_line.inc.php");
 

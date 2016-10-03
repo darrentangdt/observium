@@ -25,48 +25,64 @@ foreach (dbFetchRows('SELECT `port_id`, `device_id`, `ifDescr`, `ifName`, `ifAli
                         WHERE `device_id` = ? AND `port_id` != 0 GROUP BY `port_id`;', array($device['device_id'])) as $data)
 {
   humanize_port($data);
-  $port_ids[$data['port_id']] = $data['port_label'];
+  $form_items['ports'][$data['port_id']] = $data['port_label'];
 }
-natcasesort($port_ids);
-// Ports names field
-$search[] = array('type'    => 'multiselect',
-                  'width'   => '160px',
-                  'name'    => 'Ports',
-                  'id'      => 'port',
-                  'value'   => $vars['port'],
-                  'values'  => $port_ids);
-// Select vlans only with FDB tables
+natcasesort($form_items['ports']);
+
 foreach (dbFetchRows('SELECT `vlan_vlan`, `vlan_name`
                      FROM `vlans_fdb` AS F
                      LEFT JOIN `vlans` as V ON V.`vlan_vlan` = F.`vlan_id` AND V.`device_id` = F.`device_id`
                      WHERE F.`device_id` = ?
                      GROUP BY `vlan_vlan`', array($device['device_id'])) as $data)
 {
-  $vlans[$data['vlan_vlan']] = 'Vlan' . $data['vlan_vlan'];
-  $vlan_names[$data['vlan_name']] = $data['vlan_name'];
+  $form_items['vlans'][$data['vlan_vlan']] = 'Vlan ' . $data['vlan_vlan'];
+  $form_items['vlan_name'][$data['vlan_name']] = $data['vlan_name'];
 }
-//Vlans field
-ksort($vlans);
-$search[] = array('type'    => 'multiselect',
-                  'name'    => 'VLANs',
-                  'id'      => 'vlan_id',
-                  'value'   => $vars['vlan_id'],
-                  'values'  => $vlans);
-//Vlan names field
-natcasesort($vlan_names);
-$search[] = array('type'    => 'multiselect',
-                  'width'   => '160px',
-                  'name'    => 'VLAN names',
-                  'id'      => 'vlan_name',
-                  'value'   => $vars['vlan_name'],
-                  'values'  => $vlan_names);
-//MAC address field
-$search[] = array('type'    => 'text',
-                  'name'    => 'MAC Address',
-                  'id'      => 'address',
-                  'value'   => $vars['address']);
+ksort($form_items['vlans']);
+natcasesort($form_items['vlan_name']);
 
-print_search($search, NULL, 'search', 'device/device='.$device['device_id'].'/tab=ports/view=fdb/');
+$form = array('type'          => 'rows',
+              'space'         => '5px',
+              'submit_by_key' => TRUE,
+              'url'           => 'search/search=fdb/');
+
+$form['row'][0]['port'] = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'Ports',
+                                'width'       => '100%',
+                                'value'       => $vars['port'],
+                                'values'      => $form_items['ports']);
+$form['row'][0]['vlan_id'] = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'VLAN IDs',
+                                'width'       => '100%',
+                                'value'       => $vars['vlan_id'],
+                                'values'      => $form_items['vlans']);
+$form['row'][0]['vlan_name'] = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'VLAN Name',
+                                'width'       => '100%',
+                                'value'       => escape_html($vars['vlan_name']),
+                                'values'      => $form_items['vlan_name']);
+$form['row'][0]['address']  = array(
+                                'type'        => 'text',
+                                'name'        => 'MAC Address',
+                                'width'       => '100%',
+                                'grid'        => 4,
+                                'placeholder' => TRUE,
+                                'submit_by_key' => TRUE,
+                                'value'       => escape_html($vars['address']));
+// search button
+$form['row'][0]['search']   = array(
+                                'type'        => 'submit',
+                                //'grid'        => 3,
+                                //'name'        => 'Search',
+                                //'icon'        => 'icon-search',
+                                'value'       => 'fdb',
+                                'right'       => TRUE);
+
+print_form($form);
+unset($form, $form_items, $form_devices);
 
 // Pagination
 $vars['pagination'] = TRUE;

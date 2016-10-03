@@ -22,20 +22,21 @@ IMPORTS
     InetAutonomousSystemNumber
                                        FROM INET-ADDRESS-MIB
     ipv6RouterAdvertEntry              FROM IP-MIB
-    IANAipRouteProtocol                FROM IANA-RTPROTO-MIB;
+    IANAipRouteProtocol                FROM IANA-RTPROTO-MIB
+    IANAtunnelType                     FROM IANAifType-MIB; 
 
 
 rlIPv6  MODULE-IDENTITY
         LAST-UPDATED "200809250000Z"
-        ORGANIZATION "Cisco Small Business"
+        ORGANIZATION "Cisco Systems, Inc."
 
         CONTACT-INFO
         "Postal: 170 West Tasman Drive
         San Jose , CA 95134-1706
         USA
 
-        Website: Cisco Small Business Home http://www.cisco.com/smb>;,
-        Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
+        
+        Website:  Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
 
         DESCRIPTION
                 "The private MIB module definition for IPv6 MIB."
@@ -794,7 +795,8 @@ RlInetStaticRouteEntry ::= SEQUENCE {
         rlInetStaticRoutePathCost              Unsigned32,
         rlInetStaticRouteType                  INTEGER,
         rlInetStaticRouteOwner                 INTEGER,
-        rlInetStaticRouteRowStatus             RowStatus
+        rlInetStaticRouteRowStatus             RowStatus,
+        rlInetStaticRouteForwardingStatus      INTEGER
     }
 
 
@@ -938,6 +940,21 @@ rlInetStaticRouteRowStatus OBJECT-TYPE
         marked as active(1)."
     ::= { rlInetStaticRouteEntry 10 }
 
+rlInetStaticRouteForwardingStatus OBJECT-TYPE
+    SYNTAX   INTEGER {
+                active   (1),
+                inactive (2)
+             }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+       "active - An indication that the route has implication on routing
+       inactive - the route is a backup route or it is down. It is not used
+                  in forwarding decision.
+       Down means that the Ip interface on which it is configured is down.
+       (Note: ip interface down may be for two reason - its admin status or
+       the L2 interface , on which the ip interface is configured, status"
+    ::= { rlInetStaticRouteEntry 11 }
 
 
 --- Clear entries from ipNetToPhysicalTable
@@ -1474,7 +1491,8 @@ RlInternInetStaticRouteEntry ::= SEQUENCE {
         rlInternInetStaticRoutePathCost              Unsigned32,
         rlInternInetStaticRouteType                  INTEGER,
         rlInternInetStaticRouteOwner                 INTEGER,
-        rlInternInetStaticRouteRowStatus             RowStatus
+        rlInternInetStaticRouteRowStatus             RowStatus,
+        rlInternInetStaticRouteForwardingStatus      INTEGER
     }
 
 
@@ -1617,6 +1635,20 @@ rlInternInetStaticRouteRowStatus OBJECT-TYPE
         A row entry cannot be modified when the status is
         marked as active(1)."
     ::= { rlInternInetStaticRouteEntry 10 }
+
+rlInternInetStaticRouteForwardingStatus OBJECT-TYPE
+    SYNTAX   INTEGER {
+                active   (1),
+                inactive (2)
+             }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+       "active - An indication that the route has implication on routing
+       inactive - the route is a backup route or it is down. It is not used
+                  in forwarding decision.
+       Down means that the Ip interface on which it is configured is down."
+    ::= { rlInternInetStaticRouteEntry 11 }
 
 --- IPv6 Host Forwarding Table
 
@@ -1784,4 +1816,134 @@ rlManagementIpv6Action OBJECT-TYPE
 
     ::= { rlIPv6 14 }
 
+
+--- IPv6 Tunnel if/addr/prefix Table (internal mib)
+
+rlIpv6TunnelToIPv6DbTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF RlIpv6TunnelToIPv6DbEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "This entity's IPv6 Tunnel if/addr/prefix table."
+    ::= { rlIPv6 15 }
+
+
+rlIpv6TunnelToIPv6DbEntry OBJECT-TYPE
+    SYNTAX      RlIpv6TunnelToIPv6DbEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+       "A particular tunnel configured data to IPv6 db."
+    INDEX {
+        rlIpv6TunnelToIPv6IfIndex
+    }
+    ::= { rlIpv6TunnelToIPv6DbTable 1 }
+
+
+RlIpv6TunnelToIPv6DbEntry ::= SEQUENCE {
+        rlIpv6TunnelToIPv6IfIndex                       InterfaceIndex,
+        rlIpv6TunnelToIPv6Action                        INTEGER,
+        rlIpv6TunnelToIPv6TunnelType                    IANAtunnelType,
+        rlIpv6TunnelToIPv6Address                       InetAddress,
+        rlIpv6TunnelToIPv6PrefixLength                  Unsigned32,
+        rlIpv6TunnelToIPv6Mtu                           Unsigned32,
+        rlIpv6TunnelToIPv6MinRtrSolicitationInterval    Unsigned32,
+        rlIpv6TunnelToIPv6LinkLayerIPv4                 IpAddress
+    }
+
+rlIpv6TunnelToIPv6IfIndex OBJECT-TYPE
+    SYNTAX      InterfaceIndex
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "IfIndex of tunnel interface"
+    ::= { rlIpv6TunnelToIPv6DbEntry 1 }
+
+
+rlIpv6TunnelToIPv6Action OBJECT-TYPE
+    SYNTAX INTEGER {
+        createTunnel      (1), -- create Tunnel interface
+        destroyTunnel     (2), -- destroy Tunnel interface
+        addAddress        (3), -- add IPv6 Address
+        deleteAddress     (4), -- delete IPv6 Address
+        updateAddresses   (5), -- refresh IPv6 Address on tunnel interface (if link-layer address was changed)
+        six2fourCfgRestore(6), -- restore lost 6to4 configuration
+        six2fourCfgClear  (7)  -- clear stale 6to4 configuration
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+       "Action of the entry. All other fields relevant for appropriate actions."
+    ::= { rlIpv6TunnelToIPv6DbEntry 2 }
+
+
+rlIpv6TunnelToIPv6TunnelType OBJECT-TYPE
+    SYNTAX      IANAtunnelType
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+       "Tunnel type (manual/isatap/6to4/...)."
+    ::= { rlIpv6TunnelToIPv6DbEntry 3 }
+
+rlIpv6TunnelToIPv6Address OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+       "The address used for this tunnel. Could be local IPv4 of the tunnel."
+   ::= { rlIpv6TunnelToIPv6DbEntry 4 }
+
+rlIpv6TunnelToIPv6PrefixLength OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+       "The address/prefix length used for above address if applicable."
+   ::= { rlIpv6TunnelToIPv6DbEntry 5 }
+
+rlIpv6TunnelToIPv6Mtu OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+       "Mtu of this interface. Used for host isatap tunnels"
+   ::= { rlIpv6TunnelToIPv6DbEntry 6 }
+
+rlIpv6TunnelToIPv6MinRtrSolicitationInterval OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+       "Minimal router solicitation interval. Used for host isatap tunnels"
+   ::= { rlIpv6TunnelToIPv6DbEntry 7 }
+
+rlIpv6TunnelToIPv6LinkLayerIPv4 OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+       "IPv4 address used for link-layer of ipv6 over ipv4 tunnel"
+   ::= { rlIpv6TunnelToIPv6DbEntry 8 }
+
+rlIpv6DefaultTC OBJECT-TYPE
+    SYNTAX      INTEGER(0..255)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      "The default value inserted into the TC
+      field of the IPv6 header of datagrams originated at
+      this entity, whenever a TC value is not supplied
+      by the application."
+    ::= { rlIPv6 16 }
+
+rlIpv6DefaultUP OBJECT-TYPE
+    SYNTAX  INTEGER(0..7)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      "The default value inserted into the User Priority
+      field in the 802.1q VLAN tag of IPv4 frames sent by the
+      CPU."
+    ::= { rlIPv6 17 }
+    
 END

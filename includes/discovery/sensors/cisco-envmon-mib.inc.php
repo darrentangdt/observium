@@ -13,13 +13,11 @@
 
 // Old CISCO-ENVMON-MIB
 
-echo(" CISCO-ENVMON-MIB ");
-
 $sensor_type       = 'cisco-envmon';
 $sensor_state_type = 'cisco-envmon-state';
 
 // Temperatures:
-$oids = snmpwalk_cache_oid($device, 'ciscoEnvMonTemperatureStatusEntry', array(), 'CISCO-ENVMON-MIB', mib_dirs('cisco'));
+$oids = snmpwalk_cache_oid($device, 'ciscoEnvMonTemperatureStatusEntry', array(), 'CISCO-ENVMON-MIB');
 
 foreach ($oids as $index => $entry)
 {
@@ -56,7 +54,7 @@ foreach ($oids as $index => $entry)
 // Voltages
 $scale = si_to_scale('milli');
 
-$oids = snmpwalk_cache_oid($device, 'ciscoEnvMonVoltageStatusEntry', array(), 'CISCO-ENVMON-MIB', mib_dirs('cisco'));
+$oids = snmpwalk_cache_oid($device, 'ciscoEnvMonVoltageStatusEntry', array(), 'CISCO-ENVMON-MIB');
 
 foreach ($oids as $index => $entry)
 {
@@ -93,7 +91,7 @@ foreach ($oids as $index => $entry)
 }
 
 // Supply
-$oids = snmpwalk_cache_oid($device, 'ciscoEnvMonSupplyStatusEntry', array(), 'CISCO-ENVMON-MIB', mib_dirs('cisco'));
+$oids = snmpwalk_cache_oid($device, 'ciscoEnvMonSupplyStatusEntry', array(), 'CISCO-ENVMON-MIB');
 
 foreach ($oids as $index => $entry)
 {
@@ -118,7 +116,7 @@ foreach ($oids as $index => $entry)
 // Fans
 echo(" Fans ");
 
-$oids = snmpwalk_cache_oid($device, 'ciscoEnvMonFanStatusEntry', array(), 'CISCO-ENVMON-MIB', mib_dirs('cisco'));
+$oids = snmpwalk_cache_oid($device, 'ciscoEnvMonFanStatusEntry', array(), 'CISCO-ENVMON-MIB');
 
 foreach ($oids as $index => $entry)
 {

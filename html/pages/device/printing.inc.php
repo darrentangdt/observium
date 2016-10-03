@@ -11,86 +11,60 @@
  *
  */
 
-echo generate_box_open();
+register_html_title("Printing");
 
-echo('<table class="table table-condensed table-striped  table-striped">');
+$navbar = array();
+$navbar['brand'] = "Printer supplies";
+$navbar['class'] = "navbar-narrow";
 
-$graph_title = "Toner";
-$graph_type = "device_toner";
-
-include("includes/print-device-graph.php");
-
-unset($graph_array);
-
-echo '</table>';
-
-echo generate_box_close();
-
-print_toner_table($vars);
-
-echo generate_box_open();
-
-echo('<table class="table table-condensed table-striped  table-striped">');
-
-if (get_dev_attrib($device, "pagecount_oid"))
+foreach ($printing_tabs as $type)
 {
-  $graph_title = "Pagecounter";
-  $graph_type = "device_pagecount";
+  if (!$vars['supply']) { $vars['supply'] = $type; }
 
-  include("includes/print-device-graph.php");
+  $navbar['options'][$type]['url']  = generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'printing', 'supply' => $type));
+  $navbar['options'][$type]['text'] = nicecase($type);
+  if ($vars['supply'] == $type) { $navbar['options'][$type]['class'] = "active"; }
+
 }
 
-unset($graph_array);
-
-if (get_dev_attrib($device, "imagingdrum_c_oid"))
+if (dbFetchCell('SELECT COUNT(*) FROM `sensors` WHERE device_id = ? AND `measured_class` = ?', array($device['device_id'], 'printersupply')) > 0)
 {
-  $graph_title = "Imaging Drums";
-  $graph_type = "device_imagingdrums";
-
-  include("includes/print-device-graph.php");
-}
-elseif (get_dev_attrib($device, "imagingdrum_oid"))
-{
-  $graph_title = "Imaging Drum";
-  $graph_type = "device_imagingdrum";
-
-  include("includes/print-device-graph.php");
+  $navbar['options']['pagecount']['url'] = generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'printing', 'supply' => 'pagecount'));
+  $navbar['options']['pagecount']['text'] = 'Printed counters';
+  if ($vars['supply'] == 'pagecount') { $navbar['options']['pagecount']['class'] = "active"; }
 }
 
-unset($graph_array);
+print_navbar($navbar);
+unset($navbar);
 
-if (get_dev_attrib($device, "fuser_oid"))
+switch ($vars['supply'])
 {
-  $graph_title = "Fuser";
-  $graph_type = "device_fuser";
+  case 'pagecount':
+    echo generate_box_open();
+    echo('<table class="table table-condensed table-striped  table-striped">');
 
-  include("includes/print-device-graph.php");
+    $graph_title = "Printed counters";
+    $graph_type = "device_pagecount";
+
+    include("includes/print-device-graph.php");
+
+    echo('</table>');
+    echo generate_box_close();
+    break;
+  default:
+    echo generate_box_open();
+    echo('<table class="table table-condensed table-striped  table-striped">');
+
+    $graph_title = nicecase($vars['supply']);
+    $graph_type = "device_printersupplies_" . $vars['supply'];
+
+    include("includes/print-device-graph.php");
+
+    echo('</table>');
+    echo generate_box_close();
+
+    print_printersupplies_table($vars);
+    break;
 }
-
-unset($graph_array);
-
-if (get_dev_attrib($device, "transferroller_oid"))
-{
-  $graph_title = "Transfer Roller";
-  $graph_type = "device_transferroller";
-
-  include("includes/print-device-graph.php");
-}
-
-unset($graph_array);
-
-if (get_dev_attrib($device, "wastebox_oid"))
-{
-  $graph_title = "Waste Toner Box";
-  $graph_type = "device_wastebox";
-
-  include("includes/print-device-graph.php");
-}
-
-echo('</table>');
-
-echo generate_box_close();
-
-$page_title[] = "Printing";
 
 // EOF

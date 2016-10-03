@@ -11,7 +11,7 @@
  *
  */
 
-$page_title[] = "Routing";
+register_html_title("Routing");
 
 if ($_GET['optb'] == "graphs" || $_GET['optc'] == "graphs") { $graphs = "graphs"; } else { $graphs = "nographs"; }
 
@@ -32,6 +32,7 @@ foreach ($routing as $type => $value)
   }
 }
 print_navbar($navbar);
+unset($navbar);
 
 switch ($vars['protocol'])
 {

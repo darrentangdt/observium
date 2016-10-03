@@ -13,6 +13,4 @@
 
 unlink($config['rrd_dir']  . '/version.txt');
 
-echo(PHP_EOL);
-
 // EOF

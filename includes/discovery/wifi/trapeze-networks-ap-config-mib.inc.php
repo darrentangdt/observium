@@ -15,11 +15,9 @@
 //
 // TRAPEZE-NETWORKS-AP-CONFIG-MIB
 
-echo(" TRAPEZE-NETWORKS-AP-CONFIG-MIB ");
-
 // Getting APs
 
-$accesspoints_snmp = snmpwalk_cache_multi_oid($device, "trpzApConfApConfigTable", $accesspoints_snmp, "TRAPEZE-NETWORKS-AP-CONFIG-MIB", mib_dirs('trapeze'), OBS_SNMP_ALL_NUMERIC);
+$accesspoints_snmp = snmpwalk_cache_multi_oid($device, "trpzApConfApConfigTable", $accesspoints_snmp, "TRAPEZE-NETWORKS-AP-CONFIG-MIB", NULL, OBS_SNMP_ALL_NUMERIC_INDEX);
 if (OBS_DEBUG > 1) { print_vars($accesspoints_snmp); }
 
 $accesspoints_db = dbFetchRows("SELECT `name`, `model`, `location`, `fingerprint`, `serial`, `device_id`, `ap_number` FROM `wifi_accesspoints` WHERE `device_id` = ?", array($device['device_id']));
@@ -67,7 +65,7 @@ unset($accesspoints_db, $accesspoints_snmp, $ap_db, $db_insert);
 
 // Getting Radios
 
-$radios_snmp = snmpwalk_cache_twopart_oid($device, "trpzApConfRadioConfigTable", $radios_snmp, "TRAPEZE-NETWORKS-AP-CONFIG-MIB", mib_dirs('trapeze'));
+$radios_snmp = snmpwalk_cache_twopart_oid($device, "trpzApConfRadioConfigTable", $radios_snmp, "TRAPEZE-NETWORKS-AP-CONFIG-MIB");
 if (OBS_DEBUG > 1) { print_vars($radios_snmp); }
 
 $accesspoints_db = dbFetchRows("SELECT `wifi_accesspoint_id`, `ap_number` FROM `wifi_accesspoints` WHERE `device_id` = ?", array($device['device_id']));

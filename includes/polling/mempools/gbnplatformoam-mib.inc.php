@@ -14,11 +14,8 @@
 // GBNPlatformOAM-MIB::memorySize.0 = INTEGER: 128
 // GBNPlatformOAM-MIB::memoryIdle.0 = INTEGER: 51
 
-$mib = 'GBNPlatformOAM-MIB';
-echo(" $mib ");
-
-$mempool['free']   = snmp_get($device, "memoryIdle.0", "-OQUvs", $mib, mib_dirs('gcom'));
-$mempool['total']  = snmp_get($device, "memorySize.0", "-OQUvs", $mib, mib_dirs('gcom'));
+$mempool['free']   = snmp_get($device, "memoryIdle.0", "-OQUvs", 'GBNPlatformOAM-MIB');
+$mempool['total']  = snmp_get($device, "memorySize.0", "-OQUvs", 'GBNPlatformOAM-MIB');
 $mempool['used']   = $mempool['total'] - $mempool['free'];
 
 // EOF

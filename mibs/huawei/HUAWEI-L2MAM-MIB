@@ -1,9 +1,9 @@
 -- ==================================================================
--- Copyright (C) 2005 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 --
 -- Description:  HUAWEI Layer Two mac management MIB
 -- Reference:
--- Version: V2.10
+-- Version: V2.13
 -- History:
 --
 -- ==================================================================
@@ -43,7 +43,7 @@ IMPORTS
     hwL2Mgmt OBJECT IDENTIFIER ::= { hwDatacomm 42 }
 
     hwL2MAM MODULE-IDENTITY
-            LAST-UPDATED "201412192343Z"
+            LAST-UPDATED "201508250000Z"
             ORGANIZATION 
                     "Huawei Technologies Co.,Ltd."
             CONTACT-INFO
@@ -58,6 +58,15 @@ IMPORTS
                     "This is the layer 2 mac-address management. It contains the layer 2
                     mac-address forwarding information currently operating on this device.
                     And also contains the information of mac-limit rule. "
+        REVISION     "201508250000Z"
+           DESCRIPTION
+                    "Modify hwCfgFdbPort SYNTAX from InterfaceIndex to InterfaceIndexOrZero. "
+        REVISION     "201508060000Z"
+           DESCRIPTION
+                    "Modify hwDynFdbPort of HwdbDynFdbEntry. " 
+        REVISION     "201507230000Z"
+           DESCRIPTION
+                    "Add alarm node hwBdMacLimitOverThresholdAlarm and hwBdMacLimitOverThresholdAlarmResume. " 
          REVISION     "201412192343Z"
            DESCRIPTION
                     "Add alarm node hwPwMacSpoofingAttackAlarm and hwPwMacSpoofingAttackRecover. " 
@@ -159,7 +168,7 @@ VlanIndex ::= TEXTUAL-CONVENTION
                         hwCfgFdbVsiName
                                 OCTET STRING,
                         hwCfgFdbPort
-                                InterfaceIndex,
+                                InterfaceIndexOrZero,
                         hwCfgFdbType
                                 INTEGER,
                         hwCfgFdbRowstatus
@@ -203,7 +212,7 @@ VlanIndex ::= TEXTUAL-CONVENTION
                 ::= { hwdbCfgFdbEntry 3 }
 
         hwCfgFdbPort OBJECT-TYPE
-                SYNTAX InterfaceIndex
+                SYNTAX InterfaceIndexOrZero
                 MAX-ACCESS read-create
                 STATUS current
                 DESCRIPTION
@@ -307,7 +316,7 @@ VlanIndex ::= TEXTUAL-CONVENTION
                         hwDynFdbVsiName
                                 OCTET STRING,
                         hwDynFdbPort
-                                InterfaceIndex,
+                                InterfaceIndexOrZero,
                         hwDynFdbAtmPort
                                 InterfaceIndexOrZero,
                         hwDynFdbVpi
@@ -349,7 +358,7 @@ VlanIndex ::= TEXTUAL-CONVENTION
                 ::= { hwdbDynFdbEntry 3 }
 
         hwDynFdbPort OBJECT-TYPE
-                SYNTAX InterfaceIndex
+                SYNTAX InterfaceIndexOrZero
                 MAX-ACCESS read-create
                 STATUS current
                 DESCRIPTION
@@ -783,6 +792,20 @@ VlanIndex ::= TEXTUAL-CONVENTION
            		STATUS current
            		DESCRIPTION "A unicast MAC address for PW mac spoofing."
            		::= { hwL2MAMObjects 39 }  
+        hwBdMacLimitBdId OBJECT-TYPE
+                SYNTAX Integer32
+                MAX-ACCESS accessible-for-notify
+                STATUS current
+                DESCRIPTION "The bd id which will be configured mac-limit."
+                ::= { hwL2MAMObjects 40 }  
+        hwBdMacLimitMaxMac OBJECT-TYPE
+                SYNTAX MacAddress
+                MAX-ACCESS accessible-for-notify
+                STATUS current
+                DESCRIPTION "The maximum mac address. When the value is '0',
+                        the meaning is that there isn't limiting rule to
+                        the mac-address number."
+                ::= { hwL2MAMObjects 41 }  
            
     hwL2MacTraps OBJECT IDENTIFIER ::= { hwL2MAMObjects 7 }
 
@@ -1014,7 +1037,21 @@ VlanIndex ::= TEXTUAL-CONVENTION
             STATUS current
             DESCRIPTION
                 "The alarm indicating that a PW received MAC spoofing packets from an interface was cleared. "
-            ::= { hwL2MacTraps 35 }      
+            ::= { hwL2MacTraps 35 }  
+        
+        hwBdMacLimitOverThresholdAlarm NOTIFICATION-TYPE
+            OBJECTS {hwBdMacLimitBdId, hwBdMacLimitMaxMac}
+            STATUS current
+            DESCRIPTION
+                "Beyond the mac limited learning number. "
+            ::= { hwL2MacTraps 36 } 
+        
+        hwBdMacLimitOverThresholdAlarmResume NOTIFICATION-TYPE
+            OBJECTS {hwBdMacLimitBdId, hwBdMacLimitMaxMac}
+            STATUS current
+            DESCRIPTION
+                "Less than the mac limited learning number. "
+            ::= { hwL2MacTraps 37 } 
 -- untarget mac number            
     hwUntargetMacNum  OBJECT-TYPE
         SYNTAX  Counter64
@@ -3159,7 +3196,6 @@ hwL2MAMMacLimitGroup OBJECT-GROUP
         hwPwMacLimitRowstatus,
         hwPwMacAddressLearn,
         hwPwMacDynAddressLearnNum,
-        hwSlotMacLimitId,
         hwSlotMacLimitMaxMac,
         hwSlotMacLimitMaxRate,
         hwSlotMacLimitAction,
@@ -3228,7 +3264,6 @@ hwPortSecurityGroup OBJECT-GROUP
 
 hwMacIfStatisticsGroup OBJECT-GROUP
     OBJECTS {
-        hwMacIfStatisticsIfIndex, 
         hwMacIfStatistics
     }
     STATUS      current
@@ -3238,7 +3273,6 @@ hwMacIfStatisticsGroup OBJECT-GROUP
     
 hwMacSlotStatisticsGroup OBJECT-GROUP
     OBJECTS {
-        hwMacSlotStatisticsSlotId, 
         hwMacSlotStatistics,
         hwMacSlotStatisticsSpecify
     }
@@ -3249,7 +3283,6 @@ hwMacSlotStatisticsGroup OBJECT-GROUP
     
 hwMacVlanStatisticsGroup OBJECT-GROUP
     OBJECTS {
-        hwMacVlanStatisticsVlanId, 
         hwMacVlanStatistics
     }
     STATUS      current
@@ -3259,7 +3292,6 @@ hwMacVlanStatisticsGroup OBJECT-GROUP
                  
 hwMacVsiStatisticsGroup OBJECT-GROUP
     OBJECTS {
-        hwMacVsiStatisticsVsiName, 
         hwMacVsiStatistics
     }
     STATUS      current
@@ -3446,7 +3478,9 @@ hwL2MAMCompliance MODULE-COMPLIANCE
             hwMacHopAlarmRisingThreshold,
             hwMacHopAlarmFallingThreshold,
             hwPstBroadcastLostAlarm,
-            hwPstBroadcastLostResume
+            hwPstBroadcastLostResume,
+            hwBdMacLimitOverThresholdAlarm,
+            hwBdMacLimitOverThresholdAlarmResume
             }
             STATUS current
             DESCRIPTION

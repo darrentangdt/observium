@@ -1,10 +1,10 @@
 -- =================================================================
--- Copyright (C) 2006 by  HUAWEI TECHNOLOGIES. All rights reserved
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved
 -- 
 -- Description: The HUAWEI-DC-BASE-MIB provides information about DataComm TRAPS
 -- 
 -- Reference:
--- Version:     V2.03
+-- Version:     V2.06
 -- History:
 -- 
 -- =================================================================
@@ -29,11 +29,17 @@
             Integer32, OBJECT-TYPE, MODULE-IDENTITY, NOTIFICATION-TYPE            
                 FROM SNMPv2-SMI            
             DisplayString            
-                FROM SNMPv2-TC;
+                FROM SNMPv2-TC
+            hwStorageSpace
+                FROM  HUAWEI-FLASH-MAN-MIB
+            hwStorageSpaceFree
+                FROM  HUAWEI-FLASH-MAN-MIB
+            hwStorageName
+                FROM  HUAWEI-FLASH-MAN-MIB;
     
     
         hwBaseTrapMIB MODULE-IDENTITY 
-            LAST-UPDATED "201409011411Z"        -- Jun 25, 2013 at 14:11 GMT
+            LAST-UPDATED "201506021411Z"        -- Jun 25, 2013 at 14:11 GMT
             ORGANIZATION 
                 "Huawei Technologies Co.,Ltd."
             CONTACT-INFO 
@@ -47,6 +53,14 @@
             DESCRIPTION 
                 "This is the base trap definition for DataCom."
             -- Revision history
+			REVISION     "201506021411Z"
+			DESCRIPTION  "V2.06, hwVsDiskFullAlarm,hwVsDiskResume"
+
+			REVISION     "201410131411Z"
+			DESCRIPTION  "V2.05, delete the content modified in V2.04 to rollback to V2.03"
+			
+			REVISION     "201410091411Z"
+			DESCRIPTION  "V2.04, add ifindex as VB binder under hwPortPhysicalUp, hwPortPhysicalDown"
 			
 			REVISION     "201409011411Z"
             DESCRIPTION  "V2.03, add ifOperStatus and ifAdminStatus to objects of hwPortPhysicalDown and hwPortPhysicalUp "
@@ -1090,7 +1104,22 @@ hwPortPhysicalAutoNegotiateResume NOTIFICATION-TYPE
                 "Storage utilization resume to normal level."
             ::= { hwStorageTrap 2 }
 
-        
+        hwVsDiskFullAlarm NOTIFICATION-TYPE
+            OBJECTS {hwStorageSpace,hwStorageSpaceFree,hwStorageName}
+            STATUS current
+            DESCRIPTION 
+                "The disk usage exceeded  the overload threadhold."
+            ::= { hwStorageTrap 3 }
+
+
+        hwVsDiskResume NOTIFICATION-TYPE
+            OBJECTS { hwStorageSpace,hwStorageSpaceFree,hwStorageName}
+            STATUS current
+            DESCRIPTION 
+                "The disk usage fall below the clear threashold."
+            ::= { hwStorageTrap 4}
+
+
         hwClockTrap OBJECT IDENTIFIER ::= { hwBaseTraps 7 }
 
         
@@ -1330,7 +1359,7 @@ hwPortPhysicalAutoNegotiateResume NOTIFICATION-TYPE
                 hwPowerOn, hwPowerMixed, hwPowerMixedResume, hwCPUUtilizationRisingAlarm, hwCPUUtilizationResume, 
                 hwPortPhysicalDown, hwPortPhysicalUp, hwPortPhysicalNoTrafficAlarm, hwPortPhysicalNoTrafficClear, hwPortPhysicalTrafficRisingAlarm, 
                 hwPortPhysicalTrafficClear, hwPortPhysicalCrcErrorRisingAlarm, hwPortPhysicalCrcErrorClear, hwPortPhysicalEthBroadcastRisingAlarm, hwPortPhysicalEthBroadcastClear, 
-                hwPortPhysicalEthHalfDuplexAlarm, hwPortPhysicalEthFullDuplexClear, hwStorageUtilizationRisingAlarm, hwStorageUtilizationResume, hwFIBOverloadSuspend, 
+                hwPortPhysicalEthHalfDuplexAlarm, hwPortPhysicalEthFullDuplexClear, hwStorageUtilizationRisingAlarm, hwStorageUtilizationResume, hwVsDiskFullAlarm,hwVsDiskResume,hwFIBOverloadSuspend, 
                 hwFIBOverloadSusResume, hwFIBOverloadForward, hwFIBOverloadFwResume, hwFESInconsistencyForMemoryLack, hwFESInconsistencyForMemoryLackResume, 
                 hwPppLoopbackDetect, hwPppLoopbackDetResume, hwEntityCheckFail, hwEntityCheckResume, hwFlowCongestion, hwFlowCongestionResume, hwDeviceAbnormalRisingAlarm, 
                 hwResExhaustBfdAlarm, hwResExhaustBfdResume, hwResExhaustOamAlarm, hwResExhaustOamResume, hwHdlcLoopbackDetect, 

@@ -11,10 +11,7 @@
  *
  */
 
-$mib = 'CISCO-RTTMON-MIB';
-echo("$mib ");
-
-$oids = snmpwalk_cache_multi_oid($device, "rttMonCtrl", array(), $mib, mib_dirs('cisco'));
+$oids = snmpwalk_cache_multi_oid($device, "rttMonCtrl", array(), 'CISCO-RTTMON-MIB');
 
 foreach ($oids as $sla_index => $entry)
 {
@@ -22,7 +19,7 @@ foreach ($oids as $sla_index => $entry)
 
   $data = array(
     'device_id'  => $device['device_id'],
-    'sla_mib'    => $mib,
+    'sla_mib'    => 'CISCO-RTTMON-MIB',
     'sla_index'  => $sla_index,
     'sla_owner'  => $entry['rttMonCtrlAdminOwner'],
     'sla_tag'    => $entry['rttMonCtrlAdminTag'],
@@ -63,13 +60,13 @@ foreach ($oids as $sla_index => $entry)
 
   // Limits
   $data['sla_limit_high']      = ($entry['rttMonCtrlAdminTimeout']   > 0 ? $entry['rttMonCtrlAdminTimeout']   : 5000);
-  $data['sla_limit_high_warn'] = ($entry['rttMonCtrlAdminThreshold'] > 0 ? $entry['rttMonCtrlAdminThreshold'] : 625);
+  $data['sla_limit_high_warn'] = ($entry['rttMonCtrlAdminThreshold'] > 0 ? $entry['rttMonCtrlAdminThreshold'] : 1000);
   if ($data['sla_limit_high_warn'] >= $data['sla_limit_high'])
   {
-    $data['sla_limit_high_warn'] = intval($data['sla_limit_high'] / 8);
+    $data['sla_limit_high_warn'] = intval($data['sla_limit_high'] / 5);
   }
 
-  $sla_table[$mib][$sla_index] = $data; // Pull to array for main processing
+  $sla_table['CISCO-RTTMON-MIB'][$sla_index] = $data; // Pull to array for main processing
 }
 
 // EOF

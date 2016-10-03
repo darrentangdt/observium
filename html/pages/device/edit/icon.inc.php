@@ -52,53 +52,60 @@ if ($vars['editing'])
   <div class="box-header with-border">
     <h3 class="box-title">Device icon</h3>
   </div>
-<div class="box-body" style="padding: 10px;">
-<table cellpadding="0" cellspacing="0">
-  <tr>
-    <td>
-      <form id="edit" name="edit" method="post" action="">
-        <input type="hidden" name="editing" value="yes">
-        <table border="0">
+
+  <form id="edit" name="edit" method="post" action="" class="form form-inline">
+    <div class="box-body" style="padding: 10px;">
+      <table cellpadding="0" cellspacing="0">
+        <tr>
+          <td>
+            <input type="hidden" name="editing" value="yes">
+            <table border="0">
+              <tr>
 <?php
 
 $numicons = 1;
-echo("          <tr>\n");
 
 // Default icon
-$icon = get_device_icon($device, TRUE);
+$icon_default = $config['os'][$device['os']]['icon'];
 
-echo('            <td width="64" align="center"><img src="images/os/' . $icon . '.png"><br /><i>' . nicecase($icon) . '</i><p />');
-echo('<input name="icon" type="radio" value="' . $icon . '"' . ($device['icon'] == '' || $device['icon'] == $icon ? ' checked="1"' : '') . ' /></td>' . "\n");
+echo('          <td width="64" align="center"><img src="images/os/' . $icon_default . '.png"><br /><i>' . nicecase($icon_default) . '</i><p />');
+echo('<input name="icon" type="radio" value="' . $icon_default . '"' . ($device['icon'] == '' || $device['icon'] == $icon_default ? ' checked="1"' : '') . ' /></td>' . "\n");
 
 foreach ($config['os'][$device['os']]['icons'] as $icon_new)
 {
   if ($icon_new != $icon)
   {
-    echo('            <td align="center"><img src="images/os/' . $icon_new . '.png"><br /><i>' . ucwords(strtr($icon_new, '_', ' ')) . '</i><p />');
-    echo('<input name="icon" type="radio" value="' . $icon_new . '"' . ($device['icon'] == $icon ? ' checked="1"' : '') . ' /></td>' . "\n");
+    echo('          <td align="center"><img src="images/os/' . $icon_new . '.png"><br /><i>' . ucwords(strtr($icon_new, '_', ' ')) . '</i><p />');
+    echo('<input name="icon" type="radio" value="' . $icon_new . '"' . ($device['icon'] == $icon_new ? ' checked="1"' : '') . ' /></td>' . "\n");
     $numicons++;
   }
 }
 
 if ($numicons %10 == 0)
 {
-  echo("          </tr>\n");
-  echo("          <tr>\n");
+  echo("              </tr>\n");
+  echo("              <tr>\n");
 }
 ?>
-          </tr>
-        </table>
-        <br />
-      </form>
-    </td>
-    <td width="50"></td>
-    <td></td>
-  </tr>
-</table>
-</div>
-  <div class="box-footer">
-    <btn class="btn" type="submit" name="Submit" value="Save">Save</btn>
-  </div>
+              </tr>
+            </table>
+            <br />
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div id="submit" class="box-footer">
+  <?php
+  $item = array('id'          => 'submit',
+                'name'        => 'Save Changes',
+                'class'       => 'btn-primary',
+                'icon'        => 'icon-ok icon-white',
+                'value'       => 'save');
+  echo(generate_form_element($item, 'submit'));
+  ?>
+    </div>
+  </form>
 </div>
 
 <?php

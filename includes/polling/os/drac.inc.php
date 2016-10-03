@@ -15,12 +15,17 @@
 // DELL-RAC-MIB::drsProductShortName.0 = STRING: "iDRAC7"
 // DELL-RAC-MIB::drsSystemServiceTag.0 = STRING: "CGJ2H5J"
 
-$version  = trim(snmp_get($device, "drsFirmwareVersion.0",  "-OQv", "DELL-RAC-MIB"),'"');
-$hardware = trim(snmp_get($device, "drsProductShortName.0", "-OQv", "DELL-RAC-MIB"),'"');
-$serial   = trim(snmp_get($device, "drsSystemServiceTag.0", "-OQv", "DELL-RAC-MIB"),'"');
+$data = snmp_get_multi($device, 'drsFirmwareVersion.0 drsProductShortName.0 drsSystemServiceTag.0 drsProductChassisAssetTag.0', '-OQUs', 'DELL-RAC-MIB');
+if (is_array($data[0]))
+{
+  $version   = $data[0]['drsFirmwareVersion'];
+  $hardware  = $data[0]['drsProductShortName'];
+  $serial    = $data[0]['drsSystemServiceTag'];
+  $asset_tag = $data[0]['drsProductChassisAssetTag'];
+}
 
 // DELL-RAC-MIB::drsProductURL.0 = STRING: "https://192.168.2.1:443"
-$ra_url_http = snmp_get($device, "drsProductURL.0", "-Oqv", "DELL-RAC-MIB", mib_dirs('dell'));
+$ra_url_http = snmp_get($device, 'drsProductURL.0', '-Oqv', 'DELL-RAC-MIB');
 
 if ($ra_url_http != '')
 {
@@ -28,7 +33,7 @@ if ($ra_url_http != '')
 } else {
   // Not found in DELL-RAC-MIB, try getting from IDRAC-MIB-SMIv2 instead
 
-  $ra_url_http = snmp_get($device, "racURL.0", "-Oqv", "IDRAC-MIB-SMIv2", mib_dirs('dell'));
+  $ra_url_http = snmp_get($device, 'racURL.0', '-Oqv', 'IDRAC-MIB-SMIv2');
   if ($ra_url_http != '')
   {
     set_dev_attrib($device, 'ra_url_http', $ra_url_http);
@@ -36,5 +41,5 @@ if ($ra_url_http != '')
     del_dev_attrib($device, 'ra_url_http');
   }
 }
-    
+
 // EOF

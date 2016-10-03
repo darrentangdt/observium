@@ -11,7 +11,7 @@
  *
  */
 
-/// FIXME. Need rewrite: do not save unencrypted passwords (in $_SESSION)
+// FIXME. Need rewrite: do not save unencrypted passwords (in $_SESSION) <- fixed, or not?
 
 @ini_set('session.hash_function', '1');    // Use sha1 to generate the session ID
 @ini_set('session.referer_check', '');     // This config was causing so much trouble with Chrome
@@ -65,7 +65,7 @@ if (!session_is_active())
   //}
 }
 
-// Fallback to MySQL auth as default
+// Fallback to MySQL auth as default - FIXME do this in sqlconfig file?
 if (!isset($config['auth_mechanism']))
 {
   $config['auth_mechanism'] = "mysql";
@@ -83,9 +83,9 @@ if (is_file($auth_file))
   if (isset($_SESSION['auth_mechanism']) && $_SESSION['auth_mechanism'] != $config['auth_mechanism'])
   {
     // Logout if AUTH mechanism changed
+    $_SESSION['auth_message'] = 'Authentication mechanism changed, please log in again!';
     session_logout();
     header('Location: '.$config['base_url']);
-    $auth_message = 'ERROR: auth_mechanism changed!';
     exit();
   } else {
     $_SESSION['auth_mechanism'] = $config['auth_mechanism'];
@@ -100,9 +100,9 @@ if (is_file($auth_file))
   // Include base auth functions calls
   include($config['html_dir'].'/includes/authenticate-functions.inc.php');
 } else {
+  $_SESSION['auth_message'] = 'Invalid auth_mechanism defined, please correct your configuration!';
   session_logout();
   header('Location: '.$config['base_url']);
-  $auth_message = 'ERROR: no valid auth_mechanism defined!';
   exit();
 }
 
@@ -110,8 +110,8 @@ if ($vars['page'] == "logout" && $_SESSION['authenticated'])
 {
   if (auth_can_logout())
   {
+    // No need for a feedback message if user requested a logout
     session_logout(function_exists('auth_require_login'));
-    $auth_message = "Logged Out";
   }
   header('Location: '.$config['base_url']);
   exit();
@@ -154,9 +154,9 @@ else if ($mcrypt_exists && !$_SESSION['authenticated'] && isset($_COOKIE['ckey']
       // If userlevel == 0 - user disabled an can not be logon
       if (auth_user_level($ckey['username']) < 1)
       {
+        $_SESSION['auth_message'] = 'User login disabled';
         session_logout(FALSE, 'User disabled');
         header('Location: '.$config['base_url']);
-        $auth_message = 'User login disabled';
         exit();
       }
 
@@ -178,12 +178,12 @@ $auth_success = FALSE; // Variable for check if just logged
 
 if (isset($_SESSION['username']))
 {
-  // User authenticated, but not allowed by CIDR range
+  // Check for allowed by CIDR range
   if (!$auth_allow_cidr)
   {
+    $_SESSION['auth_message'] = 'Remote IP not allowed in CIDR ranges';
     session_logout(FALSE, 'Remote IP not allowed in CIDR ranges');
     header('Location: '.$config['base_url']);
-    $auth_message = 'Remote IP not allowed in CIDR ranges';
     exit();
   }
 
@@ -200,15 +200,17 @@ if (isset($_SESSION['username']))
   if (!$_SESSION['authenticated'] && (authenticate($_SESSION['username'], $auth_password) ||                       // login/password
                                      (auth_usermanagement() && auth_user_level($_SESSION['origusername']) >= 10))) // FIXME?
   {
+    // If we get here, it means the password for the user was correct (authenticate() called)
+
     // Store encrypted password
     session_encrypt_password($auth_password, $user_unique_id);
 
-    // If userlevel == 0 - user disabled an can not be logon
+    // If userlevel == 0 - user disabled and can not log in
     if (auth_user_level($_SESSION['username']) < 1)
     {
+      $_SESSION['auth_message'] = 'User login disabled';
       session_logout(FALSE, 'User disabled');
       header('Location: '.$config['base_url']);
-      $auth_message = 'User login disabled';
       exit();
     }
     
@@ -236,6 +238,12 @@ if (isset($_SESSION['username']))
       unset($_SESSION['user_ckey_id']);
     }
   }
+  else if (!$_SESSION['authenticated'])
+  {
+    // Not authenticated
+    $_SESSION['auth_message'] = "Authentication Failed";
+    session_logout(function_exists('auth_require_login'));
+  }
 
   // Retrieve user ID and permissions
   if ($_SESSION['authenticated'])
@@ -246,19 +254,25 @@ if (isset($_SESSION['username']))
       $_SESSION['user_id']   = auth_user_id($_SESSION['username']);
     }
 
+    $level_permissions = auth_user_level_permissions($_SESSION['userlevel']);
     // If userlevel == 0 - user disabled an can not be logon
-    if ($_SESSION['userlevel'] < 1)
+    if (!$level_permissions['permission_access'])
     {
+      $_SESSION['auth_message'] = 'User login disabled';
       session_logout(FALSE, 'User disabled');
       header('Location: '.$config['base_url']);
-      $auth_message = 'User login disabled';
       exit();
+    }
+    else if (!isset($_SESSION['user_limited']) || $_SESSION['user_limited'] != $level_permissions['limited'])
+    {
+      // Store user limited flag, required for quick permissions list generate
+      $_SESSION['user_limited'] = $level_permissions['limited'];
     }
 
     // Now we can enable debug if required
     if (defined('OBS_DEBUG_WUI')) // OBS_DEBUG_WUI defined in definitions
     {
-      if ($_SESSION['userlevel'] < 7)
+      if ($_SESSION['userlevel'] < 7 && !$config['permit_user_debug'])
       {
         // DO NOT ALLOW show debug output for users with privilege level less than "global secure read"
         define('OBS_DEBUG', 0);
@@ -285,20 +299,15 @@ if (isset($_SESSION['username']))
       set_user_pref($_SESSION['user_id'], 'atom_key', $atom_key);
     }
   }
-  else if (isset($_SESSION['username']))
-  {
-    $auth_message = "Authentication Failed";
-    session_logout(function_exists('auth_require_login'));
-  }
 
   if ($auth_success)
   {
-    // If just logged in go to request uri
+    // If just logged in go to request uri, unless we're debugging, in which case we want to see authentication module output first.
     if (!OBS_DEBUG)
     {
       header("Location: ".$_SERVER['REQUEST_URI']);
     } else {
-      print_message("Debugging mode disabled redirect to front page; please click <a href=\"" . $_SERVER['REQUEST_URI'] . "\">here</a> to continue.");
+      print_message("Debugging mode has disabled redirect to front page; please click <a href=\"" . $_SERVER['REQUEST_URI'] . "\">here</a> to continue.");
     }
     exit();
   }
@@ -306,6 +315,7 @@ if (isset($_SESSION['username']))
 
 ///r($_SESSION);
 ///r($_COOKIE);
+///r($permissions);
 
 // DOCME needs phpdoc block
 function session_is_active()
@@ -330,7 +340,10 @@ function session_is_active()
 function session_unique_id()
 {
   $id  = $_SERVER['HTTP_USER_AGENT']; // User agent
-  $id .= $_SERVER['HTTP_ACCEPT'];     // Browser accept headers
+  //$id .= $_SERVER['HTTP_ACCEPT'];     // Browser accept headers // WTF, this header different for main and js/ajax queries
+  // Less entropy than HTTP_ACCEPT, but stable!
+  $id .= $_SERVER['HTTP_ACCEPT_ENCODING'];
+  $id .= $_SERVER['HTTP_ACCEPT_LANGUAGE'];
   
   if ($GLOBALS['config']['web_session_ip'])
   {
@@ -387,6 +400,9 @@ function session_encrypt_password($auth_password, $key)
 // DOCME needs phpdoc block
 function session_logout($relogin = FALSE, $message = NULL)
 {
+  // Save auth failure message for later re-use
+  $auth_message = $_SESSION['auth_message'];
+
   if ($_SESSION['authenticated'])
   {
     $auth_log = 'Logged Out';
@@ -431,9 +447,13 @@ function session_logout($relogin = FALSE, $message = NULL)
           $_SESSION['user_encpass'], $_SESSION['password'],
           $_SESSION['userlevel']);
   } else {
+    // Kill current session, as authentication failed
     session_unset();
     session_destroy();
     unset($_SESSION);
+    // Re-set auth failure message for use on login page
+    session_start();
+    $_SESSION['auth_message'] = $message;
   }
 }
 

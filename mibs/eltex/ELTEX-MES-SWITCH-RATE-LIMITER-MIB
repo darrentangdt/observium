@@ -1,0 +1,81 @@
+ELTEX-MES-SWITCH-RATE-LIMITER-MIB DEFINITIONS ::= BEGIN
+
+-- Title:      ELTEX MES Switch Rate Limiter Private
+-- Version:    1.0
+-- Date:       18 Oct 2012
+
+IMPORTS
+    eltMesSwitchRateLimiterMIB                              FROM ELTEX-MES-MNG-MIB
+    Integer32,
+    MODULE-IDENTITY, OBJECT-TYPE                            FROM SNMPv2-SMI
+    DisplayString                                           FROM SNMPv2-TC;
+
+eltMesCPURateLimiterMIB OBJECT IDENTIFIER       ::= { eltMesSwitchRateLimiterMIB 1  }
+
+eltCPURateLimiterTable OBJECT-TYPE
+    SYNTAX          SEQUENCE OF EltCPURateLimiterEntry
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION        "A list of CPU rate limiters."
+    ::= { eltMesCPURateLimiterMIB 1 }
+
+eltCPURateLimiterEntry OBJECT-TYPE
+    SYNTAX          EltCPURateLimiterEntry
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION        "An entry containing the custom CPU
+                        rate limiter information for specific
+                        traffic type."
+    INDEX           { eltCPURateLimiterIndex }
+    ::= { eltCPURateLimiterTable 1 }
+
+EltCPURateLimiterTrafficType ::= TEXTUAL-CONVENTION
+    STATUS current
+    DESCRIPTION    "Traffic types for rate limiting on CPU."
+    SYNTAX INTEGER {
+        eltCPURLTypeHttp(1),
+        eltCPURLTypeTelnet(2),
+        eltCPURLTypeSsh(3),
+        eltCPURLTypeSnmp(4),
+        eltCPURLTypeIp(5),
+        eltCPURLTypeLinkLocal(6),
+        eltCPURLTypeArpRouter(7),
+        eltCPURLTypeArpSwitch(8),
+        eltCPURLTypeArpInspec(9),
+        eltCPURLTypeStpBpdu(10),
+        eltCPURLTypeOtherBpdu(11),
+        eltCPURLTypeIpRouting(12),
+        eltCPURLTypeIpOptions(13),
+        eltCPURLTypeDhcpSnoop(14),
+        eltCPURLTypeWebAuth(15),
+        eltCPURLTypeIgmpSnoop(16),
+        eltCPURLTypeMldSnoop(17),
+        eltCPURLTypeSflow(18),
+        eltCPURLTypeLogDenyAces(19),
+        eltCPURLTypeIpErrors(20),
+        eltCPURLTypePtp(21),
+        eltCPURLTypeOther(22),
+        eltCPURLTypeDhcpv6Snoop(23),
+        eltCPURLTypeVRRP(24)
+}
+
+EltCPURateLimiterEntry ::= SEQUENCE {
+        eltCPURateLimiterIndex       EltCPURateLimiterTrafficType,
+        eltCPURateLimiterValue       Integer32
+}
+
+eltCPURateLimiterIndex OBJECT-TYPE
+    SYNTAX          EltCPURateLimiterTrafficType
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION        "Traffic type"
+    ::= { eltCPURateLimiterEntry 1 }
+
+eltCPURateLimiterValue OBJECT-TYPE
+    SYNTAX          Integer32 (0..65535)
+    MAX-ACCESS      read-write
+    STATUS          current
+    DESCRIPTION        "Value of rate-limiter"
+    ::= { eltCPURateLimiterEntry 2 }
+
+END

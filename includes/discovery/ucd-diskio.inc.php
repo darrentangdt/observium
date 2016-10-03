@@ -11,11 +11,11 @@
  *
  */
 
-echo("UCD Disk IO : ");
-$diskio_array = snmpwalk_cache_oid($device, "diskIOEntry", array(), "UCD-DISKIO-MIB" , mib_dirs());
+echo('UCD Disk IO : ');
+$diskio_array = snmpwalk_cache_oid($device, 'diskIOEntry', array(), 'UCD-DISKIO-MIB');
 
 // Build array of entries from the database
-foreach (dbFetchRows("SELECT * FROM `ucd_diskio` WHERE `device_id` = ?", array($device['device_id'])) as $entry)
+foreach (dbFetchRows('SELECT * FROM `ucd_diskio` WHERE `device_id` = ?', array($device['device_id'])) as $entry)
 {
   $entries_db[$entry['diskio_index']] = $entry;
 }
@@ -25,21 +25,21 @@ if (count($diskio_array) > 0)
 {
   foreach ($diskio_array as $index => $entry)
   {
-    if ($entry['diskIONRead'] > "0" || $entry['diskIONWritten'] > "0")
+    if ($entry['diskIONRead'] > 0 || $entry['diskIONWritten'] > 0)
     {
-      print_debug("$index ".$entry['diskIODevice']);
+      print_debug('$index '.$entry['diskIODevice']);
       if (isset($entries_db[$index]) && $entries_db[$index]['diskio_descr'] == $entry['diskIODevice'] )
       {
         // Entries match. Nothing to do here!
-        echo(".");
+        echo('.');
       } elseif (isset($entries_db[$index])) {
         // Index exists, but block device has changed!
-        echo("U");
+        echo('U');
         dbUpdate(array('diskio_descr' => $entry['diskIODevice']), 'ucd_diskio', '`diskio_id` = ?', array($entries_db[$index]['diskio_id']));
       } else {
         // Index doesn't exist in the database. Add it.
         $inserted = dbInsert(array('device_id' => $device['device_id'], 'diskio_index' => $index, 'diskio_descr' => $entry['diskIODevice']), 'ucd_diskio');
-        echo("+");
+        echo('+');
       }
       // Remove from the DB array
       unset($entries_db[$index]);

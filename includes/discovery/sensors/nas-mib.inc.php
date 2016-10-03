@@ -11,9 +11,7 @@
  *
  */
 
-echo(" NAS-MIB ");
-
-$oids = snmpwalk_cache_oid($device, "SystemFanTable", array(), "NAS-MIB", mib_dirs('qnap'));
+$oids = snmpwalk_cache_oid($device, 'SystemFanTable', array(), 'NAS-MIB', mib_dirs('qnap')); // Can't remove mib_dirs() call, NAS-MIB has a duplicate name so it has no own mib_dir.
 
 foreach ($oids as $index => $entry)
 {
@@ -27,7 +25,7 @@ foreach ($oids as $index => $entry)
   }
 }
 
-$oids = snmpwalk_cache_oid($device, "SystemHdTable", array(), "NAS-MIB", mib_dirs('qnap'));
+$oids = snmpwalk_cache_oid($device, 'SystemHdTable', array(), 'NAS-MIB', mib_dirs('qnap')); // Can't remove mib_dirs() call, NAS-MIB has a duplicate name so it has no own mib_dir.
 
 foreach ($oids as $index => $entry)
 {

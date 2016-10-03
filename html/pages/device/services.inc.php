@@ -67,6 +67,6 @@ else
    echo("No Services");
 }
 
-$page_title[] = "Services";
+register_html_title("Services");
 
 // EOF

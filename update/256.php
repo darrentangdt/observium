@@ -22,14 +22,14 @@ foreach ($devices as $device)
     {
       case '1.3.6.1.4.1.14988.1.1.3.10.0':
         rename_rrd($device, "sensor-temperature-routeros-0.rrd", "sensor-temperature-MIKROTIK-MIB-mtxrHlTemperature-0.rrd");
+        echo('.');
         break;
       case '1.3.6.1.4.1.14988.1.1.3.8.0':
         rename_rrd($device, "sensor-voltage-routeros-0.rrd", "sensor-voltage-MIKROTIK-MIB-mtxrHlVoltage-0.rrd");
+        echo('.');
         break;
     }
   }
 }
-
-echo(PHP_EOL);
 
 // EOF

@@ -21,7 +21,12 @@ $query .= ' WHERE `device_id` = ?';
 $cbq_db = dbFetchRows($query, array($device['device_id']));
 foreach ($cbq_db as $cbq) { $cbq_table[$cbq['policy_index']][$cbq['object_index']] = $cbq; }
 
-$oids = array('cbQosCMPrePolicyPkt64','cbQosCMPrePolicyByte64', 'cbQosCMPostPolicyByte64', 'cbQosCMDropPkt64', 'cbQosCMDropByte64', 'cbQosCMNoBufDropPkt64');
+$oids = array('cbQosCMPrePolicyPkt64',
+              'cbQosCMPrePolicyByte64',
+              'cbQosCMPostPolicyByte64',
+              'cbQosCMDropPkt64',
+              'cbQosCMDropByte64',
+              'cbQosCMNoBufDropPkt64');
 
 // Walk the first service policies OID and then see if it was populated before we continue
 
@@ -31,18 +36,18 @@ if (!count($cbq_db))
   // Set retries to 1 for speedup first walking, only if previously polling also empty (DB empty)
   $device_context['snmp_retries'] = 1;
 }
-$service_policies = snmpwalk_cache_oid($device_context, "cbQosIfType", array(), "CISCO-CLASS-BASED-QOS-MIB", mib_dirs('cisco'));
+$service_policies = snmpwalk_cache_oid($device_context, "cbQosIfType", array(), "CISCO-CLASS-BASED-QOS-MIB");
 unset($device_context);
 
 if (count($service_policies))
 {
   // Continue populating service policies
-  $service_policies = snmpwalk_cache_oid($device, "cbQosPolicyDirection", $service_policies, "CISCO-CLASS-BASED-QOS-MIB", mib_dirs('cisco'));
-  $service_policies = snmpwalk_cache_oid($device, "cbQosIfIndex", $service_policies, "CISCO-CLASS-BASED-QOS-MIB", mib_dirs('cisco'));
+  $service_policies = snmpwalk_cache_oid($device, "cbQosPolicyDirection", $service_policies, "CISCO-CLASS-BASED-QOS-MIB");
+  $service_policies = snmpwalk_cache_oid($device, "cbQosIfIndex", $service_policies, "CISCO-CLASS-BASED-QOS-MIB");
 
-  # $policy_maps = snmpwalk_cache_oid($device, "cbQosPolicyMapCfgEntry", array(), "CISCO-CLASS-BASED-QOS-MIB", mib_dirs('cisco'));
-  # $class_maps  = snmpwalk_cache_oid($device, "cbQosCMCfgEntry", array(), "CISCO-CLASS-BASED-QOS-MIB", mib_dirs('cisco'));
-  # $object_indexes = snmpwalk_cache_twopart_oid($device, "cbQosConfigIndex", array(), "CISCO-CLASS-BASED-QOS-MIB", mib_dirs('cisco'));
+  # $policy_maps = snmpwalk_cache_oid($device, "cbQosPolicyMapCfgEntry", array(), "CISCO-CLASS-BASED-QOS-MIB");
+  # $class_maps  = snmpwalk_cache_oid($device, "cbQosCMCfgEntry", array(), "CISCO-CLASS-BASED-QOS-MIB");
+  # $object_indexes = snmpwalk_cache_twopart_oid($device, "cbQosConfigIndex", array(), "CISCO-CLASS-BASED-QOS-MIB");
 
   #print_r($policy_maps);
   #print_r($class_maps);
@@ -51,7 +56,7 @@ if (count($service_policies))
   $cm_stats = array();
   foreach ($oids as $oid)
   {
-    $cm_stats = snmpwalk_cache_twopart_oid($device, $oid, $cm_stats, "CISCO-CLASS-BASED-QOS-MIB", mib_dirs('cisco'));
+    $cm_stats = snmpwalk_cache_twopart_oid($device, $oid, $cm_stats, "CISCO-CLASS-BASED-QOS-MIB");
   }
 
   foreach ($cm_stats as $policy_index => $policy_entry)
@@ -87,36 +92,17 @@ if (count($service_policies))
       }
 
       // Do the RRD thing!
-      unset($snmpstring, $rrd_update, $snmpdata, $snmpdata_cmd, $rrd_create);
-      $rrd_file = safename("cbqos-".$policy_index."-".$object_index.".rrd");;
-      $rrd_update = "N";
-
-      // Loop OIDs to build rrd_create array and rrd_update
-      foreach ($oids as $oid)
-      {
-        $oid_ds = truncate(str_replace("cbQosCM", "", str_replace("64", "", $oid)), 19, '');
-        $rrd_create .= " DS:$oid_ds:COUNTER:600:U:100000000000";
-
-        if (is_numeric($object_entry[$oid]))
-        {
-          $rrd_update .= ":".$object_entry[$oid];
-        } else {
-          $rrd_update .= ":U";
-        }
-      }
-
-      rrdtool_create($device, $rrd_file, $rrd_create);
-      rrdtool_update($device, $rrd_file, $rrd_update);
-
+      rrdtool_update_ng($device, 'cisco-cbqos', array(
+        'PrePolicyPkt'   => $object_entry['cbQosCMPrePolicyPkt64'],
+        'PrePolicyByte'  => $object_entry['cbQosCMPrePolicyByte64'],
+        'PostPolicyByte' => $object_entry['cbQosCMPostPolicyByte64'],
+        'DropPkt'        => $object_entry['cbQosCMDropPkt64'],
+        'DropByte'       => $object_entry['cbQosCMDropByte64'],
+        'NoBufDropPkt'   => $object_entry['cbQosCMNoBufDropPkt64'],
+      ), "$policy_index-$object_index");
     }
   }
 
 } // End check if QoS is enabled before we walk everything
-else
-{
-
-echo 'QoS not configured.', PHP_EOL;
-
-}
 
 // EOF

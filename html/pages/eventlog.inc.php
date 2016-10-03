@@ -17,29 +17,25 @@
 
 <?php
 
-///FIXME. Mike: should be more checks, at least a confirmation click.
-//if ($vars['action'] == "expunge" && $_SESSION['userlevel'] >= '10')
-//{
-//  dbFetchCell('TRUNCATE TABLE `eventlog`');
-//  print_message('Event log truncated');
-//}
+// Note, this form have more complex grid and class elements for responsive datetime field
+$form = array('type'          => 'rows',
+              'space'         => '5px',
+              'submit_by_key' => TRUE,
+              'url'           => generate_url($vars));
 
-unset($search, $devices_array, $types);
+$where = ' WHERE 1 ' . $cache['where']['devices_permitted'];
 
-$where = ' WHERE 1 ' . generate_query_permitted();
+$form_items['devices'] = generate_form_values('device');
 
-//Device field
-foreach ($cache['devices']['hostname'] as $hostname => $device_id)
-{
-  if ($cache['devices']['id'][$device_id]['disabled'] && !$config['web_show_disabled']) { continue; }
-  $devices_array[$device_id] = $hostname;
-}
-$search[] = array('type'    => 'multiselect',
-                  'name'    => 'Devices',
-                  'id'      => 'device_id',
-                  'width'   => '125px',
-                  'value'   => $vars['device_id'],
-                  'values'  => $devices_array);
+// Device field
+$form['row'][0]['device_id'] = array(
+                              'type'        => 'multiselect',
+                              'name'        => 'Devices',
+                              'width'       => '100%',
+                              'div_class'   => 'col-lg-1 col-md-2 col-sm-2',
+                              'value'       => $vars['device_id'],
+                              'groups'      => array('', 'UP', 'DOWN', 'DISABLED'), // This is optgroup order for values (if required)
+                              'values'      => $form_items['devices']);
 
 // Add device_id limit for other fields
 if (isset($vars['device_id']))
@@ -47,58 +43,65 @@ if (isset($vars['device_id']))
   $where .= generate_query_values($vars['device_id'], 'device_id');
 }
 
-//Message field
-$search[] = array('type'    => 'text',
-                  'name'    => 'Message',
-                  'id'      => 'message',
-                  'width'   => '150px',
-                  'placeholder' => 'Message',
-                  'submit_by_key' => TRUE,
-                  'value'   => $vars['message']);
+// Message field
+$form['row'][0]['message'] = array(
+                              'type'        => 'text',
+                              'name'        => 'Message',
+                              'placeholder' => 'Message',
+                              'width'       => '100%',
+                              'div_class'   => 'col-lg-3 col-md-4 col-sm-4',
+                              //'grid'        => 3,
+                              'value'       => $vars['message']);
 
-//Severity field
-foreach (dbFetchColumn('SELECT DISTINCT `severity` FROM `eventlog`' . $where) as $severity)
-{
-  $severities[$severity] = ucfirst($config['syslog']['priorities'][$severity]['name']);
-}
-krsort($severities);
-$search[] = array('type'    => 'multiselect',
-                  'name'    => 'Severities',
-                  'id'      => 'severity',
-                  'width'   => '110px',
-                  'subtext' => TRUE,
-                  'value'   => $vars['severity'],
-                  'values'  => $severities);
+// Severities field
+$form_filter = dbFetchColumn('SELECT DISTINCT `severity` FROM `eventlog`' . $where);
+$form_items['severities'] = generate_form_values('eventlog', $form_filter, 'severity');
+$form['row'][0]['severity'] = array(
+                              'type'        => 'multiselect',
+                              'name'        => 'Severities',
+                              'width'       => '100%',
+                              'div_class'   => 'col-lg-1 col-md-2 col-sm-2',
+                              'subtext'     => TRUE,
+                              'value'       => $vars['severity'],
+                              'values'      => $form_items['severities']);
 
-//Types field
-$types['device'] = 'Device';
-foreach (dbFetchColumn('SELECT DISTINCT `entity_type` FROM `eventlog` IGNORE INDEX (`type`)' . // Use index 'type_device' for speedup
-                       $where) as $type)
-{
-  //$type = $data['type'];
-  $types[$type] = ucfirst($type);
-}
-$search[] = array('type'    => 'multiselect',
-                  'name'    => 'Types',
-                  'id'      => 'type',
-                  'width'   => '100px',
-                  'value'   => $vars['type'],
-                  'values'  => $types);
+// Types field
+$form_filter = dbFetchColumn('SELECT DISTINCT `entity_type` FROM `eventlog` IGNORE INDEX (`type`)' . $where);
+$form_items['types'] = generate_form_values('eventlog', $form_filter, 'type');
 
-// Newline
-//$search[] = array('type'    => 'newline',
-//                  'hr'      => TRUE);
+$form['row'][0]['type'] = array(
+                              'type'        => 'multiselect',
+                              'name'        => 'Types',
+                              'width'       => '100%',
+                              'div_class'   => 'col-lg-1 col-md-2 col-sm-2',
+                              'size'        => '15',
+                              'value'       => $vars['type'],
+                              'values'      => $form_items['types']);
 
-// Datetime field
-$search[] = array('type'    => 'datetime',
-                  'id'      => 'timestamp',
-                  'presets' => TRUE,
-                  'min'     => dbFetchCell('SELECT `timestamp` FROM `eventlog`' . $where . ' ORDER BY `timestamp` LIMIT 0,1;'),
-                  'max'     => dbFetchCell('SELECT `timestamp` FROM `eventlog`' . $where . ' ORDER BY `timestamp` DESC LIMIT 0,1;'),
-                  'from'    => $vars['timestamp_from'],
-                  'to'      => $vars['timestamp_to']);
+// Datetime Field
+$form['row'][0]['timestamp'] = array(
+                              'type'        => 'datetime',
+                              //'grid'        => 5,
+                              //'width'       => '70%',
+                              'div_class'   => 'col-lg-5 col-md-7 col-sm-10 col-lg-push-0 col-md-push-2 col-sm-push-2',
+                              'presets'     => TRUE,
+                              'min'         => dbFetchCell('SELECT `timestamp` FROM `eventlog`' . $where . ' ORDER BY `timestamp` LIMIT 0,1;'),
+                              'max'         => dbFetchCell('SELECT `timestamp` FROM `eventlog`' . $where . ' ORDER BY `timestamp` DESC LIMIT 0,1;'),
+                              'from'        => $vars['timestamp_from'],
+                              'to'          => $vars['timestamp_to']);
 
-print_search($search, 'Eventlog', 'search', 'eventlog/');
+// search button
+$form['row'][0]['search']   = array(
+                              'type'        => 'submit',
+                              //'name'        => 'Search',
+                              //'icon'        => 'icon-search',
+                              'div_class'   => 'col-lg-1 col-md-5 col-sm-2',
+                              //'grid'        => 1,
+                              'right'       => TRUE);
+
+print_form($form);
+unset($form, $form_items, $form_devices);
+
 
 // Pagination
 $vars['pagination'] = TRUE;
@@ -106,7 +109,7 @@ $vars['pagination'] = TRUE;
 // Print events
 print_events($vars);
 
-$page_title[] = 'Eventlog';
+register_html_title('Eventlog');
 
 ?>
 

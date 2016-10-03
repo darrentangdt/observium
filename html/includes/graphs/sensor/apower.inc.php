@@ -28,11 +28,11 @@ $rrd_options .= " AREA:sensor_min#ffffffff";
 #$rrd_options .= " AREA:sensor#FFFF99";
 $rrd_options .= " LINE1.5:sensor#cc0000:'" . rrdtool_escape($sensor['sensor_descr'],22)."'";
 $rrd_options .= " GPRINT:sensor:LAST:%6.2lfW";
-$rrd_options .= " GPRINT:sensor:MAX:%6.2lfW\\\\l";
+$rrd_options .= " GPRINT:sensor:MAX:%6.2lfW\\l";
 
 if (is_numeric($sensor['sensor_limit'])) $rrd_options .= " HRULE:".$sensor['sensor_limit']."#999999::dashes";
 if (is_numeric($sensor['sensor_limit_low'])) $rrd_options .= " HRULE:".$sensor['sensor_limit_low']."#999999::dashes";
 
-$graph_return = array('rrds' => array($rrd_filename), 'descr' => 'Apparent power sensor measured in voltampere.', 'valid_options');
+$graph_return['descr'] = 'Apparent power sensor measured in voltampere.';
 
 // EOF

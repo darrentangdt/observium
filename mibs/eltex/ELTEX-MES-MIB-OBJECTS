@@ -1,0 +1,55 @@
+ELTEX-MES-MIB-OBJECTS DEFINITIONS ::= BEGIN
+
+IMPORTS
+    eltMesIfMIBObjects              FROM ELTEX-MES-IF-MIB
+    MODULE-IDENTITY, OBJECT-TYPE    FROM SNMPv2-SMI
+    DisplayString                   FROM SNMPv2-TC
+    ifEntry                         FROM IF-MIB;
+
+eltIfExtTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF EltIfExtEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        ""
+    ::= { eltMesIfMIBObjects 1 }
+    
+eltIfTypes OBJECT-TYPE
+    SYNTAX      INTEGER { default(1), iana-new(2) }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DEFVAL      { default }
+    DESCRIPTION
+        "If set to 'default', interfaces types in ifTable will be set according to IANAifType-MIB 1996. If set to 'iana-new', interface types will be set according to IANAifType-MIB 2014"
+    ::= { eltMesIfMIBObjects 2 }
+
+eltIfExtEntry OBJECT-TYPE
+    SYNTAX      EltIfExtEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        ""
+    AUGMENTS { ifEntry }
+    ::= { eltIfExtTable 1 }
+
+EltIfExtEntry ::= SEQUENCE {
+    iflongDescr    DisplayString
+}
+
+iflongDescr   OBJECT-TYPE
+               SYNTAX      DisplayString (SIZE(0..255))
+               MAX-ACCESS  read-write
+               STATUS      current
+               DESCRIPTION
+                       ""
+               ::= { eltIfExtEntry 1 }
+
+eltIfUpDownTrapEnable OBJECT-TYPE
+    SYNTAX         INTEGER { enabled(1), disabled(2) }
+    MAX-ACCESS     read-write
+    STATUS         current
+    DESCRIPTION
+               ""
+        ::= { eltMesIfMIBObjects 7 }
+
+END

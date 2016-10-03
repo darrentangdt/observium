@@ -11,24 +11,28 @@
  *
  */
 
-$mib = 'CISCO-MEMORY-POOL-MIB';
+$mib  = 'CISCO-MEMORY-POOL-MIB';
+$oids = array('used' => 'ciscoMemoryPoolUsed',
+              'free' => 'ciscoMemoryPoolFree');
 
-if (!is_array($cache_storage['cisco-memory-pool-mib']))
+if (!is_array($cache_storage[$mib]))
 {
-  foreach (array('ciscoMemoryPoolUsed', 'ciscoMemoryPoolFree') as $oid)
+  foreach ($oids as $oid)
   {
-    $cache_mempool = snmpwalk_cache_multi_oid($device, $oid, $cache_mempool, $mib, mib_dirs('cisco'));
+    $cache_mempool = snmpwalk_cache_multi_oid($device, $oid, $cache_mempool, $mib);
   }
-  $cache_storage['cisco-memory-pool-mib'] = $cache_mempool;
+  $cache_storage[$mib] = $cache_mempool;
 } else {
   print_debug("Cached!");
+  $cache_mempool = $cache_storage[$mib];
 }
 
 $index            = $mempool['mempool_index'];
-$mempool['used']  = $cache_storage['cisco-memory-pool-mib'][$index]['ciscoMemoryPoolUsed'];
-$mempool['free']  = $cache_storage['cisco-memory-pool-mib'][$index]['ciscoMemoryPoolFree'];
-$mempool['total'] = $mempool['used'] + $mempool['free'];
+foreach ($oids as $param => $oid)
+{
+  $mempool[$param] = $cache_mempool[$index][$oid];
+}
 
-unset ($index, $oid);
+unset ($index, $oid, $oids);
 
 // EOF

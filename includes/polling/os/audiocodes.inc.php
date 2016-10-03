@@ -29,12 +29,12 @@ if (strpos($poll_device['sysDescr'], 'Product:') !== FALSE)
   # AC-SYSTEM-MIB::acSysVersionSoftware.0 = STRING: 4.80A.014.006
   # AC-SYSTEM-MIB::acSysIdSerialNumber.0 = Wrong Type (should be Gauge32 or Unsigned32): INTEGER: 2182014
 
-  $data = snmp_get_multi($device, 'acSysIdName.0 acSysVersionSoftware.0', '-OQUs', 'AC-SYSTEM-MIB', mib_dirs('audiocodes'));
+  $data = snmp_get_multi($device, 'acSysIdName.0 acSysVersionSoftware.0', '-OQUs', 'AC-SYSTEM-MIB');
   $hardware = $data[0]['acSysIdName'];
   $version  = $data[0]['acSysVersionSoftware'];
 }
 
-$data = snmp_get_multi($device, 'acSysIdSerialNumber.0', '-OQUs', 'AC-SYSTEM-MIB', mib_dirs('audiocodes'));
+$data = snmp_get_multi($device, 'acSysIdSerialNumber.0', '-OQUs', 'AC-SYSTEM-MIB');
 $serial = $data[0]['acSysIdSerialNumber'];
 
 // EOF

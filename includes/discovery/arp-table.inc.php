@@ -34,6 +34,7 @@ echo("ARP/NDP Tables : ");
 /// FIXME. Here necessary to use snmpwalk_cache_oid, but snmpwalk_cache_oid() not support custom options like (-OXqs) for parser. -- mike
 /// Duplicate the function to use -OX. The SNMP specific stuff is all elsewhere, so shouldn't be too much duplicated -- adama
 
+// FIXME check is_device_mib first!
 // First check IP-MIB::ipNetToPhysicalPhysAddress (IPv4 & IPv6)
 //ipNetToPhysicalPhysAddress[5][ipv4]["80.93.52.129"] 0:23:ab:64:d:42
 //ipNetToPhysicalPhysAddress[34][ipv6]["2a:01:00:d8:00:00:00:01:00:00:00:00:00:00:00:03"] 0:15:63:e8:fb:31:0:0

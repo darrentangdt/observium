@@ -30,7 +30,7 @@ $colour_area_max = "FFEE99";
 $nototal   = 1;
 $unit_text = "Conns";
 
-include("includes/graphs/generic_simplex.inc.php");
+include($config['html_dir']."/includes/graphs/generic_simplex.inc.php");
 
 // EOF
 

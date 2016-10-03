@@ -20,7 +20,7 @@ $table_defs['MIKROTIK-MIB']['mtxrDHCP'] = array (
   'descr'      => 'Mikrotik DHCP Statistics',
   'graphs'     => array('dhcp_leases'),
   'oids'       => array(
-    'mtxrDHCPLeaseCount' => array('numeric' => '1',  'descr' => 'Number of DHCP leases', 'ds_min' => '0', 'ds_type' => 'GAUGE'), // Gauge32: 24    
+    'mtxrDHCPLeaseCount' => array('numeric' => '1',  'descr' => 'Number of DHCP leases', 'ds_min' => '0', 'ds_type' => 'GAUGE'), // Gauge32: 24
   )
 );
 

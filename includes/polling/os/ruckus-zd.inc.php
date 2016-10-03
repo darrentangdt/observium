@@ -33,7 +33,7 @@ RUCKUS-ZD-SYSTEM-MIB::ruckusZDSystemMgmtVlanID.0 = 1
 
  */
 
-$data = snmp_get_multi($device, "ruckusZDSystemModel.0 ruckusZDSystemSerialNumber.0 ruckusZDSystemVersion.0 ", "-OQUs", "RUCKUS-ZD-SYSTEM-MIB", mib_dirs("ruckus"));
+$data = snmp_get_multi($device, 'ruckusZDSystemModel.0 ruckusZDSystemSerialNumber.0 ruckusZDSystemVersion.0', '-OQUs', 'RUCKUS-ZD-SYSTEM-MIB');
 $data = $data[0];
 
 $serial       = $data['ruckusZDSystemSerialNumber'];

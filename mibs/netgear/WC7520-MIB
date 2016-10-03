@@ -6,10 +6,10 @@ WC7520-MIB DEFINITIONS ::= BEGIN
 
 IMPORTS
     MODULE-IDENTITY, OBJECT-TYPE, Integer32,
-    NOTIFICATION-TYPE,IpAddress             FROM SNMPv2-SMI
+    NOTIFICATION-TYPE,IpAddress,enterprises FROM SNMPv2-SMI
     RowStatus, StorageType                  FROM SNMPv2-TC
     OBJECT-GROUP                            FROM SNMPv2-CONF                    
-    enterprises,  OBJECT-TYPE, 
+    OBJECT-TYPE, 
     DisplayString, MacAddress               FROM SNMPv2-TC;
 
 
@@ -86,14 +86,14 @@ wcCountry OBJECT-TYPE
                         China(156), 
                         Taiwan(158), 
                         Colombia(170),
-                        Costa Rica(188), 
+                        CostaRica(188), 
                         Croatia(191), 
                         Cyprus(196), 
-                        Czech Republic(203), 
+                        CzechRepublic(203), 
                         Denmark(208), 
-                        Dominican Republic(214), 
+                        DominicanRepublic(214), 
                         Ecuador(218), 
-                        El Salvador(222), 
+                        ElSalvador(222), 
                         Estonia(233), 
                         Europe(234), 
                         Finland(246), 
@@ -115,8 +115,8 @@ wcCountry OBJECT-TYPE
                         Japan(392), 
                         Kazakhstan(398), 
                         Jordan(400), 
-                        North Korea(408), 
-                        Korea Republic(410), 
+                        NorthKorea(408), 
+                        KoreaRepublic(410), 
                         Kuwait(414),
                         Lebanon(422), 
                         Latvia(428), 
@@ -131,7 +131,7 @@ wcCountry OBJECT-TYPE
                         Marocco(504), 
                         Oman(512), 
                         Netherlands(528), 
-                        New Zealand(554), 
+                        NewZealand(554), 
                         Norway(578), 
                         Pakistan(586), 
                         Panama(591), 
@@ -139,31 +139,31 @@ wcCountry OBJECT-TYPE
                         Philippines(608), 
                         Poland(616), 
                         Portugal(620), 
-                        Puerto Rico(630), 
+                        PuertoRico(630), 
                         Qatar(634), 
                         Romania(642), 
                         Russia(643), 
-                        Saudi Arabia(682), 
+                        SaudiArabia(682), 
                         Singapore(702), 
-                        Slovak Republic(703), 
+                        SlovakRepublic(703), 
                         Vietnam(704), 
                         Slovenia(705), 
-                        South Africa(710), 
+                        SouthAfrica(710), 
                         Zimbabwe(716), 
                         Spain(724), 
                         Sweden(752), 
                         Switzerland(756), 
                         Syria(760), 
                         Thailand(764), 
-                        Trinidad and Tobago(780), 
-                        United Arab Emirates(784), 
+                        TrinidadAndTobago(780), 
+                        UnitedArabEmirates(784), 
                         Tunisia(788), 
                         Turkey(792), 
                         Ukraine(804), 
                         Macedonia(807), 
                         Egypt(818), 
-                        United Kingdom(826), 
-                        United States(840), 
+                        UnitedKingdom(826), 
+                        UnitedStates(840), 
                         Uruguay(858), 
                         Uzbekistan(860), 
                         Venezuela(862), 
@@ -696,7 +696,7 @@ wcAccessPointDetailsLoadBalanceSignalQuality  OBJECT-TYPE
     STATUS      current
     DESCRIPTION
         "Signal quality for load balancing." 
-    ::= { wcAccessPointDetailsEntry 12 }     ,
+    ::= { wcAccessPointDetailsEntry 12 }
 
 wcClientDetailsTable OBJECT-TYPE
     SYNTAX      SEQUENCE OF WcClientDetailsEntry
@@ -1050,10 +1050,10 @@ wcProfilesAuthentication   OBJECT-TYPE
                      Legacy8021x(3),
                      WPAWithRadius(5),
                      WPA2WithRadius(7),
-                     WPA&WPA2WithRadius(9),
+                     WPA-WPA2WithRadius(9),
                      WPAPSK(6),
                      WPA2PSK(8),
-                     WPAPSK&WPA2PSK(10)
+                     WPAPSK-WPA2PSK(10)
                 }
     MAX-ACCESS  read-write
     STATUS      current
@@ -1067,7 +1067,7 @@ wcProfilesEncryption   OBJECT-TYPE
                     128BitWEP(2),
                     152BitWEP(3),
                     TKIP(4),
-                    TKIP+AES(5),
+                    TKIP-AES(5),
                     AES(7)
     }
     MAX-ACCESS  read-write

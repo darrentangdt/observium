@@ -11,11 +11,9 @@
  *
  */
 
-$mib = 'Baytech-MIB-403-1';
-echo(" $mib ");
 $modulecurrentmax = 160;
 
-$oids  = snmpwalk_cache_multi_oid($device, "sBTAModulesRPCEntry", array(), $mib);
+$oids  = snmpwalk_cache_multi_oid($device, "sBTAModulesRPCEntry", array(), 'Baytech-MIB-403-1');
 $count = count($oids);
 $scale = 0.1;
 
@@ -70,7 +68,7 @@ foreach ($oids as $index => $entry)
   }
 }
 
-$oids  = snmpwalk_cache_multi_oid($device, "sBTAModulesRPCBreakersEntry", array(), $mib);
+$oids  = snmpwalk_cache_multi_oid($device, "sBTAModulesRPCBreakersEntry", array(), 'Baytech-MIB-403-1');
 $count = count($oids);
 $scale = 0.1;
 

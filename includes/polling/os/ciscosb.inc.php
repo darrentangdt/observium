@@ -28,15 +28,13 @@
 // CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamRegistrationDone.1 = INTEGER: false(2)
 // CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamRegistrationSuppressed.1 = INTEGER: false(2)
 
-$oids = "rlPhdUnitGenParamModelName.1 rlPhdUnitGenParamServiceTag.1 rlPhdUnitGenParamSoftwareVersion.1 rlPhdUnitGenParamSerialNum.1 rlPhdUnitGenParamAssetTag.1";
-
-$data = snmp_get_multi($device, $oids, "-OQUs", "CISCOSB-Physicaldescription-MIB", mib_dirs(array('ciscosb')));
+$data = snmp_get_multi($device, 'rlPhdUnitGenParamModelName.1 rlPhdUnitGenParamServiceTag.1 rlPhdUnitGenParamSoftwareVersion.1 rlPhdUnitGenParamSerialNum.1 rlPhdUnitGenParamAssetTag.1', '-OQUs', 'CISCOSB-Physicaldescription-MIB');
 $data = $data[1];
 
-$hardware = $data['rlPhdUnitGenParamModelName'];
-$features = $data['rlPhdUnitGenParamServiceTag'];
-$version  = $data['rlPhdUnitGenParamSoftwareVersion'];
-$serial   = $data['rlPhdUnitGenParamSerialNum'];
+$hardware  = $data['rlPhdUnitGenParamModelName'];
+$features  = $data['rlPhdUnitGenParamServiceTag'];
+$version   = $data['rlPhdUnitGenParamSoftwareVersion'];
+$serial    = $data['rlPhdUnitGenParamSerialNum'];
 $asset_tag = $data['rlPhdUnitGenParamAssetTag'];
 
 // EOF

@@ -27,7 +27,12 @@ print_message("%g".OBSERVIUM_PRODUCT." ".OBSERVIUM_VERSION."\n%WRemove Device%n\
 if ($argv[1])
 {
   $host = strtolower($argv[1]);
-  $id = get_device_id_by_hostname($host);
+  if (is_numeric($host))
+  {
+    $id = $host;
+  } else {
+    $id = get_device_id_by_hostname($host);
+  }
   $delete_rrd = (isset($argv[2]) && strtolower($argv[2]) == 'rrd') ? TRUE : FALSE;
 
   // Test if a valid id was fetched from get_device_id_by_hostname()

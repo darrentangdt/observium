@@ -304,7 +304,7 @@ function generate_pseudowire_row($pw, $vars)
   $graph_array['legend'] = "no";
   $graph_array['width'] = 80;
   $graph_array['height'] = 20;
-  $graph_array['bg'] = 'ffffff00'; # the 00 at the end makes the area transparent.
+  $graph_array['bg'] = 'ffffff00';
   $graph_array['from'] = $config['time']['day'];
 
   if ($pw['event'] && $pw['pwOperStatus'])

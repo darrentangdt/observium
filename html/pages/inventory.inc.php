@@ -16,10 +16,11 @@
 <div class="col-md-12">
 
 <?php
-unset($search, $devices_array, $parts);
 
 $where = ' WHERE 1 ';
 $where .= generate_query_permitted(array('device'), array('device_table' => 'E'));
+
+$form_items = array();
 
 // Select devices only with Inventory parts
 foreach (dbFetchRows('SELECT E.`device_id` AS `device_id`, `hostname`, `entPhysicalModelName`
@@ -27,11 +28,10 @@ foreach (dbFetchRows('SELECT E.`device_id` AS `device_id`, `hostname`, `entPhysi
                      INNER JOIN `devices` AS D ON D.`device_id` = E.`device_id`' . $where .
                     'GROUP BY `device_id`, `entPhysicalModelName`;') as $data)
 {
-  $device_id = $data['device_id'];
-  $devices_array[$device_id] = $data['hostname'];
+  $form_devices[] = $data['device_id'];
   if ($data['entPhysicalModelName'] != '')
   {
-    $parts[$data['entPhysicalModelName']] = $data['entPhysicalModelName'];
+    $form_items['parts'][$data['entPhysicalModelName']] = $data['entPhysicalModelName'];
   }
 }
 
@@ -41,7 +41,6 @@ foreach (dbFetchRows('SELECT E.`device_id` AS `device_id`, `hostname`, `entPhysi
   $where .= implode('', $where_array);
 
   // Generate array with form elements
-  $search_items = array();
   //foreach (array('os', 'hardware', 'version', 'features', 'type') as $entry)
   foreach (array('os') as $entry)
   {
@@ -64,56 +63,75 @@ foreach (dbFetchRows('SELECT E.`device_id` AS `device_id`, `hostname`, `entPhysi
       } else {
         $name = nicecase($item);
       }
-      $search_items[$entry][$item] = $name;
+      $form_items[$entry][$item] = $name;
     }
   }
 
+$form = array('type'  => 'rows',
+              'space' => '5px',
+              'submit_by_key' => TRUE,
+              'url'   => generate_url($vars));
+
 //Device field
-natcasesort($devices_array);
-$search[] = array('type'    => 'multiselect',
-                  'width'   => '160px',
-                  'name'    => 'Devices',
-                  'id'      => 'device_id',
-                  'value'   => $vars['device_id'],
-                  'values'  => $devices_array);
+$form_items['devices'] = generate_form_values('device', $form_devices);
+$form['row'][0]['device_id'] = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'Device',
+                                'width'       => '100%',
+                                'value'       => $vars['device_id'],
+                                'groups'      => array('', 'UP', 'DOWN', 'DISABLED'), // This is optgroup order for values (if required)
+                                'values'      => $form_items['devices']);
 
 // Device OS field
-$search[] = array('type'    => 'multiselect',
-                  'name'    => 'Select OS',
-                  'width'   => '180px',
-                  'id'      => 'os',
-                  'value'   => $vars['os'],
-                  'values'  => $search_items['os']);
+$form['row'][0]['os']       = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'Select OS',
+                                'width'       => '100%', //'180px',
+                                'value'       => $vars['os'],
+                                'values'      => $form_items['os']);
 
-//Parts field
-ksort($parts);
-$search[] = array('type'    => 'multiselect',
-                  'width'   => '160px',
-                  'name'    => 'Part Numbers',
-                  'id'      => 'parts',
-                  'value'   => $vars['parts'],
-                  'values'  => $parts);
+// Parts field
+ksort($form_items['parts']);
+$form['row'][0]['parts']       = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'Part Numbers',
+                                'width'       => '100%', //'180px',
+                                'value'       => $vars['parts'],
+                                'values'      => $form_items['parts']);
+
 //Serial field
-$search[] = array('type'    => 'text',
-                  'width'   => '160px',
-                  'name'    => 'Serial',
-                  'id'      => 'serial',
-                  'value'   => $vars['serial']);
-//Description field
-$search[] = array('type'    => 'text',
-                  'width'   => '160px',
-                  'name'    => 'Desc',
-                  'id'      => 'description',
-                  'value'   => $vars['description']);
+$form['row'][0]['serial']  = array(
+                                'type'        => 'text',
+                                'name'        => 'Serial',
+                                'width'       => '100%',
+                                'placeholder' => TRUE,
+                                'submit_by_key' => TRUE,
+                                'value'       => escape_html($vars['serial']));
 
-print_search($search, 'Inventory', 'search', 'inventory/');
+//Description field
+$form['row'][0]['description']  = array(
+                                'type'        => 'text',
+                                'name'        => 'Description',
+                                'grid'        => 3,
+                                'width'       => '100%',
+                                'placeholder' => TRUE,
+                                'submit_by_key' => TRUE,
+                                'value'       => escape_html($vars['description']));
+// search button
+$form['row'][0]['search']   = array(
+                                'type'        => 'submit',
+                                'grid'        => 1,
+                                'right'       => TRUE);
+
+print_form($form);
+unset($form, $form_items, $form_devices);
 
 // Pagination
 $vars['pagination'] = TRUE;
 
 print_inventory($vars);
 
-$page_title[] = 'Inventory';
+register_html_title('Inventory');
 
 ?>
 

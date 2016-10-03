@@ -11,15 +11,10 @@
  *
  */
 
-?>
-
-  <div class="box box-solid">
-    <div class="box-header ">
-      <i class="oicon-arrow-switch"></i><h3 class="box-title">c6500/7600 Crossbar</h3>
-    </div>
-    <div class="box-body no-padding">
-
-<?php
+$box_args = array('title' => 'c6500/7600 Crossbar', 
+                  'icon' => 'oicon-arrow-switch',
+                  ); 
+echo generate_box_open($box_args);
 
 echo('<table class="table table-condensed table-striped">');
 
@@ -89,7 +84,7 @@ foreach ($entity_state['group']['c6kxbar'] as $index => $entry)
 
       $overlib_content = generate_overlib_content($graph_array, $device['hostname'] . " - " . $text_descr);
 
-      $graph_array['width'] = 80; $graph_array['height'] = 20; $graph_array['bg'] = 'ffffff00'; # the 00 at the end makes the area transparent.
+      $graph_array['width'] = 80; $graph_array['height'] = 20; $graph_array['bg'] = 'ffffff00';
       $graph_array['style'][] = 'margin-top: -6px';
 
       $minigraph =  generate_graph_tag($graph_array);
@@ -108,6 +103,6 @@ foreach ($entity_state['group']['c6kxbar'] as $index => $entry)
 }
 
 echo("</table>");
-echo("</div></div>");
+echo generate_box_close();
 
 // EOF

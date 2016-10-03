@@ -16,12 +16,10 @@
 # OADWDM-MIB::oaLdCardType.1 = INTEGER: em2009gm2(35)
 # OADWDM-MIB::oaLdCardType.2 = INTEGER: empty(2)
 
-echo(" OADWDM-MIB ");
-
-$oids = snmpwalk_cache_oid($device, "oaLdCardTemp",       array(), "OADWDM-MIB", mib_dirs('mrv'));
-$oids = snmpwalk_cache_oid($device, "oaLdCardType",         $oids, "OADWDM-MIB", mib_dirs('mrv'));
-$oids = snmpwalk_cache_oid($device, "oaLdDevPSOperStatus",  $oids, "OADWDM-MIB", mib_dirs('mrv'));
-$oids = snmpwalk_cache_oid($device, "oaLdDevFANOperStatus", $oids, "OADWDM-MIB", mib_dirs('mrv'));
+$oids = snmpwalk_cache_oid($device, 'oaLdCardTemp',       array(), 'OADWDM-MIB');
+$oids = snmpwalk_cache_oid($device, 'oaLdCardType',         $oids, 'OADWDM-MIB');
+$oids = snmpwalk_cache_oid($device, 'oaLdDevPSOperStatus',  $oids, 'OADWDM-MIB');
+$oids = snmpwalk_cache_oid($device, 'oaLdDevFANOperStatus', $oids, 'OADWDM-MIB');
 
 if (OBS_DEBUG > 1) { print_vars($oids); }
 

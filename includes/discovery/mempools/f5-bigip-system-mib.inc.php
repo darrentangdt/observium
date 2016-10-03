@@ -11,11 +11,8 @@
  *
  */
 
-$mib = 'F5-BIGIP-SYSTEM-MIB';
-echo("$mib ");
-
-$tmm_memory = snmpwalk_cache_multi_oid($device, "sysTmmStatMemoryUsed", NULL, $mib, mib_dirs('f5'));
-$tmm_memory = snmpwalk_cache_multi_oid($device, "sysTmmStatMemoryTotal", $tmm_memory, $mib, mib_dirs('f5'));
+$tmm_memory = snmpwalk_cache_multi_oid($device, 'sysTmmStatMemoryUsed', array(), $mib);
+$tmm_memory = snmpwalk_cache_multi_oid($device, 'sysTmmStatMemoryTotal', $tmm_memory, $mib);
 
 foreach ($tmm_memory as $index => $entry)
 {
@@ -24,7 +21,7 @@ foreach ($tmm_memory as $index => $entry)
 
   $used  = $entry['sysTmmStatMemoryUsed'];
   $descr = "TMM $index Memory";
-  discover_mempool($valid['mempool'], $device, $index, $mib, $descr, 1, $total, $used);
+  discover_mempool($valid['mempool'], $device, $index, 'F5-BIGIP-SYSTEM-MIB', $descr, 1, $total, $used);
 }
 
 unset ($mempool_array, $index, $total, $used);

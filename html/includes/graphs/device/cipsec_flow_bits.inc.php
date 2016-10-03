@@ -16,6 +16,6 @@ $rrd_filename = get_rrd_path($device, "cipsec_flow.rrd");
 $ds_in = "InOctets";
 $ds_out = "OutOctets";
 
-include("includes/graphs/generic_data.inc.php");
+include($config['html_dir']."/includes/graphs/generic_data.inc.php");
 
 ?>

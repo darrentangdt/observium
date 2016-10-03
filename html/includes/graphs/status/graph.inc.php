@@ -20,6 +20,6 @@ $rrd_options .= " COMMENT:'                         Last     Max\\n'";
 $rrd_options .= " DEF:status=$rrd_filename:status:AVERAGE";
 $rrd_options .= " LINE1.5:status#cc0000:'" . rrdtool_escape($status['status_descr'],20)."'";
 $rrd_options .= " GPRINT:status:LAST:%3.0lf";
-$rrd_options .= " GPRINT:status:MAX:%3.0lf\\\\l";
+$rrd_options .= " GPRINT:status:MAX:%3.0lf\\l";
 
 // EOF

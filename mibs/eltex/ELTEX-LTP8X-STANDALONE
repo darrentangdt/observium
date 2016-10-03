@@ -1,0 +1,550 @@
+--
+-- Eltex Enterprise Specific MIB: ltp8x standalone MIB
+--
+-- Copyright (c) 2009, Eltex Co
+-- All rights reserved.
+--
+-- The contents of this document are subject to change without notice.
+--
+
+ELTEX-LTP8X-STANDALONE DEFINITIONS ::= BEGIN
+
+IMPORTS
+	DisplayString,
+	TimeInterval,
+	TimeStamp,
+	MacAddress,
+	TruthValue,
+	RowStatus,
+	TEXTUAL-CONVENTION
+		FROM SNMPv2-TC
+	ltp8x
+		FROM ELTEX-LTP8X
+	MODULE-IDENTITY,
+	OBJECT-TYPE,
+	Integer32,
+	IpAddress,
+	Unsigned32,
+	Counter64
+		FROM SNMPv2-SMI
+	OBJECT-GROUP
+		FROM SNMPv2-CONF;
+		
+ltp8xStandalone MODULE-IDENTITY
+	LAST-UPDATED "201007210000Z"
+	ORGANIZATION "Eltex Co"
+	CONTACT-INFO
+		"eltex@gcom.ru"
+	DESCRIPTION
+		"LTP8X-INSIDE MIB"
+	REVISION "201007210000Z"
+	DESCRIPTION
+		"First revision"
+	::= { ltp8x 1 }
+	
+ltp8xSystem OBJECT IDENTIFIER 	::= { ltp8xStandalone 1 }
+
+	ltp8xHostName OBJECT-TYPE
+		SYNTAX			DisplayString
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION
+				" "
+		::= { ltp8xSystem 1 }
+		
+	ltp8xIPAddress OBJECT-TYPE
+		SYNTAX			IpAddress
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION
+				" "
+		::= { ltp8xSystem 2 }
+		
+	ltp8xNetMask OBJECT-TYPE
+		SYNTAX			IpAddress
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION
+				" "
+		::= { ltp8xSystem 3 }
+		
+	ltp8xGateway OBJECT-TYPE
+		SYNTAX			IpAddress
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION
+				" "
+		::= { ltp8xSystem 4 }
+		
+	ltp8xVLAN OBJECT-TYPE
+		SYNTAX			Unsigned32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION
+				" "
+		::= { ltp8xSystem 5 }
+		
+	ltp8xFirmwareRevision OBJECT-TYPE
+		SYNTAX			DisplayString
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION
+				" "
+		::= { ltp8xSystem 6 }
+		
+	ltp8xSystemUptime OBJECT-TYPE
+		SYNTAX			Unsigned32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION
+				"Uptime value in seconds"
+		::= { ltp8xSystem 7 }
+		
+	ltp8xSystemHardwareRevision OBJECT-TYPE
+		SYNTAX			DisplayString
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION
+				""
+		::= { ltp8xSystem 8 }
+		
+	ltp8xSystemMacAddress OBJECT-TYPE
+		SYNTAX			DisplayString
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION
+				""
+		::= { ltp8xSystem 9 }
+		
+	ltp8xServicesControlTable OBJECT-TYPE
+			SYNTAX                SEQUENCE OF Ltp8xServicesControlEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					" "
+			::= { ltp8xStandalone 2 }
+		
+		ltp8xServicesControlEntry OBJECT-TYPE
+			SYNTAX                Ltp8xServicesControlEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					""
+			INDEX         { ltp8xServicesControlIndex }
+			::= { ltp8xServicesControlTable 1 }
+		
+		Ltp8xServicesControlEntry ::= SEQUENCE {
+				ltp8xServicesControlIndex			Unsigned32,
+				ltp8xServicesControlName			DisplayString,
+				ltp8xServicesControlEnabled 		TruthValue
+		}
+					
+					ltp8xServicesControlIndex OBJECT-TYPE
+						SYNTAX  Unsigned32
+						MAX-ACCESS not-accessible
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xServicesControlEntry 1 }
+						
+					ltp8xServicesControlName OBJECT-TYPE
+						SYNTAX  DisplayString
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xServicesControlEntry 2 }
+						
+					ltp8xServicesControlEnabled OBJECT-TYPE
+						SYNTAX  TruthValue
+						MAX-ACCESS read-write
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xServicesControlEntry 3 }
+		
+ltp8xBoardStatus OBJECT IDENTIFIER 	::= { ltp8xStandalone 10 }
+
+	ltp8xDiskFreeSpace OBJECT-TYPE
+		SYNTAX  Unsigned32
+		MAX-ACCESS read-only
+		STATUS  current
+		DESCRIPTION "Ammount of free disk space in kB."
+		::= { ltp8xBoardStatus 1 }
+		
+	ltp8xRAMFree OBJECT-TYPE
+		SYNTAX  Unsigned32
+		MAX-ACCESS read-only
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xBoardStatus 2 }
+		
+	ltp8xCPULoadAverage1Minute OBJECT-TYPE
+		SYNTAX  Unsigned32
+		MAX-ACCESS read-only
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xBoardStatus 3 }
+		
+	ltp8xCPULoadAverage5Minutes OBJECT-TYPE
+		SYNTAX  Unsigned32
+		MAX-ACCESS read-only
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xBoardStatus 4 }
+		
+	ltp8xCPULoadAverage15Minutes OBJECT-TYPE
+		SYNTAX  Unsigned32
+		MAX-ACCESS read-only
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xBoardStatus 5 }
+		
+	ltp8xFan0Active OBJECT-TYPE
+		SYNTAX  TruthValue
+		MAX-ACCESS read-only
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xBoardStatus 6 }
+		
+	ltp8xFan0RPM OBJECT-TYPE
+		SYNTAX  Unsigned32
+		MAX-ACCESS read-only
+		STATUS current
+		DESCRIPTION "Rotations per minute"
+		::= { ltp8xBoardStatus 7 }
+		
+	ltp8xFan1Active OBJECT-TYPE
+		SYNTAX  TruthValue
+		MAX-ACCESS read-only
+		STATUS current
+		DESCRIPTION " "
+		::= { ltp8xBoardStatus 8 }
+		
+	ltp8xFan1RPM OBJECT-TYPE
+		SYNTAX  Unsigned32
+		MAX-ACCESS read-only
+		STATUS current
+		DESCRIPTION "Rotations per minute"
+		::= { ltp8xBoardStatus 9 }
+		
+	ltp8xSensor1Temperature OBJECT-TYPE
+		SYNTAX  Unsigned32
+		MAX-ACCESS read-only
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xBoardStatus 10 }
+		
+	ltp8xSensor2Temperature OBJECT-TYPE
+		SYNTAX  Unsigned32
+		MAX-ACCESS read-only
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xBoardStatus 11 }
+		
+	ltp8xFanMinRPM OBJECT-TYPE
+		SYNTAX  Unsigned32
+		MAX-ACCESS read-only
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xBoardStatus 20 }
+		
+	ltp8xFanMaxRPM OBJECT-TYPE
+		SYNTAX  Unsigned32
+		MAX-ACCESS read-only
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xBoardStatus 21 }
+		
+	ltp8xUsers OBJECT IDENTIFIER 	::= { ltp8xStandalone 11 }
+		
+	ltp8xUsersTable OBJECT-TYPE
+			SYNTAX                SEQUENCE OF Ltp8xUsersEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					" "
+			::= { ltp8xUsers 1 }
+		
+		ltp8xUsersEntry OBJECT-TYPE
+			SYNTAX                Ltp8xUsersEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					""
+			INDEX         { ltp8xUsersName }
+			::= { ltp8xUsersTable 1 }
+		
+		Ltp8xUsersEntry ::= SEQUENCE {
+				ltp8xUsersName				DisplayString,
+				ltp8xUsersGroups			OCTET STRING,
+				ltp8xUsersOldPassword		DisplayString,
+				ltp8xUsersNewPassword		DisplayString,
+				ltp8xUsersRowStatus			RowStatus
+		}
+					
+					ltp8xUsersName OBJECT-TYPE
+						SYNTAX  DisplayString (SIZE (1..255))
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xUsersEntry 1 }
+						
+					ltp8xUsersGroups OBJECT-TYPE
+						SYNTAX  OCTET STRING (SIZE (4))
+						MAX-ACCESS read-write
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xUsersEntry 2 }
+						
+					ltp8xUsersOldPassword OBJECT-TYPE
+						SYNTAX  DisplayString
+						MAX-ACCESS read-write
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xUsersEntry 3 }
+						
+					ltp8xUsersNewPassword OBJECT-TYPE
+						SYNTAX  DisplayString
+						MAX-ACCESS read-write
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xUsersEntry 4 }
+						
+					ltp8xUsersRowStatus OBJECT-TYPE
+						SYNTAX  RowStatus
+						MAX-ACCESS read-write
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xUsersEntry 5 }
+						
+						
+		ltp8xUsersGroupsTable OBJECT-TYPE
+			SYNTAX                SEQUENCE OF Ltp8xUsersGroupsEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					" "
+			::= { ltp8xUsers 2 }
+		
+		ltp8xUsersGroupsEntry OBJECT-TYPE
+			SYNTAX                Ltp8xUsersGroupsEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					""
+			INDEX         { ltp8xUsersGroupsID }
+			::= { ltp8xUsersGroupsTable 1 }
+		
+		Ltp8xUsersGroupsEntry ::= SEQUENCE {
+				ltp8xUsersGroupsID				Unsigned32,
+				ltp8xUsersGroupsName			DisplayString
+		}
+					
+					ltp8xUsersGroupsID OBJECT-TYPE
+						SYNTAX  Unsigned32
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xUsersGroupsEntry 1 }
+					
+					ltp8xUsersGroupsName OBJECT-TYPE
+						SYNTAX  DisplayString
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xUsersGroupsEntry 2 }
+						
+ltp8xLogSubmodulesTable OBJECT-TYPE
+	SYNTAX                SEQUENCE OF Ltp8xLogSubmodulesEntry
+	MAX-ACCESS        not-accessible
+	STATUS                current
+	DESCRIPTION
+			" "
+	::= { ltp8xStandalone 12 }
+	
+	ltp8xLogSubmodulesEntry OBJECT-TYPE
+		SYNTAX                Ltp8xLogSubmodulesEntry
+		MAX-ACCESS        not-accessible
+		STATUS                current
+		DESCRIPTION
+				""
+		INDEX         { ltp8xLogSubmodulesID }
+		::= { ltp8xLogSubmodulesTable 1 }
+	
+	Ltp8xLogSubmodulesEntry ::= SEQUENCE {
+			ltp8xLogSubmodulesID				Integer32,
+			ltp8xLogSubmodulesName				DisplayString,
+			ltp8xLogSubmodulesLevel				INTEGER,
+			ltp8xLogSubmodulesDestination		INTEGER,
+			ltp8xLogSubmodulesShowProgName		TruthValue,
+			ltp8xLogSubmodulesShowSubmoduleName	TruthValue,
+			ltp8xLogSubmodulesShowLevel			TruthValue,
+			ltp8xLogSubmodulesShowTime			TruthValue
+	}
+				
+				ltp8xLogSubmodulesID OBJECT-TYPE
+					SYNTAX  Integer32 (1..255)
+					MAX-ACCESS not-accessible
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xLogSubmodulesEntry 1 }
+				
+				ltp8xLogSubmodulesName OBJECT-TYPE
+					SYNTAX  DisplayString (SIZE (1..255))
+					MAX-ACCESS read-only
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xLogSubmodulesEntry 2 }
+					
+				ltp8xLogSubmodulesLevel OBJECT-TYPE
+					SYNTAX  INTEGER {
+						emergency(0),
+						alert(1),
+						critical(2),
+						error(3),
+						warning(4),
+						notice(5),
+						info(6),
+						debug(7),
+						none(8) }
+					MAX-ACCESS read-write
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xLogSubmodulesEntry 3 }
+					
+				ltp8xLogSubmodulesDestination OBJECT-TYPE
+					SYNTAX  INTEGER {
+						syslog(0),
+						console(1),
+						telnet(2) }
+					MAX-ACCESS read-write
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xLogSubmodulesEntry 4 }
+					
+				ltp8xLogSubmodulesShowProgName OBJECT-TYPE
+					SYNTAX  TruthValue
+					MAX-ACCESS read-write
+					STATUS  current
+					DESCRIPTION "Controls if process name will appear in log."
+					::= { ltp8xLogSubmodulesEntry 5 }
+					
+				ltp8xLogSubmodulesShowSubmoduleName OBJECT-TYPE
+					SYNTAX  TruthValue
+					MAX-ACCESS read-write
+					STATUS  current
+					DESCRIPTION "Controls if submodule name will appear in log."
+					::= { ltp8xLogSubmodulesEntry 6 }
+					
+				ltp8xLogSubmodulesShowLevel OBJECT-TYPE
+					SYNTAX  TruthValue
+					MAX-ACCESS read-write
+					STATUS  current
+					DESCRIPTION "Controls if log message level will appear in log."
+					::= { ltp8xLogSubmodulesEntry 7 }
+					
+				ltp8xLogSubmodulesShowTime OBJECT-TYPE
+					SYNTAX  TruthValue
+					MAX-ACCESS read-write
+					STATUS  current
+					DESCRIPTION "Controls if log message time will appear in log."
+					::= { ltp8xLogSubmodulesEntry 8 }
+					
+ltp8xActivationAuthModeTable OBJECT-TYPE
+	SYNTAX                SEQUENCE OF Ltp8xActivationAuthModeEntry
+	MAX-ACCESS        not-accessible
+	STATUS                current
+	DESCRIPTION
+			" "
+	::= { ltp8xStandalone 13 }
+	
+	ltp8xActivationAuthModeEntry OBJECT-TYPE
+		SYNTAX                Ltp8xActivationAuthModeEntry
+		MAX-ACCESS        not-accessible
+		STATUS                current
+		DESCRIPTION
+				""
+		INDEX         { ltp8xActivationAuthModeChannel }
+		::= { ltp8xActivationAuthModeTable 1 }
+	
+	Ltp8xActivationAuthModeEntry ::= SEQUENCE {
+			ltp8xActivationAuthModeChannel			Unsigned32,
+			ltp8xActivationAuthModeHostControlledLumpedSN	TruthValue
+	}
+				
+				ltp8xActivationAuthModeChannel OBJECT-TYPE
+					SYNTAX  Unsigned32
+					MAX-ACCESS not-accessible
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xActivationAuthModeEntry 1 }
+				
+				ltp8xActivationAuthModeHostControlledLumpedSN OBJECT-TYPE
+					SYNTAX  TruthValue
+					MAX-ACCESS read-write
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xActivationAuthModeEntry 2 }
+		
+ltp8xLogSize OBJECT-TYPE
+		SYNTAX  Unsigned32
+		MAX-ACCESS read-write
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xStandalone 20 }
+		
+ltp8xExternalFirmwareIP OBJECT-TYPE
+		SYNTAX  IpAddress
+		MAX-ACCESS read-write
+		STATUS  current
+		DESCRIPTION "Address of server that contains ONT firmwares."
+		::= { ltp8xStandalone 21 }
+		
+ltp8xExternalFirmwarePort OBJECT-TYPE
+		SYNTAX  Unsigned32
+		MAX-ACCESS read-write
+		STATUS  current
+		DESCRIPTION "Port of server that contains ONT firmwares."
+		::= { ltp8xStandalone 22 }
+		
+ltp8xNTPDaylightSaving OBJECT-TYPE
+		SYNTAX  TruthValue
+		MAX-ACCESS read-write
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xStandalone 25 }
+		
+ltp8xONTFwAutoUpdateEnabled OBJECT-TYPE
+		SYNTAX  TruthValue
+		MAX-ACCESS read-write
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xStandalone 26 }
+		
+ltp8xConfigChangeCounter OBJECT-TYPE
+		SYNTAX  Unsigned32
+		MAX-ACCESS read-only
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xStandalone 40 }
+		
+ltp8xRereadConfig OBJECT-TYPE
+		SYNTAX  Unsigned32
+		MAX-ACCESS read-write
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xStandalone 49 }
+		
+ltp8xSaveConfig OBJECT-TYPE
+		SYNTAX  Unsigned32
+		MAX-ACCESS read-write
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xStandalone 50 }
+		
+ltp8xRebootTimeout OBJECT-TYPE
+		SYNTAX  Unsigned32
+		MAX-ACCESS read-write
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xStandalone 51 }
+		
+END

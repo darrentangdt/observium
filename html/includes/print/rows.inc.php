@@ -20,14 +20,14 @@ function generate_box_open($args = array())
   $return = '<div ';
   if (isset($args['id'])) {  $return .= 'id="' . $args['id'] . '" '; }
 
-  $return .= 'class="' . OBS_CLASS_BOX . '" '.($args['box-style'] ? 'style="'.$args['box-style'].'"' : ''). '>' . PHP_EOL;
+  $return .= 'class="' . OBS_CLASS_BOX . ($args['box-class'] ? ' '.$args['box-class'] : '') . '" '.($args['box-style'] ? 'style="'.$args['box-style'].'"' : ''). '>' . PHP_EOL;
 
   if (isset($args['title']))
   {
     $return .= '  <div class="box-header' . ($args['header-border'] ? ' with-border' : '') . '">'.PHP_EOL;
     if(isset($args['url'])) {  $return .= '<a href="'.$args['url'].'">'; }
-    if(isset($args['icon'])) {  $return .= '<i class="'.$args['icon'].'"></i> '; }
-    $return .= '    <h3 class="box-title">';
+    if(isset($args['icon'])) {  $return .= '<i class="'.$args['icon'].'"></i>'; }
+    $return .= '<h3 class="box-title">';
     $return .= $args['title'].'</h3>'.PHP_EOL;
     if(isset($args['url'])) {  $return .= '</a>'; }
 
@@ -47,7 +47,7 @@ function generate_box_open($args = array())
         {
           $return .= ' href="'.$control['url'].'"';
         } else {
-          $return .= ' onclick="return false;"';
+          //$return .= ' onclick="return false;"';
         }
 
         $return .= ' class="btn btn-box-tool';
@@ -76,7 +76,7 @@ function generate_box_open($args = array())
   $return .= '  <div class="box-body'.($args['padding'] ? '' : ' no-padding').'"';
   if (isset($args['body-style']))
   {
-    $return .= 'style="'.$args['body-style'].'"';
+    $return .= ' style="'.$args['body-style'].'"';
   }
   $return .= '>'.PHP_EOL;
   return $return;
@@ -89,7 +89,7 @@ function generate_box_close($args = array())
 
   if(isset($args['footer_content']))
   {
-    $return .= '  <div class="box-footer no-padding';
+    $return .= '  <div class="box-footer';
     if(isset($args['footer_nopadding'])) { $return .= ' no-padding'; }
     $return .= '">';
     $return .= $args['footer_content'];
@@ -99,7 +99,6 @@ function generate_box_close($args = array())
   $return .= '</div>' . PHP_EOL;
   return $return;
 }
-
 
 // DOCME needs phpdoc block
 function print_graph_row_port($graph_array, $port)
@@ -112,6 +111,97 @@ function print_graph_row_port($graph_array, $port)
 
   print_graph_row($graph_array);
 }
+
+function generate_graph_summary_row($graph_summary_array, $state_marker = FALSE)
+{
+
+  global $config;
+
+  $graph_array = $graph_summary_array;
+
+  unset($graph_array['types']);
+
+  if ($_SESSION['widescreen'])
+  {
+    if ($_SESSION['big_graphs'])
+    {
+      if (!$graph_array['height']) { $graph_array['height'] = "110"; }
+      if (!$graph_array['width']) { $graph_array['width']  = "372"; }
+      $limit = 4;
+    } else {
+      if (!$graph_array['height']) { $graph_array['height'] = "110"; }
+      if (!$graph_array['width']) { $graph_array['width']  = "287"; }
+      $limit = 5;
+    }
+  } else {
+    if ($_SESSION['big_graphs'])
+    {
+      if (!$graph_array['height']) { $graph_array['height'] = "100"; }
+      if (!$graph_array['width']) { $graph_array['width']  = "323"; }
+      $limit = 3;
+    } else {
+      if (!$graph_array['height']) { $graph_array['height'] = "100"; }
+      if (!$graph_array['width']) { $graph_array['width']  = "228"; }
+      $limit = 4;
+    }
+  }
+
+  if(!isset($graph_summary_array['period'])) { $graph_summary_array['period'] = "day"; }
+  if($state_marker) { $graph_array['width'] -= 2; }
+  $graph_array['to']     = $config['time']['now'];
+  $graph_array['from']   = $config['time'][$graph_summary_array['period']];
+
+  $graph_rows = array();
+  foreach ($graph_summary_array['types'] as $graph_type)
+  {
+
+// FIX THIS LATER :DDDD
+//    $hide_lg = $period[0] === '!';
+//    if ($hide_lg)
+//    {
+//      $period = substr($period, 1);
+//    }
+
+
+    $graph_array['type']        = $graph_type;
+
+    preg_match('/^(?P<type>[a-z0-9A-Z-]+)_(?P<subtype>[a-z0-9A-Z-_]+)/', $graph_type, $type_parts);
+    if (isset($config['graph_types'][$type_parts['type']][$type_parts['subtype']]['descr']))
+    {
+      $descr = $config['graph_types'][$type_parts['type']][$type_parts['subtype']]['descr'];
+    } else {
+      $descr = nicecase($graph_type);
+    }
+
+    $graph_array_zoom           = $graph_array;
+    $graph_array_zoom['height'] = "175";
+    $graph_array_zoom['width']  = "600";
+    unset($graph_array_zoom['legend']);
+
+    $link_array = $graph_array;
+    $link_array['page'] = "graphs";
+    unset($link_array['height'], $link_array['width']);
+    $link = generate_url($link_array);
+
+    $popup_contents  = '<h3>'.$descr.'</h3>';
+    $popup_contents .= generate_graph_tag($graph_array_zoom);
+
+    $graph_link = overlib_link($link, generate_graph_tag($graph_array), $popup_contents,  NULL);
+
+//    if ($hide_lg)
+//    {
+      // Hide this graph on lg/xl screen since it not fit to single row (on xs always visible, since here multirow)
+//      $graph_link = '<div class="visible-xs-inline visible-lg-inline visible-xl-inline">' . $graph_link . '</div>';
+//    }
+    if(count($graph_rows) < $limit) {
+      $graph_rows[] = $graph_link;
+    }
+
+  }
+
+  return implode(PHP_EOL, $graph_rows);
+}
+
 
 // DOCME needs phpdoc block
 function generate_graph_row($graph_array, $state_marker = FALSE)
@@ -135,11 +225,11 @@ function generate_graph_row($graph_array, $state_marker = FALSE)
     {
       if (!$graph_array['height']) { $graph_array['height'] = "100"; }
       if (!$graph_array['width']) { $graph_array['width']  = "323"; }
-      $periods = array('day', 'week', 'month');
+      $periods = array('day', 'week', '!month');
     } else {
       if (!$graph_array['height']) { $graph_array['height'] = "100"; }
       if (!$graph_array['width']) { $graph_array['width']  = "228"; }
-      $periods = array('day', 'week', 'month', 'year');
+      $periods = array('day', 'week', 'month', '!year');
     }
   }
 
@@ -153,6 +243,11 @@ function generate_graph_row($graph_array, $state_marker = FALSE)
   $graph_rows = array();
   foreach ($periods as $period)
   {
+    $hide_lg = $period[0] === '!';
+    if ($hide_lg)
+    {
+      $period = substr($period, 1);
+    }
     $graph_array['from']        = $config['time'][$period];
     $graph_array_zoom           = $graph_array;
     $graph_array_zoom['height'] = "175";
@@ -163,7 +258,13 @@ function generate_graph_row($graph_array, $state_marker = FALSE)
     unset($link_array['height'], $link_array['width']);
     $link = generate_url($link_array);
 
-    $graph_rows[] = overlib_link($link, generate_graph_tag($graph_array), generate_graph_tag($graph_array_zoom),  NULL);
+    $graph_link = overlib_link($link, generate_graph_tag($graph_array), generate_graph_tag($graph_array_zoom),  NULL);
+    if ($hide_lg)
+    {
+      // Hide this graph on lg/xl screen since it not fit to single row (on xs always visible, since here multirow)
+      $graph_link = '<div class="visible-xs-inline visible-lg-inline visible-xl-inline">' . $graph_link . '</div>';
+    }
+    $graph_rows[] = $graph_link;
   }
 
   return implode(PHP_EOL, $graph_rows);
@@ -174,48 +275,10 @@ function print_graph_row($graph_array, $state_marker = FALSE)
   echo(generate_graph_row($graph_array, $state_marker));
 }
 
-// DOCME needs phpdoc block
-function print_vm_row($vm, $device = NULL)
+function print_graph_summary_row($graph_array, $state_marker = FALSE)
 {
-  echo('<tr>');
-
-  echo('  <td>');
-  // If we know this device by its vm name in our system, create a link to it, else just print the name.
-  if (get_device_id_by_hostname($vm['vm_name']))
-  {
-    echo(generate_device_link(device_by_name($vm['vm_name'])));
-  } else {
-    echo $vm['vm_name'];
-  }
-  echo('  </td>');
-
-  echo('  <td>' . nicecase($vm['vm_state']) . '</td>');
-
-  switch ($vm['vm_guestos'])
-  {
-    case 'E: tools not installed':
-      echo('  <td class="small">Unknown (VMware Tools not installed)</td>');
-      break;
-    case 'E: tools not running':
-      echo('  <td class="small">Unknown (VMware Tools not running)</td>');
-      break;
-    case '':
-      echo('  <td class="small"><i>(Unknown)</i></td>');
-      break;
-    default:
-      if (isset($config['vmware_guestid'][$vm['vm_guestos']]))
-      {
-        echo('  <td>' . $config['vmware_guestid'][$vm['vm_guestos']] . '</td>');
-      } else {
-        echo('  <td>' . $vm['vm_guestos'] . '</td>');
-      }
-      break;
-  }
-
-  echo('  <td class="list">' . format_bi($vm['vm_memory'] * 1024 * 1024, 3, 3) . 'B</td>');
-
-  echo('  <td>' . $vm['vm_cpucount'] . ' CPU</td>');
-  echo('</tr>');
+  echo(generate_graph_summary_row($graph_array, $state_marker));
 }
+
 
 // EOF

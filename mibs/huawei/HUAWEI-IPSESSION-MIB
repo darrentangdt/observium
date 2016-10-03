@@ -1,5 +1,5 @@
 -- =================================================================
--- Copyright (C) 2009 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2004 by  HUAWEI TECHNOLOGIES. All rights reserved.
 --
 -- Description:HUAWEI-IPSESSION-MIB
 -- Reference:
@@ -142,6 +142,7 @@
                     DESCRIPTION
                         "Policy of DHCP option82.
                         "
+                    DEFVAL { replace }
                     ::= { hwIpSessIfCfgEntry 15 }  
                                        
                 hwIpSessIfCfgServicePolicy OBJECT-TYPE
@@ -201,7 +202,8 @@
                     DESCRIPTION
                     "IP session user's password type.
                     "
-                    ::= { hwIpSessUserCfgTable 11 }        
+                    DEFVAL { simple }         
+                          ::= { hwIpSessUserCfgTable 11 }        
                           
                 hwIpSessUserPassword OBJECT-TYPE
                     SYNTAX DisplayString(SIZE (0..128))
@@ -226,6 +228,7 @@
                     DESCRIPTION
                     "IP session user's name option82 include.
                     "
+                    DEFVAL { none }         
                     ::= { hwIpSessUserCfgTable 13 }                          
                           
                 hwIpSessUserNameIP OBJECT-TYPE
@@ -242,6 +245,7 @@
                     DESCRIPTION
                     "IP session user's name IP address include.
                     "
+                    DEFVAL { none }         
                     ::= { hwIpSessUserCfgTable 14 }    
 
                 hwIpSessUserNameSysName OBJECT-TYPE
@@ -258,6 +262,7 @@
                     DESCRIPTION
                     "IP session user's name system name include.
                     "
+                    DEFVAL { none }         
                     ::= { hwIpSessUserCfgTable 15 }    
                           
                 hwIpSessUserNameMac OBJECT-TYPE
@@ -274,6 +279,7 @@
                     DESCRIPTION
                     "IP session user's name MAC address include.
                     "
+                    DEFVAL { none }         
                     ::= { hwIpSessUserCfgTable 16 }                                
                     
          hwIpSessionConformance OBJECT IDENTIFIER ::= { hwIpSessionMIB 3 }

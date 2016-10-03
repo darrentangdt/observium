@@ -11,9 +11,9 @@ IMPORTS
 
 -- Dell MIB tree
 dell OBJECT IDENTIFIER ::= { enterprises 674 }
--- Dell Networking MIB tree
+-- Dell PowerConnect MIB tree
 dellLan OBJECT IDENTIFIER ::= { dell 10895 }
--- Dell standard MIB tree for all future Networking products. There
+-- Dell standard MIB tree for all future PowerConnect product. There
 -- are already some earlier objects registered under 10895 so that it
 -- is necessary to carve out this subtree under dellLan.5000 in order
 -- to prevent conflict with existing MIB objects.
@@ -24,12 +24,17 @@ dellLanCommon OBJECT IDENTIFIER ::= { dellLanStandard 1 }
 dellLanExtension OBJECT IDENTIFIER ::= { dellLanStandard 2 }
 
 powerConnectVendorMIB MODULE-IDENTITY
-        LAST-UPDATED "201304120000Z" -- 12 Apr 2013 12:00:00 GMT
-        ORGANIZATION "Dell, Inc."
-        CONTACT-INFO ""
+        LAST-UPDATED "201205071200Z"
+        ORGANIZATION "Dell Inc."
+        CONTACT-INFO
+                "support.dell.com"
         DESCRIPTION
-                "The private MIB module definition for the Dell Networking
-                 Devices.  This MIB allows Dell Networking devices to be
+                "Adding new objects - Dell PPID, Revision,
+                Express Service Code."
+        REVISION     "201205071200Z"
+        DESCRIPTION
+                "The private MIB module definition for the Dell PowerConnect
+                 Devices.  This MIB allows PowerConnect devices to be
                  integrated into Dell ITA management system."
         ::= { dellLan 3000 }
 
@@ -69,6 +74,10 @@ EnvMonState ::= TEXTUAL-CONVENTION
                         notPresent(5),
                         notFunctioning(6)
                 }
+
+
+
+
 
 
 
@@ -168,7 +177,11 @@ ProductIdentificationPerBoxEntry ::= SEQUENCE {
   productIdentificationSerialNumber         DisplayString,
   productIdentificationAssetTag             DisplayString,
   productIdentificationServiceTag           DisplayString,
-  productIdentificationBootromVersion       DisplayString
+  productIdentificationChassisServiceTag    DisplayString,
+  productIdentificationBootromVersion       DisplayString,
+  productIdentificationPiecePartID          DisplayString,
+  productIdentificationPPIDRevision         DisplayString,
+  productIdentificationExpressServiceCode   DisplayString
 }
 
 productIdentificationPerBoxIndex OBJECT-TYPE
@@ -202,6 +215,12 @@ productIdentificationServiceTag OBJECT-TYPE
        DESCRIPTION "Service tag of the product."
        ::= { productIdentificationPerUnitEntry 4 }
 
+productIdentificationChassisServiceTag OBJECT-TYPE
+       SYNTAX      DisplayString
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION "Chassis Service tag of the product."
+       ::= { productIdentificationPerUnitEntry 5 }
 
 productIdentificationBootromVersion OBJECT-TYPE
        SYNTAX      DisplayString
@@ -210,6 +229,30 @@ productIdentificationBootromVersion OBJECT-TYPE
        DESCRIPTION "The boot image version of the product."
        ::= { productIdentificationPerUnitEntry 6 }
 
+productIdentificationPiecePartID OBJECT-TYPE
+        SYNTAX        DisplayString (SIZE (0..24))
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The piece part id of the product."
+        ::= { productIdentificationPerUnitEntry 7 }
+                
+productIdentificationPPIDRevision OBJECT-TYPE
+        SYNTAX        DisplayString (SIZE (0..3))
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The PPID revision of the product."
+        ::= { productIdentificationPerUnitEntry 8 }
+                
+productIdentificationExpressServiceCode OBJECT-TYPE
+        SYNTAX        DisplayString (SIZE (0..14))
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The express cervice code of the product."
+        ::= { productIdentificationPerUnitEntry 9 }
+                
 
 productIdentificationBannerMotdAckMode OBJECT-TYPE
        SYNTAX     INTEGER {

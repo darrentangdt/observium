@@ -19,7 +19,7 @@ BD-MIB DEFINITIONS ::= BEGIN
 
 
             bd MODULE-IDENTITY
-            LAST-UPDATED "200907281830Z" -- July 28, 2009 6:30pm
+            LAST-UPDATED "201404101146Z" -- Apr 10, 2014 11:46am
             ORGANIZATION "Brocade Communications Systems, Inc.,"
             CONTACT-INFO "Customer Support Group
                         Brocade Communications Systems,
@@ -31,6 +31,9 @@ BD-MIB DEFINITIONS ::= BEGIN
                         WEB: www.brocade.com"
                         
             DESCRIPTION     "The MIB module is for Brocade's Bottleneck detection feature.Copyright (c) 1996-2003 Brocade Communications Systems, Inc. All rights reserved."
+			REVISION    "201404101146Z" -- Apr 10, 2014 11:46am
+			DESCRIPTION     "Added slotPort object in bdStatsEntry and included it
+							in bdTrap and bdClearTrap."
             ::=        { fcSwitch 51 }
             
 	BdType             ::= TEXTUAL-CONVENTION
@@ -163,7 +166,8 @@ BD-MIB DEFINITIONS ::= BEGIN
 				bdType         BdType,
 				bdStatsValue10SecsSample       DisplayString,
 				bdStatsValue60SecsSample       DisplayString,
-				bdStatsValue300SecsSample     DisplayString
+				bdStatsValue300SecsSample     DisplayString,
+				slotPort					DisplayString
 	}
 
 	userPortNumber            OBJECT-TYPE
@@ -219,6 +223,13 @@ BD-MIB DEFINITIONS ::= BEGIN
 					return -1."
 	::= { bdStatsEntry 6 }
 
+	slotPort OBJECT-TYPE
+	SYNTAX          DisplayString
+	MAX-ACCESS      accessible-for-notify
+	STATUS          current
+	DESCRIPTION     "This object represents the slot/port format of userPortNumber for bottleneck
+					monitored ports like F-port, E-port, L-port, FCOE-port."
+	::= { bdStatsEntry 7 }
 
 	bdAggrStats OBJECT-TYPE        
 	SYNTAX            DisplayString(SIZE(1..12))     
@@ -251,9 +262,11 @@ BD-MIB DEFINITIONS ::= BEGIN
 					variable binding in bdTrap and bdClearTrap."
 	::= { bdStats 5 }
 
+
 	bdTrap NOTIFICATION-TYPE
 	OBJECTS            {
 									userPortNumber,
+									slotPort,
                                     bdWinAvgTime,
                                     nBdType,
                                     bdThreshold,
@@ -261,7 +274,6 @@ BD-MIB DEFINITIONS ::= BEGIN
                                     bdAbsoluteValue,
                                     swVfId,
 								    bdAvgFrameSize
-
                         }
 	STATUS current
 	DESCRIPTION     "trap to be send for bottleneck detection."
@@ -270,6 +282,7 @@ BD-MIB DEFINITIONS ::= BEGIN
 	bdClearTrap     NOTIFICATION-TYPE
 	OBJECTS            {
                                     userPortNumber,
+									slotPort,
                                     bdWinAvgTime,
                                     nBdType,
                                     bdThreshold,

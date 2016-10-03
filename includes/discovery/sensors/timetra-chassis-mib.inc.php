@@ -12,7 +12,6 @@
  */
 
 $mib = 'TIMETRA-CHASSIS-MIB';
-echo(" $mib ");
 
 //TIMETRA-CHASSIS-MIB::tmnxChassisTotalNumber.0 = INTEGER: 1
 $chassis_count = snmp_get($device, "tmnxChassisTotalNumber.0", "-Oqv", $mib);

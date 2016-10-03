@@ -12,6 +12,7 @@
  */
 
   print_alert_log(array('device' => $device['device_id'],
+                        'no_empty_message' => TRUE,
                         'short' => TRUE, 'pagesize' => 7,
                         'header' => array('title' => 'Alert Log',
                                           'icon' => 'oicon-bell--exclamation',

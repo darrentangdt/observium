@@ -16,13 +16,10 @@
 // FIXME. Need snmpwalk for total size: F10-C-SERIES-CHASSIS-MIB::chSysProcessorMemSize
 #F10-C-SERIES-CHASSIS-MIB::chRpmMemUsageUtil.1 = 5
 
-$mib = 'F10-C-SERIES-CHASSIS-MIB';
-echo("$mib ");
-
-$mempool_array = snmpwalk_cache_oid($device, "chRpmMemUsageUtil", NULL, $mib, mib_dirs('force10'));
+$mempool_array = snmpwalk_cache_oid($device, 'chRpmMemUsageUtil', array(), $mib);
 if (is_array($mempool_array))
 {
-  $total_array = snmpwalk_cache_oid($device, "chSysProcessorMemSize", NULL, $mib, mib_dirs('force10'));
+  $total_array = snmpwalk_cache_oid($device, 'chSysProcessorMemSize', array(), $mib);
   if (OBS_DEBUG > 1 && count($total_array)) { print_vars($total_array); }
   foreach ($mempool_array as $index => $entry)
   {
@@ -39,11 +36,12 @@ if (is_array($mempool_array))
       }
       $percent = $entry['chRpmMemUsageUtil'];
       $used    = $total * $percent / 100;
-      $descr   = ($index == 1 ? "CP" : "RP" . strval($index - 1));
-      discover_mempool($valid['mempool'], $device, $index, $mib, $descr, $precision, $total, $used);
+      $descr   = ($index == 1 ? 'CP' : 'RP' . strval($index - 1));
+      discover_mempool($valid['mempool'], $device, $index, 'F10-C-SERIES-CHASSIS-MIB', $descr, $precision, $total, $used);
     }
   }
 }
+
 unset ($mempool_array, $total_array, $index, $descr, $precision, $total, $used, $percent);
 
 // EOF

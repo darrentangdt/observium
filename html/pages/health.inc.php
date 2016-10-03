@@ -15,7 +15,7 @@ $datas = array('processor' => array('icon' => $config['entities']['processor']['
                'mempool'   => array('icon' => $config['entities']['mempool']['icon']),
                'storage'   => array('icon' => $config['entities']['storage']['icon']),
                'status'    => array('icon' => $config['entities']['status']['icon']));
-if (isset($health_items['toner'])) { $datas['toner'] = array('icon' => 'oicon-contrast'); }
+if (isset($health_items['printersupplies'])) { $datas['printersupplies'] = array('icon' => 'oicon-contrast'); }
 
 foreach (array_keys($config['sensor_types']) as $type)
 {
@@ -114,6 +114,6 @@ if (isset($datas[$vars['metric']]) || $vars['metric'] == "sensors")
   print_warning("No sensors of type " . $vars['metric'] . " found.");
 }
 
-$page_title[] = "Health";
+register_html_title("Health");
 
 // EOF

@@ -15,7 +15,7 @@ if (!$os && ($sysObjectId == '.1.3.6.1.4.1.21317' || strpos($sysObjectId, '.1.3.
 {
   $os = 'aten';
   // ATEN-PE-CFG::modelName.0 = STRING: "PE8108G"
-  if (strlen(snmp_get($device, "modelName.0", "-Osqnv", "ATEN-PE-CFG", mib_dirs('aten')))) { $os = "aten-pdu"; }
+  if (strlen(snmp_get($device, 'modelName.0', '-Osqnv', 'ATEN-PE-CFG'))) { $os = 'aten-pdu'; }
   // FIXME. Other possible: KVM over IP, and Serial over IP
 }
 

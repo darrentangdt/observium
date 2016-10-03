@@ -73,7 +73,7 @@ if (isset($_REQUEST['queryString']))
         echo('<li class="divider" style="margin: 0px;"></li>' . PHP_EOL);
         echo('<li style="margin: 0px;">' . PHP_EOL . '  <a href="'.$result['url'].'">' . PHP_EOL);
         echo('    <dl style="border-left: 10px solid '.$result['colour'].'; " class="dl-horizontal dl-search">' . PHP_EOL);
-        echo('  <dt style="padding-left: 10px; text-align: center;">' . $result['icon'] . '</dt>' . PHP_EOL);
+        echo('  <dt style="width: 64px; text-align: center; line-height: 41.5px;">' . $result['icon'] . '</dt>' . PHP_EOL);
         echo('    <dd>' . PHP_EOL);
         echo('      <strong>'.highlight_search(escape_html($result['name'])) . PHP_EOL);
         echo('        <small>'.  implode($result['data'], '<br />') . '</small>' . PHP_EOL);

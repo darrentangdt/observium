@@ -14,6 +14,7 @@
 /* TODO:
  * - Implement additional counters
  */
+
 echo(" MSSQL:\n");
 foreach ($wmi['mssql']['services'] as $instance)
 {
@@ -23,9 +24,7 @@ foreach ($wmi['mssql']['services'] as $instance)
     $instance['Name'] = preg_replace('/_/', "", $instance['Name']);
 
     $wmi_class_prefix = "Win32_PerfFormattedData_MSSQL".$instance['Name']."_MSSQL".$instance['Name'];
-  }
-  else
-  {
+  } else {
     $wmi_class_prefix = "Win32_PerfFormattedData_MSSQLSERVER_SQLServer";
   }
 
@@ -41,16 +40,11 @@ foreach ($wmi['mssql']['services'] as $instance)
     $app_found['mssql'] = TRUE;
     echo("Stats; ");
 
-    $rrd_filename = "wmi-app-mssql_".$instance['Name']."-stats.rrd";
-    rrdtool_create($device, $rrd_filename,
-        "DS:userconnections:GAUGE:600:0:125000000000 "
-      );
+    rrdtool_update_ng($device, 'mssql-stats', array(
+      'userconnections' => $wmi['mssql'][$instance['Name']]['stats']['UserConnections']
+    ), $instance['Name']);
 
     $app_data['stats']['UsrConn'] = $wmi['mssql'][$instance['Name']]['stats']['UserConnections'];
-
-    rrdtool_update($device, $rrd_filename, "N:".
-      $wmi['mssql'][$instance['Name']]['stats']['UserConnections']
-    );
   }
 
   $wql = "SELECT * FROM ".$wmi_class_prefix."MemoryManager";
@@ -65,30 +59,19 @@ foreach ($wmi['mssql']['services'] as $instance)
     $wmi['mssql'][$instance['Name']]['memory']['TargetServerMemoryKB'] *= 1024;
     $wmi['mssql'][$instance['Name']]['memory']['SQLCacheMemoryKB'] *= 1024;
 
-    $rrd_filename = "wmi-app-mssql_".$instance['Name']."-memory.rrd";
-
-    rrdtool_create($device, $rrd_filename,
-        "DS:totalmemory:GAUGE:600:0:125000000000 ".
-        "DS:targetmemory:GAUGE:600:0:125000000000 ".
-        "DS:cachememory:GAUGE:600:0:125000000000 ".
-        "DS:grantsoutstanding:GAUGE:600:0:125000000000 ".
-        "DS:grantspending:GAUGE:600:0:125000000000 ",
-        "RRA:LAST:0.5:1:2016  RRA:LAST:0.5:6:2976  RRA:LAST:0.5:24:1440  RRA:LAST:0.5:288:1440 " . $GLOBALS['config']['rrd']['rra']
-      );
+    rrdtool_update_ng($device, 'mssql-memory', array(
+      'totalmemory'       => $wmi['mssql'][$instance['Name']]['memory']['TotalServerMemoryKB'],
+      'targetmemory'      => $wmi['mssql'][$instance['Name']]['memory']['TargetServerMemoryKB'],
+      'cachememory'       => $wmi['mssql'][$instance['Name']]['memory']['SQLCacheMemoryKB'],
+      'grantsoutstanding' => $wmi['mssql'][$instance['Name']]['memory']['MemoryGrantsOutstanding'],
+      'grantspending'     => $wmi['mssql'][$instance['Name']]['memory']['MemoryGrantsPending'],
+    ), $instance['Name']);
 
     $app_data['memory']['used'] = $wmi['mssql'][$instance['Name']]['memory']['TotalServerMemoryKB'];
     $app_data['memory']['total'] = $wmi['mssql'][$instance['Name']]['memory']['TargetServerMemoryKB'];
     $app_data['memory']['cache'] = $wmi['mssql'][$instance['Name']]['memory']['SQLCacheMemoryKB'];
     $app_data['memory']['grnto'] = $wmi['mssql'][$instance['Name']]['memory']['MemoryGrantsOutstanding'];
     $app_data['memory']['grntp'] = $wmi['mssql'][$instance['Name']]['memory']['MemoryGrantsPending'];
-
-    rrdtool_update($device, $rrd_filename, "N:".
-      $wmi['mssql'][$instance['Name']]['memory']['TotalServerMemoryKB'].":".
-      $wmi['mssql'][$instance['Name']]['memory']['TargetServerMemoryKB'].":".
-      $wmi['mssql'][$instance['Name']]['memory']['SQLCacheMemoryKB'].":".
-      $wmi['mssql'][$instance['Name']]['memory']['MemoryGrantsOutstanding'].":".
-      $wmi['mssql'][$instance['Name']]['memory']['MemoryGrantsPending']
-    );
   }
 
   $wql = "SELECT * FROM ".$wmi_class_prefix."BufferManager";
@@ -99,32 +82,22 @@ foreach ($wmi['mssql']['services'] as $instance)
     $app_found['mssql'] = TRUE;
     echo("Buffer; ");
 
-    $rrd_filename = "wmi-app-mssql_".$instance['Name']."-buffer.rrd";
-
-    rrdtool_create($device, $rrd_filename,
-        "DS:pagelifeexpect:GAUGE:600:0:125000000000 ".
-        "DS:pagelookupssec:GAUGE:600:0:125000000000 ".
-        "DS:pagereadssec:GAUGE:600:0:125000000000 ".
-        "DS:pagewritessec:GAUGE:600:0:125000000000 ".
-        "DS:freeliststalls:GAUGE:600:0:125000000000 "
-      );
-
     $app_data['buffer']['LifeExp'] = $wmi['mssql'][$instance['Name']]['buffer']['Pagelifeexpectancy'];
     $app_data['buffer']['PgLook'] = $wmi['mssql'][$instance['Name']]['buffer']['PagelookupsPersec'];
     $app_data['buffer']['PgRead'] = $wmi['mssql'][$instance['Name']]['buffer']['PagereadsPersec'];
     $app_data['buffer']['PgWrite'] = $wmi['mssql'][$instance['Name']]['buffer']['PagewritesPersec'];
     $app_data['buffer']['Stalls'] = $wmi['mssql'][$instance['Name']]['buffer']['FreeliststallsPersec'];
 
-    rrdtool_update($device, $rrd_filename, "N:".
-      $wmi['mssql'][$instance['Name']]['buffer']['Pagelifeexpectancy'].":".
-      $wmi['mssql'][$instance['Name']]['buffer']['PagelookupsPersec'].":".
-      $wmi['mssql'][$instance['Name']]['buffer']['PagereadsPersec'].":".
-      $wmi['mssql'][$instance['Name']]['buffer']['PagewritesPersec'].":".
-      $wmi['mssql'][$instance['Name']]['buffer']['FreeliststallsPersec']
-    );
+    rrdtool_update_ng($device, 'mssql-buffer', array(
+      'pagelifeexpect' => $wmi['mssql'][$instance['Name']]['buffer']['Pagelifeexpectancy'],
+      'pagelookupssec' => $wmi['mssql'][$instance['Name']]['buffer']['PagelookupsPersec'],
+      'pagereadssec'   => $wmi['mssql'][$instance['Name']]['buffer']['PagereadsPersec'],
+      'pagewritessec'  => $wmi['mssql'][$instance['Name']]['buffer']['PagewritesPersec'],
+      'freeliststalls' => $wmi['mssql'][$instance['Name']]['buffer']['FreeliststallsPersec'],
+    ), $instance['Name']);
   }
 
-// CPU Usage
+  // CPU Usage
 
   $wql = "SELECT * FROM Win32_PerfRawData_PerfProc_Process WHERE IDProcess=".$instance['ProcessId'];
   $wmi['mssql'][$instance['Name']]['cpu'] = wmi_parse(wmi_query($wql, $override), TRUE);
@@ -139,32 +112,23 @@ foreach ($wmi['mssql']['services'] as $instance)
     $app_found['mssql'] = TRUE;
     echo("CPU; ");
 
-    $rrd_filename = "wmi-app-mssql_".$instance['Name']."-cpu.rrd";
-
-    rrdtool_create($device, $rrd_filename,
-        "DS:percproctime:COUNTER:600:0:125000000000 ".
-        "DS:threads:GAUGE:600:0:125000000000 ".
-        "DS:lastpoll:COUNTER:600:0:125000000000 ",
-        "RRA:LAST:0.5:1:2016  RRA:LAST:0.5:6:2976  RRA:LAST:0.5:24:1440  RRA:LAST:0.5:288:1440 " . $GLOBALS['config']['rrd']['rra']
-      );
-
     $app_data['cpu']['proc'] = $wmi['mssql'][$instance['Name']]['cpu']['PercentProcessorTime'];
     $app_data['cpu']['time'] = $cpu_ntime;
 
-    rrdtool_update($device, $rrd_filename, "N:".
-      $wmi['mssql'][$instance['Name']]['cpu']['PercentProcessorTime'].":".
-      $wmi['mssql'][$instance['Name']]['cpu']['ThreadCount'].":".
-      $cpu_ntime
-    );
+    rrdtool_update_ng($device, 'mssql-cpu', array(
+      'percproctime' => $wmi['mssql'][$instance['Name']]['cpu']['PercentProcessorTime'],
+      'threads'      => $wmi['mssql'][$instance['Name']]['cpu']['ThreadCount'],
+      'lastpoll'     => $cpu_ntime,
+    ), $instance['Name']);
   }
 
   if ($app_found['mssql'] == TRUE)
   {
-    $app['type'] = "mssql";
-    $app['name'] = "MSSQL";
-    $app['instance'] = $instance['Name'];
-    wmi_dbAppInsert($device['device_id'], $app); // FIXME discover_app ?
+    $app_id = discover_app($device, 'mssql', $instance['Name']);
+    update_application($app_id, $app_data);
   }
+
+  // FIXME state gone
 
   $sql = "SELECT * FROM `applications` AS A LEFT JOIN `applications-state` AS S ON `A`.`app_id`=`S`.`application_id` WHERE `A`.`device_id` = ? AND `A`.`app_instance` = ? AND `A`.`app_type` = 'mssql'";
   $app_state = dbFetchRow($sql, array($device['device_id'], $instance['Name']));

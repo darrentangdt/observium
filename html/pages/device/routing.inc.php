@@ -22,7 +22,7 @@ $type_text['ipsec_tunnels'] = "IPSEC Tunnels";
 $type_text['loadbalancer_rservers'] = "Rservers";
 $type_text['loadbalancer_vservers'] = "Serverfarms";
 
-$page_title[] = "Routing";
+register_html_title("Routing");
 
 $navbar = array();
 $navbar['brand'] = "Routing";
@@ -40,6 +40,13 @@ foreach ($routing_tabs as $type)
 }
 print_navbar($navbar);
 unset($navbar);
+
+if (isset($device_routing_count[$vars['proto']]) && $device_routing_count[$vars['proto']] == 0)
+{
+  // Prevent direct empty links
+  print_warning("Page not exist or data empty.");
+  return;
+}
 
 if (is_file($config['html_dir']."/pages/device/routing/".$vars['proto'].".inc.php"))
 {

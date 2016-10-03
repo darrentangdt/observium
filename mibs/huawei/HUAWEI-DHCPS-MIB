@@ -1,11 +1,11 @@
 -- =================================================================
--- Copyright (C) 2003 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 --
 -- Description: Huawei DHCP Server MIB
 -- Reference:   HUAWEI Enterprise MIB
--- Version:     V2.05
+-- Version:     V2.06
 -- History:
---              V2.04
+--              V2.05
 --              modified by Huangjun 2009-12-08
 -- =================================================================
 
@@ -28,7 +28,7 @@ HUAWEI-DHCPS-MIB DEFINITIONS ::= BEGIN
            FROM SNMPv2-CONF;
 
     hwDHCPServerMib MODULE-IDENTITY 
-        LAST-UPDATED "201408250000Z"        -- Mar174, 2014 at 00:00 GMT
+        LAST-UPDATED "201503050000Z"        -- Mar05, 2015 at 05:00 GMT
         ORGANIZATION 
             "Huawei Technologies Co.,Ltd."
         CONTACT-INFO 
@@ -40,9 +40,16 @@ HUAWEI-DHCPS-MIB DEFINITIONS ::= BEGIN
              Email: support@huawei.com
             "
    DESCRIPTION 
-            "Add node hwDHCPThroughPacket"
-        REVISION "201408250000Z"       
+            "Add node hwDHCPSGlobalPoolConflictRecycleTime hwDHCPSInterfacePoolConflictRecycleTime"
+        REVISION "201503050000Z"       
 
+    DESCRIPTION 
+            "This MIB describes objects used for managing DHCP server,
+             including objects used for DHCP server global pool, 
+             interface pool and informations of ip address used and conflicted
+             in DHCP server, some Statistic informations about DHCP server"
+        REVISION "201408250000Z"        -- Mar174, 2014 at 00:00 GMT
+        
     DESCRIPTION 
             "This MIB describes objects used for managing DHCP server,
              including objects used for DHCP server global pool, 
@@ -356,7 +363,9 @@ HUAWEI-DHCPS-MIB DEFINITIONS ::= BEGIN
             hwDHCPSGlobalPoolIPInUseReset
                 INTEGER,
            hwDHCPSGlobalPoolLogging
-                INTEGER
+                INTEGER,
+           hwDHCPSGlobalPoolConflictRecycleTime
+                Integer32
          }
 
     -- 1.3.6.1.4.1.2011.5.7.2.1.3.1.1
@@ -572,6 +581,17 @@ HUAWEI-DHCPS-MIB DEFINITIONS ::= BEGIN
          DEFVAL { disable }
         ::= { hwDHCPSGlobalPoolParaEntry 15 }
 
+		
+    -- 1.3.6.1.4.1.2011.5.7.2.1.3.1.16
+    hwDHCPSGlobalPoolConflictRecycleTime OBJECT-TYPE
+         SYNTAX Integer32 (0..1439999)
+         UNITS "minute"
+         MAX-ACCESS read-write
+         STATUS current
+         DESCRIPTION
+              "Description."
+         DEFVAL { 0 }
+         ::= { hwDHCPSGlobalPoolParaEntry 16 }
     --  =================================================================
     -- 4th Table of hwDHCPServerMibObject: hwDHCPSGlobalPoolOptionTable
     -- =================================================================
@@ -821,7 +841,9 @@ HUAWEI-DHCPS-MIB DEFINITIONS ::= BEGIN
             hwDHCPSInterfacePoolIPInUseReset
                 INTEGER,
            hwDHCPSInterfacePoolLogging
-                INTEGER
+                INTEGER,
+           hwDHCPSInterfacePoolConflictRecycleTime
+                Integer32
          }
 
     -- 1.3.6.1.4.1.2011.5.7.2.1.6.1.1
@@ -1015,6 +1037,17 @@ HUAWEI-DHCPS-MIB DEFINITIONS ::= BEGIN
         DEFVAL { disable }
         ::= { hwDHCPSInterfacePoolParaEntry 13 }
 
+		
+    -- 1.3.6.1.4.1.2011.5.7.2.1.6.1.14
+    hwDHCPSInterfacePoolConflictRecycleTime OBJECT-TYPE
+        SYNTAX Integer32 (0..1439999)
+        UNITS "minute"
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+             "Description."
+        DEFVAL { 0 }
+        ::= { hwDHCPSInterfacePoolParaEntry 14 }
     --  =====================================================================
     -- 7th Table of hwDHCPServerMibObject: hwDHCPSInterfacePoolOptionTable
     -- =====================================================================
@@ -2119,7 +2152,8 @@ HUAWEI-DHCPS-MIB DEFINITIONS ::= BEGIN
             hwDHCPSInterfacePoolManualBindingNum, hwDHCPSInterfacePoolExpiredBindingNum, hwDHCPSBadPktNum, hwDHCPSBootRequestPktNum, hwDHCPSDiscoverPktNum, 
             hwDHCPSRequestPktNum, hwDHCPSDeclinePktNum, hwDHCPSReleasePktNum, hwDHCPSInformPktNum, hwDHCPSBootReplyPktNum, 
             hwDHCPSOfferPktNum, hwDHCPSAckPktNum, hwDHCPSNakPktNum, hwDHCPSStatisticsReset, hwDHCPSIPPOOLForbiddenIPStart, hwDHCPSIPPOOLForbiddenIPEnd, hwDHCPSIPPOOLForbiddenIPVRFName, 
-            hwDHCPSIPPOOLForbiddenIPRowStatus, hwDHCPSIPPOOLConflictIP, hwDHCPSIPPOOLConflictIPVRFName, hwDHCPSIPPOOLConflictIPType, hwDHCPSIPPOOLConflictIPDetectTime, hwDHCPThroughPacket }
+            hwDHCPSIPPOOLForbiddenIPRowStatus, hwDHCPSIPPOOLConflictIP, hwDHCPSIPPOOLConflictIPVRFName, hwDHCPSIPPOOLConflictIPType, hwDHCPSIPPOOLConflictIPDetectTime, hwDHCPThroughPacket,
+            hwDHCPSGlobalPoolConflictRecycleTime, hwDHCPSInterfacePoolConflictRecycleTime }
         STATUS current
         DESCRIPTION 
             "The basic collection of objects providing management of

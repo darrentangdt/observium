@@ -490,48 +490,47 @@ sgProxyHttpClientConnections OBJECT-TYPE
         SYNTAX          Gauge32
         MAX-ACCESS      read-only
         STATUS          current
-        DESCRIPTION     "The total number of HTTP connections with the
-                         proxy clients."
+        DESCRIPTION     "The total number of established HTTP connections with the proxy clients.
+                        This value does not include connections closing down or waiting to be accepted."
         ::= { sgProxyHttpConnections 1 }
 
 sgProxyHttpClientConnectionsActive OBJECT-TYPE
         SYNTAX          Gauge32
         MAX-ACCESS      read-only
         STATUS          current
-        DESCRIPTION     "The number of active HTTP connections with the
-                         proxy clients."
+        DESCRIPTION     "The number of HTTP connections with the proxy clients
+                        which are in the middle of processing a request."
         ::= { sgProxyHttpConnections 2 }
 
 sgProxyHttpClientConnectionsIdle OBJECT-TYPE
         SYNTAX          Gauge32
         MAX-ACCESS      read-only
         STATUS          current
-        DESCRIPTION     "The number of idle HTTP connections with the
-                         proxy clients."
+        DESCRIPTION     "The number of HTTP connections with the proxy clients
+                        which are idle and waiting to receive a new request."
         ::= { sgProxyHttpConnections 3 }
 
 sgProxyHttpServerConnections OBJECT-TYPE
         SYNTAX          Gauge32
         MAX-ACCESS      read-only
         STATUS          current
-        DESCRIPTION     "The total number of HTTP connections with
-                         remote servers."
+        DESCRIPTION     "The total number of established HTTP connections with remote servers."
         ::= { sgProxyHttpConnections 4 }
 
 sgProxyHttpServerConnectionsActive OBJECT-TYPE
         SYNTAX          Gauge32
         MAX-ACCESS      read-only
         STATUS          current
-        DESCRIPTION     "The number of active HTTP connections with
-                         remote servers."
+        DESCRIPTION     "The number of HTTP connections with remote servers
+                        which are in the middle of processing a request."
         ::= { sgProxyHttpConnections 5 }
 
 sgProxyHttpServerConnectionsIdle OBJECT-TYPE
         SYNTAX          Gauge32
         MAX-ACCESS      read-only
         STATUS          current
-        DESCRIPTION     "The number of idle HTTP connections with
-                         remote servers."
+        DESCRIPTION     "The number of HTTP connections with remote servers
+                        which are idle and available to send a new request."
         ::= { sgProxyHttpConnections 6 }
 
 ---

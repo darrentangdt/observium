@@ -19,23 +19,23 @@
 #Cisco Systems, Inc. WS-C4003 Cisco Catalyst Operating System Software, Version 6.4(13) Copyright (c) 1995-2004 by Cisco Systems, Inc.
 #Cisco Systems, Inc. WS-C4006 Cisco Catalyst Operating System Software, Version 6.3(9) Copyright (c) 1995-2002 by Cisco Systems, Inc.
 
-if (strstr($ciscomodel, "OID")) { unset($ciscomodel); }
+if (strstr($ciscomodel, 'OID')) { unset($ciscomodel); }
 
-if (!strstr($ciscomodel, " ") && strlen($ciscomodel) >= '3')
+if (!strstr($ciscomodel, ' ') && strlen($ciscomodel) >= '3')
 {
   $hardware = $ciscomodel;
 }
 
-$poll_device['sysDescr'] = str_replace(", Inc.", "", $poll_device['sysDescr']); // Make the two formats the same
-$poll_device['sysDescr'] = str_replace("\n", " ", $poll_device['sysDescr']);
+$poll_device['sysDescr'] = str_replace(', Inc.', '', $poll_device['sysDescr']); // Make the two formats the same
+$poll_device['sysDescr'] = str_replace("\n", ' ', $poll_device['sysDescr']);
 
-if (!strstr($poll_device['sysDescr'], "Cisco Systems Catalyst 1900"))
+if (!strstr($poll_device['sysDescr'], 'Cisco Systems Catalyst 1900'))
 {
-  list(,,$hardware,,,,,,,$version,,,$features) = explode(" ", $poll_device['sysDescr']);
-  list(,$features) = explode("-", $features);
+  list(,,$hardware,,,,,,,$version,,,$features) = explode(' ', $poll_device['sysDescr']);
+  list(,$features) = explode('-', $features);
 } else {
   list(,$version) = explode(',',$poll_device['sysDescr'],2);
-  $hardware = "1900";
+  $hardware = '1900';
 }
 
 // EOF

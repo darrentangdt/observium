@@ -48,7 +48,7 @@ function ldap_search_user($ldap_group, $userdn, $depth = -1)
   global $ds, $config;
 
   $compare = ldap_compare($ds, $ldap_group, $config['auth_ldap_groupmemberattr'], $userdn);
-  
+
   if ($compare === TRUE)
   {
     return TRUE; // Member found, return TRUE
@@ -57,7 +57,11 @@ function ldap_search_user($ldap_group, $userdn, $depth = -1)
   {
     $depth++;
 
-    $filter = "(&(objectClass=group)(memberOf=". $ldap_group ."))";
+    //$filter = "(&(objectClass=group)(memberOf=". $ldap_group ."))";
+    $filter_params                = array();
+    $filter_params[] = ldap_filter_create('objectClass', 'group');
+    $filter_params[] = ldap_filter_create('memberOf',    $ldap_group);
+    $filter          = ldap_filter_combine($filter_params);
 
     print_debug("LDAP[UserSearch][$depth][Comparing: " . $ldap_group . "][".$config['auth_ldap_groupmemberattr']."=$userdn][Filter: $filter]");
 
@@ -65,12 +69,12 @@ function ldap_search_user($ldap_group, $userdn, $depth = -1)
     $ldap_results = ldap_get_entries($ds, $ldap_search);
 
     array_shift($ldap_results); // Chop off "count" array entry
-    
+
     foreach($ldap_results as $element)
     {
       print_debug("LDAP[UserSearch][$depth][Comparing: " .$element[$config['auth_ldap_attr']['dn']][0] . "][".$config['auth_ldap_groupmemberattr']."=$userdn]");
 
-      $result = ldap_search_user($element[$config['auth_ldap_attr']['dn']][0], $userdn, $depth); 
+      $result = ldap_search_user($element[$config['auth_ldap_attr']['dn']][0], $userdn, $depth);
       if ($result === TRUE)
       {
         return TRUE; // Member found, return TRUE
@@ -167,7 +171,7 @@ function ldap_authenticate($username, $password)
           {
             print_debug("LDAP[Authenticate][Comparing: " . $ldap_group . "][".$config['auth_ldap_groupmemberattr']."=$userdn]");
             $compare = ldap_search_user($ldap_group, $userdn);
-            
+
             if ($compare === -1)
             {
               print_debug("LDAP[Authenticate][Compare LDAP error: " . ldap_error($ds) . "]");
@@ -181,15 +185,13 @@ function ldap_authenticate($username, $password)
             }
           }
         }
-      }
-      else
-      {
+      } else {
         print_debug(ldap_error($ds));
       }
     }
   }
 
-  session_logout();
+  //session_logout();
   return 0;
 }
 
@@ -323,7 +325,7 @@ function ldap_auth_user_level($username)
         $ldap_group = 'CN=' . $ldap_group . ',' . $config['auth_ldap_groupbase'];
       }
       $compare = ldap_search_user($ldap_group, $userdn);
-      
+
       if ($compare === -1)
       {
         print_debug("LDAP[UserLevel][Compare LDAP error: " . ldap_error($ds) . "]");
@@ -368,10 +370,17 @@ function ldap_auth_user_id($username)
 
   $userdn = ($config['auth_ldap_groupmembertype'] == 'fulldn' ? ldap_internal_dn_from_username($username) : $config['auth_ldap_prefix'] . $username . $config['auth_ldap_suffix']);
 
-  $filter = "(" . str_ireplace($config['auth_ldap_suffix'], '', $userdn) . ")";
+  //$filter = "(" . str_ireplace($config['auth_ldap_suffix'], '', $userdn) . ")";
+  //$filter = "(&(objectClass=".$config['auth_ldap_objectclass'].")(".$config['auth_ldap_attr']['uid']."=" . $username . "))";
+  $filter_params = array();
+  $filter_params[] = ldap_filter_create('objectClass', $config['auth_ldap_objectclass']);
+  $filter_params[] = ldap_filter_create($config['auth_ldap_attr']['uid'], $username);
+  $filter          = ldap_filter_combine($filter_params);
+  
   print_debug("LDAP[Filter][$filter][" . trim($config['auth_ldap_suffix'], ', ') . "]");
   $search = ldap_search($ds, trim($config['auth_ldap_suffix'], ', '), $filter);
   $entries = ldap_get_entries($ds, $search);
+  //print_vars($entries);
 
   if ($entries['count'])
   {
@@ -421,37 +430,74 @@ function ldap_auth_username_by_id($user_id)
 }
 
 /**
+ * Get the user information by username
+ *
+ * @param string $username Username
+ * @return string The user's user name, or FALSE if the user ID is not found
+ */
+function ldap_auth_user_info($username)
+{
+  $userinfo = array();
+  if (empty($username)) { return $userinfo; }
+
+  $userlist = ldap_auth_user_list($username);
+  foreach($userlist as $user)
+  {
+    if ($user['username'] == $username)
+    {
+      $userinfo = $user;
+      break;
+    }
+  }
+
+  return $userinfo;
+}
+
+/**
  * Retrieve list of users with all details.
  *
  * @return array Rows of user data
  */
-function ldap_auth_user_list()
+function ldap_auth_user_list($username = NULL)
 {
   global $config, $ds;
 
   ldap_init();
   ldap_bind_dn();
 
-  $filter = '(objectClass=' . $config['auth_ldap_objectclass'] . ')';
+  //$filter = '(objectClass=' . $config['auth_ldap_objectclass'] . ')';
+  $filter_params   = array();
+  $filter_params[] = ldap_filter_create('objectClass', $config['auth_ldap_objectclass']);
+  if (!empty($username))
+  {
+    // Filter users by username
+    $filter_params[] = ldap_filter_create($config['auth_ldap_attr']['uid'], $username);
+  }
 
   if (count($config['auth_ldap_group']) == 1)
   {
-    $filter = '(&'.$filter.'(memberof='.$config['auth_ldap_group'][0].'))';
-  } elseif (count($config['auth_ldap_group']) > 1) {
-    $group_filter = '';
+    //$filter = '(&'.$filter.'(memberof='.$config['auth_ldap_group'][0].'))';
+    $filter_params[] = ldap_filter_create('memberOf', $config['auth_ldap_group'][0]);
+  } else if (count($config['auth_ldap_group']) > 1) {
+    $group_params = array();
     foreach($config['auth_ldap_group'] as $group)
     {
-      $group_filter .= '(memberof='.$group.')';
+      //$group_filter .= '(memberof='.$group.')';
+      $group_params[] = ldap_filter_create('memberOf', $group);
     }
+    
+    $filter_params[] = ldap_filter_combine($group_params, '|');
 
-    $filter = '(&'.$filter.'(|'.$group_filter.'))';
+    //$filter = '(&'.$filter.'(|'.$group_filter.'))';
   }
+  $filter = ldap_filter_combine($filter_params);
 
   print_debug("LDAP[UserList][Filter][$filter][" . trim($config['auth_ldap_suffix'], ', ') . "]");
   $search = ldap_search($ds, trim($config['auth_ldap_suffix'], ', '), $filter);
   print_debug(ldap_error($ds));
 
   $entries = ldap_get_entries($ds, $search);
+  //print_vars($entries);
 
   if ($entries['count'])
   {
@@ -460,6 +506,7 @@ function ldap_auth_user_list()
       $username = $entries[$i][strtolower($config['auth_ldap_attr']['uid'])][0];
       $realname = $entries[$i][strtolower($config['auth_ldap_attr']['cn'])][0];
       $user_id  = ldap_internal_auth_user_id($entries[$i]);
+      $email    = $entries[$i]['mail'][0];
 
       $userdn = ($config['auth_ldap_groupmembertype'] == 'fulldn' ? $entries[$i]['dn'] : $username);
       print_debug("LDAP[UserList][Compare: " . implode('|',$config['auth_ldap_group']) . "][".$config['auth_ldap_groupmemberattr']."][$userdn]");
@@ -467,9 +514,9 @@ function ldap_auth_user_list()
       foreach ($config['auth_ldap_group'] as $ldap_group)
       {
         $authorized = 0;
-	
+
         $compare = ldap_search_user($ldap_group, $userdn);
-        
+
         if ($compare === -1)
         {
           print_debug("LDAP[UserList][Compare LDAP error: " . ldap_error($ds) . "]");
@@ -487,7 +534,7 @@ function ldap_auth_user_list()
       if (!isset($config['auth_ldap_group']) || $authorized)
       {
         $user_level = ldap_auth_user_level($username);
-        $userlist[] = array('username' => $username, 'realname' => $realname, 'user_id' => $user_id, 'level' => $user_level);
+        $userlist[] = array('username' => $username, 'realname' => $realname, 'user_id' => $user_id, 'level' => $user_level, 'email' => $email);
       }
     }
   }
@@ -618,8 +665,12 @@ function ldap_internal_dn_from_username($username)
   if (!isset($cache['ldap']['dn'][$username]))
   {
     ldap_init();
-    $filter = "(" . $config['auth_ldap_attr']['uid'] . '=' . $username . ")";
+    //$filter = "(" . $config['auth_ldap_attr']['uid'] . '=' . $username . ")";
+    $filter_params[] = ldap_filter_create('objectClass', $config['auth_ldap_objectclass']);
+    $filter_params[] = ldap_filter_create($config['auth_ldap_attr']['uid'], $username);
+    $filter          = ldap_filter_combine($filter_params);
     print_debug("LDAP[Filter][$filter][" . trim($config['auth_ldap_suffix'], ', ') . "]");
+
     $search = ldap_search($ds, trim($config['auth_ldap_suffix'], ', '), $filter);
     $entries = ldap_get_entries($ds, $search);
 
@@ -693,6 +744,119 @@ function ldap_domain_servers_from_dns($domain)
   }
 
   return $servers;
+}
+
+/**
+ * Constructor of a new part of a LDAP filter.
+ *
+ * Example:
+ *  ldap_filter_create('memberOf', 'name', '=') >>> '(memberOf=name)'
+ *
+ * @param string $param Name of the attribute the filter should apply to
+ * @param string $value Filter value
+ * @param string $condition Matching rule
+ * @param boolean $escape Should $value be escaped? (default: yes)
+ * @return string Generated filter
+ */
+function ldap_filter_create($param, $value, $condition = '=', $escape = TRUE)
+{
+  if ($escape)
+  {
+    $value = array_shift(ldap_escape_filter_value($value));
+  }
+
+  // Convert common rule name to ldap rule
+  // Default rule is equals
+  $condition = trim(strtolower($condition));
+  switch ($condition)
+  {
+    case 'ge':
+    case '>=':
+      $filter = '(' . $param . '>=' . $value . ')';
+      break;
+    case 'le':
+    case '<=':
+      $filter = '(' . $param . '<=' . $value . ')';
+      break;
+    case 'gt':
+    case 'greater':
+    case '>':
+      $filter = '(' . $param . '>' . $value . ')';
+      break;
+    case 'lt':
+    case 'less':
+    case '<':
+      $filter = '(' . $param . '<' . $value . ')';
+      break;
+    case 'match':
+    case 'matches':
+    case '~=':
+      $filter = '(' . $param . '~=' . $value . ')';
+      break;
+    case 'notmatches':
+    case 'notmatch':
+    case '!match':
+    case '!~=':
+      $filter = '(!(' . $param . '~=' . $value . '))';
+      break;
+    case 'notequals':
+    case 'isnot':
+    case 'ne':
+    case '!=':
+    case '!':
+      $filter = '(!(' . $param . '=' . $value . '))';
+      break;
+    case 'equals':
+    case 'eq':
+    case 'is':
+    case '==':
+    case '=':
+    default:
+      $filter = '(' . $param . '=' . $value . ')';
+  }
+  return $filter;
+}
+
+/**
+ * Combine two or more filter objects using a logical operator
+ *
+ * @param array $values Array with Filter entries generated by ldap_filter_create()
+ * @param string $condition The locical operator. May be "and", "or", "not" or the subsequent logical equivalents "&", "|", "!"
+ * @return string Generated filter
+ */
+function ldap_filter_combine($values = array(), $condition = '&')
+{
+  $count = count($values);
+  if (!$count) { return ''; }
+
+  $condition = trim(strtolower($condition));
+  switch ($condition)
+  {
+    case '!':
+    case 'not':
+      $filter = '(!'.implode('', $values).')';
+      break;
+    case '|':
+    case 'or':
+      if ($count == 1)
+      {
+        $filter = array_shift($values);
+      } else {
+        $filter = '(|'.implode('', $values).')';
+      }
+      break;
+    case '&':
+    case 'and':
+    default:
+      if ($count == 1)
+      {
+        $filter = array_shift($values);
+      } else {
+        $filter = '(&'.implode('', $values).')';
+      }
+  }
+
+  return $filter;
 }
 
 /**

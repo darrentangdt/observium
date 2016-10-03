@@ -70,6 +70,6 @@ print_navbar($navbar);
 
 print_sla_table($vars);
 
-$page_title[] = "SLAs";
+register_html_title("SLAs");
 
 // EOF

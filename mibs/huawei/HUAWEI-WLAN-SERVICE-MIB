@@ -25,11 +25,11 @@
 -- Saturday, November 29, 2014 at 13:25:09
 -- 
 --  ============================================================================
--- Copyright (C) 2010 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- Description:  The mib is used for configuring the information of the SERVICE, including
 --               ESS management,STA management and so on.
 -- Reference:  
--- Version:      V1.11
+-- Version:      V1.14
 -- 
 -- ============================================================================
 
@@ -64,7 +64,7 @@
 -- September 02, 2010 at 10:00 GMT
 		-- 1.3.6.1.4.1.2011.6.139.4
 		hwWlanServiceManagement MODULE-IDENTITY 
-			LAST-UPDATED "201412161525Z"         --Dec 16, 2014 at 15:25 GMT
+			LAST-UPDATED "201509250938Z"         --Sep 25, 2015 at 09:38 GMT
 			ORGANIZATION 
 				"Huawei Technologies Co.,Ltd."
 			CONTACT-INFO 
@@ -75,6 +75,16 @@
 				   Website: http://www.huawei.com
 				   Email: support@huawei.com
 				  "
+			DESCRIPTION 
+				"V1.14 add hwWlanServiceVapFrequency."
+			REVISION "201509250938Z"         --Sep 25, 2015 at 09:38 GMT
+			DESCRIPTION 
+				"V1.13 modifiy the range of hwMeshProfileUrgentHandoverLowRateThreshold node."
+			REVISION "201506182025Z"         --June 18, 2015 at 20:25 GMT
+			DESCRIPTION 
+				"V1.12 modifiy hwNeighborApLocationIDList,hwMacBridgeChannelID,hwBridgeLinkChannelID."
+			REVISION "201501202025Z"         --January 20, 2015 at 20:25 GMT
+
 			DESCRIPTION 
 				"V1.11 modifiy hwBridgeProfileBridgeName and hwMeshProfileMeshID nodes in mesh profile and bridge profile."
 			REVISION "201412161525Z"         --Dec 16, 2014 at 15:25 GMT
@@ -708,7 +718,7 @@
 		
 		-- 1.3.6.1.4.1.2011.6.139.4.1.1.36
 		hwWlanServiceEssSaclNameInbound OBJECT-TYPE
-			SYNTAX OCTET STRING (SIZE (0..33))
+			SYNTAX OCTET STRING (SIZE (1..65))
 			MAX-ACCESS read-write
 			STATUS current
 			DESCRIPTION
@@ -718,7 +728,7 @@
 		
 		-- 1.3.6.1.4.1.2011.6.139.4.1.1.37
 		hwWlanServiceEssSaclNameOutbound OBJECT-TYPE
-			SYNTAX OCTET STRING (SIZE (0..33))
+			SYNTAX OCTET STRING (SIZE (1..65))
 			MAX-ACCESS read-write
 			STATUS current
 			DESCRIPTION
@@ -838,7 +848,7 @@
 
 		-- 1.3.6.1.4.1.2011.6.139.4.1.1.47
 		hwWlanServiceEssSaclNameInboundIPv6 OBJECT-TYPE
-			SYNTAX OCTET STRING (SIZE (0..33))
+			SYNTAX OCTET STRING (SIZE (1..65))
 			MAX-ACCESS read-write
 			STATUS current
 			DESCRIPTION
@@ -848,7 +858,7 @@
 		
 		-- 1.3.6.1.4.1.2011.6.139.4.1.1.48
 		hwWlanServiceEssSaclNameOutboundIPv6 OBJECT-TYPE
-			SYNTAX OCTET STRING (SIZE (0..33))
+			SYNTAX OCTET STRING (SIZE (1..65))
 			MAX-ACCESS read-write
 			STATUS current
 			DESCRIPTION
@@ -1020,7 +1030,9 @@
 				hwWlanServiceVapSSID
 					OCTET STRING,
 				hwWlanServiceVapVlan
-					Integer32
+					Integer32,
+				hwWlanServiceVapFrequency
+					OCTET STRING
 			 }
 
 		-- 1.3.6.1.4.1.2011.6.139.4.2.1.1
@@ -1095,6 +1107,15 @@
 			DESCRIPTION
 				"Description."
 			::= { hwVapManagementEntry 8 }
+ 
+                                       -- 1.3.6.1.4.1.2011.6.139.4.2.1.9
+		hwWlanServiceVapFrequency OBJECT-TYPE
+			SYNTAX OCTET STRING
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"WLAN Vap Frquency"
+			::= { hwVapManagementEntry 9 }
 
 		-- 1.3.6.1.4.1.2011.6.139.4.3
 		hwServiceBatchTable OBJECT-TYPE
@@ -7390,7 +7411,7 @@
 			::= { hwWlanServiceManagementObjectGroups 1 }
 		
 		hwVapManagementGroup OBJECT-GROUP
-			OBJECTS { hwWlanServiceVapWlanIndex, hwWlanServiceVapRowStatus, hwWlanServiceVapBssid, hwWlanServiceVapSSID, hwWlanServiceVapVlan
+			OBJECTS { hwWlanServiceVapWlanIndex, hwWlanServiceVapRowStatus, hwWlanServiceVapBssid, hwWlanServiceVapSSID, hwWlanServiceVapVlan, hwWlanServiceVapFrequency
 				 }
 			STATUS current
 			DESCRIPTION
@@ -7738,21 +7759,21 @@
 			::= { hwWlanServiceManagementObjectGroups 43 }
 		
 		hwProxyTrackSideEquipGroup OBJECT-GROUP
-			OBJECTS { hwProxyTrackSideEquipIndex, hwProxyTrackSideEquipMac, hwProxyTrackSideEquipVlanID, hwProxyTrackSideEquipRowStatus }
+			OBJECTS { hwProxyTrackSideEquipMac, hwProxyTrackSideEquipVlanID, hwProxyTrackSideEquipRowStatus }
 			STATUS current
 			DESCRIPTION
 				"Description."
 			::= { hwWlanServiceManagementObjectGroups 44 }
 		
 		hwProxyOnBoardEquipGroup OBJECT-GROUP
-			OBJECTS { hwProxyOnBoardEquipIndex, hwProxyOnBoardEquipMac, hwProxyOnBoardEquipVlanID, hwProxyOnBoardEquipRowStatus }
+			OBJECTS { hwProxyOnBoardEquipMac, hwProxyOnBoardEquipVlanID, hwProxyOnBoardEquipRowStatus }
 			STATUS current
 			DESCRIPTION
 				"Description."
 			::= { hwWlanServiceManagementObjectGroups 45 }
 		
 		hwHandoverTraceGroup OBJECT-GROUP
-			OBJECTS { hwHandoverTraceIndex, hwHandoverTimeStamp, hwHandoverFromApMac, hwHandoverFromApRssi, hwHandoverToApMac, hwHandoverToApRssi,
+			OBJECTS { hwHandoverTimeStamp, hwHandoverFromApMac, hwHandoverFromApRssi, hwHandoverToApMac, hwHandoverToApRssi,
 			    	hwHandoverFromApLocationID, hwHandoverToApLocationID }
 			STATUS current
 			DESCRIPTION
@@ -7760,7 +7781,7 @@
 			::= { hwWlanServiceManagementObjectGroups 46 }
 		
 		hwNeighborApGroup OBJECT-GROUP
-			OBJECTS { hwNeighborApLocalApId, hwNeighborApLocalRadioId, hwNeighborApLocalApMac, hwNeighborApIdList, hwNeighborApMacList, 
+			OBJECTS { hwNeighborApLocalApMac, hwNeighborApIdList, hwNeighborApMacList, 
 				hwNeighborApRssiList, hwNeighborApUpdateTime, hwNeighborApLocalLocationID, hwNeighborApLocationIDList }
 			STATUS current
 			DESCRIPTION

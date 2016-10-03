@@ -1,10 +1,12 @@
 -- =====================================================================
--- Copyright (C) 2003 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 --
 -- Description: Huawei Configuration management MIB
 -- Reference:   HUAWEI Enterprise MIB
--- Version:     V2.12
+-- Version:     V2.14
 -- History:
+--  2015-03-10  V2.14  Lin Bing Modified hwPatchFailReason for patch
+--  2015-01-12  V2.13  chenruirui Add hwSysEvmTraps for evm
 --  2014-09-15  V2.12  xuetao Modified hwSysRebootReason for cfm
 --  2014-09-12  V2.11  xuetao Modified hwSysCfgFileName for cfm
 --  2014-09-03  V2.10  Song Chuanheng Modified hwIssuState for issu
@@ -44,7 +46,7 @@ HUAWEI-SYS-MAN-MIB DEFINITIONS ::= BEGIN
             FROM HUAWEI-MIB;
 
     huaweiSystemManMIB MODULE-IDENTITY 
-        LAST-UPDATED "201409150000Z"        -- Septemper 15, 2014  GMT
+        LAST-UPDATED "201503100000Z"        -- March 10, 2015  GMT
         ORGANIZATION 
             "Huawei Technologies Co.,Ltd."
         CONTACT-INFO 
@@ -62,6 +64,14 @@ HUAWEI-SYS-MAN-MIB DEFINITIONS ::= BEGIN
             reload actions, and notifications. By querying the system time,
             configuration files and system image files, NMS can reboot the device
             in the specified time and the specified configuration and system image."
+       REVISION
+           "201503100000Z"
+       DESCRIPTION 
+           "Modified hwPatchFailReason for patch." 
+       REVISION
+           "201501120000Z"
+       DESCRIPTION 
+           "Add hwSysEvmTraps for evm."      
        REVISION
            "201409150000Z"
        DESCRIPTION 
@@ -1210,7 +1220,8 @@ a return value 65534 is displayed if the Get or Walk operation is performed. Oth
                 patchSpaceShortage(3),
                 patchConflict(4),
                 versionErr(5),
-                synchronizePatchPackageError(8)
+                synchronizePatchPackageError(8),
+                patchConfigInconsistError(9)
                 }
         MAX-ACCESS read-only
         STATUS current
@@ -3017,6 +3028,83 @@ a return value 65534 is displayed if the Get or Walk operation is performed. Oth
             "The board(s) excluded retrieved during software upgrading"
         ::= { huaweiSystemManMIBNotifications 19 }   
         
+    hwSysEvmTraps OBJECT IDENTIFIER ::= { huaweiSystemManMIBNotifications 20 }
+
+    hwSysEvmTrapsObject OBJECT IDENTIFIER ::= { hwSysEvmTraps 1 }
+
+    hwSysEvmRoleName OBJECT-TYPE
+	SYNTAX OCTET STRING
+	MAX-ACCESS accessible-for-notify
+	STATUS current
+	DESCRIPTION
+		"The value of this object identifies the number of Android files.
+		The object calculates the number of android files given by hwSysAndroidFileTable.
+		The value ranges from 0 to 2147483647.
+		"
+	::= { hwSysEvmTrapsObject 1 }
+
+    hwSysEvmDownloadFileName OBJECT-TYPE
+	SYNTAX OCTET STRING
+	MAX-ACCESS accessible-for-notify
+	STATUS current
+	DESCRIPTION
+		"The value of this object identifies the number of Android files.
+		The object calculates the number of android files given by hwSysAndroidFileTable.
+		The value ranges from 0 to 2147483647.
+		"
+	::= { hwSysEvmTrapsObject 2 }
+
+    hwSysEvmInstallFileName OBJECT-TYPE
+	SYNTAX OCTET STRING
+	MAX-ACCESS accessible-for-notify
+	STATUS current
+	DESCRIPTION
+		"The value of this object identifies the number of Android files.
+		The object calculates the number of android files given by hwSysAndroidFileTable.
+		The value ranges from 0 to 2147483647.
+		"
+	::= { hwSysEvmTrapsObject 3 }
+
+    hwSysEvmNotifications OBJECT IDENTIFIER ::= { hwSysEvmTraps 2 }
+    hwEvmVmAbnormalRunNotification NOTIFICATION-TYPE
+	OBJECTS { hwSysEvmRoleName }
+	STATUS current
+	DESCRIPTION 
+		"The board(s) excluded retrieved during software upgrading"
+	::= { hwSysEvmNotifications 1 }
+
+    hwEvmVmNotRunningNotification NOTIFICATION-TYPE
+	OBJECTS { hwSysEvmRoleName }
+	STATUS current
+	DESCRIPTION 
+		"The board(s) excluded retrieved during software upgrading"
+	::= { hwSysEvmNotifications 2 }
+
+
+    hwEvmVmAbnormalRestartNotification NOTIFICATION-TYPE
+	OBJECTS { hwSysEvmRoleName }
+	STATUS current
+	DESCRIPTION 
+		"The board(s) excluded retrieved during software upgrading"
+	::= { hwSysEvmNotifications 3 }
+
+
+    hwEvmDownloadFailedNotification NOTIFICATION-TYPE
+	OBJECTS { hwSysEvmDownloadFileName }
+	STATUS current
+	DESCRIPTION 
+		"The board(s) excluded retrieved during software upgrading"
+	::= { hwSysEvmNotifications 4 }
+
+
+    hwEvmInstallFailedNotification NOTIFICATION-TYPE
+	OBJECTS { hwSysEvmInstallFileName }
+	STATUS current
+	DESCRIPTION 
+		"The board(s) excluded retrieved during software upgrading"
+	::= { hwSysEvmNotifications 5 }
+
+		
     huaweiSystemManMIBConformance OBJECT IDENTIFIER ::= { huaweiSystemManMIB 3 }
 
     huaweiSystemManMIBCompliances OBJECT IDENTIFIER ::= { huaweiSystemManMIBConformance 1 }
@@ -3027,7 +3115,7 @@ a return value 65534 is displayed if the Get or Walk operation is performed. Oth
             "The compliance statement for entities which implement
             the Huawei system management MIB."
         MODULE -- this module
-            MANDATORY-GROUPS { huaweiSysClockGroup, huaweiSysReloadGroup, huaweiSysImageGroup, huaweiSysCFGFileGroup, huaweiSystemManNotificationGroup
+            MANDATORY-GROUPS { huaweiSysClockGroup, huaweiSysReloadGroup, huaweiSysImageGroup, huaweiSysCFGFileGroup, huaweiSystemManNotificationGroup, huaweihwSysEvmTrapsObjectGroup
                  }
         ::= { huaweiSystemManMIBCompliances 1 }
 
@@ -3079,7 +3167,7 @@ a return value 65534 is displayed if the Get or Walk operation is performed. Oth
     huaweiSystemManNotificationGroup NOTIFICATION-GROUP
             NOTIFICATIONS { hwSysClockChangedNotification, hwSysReloadNotification, hwSysSlaveSwitchSuccessNotification,
             hwSysSlaveSwitchFailNotification, hwSysIssuNotification, hwPatchInstallFail, hwPatchInstallFailClear, hwSumUpgradeSuccess, hwSysCfgFileErrorNotification, hwSysImageErrorNotification, hwSysPafChangeNotification, 
-            hwSysLicenseChangeNotification, hwSystemBoardExclude, hwSystemBoardExcludeClear }
+            hwSysLicenseChangeNotification, hwSystemBoardExclude, hwSystemBoardExcludeClear, hwEvmVmAbnormalRunNotification, hwEvmVmNotRunningNotification, hwEvmVmAbnormalRestartNotification, hwEvmDownloadFailedNotification, hwEvmInstallFailedNotification }
         STATUS current
         DESCRIPTION 
             "A collection of notification."
@@ -3225,8 +3313,10 @@ a return value 65534 is displayed if the Get or Walk operation is performed. Oth
             "A collection of objects providing mandatory system android
             file information."
         ::= { huaweiSystemManMIBGroups 25 }
+    huaweihwSysEvmTrapsObjectGroup OBJECT-GROUP
+        OBJECTS { hwSysEvmRoleName, hwSysEvmDownloadFileName, hwSysEvmInstallFileName }
+        STATUS current
+        DESCRIPTION 
+            "A collection of objects providing EVM system trap objects."
+        ::= { huaweiSystemManMIBGroups 26 }
     END
-
---
--- HUAWEI-SYS-MAN-MIB.mib
---

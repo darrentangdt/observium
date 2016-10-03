@@ -1,4 +1,4 @@
-## 0.10.7.1
+-- 0.10.7.1
 ALTER TABLE `bills` MODIFY COLUMN `bill_autoadded` BOOLEAN NOT NULL DEFAULT '0';
 DROP TABLE IF EXISTS `graph_types`;
 CREATE TABLE IF NOT EXISTS `graph_types` (  `graph_type` varchar(32) COLLATE utf8_unicode_ci NOT NULL,  `graph_subtype` varchar(32) COLLATE utf8_unicode_ci NOT NULL,  `graph_section` varchar(32) COLLATE utf8_unicode_ci NOT NULL,  `graph_descr` varchar(64) COLLATE utf8_unicode_ci NOT NULL,  `graph_order` int(11) NOT NULL,  KEY `graph_type` (`graph_type`),  KEY `graph_subtype` (`graph_subtype`),  KEY `graph_section` (`graph_section`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -6,11 +6,11 @@ INSERT INTO `graph_types` (`graph_type`, `graph_subtype`, `graph_section`, `grap
 DROP TABLE `frequency`;
 ALTER TABLE `mempools` CHANGE  `mempool_index`  `mempool_index` VARCHAR( 16 ) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL;
 ALTER TABLE `vrfs` CHANGE `mplsVpnVrfRouteDistinguisher` `mplsVpnVrfRouteDistinguisher` VARCHAR(26)  NOT NULL;
-## Change port rrds
+-- Change port rrds
 ALTER TABLE `devices` MODIFY COLUMN `timeout` INT NULL DEFAULT NULL AFTER  `port`;
 ALTER TABLE `devices` MODIFY COLUMN `retries` INT NULL DEFAULT NULL AFTER `timeout`;
 ALTER TABLE `perf_times` CHANGE  `duration`  `duration` DOUBLE( 8, 2 ) NOT NULL;
-## Extend port descriptions
+-- Extend port descriptions
 ALTER TABLE ports MODIFY port_descr_circuit VARCHAR(255);
 ALTER TABLE ports MODIFY port_descr_descr VARCHAR(255);
 ALTER TABLE ports MODIFY port_descr_notes VARCHAR(255);

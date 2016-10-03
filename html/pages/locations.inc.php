@@ -11,9 +11,9 @@
  *
  */
 
-$page_title[] = "Locations";
+register_html_title('Locations');
 
-if (!$vars['view']) { $vars['view'] = "basic"; }
+if (!$vars['view']) { $vars['view'] = 'basic'; }
 
 $navbar['brand'] = 'Locations';
 $navbar['class'] = 'navbar-narrow';
@@ -36,7 +36,7 @@ echo('<table class="table table-hover  table-striped table-condensed ">'. PHP_EO
 $cols = array(
                  array(NULL, 'class="state-marker"'),
   'location'  => array('Location', 'style="width: 300px;"'),
-  'total'     => array('Devices: Total', 'style="width: 50px; text-align: right;"')
+  'total'     => array('Devices:&nbsp;Total', 'style="width: 50px; text-align: right;"')
 );
 
 foreach (array_keys($cache['device_types']) as $type)
@@ -60,9 +60,9 @@ foreach (get_locations() as $location)
   $location_where = ' WHERE 1 ' . generate_query_values($location, 'location');
   $location_where .= $GLOBALS['cache']['where']['devices_permitted'];
 
-  $num        = dbFetchCell("SELECT COUNT(*) FROM `devices`" . $location_where);
+  $num        = dbFetchCell('SELECT COUNT(*) FROM `devices`' . $location_where);
 
-  $hostalerts = dbFetchCell("SELECT COUNT(*) FROM `devices`" . $location_where . " AND `status` = ?", array(0));
+  $hostalerts = dbFetchCell('SELECT COUNT(*) FROM `devices`' . $location_where . ' AND `status` = ?', array(0));
   if ($hostalerts) { $row_class = 'error'; } else { $row_class = ''; }
 
   if ($location === '') { $location = OBS_VAR_UNSET; }
@@ -75,7 +75,7 @@ foreach (get_locations() as $location)
           <td style="text-align: right;"><strong class="label label-success">' . $num . '</strong></td>' . PHP_EOL);
   foreach (array_keys($cache['device_types']) as $type)
   {
-    $location_count = dbFetchCell("SELECT COUNT(*) FROM `devices`" . $location_where . " AND `type` = ?", array($type));
+    $location_count = dbFetchCell('SELECT COUNT(*) FROM `devices`' . $location_where . ' AND `type` = ?', array($type));
     if ($location_count > 0)
     {
       $location_count = '<span class="label">' . $location_count . '</span>';
@@ -84,25 +84,25 @@ foreach (get_locations() as $location)
   }
   echo('      </tr>');
 
-  if ($vars['view'] == "traffic")
+  if ($vars['view'] == 'traffic')
   {
     echo('<tr></tr><tr class="locations"><td colspan="'.count($cols).'">');
 
-    $graph_array['type']   = "location_bits";
-    $graph_array['height'] = "100";
-    $graph_array['width']  = "220";
+    $graph_array['type']   = 'location_bits';
+    $graph_array['height'] = 100;
+    $graph_array['width']  = 220;
     $graph_array['to']     = $config['time']['now'];
-    $graph_array['legend'] = "no";
+    $graph_array['legend'] = 'no';
     $graph_array['id']     = $value;
 
     print_graph_row($graph_array);
 
-    echo("</tr></td>");
+    echo('</tr></td>');
   }
-  $done = "yes";
+  $done = 'yes';
 }
 
-echo("</table>");
+echo('</table>');
 echo generate_box_close();
 
 // EOF

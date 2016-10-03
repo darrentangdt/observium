@@ -17,29 +17,43 @@
 
 <?php
 
-unset($search, $devices);
+$form = array('type'          => 'rows',
+              'space'         => '5px',
+              'submit_by_key' => TRUE,
+              'url'           => generate_url($vars));
 
-//Search by field
-$search[] = array('type'    => 'select',
-                  'name'    => 'Search By',
-                  'id'      => 'searchby',
-                  'width'   => '120px',
-                  'value'   => $vars['searchby'],
-                  'values'  => array('mac' => 'MAC Address', 'ip' => 'IP Address'));
-//IP version field
-$search[] = array('type'    => 'select',
-                  'name'    => 'IP',
-                  'id'      => 'ip_version',
-                  'width'   => '120px',
-                  'value'   => $vars['ip_version'],
-                  'values'  => array('' => 'IPv4 & IPv6', '4' => 'IPv4 only', '6' => 'IPv6 only'));
-//Address field
-$search[] = array('type'    => 'text',
-                  'name'    => 'Address',
-                  'id'      => 'address',
-                  'value'   => $vars['address']);
+$form['row'][0]['ip_version'] = array(
+                                'type'        => 'select',
+                                'name'        => 'IP',
+                                'width'       => '100%',
+                                'value'       => $vars['ip_version'],
+                                'values'      => array('' => 'IPv4 & IPv6', '4' => 'IPv4 only', '6' => 'IPv6 only'));
+$form['row'][0]['searchby'] = array(
+                                'type'        => 'select',
+                                'name'        => 'Search By',
+                                'width'       => '100%',
+                                'onchange'    => "$('#address').prop('placeholder', $('#searchby option:selected').text())",
+                                'value'       => $vars['searchby'],
+                                'values'      => array('mac' => 'MAC Address', 'ip' => 'IP Address'));
+$form['row'][0]['address']  = array(
+                                'type'        => 'text',
+                                'name'        => ($vars['searchby'] == 'ip' ? 'IP Address' : 'MAC Address'),
+                                'width'       => '100%',
+                                'grid'        => 4,
+                                'placeholder' => TRUE,
+                                'submit_by_key' => TRUE,
+                                'value'       => escape_html($vars['address']));
+// search button
+$form['row'][0]['search']   = array(
+                                'type'        => 'submit',
+                                'grid'        => 4,
+                                //'name'        => 'Search',
+                                //'icon'        => 'icon-search',
+                                'value'       => 'arp',
+                                'right'       => TRUE);
 
-print_search($search, 'ARP/NDP Search');
+print_form($form);
+unset($form, $form_items);
 
 // Pagination
 $vars['pagination'] = TRUE;

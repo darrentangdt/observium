@@ -16,9 +16,6 @@
 // HH3C-ENTITY-EXT-MIB::hh3cEntityExtMemUsage.42 = INTEGER: 58
 // HH3C-ENTITY-EXT-MIB::hh3cEntityExtMemUsage.48 = INTEGER: 58
 
-$mib = 'HH3C-ENTITY-EXT-MIB';
-echo("$mib ");
-
 $oids = array('hh3cEntityExtMemUsage', 'hh3cEntityExtMemSize');
 $mempool_array = array();
 foreach ($oids as $oid)
@@ -29,7 +26,6 @@ foreach ($oids as $oid)
 
 if (is_array($mempool_array))
 {
-  $chassis_count = 0;
   $mempool_array = snmpwalk_cache_oid($device, 'entPhysicalName', $mempool_array, 'ENTITY-MIB');
 
   foreach ($mempool_array as $index => $entry)

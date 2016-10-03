@@ -16,16 +16,13 @@ $eqlgrpmemid = get_dev_attrib($device, 'eqlgrpmemid');
 
 if (is_numeric($eqlgrpmemid))
 {
-  $mib = 'EQLDISK-MIB';
-  echo(" $mib ");
-
   // EQLDISK-MIB::eqlDiskModelNumber.1.1049142137.1 = STRING: ST3450857SS
   // EQLDISK-MIB::eqlDiskModelNumber.1.1049142137.2 = STRING: ST3450857SS
   // EQLDISK-MIB::eqlDiskStatus.1.1049142137.1 = INTEGER: on-line(1)
   // EQLDISK-MIB::eqlDiskStatus.1.1049142137.2 = INTEGER: on-line(1)
   // EQLDISK-MIB::eqlDiskId.1.1049142137.1 = INTEGER: 0
   // EQLDISK-MIB::eqlDiskId.1.1049142137.2 = INTEGER: 1
-  $cache['equallogic']['eqlDiskTable'] = snmpwalk_cache_multi_oid($device, 'eqlDiskTable', array(), $mib, mib_dirs('equallogic'));
+  $cache['equallogic']['eqlDiskTable'] = snmpwalk_cache_multi_oid($device, 'eqlDiskTable', array(), 'EQLDISK-MIB');
 
   foreach ($cache['equallogic']['eqlDiskTable'] as $index => $entry)
   {

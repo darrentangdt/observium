@@ -16,8 +16,7 @@ $contacts = dbFetchRows("SELECT * FROM `alert_contacts` WHERE `contact_method`='
 foreach ($contacts as $contact)
 {
   dbUpdate(array('contact_endpoint' => 'email::' . $contact['contact_endpoint']), 'alert_contacts', '`contact_id` = ?', array($contact['contact_id']));
+  echo('.');
 }
-
-echo(PHP_EOL);
 
 // EOF

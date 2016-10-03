@@ -43,6 +43,6 @@ $colours   = "mixed";
 $nototal   = 1;
 $unit_text = "Conn.";
 
-include("includes/graphs/generic_multi_simplex_separated.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_simplex_separated.inc.php");
 
 // EOF

@@ -27,7 +27,8 @@ function custom_port_parser($port)
   }
 
   // Munge and Validate type
-  $types = array('core', 'peering', 'transit', 'cust', 'server', 'l2tp');
+  $types = array('core', 'peering', 'transit', 'cust', 'server', 'l2tp', 'service');
+
   foreach ($config['int_groups'] as $custom_type)
   {
     $types[] = strtolower(trim($custom_type));

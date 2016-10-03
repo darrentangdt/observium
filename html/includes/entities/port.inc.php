@@ -263,7 +263,7 @@ function generate_port_thumbnail($args, $echo = TRUE)
   $graph_array['type']   = $args['graph_type'];
   $graph_array['width']  = $args['width'];
   $graph_array['height'] = $args['height'];
-  $graph_array['bg']     = 'FFFFFF00'; # the 00 at the end makes the area transparent.
+  $graph_array['bg']     = 'FFFFFF00';
 
   $mini_graph = generate_graph_tag($graph_array);
 
@@ -383,7 +383,7 @@ function generate_port_row($port, $vars = array())
     $table_cols = '9';
 
     $string .= '<tr class="' . $port['row_class'] . '"';
-    if ($vars['tab'] != "port") { $string .= ' onclick="location.href=\'' . generate_port_url($port) . '\'" style="cursor: pointer;"'; }
+    if ($vars['tab'] != "port") { $string .= ' onclick="openLink(\'' . generate_port_url($port) . '\')" style="cursor: pointer;"'; }
     $string .= '>';
     $string .= '         <td class="state-marker"></td>
          <td style="width: 1px;"></td>';
@@ -438,7 +438,7 @@ function generate_port_row($port, $vars = array())
     $graph_array['type']   = $port['graph_type'];
     $graph_array['width']  = 100;
     $graph_array['height'] = 20;
-    $graph_array['bg']     = 'ffffff00'; # the 00 at the end makes the area transparent.
+    $graph_array['bg']     = 'ffffff00';
     $graph_array['from']   = $config['time']['day'];
 
     $string .= generate_port_link($port, generate_graph_tag($graph_array));
@@ -491,7 +491,7 @@ function generate_port_row($port, $vars = array())
         }
         switch ($native_state)
         {
-          case 'blocking':   $class = 'text-error';   break;
+          case 'blocking':   $class = 'text-danger';   break;
           case 'forwarding': $class = 'text-success'; break;
           default:           $class = 'muted';
         }
@@ -524,7 +524,7 @@ function generate_port_row($port, $vars = array())
             // List VLANs
             switch ($vlan['state'])
             {
-              case 'blocking':   $class = 'text-error'; break;
+              case 'blocking':   $class = 'text-danger'; break;
               case 'forwarding': $class = 'text-success';  break;
               default:           $class = 'muted';
             }
@@ -550,19 +550,19 @@ function generate_port_row($port, $vars = array())
         $native_state = $cache['ports_vlan'][$port['port_id']][$port['ifVlan']]['state'];
         $native_name  = $cache['ports_vlan'][$port['port_id']][$port['ifVlan']]['vlan_name'];
       }
-      switch ($vlan_state)
+      switch ($native_state)
       {
         case 'blocking':   $class = 'label-error';   break;
         case 'forwarding': $class = 'label-success'; break;
         default:           $class = '';
       }
       $rel = ($native_name) ? 'tooltip' : ''; // Hide tooltip for empty
-      $string .= '<br /><span data-rel="'.$rel.'" class="label '.$class.'"  data-tooltip="<strong class=\'small '.$class.'\'>'.$port['ifVlan'].' ['.$native_name.']</strong>">VLAN ' . $port['ifVlan'] . '</span>';
+      $string .= '<br /><span data-rel="'.$rel.'" class="label '.$class.'"  data-tooltip="<strong class=\'small\'>'.$port['ifVlan'].' ['.$native_name.']</strong>">VLAN ' . $port['ifVlan'] . '</span>';
     }
     else if ($port['ifVrf']) // Print the VRF name if the port is assigned to a VRF
     {
       $vrf_name = dbFetchCell("SELECT `vrf_name` FROM `vrfs` WHERE `vrf_id` = ?", array($port['ifVrf']));
-      $string .= '<br /><span class="small badge badge-success" data-rel="tooltip" data-tooltip="VRF">'.$vrf_name.'</span>';
+      $string .= '<br /><span class="label label-success" data-rel="tooltip" data-tooltip="VRF">'.$vrf_name.'</span>';
     }
 
     $string .= '</td>';
@@ -641,7 +641,7 @@ function generate_port_row($port, $vars = array())
                                  LEFT JOIN `ipv6_networks` USING(`ipv6_network_id`)
                                  WHERE `port_id` = ? AND `ipv6_network` NOT IN (?);", array($port['port_id'], $config['ignore_common_subnet'])) as $network_id)
         {
-          $sql = "SELECT P.`port_id`, P.`device_id` FROM `ipv6_addresses` AS A, `ipv6_networks` AS N, `ports` AS P
+          $sql = "SELECT N.*, P.`port_id`, P.`device_id` FROM `ipv6_addresses` AS A, `ipv6_networks` AS N, `ports` AS P
                    WHERE A.`port_id` = P.`port_id` AND P.device_id != ?
                    AND A.`ipv6_network_id` = ? AND N.`ipv6_network_id` = A.`ipv6_network_id`
                    AND P.`ifAdminStatus` = 'up' AND A.`ipv6_origin` != 'linklayer' AND A.`ipv6_origin` != 'wellknown'";
@@ -652,7 +652,7 @@ function generate_port_row($port, $vars = array())
           {
             if ($cache['devices']['id'][$new['device_id']]['disabled'] && !$config['web_show_disabled']) { continue; }
             $int_links[$new['port_id']] = $new['port_id'];
-            $int_links_v6[$new['port_id']][] = $new['port_id'];
+            $int_links_v6[$new['port_id']][] = $new['ipv6_network'];
           }
         }
       }
@@ -661,6 +661,8 @@ function generate_port_row($port, $vars = array())
       foreach ($int_links as $int_link)
       {
         $link_if  = get_port_by_id_cache($int_link);
+        if (!device_permitted($link_if['device_id'])) { continue; } // Skip not permitted links
+
         $link_dev = device_by_id_cache($link_if['device_id']);
         $string .= $br;
 

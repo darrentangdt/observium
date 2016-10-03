@@ -16,10 +16,16 @@
 chdir(dirname($argv[0]));
 $scriptname = basename($argv[0]);
 
+//$options['d'] = array(TRUE, TRUE);
 include_once("includes/sql-config.inc.php");
+include_once("html/includes/functions.inc.php");
 
 // Disable sql profiling, this is a background process without any way to display it
 $config['profile_sql'] = FALSE;
+
+$rules = cache_syslog_rules();
+$device_rules = cache_syslog_rules_assoc();
+$maint = cache_alert_maintenance();
 
 $i = 1;
 
@@ -41,11 +47,32 @@ while ($line = fgets($s))
     // Store RAW syslog line into debug.log
     logfile('debug.log', $line);
   }
+
+  // Update syslog ruleset if they've changed. (this query should be cheap).
+  $new_rules = get_obs_attrib('syslog_rules_changed');
+  if($new_rules > $cur_rules)
+  {
+    $cur_rules = $new_rules;
+    $rules = cache_syslog_rules();
+    $device_rules = cache_syslog_rules_assoc();
+    $maint = cache_alert_maintenance();
+
+    // logfile('debug.log', "Rules updated: ".$new_rules);
+  }
+
+
   // host || facility || priority || level || tag || timestamp || msg || program
+  $entry = array(); // Init!!!
   list($entry['host'], $entry['facility'], $entry['priority'], $entry['level'], $entry['tag'], $entry['timestamp'], $entry['msg'], $entry['program']) = explode("||", trim($line));
   process_syslog($entry, 1);
   unset($entry, $line);
+
   $i++;
+
+  if($i > 10)
+  {
+    $i=1;
+  }
 }
 
 // EOF

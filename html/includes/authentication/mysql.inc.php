@@ -42,7 +42,7 @@ function mysql_authenticate($username, $password)
     }
   }
 
-  session_logout();
+  //session_logout();
   return 0;
 }
 
@@ -192,6 +192,17 @@ function mysql_deluser($username)
 function mysql_auth_user_list()
 {
   return dbFetchRows("SELECT * FROM `users`"); // FIXME hardcode list of returned fields as in all other backends; array content should not depend on db changes/column names.
+}
+
+/**
+ * Get the user information by username
+ *
+ * @param string $username Username
+ * @return string The user's user name, or FALSE if the user ID is not found
+ */
+function mysql_auth_user_info($username)
+{
+  return dbFetchRow("SELECT * FROM `users` WHERE `username` = ?", array($username));
 }
 
 // EOF

@@ -58,6 +58,8 @@
 #IP-MIB::ipSystemStatsRefreshRate.ipv4 = Gauge32: 30000 milli-seconds
 #IP-MIB::ipSystemStatsRefreshRate.ipv6 = Gauge32: 30000 milli-seconds
 
+// FIXME instead of checking for blacklist, shouldn't we just add it to ALL devices, then use is_device_mib ?
+// This code means you can't disable IP-MIB from the web interface and have it actually work.
 if (!in_array("IP-MIB", get_device_mibs_blacklist($device))) // Skip blacklisted MIB
 {
   print_cli_data("Collecting", 'ipSystemStats', 2);
@@ -66,7 +68,6 @@ if (!in_array("IP-MIB", get_device_mibs_blacklist($device))) // Skip blacklisted
 
   if ($ipSystemStats)
   {
-
     print_cli_data_field("Address Families", 2);
 
     foreach ($ipSystemStats as $af => $stats)
@@ -103,7 +104,6 @@ if (!in_array("IP-MIB", get_device_mibs_blacklist($device))) // Skip blacklisted
         {
           StatsD::gauge(str_replace(".", "_", $device['hostname']).'.'.'system'.'.'.$oid, $stats[$oid]);
         }
-
       }
 
       rrdtool_create($device,$rrdfile,$rrd_create);
@@ -118,13 +118,11 @@ if (!in_array("IP-MIB", get_device_mibs_blacklist($device))) // Skip blacklisted
 
       $show_graphs[] = 'ipsystemstats_'.$af;
       $show_graphs[] = 'ipsystemstats_'.$af.'_frag';
-
     }
 
     echo(PHP_EOL);
 
     print_cli_data("Graphs",  implode($show_graphs," "), 2);
-
   }
 }
 unset($show_graphs);

@@ -14,8 +14,6 @@
 // Supermicro Sensors
 $cache['supermicro'] = snmpwalk_cache_multi_oid($device, "smHealthMonitorTable", array(), "SUPERMICRO-HEALTH-MIB");
 
-echo(" SUPERMICRO-HEALTH-MIB ");
-
 foreach ($cache['supermicro'] as $index => $sensor_data)
 {
   $descr   = $sensor_data['smHealthMonitorName'];

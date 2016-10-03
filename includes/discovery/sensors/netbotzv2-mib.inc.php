@@ -13,8 +13,6 @@
 
 // FIXME needs a rewrite to new scheme, with table walking and MIB use.
 
-echo(" NETBOTZV2-MIB ");
-
 $oids = snmp_walk($device, ".1.3.6.1.4.1.5528.100.4.1.1.1.4", "-Osqn", "");
 
 $oids = trim($oids);

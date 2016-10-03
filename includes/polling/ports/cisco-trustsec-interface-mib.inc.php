@@ -15,7 +15,7 @@
 // CISCO-TRUSTSEC-INTERFACE-MIB::ctsiIfControllerState.27 = INTEGER: open(6)
 
 // Get TrustSec port status
-$trustsec_statuses = snmpwalk_cache_oid($device, "ctsiIfControllerState", array(), "CISCO-TRUSTSEC-INTERFACE-MIB", mib_dirs('cisco'));
+$trustsec_statuses = snmpwalk_cache_oid($device, "ctsiIfControllerState", array(), "CISCO-TRUSTSEC-INTERFACE-MIB");
 
 // print_r($trustsec_statuses);
 foreach ($trustsec_statuses as $ts_index => $ts)
@@ -27,6 +27,6 @@ foreach ($trustsec_statuses as $ts_index => $ts)
   }
 }
 
-unset($ts, $ts_statuses, $ts_index);
+unset($trustsec_statuses, $ts, $ts_index);
 
 // EOF

@@ -25,6 +25,6 @@ $multiplier = 8;
 $ds_in = "bytesin";
 $ds_out = "bytesout";
 
-include("includes/graphs/generic_data.inc.php");
+include($config['html_dir']."/includes/graphs/generic_data.inc.php");
 
 // EOF

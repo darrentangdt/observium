@@ -11,8 +11,6 @@
  *
  */
 
-echo(" GEIST-V4-MIB ");
-
 $scale = 0.1;
 
 // GEIST-V4-MIB::productTitle.0 = STRING: GBB15
@@ -35,13 +33,13 @@ $scale = 0.1;
 // GEIST-V4-MIB::internalIO4.1 = INTEGER: 100
 // GEIST-V4-MIB::internalRelayState.1 = Gauge32: 0
 
-$cache['geist']['internalTable'] = snmpwalk_cache_multi_oid($device, "internalTable", array(), "GEIST-V4-MIB", mib_dirs('geist'));
+$cache['geist']['internalTable'] = snmpwalk_cache_multi_oid($device, 'internalTable', array(), 'GEIST-V4-MIB');
 
 foreach ($cache['geist']['internalTable'] as $index => $entry)
 {
   if ($entry['internalAvail'])
   {
-    $descr = $entry['internalName'] . " Temperature";
+    $descr = $entry['internalName'] . ' Temperature';
 
     $oid   = ".1.3.6.1.4.1.21239.5.1.2.1.5.$index";
     $value = $entry['internalTemp'];
@@ -51,7 +49,7 @@ foreach ($cache['geist']['internalTable'] as $index => $entry)
       discover_sensor($valid['sensor'], 'temperature', $device, $oid, 'internalTemp.'.$index, 'geist-v4-mib', $descr, $scale, $value);
     }
 
-    $descr = $entry['internalName'] . " Dew Point";
+    $descr = $entry['internalName'] . ' Dew Point';
     $oid   = ".1.3.6.1.4.1.21239.5.1.2.1.7.$index";
     $value = $entry['internalDewPoint'];
 
@@ -60,7 +58,7 @@ foreach ($cache['geist']['internalTable'] as $index => $entry)
       discover_sensor($valid['sensor'], 'temperature', $device, $oid, 'internalDewPoint.'.$index, 'geist-v4-mib', $descr, $scale, $value);
     }
 
-    $descr = $entry['internalName'] . " Humidity";
+    $descr = $entry['internalName'] . ' Humidity';
     $oid   = ".1.3.6.1.4.1.21239.5.1.2.1.6.$index";
     $value = $entry['internalHumidity'];
 
@@ -69,7 +67,7 @@ foreach ($cache['geist']['internalTable'] as $index => $entry)
       discover_sensor($valid['sensor'], 'humidity', $device, $oid, 'internalHumidity.'.$index, 'geist-v4-mib', $descr, 1, $value);
     }
 
-    $descr = $entry['climateName'] . " Analog I/O Sensor 1";
+    $descr = $entry['climateName'] . ' Analog I/O Sensor 1';
     $oid   = ".1.3.6.1.4.1.21239.5.1.2.1.8.$index";
     $value = $entry['internalIO1'];
 
@@ -78,7 +76,7 @@ foreach ($cache['geist']['internalTable'] as $index => $entry)
       discover_sensor($valid['sensor'], 'state', $device, $oid, 'internalIO1.'.$index, 'geist-v4-mib-io-state', $descr, NULL, $value, array('entPhysicalClass' => 'other'));
     }
 
-    $descr = $entry['climateName'] . " Analog I/O Sensor 2";
+    $descr = $entry['climateName'] . ' Analog I/O Sensor 2';
     $oid   = ".1.3.6.1.4.1.21239.5.1.2.1.9.$index";
     $value = $entry['internalIO2'];
 
@@ -87,7 +85,7 @@ foreach ($cache['geist']['internalTable'] as $index => $entry)
       discover_sensor($valid['sensor'], 'state', $device, $oid, 'internalIO2.'.$index, 'geist-v4-mib-io-state', $descr, NULL, $value, array('entPhysicalClass' => 'other'));
     }
 
-    $descr = $entry['climateName'] . " Analog I/O Sensor 3";
+    $descr = $entry['climateName'] . ' Analog I/O Sensor 3';
     $oid   = ".1.3.6.1.4.1.21239.5.1.2.1.10.$index";
     $value = $entry['internalIO3'];
 
@@ -96,7 +94,7 @@ foreach ($cache['geist']['internalTable'] as $index => $entry)
       discover_sensor($valid['sensor'], 'state', $device, $oid, 'internalIO3.'.$index, 'geist-v4-mib-io-state', $descr, NULL, $value, array('entPhysicalClass' => 'other'));
     }
 
-    $descr = $entry['climateName'] . " Analog I/O Sensor 4";
+    $descr = $entry['climateName'] . ' Analog I/O Sensor 4';
     $oid   = ".1.3.6.1.4.1.21239.5.1.2.1.11.$index";
     $value = $entry['internalIO4'];
 

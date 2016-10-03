@@ -1,10 +1,10 @@
 -- =================================================================
--- Copyright (C) 2004 by  HUAWEI TECHNOLOGIES. All rights reserved
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved
 -- 
 -- Description: This mib file is used for management of huawei Class Based
 --              QoS information.
 -- Reference:
--- Version:     V2.14
+-- Version:     V2.17
 -- History:
 --              V1.0 tianli,2004.4.10,publish
 --              V1.1 lizhiyong, 2004-9-14
@@ -26,6 +26,12 @@
 --                  modified by zhoucongya 2014-02-19
 --              v2.14
 --                  modified by zhangliang 2014-05-27
+--              v2.15
+--                  modified by caoyanping 2015-04-21
+--              v2.16
+--                  modified by yanruiqing 2015-09-01
+--              v2.17
+--                  modified by liuxiaoyan 2015-09-17
 -- ==========================================================================
 
     HUAWEI-CBQOS-MIB DEFINITIONS ::= BEGIN
@@ -39,7 +45,7 @@
                 FROM RFC1213-MIB            
             OBJECT-GROUP, MODULE-COMPLIANCE, NOTIFICATION-GROUP         
                 FROM SNMPv2-CONF            
-            Integer32, Unsigned32, Counter64, OBJECT-TYPE, MODULE-IDENTITY, NOTIFICATION-TYPE            
+            IpAddress, Integer32, Unsigned32, Counter64, OBJECT-TYPE, MODULE-IDENTITY, NOTIFICATION-TYPE            
                 FROM SNMPv2-SMI
             InterfaceIndex    
                 FROM IF-MIB            
@@ -48,7 +54,7 @@
     
     
         hwCBQoSMIB MODULE-IDENTITY 
-            LAST-UPDATED "201402191737Z"
+            LAST-UPDATED "201509011737Z"
             ORGANIZATION 
                 "Huawei Technologies Co.,Ltd."
             CONTACT-INFO 
@@ -65,6 +71,10 @@
                 for Class Based QoS feature.                    
         
         "
+            REVISION "201509011737Z"
+               DESCRIPTION
+                 "MOD hwCBQoSClassifierCfgInfoEntry hwCBQoSBehaviorCfgInfoEntry hwCBQoSCarCfgInfoEntry NODE"
+
             REVISION "201402191737Z"
                DESCRIPTION
                   "ADD hwCBQoSPolicyStatSubPolicyClassifierRunInfoTable "
@@ -79,8 +89,16 @@
      
             REVISION "201402191737Z"
                DESCRIPTION
-                 "MOD hwCBQoSClassifierName hwCBQoSClassifierName hwCBQoSBehaviorName hwCBQoSPolicyName hwCBQoSPolicyClassClassifierName hwCBQoSPolicyClassBehaviorName hwCBQoSIfApplyPolicyName hwCBQoSAtmPvcApplyPolicyName hwCBQoSIfVlanApplyPolicyName hwCBQoSVlanApplyPolicyName hwCBQoSTrapPolicyName hwCBQoSQueryPolicyName hwCBQoSQueryClassifierName NODE"    
+                 "MOD hwCBQoSClassifierName hwCBQoSClassifierName hwCBQoSBehaviorName hwCBQoSPolicyName hwCBQoSPolicyClassClassifierName hwCBQoSPolicyClassBehaviorName hwCBQoSIfApplyPolicyName hwCBQoSAtmPvcApplyPolicyName   hwCBQoSIfVlanApplyPolicyName hwCBQoSVlanApplyPolicyName hwCBQoSTrapPolicyName hwCBQoSQueryPolicyName hwCBQoSQueryClassifierName NODE"  
           
+            REVISION "201503281808Z"
+               DESCRIPTION
+                  "MOD HwCBQoSMatchRuleCfgInfoEntry NODE" 
+                  
+            REVISION "201509171808Z"
+               DESCRIPTION
+                  "MOD hwCBQoSIfApplyPolicyLinkLayer mpls-layer"
+				  				  
                ::= { hwQoS 1 }
 
         
@@ -137,7 +155,9 @@
                 dlci(34),
                 app-protocol(35),
                 protocol-group(36),
-                vlanid-cvlanid(37)
+                vlanid-cvlanid(37),
+		tagged-vxlan(38),
+		untagged-vxlan(39)
                 }
 
 -- CarAction
@@ -430,7 +450,7 @@
             STATUS current
             DESCRIPTION
                 "The value of this object identifies the index of the traffic classifier.
-                 The value ranges from 0 to 4096.
+                 The value ranges from 0 to 65535.
                  This object has no default value."
             ::= { hwCBQoSClassifierCfgInfoEntry 1 }
 
@@ -544,7 +564,21 @@ This object has no default value."
                 hwCBQoSMatchVlanBeginId
                     Unsigned32,
                 hwCBQoSMatchVlanEndId
-                    Unsigned32    
+                    Unsigned32,
+				hwCBQoSMatchInnerSrcIp
+					IpAddress,
+				hwCBQoSMatchInnerSrcIpMask
+					Unsigned32,
+				hwCBQoSMatchInnerDstIp
+					IpAddress,
+				hwCBQoSMatchInnerDstIpMask
+					Unsigned32,
+				hwCBQoSMatchInnerSrcPort
+					Unsigned32,
+				hwCBQoSMatchInnerDstPort
+					Unsigned32,
+				hwCBQoSMatchInnerProtocol
+					Unsigned32
              }
 
         hwCBQoSMatchRuleIndex OBJECT-TYPE
@@ -616,7 +650,9 @@ The value of this object can be match(1) or match-not(2)."
                 dlci(34),
                 app-protocol(35),
                 protocol-group(36),
-                vlanid-cvlanid(37)
+                vlanid-cvlanid(37),
+				tagged-vxlan(38),
+				untagged-vxlan(39)
                 This object has no default value.
                 "
             ::= { hwCBQoSMatchRuleCfgInfoEntry 3 }
@@ -708,7 +744,66 @@ This object has no default value.
             STATUS current
             DESCRIPTION
                 "End vlan ID."
-            ::= { hwCBQoSMatchRuleCfgInfoEntry 10 }      
+            ::= { hwCBQoSMatchRuleCfgInfoEntry 10 }
+
+        hwCBQoSMatchInnerSrcIp OBJECT-TYPE
+            SYNTAX IpAddress
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "Inner source IP address."
+            ::= { hwCBQoSMatchRuleCfgInfoEntry 11 }	
+
+        hwCBQoSMatchInnerSrcIpMask OBJECT-TYPE
+            SYNTAX Unsigned32 (0..32)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "Mask length of inner source IP address, ranges from 0 to 32."
+            ::= { hwCBQoSMatchRuleCfgInfoEntry 12 }	
+
+        hwCBQoSMatchInnerDstIp OBJECT-TYPE
+            SYNTAX IpAddress
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "Inner destination IP address."
+            ::= { hwCBQoSMatchRuleCfgInfoEntry 13 }	
+
+        hwCBQoSMatchInnerDstIpMask OBJECT-TYPE
+            SYNTAX Unsigned32 (0..32)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "Mask length of inner destination IP address, ranges from 0 to 32."
+            ::= { hwCBQoSMatchRuleCfgInfoEntry 14 }	
+
+        hwCBQoSMatchInnerSrcPort OBJECT-TYPE
+            SYNTAX Unsigned32 (0..65535|65536)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "Inner source port, ranges from 0 to 65535.
+		 The invalid value is 65536."
+            ::= { hwCBQoSMatchRuleCfgInfoEntry 15 }	
+
+        hwCBQoSMatchInnerDstPort OBJECT-TYPE
+            SYNTAX Unsigned32 (0..65535|65536)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "Inner destination port, ranges from 0 to 65535.
+		 The invalid value is 65536."
+            ::= { hwCBQoSMatchRuleCfgInfoEntry 16 }	
+
+        hwCBQoSMatchInnerProtocol OBJECT-TYPE
+            SYNTAX Unsigned32 (0..255|65536)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "Inner IP protocol, ranges from 0 to 255.
+		 The invalid value is 65536."
+            ::= { hwCBQoSMatchRuleCfgInfoEntry 17 }				
 
         
 -- hwCBQoSBehaviorObjects
@@ -763,7 +858,7 @@ The index used when the user creates a traffic behavior must be the same as the 
             STATUS current
             DESCRIPTION
                 "The value of this object identifies the index of the traffic behavior.
-The value ranges from 0 to 4096.
+The value ranges from 0 to 65535.
 This object has no default value.
 "
             ::= { hwCBQoSBehaviorCfgInfoEntry 1 }
@@ -816,15 +911,15 @@ This object has no default value.
         HwCBQoSCarCfgInfoEntry ::=
             SEQUENCE { 
                 hwCBQoSCarCir
-                    Integer32,
+                    Unsigned32,
                 hwCBQoSCarCbs
-                    Integer32,
+                    Unsigned32,
                 hwCBQoSCarEbs
-                    Integer32,
+                    Unsigned32,
                 hwCBQoSCarPir
-                    Integer32,
+                    Unsigned32,
                 hwCBQoSCarPbs
-                    Integer32,
+                    Unsigned32,
                 hwCBQoSCarGreenAction
                     CarAction,
                 hwCBQoSCarGreenRemarkValue
@@ -844,7 +939,7 @@ This object has no default value.
              }
 
         hwCBQoSCarCir OBJECT-TYPE
-            SYNTAX Integer32
+            SYNTAX Unsigned32
             MAX-ACCESS read-create
             STATUS current
             DESCRIPTION
@@ -855,7 +950,7 @@ The value ranges from 100 to 1000000, in kbit/s, with no default value.
 
         
         hwCBQoSCarCbs OBJECT-TYPE
-            SYNTAX Integer32
+            SYNTAX Unsigned32
             MAX-ACCESS read-create
             STATUS current
             DESCRIPTION
@@ -867,7 +962,7 @@ The default value is 10000 bytes.
 
         
         hwCBQoSCarEbs OBJECT-TYPE
-            SYNTAX Integer32
+            SYNTAX Unsigned32
             MAX-ACCESS read-create
             STATUS current
             DESCRIPTION
@@ -881,7 +976,7 @@ The default value is 10000 bytes.
 
         
         hwCBQoSCarPir OBJECT-TYPE
-            SYNTAX Integer32
+            SYNTAX Unsigned32
             MAX-ACCESS read-create
             STATUS current
             DESCRIPTION
@@ -893,7 +988,7 @@ This object has no default value.
 
         
         hwCBQoSCarPbs OBJECT-TYPE
-            SYNTAX Integer32
+            SYNTAX Unsigned32
             MAX-ACCESS read-create
             STATUS current
             DESCRIPTION
@@ -3589,19 +3684,21 @@ The value of this object can be Active(1), CreateAndGo(4), or Destroy(6).
 This object has no default value.
 "
             ::= { hwCBQoSIfApplyPolicyEntry 4 }     
-            
+-- add by l00241571 for mpls-layer            
         hwCBQoSIfApplyPolicyLinkLayer OBJECT-TYPE
             SYNTAX INTEGER
             {
                 linklayer(1),
                 alllayer(2),
-                iplayer(3)
+                iplayer(3),
+                mplslayer(4)
                  }
             MAX-ACCESS read-create
             STATUS current
             DESCRIPTION
                 "If it is set link-layer, it means l2 configuration is valid,
-                 or if ip-layer is set, means l3 configuration is valid, or it means all "     
+                 or if ip-layer is set, means l3 configuration is valid, 
+                 or if mpls-layer is set, means mpls configuration is valid, or it means all "     
             ::= { hwCBQoSIfApplyPolicyEntry 5 }
    
 
@@ -3798,18 +3895,19 @@ This object has no default value.
                 "RowStatus. Three actions are used: active,
                 createAndGo, destroy"
             ::= { hwCBQoSIfVlanApplyPolicyEntry 7 }   
-            
+ --modify by l00241571 for mpls-layer           
         hwCBQoSIfVlanApplyPolicyLinkLayer OBJECT-TYPE
             SYNTAX INTEGER
             {
                 linklayer(1),
                 alllayer(2),
-                iplayer(3)
+                iplayer(3),
+                mplslayer(4)
                }
             MAX-ACCESS read-create
             STATUS current
             DESCRIPTION
-                "Indicates the link layer. The value range is: link-layer(1),all-layer(2),ip-layer(3). "     
+                "Indicates the link layer. The value range is: link-layer(1),all-layer(2),ip-layer(3),mpls-layer(4). "     
 
             ::= { hwCBQoSIfVlanApplyPolicyEntry 8 }
      
@@ -8940,7 +9038,8 @@ This object has no default value.
             OBJECTS { hwCBQoSClassifierIndexNext, hwCBQoSClassifierIndex, hwCBQoSClassifierName, hwCBQoSClassifierRuleCount, hwCBQoSClassifierOperator, 
                 hwCBQoSClassifierLayer, hwCBQoSClassifierRowStatus, hwCBQoSMatchRuleIndex, hwCBQoSMatchRuleIfNot, hwCBQoSMatchRuleType, 
                 hwCBQoSMatchRuleStringValue, hwCBQoSMatchMacMask, hwCBQoSMatchRuleIntValue1, hwCBQoSMatchRuleIntValue2, hwCBQoSMatchRuleRowStatus,
-                hwCBQoSMatchVlanEndId    
+                hwCBQoSMatchVlanEndId, hwCBQoSMatchInnerSrcIp, hwCBQoSMatchInnerSrcIpMask, hwCBQoSMatchInnerDstIp, hwCBQoSMatchInnerDstIpMask,
+                hwCBQoSMatchInnerSrcPort,  hwCBQoSMatchInnerDstPort, hwCBQoSMatchInnerProtocol
                  }
             STATUS current
             DESCRIPTION 

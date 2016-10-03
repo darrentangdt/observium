@@ -13,8 +13,6 @@
 
 // This could do with a rewrite.
 
-echo(" S5-CHASSIS-MIB ");
-
 # Get major version number of running firmware
 $fw_major_version = Null;
 preg_match("/[0-9]\.[0-9]/", $device['version'], $fw_major_version);

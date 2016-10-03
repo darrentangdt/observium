@@ -13,6 +13,4 @@
 
 // Superseded by 262.php
 
-echo(PHP_EOL);
-
 // EOF

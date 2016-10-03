@@ -1,33 +1,49 @@
 RADLAN-Physicaldescription-MIB DEFINITIONS ::= BEGIN
 
--- Version:                 7.36
--- Date:                    05 Apr 2004
+-- Version:                 7.40.02
+-- Date:                    04 Sep 2005
 --
 -- 30-Jan-2004 Add rlPhdUnitGenParamTable
 -- 30-Jan-2004 Add rlPhdUnitEnvParamTable
 -- 24-Feb-2004 Add rlPhdStackOrderTopUnit
 -- 24-Feb-2004 Add rlPhdStackOrderBottomUnit
 -- 24-Feb-2004 Add rlPhdStackOrderPermutation
+-- 21-Apr-2005 Add rlPhdPortsTable switch description between:
+--                  rlPhdPortsModuleNumber && rlPhdPortsStackUnit due to EWS need
+-- 27-Apr-2005 Add rlStackLinkChange trap.
+-- 16-May-2005 Add rlPhdNumberOfPoeUnits
+-- 02-Jun-2005 Add field to rlPhDUnitEnvParamTable: rlPhdUnitEnvParamUpTime
+-- 25-Jul-2005 Add rlPhdPhyLedTimeout and rlPhdPhyLedStackUnit
+-- 03-Aug-2005 Remove boundary for unit number field, checked by box
+--                    this is done coz different products use different stack size
+-- 05-Sep-2005 Add rlCascadeTable
+-- 31-Oct-2005 Add rlCascadeAfterResetTable
+-- 14-nov-2005 Change rlPhdUnitGenParamSerialNum to read-write
+
 
 IMPORTS
-    OBJECT-TYPE, MODULE-IDENTITY            FROM SNMPv2-SMI
-    DisplayString                           FROM SNMPv2-TC
-    PhysAddress                             FROM SNMPv2-TC
-    JackType                                FROM MAU-MIB
-    rnd                                     FROM RADLAN-MIB
-    RlEnvMonState                           FROM RADLAN-HWENVIROMENT
-    EntitySensorStatus, EntitySensorValue   FROM ENTITY-SENSOR-MIB
-    TRAP-TYPE                               FROM RFC-1215
-    rndErrorDesc, rndErrorSeverity          FROM RADLAN-MIB;
+    OBJECT-TYPE, MODULE-IDENTITY, TimeTicks,
+    NOTIFICATION-TYPE                           FROM SNMPv2-SMI
+    DisplayString                               FROM SNMPv2-TC
+    PhysAddress, RowStatus                      FROM SNMPv2-TC
+    JackType                                    FROM MAU-MIB
+    rnd, rndNotifications                       FROM RADLAN-MIB
+    RlEnvMonState                               FROM RADLAN-HWENVIROMENT
+    EntitySensorStatus, EntitySensorValue       FROM ENTITY-SENSOR-MIB
+    rndErrorDesc, rndErrorSeverity              FROM RADLAN-DEVICEPARAMS-MIB
+    InterfaceIndexOrZero,ifIndex,InterfaceIndex FROM IF-MIB;
 
 rlPhysicalDescription  MODULE-IDENTITY
-                       LAST-UPDATED "200310180000Z"
-                       ORGANIZATION ""
+                       LAST-UPDATED "200602120000Z"
+                       ORGANIZATION "Radlan Computer Communications Ltd."
                        CONTACT-INFO
-                            ""
+                            "radlan.com"
                        DESCRIPTION
                             "The private MIB module definition for physical
                              device configuration."
+                       REVISION "200602120000Z"
+                       DESCRIPTION
+                            "Removed TRAP-TYPE from IMPORTS."
                        REVISION "200310180000Z"
                        DESCRIPTION
                             "Initial version of this MIB."
@@ -160,7 +176,41 @@ rlPhdModuleType OBJECT-TYPE
             42 - Gemstones 24F+4G
             43 - Gemstones 48F+4G
             44 - Cheetah 24G + 3XG
-            45 - Cheetah 48G stacking"
+            45 - Cheetah 48G stacking
+            46 - Gemstones Sapphire only with PoE
+            47 - Gemstones 24F+4G with PoE
+            48 - Gemstones 48F+4G with PoE
+            49 - DLink DXS3250
+            50 - DLink DXS3227
+            51 - DLink DXS3227 with PoE
+            52 - Alcatel 24F+4G Non PoE
+            53 - Alcatel 48F+4G Non PoE
+            54 - Alcatel 24F+4G with PoE
+            55 - Alcatel 48F+4G with PoE
+            56 - HP Diamond 40F + 4G
+            57 - Cheetah cut 98DX163 16G + 2XG
+            58 - Cheetah cut 98DX243 24G + 2XG
+            59 - Diamond 8F
+            60 - Diamond 8F POE
+            61 - Diamond 8F MaxPower POE
+            62 - Diamond 8F 2G (copper + LC)
+            63 - Diamond 8F 2G
+            64 - Diamond 8G
+            65 - Diamond 8G POE
+            66 - Diamond 8G MaxPower POE
+            67 - Alcatel 24F+4G fiber
+            68 - Alcatel 12F+4G
+            69 - Alcatel 12F+4G with POE
+            70 - TP-Link Cheetah
+            71 - TP-Link 2 Cheetah b2b
+            72 - Netgear 1 98DX249 cheetah
+            73 - 2 98DX249 Cheetah b2b
+            74 - 1 98DX269 cheetah
+            75 - Netgear 2 98DX269 cheetah b2b
+            77 - Linksys-SRS 24F+4G Non PoE
+            78 - Linksys-SRS 48F+4G Non PoE
+            79 - Linksys-SRS 24F+4G with PoE
+            80 - Linksys-SRS 48F+4G with PoE"
     ::= { rlPhdModuleEntry 3 }
 
 rlPhdModuleStartingPort OBJECT-TYPE
@@ -280,7 +330,7 @@ rlPhdPortsStackUnit OBJECT-TYPE
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
-       "The number of the stack unit to which this port belongs."
+       "The number of the slot to which this port belongs."
     ::= { rlPhdPortsEntry 4 }
 
 rlPhdPortsModuleNumber OBJECT-TYPE
@@ -288,7 +338,7 @@ rlPhdPortsModuleNumber OBJECT-TYPE
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
-       "The number of the module to which this port belongs."
+       "The number of the stack unit to which this port resides in."
     ::= { rlPhdPortsEntry 5 }
 
 rlPhdPortsRow OBJECT-TYPE
@@ -379,7 +429,7 @@ rlPhdStackType OBJECT-TYPE
     ::= { rlPhdStackEntry 2 }
 
 rlPhdStackConnect1 OBJECT-TYPE
-    SYNTAX      INTEGER (0..8)
+    SYNTAX      INTEGER
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
@@ -389,7 +439,7 @@ rlPhdStackConnect1 OBJECT-TYPE
     ::= { rlPhdStackEntry 3 }
 
 rlPhdStackConnect2 OBJECT-TYPE
-    SYNTAX      INTEGER (0..8)
+    SYNTAX      INTEGER
     MAX-ACCESS  read-only
     STATUS      current
     DESCRIPTION
@@ -677,7 +727,7 @@ rlPhdUnitGenParamHardwareVersion OBJECT-TYPE
 
 rlPhdUnitGenParamSerialNum OBJECT-TYPE
        SYNTAX      DisplayString
-       MAX-ACCESS  read-only
+       MAX-ACCESS  read-write
        STATUS      current
        DESCRIPTION "Serial number of the product."
        ::= { rlPhdUnitGenParamEntry 5 }
@@ -725,8 +775,8 @@ RlPhdUnitEnvParamEntry ::= SEQUENCE {
     rlPhdUnitEnvParamFan4Status                  RlEnvMonState,
     rlPhdUnitEnvParamFan5Status                  RlEnvMonState,
     rlPhdUnitEnvParamTempSensorValue             EntitySensorValue,
-    rlPhdUnitEnvParamTempSensorStatus            EntitySensorStatus
-
+    rlPhdUnitEnvParamTempSensorStatus            EntitySensorStatus,
+    rlPhdUnitEnvParamUpTime                      TimeTicks
 }
 
 rlPhdUnitEnvParamStackUnit OBJECT-TYPE
@@ -810,6 +860,14 @@ rlPhdUnitEnvParamTempSensorStatus OBJECT-TYPE
                "Status value for the Sensor being instrumented."
         ::= { rlPhdUnitEnvParamEntry 10 }
 
+rlPhdUnitEnvParamUpTime OBJECT-TYPE
+        SYNTAX     TimeTicks
+        MAX-ACCESS read-only
+        STATUS     current
+        DESCRIPTION
+               "Up time of the unit in 100th of second (sec/100)."
+        ::= { rlPhdUnitEnvParamEntry 11 }
+
 rlPhdStackOrderTopUnit OBJECT-TYPE
     SYNTAX      INTEGER
     MAX-ACCESS  read-write
@@ -833,52 +891,230 @@ rlPhdStackOrderPermutation OBJECT-TYPE
         "This scalar mib holds stack permutation"
     ::= { rlPhysicalDescription 18 }
 
+rlPhdNumberOfPoeUnits OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Shows the current number of poe units in the stack."
+   ::= { rlPhysicalDescription 19 }
+
+rlPhdPoeTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF RlPhdPoeEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "For each module (board) there is an entry describing it in this
+         module"
+    ::= { rlPhysicalDescription 20 }
+
+rlPhdPoeEntry OBJECT-TYPE
+    SYNTAX      RlPhdPoeEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A entry of this table specifies a module (board)"
+    INDEX  { rlPhdPoeStackUnit }
+    ::= { rlPhdPoeTable 1 }
+
+RlPhdPoeEntry ::= SEQUENCE {
+    rlPhdPoeStackUnit       INTEGER,
+    rlPhdPoePresent         INTEGER
+}
+
+rlPhdPoeStackUnit OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The stack unit to which this module belongs."
+    ::= { rlPhdPoeEntry 1 }
+
+rlPhdPoePresent OBJECT-TYPE
+    SYNTAX  INTEGER {
+        no(1),
+        yes(2)
+    }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The present state of the PoE module.  The no(1) state indicates
+         that the PoE module is not present. The yes{2) state indicates that the
+         PoE module is present."
+    ::=  { rlPhdPoeEntry 2 }
+
+-- The light unit scalars
+rlPhdPhyLedStackUnit OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This scalar mib holds the unit number for the stack light command"
+    ::= { rlPhysicalDescription 21 }
+
+rlPhdPhyLedTimeout OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This scalar mib holds the timeout for the stack light command.
+         May be in the range 2..60 sec. (default - 5 sec.), if the timeout = 0
+         - all units return to normal state."
+    ::= { rlPhysicalDescription 22 }
+
+rlCascadeTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF RlCascadeEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "For each cascaded port for stacking unit there is an entry describing it in this table"
+    ::= { rlPhysicalDescription 23 }
+
+rlCascadeEntry OBJECT-TYPE
+    SYNTAX      RlCascadeEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A entry of this table specifies a cascaded port information in a unit"
+    INDEX  { ifIndex }
+    ::= { rlCascadeTable 1 }
+
+RlCascadeEntry ::= SEQUENCE {
+    rlCascadeNeighborIfIndex   InterfaceIndexOrZero,
+    rlCascadeNeighborUnit      INTEGER,
+    rlCascadeTrunkId      INTEGER
+}
+
+rlCascadeNeighborIfIndex OBJECT-TYPE
+    SYNTAX      InterfaceIndexOrZero
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The ifIndex of a stacking port in the neighbor unit -
+         0 means not connected; other integer indicates the IfIndex."
+    ::= { rlCascadeEntry 1 }
+
+rlCascadeNeighborUnit OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The unit number of the neighbor unit -
+         0 means not connected; other integer indicates the unit number."
+    ::= { rlCascadeEntry 2 }
+
+rlCascadeTrunkId OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The id of the trunk, the stacking port is member,
+         zero if the port is not member of trunk."
+    ::= { rlCascadeEntry 3 }
+
+rlCascadeAfterResetTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF RlCascadeAfterResetEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "For each cascaded port for stacking unit there is an entry describing it in this table after reset"
+    ::= { rlPhysicalDescription 24 }
+
+rlCascadeAfterResetEntry OBJECT-TYPE
+    SYNTAX      RlCascadeAfterResetEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A entry of this table specifies a cascaded port information in a unit after reset"
+    INDEX  { rlCascadeIfIndexAfterReset }
+    ::= { rlCascadeAfterResetTable 1 }
+
+RlCascadeAfterResetEntry ::= SEQUENCE {
+    rlCascadeIfIndexAfterReset          InterfaceIndex,
+    rlCascadeTrunkIdAfterReset          INTEGER,
+    rlCascadeRowStatus                  RowStatus
+}
+
+rlCascadeIfIndexAfterReset OBJECT-TYPE
+    SYNTAX      InterfaceIndex
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The ifIndex of a stacking port  after reset."
+    ::= { rlCascadeAfterResetEntry 1 }
+
+rlCascadeTrunkIdAfterReset OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The Id of the trunk, the stacking port will be member after reset,
+         zero if the port is not member of trunk."
+    ::= { rlCascadeAfterResetEntry 2 }
+
+rlCascadeRowStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION        "This object indicates the status of this entry."
+    ::= { rlCascadeAfterResetEntry 3 }
+
+
 -- Stack MIB Trap Definitions
-rlStackUnitRemoved TRAP-TYPE
-    ENTERPRISE  rnd
-    VARIABLES   { rndErrorDesc, rndErrorSeverity }
+
+rlStackUnitRemoved NOTIFICATION-TYPE
+    OBJECTS   { rndErrorDesc, rndErrorSeverity }
+    STATUS  current
     DESCRIPTION
         "Trap indicating that a unit was removed from the stack."
-    ::= 186
+    ::= { rndNotifications 186 }
 
-rlStackConfigChangedRingChain TRAP-TYPE
-    ENTERPRISE  rnd
-    VARIABLES   { rndErrorDesc, rndErrorSeverity }
+rlStackConfigChangedRingChain NOTIFICATION-TYPE
+    OBJECTS   { rndErrorDesc, rndErrorSeverity }
+    STATUS  current
     DESCRIPTION
         "Trap indicating that the configuration of the stack has changed.
         - from ring to chain
         - from chain to ring."
-    ::=  187
 
-rlStackBackupUnitRemoved TRAP-TYPE
-    ENTERPRISE  rnd
-    VARIABLES   { rndErrorDesc, rndErrorSeverity }
+    ::= { rndNotifications 187 }
+
+rlStackBackupUnitRemoved NOTIFICATION-TYPE
+    OBJECTS   { rndErrorDesc, rndErrorSeverity }
+    STATUS  current
     DESCRIPTION
         "Trap indicating that the backup unit was removed from the stack."
-    ::=  188
+    ::= { rndNotifications 188 }
 
-rlStackMasterSwitchover TRAP-TYPE
-    ENTERPRISE  rnd
-    VARIABLES   { rndErrorDesc, rndErrorSeverity }
+rlStackMasterSwitchover NOTIFICATION-TYPE
+    OBJECTS   { rndErrorDesc, rndErrorSeverity }
+    STATUS  current
     DESCRIPTION
         "Trap indicating that a new master was elected.
          The old maste is the backup now. "
-    ::=  189
+    ::= { rndNotifications 189 }
 
-rlStackUnitDifferentSwVersion TRAP-TYPE
-    ENTERPRISE  rnd
-    VARIABLES   { rndErrorDesc, rndErrorSeverity }
+rlStackUnitDifferentSwVersion NOTIFICATION-TYPE
+    OBJECTS   { rndErrorDesc, rndErrorSeverity }
+    STATUS  current
     DESCRIPTION
         "Trap indicating that the new unit added to the stack has
          different software version than the master."
-    ::=  190
+    ::= { rndNotifications 190 }
 
-rlStackDuplicateUnitNotJoin TRAP-TYPE
-    ENTERPRISE  rnd
-    VARIABLES   { rndErrorDesc, rndErrorSeverity }
+rlStackDuplicateUnitNotJoin NOTIFICATION-TYPE
+    OBJECTS   { rndErrorDesc, rndErrorSeverity }
+    STATUS  current
     DESCRIPTION
         "Trap indicating that a new unit with duplicated unit id was
          added to the stack - but it will not join the stack."
-    ::=  191
+    ::= { rndNotifications 191 }
+
+rlStackLinkChange NOTIFICATION-TYPE
+    OBJECTS   { rndErrorDesc, rndErrorSeverity }
+    STATUS  current
+    DESCRIPTION
+        "Trap indicating that Link has change in one of the Stacking Ports."
+    ::= { rndNotifications 195 }
 
 END

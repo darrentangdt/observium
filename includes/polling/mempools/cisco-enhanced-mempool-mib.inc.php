@@ -19,27 +19,33 @@ if ($mempool['mempool_hc'])
 } else {
   $cemp_oid = 'cempMemPool';
 }
+$oids = array('used' => $cemp_oid.'Used',
+              'free' => $cemp_oid.'Free');
 
-if (!is_array($cache_storage['cisco-enhanced-mempool-mib']))
+if (!is_array($cache_storage[$mib]))
 {
-  foreach (array($cemp_oid.'Used', $cemp_oid.'Free') as $oid)
+  foreach ($oids as $oid)
   {
-    $cache_mempool = snmpwalk_cache_multi_oid($device, $oid, $cache_mempool, $mib, mib_dirs('cisco'));
+    $cache_mempool = snmpwalk_cache_multi_oid($device, $oid, $cache_mempool, $mib);
     if ($device['os'] == 'iosxr' && !$GLOBALS['snmp_status'])
     {
       // Hack for some old IOS-XR, sometime return "Timeout: No Response".
       // See http://jira.observium.org/browse/OBSERVIUM-1170
-      $cache_mempool = snmpwalk_cache_multi_oid($device, $oid, $cache_mempool, $mib, mib_dirs('cisco'));
+      $cache_mempool = snmpwalk_cache_multi_oid($device, $oid, $cache_mempool, $mib);
     }
   }
-  $cache_storage['cisco-enhanced-mempool-mib'] = $cache_mempool;
+  $cache_storage[$mib] = $cache_mempool;
 } else {
   print_debug("Cached!");
+  $cache_mempool = $cache_storage[$mib];
 }
 
 $index            = $mempool['mempool_index'];
-$mempool['used']  = $cache_storage['cisco-enhanced-mempool-mib'][$index][$cemp_oid.'Used'];
-$mempool['free']  = $cache_storage['cisco-enhanced-mempool-mib'][$index][$cemp_oid.'Free'];
+foreach ($oids as $param => $oid)
+{
+  $mempool[$param] = $cache_mempool[$index][$oid];
+}
+
 $mempool['total'] = $mempool['used'] + $mempool['free'];
 
 unset ($index, $cemp_oid, $oid);

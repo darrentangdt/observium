@@ -19,7 +19,7 @@ function get_cache($host, $value)
 {
   global $dev_cache;
 
-  $host = strtolower(trim($host));
+  if (empty($host)) { return; }
 
   // Check cache expiration
   $now = time();
@@ -35,23 +35,44 @@ function get_cache($host, $value)
     switch($value)
     {
       case 'device_id':
+        // Try by map in config
+        if (isset($GLOBALS['config']['syslog']['host_map'][$host]))
+        {
+          $new_host = $GLOBALS['config']['syslog']['host_map'][$host];
+          if (is_numeric($new_host))
+          {
+            // Check if device id exist
+            $dev_cache[$host]['device_id'] = dbFetchCell('SELECT `device_id` FROM `devices` WHERE `device_id` = ?', array($new_host));
+          } else {
+            $dev_cache[$host]['device_id'] = dbFetchCell('SELECT `device_id` FROM `devices` WHERE `hostname` = ? OR `sysName` = ?', array($new_host, $new_host));
+          }
+          // If syslog host map correct, return device id or try onward
+          if ($dev_cache[$host]['device_id'])
+          {
+            return $dev_cache[$host]['device_id'];
+          }
+        }
         // Try by hostname
         $dev_cache[$host]['device_id'] = dbFetchCell('SELECT `device_id` FROM `devices` WHERE `hostname` = ? OR `sysName` = ?', array($host, $host));
         // If failed, try by IP
         if (!is_numeric($dev_cache[$host]['device_id']))
         {
-          if (preg_match('/::ffff:(\d+\.\d+\.\d+\.\d+)/i', $host, $matches))
-          {
-            // IPv4 mapped to IPv6, like ::ffff:192.0.2.128
-            // See: http://jira.observium.org/browse/OBSERVIUM-1274
-            $ip = $matches[1];
-          } else {
-            $ip = $host;
-          }
+          $ip = $host;
+
           $ip_version = get_ip_version($ip);
           if ($ip_version !== FALSE)
           {
-            if ($ip_version == 6) { $ip = Net_IPv6::uncompress($ip, TRUE); }
+            if ($ip_version == 6 && preg_match('/::ffff:(\d+\.\d+\.\d+\.\d+)/', $ip, $matches))
+            {
+              // IPv4 mapped to IPv6, like ::ffff:192.0.2.128
+              // See: http://jira.observium.org/browse/OBSERVIUM-1274
+              $ip = $matches[1];
+              $ip_version = 4;
+            }
+            else if ($ip_version == 6)
+            {
+              $ip = Net_IPv6::uncompress($ip, TRUE);
+            }
             $address_count = dbFetchCell('SELECT COUNT(*) FROM `ipv'.$ip_version.'_addresses` WHERE `ipv'.$ip_version.'_address` = ?;', array($ip));
             if ($address_count)
             {
@@ -65,7 +86,12 @@ function get_cache($host, $value)
         break;
       case 'os':
       case 'version':
-        $dev_cache[$host][$value] = dbFetchCell('SELECT `'.$value.'` FROM `devices` WHERE `device_id` = ?', array(get_cache($host, 'device_id')));
+        if ($device_id = get_cache($host, 'device_id'))
+        {
+          $dev_cache[$host][$value] = dbFetchCell('SELECT `'.$value.'` FROM `devices` WHERE `device_id` = ?', array($device_id));
+        } else {
+          return NULL;
+        }
         break;
       case 'os_group':
         $os = get_cache($host, 'os');
@@ -75,14 +101,55 @@ function get_cache($host, $value)
         return NULL;
     }
   }
+
   return $dev_cache[$host][$value];
 }
+
+function cache_syslog_rules()
+{
+
+  $rules = array();
+  foreach(dbFetchRows("SELECT * FROM `syslog_rules` WHERE `la_disable` = '0'") as $lat)
+  {
+    $rules[$lat['la_id']] = $lat;
+  }
+
+  return $rules;
+
+}
+
+function cache_syslog_rules_assoc()
+{
+  $device_rules = array();
+  foreach(dbFetchRows("SELECT * FROM `syslog_rules_assoc`") as $laa)
+  {
+
+    //print_r($laa);
+
+    if($laa['entity_type'] == 'group')
+    {
+      $devices = get_group_entities($laa['entity_id']);
+      foreach($devices as $dev_id)
+      {
+        $device_rules[$dev_id][$laa['la_id']] = TRUE;
+      }
+    } elseif($laa['entity_type'] == 'device')
+    {
+      $device_rules[$laa['entity_id']][$laa['la_id']] = TRUE;
+    }
+  }
+  return $device_rules;
+}
+
 
 // DOCME needs phpdoc block
 // TESTME needs unit testing
 function process_syslog($entry, $update)
 {
   global $config;
+  global $rules;
+  global $device_rules;
+  global $maint;
 
   foreach ($config['syslog']['filter'] as $bi)
   {
@@ -93,13 +160,24 @@ function process_syslog($entry, $update)
     }
   }
 
+  $entry['msg_orig'] = $entry['msg'];
+
+  // Initial rewrites
+  $entry['host']      = strtolower(trim($entry['host']));
+
+  // Rewrite priority and level from strings to numbers
+  $entry['priority']  = priority_string_to_numeric($entry['priority']);
+  $entry['level']     = priority_string_to_numeric($entry['level']);
+
   $entry['device_id'] = get_cache($entry['host'], 'device_id');
+  //print_vars($entry);
+  //print_vars($GLOBALS['dev_cache']);
   if ($entry['device_id'])
   {
     $os       = get_cache($entry['host'], 'os');
     $os_group = get_cache($entry['host'], 'os_group');
 
-    if (in_array($os, array('ios', 'iosxe', 'catos')))
+    if (in_array($os, array('ios', 'iosxe', 'catos', 'asa')))
     {
       $matches = array();
 #      if (preg_match('#%(?P<program>.*):( ?)(?P<msg>.*)#', $entry['msg'], $matches)) {
@@ -152,7 +230,7 @@ function process_syslog($entry, $update)
       $matches = array();
       if (preg_match('#Log: \[(?P<program>.*)\] - (?P<msg>.*)#', $entry['msg'], $matches))
       {
-        $entry['msg'] = $matches['msg'];
+        $entry['msg']     = $matches['msg'];
         $entry['program'] = $matches['program'];
       }
       unset($matches);
@@ -249,15 +327,12 @@ function process_syslog($entry, $update)
     $entry['program'] = strtoupper($entry['program']);
     array_walk($entry, 'trim');
 
-    // Rewrite priority and level from strings to numbers
-    $entry['priority'] = priority_string_to_numeric($entry['priority']);
-    $entry['level']    = priority_string_to_numeric($entry['level']);
-
     if ($update)
     {
-      dbInsert(
+      $log_id = dbInsert(
         array(
           'device_id' => $entry['device_id'],
+          'host'      => $entry['host'],
           'program'   => $entry['program'],
           'facility'  => $entry['facility'],
           'priority'  => $entry['priority'],
@@ -269,14 +344,105 @@ function process_syslog($entry, $update)
         'syslog'
       );
     }
+
+//$req_dump = print_r(array($entry, $rules, $device_rules), TRUE);
+//$fp = fopen('/tmp/syslog.log', 'a');
+//fwrite($fp, $req_dump);
+//fclose($fp);
+
+    $notification_type = 'syslog';
+
+      /// FIXME, I not know how 'syslog_rules_assoc' is filled, I pass rules to all devices
+      /// FIXME, this is copy-pasted from above, while not have WUI for syslog_rules_assoc
+      foreach ($rules as $la_id => $rule)
+      {
+        if ((empty($device_rules) || isset($device_rules[$entry['device_id']][$la_id])) && preg_match($rule['la_rule'], $entry['msg_orig']))
+        {
+
+          // Mark no notification during maintenance
+          if(isset($maint['device'][$entry['device_id']]) || (isset($maint['global']) && $maint['global'] > 0)) { $notified = '-1'; } else { $notified = '0'; }
+
+          $log_id = dbInsert(array('device_id' => $entry['device_id'],
+                                   'la_id'     => $la_id,
+                                   'syslog_id' => $log_id,
+                                   'timestamp' => $entry['timestamp'],
+                                   'program'   => $entry['program'],
+                                   'message'   => $entry['msg_orig'],
+                                   'notified'  => $notified), 'syslog_alerts');
+
+          // Get contacts for $la_id
+          $transports = get_alert_contacts($entry['device_id'], $la_id, $notification_type);
+          // Add notification to queue
+          if ($notified !='-1' && !empty($transports))
+          {
+            $device = device_by_id_cache($entry['device_id']);
+            $message_tags = array(
+                'ALERT_STATE'     => "SYSLOG",
+                'ALERT_URL'       => generate_url(array('page' => 'device', 'device' => $device['device_id'],
+                                                        'tab' => 'alert', 'entity_type' => 'syslog')),
+                'ALERT_ID'        => $la_id,
+                'ALERT_MESSAGE'   => $rule['la_descr'],
+                'CONDITIONS'      => $rule['la_rule'],
+                'METRICS'         => $entry['msg'],
+                'SYSLOG_RULE'     => $rule['la_rule'],
+                'SYSLOG_MESSAGE'  => $entry['msg'],
+                'SYSLOG_PROGRAM'  => $entry['program'],
+                'TIMESTAMP'       => $entry['timestamp'],
+                'DEVICE_HOSTNAME' => $device['hostname'],
+                'DEVICE_LINK'     => generate_device_link($device),
+                'DEVICE_HARDWARE' => $device['hardware'],
+                'DEVICE_OS'       => $device['os_text'] . ' ' . $device['version'] . ' ' . $device['features'],
+                'DEVICE_LOCATION' => $device['location'],
+                'DEVICE_UPTIME'   => deviceUptime($device)
+            );
+            $message_tags['TITLE'] = alert_generate_subject($device, 'SYSLOG', $message_tags);
+
+            $notification = array(
+              'device_id'             => $entry['device_id'],
+              'log_id'                => $log_id,
+              'aca_type'              => $notification_type,
+              'severity'              => $entry['priority'],
+              'endpoints'             => json_encode($transports),
+              //'message_graphs'        => $message_tags['ENTITY_GRAPHS_ARRAY'],
+              'notification_added'    => time(),
+              'notification_lifetime' => 300,                   // Lifetime in seconds
+              'notification_entry'    => json_encode($entry),   // Store full alert entry for use later if required (not sure that this needed)
+            );
+            //unset($message_tags['ENTITY_GRAPHS_ARRAY']);
+            $notification['message_tags'] = json_encode($message_tags);
+            $notification_id              = dbInsert($notification, 'notifications_queue');
+          }
+
+        }
+      }
+
     unset($os);
-  } else {
-    /** NOT FINISHED
-    // Store entries for unknown hosts to temporary table
-    unset($entry['device_id']);
-    dbInsert(array('host' => $entry['host'], 'entry' => json_encode($entry)), 'syslog_unknown');
-     */
   }
+  else if ($config['syslog']['unknown_hosts'])
+  {
+    if ($update)
+    {
+      array_walk($entry, 'trim');
+
+      // Store entries for unknown hosts with NULL device_id
+      $log_id = dbInsert(
+        array(
+          //'device_id' => $entry['device_id'], // Default is NULL
+          'host'      => $entry['host'],
+          'program'   => $entry['program'],
+          'facility'  => $entry['facility'],
+          'priority'  => $entry['priority'],
+          'level'     => $entry['level'],
+          'tag'       => $entry['tag'],
+          'msg'       => $entry['msg'],
+          'timestamp' => $entry['timestamp']
+        ),
+        'syslog'
+      );
+      //var_dump($entry);
+    }
+  }
+
   return $entry;
 }
 

@@ -91,7 +91,7 @@ if ($vars['hostname'])
   }
 }
 
-$page_title[] = "Add Device";
+register_html_title("Add Device");
 
 // Add form
 $transports = array();

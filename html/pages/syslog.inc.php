@@ -17,28 +17,27 @@
 
 <?php
 
-unset($search, $devices_array, $priorities, $programs);
+// Note, this form have more complex grid and class elements for responsive datetime field
+$form = array('type'          => 'rows',
+              'space'         => '5px',
+              'submit_by_key' => TRUE,
+              'url'           => generate_url($vars));
 
-$where = ' WHERE 1 ' . generate_query_permitted();
+$where = ' WHERE 1 ' . $cache['where']['devices_permitted'];
+
+// Show devices only with syslog messages
+$form_devices = dbFetchColumn('SELECT DISTINCT `device_id` FROM `syslog`' . $where);
+$form_items['devices'] = generate_form_values('device', $form_devices);
 
 // Device field
-// Show devices only with syslog messages
-foreach (dbFetchRows('SELECT `device_id` FROM `syslog`' . $where .
-                     'GROUP BY `device_id`') as $data)
-{
-  $device_id = $data['device_id'];
-  if ($cache['devices']['id'][$device_id]['hostname'])
-  {
-    $devices_array[$device_id] = $cache['devices']['id'][$device_id]['hostname'];
-  }
-}
-natcasesort($devices_array);
-$search[] = array('type'    => 'multiselect',
-                  'name'    => 'Devices',
-                  'id'      => 'device_id',
-                  'width'   => '125px',
-                  'value'   => $vars['device_id'],
-                  'values'  => $devices_array);
+$form['row'][0]['device_id'] = array(
+                              'type'        => 'multiselect',
+                              'name'        => 'Devices',
+                              'width'       => '100%',
+                              'div_class'   => 'col-lg-1 col-md-2 col-sm-2',
+                              'value'       => $vars['device_id'],
+                              'groups'      => array('', 'UP', 'DOWN', 'DISABLED'), // This is optgroup order for values (if required)
+                              'values'      => $form_items['devices']);
 
 // Add device_id limit for other fields
 if (isset($vars['device_id']))
@@ -47,55 +46,65 @@ if (isset($vars['device_id']))
 }
 
 // Message field
-$search[] = array('type'    => 'text',
-                  'name'    => 'Message',
-                  'id'      => 'message',
-                  'placeholder' => 'Message',
-                  'width'   => '130px',
-                  'value'   => $vars['message']);
+$form['row'][0]['message'] = array(
+                              'type'        => 'text',
+                              'name'        => 'Message',
+                              'placeholder' => 'Message',
+                              'width'       => '100%',
+                              'div_class'   => 'col-lg-3 col-md-4 col-sm-4',
+                              //'grid'        => 3,
+                              'value'       => $vars['message']);
+
 // Priority field
-// $priorities[''] = 'All Priorities';
-foreach ($config['syslog']['priorities'] as $p => $priority)
-{
-  if ($p > 7) { continue; }
-  $priorities[$p] = ucfirst($priority['name']);
-}
+$form_items['priorities'] = generate_form_values('syslog', NULL, 'priorities');
+$form['row'][0]['priority'] = array(
+                              'type'        => 'multiselect',
+                              'name'        => 'Priorities',
+                              'width'       => '100%',
+                              'div_class'   => 'col-lg-1 col-md-2 col-sm-2',
+                              'subtext'     => TRUE,
+                              'value'       => $vars['priority'],
+                              'values'      => $form_items['priorities']);
 
-$search[] = array('type'    => 'multiselect',
-                  'name'    => 'Priorities',
-                  'id'      => 'priority',
-                  'width'   => '125px',
-                  'subtext' => TRUE,
-                  'value'   => $vars['priority'],
-                  'values'  => $priorities);
 // Program field
-// $programs[''] = 'All Programs';
-foreach (dbFetchColumn('SELECT `program` FROM `syslog` IGNORE INDEX (`program`)' . // Use index 'program_device' for speedup
-                       $where . 'GROUP BY `program`;') as $program)
-{
-  $program = ($program != '' ? $program : OBS_VAR_UNSET);
-  $programs[$program] = $program;
-}
-$search[] = array('type'    => 'multiselect',
-                  'name'    => 'Programs',
-                  'id'      => 'program',
-                  'width'   => '125px',
-                  'size'    => '15',
-                  'value'   => $vars['program'],
-                  'values'  => $programs);
+$form_filter = dbFetchColumn('SELECT DISTINCT `program` FROM `syslog` IGNORE INDEX (`program`)' . $where);
+$form_items['programs'] = generate_form_values('syslog', $form_filter, 'programs');
+$form['row'][0]['program'] = array(
+                              'type'        => 'multiselect',
+                              'name'        => 'Programs',
+                              'width'       => '100%',
+                              'div_class'   => 'col-lg-1 col-md-2 col-sm-2',
+                              'size'        => '15',
+                              'value'       => $vars['program'],
+                              'values'      => $form_items['programs']);
 
-//$search[] = array('type'    => 'newline',
-//                  'hr'      => TRUE);
+// Datetime Field
+$form['row'][0]['timestamp'] = array(
+                              'type'        => 'datetime',
+                              //'grid'        => 5,
+                              //'width'       => '70%',
+                              'div_class'   => 'col-lg-5 col-md-7 col-sm-10 col-lg-push-0 col-md-push-2 col-sm-push-2',
+                              'presets'     => TRUE,
+                              'min'         => dbFetchCell('SELECT `timestamp` FROM `syslog`' . $where . ' ORDER BY `timestamp` LIMIT 0,1;'),
+                              'max'         => dbFetchCell('SELECT `timestamp` FROM `syslog`' . $where . ' ORDER BY `timestamp` DESC LIMIT 0,1;'),
+                              'from'        => $vars['timestamp_from'],
+                              'to'          => $vars['timestamp_to']);
+// Second row with timestamp for md and sm
+//$form['row_options'][1]  = array('class' => 'hidden-lg hidden-xs');
+//$form['row'][1]['timestamp'] = $form['row'][0]['timestamp'];
+//$form['row'][1]['timestamp']['div_class'] = 'text-nowrap col-md-7 col-sm-8 col-md-offset-2 col-sm-offset-2';
 
-$search[] = array('type'    => 'datetime',
-                  'id'      => 'timestamp',
-                  'presets' => TRUE,
-                  'min'     => dbFetchCell('SELECT `timestamp` FROM `syslog`' . $where . ' ORDER BY `timestamp` LIMIT 0,1;'),
-                  'max'     => dbFetchCell('SELECT `timestamp` FROM `syslog`' . $where . ' ORDER BY `timestamp` DESC LIMIT 0,1;'),
-                  'from'    => $vars['timestamp_from'],
-                  'to'      => $vars['timestamp_to']);
+// search button
+$form['row'][0]['search']   = array(
+                              'type'        => 'submit',
+                              //'name'        => 'Search',
+                              //'icon'        => 'icon-search',
+                              'div_class'   => 'col-lg-1 col-md-5 col-sm-2',
+                              //'grid'        => 1,
+                              'right'       => TRUE);
 
-print_search($search, 'Syslog', 'search', 'syslog/');
+print_form($form);
+unset($form, $form_items, $form_devices);
 
 // Pagination
 $vars['pagination'] = TRUE;
@@ -103,9 +112,10 @@ $vars['pagination'] = TRUE;
 // Print syslog
 print_syslogs($vars);
 
-$page_title[] = 'Syslog';
+register_html_title('Syslog');
 
 ?>
+
   </div> <!-- col-md-12 -->
 
 </div> <!-- row -->

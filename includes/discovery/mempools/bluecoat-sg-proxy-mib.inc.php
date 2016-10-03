@@ -11,10 +11,7 @@
  *
  */
 
-$mib = 'BLUECOAT-SG-PROXY-MIB';
-echo("$mib ");
-
-$mempool_array = snmpwalk_cache_oid($device, "sgProxyMem", NULL, $mib, mib_dirs('bluecoat'));
+$mempool_array = snmpwalk_cache_oid($device, 'sgProxyMem', array(), $mib);
 
 if (is_array($mempool_array))
 {
@@ -24,10 +21,11 @@ if (is_array($mempool_array))
     {
       $total = $entry['sgProxyMemAvailable'];
       $used  = $entry['sgProxyMemSysUsage'];
-      discover_mempool($valid['mempool'], $device, $index, $mib, "Memory ".$index, 1, $total, $used);
+      discover_mempool($valid['mempool'], $device, $index, 'BLUECOAT-SG-PROXY-MIB', "Memory $index", 1, $total, $used);
     }
   }
 }
+
 unset ($mempool_array, $index, $total, $used);
 
 // EOF

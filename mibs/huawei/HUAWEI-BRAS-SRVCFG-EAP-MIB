@@ -1,9 +1,9 @@
 -- =================================================================
--- Copyright (C) 2003 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 --
 -- Description:HUAWEI-BRAS-SRVCFG-EAP-MIB
 -- Reference:
--- Version: V2.06
+-- Version: V2.07
 -- History:
 --       
 -- =================================================================
@@ -27,7 +27,7 @@
                         FROM P-BRIDGE-MIB;
         
                 hwBRASSrvcfgEap MODULE-IDENTITY 
-                        LAST-UPDATED "201306080907Z"
+                        LAST-UPDATED "201507301618Z"
                         ORGANIZATION 
                             "Huawei Technologies Co.,Ltd."
                       CONTACT-INFO 
@@ -41,6 +41,9 @@
             
                 DESCRIPTION 
                         "The MIB contains objects of module SRVCFG."
+
+                REVISION     "201507301618Z"
+                DESCRIPTION   " V1.00, Inital version. "
 
                 REVISION     "201306080907Z"
                 DESCRIPTION   " V1.00, Inital version. "   
@@ -418,7 +421,7 @@
             ::= { hwDot1xPortConfigEntry 3 }
 
         hwDot1xPortMaxUser OBJECT-TYPE
-            SYNTAX Integer32(1..8192)
+            SYNTAX Integer32(1..16384)
             MAX-ACCESS read-create
             STATUS current
             DESCRIPTION

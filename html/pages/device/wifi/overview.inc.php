@@ -22,12 +22,14 @@ if ($device['type'] == 'wireless')
     if (!in_array($radio['wifi_accesspoint_id'],$aps_ids)) $aps_ids[] = $radio['wifi_accesspoint_id'];
   }
 
+  echo generate_box_open();
   echo('<table class="table table-striped  table-condensed ">');
   echo('<tr><td style="width: 350px;">');
   echo("<span>" . count($aps_ids) . " APs</span><br /><span>" . count($radios) . " radios</span><br />");
   echo('</td><td><span>Models: ' . implode(", ",$models) .'</span><br /><span>Sites: ' . implode(", ",$locations) . '</span></td>');
   //  echo('<td><span>'. $radios[0]['serial'] ." </span></br><span>" . $radios[0]['fingerprint']. "</span></td></tr>");
   echo("</table>");
+  echo generate_box_close();
 }
 
 // EOF

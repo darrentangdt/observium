@@ -1,5 +1,5 @@
 -- ==================================================================
--- Copyright (C) 2007 by HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2006 by HUAWEI TECHNOLOGIES. All rights reserved.
 -- 
 -- Description:  HUAWEI VE (Virtual Ethernet) MIB
 -- Reference:
@@ -20,18 +20,18 @@
             DisplayString, RowStatus   
               FROM SNMPv2-TC;
                       
-          hwVe MODULE-IDENTITY 
+      hwVe MODULE-IDENTITY 
           LAST-UPDATED "200611221414Z"    
-          ORGANIZATION 
+          ORGANIZATION
               "Huawei Technologies Co.,Ltd."
           CONTACT-INFO 
-              "VRP Team Huawei Technologies Co.,Ltd.
-              Huawei Bld.,NO.3 Xinxi Rd., 
-              Shang-Di Information Industry Base,
-              Hai-Dian District Beijing P.R. China
-              http://www.huawei.com
-              Zip:100085
-              "  
+              "Huawei Industrial Base
+                Bantian, Longgang
+                 Shenzhen 518129
+                 People's Republic of China
+                 Website: http://www.huawei.com
+                 Email: support@huawei.com
+               "  
           DESCRIPTION 
               "The private mib file includes the general extent 
               information of the device.hwDatacomm(146).hwVirtualEthernet"

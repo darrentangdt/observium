@@ -41,7 +41,7 @@ if ($services['total'])
 {
 ?>
 
-<div class="box box-solid info_box">
+<div class="box box-solid">
     <div class="title"><i class="oicon-network-ethernet"></i> Services</div>
     <div class="content">
 
@@ -109,7 +109,7 @@ if (is_array($entity_state['group']['c6kxbar']))
   include("overview/c6kxbar.inc.php");
 }
 
-include("overview/toner.inc.php");
+include("overview/printersupplies.inc.php");
 include("overview/status.inc.php");
 include("overview/sensors.inc.php");
 

@@ -16,50 +16,55 @@
 <div class="col-md-12">
 
 <?php
-unset($search, $devices_array);
 
-//$devices_array[''] = 'All Devices';
-foreach ($cache['devices']['hostname'] as $hostname => $device_id)
-{
-  if ($cache['devices']['id'][$device_id]['disabled'] && !$config['web_show_disabled']) { continue; }
-  $devices_array[$device_id] = $hostname;
-}
-//Device field
-$search[] = array('type'    => 'multiselect',
-                  'name'    => 'Device',
-                  'id'      => 'device_id',
-                  'value'   => $vars['device_id'],
-                  'values'  => $devices_array);
-//Interface field
-$search[] = array('type'    => 'select',
-                  'name'    => 'Interface',
-                  'id'      => 'interface',
-                  'width'   => '130px',
-                  'value'   => $vars['interface'],
-                  'values'  => array('' => 'All Interfaces', 'Lo' => 'Loopbacks', 'Vlan' => 'Vlans'));
-//Networks
-$search[] = array('type'    => 'text',
-                  'name'    => 'IP Network',
-                  'id'      => 'network',
-                  'ajax'    => TRUE,
-                  'ajax_vars' => array('field' => 'ipv6_network'),
-                  'value'   => $vars['network']);
-////IP version field
-//$search[] = array('type'    => 'select',
-//                  'name'    => 'IP',
-//                  'id'      => 'ip_version',
-//                  'width'   => '120px',
-//                  'value'   => $vars['ip_version'],
-//                  'values'  => array('' => 'IPv4 & IPv6', '4' => 'IPv4 only', '6' => 'IPv6 only'));
-//IP address field
-$search[] = array('type'    => 'text',
-                  'name'    => 'IP Address',
-                  'id'      => 'address',
-                  'placeholder' => TRUE,
-                  'submit_by_key' => TRUE,
-                  'value'   => $vars['address']);
+$form_devices = dbFetchColumn('SELECT DISTINCT `device_id` FROM `ipv6_addresses` LEFT JOIN `ports` USING(`port_id`);');
+$form_items['devices'] = generate_form_values('device', $form_devices);
 
-print_search($search, 'IPv6', NULL, 'search/search=ipv6/');
+$form = array('type'  => 'rows',
+              'space' => '5px',
+              'submit_by_key' => TRUE,
+              'url'   => 'search/search=ipv6/');
+$form['row'][0]['device']   = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'Device',
+                                'width'       => '100%',
+                                'value'       => $vars['device'],
+                                'groups'      => array('', 'UP', 'DOWN', 'DISABLED'), // This is optgroup order for values (if required)
+                                'values'      => $form_items['devices']);
+$form['row'][0]['interface']  = array(
+                                'type'        => 'select',
+                                'name'        => 'Interface',
+                                'width'       => '100%',
+                                'value'       => $vars['interface'],
+                                'values'      => array('' => 'All Interfaces', 'Lo' => 'Loopbacks', 'Vlan' => 'Vlans'));
+$form['row'][0]['network'] = array(
+                                'type'        => 'text',
+                                'name'        => 'IP Network',
+                                'width'       => '100%',
+                                'placeholder' => TRUE,
+                                'ajax'        => TRUE,
+                                'ajax_vars'   => array('field' => 'ipv6_network'),
+                                'value'       => escape_html($vars['network']));
+$form['row'][0]['address']  = array(
+                                'type'        => 'text',
+                                'name'        => 'IP Address',
+                                'width'       => '100%',
+                                'grid'        => 3,
+                                //'div_class'   => 'col-lg-3 col-md-3 col-sm-3',
+                                'placeholder' => TRUE,
+                                'value'       => escape_html($vars['address']));
+// search button
+$form['row'][0]['search']   = array(
+                                'type'        => 'submit',
+                                'grid'        => 3,
+                                //'div_class'   => 'col-lg-3 col-md-3 col-sm-3',
+                                //'name'        => 'Search',
+                                //'icon'        => 'icon-search',
+                                'value'       => 'ipv6',
+                                'right'       => TRUE);
+
+print_form($form);
+unset($form, $form_items, $form_devices);
 
 // Pagination
 $vars['pagination'] = TRUE;
@@ -67,7 +72,7 @@ $vars['pagination'] = TRUE;
 // Print addresses
 print_addresses($vars);
 
-$page_title[] = "IPv6 address search";
+register_html_title("IPv6 Addresses");
 
 ?>
 

@@ -20,8 +20,8 @@ include_once($config['html_dir'].'/includes/graphs/functions.inc.php');
 $print_functions = array('addresses', 'events', 'mac_addresses', 'rows',
                          'status', 'arptable', 'fdbtable', 'navbar',
                          'search', 'syslogs', 'inventory', 'alert',
-                         'authlog', 'dot1xtable', 'alert_log',
-                         'common', 'routing', 'neighbours');
+                         'authlog', 'dot1xtable', 'alert_log', 'logalert',
+                         'common', 'routing', 'neighbours', 'billing');
 
 foreach ($print_functions as $item)
 {
@@ -30,7 +30,6 @@ foreach ($print_functions as $item)
 }
 
 // Load generic entity include
-
 include($config['html_dir'].'/includes/entities/generic.inc.php');
 
 // Load all per-entity includes
@@ -48,9 +47,12 @@ foreach ($config['entities'] as $entity_type => $item)
  */
 function html_callback($buffer)
 {
+  global $config;
+
+  // Install registered CSS/JS links
   $types = array(
-    'css'    => '  <link href="STRING" rel="stylesheet" type="text/css" />' . PHP_EOL,
-    'js'     => '  <script type="text/javascript" src="STRING"></script>' . PHP_EOL,
+    'css'    => '  <link href="STRING?v=' . OBSERVIUM_VERSION . '" rel="stylesheet" type="text/css" />' . PHP_EOL,
+    'js'     => '  <script type="text/javascript" src="STRING?v=' . OBSERVIUM_VERSION . '"></script>' . PHP_EOL,
     'script' => '  <script type="text/javascript">' . PHP_EOL .
                 '  <!-- Begin' . PHP_EOL . 'STRING' . PHP_EOL .
                 '  // End -->' . PHP_EOL . '  </script>' . PHP_EOL,
@@ -58,19 +60,48 @@ function html_callback($buffer)
 
   foreach ($types as $type => $string)
   {
-    if (isset($GLOBALS['cache_html'][$type]))
+    if (isset($GLOBALS['cache_html']['resources'][$type]))
     {
       $uptype = strtoupper($type);
       $$type = '<!-- ' . $uptype . ' BEGIN -->' . PHP_EOL;
-      foreach (array_unique($GLOBALS['cache_html'][$type]) as $link) // Do not use global $cache variable, because it reset before flush ob_cache
+      foreach (array_unique($GLOBALS['cache_html']['resources'][$type]) as $link) // Do not use global $cache variable, because it is reset before flush ob_cache
       {
         $$type .= str_replace('STRING', $link, $string);
       }
       $$type .= '  <!-- ' . $uptype . ' END -->' . PHP_EOL;
-
-      $buffer = str_replace('<!-- ##' . $uptype . '_CACHE## -->', $$type, $buffer);
+      $buffer = str_replace('<!-- ##' . $uptype . '_CACHE## -->' . PHP_EOL, $$type, $buffer);
     }
   }
+
+  // Replace page title as specified by the page modules
+  if (!is_array($GLOBALS['cache_html']['title']))
+  {
+    // Title not set by any page, fall back to nicecase'd page name:
+    if ($GLOBALS['vars']['page'])
+    {
+      $GLOBALS['cache_html']['title'] = array(nicecase($GLOBALS['vars']['page']));
+    } else {
+      // HALP. Likely main page, doesn't need anything else...
+      $GLOBALS['cache_html']['title'] = array();
+    }
+  }
+
+  // If suffix is set, put it in the back
+  if ($config['page_title_suffix']) { $GLOBALS['cache_html']['title'][] = $config['page_title_suffix']; }
+
+  // If prefix is set, put it in front
+  if ($config['page_title_prefix']) { array_unshift($GLOBALS['cache_html']['title'], $config['page_title_prefix']); }
+
+  // Build title with separators
+  $title = implode($config['page_title_separator'], $GLOBALS['cache_html']['title']);
+
+  // Replace title placeholder by actual title
+  $buffer = str_replace('##TITLE##', $title, $buffer);
+
+  // Page panel
+  $buffer = str_replace('##PAGE_PANEL##', $GLOBALS['cache_html']['page_panel'], $buffer);
+
+  // Return modified HTML page source
   return $buffer;
 }
 
@@ -85,8 +116,11 @@ function get_vars($vars_order = array())
   }
   else if (empty($vars_order) || !is_array($vars_order))
   {
-    $vars_order = array('OLDGET', 'POST', 'URI', 'GET'); // Default order
+    $vars_order = array('POST', 'URI', 'GET'); // Default order
   }
+
+  // XSS script regex
+  $prevent_xss = '!<\s*/?\s*s\s*c\s*r\s*i\s*p\s*t\s*>!i'; // <sCrIpT> < / s c r i p t >
 
   $vars = array();
   foreach ($vars_order as $order)
@@ -94,19 +128,6 @@ function get_vars($vars_order = array())
     $order = strtoupper($order);
     switch ($order)
     {
-      case 'OLDGET':
-        // Parse GET variables into $vars for backwards compatibility
-        // Can probably remove this soon
-        foreach ($_GET as $key=>$get_var)
-        {
-          if (strstr($key, "opt"))
-          {
-            list($name, $value) = explode("|", $get_var);
-            if (!isset($value)) { $value = "yes"; }
-            if (!isset($vars[$name])) { $vars[$name] = $value; }
-          }
-        }
-        break;
       case 'POST':
         // Parse POST variables into $vars
         foreach ($_POST as $name => $value)
@@ -114,6 +135,11 @@ function get_vars($vars_order = array())
           if (!isset($vars[$name]))
           {
             $vars[$name] = var_decode($value);
+            if (preg_match($prevent_xss, $vars[$name]))
+            {
+              // Prevent any <script> html tag inside vars, exclude any possible XSS with scripts
+              unset($vars[$name]);
+            }
           }
         }
         break;
@@ -137,6 +163,11 @@ function get_vars($vars_order = array())
                 $vars[$name] = 'yes';
               } else {
                 $value = str_replace('%7F', '/', urldecode($value)); // %7F (DEL, delete) - not defined in HTML 4 standard
+                if (preg_match($prevent_xss, $value))
+                {
+                  // Prevent any <script> html tag inside vars, exclude any possible XSS with scripts
+                  continue;
+                }
                 if (strpos($value, ','))
                 {
                   // Here commas list (convert to array)
@@ -144,10 +175,15 @@ function get_vars($vars_order = array())
                 } else {
                   // Here can be string as encoded array
                   $vars[$name] = var_decode($value);
-                  if (strpos($vars[$name], '%1F') !== FALSE)
+                  if (is_string($vars[$name]) && preg_match($prevent_xss, $vars[$name]))
                   {
-                    $vars[$name] = str_replace('%1F', ',', $vars[$name]); // %1F (US, unit separator) - not defined in HTML 4 standard
+                    // Prevent any <script> html tag inside vars, exclude any possible XSS with scripts
+                    unset($vars[$name]);
                   }
+                }
+                if (strpos($vars[$name], '%1F') !== FALSE)
+                {
+                  $vars[$name] = str_replace('%1F', ',', $vars[$name]); // %1F (US, unit separator) - not defined in HTML 4 standard
                 }
               }
             }
@@ -161,6 +197,11 @@ function get_vars($vars_order = array())
           if (!isset($vars[$name]))
           {
             $value = str_replace('%7F', '/', urldecode($value)); // %7F (DEL, delete) - not defined in HTML 4 standard
+            if (preg_match($prevent_xss, $value))
+            {
+              // Prevent any <script> html tag inside vars, exclude any possible XSS with scripts
+              continue;
+            }
             if (strpos($value, ','))
             {
               // Here commas list (convert to array)
@@ -168,11 +209,16 @@ function get_vars($vars_order = array())
             } else {
               // Here can be string as encoded array
               $vars[$name] = var_decode($value);
-              if (strpos($vars[$name], '%1F') !== FALSE)
+              if (is_string($vars[$name]) && preg_match($prevent_xss, $vars[$name]))
               {
-                $vars[$name] = str_replace('%1F', ',', $vars[$name]); // %1F (US, unit separator) - not defined in HTML 4 standard
+                // Prevent any <script> html tag inside vars, exclude any possible XSS with scripts
+                unset($vars[$name]);
               }
             }
+            if (strpos($vars[$name], '%1F') !== FALSE)
+            {
+              $vars[$name] = str_replace('%1F', ',', $vars[$name]); // %1F (US, unit separator) - not defined in HTML 4 standard
+            }            
           }
         }
         break;
@@ -416,13 +462,14 @@ function detect_browser($user_agent = NULL)
   //  $_COOKIE['observium_screen_ratio'] - if ratio >= 2, than HiDPI screen is used
   //  $_COOKIE['observium_screen_resolution'] - screen resolution 'width x height', ie: 1920x1080
   //  $_COOKIE['observium_screen_size'] - current window size (less than resolution) 'width x height', ie: 1097x456
-  $GLOBALS['cache_html']['js'][]  = 'js/observium-screen.js';
+  register_html_resource('js', 'observium-screen.js');
 
   // Additional browser info (screen_ratio, screen_size, svg)
-  if ($ua_info['browser'] == 'Firefox')
+  if ($ua_info['browser'] == 'Firefox' && version_compare($ua_info['version'], '47.0') < 0)
   {
     // Do not use srcset in FF, while issue open:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1149357
+    // Update, seems as in 47.0 partially fixed
     $zoom = 1;
   }
   else if (isset($_COOKIE['observium_screen_ratio']))
@@ -434,7 +481,7 @@ function detect_browser($user_agent = NULL)
     $zoom = 2;
   }
   $detect_browser['screen_ratio'] = $zoom;
-  $detect_browser['svg']          = ($ua_info['browser'] == 'Firefox'); // SVG supported or allowed
+  //$detect_browser['svg']          = ($ua_info['browser'] == 'Firefox'); // SVG supported or allowed
   if (isset($_COOKIE['observium_screen_resolution']))
   {
     $detect_browser['screen_resolution'] = $_COOKIE['observium_screen_resolution'];
@@ -471,6 +518,7 @@ function safe_base64_decode($string)
 // MOVEME includes/common.inc.php
 function encrypt($string, $key)
 {
+  $key = pad_key($key);
   return safe_base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $key, $string, MCRYPT_MODE_ECB));
 }
 
@@ -478,7 +526,32 @@ function encrypt($string, $key)
 // MOVEME includes/common.inc.php
 function decrypt($encrypted, $key)
 {
+  $key = pad_key($key);
   return trim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $key, safe_base64_decode($encrypted), MCRYPT_MODE_ECB), "\t\n\r\0\x0B");
+}
+
+// This function required for encrypt/decrypt, since php 5.6
+// see: http://stackoverflow.com/questions/27254432/mcrypt-decrypt-error-change-key-size
+function pad_key($key)
+{
+  // key is too large
+  if (strlen($key) > 32) { return FALSE; }
+
+  // set sizes
+  $sizes = array(16, 24, 32);
+
+  // loop through sizes and pad key
+  foreach($sizes as $s)
+  {
+    while (strlen($key) < $s)
+    {
+      $key = $key . "\0";
+    }
+    if (strlen($key) == $s) { break; } // finish if the key matches a size
+  }
+
+  // return
+  return $key;
 }
 
 // TESTME needs unit testing
@@ -507,12 +580,12 @@ function toner_map($descr, $colour)
 // DOCME needs phpdoc block
 function toner_to_colour($descr, $percent)
 {
-  $colour = get_percentage_colours(100-$percent);
-
   if (substr($descr, -1) == 'C' || toner_map($descr, "cyan"   )) { $colour['left'] = "B6F6F6"; $colour['right'] = "33B4B1"; }
   if (substr($descr, -1) == 'M' || toner_map($descr, "magenta")) { $colour['left'] = "FBA8E6"; $colour['right'] = "D028A6"; }
   if (substr($descr, -1) == 'Y' || toner_map($descr, "yellow" )) { $colour['left'] = "FFF764"; $colour['right'] = "DDD000"; }
   if (substr($descr, -1) == 'K' || toner_map($descr, "black"  )) { $colour['left'] = "888787"; $colour['right'] = "555555"; }
+
+  if (!isset($colour['left'])) { $colour = get_percentage_colours(100-$percent); $colour['found'] = FALSE; } else { $colour['found'] = TRUE; }
 
   return $colour;
 }
@@ -574,20 +647,27 @@ function pagination(&$vars, $total, $return_vars = FALSE)
   $next  = $page + 1;
   $lpm1  = $lastpage - 1;
 
-  $adjacents = 5;
+  $adjacents = 3;
   $pagination = '';
 
   if ($total > 99 || $total > $per_page)
   {
-    $pagination .= '<div class="row">';
-    $pagination .= '<div class="col-sm-1"><span class="btn disabled" style="line-height: 20px;">'.$total.'&nbsp;Items</span></div>';
-    $pagination .= '<div class="col-sm-10">';
-    $pagination .= '<div class="pagination pagination-centered"><ul>';
+
+    if($total > 9999) { $total_text = format_si($total); } else { $total_text = $total; }
+
+
+    $pagination .= '<div class="row">' . PHP_EOL .
+                   '  <div class="col-lg-1 col-md-2 col-sm-2" style="display: inline-block;">' . PHP_EOL .
+                   //'    <span class="btn disabled" style="line-height: 20px;">'.$total.'&nbsp;Items</span>' . PHP_EOL .
+                   '    <div class="box box-solid" style="padding: 4px 12px;">'.$total_text.'&nbsp;Items</div>' . PHP_EOL .
+                   '  </div>' . PHP_EOL .
+                   '  <div class="col-lg-10 col-md-8 col-sm-8">' . PHP_EOL .
+                   '    <div class="pagination pagination-centered"><ul>' . PHP_EOL;
 
     if ($prev)
     {
-      #$pagination .= '<li><a href="'.generate_url($vars, array('pageno' => 1)).'">First</a></li>';
-      $pagination .= '<li><a href="'.generate_url($vars, array('pageno' => $prev)).'">Prev</a></li>';
+      //$pagination .= '      <li><a href="'.generate_url($vars, array('pageno' => 1)).'">First</a></li>' . PHP_EOL;
+      $pagination .= '      <li><a href="'.generate_url($vars, array('pageno' => $prev)).'">Prev</a></li>' . PHP_EOL;
     }
 
     if ($lastpage < 7 + ($adjacents * 2))
@@ -610,9 +690,18 @@ function pagination(&$vars, $total, $return_vars = FALSE)
         {
           if ($counter == $page)
           {
-            $pagination.= "<li class='active'><a>$counter</a></li>";
+            $pagination .= "<li class='active'><a>$counter</a></li>";
           } else {
-            $pagination.= "<li><a href='".generate_url($vars, array('pageno' => $counter))."'>$counter</a></li>";
+            $class = '';
+            //if ($counter > 9)
+            //{
+            //  $class = ' class="hidden-md hidden-sm hidden-xs"';
+            //}
+            //else if ($counter > 6)
+            //{
+            //  $class = ' class="hidden-sm hidden-xs"';
+            //}
+            $pagination .= "<li$class><a href='".generate_url($vars, array('pageno' => $counter))."'>$counter</a></li>";
           }
         }
 
@@ -645,7 +734,16 @@ function pagination(&$vars, $total, $return_vars = FALSE)
           {
             $pagination.= "<li class='active'><a>$counter</a></li>";
           } else {
-            $pagination.= "<li><a href='".generate_url($vars, array('pageno' => $counter))."'>$counter</a></li>";
+            $class = '';
+            //if ($lastpage - $counter > 9)
+            //{
+            //  $class = ' class="hidden-md hidden-sm hidden-xs"';
+            //}
+            //else if ($lastpage - $counter > 6)
+            //{
+            //  $class = ' class="hidden-sm hidden-xs"';
+            //}
+            $pagination.= "<li$class><a href='".generate_url($vars, array('pageno' => $counter))."'>$counter</a></li>";
           }
         }
       }
@@ -665,22 +763,29 @@ function pagination(&$vars, $total, $return_vars = FALSE)
 
     $pagination.= "</ul></div></div>";
 
-    $pagination.= '
-       <div class="col-sm-1">
-       <form class="pull-right" action="#">
-       <select class="selectpicker" data-width="90px" name="type" id="type" onchange="window.open(this.options[this.selectedIndex].value,\'_top\')">';
-
+    //$values = array('' => array('name'))
     foreach ($pagesizes as $pagesize)
     {
-      $pagination .= '<option class="text-center" title="# '.$pagesize.'"';
-      $pagination .= ' value="'.generate_url($vars, array('pagesize' => $pagesize, 'pageno' => floor($start / $pagesize))).'"';
-
-      if ($pagesize == $per_page) { $pagination .= (' selected'); }
-      if ($pagesize == $GLOBALS['config']['web_pagesize']) { $pagesize = "[ $pagesize ]"; }
-      $pagination .= '>'.$pagesize.'</option>';
+      $value = generate_url($vars, array('pagesize' => $pagesize, 'pageno' => floor($start / $pagesize)));
+      $name  = ($pagesize == $GLOBALS['config']['web_pagesize'] ? "[ $pagesize ]" : $pagesize);
+      $values[$value] = array('name' => $name, 'class' => 'text-center');
     }
+    $element = array('type'     => 'select',
+                     'id'       => 'pagesize',
+                     'name'     => '# '.$per_page,
+                     'width'    => '90px',
+                     'onchange' => "window.open(this.options[this.selectedIndex].value,'_top')",
+                     'value'    => $per_page,
+                     'data-style' => 'box',
+                     'values'   => $values);
 
-    $pagination .= '</select></form></div></div>';
+    $pagination.= '
+       <div class="col-lg-1 col-md-2 col-sm-2">
+       <form class="pull-right" action="#">';
+
+    $pagination .= generate_form_element($element);
+
+    $pagination .= '</form></div></div>';
   }
 
   return $pagination;
@@ -851,11 +956,16 @@ function generate_popup_link($type, $text = NULL, $vars = array(), $class = NULL
     if ($ip_version === 6)
     {
       // Autocompress IPv6 addresses
-      $text = Net_IPv6::compress($ip);
+      $ip   = Net_IPv6::compress($ip);
+      $text = $ip;
       if (strlen($mask))
       {
         $text .= '/' . $mask;
       }
+    }
+    if (!$ip_version || in_array($ip, array('0.0.0.0', '127.0.0.1', '::', '::1')))
+    {
+      return $text;
     }
   }
   $url  = (count($vars) ? generate_url($vars) : 'javascript:void(0)'); // If vars empty, set link not clickable
@@ -979,6 +1089,7 @@ function generate_graph_popup($graph_array)
   $original_from = $graph_array['from'];
 
   $graph = generate_graph_tag($graph_array);
+
   /*
   $box_args = array('body-style' => 'width: 850px;');
   if (strlen($graph_array['popup_title']))
@@ -987,7 +1098,8 @@ function generate_graph_popup($graph_array)
   }
   $content = generate_box_open($box_args);
   */
-  $content = "<div class=entity-title><h4>".$graph_array['popup_title']."</h4></div>";
+  unset($graph_array['style']);
+  $content =  '<div class=entity-title><h4>'.$graph_array['popup_title'].'</h4></div>';
   $content .= '<div style="width: 850px">';
   $graph_array['legend']   = "yes";
   $graph_array['height']   = "100";
@@ -1030,14 +1142,33 @@ function permissions_cache($user_id)
     {
       case "group": // this is a group, so expand it's members into an array
         $group = get_group_by_id($entity['entity_id']);
-        foreach(get_group_entities($entity['entity_id']) as $group_entity)
+        foreach(get_group_entities($entity['entity_id']) as $group_entity_id)
         {
-          $permissions[$group['entity_type']][$group_entity] = TRUE;
+          $permissions[$group['entity_type']][$group_entity_id] = TRUE;
         }
-        break;
+        //break; // And also store self group permission in cache
       default:
         $permissions[$entity['entity_type']][$entity['entity_id']] = TRUE;
         break;
+    }
+  }
+
+  // For limited users expand device permission into entity permission
+  if ((!isset($_SESSION['user_limited']) || $_SESSION['user_limited']) && count($permissions['device']))
+  {
+    foreach ($GLOBALS['config']['entities'] as $entity_type => $entity_def)
+    {
+      if ($entity_type == 'device' || $entity_def['hide'] || empty($entity_def['table_fields']['device_id']))
+      {
+        continue;
+      }
+      $devices = array_keys($permissions['device']);
+      $query   = 'SELECT `'.$entity_def['table_fields']['id'].'` FROM `'.$entity_def['table'] . '`';
+      $query  .= ' WHERE 1 ' . generate_query_values($devices, $entity_def['table_fields']['device_id']);
+      foreach (dbFetchColumn($query) as $entity_id)
+      {
+        $permissions[$entity_type][$entity_id] = TRUE;
+      }
     }
   }
 
@@ -1115,13 +1246,13 @@ function bill_permitted($bill_id)
  */
 function get_device_id_by_entity_id($entity_id, $entity_type)
 {
-
   // $entity = get_entity_by_id_cache($entity_type, $entity_id);
   $translate = entity_type_translate_array($entity_type);
 
-  if (is_numeric($entity_id) && $entity_type)
+  if (isset($translate['device_id_field']) && $translate['device_id_field'] &&
+      is_numeric($entity_id) && $entity_type)
   {
-    $device_id = dbFetchCell('SELECT `device_id` FROM `' .   $translate['table']. '` WHERE `' . $translate['id_field'] . '` = ?', array($entity_id));
+    $device_id = dbFetchCell('SELECT `' . $translate['device_id_field'] . '` FROM `' . $translate['table']. '` WHERE `' . $translate['id_field'] . '` = ?', array($entity_id));
   }
   if (is_numeric($device_id))
   {
@@ -1161,7 +1292,7 @@ function entity_permitted_array(&$entities, $entity_type)
   $entity_type_data = entity_type_translate_array($entity_type);
 
   // Strip out the entities the user isn't allowed to see, if they don't have global view rights
-  if ($_SESSION['userlevel'] < '7')
+  if (!isset($_SESSION['user_limited']) || $_SESSION['user_limited'])
   {
     foreach ($entities as $key => $entity)
     {
@@ -1230,9 +1361,15 @@ function generate_graph_tag($args)
 {
   if (empty($args)) { return ''; } // Quick return if passed empty array
 
-  if (is_array($args['style']))
+  $style = 'max-width: 100%; width: auto; vertical-align: top;';
+  if (isset($args['style']))
   {
-    $style = implode("; ", $args['style']) . ';';
+    if (is_array($args['style']))
+    {
+      $style .= implode("; ", $args['style']) . ';';
+    } else {
+      $style .= $args['style'] . ';';
+    }
     unset($args['style']);
   }
 
@@ -1250,7 +1387,7 @@ function generate_graph_tag($args)
     $srcset = '';
   }
 
-  return '<img src="'.generate_graph_url($args).'"'.$srcset.' style="max-width: 100%; width: auto; '.$style.'" alt="" />';
+  return '<img src="'.generate_graph_url($args).'"' . $srcset . ' style="' . $style . '" alt="" />';
 }
 
 function generate_graph_url($args)
@@ -1394,7 +1531,7 @@ function geteventicon($message)
 function get_entity_icon($entity)
 {
 
-  $config['entities'][$entry['type']]['icon'];
+  $config['entities'][$entity['type']]['icon'];
 
 }
 
@@ -1996,7 +2133,6 @@ function get_smokeping_files($rdebug = 0)
  * @param string $rgb
  * @param int $darker
  */
-
 function darken_color($rgb, $darker=2)
 {
   if (strpos($rgb, '#') !== FALSE)
@@ -2030,9 +2166,7 @@ function darken_color($rgb, $darker=2)
 }
 
 // Originally from http://stackoverflow.com/questions/6054033/pretty-printing-json-with-php/21162086#21162086
-
 // FIXME : This is only required for PHP < 5.4, remove this when our requirements are >= 5.4
-
 if (!defined('JSON_UNESCAPED_SLASHES')) { define('JSON_UNESCAPED_SLASHES', 64); }
 if (!defined('JSON_PRETTY_PRINT'))      { define('JSON_PRETTY_PRINT', 128); }
 if (!defined('JSON_UNESCAPED_UNICODE')) { define('JSON_UNESCAPED_UNICODE', 256); }
@@ -2047,10 +2181,10 @@ function json_output($status, $message)
 
 function _json_encode($data, $options = 448)
 {
-  if (version_compare(PHP_VERSION, '5.4', '>=')) {
+  if (version_compare(PHP_VERSION, '5.4', '>='))
+  {
     return json_encode($data, $options);
-  }
-  else {
+  } else {
     return _json_format(json_encode($data), $options);
   }
 }
@@ -2160,5 +2294,57 @@ function _json_format($json, $options = 448)
   return $result;
 }
 
+/**
+ * Register an HTML resource
+ *
+ * Registers resource for use later (will be re-inserted via output buffer handler)
+ * CSS and JS files default to the css/ and js/ directories respectively.
+ * Scripts are inserted literally as passed in $name.
+ *
+ * @param string $type Type of resource (css/js/script)
+ * @param string $name Filename or script content
+ */
+// TESTME needs unit testing
+function register_html_resource($type, $name)
+{
+  // If no path specified, default to subdirectory of resource type (for CSS and JS only)
+  $type = strtolower($type);
+  if (in_array($type, array('css', 'js')) && strpos($name, '/') === FALSE)
+  {
+    $name = $type . '/' . $name;
+  }
+
+  // Insert into global variable, used in html callback function
+  $GLOBALS['cache_html']['resources'][$type][] = $name;
+}
+
+/**
+ * Register an HTML title section
+ *
+ * Registers title section for use in the html <title> tag.
+ * Calls can be stacked, and will be concatenated later by the HTML callback function.
+ *
+ * @param string $title Section title content
+ */
+// TESTME needs unit testing
+function register_html_title($title)
+{
+  $GLOBALS['cache_html']['title'][] = $title;
+}
+
+
+/**
+ * Register an HTML panel section
+ *
+ * Registers left panel section.
+ * Calls can be stacked, and will be concatenated later by the HTML callback function.
+ *
+ * @param string $html Section panel content
+ */
+// TESTME needs unit testing
+function register_html_panel($html = '')
+{
+  $GLOBALS['cache_html']['page_panel'] = $html;
+}
 
 // EOF

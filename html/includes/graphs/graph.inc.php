@@ -14,12 +14,23 @@
 #ob_clean();
 
 $total_start = utime();
+// Init global var for information about generated graph
+$graph_return = array('status'        => FALSE,   // --> $GLOBALS['rrd_status']
+                      'command'       => '',      // --> $GLOBALS['exec_status']['command'] added in rrdtool_graph()
+                      'output'        => '',      // --> $GLOBALS['exec_status']['stdout']  added in rrdtool_graph()
+                      'runtime'       => 0,       // --> $GLOBALS['exec_status']['runtime'] added in rrdtool_graph()
+                      'total'         => 0,       // total runtime for graph script
+                      'rrds'          => array(), // list of used rrd files           added in get_rrd_path()
+                      'filename'      => '',      // Generated image filename
+                      'descr'         => '',      // graph description if exist
+                      'valid_options' => array(), // hrm, used somewhere
+                      );
 
 preg_match('/^(?P<type>[a-z0-9A-Z-]+)_(?P<subtype>[a-z0-9A-Z-_]+)/', $vars['type'], $graphtype);
 
 $graphfile = $config['temp_dir'] . "/"  . strgen() . ".png";
 
-if (OBS_DEBUG) print_vars($graphtype);
+if (OBS_DEBUG) { print_vars($graphtype); }
 
 if(isset($graphtype['type']) && isset($graphtype['subtype']))
 {
@@ -30,12 +41,19 @@ if(isset($graphtype['type']) && isset($graphtype['subtype']))
   exit;
 }
 
+// Get device array
 if (is_numeric($vars['device']))
 {
   $device = device_by_id_cache($vars['device']);
-} elseif(!empty($vars['device'])) {
+}
+else if (!empty($vars['device']))
+{
   $device = device_by_name($vars['device']);
 }
+//else if ($type == 'device' && is_numeric($vars['id']))
+//{
+//  $device = device_by_id_cache($vars['id']);
+//}
 
 // $from, $to - unixtime (or rrdgraph time interval, i.e. '-1d', '-6w')
 // $timestamp_from, $timestamp_to - timestamps formatted as 'Y-m-d H:i:s'
@@ -91,9 +109,10 @@ if ($graph_include)
     {
       include_once($definition_include);
     }
+
     include($graph_include);
   }
-} else {
+} elseif(!isset($vars['command_only'])) {
   graph_error($type.'_'.$subtype); // Graph Template Missing
 }
 
@@ -124,18 +143,15 @@ else if (!$auth)
   }
   else if (isset($vars['command_only']) && $vars['command_only'] == TRUE)
   {
-    $graph_start = utime();
     $return = rrdtool_graph($graphfile, $rrd_options);
     //print_vars($GLOBALS['exec_status']);
-    $graph_end = utime(); $graph_run = $graph_end - $graph_start; $graph_time = substr($graph_run, 0, 5);
-    $total_end = utime(); $total_run = $total_end - $total_start; $total_time = substr($total_run, 0, 5);
 
     unlink($graphfile);
 
-    $graph_return['descr'] = $config['graph_types'][$type][$subtype]['long'];
-    $graph_return['total_time'] = $total_time;
-    $graph_return['rrdtool_time'] = $graph_time;
-    $graph_return['cmd']  = "rrdtool graph $graphfile $rrd_options";
+    if (isset($config['graph_types'][$type][$subtype]['long']) && empty($graph_return['descr']))
+    {
+      $graph_return['descr'] = $config['graph_types'][$type][$subtype]['long'];
+    }
   } else {
     if ($rrd_options)
     {
@@ -177,6 +193,13 @@ else if (!$auth)
       }
     }
   }
+}
+
+// Total runtime and clean graph file
+$graph_return['total'] = utime() - $total_start;
+if (strlen($graph_return['filename']) && is_file($graph_return['filename']))
+{
+  unlink($graph_return['filename']);
 }
 
 // EOF

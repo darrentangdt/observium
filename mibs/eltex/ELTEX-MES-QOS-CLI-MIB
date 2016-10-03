@@ -1,0 +1,384 @@
+ELTEX-MES-QOS-CLI-MIB DEFINITIONS ::= BEGIN
+
+-- Title:      Eltex MES QoS Configuration
+-- Version:    1.3
+-- Date:       28-Jan-2016
+--
+-- 03-Aug-2015 Added eltQosAclActionStop
+-- 05-Aug-2015 Added eltQosClassMapActionCfgTable
+-- 28-Jan-2016 Added eltQosDscpToCosTable
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE                   FROM SNMPv2-SMI
+    TEXTUAL-CONVENTION, DisplayString, RowStatus,
+    MacAddress, TruthValue                         FROM SNMPv2-TC
+    InterfaceType, BinaryStatus, AclDefaultAction,
+    ClassMapAction, rlQosClassMapIndex			   FROM RADLAN-QOS-CLI-MIB
+    eltMes, eltMesQosCliMib                        FROM ELTEX-MES;
+
+--------------------------------------------------------------------------------
+-- eltQosOffsetListTable
+--------------------------------------------------------------------------------
+
+eltQosOffsetListTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF EltQosOffsetListEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "This table specifies Offset List Table information"
+    ::= { eltMesQosCliMib 1 }
+
+eltQosOffsetListEntry OBJECT-TYPE
+    SYNTAX     EltQosOffsetListEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "Each entry in this table describes one Offset List.
+        The information includes: Offset List name and the offsets pointers.
+        The index is an octet string name"
+    INDEX { eltQosAclIndex,
+                    eltQosOffsetListName }
+    ::= { eltQosOffsetListTable 1 }
+
+EltQosOffsetListEntry ::= SEQUENCE {
+	eltQosAclIndex                 INTEGER,
+    eltQosOffsetListName           OCTET STRING,
+    eltQosOffsetListOffsetPointer1 INTEGER,
+    eltQosOffsetListOffsetPointer2 INTEGER,
+    eltQosOffsetListOffsetPointer3 INTEGER,
+    eltQosOffsetListOffsetPointer4 INTEGER,
+    eltQosOffsetListOffsetPointer5 INTEGER,
+    eltQosOffsetListStatus         RowStatus
+    }
+
+eltQosAclIndex OBJECT-TYPE
+    SYNTAX     INTEGER
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+        "An arbitrary incremental Index
+         for the ACL offset list connection."
+    ::= { eltQosOffsetListEntry 1 }
+
+eltQosOffsetListName OBJECT-TYPE
+    SYNTAX     OCTET STRING(SIZE(0..32))
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "Offset list name."
+    ::= { eltQosOffsetListEntry 2 }
+
+eltQosOffsetListOffsetPointer1 OBJECT-TYPE
+    SYNTAX     INTEGER
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+        "Offset pointer is an index of table eltQosOffsetTable."
+    ::= { eltQosOffsetListEntry 3 }
+
+eltQosOffsetListOffsetPointer2 OBJECT-TYPE
+    SYNTAX     INTEGER
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+        "Offset pointer is an index of table eltQosOffsetTable."
+    ::= { eltQosOffsetListEntry 4 }
+
+eltQosOffsetListOffsetPointer3 OBJECT-TYPE
+    SYNTAX     INTEGER
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+        "Offset pointer is an index of table eltQosOffsetTable."
+    ::= { eltQosOffsetListEntry 5}
+
+eltQosOffsetListOffsetPointer4 OBJECT-TYPE
+    SYNTAX     INTEGER
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+        "Offset pointer is an index of table eltQosOffsetTable."
+    ::= { eltQosOffsetListEntry 6}
+
+eltQosOffsetListOffsetPointer5 OBJECT-TYPE
+    SYNTAX     INTEGER
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+        "Offset pointer is an index of table eltQosOffsetTable."
+    ::= { eltQosOffsetListEntry 7 }
+
+eltQosOffsetListStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "The status of a table entry.
+        It is used to delete/Add an entry from this table."
+    ::= { eltQosOffsetListEntry 8 }
+
+--------------------------------------------------------------------------------
+-- eltQosIfPolicyTable
+--------------------------------------------------------------------------------
+
+eltQosIfPolicyTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF EltQosIfPolicyEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "This table specifies for each interface
+         the access lists or policy maps attached to
+         other supported profiles. rlQosIfPolicyTable represents
+         configuration for default profile 0"
+    ::= { eltMesQosCliMib 2 }
+
+eltQosIfPolicyEntry OBJECT-TYPE
+    SYNTAX EltQosIfPolicyEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "Each entry in this table describes what policy
+         attached to specific Interface inside of specific profile (lookup).
+         The index is Interface Index represented by eltIfIndex,
+         the interface type represented by eltIfType
+         and profile id (PCL lookup) represented by eltQosAclProfileId"
+    INDEX { eltIfIndex,
+            eltIfType,
+            eltQosAclProfileId }
+    ::= { eltQosIfPolicyTable 1 }
+
+EltQosIfPolicyEntry ::= SEQUENCE {
+        eltIfIndex                      INTEGER,
+        eltIfType                       InterfaceType,
+        eltQosAclProfileId              INTEGER,
+        eltQosIfPolicyMapPointerIn      INTEGER,
+        eltQosIfAclIn                   INTEGER,
+        eltQosIfIpv6AclIn               INTEGER
+    }
+
+eltIfIndex OBJECT-TYPE
+    SYNTAX INTEGER
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "Interface Index."
+    ::= { eltQosIfPolicyEntry 1 }
+
+eltIfType OBJECT-TYPE
+    SYNTAX InterfaceType
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "Interface Type(vlan/port)."
+    ::= { eltQosIfPolicyEntry 2 }
+
+eltQosAclProfileId OBJECT-TYPE
+    SYNTAX INTEGER(1..2)
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "Profile id."
+    ::= { eltQosIfPolicyEntry 3 }
+
+eltQosIfPolicyMapPointerIn OBJECT-TYPE
+    SYNTAX INTEGER
+    MAX-ACCESS read-create
+    STATUS current
+    DESCRIPTION
+        "Policy map pointer Input."
+    ::= { eltQosIfPolicyEntry 4 }
+
+eltQosIfAclIn OBJECT-TYPE
+    SYNTAX INTEGER
+    MAX-ACCESS read-create
+    STATUS current
+    DESCRIPTION
+        "Index of an ACL in the eltQosAclTable, which is applied
+         to the ingress of an interface.
+         0 - means no ACL applied."
+    DEFVAL {0}
+    ::= { eltQosIfPolicyEntry 5 }
+
+eltQosIfIpv6AclIn OBJECT-TYPE
+    SYNTAX INTEGER
+    MAX-ACCESS read-create
+    STATUS current
+    DESCRIPTION
+        "Index of an IPv6 ACL in the eltQosAclTable, which is applied
+         to the ingress of an interface.
+         0 - means no ACL applied."
+    DEFVAL {0}
+    ::= { eltQosIfPolicyEntry 6 }
+
+--------------------------------------------------------------------------------
+-- eltQosIfDynamicAclTable
+--------------------------------------------------------------------------------
+
+eltQosIfDynamicAclTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF EltQosIfDynamicAclEntry
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "This table contains list of dynamic ACL for each interface."
+    ::= { eltMesQosCliMib 3 }
+
+eltQosIfDynamicAclEntry OBJECT-TYPE
+    SYNTAX EltQosIfDynamicAclEntry
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "Each entry in this table describes a dynamic access list."
+    INDEX { eltQosIfIndex }
+    ::= { eltQosIfDynamicAclTable 1 }
+
+EltQosIfDynamicAclEntry ::= SEQUENCE {
+        eltQosIfIndex                   INTEGER,
+        eltQosIfDynAclIn                INTEGER,
+        eltQosIfDynAclSrcMac            MacAddress
+    }
+
+eltQosIfIndex OBJECT-TYPE
+    SYNTAX INTEGER
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "Interface Index."
+    ::= { eltQosIfDynamicAclEntry 1 }
+
+eltQosIfDynAclIn OBJECT-TYPE
+    SYNTAX INTEGER
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "Index of Dynamic access list."
+    ::= { eltQosIfDynamicAclEntry 2 }
+
+eltQosIfDynAclSrcMac OBJECT-TYPE
+    SYNTAX MacAddress
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "MAC address of Dynamic ACL source."
+    ::= { eltQosIfDynamicAclEntry 3 }
+
+--------------------------------------------------------------------------------
+-- eltQosAclActionStop
+--------------------------------------------------------------------------------
+
+eltQosAclActionStop OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DEFVAL      { true }
+    DESCRIPTION
+        "Enable/disable Ingress PCL lookup cycle. This scalar specifies the
+        global parameter affects all of PCLs configured on the device. ACLs
+        and policies must be unbound from all interfaces before setting the
+        parameter.
+
+        TRUE  - no lookups are performed after PCL Action executing.
+        FALSE - all lookups are performed for IPCLs."
+    ::= { eltMesQosCliMib 4 }
+
+--------------------------------------------------------------------------------
+-- eltQosClassMapActionCfgTable
+--------------------------------------------------------------------------------
+
+eltQosClassMapActionCfgTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF EltQosClassMapActionCfgEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "This table specifes list of actions for each class in
+         rlQosClassMapTable."
+    ::= { eltMesQosCliMib 5 }
+
+eltQosClassMapActionCfgEntry OBJECT-TYPE
+    SYNTAX EltQosClassMapActionCfgEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "Each entry in this table describes configuration information about
+         actions for one class.
+         This table is a sub-table for rlQosClassMapTable."
+    INDEX { rlQosClassMapIndex,
+            eltQosClassMapActionCfgAction }
+    ::= { eltQosClassMapActionCfgTable 1 }
+
+EltQosClassMapActionCfgEntry ::= SEQUENCE {
+        eltQosClassMapActionCfgAction  ClassMapAction,
+        eltQosClassMapActionCfgValue   INTEGER,
+        eltQosClassMapActionCfgStatus  RowStatus
+    }
+
+eltQosClassMapActionCfgAction OBJECT-TYPE
+	SYNTAX ClassMapAction
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+    	"Action to be taken when packet matches classification."
+    ::= { eltQosClassMapActionCfgEntry 1 }
+
+eltQosClassMapActionCfgValue OBJECT-TYPE
+	SYNTAX INTEGER
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+    	"Value for the action described in eltQosClassMapActionCfgAction."
+    ::= { eltQosClassMapActionCfgEntry 2 }
+
+eltQosClassMapActionCfgStatus OBJECT-TYPE
+    SYNTAX RowStatus
+    MAX-ACCESS read-create
+    STATUS current
+    DESCRIPTION
+       "The status of a table entry. It is used to add/delete an entry from this
+        table."
+    ::= { eltQosClassMapActionCfgEntry 3 }
+
+--------------------------------------------------------------------------------
+-- eltQosDscpToCosTable
+--------------------------------------------------------------------------------
+
+eltQosDscpToCosTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF EltQosDscpToCosEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "This table specifies The DSCP
+         To CoS mapping"
+    ::= { eltMesQosCliMib 6 }
+
+eltQosDscpToCosEntry OBJECT-TYPE
+    SYNTAX EltQosDscpToCosEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "Each entry in this table describes the new
+         CoS for the packet.
+         The index is DSCP represent by eltQosDscp."
+    INDEX { eltQosDscp }
+    ::= { eltQosDscpToCosTable 1 }
+
+EltQosDscpToCosEntry ::= SEQUENCE {
+        eltQosDscp                INTEGER,
+        eltQosCos                 INTEGER
+    }
+
+eltQosDscp OBJECT-TYPE
+    SYNTAX INTEGER (0..63)
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "DSCP value."
+    ::= { eltQosDscpToCosEntry 1 }
+
+eltQosCos OBJECT-TYPE
+    SYNTAX INTEGER (0..7)
+    MAX-ACCESS read-create
+    STATUS current
+    DESCRIPTION
+        "Re-mark CoS."
+    ::= { eltQosDscpToCosEntry 2 }
+
+END

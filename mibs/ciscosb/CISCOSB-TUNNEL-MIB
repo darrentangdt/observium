@@ -13,15 +13,15 @@ IMPORTS
 
 rlTunnel MODULE-IDENTITY
          LAST-UPDATED "201109120000Z"
-         ORGANIZATION "Cisco Small Business"
+         ORGANIZATION "Cisco Systems, Inc."
 
          CONTACT-INFO
          "Postal: 170 West Tasman Drive
          San Jose , CA 95134-1706
          USA
 
-         Website: Cisco Small Business Home http://www.cisco.com/smb>;,
-         Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
+         
+         Website:  Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
 
          DESCRIPTION
                 "The private MIB module definition for Tunneling."
@@ -236,7 +236,6 @@ rlTunnelIfStatus OBJECT-TYPE
 rlTunnelTypeSpecific OBJECT IDENTIFIER ::= { rlTunnel 12 }
 
 
-
 --- rlTunnelIsatap
 
 rlTunnelIsatap OBJECT IDENTIFIER ::= { rlTunnelTypeSpecific 1 }
@@ -375,5 +374,16 @@ rlTunnelIsatapConfRobustness  OBJECT-TYPE
          Lifetime is the Lifetime advertised in the RA."
     DEFVAL  { 3 }
     ::= { rlTunnelIsatap 12 }
+
+
+rlTunnelIPv6EndConfig  OBJECT-TYPE
+    SYNTAX  INTEGER
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Used to indicate end of snmp configuration for IPv6. Can be removed,
+         if mechanism for indicating end config per mib is added to SNMP."
+    DEFVAL  { 1 }
+    ::= { rlTunnelTypeSpecific 2 }
 
 END

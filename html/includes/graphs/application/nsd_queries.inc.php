@@ -11,7 +11,7 @@
  *
  */
 
-include("includes/graphs/common.inc.php");
+include($config['html_dir']."/includes/graphs/common.inc.php");
 
 $scale_min    = 0;
 $colours      = "mixed";
@@ -83,6 +83,6 @@ if (is_file($queries_filename))
   echo("file missing: $file");
 }
 
-include("includes/graphs/generic_multi_line.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_line.inc.php");
 
 // EOF

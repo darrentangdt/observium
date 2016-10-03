@@ -1,34 +1,65 @@
--- Revision 1.87 Draft ***************************
+-- ************************************************************************
+-- Revision 1.92 Draft
+-- 2008/05/30 15:40 by Elvis
+-- 1. Add objects agentSerialNumber.
+-- ************************************************************************
+-- Revision 1.91 Draft
+-- 2008/05/12 06:30AM by Elvis
+-- 1. Modify objects agentReset to support to keep special setting.
+-- ************************************************************************
+-- Revision 1.90 Draft
+-- 2008/01/29 11:17AM by Ronald
+-- 1. Add objects agentSnmpTrapState.
+-- ************************************************************************
+-- Revision 1.89 Draft
+-- 2008/01/16 04:52PM by Ronald
+-- 1. Add objects agentGratuitousARPSendIpifStatusUpState, agentGratuitousARPSendDupIpDetectedState
+--    and agentGratuitousARPLearningState.
+-- 2. Add agentGratuitousARPTable.
+-- 3. Add agentGratuitousARPTrap.
+-- 4. Add objects ipaddr,macaddr and portNumber.
+-- ************************************************************************
+-- Revision 1.88 Draft
+-- Description:
+-- Add object 'agentTrustHostForSNMP, agentTrustHostForTELNET, agentTrustHostForSSH
+--             agentTrustHostForHTTP, agentTrustHostForHTTPS' for agentTrustHostTable
+-- ************************************************************************
+-- Revision 1.87 Draft
 -- Description:
 -- [New Object]
 -- Add agentStatusReset, agentReboot and agentReset.
 -- Deprecated agentSystemReset
 -- Notes: Created for follow CLI spec.
--- Revision 1.86 Draft ***************************
--- 2007/01/17 05:15下午
+-- ************************************************************************
+-- Revision 1.86 Draft
+-- 2007/01/17 05:15PM
 -- Add object 'agentTrustHostIPSubnetMask ' in agentTrustHostTable
--- Revision 1.85 Draft ***************************
--- 2006/10/17 01:45下午
+-- ************************************************************************
+-- Revision 1.85 Draft
+-- 2006/10/17 01:45PM
 -- Add group 'agentTrustHostMgmt'
--- Revision 1.84 Draft ***************************
--- 2006/5/19 01:45下午
+-- ************************************************************************
+-- Revision 1.84 Draft
+-- 2006/5/19 01:45PM
 -- Add group 'agentPORTutilizationTable'
--- Revision 1.83 Draft ***************************
--- 2004/1/12 11:50上午  ***************************
+-- ************************************************************************
+-- Revision 1.83 Draft
+-- 2004/1/12 11:50PM
 -- Add a object 'agentBscSwFileBIncrement' in agentBscSwFileTable
 -- Add group 'agentCPUutilization'
 -- Add swMultiImageCtrlTable ,swMultiImageInfoTable
--- Revision 1.82 Draft ***************************
---2003/5/14 02:11下午  ***************************
+-- ************************************************************************
+-- Revision 1.82 Draft
+--2003/5/14 02:11PM
 -- re-arrange the agentNotify subtree
 -- ************************************************************************
--- Revision 1.81 Draft ***************************
--- 2003/3/24 03:09下午
+-- Revision 1.81 Draft
+-- 2003/3/24 03:09PM
 -- remove  status "changed-not-save(4)"  in object agentStatusSaveCfg
 -- change object  MAX-ACCESS of agentTrapManagerIpAddr  from read-only to read-write
 -- ************************************************************************
--- Revision 1.8 Draft ***************************
--- 2003/1/21 11:21上午
+-- Revision 1.8 Draft
+-- 2003/1/21 11:21AM
 -- Modified  Common traps and management
 -- **********************************************
 -- Remove agentConsoleModeManager , agentSlipModeManager
@@ -40,30 +71,31 @@
 DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 
     IMPORTS
-        IpAddress			        FROM RFC1155-SMI
+        IpAddress                 FROM RFC1155-SMI
         MODULE-IDENTITY, OBJECT-TYPE,
-        Integer32		 	FROM SNMPv2-SMI
+        Integer32           FROM SNMPv2-SMI
         TruthValue          FROM SNMPv2-TC
-        DisplayString		FROM RFC1213-MIB
+        DisplayString       FROM RFC1213-MIB
         AgentNotifyLevel    FROM DLINK-ID-REC-MIB
-        RowStatus           	FROM SNMPv2-TC
-        dlink-common-mgmt	FROM DLINK-ID-REC-MIB;
+        RowStatus           FROM SNMPv2-TC
+        dlink-common-mgmt   FROM DLINK-ID-REC-MIB
+        MacAddress          FROM SNMPv2-TC;
 
       agentGeneralMgmt MODULE-IDENTITY
-	    LAST-UPDATED "0007150000Z"
-	    ORGANIZATION "D-Link, Inc."
-	    CONTACT-INFO
-	        "   D-Link Customer Service
+       LAST-UPDATED "0801290000Z"
+       ORGANIZATION "D-Link, Inc."
+       CONTACT-INFO
+           "   D-Link Customer Service
 
-		    Postal: No. 20,Park Ave, II, Science-based
-			        Industrial Park, Hsinchu, taiwan, R.O.C.
+          Postal: No. 20,Park Ave, II, Science-based
+                 Industrial Park, Hsinchu, taiwan, R.O.C.
 
-		       Tel: 886-3-577-9966
+             Tel: 886-3-577-9966
 
-		    E-mail: "
-	    DESCRIPTION
-		    "The Structure of Common Management Information for the
-		    D-Link enterprise."
+          E-mail: "
+       DESCRIPTION
+          "The Structure of Common Management Information for the
+          D-Link enterprise."
         ::= {  dlink-common-mgmt 1 }
 
     -- ****************
@@ -166,7 +198,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
-            "This indicates whether console is currently in-use."
+            "This indicates whether the console is currently in-use."
         ::= { agentBasicInfo 3 }
 
     agentStatusSaveCfg OBJECT-TYPE
@@ -206,8 +238,8 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-only
         STATUS  current
         DESCRIPTION
-            "status of firmware download control. If the value is 'other',
-            means never firmware updated since device started up."
+            "The status of the firmware download control. If the value is 'other',
+             this means the firmware has not been updated since the device started up."
         ::= { agentBasicInfo 5 }
 
     -- *************************
@@ -221,7 +253,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-only
         STATUS  current
         DESCRIPTION
-            "Time scale is 5 seconds.The value will be between 0%(idle) and 100%
+            "The unit of time is 5 seconds. The value will be between 0% (idle) and 100%
             (very busy)."
         ::= { agentCPUutilization 1 }
 
@@ -231,7 +263,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-only
         STATUS  current
         DESCRIPTION
-            "Time scale is 1 minute.The value will be between 0%(idle) and 100%
+            "The unit of time is 1 minute. The value will be between 0% (idle) and 100%
             (very busy)."
         ::= { agentCPUutilization 2 }
 
@@ -240,7 +272,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-only
         STATUS  current
         DESCRIPTION
-            "Time scale is 5 minute.The value will be between 0%(idle) and 100%
+            "The unit of time is 5 minutes. The value will be between 0% (idle) and 100%
             (very busy)."
         ::= { agentCPUutilization 3 }
 
@@ -252,7 +284,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  not-accessible
         STATUS  current
         DESCRIPTION
-            "The table specifies port's utilization function."
+            "The table specifies the port's utilization function."
         ::= { agentBasicInfo 7 }
 
     agentPORTutilizationEntry OBJECT-TYPE
@@ -260,7 +292,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  not-accessible
         STATUS  current
         DESCRIPTION
-            "A list of information about port's utilization function."
+            "A list of information about the port's utilization function."
         INDEX   { agentPORTutilizationProtIndex }
         ::= { agentPORTutilizationTable 1 }
 
@@ -289,7 +321,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-only
         STATUS  current
         DESCRIPTION
-            "The real time gauges of transmitted frames on the specific port."
+            "The real-time gauges of transmitted frames on the specific port."
         ::= { agentPORTutilizationEntry 2 }
 
     agentPORTutilizationRX OBJECT-TYPE
@@ -297,7 +329,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-only
         STATUS  current
         DESCRIPTION
-            "The real time gauges of recieved frames on the specific port."
+            "The real-time gauges of recieved frames on the specific port."
         ::= { agentPORTutilizationEntry 3 }
 
     agentPORTutilizationUtil OBJECT-TYPE
@@ -306,10 +338,10 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-only
         STATUS  current
         DESCRIPTION
-            "The real time percentage of the port statistics."
+            "The real-time percentage of the port statistics."
         ::= { agentPORTutilizationEntry 4 }
 
--- -----------------------------------------------------------------------------
+-- *****************************************************************************
     agentDRAMutilizationTable OBJECT-TYPE
         SYNTAX  SEQUENCE OF AgentDRAMutilizationEntry
         MAX-ACCESS not-accessible
@@ -345,25 +377,25 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         STATUS  current
         DESCRIPTION
              "Specifies the unit ID.
-              If the ID equals to zero, it means the current device."
+              If the ID equals zero, it means the current device."
         ::={ agentDRAMutilizationEntry 1 }
 
      agentDRAMutilizationTotalDRAM OBJECT-TYPE
         SYNTAX  INTEGER
-        UNITS	"KB"
+        UNITS    "KB"
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
-            "The size of Total DRAM Memory."
+            "The size of the total DRAM memory."
         ::={agentDRAMutilizationEntry 2}
 
      agentDRAMutilizationUsedDRAM OBJECT-TYPE
         SYNTAX  INTEGER
-        UNITS	"KB"
+        UNITS    "KB"
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
-            "The size of used DRAM memory."
+            "The size of the used DRAM memory."
         ::={agentDRAMutilizationEntry 3}
 
      agentDRAMutilization OBJECT-TYPE
@@ -375,8 +407,8 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
               The value will be between 0%(idle) and 100%(very busy)."
         ::={agentDRAMutilizationEntry 4}
 
--- -----------------------------------------------------------------------------
-	agentStatusReset OBJECT-TYPE
+-- *****************************************************************************
+    agentStatusReset OBJECT-TYPE
         SYNTAX INTEGER {
                proceeding(1),
                completed(2),
@@ -389,6 +421,15 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         ::= { agentBasicInfo 11 }
 
 
+    agentSerialNumber OBJECT-TYPE
+        SYNTAX      DisplayString
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "A text string containing the serial number of this device."
+        ::= { agentBasicInfo 12 }
+
+
     -- ******************
     -- agentBasicConfig *
     -- ******************
@@ -399,7 +440,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  not-accessible
         STATUS  current
         DESCRIPTION
-            "A list of MIB Basic Config entries supported file Update by this agent."
+            "A list of MIB basic config entries that support file update by this agent."
         ::= { agentBasicConfig 1 }
 
     agentBscSwFileEntry OBJECT-TYPE
@@ -413,37 +454,37 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         ::= { agentBscSwFileTable 1 }
 
     AgentBscSwFileEntry ::=
-    	SEQUENCE {
-    		agentBscSwFileIndex
-    			Integer32,
-    		agentBscSwFileDscr
-    			DisplayString,
-    		agentBscSwFileAddr
-    			IpAddress,
-    		agentBscSwFileTransferType
-    			INTEGER,
-        	agentBscSwFile
-        		DisplayString,
-        	agentBscSwFileLocateId
-        		INTEGER,
-        	agentBscSwFileLoadType
-        		INTEGER,
-        	agentBscSwFileCtrl
-        		INTEGER,
-        	agentBscSwFileBIncrement
-        	    TruthValue,
-        	agentMultiImageCtrlID
-        		INTEGER
+        SEQUENCE {
+            agentBscSwFileIndex
+                Integer32,
+            agentBscSwFileDscr
+                DisplayString,
+            agentBscSwFileAddr
+                IpAddress,
+            agentBscSwFileTransferType
+                INTEGER,
+            agentBscSwFile
+                DisplayString,
+            agentBscSwFileLocateId
+                INTEGER,
+            agentBscSwFileLoadType
+                INTEGER,
+            agentBscSwFileCtrl
+                INTEGER,
+            agentBscSwFileBIncrement
+               TruthValue,
+            agentMultiImageCtrlID
+                INTEGER
 
         }
 
     agentBscSwFileIndex OBJECT-TYPE
-    	SYNTAX	Integer32
-    	MAX-ACCESS	read-only
-    	STATUS	current
-    	DESCRIPTION
-    		"The table index for the file entry"
-    	::= { agentBscSwFileEntry 1 }
+        SYNTAX    Integer32
+        MAX-ACCESS    read-only
+        STATUS    current
+        DESCRIPTION
+            "The table index for the file entry."
+        ::= { agentBscSwFileEntry 1 }
 
     agentBscSwFileDscr OBJECT-TYPE
         SYNTAX  DisplayString  (SIZE (0..64))
@@ -451,10 +492,10 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         STATUS  current
         DESCRIPTION
             "The description for the purpose of the software file in this entry.
-			 Note:
-			 For systems which do not support change of this object, setting values to
-			 this object will cause the system to return bad-value error message.
-			 "
+          Note:
+          For systems which do not support change of this object, setting values to
+          this object will cause the system to return a bad-value error message.
+          "
         ::= { agentBscSwFileEntry 2 }
 
     agentBscSwFileAddr OBJECT-TYPE
@@ -477,10 +518,10 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         DESCRIPTION
             "The channel through which the file will be downloaded or uploaded.
 
-			 Note:
-			 For systems which do not support all channels, setting values to the unsupported
-			 channel will cause the system to return bad-value error message.
-			 "
+          Note:
+          For systems which do not support all channels, setting values to the unsupported
+          channel will cause the system to return a bad-value error message.
+          "
         ::= { agentBscSwFileEntry 4 }
 
     agentBscSwFile OBJECT-TYPE
@@ -502,9 +543,9 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
              log-file(2),
              cfg-file(3)
 
-			 Note:
-			 For system which does not support change of this object, setting value to
-			 this object will cause the system to return bad-value error message.
+          Note:
+          For a system which does not support change of this object, setting a value to
+          this object will cause the system to return a bad-value error message.
              "
         ::= { agentBscSwFileEntry 6 }
 
@@ -517,12 +558,12 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-write
         STATUS  current
         DESCRIPTION
-        	"This object allows the user to select download or upload function for the file.
+            "This object allows the user to select the download or upload function for the file.
 
-			 Note:
-			 For system which does not support change of this object, setting value to
-			 this object will cause the system to return bad-value error message.
-			 "
+          Note:
+          For a system which does not support change of this object, setting a value to
+          this object will cause the system to return a bad-value error message.
+          "
         ::= { agentBscSwFileEntry 7 }
 
      agentBscSwFileCtrl OBJECT-TYPE
@@ -537,27 +578,27 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         STATUS  current
         DESCRIPTION
             "This object allows the user to download runtime software. The setting
- 		  	 will take effect when the system restarts. See Note(1) below
+             will take effect when the system restarts. See Note (1) below
 
-			 Note:
-			 For systems which do not support change of this object to some value,
-			 setting these values cause the system to return bad-value error messages.
+          Note:
+          For systems which do not support change of this object to some value,
+          setting these values causes the system to return bad-value error messages.
 
-			start - start to action.
-	        delete(4) - delete the firmware by indicated firmware ID.
-	        config-as-bootup-fw(5) - configured as bootup firmware by indicated
+            start - start to action.
+           delete(4) - delete the firmware by indicated firmware ID.
+           config-as-bootup-fw(5) - configured as bootup firmware by indicated
             firmware(ID)."
         ::= { agentBscSwFileEntry 8 }
 
-	agentBscSwFileBIncrement OBJECT-TYPE
+    agentBscSwFileBIncrement OBJECT-TYPE
         SYNTAX     TruthValue
         MAX-ACCESS read-write
         STATUS current
         DESCRIPTION
-            "The object indicates that whether the previous configuration will be valid
+            "The object indicates whether the previous configuration will be valid
               or not after downloading the configuration file.
-             True : keep valid
-             False : erase. "
+              True: keep valid
+              False: erase."
         ::= { agentBscSwFileEntry 9 }
 
     agentMultiImageCtrlID OBJECT-TYPE
@@ -565,28 +606,28 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-write
         STATUS  current
         DESCRIPTION
-            "The section ID of firmware image."
+            "The section ID of the firmware image."
         ::= { agentBscSwFileEntry 10 }
 
-	agentFileTransfer OBJECT-TYPE
-		SYNTAX INTEGER {
-				other(1),
-				start(2),
-				start-and-reset(3),
-				noaction(4)
-			}
-		MAX-ACCESS read-write
-		STATUS obsolete
-		DESCRIPTION
-			"This object will execute the download or upload action. If start(2), it will
-			begin to download/upload, but no reset follows. If start-and-reset(3), then
-			the reset will activate after download or upload. No action if(4).
+    agentFileTransfer OBJECT-TYPE
+        SYNTAX INTEGER {
+                other(1),
+                start(2),
+                start-and-reset(3),
+                noaction(4)
+            }
+        MAX-ACCESS read-write
+        STATUS obsolete
+        DESCRIPTION
+            "This object will execute the download or upload action. If start(2), it will
+          begin to download/upload, but no reset follows. If start-and-reset(3), then
+          the reset will activate after download or upload. No action if (4).
 
-			 Note:
-			 Because these functions will be limited by the system support, some of the
-			 selected items will be invalid. When the user selects one of the items,
-			 it will respond with bad-value status."
-		::= { agentBasicConfig 2 }
+          Note:
+          Because these functions will be limited by the system support, some of the
+          selected items will be invalid. When the user selects one of the items,
+          it will respond with bad-value status."
+        ::= { agentBasicConfig 2 }
 
     agentSystemReset OBJECT-TYPE
         SYNTAX  INTEGER {
@@ -609,12 +650,12 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
                     other(1),
                     console(2),
                     out-of-band(3),
-					notAvail(4)
+                    notAvail(4)
                 }
         MAX-ACCESS  read-write
         STATUS  current
         DESCRIPTION
-            "This object indicates the RS-232C mode when device has restarted."
+            "This object indicates the RS-232C mode when the device has restarted."
         ::= { agentBasicConfig 4 }
 
     agentOutOfBandBaudRateConfig OBJECT-TYPE
@@ -629,22 +670,22 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-write
         STATUS  obsolete
         DESCRIPTION
-            "This object allows user to specify out-of-band baud rate. It will take effect
-			 when the system is restarted
+            "This object allows the user to the specify out-of-band baud rate. It will take effect
+          when the system is restarted.
 
-			 Note:
-			 Because these funictions will be limited by the system support, some of the
-			 selected items will be invalid. Whenthe user selects one of the items,
-			 it will respond with a bad-value status.
-			 "
+          Note:
+          Because these functions will be limited by the system support, some of the
+          selected items will be invalid. When the user selects one of the items,
+          it will respond with a bad-value status.
+          "
         ::= { agentBasicConfig 5 }
 
      agentSaveCfg OBJECT-TYPE
         SYNTAX INTEGER {
-        			other(1),
-        			idle(2),
-        			set(3)
-        		}
+                    other(1),
+                    idle(2),
+                    set(3)
+                }
         MAX-ACCESS read-write
         STATUS current
         DESCRIPTION
@@ -674,8 +715,8 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 
     SwMultiImageInfoEntry ::=
         SEQUENCE {
-        	swMultiImageInfoID
-        		INTEGER,
+            swMultiImageInfoID
+                INTEGER,
             swMultiImageVersion
                 DisplayString,
             swMultiImageSize
@@ -692,7 +733,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-only
         STATUS  current
         DESCRIPTION
-            "The section ID of firmware image."
+            "The section ID of the firmware image."
         ::= { swMultiImageInfoEntry 1 }
 
     swMultiImageVersion OBJECT-TYPE
@@ -700,7 +741,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-only
         STATUS  current
         DESCRIPTION
-            "The record of downloaded firmware version."
+            "The record of the downloaded firmware version."
         ::= { swMultiImageInfoEntry 2 }
 
     swMultiImageSize OBJECT-TYPE
@@ -708,7 +749,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-only
         STATUS  current
         DESCRIPTION
-            "The record of downloaded firmware size."
+            "The record of the downloaded firmware size."
         ::= { swMultiImageInfoEntry 3 }
 
     swMultiImageUpdateTime OBJECT-TYPE
@@ -716,7 +757,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-only
         STATUS  current
         DESCRIPTION
-            "The record of firmware updated time."
+            "The record of the firmware updated time."
         ::= { swMultiImageInfoEntry 4 }
 
     swMultiImageFrom OBJECT-TYPE
@@ -724,7 +765,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-only
         STATUS  current
         DESCRIPTION
-            "The record of IP address of TFTP server."
+            "The record of the IP address of the TFTP server."
         ::= { swMultiImageInfoEntry 5 }
 
     swMultiImageSendUser OBJECT-TYPE
@@ -732,7 +773,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-only
         STATUS  current
         DESCRIPTION
-            "The record of user who downloaded the firmware."
+            "The record of the user who downloaded the firmware."
         ::= { swMultiImageInfoEntry 6 }
 
 --***************************************************************************
@@ -757,8 +798,8 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 
 --    SwMultiImageCtrlEntry ::=
 --        SEQUENCE {
---        	swMultiImageCtrlID
---        		INTEGER,
+--            swMultiImageCtrlID
+--                INTEGER,
 --            swMultiImageSourceAddr
 --                IpAddress,
 --            swMultiImageFileName
@@ -771,7 +812,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 --        MAX-ACCESS  read-write
 --        STATUS  current
 --        DESCRIPTION
---            "The section ID of firmware image."
+--            "The section ID of the firmware image."
 --        ::= { swMultiImageCtrlEntry 1 }
 
 --    swMultiImageSourceAddr OBJECT-TYPE
@@ -779,7 +820,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 --        MAX-ACCESS  read-write
 --        STATUS  current
 --        DESCRIPTION
---            "The IP address where new firmware image file is located."
+--            "The IP address where the new firmware image file is located."
 --        ::= { swMultiImageCtrlEntry 2 }
 
 --    swMultiImageFileName OBJECT-TYPE
@@ -791,7 +832,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 --        ::= { swMultiImageCtrlEntry 3 }
 
 --    swMultiImageAction OBJECT-TYPE
---		SYNTAX  INTEGER {
+--        SYNTAX  INTEGER {
 --               other(1),
 --               update(2),
 --               delete(3),
@@ -801,11 +842,10 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 --        STATUS  current
 --        DESCRIPTION
 --            "This object indicates the status of multiImageTable actions.
-
---            other(1) - .
+--            other(1)  - .
 --            update(2) - download firmware to indicated section.
 --            delete(3) - delete the firmware by indicated firmware ID.
---            config-as-bootup-fw(4) - configured as bootup firmware by indicated firmware(ID)."
+--            config-as-bootup-fw(4) - configured as bootup firmware by indicated firmware (ID)."
 --        ::= { swMultiImageCtrlEntry 4 }
 
 --***************************************************************************
@@ -819,7 +859,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  not-accessible
         STATUS  current
         DESCRIPTION
-            "This table contains Trust Host information."
+            "This table contains trusted host information."
         ::= { agentTrustHostMgmt 1 }
 
     agentTrustHostEntry OBJECT-TYPE
@@ -827,7 +867,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  not-accessible
         STATUS  current
         DESCRIPTION
-            "A list of information about Trust Host."
+            "A list of information about trusted host."
         INDEX  { agentTrustHostIndex }
         ::= { agentTrustHostTable 1 }
 
@@ -840,7 +880,17 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
             agentTrustHostRowStatus
                 RowStatus,
             agentTrustHostIPSubnetMask
-                IpAddress
+                IpAddress,
+            agentTrustHostForSNMP
+                INTEGER,
+            agentTrustHostForTELNET
+                INTEGER,
+            agentTrustHostForSSH
+                INTEGER,
+            agentTrustHostForHTTP
+                INTEGER,
+            agentTrustHostForHTTPS
+                INTEGER
         }
 
     agentTrustHostIndex OBJECT-TYPE
@@ -848,7 +898,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-only
         STATUS  current
         DESCRIPTION
-            "The index of Trust Host entry."
+            "The index of the trusted host entry."
         ::= { agentTrustHostEntry 1 }
 
     agentTrustHostIPAddress OBJECT-TYPE
@@ -856,7 +906,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-create
         STATUS  current
         DESCRIPTION
-            "Specifies the IP address of the Trust Host."
+            "Specifies the IP address of the trusted host."
         ::= { agentTrustHostEntry 2 }
 
     agentTrustHostRowStatus OBJECT-TYPE
@@ -864,7 +914,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-create
         STATUS  current
         DESCRIPTION
-            "Indicates the status of this entry. When creating a Trust Host
+            "Indicates the status of this entry. When creating a trusted host
              entry, the IP address should be set, too."
         ::= { agentTrustHostEntry 3 }
 
@@ -873,8 +923,63 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-create
         STATUS  current
         DESCRIPTION
-            "Specifies the IP subnet mask of the Trust Host."
+            "Specifies the IP subnet mask of the trusted host."
         ::= { agentTrustHostEntry 4 }
+
+    agentTrustHostForSNMP OBJECT-TYPE
+        SYNTAX  INTEGER {
+                    enabled(1),
+                    disabled(2)
+                }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Specifies the trusted host for SNMP."
+        ::= { agentTrustHostEntry 5 }
+
+    agentTrustHostForTELNET OBJECT-TYPE
+        SYNTAX  INTEGER {
+                    enabled(1),
+                    disabled(2)
+                }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Specifies the trusted host for TELNET."
+        ::= { agentTrustHostEntry 6 }
+
+    agentTrustHostForSSH OBJECT-TYPE
+        SYNTAX  INTEGER {
+                    enabled(1),
+                    disabled(2)
+                }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Specifies the trusted host for SSH."
+        ::= { agentTrustHostEntry 7 }
+
+    agentTrustHostForHTTP OBJECT-TYPE
+        SYNTAX  INTEGER {
+                    enabled(1),
+                    disabled(2)
+                }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Specifies the trusted host for HTTP."
+        ::= { agentTrustHostEntry 8 }
+
+    agentTrustHostForHTTPS OBJECT-TYPE
+        SYNTAX  INTEGER {
+                    enabled(1),
+                    disabled(2)
+                }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Specifies the trusted host for HTTPS."
+        ::= { agentTrustHostEntry 9 }
 
 --***************************************************************************
 --agentFDBMgmt
@@ -884,9 +989,9 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 
     agentFDBClearAllState OBJECT-TYPE
         SYNTAX  INTEGER{
-    		other(1),
-    		start(2)
-    		}
+            other(1),
+            start(2)
+            }
         MAX-ACCESS  read-write
         STATUS  current
         DESCRIPTION
@@ -901,16 +1006,148 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 
     agentARPClearAllState OBJECT-TYPE
         SYNTAX  INTEGER{
-    		other(1),
-    		start(2)
-    		}
+            other(1),
+            start(2)
+            }
         MAX-ACCESS  read-write
         STATUS  current
         DESCRIPTION
             "Used to clear all ARP entries."
         ::= { agentARPMgmt 1 }
+-- *****************************************************************************
+-- agentGratuitousARPMgmt
+-- *****************************************************************************
+      agentGratuitousARPMgmt  OBJECT IDENTIFIER ::={agentARPMgmt 2}
 
--- -----------------------------------------------------------------------------
+      agentGratuitousARPSendIpifStatusUpState OBJECT-TYPE
+        SYNTAX  INTEGER{
+                   enabled(1),
+                   disabled(2)
+                }
+        MAX-ACCESS read-write
+        STATUS  current
+        DESCRIPTION
+              "It is used to enable/disable sending of gratuitous ARP request
+              packets while IPIF interface come up. This is used to automatically
+              announce the interface's IP address to other nodes. By default,
+               the state is enabled, and only one ARP packet will be broadcast."
+       DEFVAL { enabled }
+         ::={ agentGratuitousARPMgmt 1}
+
+      agentGratuitousARPSendDupIpDetectedState OBJECT-TYPE
+       SYNTAX INTEGER{
+                      enabled(1),
+                      disabled(2)
+                     }
+         MAX-ACCESS read-write
+         STATUS  current
+         DESCRIPTION
+               "It is used to enable/disable sending of gratuitous ARP request
+                packets while a duplicate IP is detected. By default, the state is enabled.
+                The duplicate IP detected means that the system received a ARP request
+                packet that is sent by an IP address that matches the system's own IP address.
+                In this case, the system knows that somebody out there is using an IP address
+                that is in conflict with the system. In order to reclaim the correct host
+                of this IP address, the system can send out the gratuitous ARP request
+                packet for this duplicate IP address."
+        DEFVAL { enabled }
+         ::={ agentGratuitousARPMgmt 2}
+
+      agentGratuitousARPLearningState OBJECT-TYPE
+       SYNTAX INTEGER{
+                      enabled(1),
+                      disabled(2)
+                     }
+         MAX-ACCESS read-write
+         STATUS  current
+         DESCRIPTION
+                  "It is used to enable/disable learning of an ARP entry in the ARP
+                  cache based on the received gratuitous ARP packet. If the switch
+                  receives a gratuitous ARP request/reply packet and the sender's
+                  IP address is in its ARP table, it should update the ARP entry.
+                   By default, the state is disabled."
+         DEFVAL { disabled }
+         ::={ agentGratuitousARPMgmt 3}
+
+      agentGratuitousARPTable OBJECT-TYPE
+         SYNTAX SEQUENCE OF AgentGratuitousARPEntry
+         MAX-ACCESS not-accessible
+         STATUS current
+         DESCRIPTION
+           "Gratuitous ARP Table Information."
+         ::={ agentGratuitousARPMgmt 4}
+
+      agentGratuitousARPEntry OBJECT-TYPE
+        SYNTAX  AgentGratuitousARPEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "A list of information from the Gratuitous ARP Table."
+        INDEX {
+                 agentGratuitousARPInterfaceName
+              }
+        ::={ agentGratuitousARPTable 1 }
+
+       AgentGratuitousARPEntry ::=
+          SEQUENCE {
+                     agentGratuitousARPInterfaceName
+                          DisplayString,
+                     agentGratuitousARPPeriodicalSendInterval
+                            INTEGER,
+                       agentGratuitousARPTrapState
+                            INTEGER,
+                       agentGratuitousARPLogState
+                            INTEGER
+                   }
+
+       agentGratuitousARPInterfaceName  OBJECT-TYPE
+            SYNTAX  DisplayString
+            MAX-ACCESS read-only
+            STATUS  current
+            DESCRIPTION
+               "The name of the IP interface."
+            ::={agentGratuitousARPEntry 1}
+
+          agentGratuitousARPPeriodicalSendInterval OBJECT-TYPE
+               SYNTAX  INTEGER (0..65535)
+               UNITS        "seconds"
+               MAX-ACCESS read-write
+               STATUS  current
+               DESCRIPTION
+                 "It is used to configure the interval for the periodic sending of
+                 gratuitous ARP request packets.
+                 0 means not send gratuitous ARP periodically."
+               DEFVAL { 0 }
+                ::={agentGratuitousARPEntry  2}
+
+         agentGratuitousARPTrapState   OBJECT-TYPE
+               SYNTAX  INTEGER{
+                             enabled(1),
+                             disabled(2)
+                             }
+               MAX-ACCESS read-write
+               STATUS  current
+               DESCRIPTION
+                    "It indicates the state of the gratuitous ARP trap. The switch can
+                    trap the IP conflict event to inform the administrator.
+                     By default, the trap is disabled."
+                 DEFVAL { disabled }
+                ::={agentGratuitousARPEntry 3}
+
+         agentGratuitousARPLogState OBJECT-TYPE
+               SYNTAX  INTEGER{
+                             enabled(1),
+                             disabled(2)
+                             }
+               MAX-ACCESS read-write
+               STATUS  current
+               DESCRIPTION
+                    "It indicates the state of the gratuitous Log trap. The switch can
+                     log the IP conflict event to inform the administrator.
+                     By default, the event log is enabled."
+               DEFVAL { enabled }
+                ::={agentGratuitousARPEntry 4}
+-- *****************************************************************************
     agentReboot OBJECT-TYPE
         SYNTAX  INTEGER {
                     none(1),
@@ -927,36 +1164,59 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
                     none(1),
                     config(2),
                     system(3),
-					reset(4)
+                    reset(4),
+                    system-exclude-vlan(5),
+                    system-exclude-ip(6),
+                    system-exclude-vlan-ip(7)
                 }
         MAX-ACCESS  read-write
         STATUS      current
         DESCRIPTION
             "Used to reset all switch parameters.
 
-			 none(1)  : No action. This is the default vaule of this object.
-			 config(2): All parameters are reset to default	settings.
-						But device will not do save neither reboot.
-			 system(3): All parameters are reset to default	settings.
-						Then the switch will do factory reset, save and	reboot.
-			 reset(4) : All parameters will be reset to default settings except
-						IP address, user account and history log.
-						But device will not do save neither reboot.
-			"
+          none(1)  : No action. This is the default value of this object.
+          config(2): All parameters are reset to default settings,
+                     but the device will neither save nor reboot.
+          system(3): All parameters are reset to default settings.
+                     The switch will then do a factory reset, save, and reboot.
+          reset(4) : All parameters will be reset to default settings except
+                     IP address, user account, and history log,
+                     but the device will neither save nor reboot.
+          system-exlude-vlan(5)   : All parameters are reset to default settings except VLAN.
+                                    The switch will then save its settings and reboot.
+          system-_exlude-ip(6)    : All parameters are reset to default settings except IP address.
+                                    The switch will then save its settings and reboot.
+          system-exlude-vlan-ip(7): All parameters are reset to default settings except VLAN and IP address.
+                                    The switch will then save its settings and reboot.
+            "
         ::= {  agentBasicConfig 20  }
+
+-- *****************************************************************************
+-- agentSnmpTrapState
+-- *****************************************************************************
+     agentSnmpTrapState OBJECT-TYPE
+        SYNTAX  INTEGER {
+                    enabled(1),
+                    disabled(2)
+                }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "This object indicates the state of snmp trap is enabled or disabled."
+        ::= { agentBasicConfig 22 }
 
 --***************************************************************************
 --agentTrustHostDelAllState
 --***************************************************************************
     agentTrustHostDelAllState OBJECT-TYPE
         SYNTAX      INTEGER{
-    		none(1),
-    		start(2)
-    		}
+            none(1),
+            start(2)
+            }
         MAX-ACCESS  read-write
         STATUS      current
         DESCRIPTION
-            "Used to delete all Trust Host entries."
+            "Used to delete all trusted host entries."
         ::= { agentTrustHostMgmt 2 }
 
     -- ***********************
@@ -977,7 +1237,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-write
         STATUS  obsolete
         DESCRIPTION
-            "The IP Address of TFTP Server."
+            "The IP Address of the TFTP server."
         ::= {  agentIpProtoConfig 2 }
 
     agentIpGetIpFrom OBJECT-TYPE
@@ -991,7 +1251,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         STATUS  current
         DESCRIPTION
             "This object indicates whether the agent get its system IP address
-             from Bootp/DHCP server at start up."
+             from BOOTP/DHCP server at start up."
         ::= { agentIpProtoConfig 3 }
 
     agentIpAutoconfig OBJECT-TYPE
@@ -1005,18 +1265,22 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
             ""
         ::= { agentIpProtoConfig 4 }
 
-	-- End of agentIpIfTable ---------
+    -- End of agentIpIfTable
 
 -- ******************************************************************************************
 -- Add common trap management
 -- ******************************************************************************************
 
-	agentNotify	OBJECT IDENTIFIER ::= { agentGeneralMgmt 4 }
+    agentNotify    OBJECT IDENTIFIER ::= { agentGeneralMgmt 4 }
 
-	agentNotifMgmt      OBJECT IDENTIFIER ::= { agentNotify 1 }
+    agentNotifMgmt      OBJECT IDENTIFIER ::= { agentNotify 1 }
+
+    agentNotifFirmware  OBJECT IDENTIFIER ::= { agentNotify 2 }
+
+    agentNotifyPrefix   OBJECT IDENTIFIER ::= { agentNotifFirmware 0 }
 
 -- ******************************************************************************************
---	agentNotifMgmt
+--    agentNotifMgmt
 -- ******************************************************************************************
 
     systemTrapsSeverity OBJECT-TYPE
@@ -1037,17 +1301,33 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
         STATUS  current
         DESCRIPTION
             "Indicates the level of system severity control. The system has a severity level control
-            and each log should be associated with a severity control. When log event occurs
+            and each log should be associated with a severity control. When a log event occurs
             and its severity is higher than the system severity control level, the log works
             as defined. If the event severity is lower than the system severity control level,
             the event is ignored as if it did not occur."
         ::= { agentNotifMgmt 2 }
 
+-- ******************************************************************************************
+-- agentNotifFirmware OBJECT IDENTIFIER ::= { agentNotifyPrefix 0 }
+-- ******************************************************************************************
+
+    agentGratuitousARPTrap  NOTIFICATION-TYPE
+        OBJECTS   {
+                    agentGratuitousARPIpAddr,
+                    agentGratuitousARPMacAddr,
+                    agentGratuitousARPPortNumber,
+                    agentGratuitousARPInterfaceName
+                  }
+        STATUS  current
+        DESCRIPTION
+           "The trap is sent when there is an IP address conflict."
+        ::={agentNotifyPrefix 5}
+
     -- ************************
     -- agentIptrapMangerTable *
     -- ************************
 
---	agentIpTrapManager	OBJECT IDENTIFIER ::= { agentGeneralMgmt 4 }
+--    agentIpTrapManager    OBJECT IDENTIFIER ::= { agentGeneralMgmt 4 }
 
 --    agentIpTrapManagerTable OBJECT-TYPE-
 --        SYNTAX  SEQUENCE OF AgentIpTrapManagerEntry
@@ -1089,8 +1369,8 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 
 --    AgentTrapManagerEntry ::=
 --        SEQUENCE {
---				    agentTrapManagerIndex
---				        INTEGER,
+--                agentTrapManagerIndex
+--                    INTEGER,
 --                    agentTrapManagerIpAddr
 --                        IpAddress,
 --                    agentTrapManagerComm
@@ -1101,20 +1381,20 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 --                        INTEGER
 --        }
 
---	agentTrapManagerIndex  OBJECT-TYPE
---	    SYNTAX     INTEGER (1..65535)
---	    MAX-ACCESS not-accessible
---	    STATUS     current
---	    DESCRIPTION
---	        "A value that uniquely identifies this trapDestEntry."
---	    ::= { agentTrapManagerEntry 1 }
+--    agentTrapManagerIndex  OBJECT-TYPE
+--       SYNTAX     INTEGER (1..65535)
+--       MAX-ACCESS not-accessible
+--       STATUS     current
+--       DESCRIPTION
+--           "A value that uniquely identifies this trapDestEntry."
+--       ::= { agentTrapManagerEntry 1 }
 
 --    agentTrapManagerIpAddr OBJECT-TYPE
 --        SYNTAX  IpAddress
 --        MAX-ACCESS  read-write
 --        STATUS  current
 --        DESCRIPTION
---            "The IP address where SNMP traps will be destined for"
+--            "The IP address where SNMP traps will be destined for."
 --        ::= { agentTrapManagerEntry 2 }
 
 --    agentTrapManagerComm OBJECT-TYPE
@@ -1122,7 +1402,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 --        MAX-ACCESS  read-write
 --        STATUS  current
 --        DESCRIPTION
---            "The community string used to encode SNMP trap packet to be sent to the trap
+--            "The community string used to encode SNMP trap packets to be sent to the trap
 --             manager."
 --        ::= { agentTrapManagerEntry 3 }
 
@@ -1136,11 +1416,11 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 --        STATUS  current
 --        DESCRIPTION
 --            "This object indicates the version of trap packets to be sent to
---             this trap manager. The default setting is SNMPAgentVersionDependent .
+--             this trap manager. The default setting is SNMPAgentVersionDependent.
 
---			 Note:
---			 Because these funictions will be limited by the system support, some of the
---			 selected items will be invalid. When the user selects one of the items,
+--          Note:
+--          Because these functions will be limited by the system support, some of the
+--          selected items will be invalid. When the user selects one of the items,
 --                       it will respond with bad-value status."
 --        ::= { agentTrapManagerEntry 4 }
 
@@ -1161,14 +1441,14 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 --
 -- Add for Slip_Console mode swtich 11-9-2001 WindChen
 --
---	agentConsoleModeManager	OBJECT IDENTIFIER ::= { agentGeneralMgmt 5 }
+--    agentConsoleModeManager    OBJECT IDENTIFIER ::= { agentGeneralMgmt 5 }
 
 
 
 --
 -- Slip Mode Manager
 --
---	agentSlipModeManager	OBJECT IDENTIFIER ::= { agentGeneralMgmt 6 }
+--    agentSlipModeManager    OBJECT IDENTIFIER ::= { agentGeneralMgmt 6 }
 
 
 
@@ -1178,22 +1458,22 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 -- ******************************************************************************************
 
 
---	agentNotify	OBJECT IDENTIFIER ::= { agentGeneralMgmt 7 }
+--    agentNotify    OBJECT IDENTIFIER ::= { agentGeneralMgmt 7 }
 
 
 
---	agentNotifMgmt      OBJECT IDENTIFIER ::= { agentNotify 1 }
---	agentNotifFirmware   OBJECT IDENTIFIER ::= { agentNotify 2 }
+--    agentNotifMgmt      OBJECT IDENTIFIER ::= { agentNotify 1 }
+--    agentNotifFirmware   OBJECT IDENTIFIER ::= { agentNotify 2 }
 
 
 
---	agentNotifyPrefix OBJECT IDENTIFIER ::= { agentNotifFirmware 0 }
+--    agentNotifyPrefix OBJECT IDENTIFIER ::= { agentNotifFirmware 0 }
 
 
 
 
 -- ******************************************************************************************
---	agentNotifMgmt
+--    agentNotifMgmt
 -- ******************************************************************************************
 
 --    systemTrapsSeverity OBJECT-TYPE
@@ -1201,11 +1481,10 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 --        MAX-ACCESS  read-write
 --        STATUS  current
 --        DESCRIPTION
---            "Indicates the level of all system traps.
---			"
+--            "Indicates the level of all system traps."
 --        ::= { agentNotifMgmt 1 }
 
---	notifFirmwareMgmt OBJECT IDENTIFIER ::= { agentNotifMgmt 2 }
+--    notifFirmwareMgmt OBJECT IDENTIFIER ::= { agentNotifMgmt 2 }
 
 -- ******************************************************************************************
 
@@ -1215,7 +1494,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 --        STATUS  current
 --        DESCRIPTION
 --            "Indicates the level of the system restart detection.
---			"
+--            "
 
 --        ::= { notifFirmwareMgmt 1 }
 
@@ -1225,7 +1504,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 --        STATUS  current
 --        DESCRIPTION
 --            "Indicates the level of SaveToNV-RAM detection.
---			"
+--            "
 
 --        ::= { notifFirmwareMgmt 2 }
 
@@ -1235,7 +1514,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 --        STATUS  current
 --        DESCRIPTION
 --            "Indicates the level of FileTransferStatusChange detection.
---			"
+--            "
 
 --        ::= { notifFirmwareMgmt 3 }
 
@@ -1246,7 +1525,7 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 --        STATUS  current
 --        DESCRIPTION
 --            "Indicates the level of SetToFactoryDefault detection.
---			"
+--            "
 
 --        ::= { notifFirmwareMgmt 4 }
 
@@ -1257,18 +1536,18 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 -- agentNotifFirmware OBJECT IDENTIFIER ::= { agentNotifyPrefix 0 }
 
 -- ******************************************************************************************
---	agentNotifFirmware
+--    agentNotifFirmware
 -- ******************************************************************************************
 
 --    agentsystemRestart NOTIFICATION-TYPE
 --        OBJECTS {
 --              trapInfosystemRestart
---        		}
+--                }
 --        STATUS  current
 --        DESCRIPTION
---            " This trap contains the reboot informaton. "
+--            " This trap contains the reboot information. "
 
---		::= { agentNotifyPrefix 1 }
+--        ::= { agentNotifyPrefix 1 }
 
 
 --    agentSaveToNVRAM NOTIFICATION-TYPE
@@ -1276,13 +1555,13 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 --                        }
 --        STATUS  current
 --        DESCRIPTION
---            "The trap is sent whenever save all configurations of device to NV-RAM has been processed . "
+--            "The trap is sent whenever save all configurations of device to NV-RAM has been processed."
 
 --        ::= { agentNotifyPrefix 2 }
 
 --    agentFileTransferStatusChange NOTIFICATION-TYPE
 --        OBJECTS         {
---        					unitID,
+--                            unitID,
 --                          agentStatusFileTransfer
 --                        }
 --        STATUS          current
@@ -1294,28 +1573,27 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 --                        }
 --        STATUS  current
 --        DESCRIPTION
---            "The trap is sent whenever the set to factory default setting has been processed . "
-
+--            "The trap is sent whenever the set to factory default setting has been processed."
 --        ::= { agentNotifyPrefix 4 }
 
 
 -- ******************************************************************************************
---	agentNotifEquipment
+--    agentNotifEquipment
 -- ******************************************************************************************
 
 
 -- ******************************************************************************************
---	notificationBidings
+--    notificationBidings
 -- ******************************************************************************************
 
---    notificationBidings OBJECT IDENTIFIER ::= { agentNotifFirmware 1 }
+    notificationBidings OBJECT IDENTIFIER ::= { agentNotifFirmware 1 }
 
 --    unitID OBJECT-TYPE
 --        SYNTAX     INTEGER
 --        MAX-ACCESS accessible-for-notify
 --        STATUS     current
 --        DESCRIPTION
---            "The Unit ID of the device which triggered the event"
+--            "The unit ID of the device which triggered the event."
 --        ::= { notificationBidings 1 }
 
 
@@ -1328,5 +1606,33 @@ DLINK-AGENT-MIB  DEFINITIONS ::= BEGIN
 --            "
 --        ::= { notificationBidings 2 }
 
+    agentGratuitousARPIpAddr       OBJECT-TYPE
+       SYNTAX      IpAddress
+       MAX-ACCESS  accessible-for-notify
+        STATUS  current
+        DESCRIPTION
+           "Duplicate IP address with the switch."
+        ::={notificationBidings 3}
+
+    agentGratuitousARPMacAddr     OBJECT-TYPE
+       SYNTAX    MacAddress
+       MAX-ACCESS accessible-for-notify
+        STATUS  current
+        DESCRIPTION
+           "The MAC address of the device which has the duplicate IP address."
+        ::={notificationBidings 4}
+
+   agentGratuitousARPPortNumber   OBJECT-TYPE
+        SYNTAX   DisplayString
+        MAX-ACCESS accessible-for-notify
+        STATUS  current
+        DESCRIPTION
+            "It indicates the portNum with a string,
+             For example, if the device is in standalone mode, and the port
+             number is 23, the string should be 23.
+             If the device is in stack mode, and the unit ID is 2, and the
+             port number is 3, the string should be 2:3.
+       "
+        ::={notificationBidings 5}
 
 END

@@ -11,8 +11,6 @@
  *
  */
 
-echo 'CYAN-XCVR-MIB ';
-
 /*
 cyanXcvrTempHiAlrmThres.1.1.1 = 73000
 cyanXcvrTempHiWarnThres.1.1.1 = 70000
@@ -40,7 +38,7 @@ $oids = array ('cyanXcvrTempHiAlrmThres', 'cyanXcvrTempHiWarnThres', 'cyanXcvrTe
 $data = array();
 foreach ($oids as $oid)
 {
-  $data = snmpwalk_cache_oid($device, $oid, $data, 'CYAN-XCVR-MIB:CYAN-GEPORT-MIB:CYAN-TENGPORT-MIB', mib_dirs('cyan'));
+  $data = snmpwalk_cache_oid($device, $oid, $data, 'CYAN-XCVR-MIB:CYAN-GEPORT-MIB:CYAN-TENGPORT-MIB');
 }
 
 // Try to identify which IF-MIB port is being referred to, and populate the 'measured_entity' if we can.

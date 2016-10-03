@@ -11,9 +11,7 @@
  *
  */
 
-$mib = 'SW-MIB';
-
 $mempool['total'] = 2147483648;
-$mempool['perc']  = snmp_get($device, "swMemUsage.0", "-Ovq", $mib, mib_dirs('brocade'));
+$mempool['perc']  = snmp_get($device, 'swMemUsage.0', '-Ovq', 'SW-MIB');
 
 // EOF

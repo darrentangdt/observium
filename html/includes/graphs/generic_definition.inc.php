@@ -138,12 +138,6 @@ foreach ($graph_def['ds'] as $ds_name => $ds)
       }
     }
 
-    if ($ds['line'] == TRUE)
-    {
-      $colour_line = darken_color($colour);
-      $cmd_graph .= ' LINE1.5:'.$ds_name.'#'.$colour_line.':"'.$descr.'"';
-      $descr = ''; // Reset descr
-    }
     $cmd_graph .= ' '.$ds['draw'].':'.$ds_name.'#'.$colour.':"'.$descr.'"'.$ds['stack'];
 
     $ds_unit = (strlen($ds['unit']) ? $ds['unit'] : '');      // Unit text per DS
@@ -154,6 +148,15 @@ foreach ($graph_def['ds'] as $ds_name => $ds)
     if (in_array("min", $data_show)) { $cmd_graph .= " GPRINT:".$ds_data."_min:MIN:%".$num_fmt."lf".$mag_unit.$ds_unit; }
     if (in_array("max", $data_show)) { $cmd_graph .= " GPRINT:".$ds_data."_max:MAX:%".$num_fmt."lf".$mag_unit.$ds_unit; }
     $cmd_graph .= " COMMENT:'\\l'";
+
+    if ($ds['line'] == TRUE)
+    {
+      $colour_line = darken_color($colour);
+      //$cmd_graph .= ' LINE1:'.$ds_name.'#'.$colour_line.':"'.$descr.'"';
+      $cmd_graph .= ' LINE1:'.$ds_name.'#'.$colour_line;
+      $descr = ''; // Reset descr
+    }
+
   //}
 }
 

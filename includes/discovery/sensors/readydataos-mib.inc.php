@@ -10,8 +10,6 @@
  *
  */
 
-echo(" READYDATAOS-MIB ");
-
 /**
  enterprises.netgear.ngNasManager.diskTable.diskEntry.diskNumber.1 = INTEGER: 1
  enterprises.netgear.ngNasManager.diskTable.diskEntry.diskNumber.2 = INTEGER: 2
@@ -45,12 +43,12 @@ echo(" READYDATAOS-MIB ");
  enterprises.netgear.ngNasManager.diskTable.diskEntry.diskTemperature.3 = INTEGER: 44
 **/
 
-$cache['readydataos-mib']['diskTable'] = snmpwalk_cache_multi_oid($device, "diskTable", array(), "READYDATAOS-MIB", mib_dirs('netgear'));
+$cache['readydataos-mib']['diskTable'] = snmpwalk_cache_multi_oid($device, 'diskTable', array(), 'READYDATAOS-MIB');
 
 foreach ($cache['readydataos-mib']['diskTable'] as $index => $entry)
 {
   $descr = $entry['diskID'] . " (".$entry['diskSlotName']."): " . trim($entry['diskModel']);
-  $oid   = ".1.3.6.1.4.1.4526.22.3.1.10.".$index;
+  $oid   = ".1.3.6.1.4.1.4526.22.3.1.10.$index";
   $value = $entry['diskTemperature'];
 
   if ($value != '')
@@ -58,7 +56,7 @@ foreach ($cache['readydataos-mib']['diskTable'] as $index => $entry)
     discover_sensor($valid['sensor'], 'temperature', $device, $oid, 'diskTemperature.'.$index, 'readydataos-mib_diskTemperature', $descr, 1, $value, array('entPhysicalClass' => 'storage'));
   }
 
-  $oid   = ".1.3.6.1.4.1.4526.22.3.1.9.".$index;
+  $oid   = ".1.3.6.1.4.1.4526.22.3.1.9.$index";
   $value = $entry['diskState'];
 
   if ($value != '')
@@ -81,12 +79,12 @@ foreach ($cache['readydataos-mib']['diskTable'] as $index => $entry)
 
 */
 
-$cache['readydataos-mib']['fanTable'] = snmpwalk_cache_multi_oid($device, "fanTable", array(), "READYDATAOS-MIB", mib_dirs('netgear'));
+$cache['readydataos-mib']['fanTable'] = snmpwalk_cache_multi_oid($device, 'fanTable', array(), 'READYDATAOS-MIB');
 
 foreach ($cache['readydataos-mib']['fanTable'] as $index => $entry)
 {
-  $descr = "Fan ". $entry['fanNumber'] . " (".$entry['fanType'].")";
-  $oid   = ".1.3.6.1.4.1.4526.22.4.1.2.".$index;
+  $descr = 'Fan '. $entry['fanNumber'] . ' ('.$entry['fanType'].')';
+  $oid   = ".1.3.6.1.4.1.4526.22.4.1.2.$index";
   $value = $entry['fanRPM'];
 
   if ($value != '')
@@ -94,7 +92,7 @@ foreach ($cache['readydataos-mib']['fanTable'] as $index => $entry)
     discover_sensor($valid['sensor'], 'fanspeed', $device, $oid, 'fanRPM.'.$index, 'readydataos-mib_fanRPM', $descr, 1, $value, array('entPhysicalClass' => 'device'));
   }
 
-  $oid   = ".1.3.6.1.4.1.4526.22.4.1.3.".$index;
+  $oid   = ".1.3.6.1.4.1.4526.22.4.1.3.$index";
   $value = $entry['fanStatus'];
 
   if ($value != '')
@@ -104,12 +102,12 @@ foreach ($cache['readydataos-mib']['fanTable'] as $index => $entry)
 
 }
 
-$cache['readydataos-mib']['temperatureTable'] = snmpwalk_cache_multi_oid($device, "temperatureTable", array(), "READYDATAOS-MIB", mib_dirs('netgear'));
+$cache['readydataos-mib']['temperatureTable'] = snmpwalk_cache_multi_oid($device, 'temperatureTable', array(), 'READYDATAOS-MIB');
 
 foreach ($cache['readydataos-mib']['temperatureTable'] as $index => $entry)
 {
-  $descr = $entry['temperatureTyoe'] . " ".$entry['temperatureNumber'];
-  $oid   = ".1.3.6.1.4.1.4526.22.5.1.2.".$index;
+  $descr = $entry['temperatureTyoe'] . ' '.$entry['temperatureNumber'];
+  $oid   = ".1.3.6.1.4.1.4526.22.5.1.2.$index";
   $value = $entry['temperatureValue'];
 
   if ($value != '')
@@ -117,7 +115,7 @@ foreach ($cache['readydataos-mib']['temperatureTable'] as $index => $entry)
     discover_sensor($valid['sensor'], 'temperature', $device, $oid, 'temperatureValue.'.$index, 'readydataos-mib_temperatureValue', $descr, 1, $value, array('entPhysicalClass' => 'device'));
   }
 
-  $oid   = ".1.3.6.1.4.1.4526.22.5.1.3.".$index;
+  $oid   = ".1.3.6.1.4.1.4526.22.5.1.3.$index";
   $value = $entry['fanStatus'];
 
   if ($value != '')

@@ -1,7 +1,7 @@
 BROADCOM-REF-MIB DEFINITIONS ::= BEGIN
 
--- DELL FASTPATH Reference MIB
--- Copyright Broadcom Corporation (2001-2007) All rights reserved.
+-- FASTPATH Reference MIB
+-- Copyright Broadcom Corporation (2001-2013) All rights reserved.
 
 -- This SNMP Management Information Specification
 -- embodies Broadcom Corporation confidential and proprietary
@@ -17,10 +17,9 @@ BROADCOM-REF-MIB DEFINITIONS ::= BEGIN
 IMPORTS
     MODULE-IDENTITY                     FROM SNMPv2-SMI
     TEXTUAL-CONVENTION                  FROM SNMPv2-TC
-    dellLanExtension			FROM Dell-Vendor-MIB
-    dellLan				FROM Dell-Vendor-MIB;
+    enterprises                         FROM RFC1155-SMI;
 
-    lvl7 MODULE-IDENTITY
+    broadcom MODULE-IDENTITY
         LAST-UPDATED "200311210000Z" -- 21 Nov 2003 12:00:00 GMT
         ORGANIZATION "Broadcom Corporation"
         CONTACT-INFO
@@ -42,28 +41,12 @@ IMPORTS
         DESCRIPTION
           "Updated for release"
 
-    ::= {  dellLanExtension 6132 }
+    ::= {  enterprises 4413 }
 
 
 -- New definitions
- lvl7Products             OBJECT IDENTIFIER ::= { lvl7 1 }
- fastPath                 OBJECT IDENTIFIER ::= { lvl7Products 1 }
-
--- These OID to be used in sysObjId to identify the specific switch type:
-
--- sysObjId for 6224
- dell6224Switch   OBJECT IDENTIFIER ::= { dellLan 3010 }
--- sysObjId for 6248
- dell6248Switch   OBJECT IDENTIFIER ::= { dellLan 3011 }
--- sysObjId for 6224P 
- dell6224PSwitch   OBJECT IDENTIFIER ::= { dellLan 3012 }
--- sysObjId for 6248P
- dell6248PSwitch   OBJECT IDENTIFIER ::= { dellLan 3013 }
--- sysObjId for 6224F
- dell6224FSwitch   OBJECT IDENTIFIER ::= { dellLan 3014 }
--- sysObjId for M6220
- dellM6220Switch  OBJECT IDENTIFIER ::= { dellLan 3015 }
-
+ broadcomProducts         OBJECT IDENTIFIER ::= { broadcom 1 }
+ fastPath                 OBJECT IDENTIFIER ::= { broadcomProducts 1 }
 
 -- New Textual Conventions
 AgentPortMask ::= TEXTUAL-CONVENTION

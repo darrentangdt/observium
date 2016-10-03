@@ -11,10 +11,8 @@
  *
  */
 
-$mib = 'BLUECOAT-SG-PROXY-MIB';
-
-$cache_mempool = snmpwalk_cache_multi_oid($device, 'sgProxyMemSysUsage',     $cache_mempool, $mib, mib_dirs('bluecoat'));
-$cache_mempool = snmpwalk_cache_multi_oid($device, 'sgProxyMemAvailable', $cache_mempool, $mib, mib_dirs('bluecoat'));
+$cache_mempool = snmpwalk_cache_multi_oid($device, 'sgProxyMemSysUsage',  $cache_mempool, 'BLUECOAT-SG-PROXY-MIB');
+$cache_mempool = snmpwalk_cache_multi_oid($device, 'sgProxyMemAvailable', $cache_mempool, 'BLUECOAT-SG-PROXY-MIB');
 
 $index            = $mempool['mempool_index'];
 $mempool['total'] = $cache_mempool[$index]['sgProxyMemAvailable'];

@@ -11,7 +11,7 @@
  *
  */
 
-echo(" WWP-LEOS-PORT-XCVR-MIB (Bias) ");
+echo(" (Bias) ");
 $oids = snmpwalk_cache_oid($device, "wwpLeosPortXcvrBias",                 array(), "WWP-LEOS-PORT-XCVR-MIB", mib_dirs(array('wwp', 'ciena')) );
 $oids = snmpwalk_cache_oid($device, "wwpLeosPortXcvrHighBiasAlarmThreshold", $oids, "WWP-LEOS-PORT-XCVR-MIB", mib_dirs(array('wwp', 'ciena')) );
 $oids = snmpwalk_cache_oid($device, "wwpLeosPortXcvrLowBiasAlarmThreshold",  $oids, "WWP-LEOS-PORT-XCVR-MIB", mib_dirs(array('wwp', 'ciena')) );

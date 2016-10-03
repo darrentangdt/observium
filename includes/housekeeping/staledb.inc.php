@@ -17,11 +17,15 @@
 $max_id = -1;
 
 // Fetch all existing entities
-$entities = array();
+$entities       = array();
 $entities_count = 0;
+$type_exclude   = array('bill', 'group'); // Exclude pseudo-entities from permisssions checks
+
+$where          = " WHERE 1 " . generate_query_values($type_exclude, 'entity_type', '!=');
 foreach ($config['entity_tables'] as $table)
 {
-  foreach (dbFetchRows("SELECT `entity_type`, `entity_id` FROM `$table`") as $entry)
+  $query = "SELECT `entity_type`, `entity_id` FROM `$table`" . $where;
+  foreach (dbFetchRows($query) as $entry)
   {
     $entities[$table][$entry['entity_type']][] = $entry['entity_id'];
     $entities_count++;
@@ -84,12 +88,9 @@ if ($entities_count)
     {
       foreach ($entries as $entity_type => $entity_ids)
       {
-        if($entity_type != "bill")
-        {
-          $where = '`entity_type` = ?' . generate_query_values($entity_ids, 'entity_id');
-          //print_vars($where); echo PHP_EOL;
-          $table_status = dbDelete($table, $where, array($entity_type));
-        }
+        $where = '`entity_type` = ?' . generate_query_values($entity_ids, 'entity_id');
+        //print_vars($where); echo PHP_EOL;
+        $table_status = dbDelete($table, $where, array($entity_type));
       }
     }
     print_debug("Database cleanup for tables '".implode("', '", array_keys($entities))."': deleted $entities_count entries");

@@ -35,14 +35,14 @@ $storage['units'] = 1024; // Hardcode units.
 
 foreach ($ucd_oids as $oid)
 {
-  $cache_storage['ucd-snmp-mib'] = snmpwalk_cache_multi_oid($device, $oid, $cache_storage['ucd-snmp-mib'], 'UCD-SNMP-MIB', mib_dirs());
+  $cache_storage['ucd-snmp-mib'] = snmpwalk_cache_multi_oid($device, $oid, $cache_storage['ucd-snmp-mib'], 'UCD-SNMP-MIB');
 }
 
 foreach (array('size' => 'dskTotal', 'used' => 'dskUsed', 'free' => 'dskAvail') as $param => $oid)
 {
   if ($storage['storage_hc'])
   {
-    $storage[$param]  = $cache_storage['ucd-snmp-mib'][$index][$oid.'High'] * 4294967296 + $cache_storage['ucd-snmp-mib'][$index][$oid.'Low'];
+    $storage[$param]  = snmp_size64_high_low($cache_storage['ucd-snmp-mib'][$index][$oid.'High'], $cache_storage['ucd-snmp-mib'][$index][$oid.'Low']);
     $storage[$param] *= $storage['units'];
   } else {
     $storage[$param]  = $cache_storage['ucd-snmp-mib'][$index][$oid] * $storage['units'];

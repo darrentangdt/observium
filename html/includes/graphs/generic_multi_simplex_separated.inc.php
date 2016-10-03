@@ -58,6 +58,9 @@ foreach ($rrd_list as $i => $rrd)
 
   $rrd_options .= " DEF:".$rrd['ds'].$i."=".$rrd['filename'].":".$rrd['ds'].":AVERAGE ";
 
+  $rrd_multi['aggregate'][]  = $rrd['ds'].$i.",UN,0," . $rrd['ds'].$i . ",IF";
+
+
   if ($simple_rrd)
   {
     $rrd_options .= " CDEF:".$rrd['ds'].$i."min=".$rrd['ds'].$i." ";
@@ -128,6 +131,8 @@ foreach ($rrd_list as $i => $rrd)
   }
 }
 
+
+
 if ($vars['previous'] == "yes")
 {
   $thingX  = implode(',', $rrd_multi['thingX']);
@@ -149,10 +154,20 @@ if ($vars['previous'] == "yes")
 }
 
 $rrd_options .= $rrd_optionsb;
+
+if($show_aggregate == TRUE)
+{
+  $rrd_options .= " CDEF:aggregate=" . implode(',', $rrd_multi['aggregate']) . str_repeat(',+', count($rrd_multi['aggregate']) - 1);
+  $rrd_options .= " LINE1.5:aggregate#000000:'".rrdtool_escape("Aggregate", $descr_len)."'";
+  $rrd_options .= " GPRINT:aggregate:LAST:%5.1lf%s GPRINT:aggregate:MIN:%5.1lf%s";
+  $rrd_options .= " GPRINT:aggregate:MAX:%5.1lf%s GPRINT:aggregate:AVERAGE:%5.1lf%s";
+  $rrd_options .= "'\\n' COMMENT:'\\n'";
+}
+
 $rrd_options .= " HRULE:0#555555";
 $rrd_options .= $rrd_optionsc;
 
 // Clean
-unset($rrd_multi, $thingX, $plusesX);
+unset($rrd_multi, $thingX, $plusesX, $cstack, $bstack);
 
 // EOF

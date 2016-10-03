@@ -12,12 +12,28 @@
  */
 
 // Parse CIMC version number from sysDescr
-if (preg_match('/Firmware Version ([^,]+) Copyright/', $poll_device['sysDescr'], $regexp_result))
+if (preg_match('/Firmware Version ([^,]+) Copyright/', $poll_device['sysDescr'], $matches))
 {
-  $version = $regexp_result[1];
+  $version = $matches[1];
 }
 
-$serial = trim(snmp_get($device, ".1.3.6.1.4.1.9.9.719.1.9.6.1.14.1", "-Oqv"), '"');
-$hardware = trim(snmp_get($device, ".1.3.6.1.4.1.9.9.719.1.9.35.1.33.1", "-Oqv"), '"');
+$serial   = snmp_get($device, 'cucsComputeBoardSerial.1',  '-Oqv', 'CISCO-UNIFIED-COMPUTING-COMPUTE-MIB');
+$hardware = snmp_get($device, 'cucsComputeRackUnitName.1', '-Oqv', 'CISCO-UNIFIED-COMPUTING-COMPUTE-MIB');
+
+$cimc_separate   = array();
+$cimc_separate[] = ".1.3.6.1.4.1.9.1.1634"; // ciscoE160DP
+$cimc_separate[] = ".1.3.6.1.4.1.9.1.1635"; // ciscoE160D
+$cimc_separate[] = ".1.3.6.1.4.1.9.1.1636"; // ciscoE140DP
+$cimc_separate[] = ".1.3.6.1.4.1.9.1.1637"; // ciscoE140D
+$cimc_separate[] = ".1.3.6.1.4.1.9.1.1638"; // ciscoE140S
+$cimc_separate[] = ".1.3.6.1.4.1.9.1.2183"; // ciscoUCSE160DM2K9
+$cimc_separate[] = ".1.3.6.1.4.1.9.1.2184"; // ciscoUCSE180DM2K9
+
+if (in_array($poll_device['sysObjectID'], $cimc_separate))
+{
+  $type = 'management';
+}
+
+unset($cimc_separate, $matches);
 
 // EOF

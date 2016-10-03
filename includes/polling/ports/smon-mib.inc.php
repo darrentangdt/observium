@@ -14,7 +14,7 @@
 // SMON-MIB
 
 // Get monitoring ([e|r]span) ports
-$smon_statuses = snmpwalk_cache_oid($device, "portCopyStatus", array(), "SMON-MIB", mib_dirs());
+$smon_statuses = snmpwalk_cache_oid($device, "portCopyStatus", array(), "SMON-MIB");
 foreach ($smon_statuses as $smon_index => $smon)
 {
   list(,$smon_index) = explode('.', $smon_index); // ifIndex

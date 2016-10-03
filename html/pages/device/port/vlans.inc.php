@@ -13,6 +13,8 @@
 
 $vlans = dbFetchRows('SELECT * FROM `ports_vlans` AS PV, vlans AS V WHERE PV.`port_id` = ? and PV.`device_id` = ? AND V.`vlan_vlan` = PV.vlan AND V.device_id = PV.device_id', array($port['port_id'], $device['device_id']));
 
+echo generate_box_open();
+
 echo('<table class="table  table-striped table-hover table-condensed">');
 
 echo("<thead><tr><th>VLAN</th><th>Description</th><th>Cost</th><th>Priority</th><th>State</th><th>Other Ports</th></tr></thead>");
@@ -58,5 +60,7 @@ foreach ($vlans as $vlan)
 }
 
 echo("</table>");
+
+echo generate_box_close();
 
 // EOF

@@ -1,10 +1,10 @@
 -- ============================================================================
--- Copyright (c) 2004-2014 Hangzhou H3C Tech. Co., Ltd.  All rights reserved.
+-- Copyright (c) 2004-2015 Hangzhou H3C Tech. Co., Ltd.  All rights reserved.
 -- Description: This MIB will maintain the products MIB OID and management
 --              properties root node for H3C products
 --
 -- Reference:
--- Version: V1.24
+-- Version: V1.25
 -- History:
 --   V1.00 2006-04-19 created by longyin
 --   V1.01 2007/08/09 add hh3cSiemMib by gaolong
@@ -48,6 +48,7 @@
 --                    modify name of 129 under hh3cCommon by songhao
 --   V1.24 2014/09/18 add hh3cJointMibs, hh3cMulticastSnoop, hh3cPvst, hh3cSmlk,
 --                        hh3c8021XExt2, hh3cObjp, hh3cNvgre by songhao
+--   V1.25 2015/04/23 add 157 to 162 under hh3cCommon by songhao
 -- ============================================================================
 HH3C-OID-MIB DEFINITIONS ::= BEGIN
     IMPORTS
@@ -226,6 +227,12 @@ HH3C-OID-MIB DEFINITIONS ::= BEGIN
     hh3cContext                 OBJECT IDENTIFIER ::= { hh3cCommon 154 }
     hh3cObjp                    OBJECT IDENTIFIER ::= { hh3cCommon 155 }
     hh3cNvgre                   OBJECT IDENTIFIER ::= { hh3cCommon 156 }
+    hh3cWlanMt                  OBJECT IDENTIFIER ::= { hh3cCommon 157 }
+    hh3cRbac                    OBJECT IDENTIFIER ::= { hh3cCommon 158 }
+    hh3cDHCP6Server             OBJECT IDENTIFIER ::= { hh3cCommon 159 }
+    hh3cMplsVpnBgp              OBJECT IDENTIFIER ::= { hh3cCommon 160 }
+    hh3cOspf                    OBJECT IDENTIFIER ::= { hh3cCommon 161 }
+    hh3cL2vpn                   OBJECT IDENTIFIER ::= { hh3cCommon 162 }
 
 -- under enterprises.hh3c.hh3cCommon.hh3cQos2
     hh3cIfQos2                  OBJECT IDENTIFIER ::= { hh3cQos2 1 }

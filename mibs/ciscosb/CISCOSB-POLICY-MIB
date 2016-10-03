@@ -98,15 +98,15 @@ StatisticsCntrType  ::= TEXTUAL-CONVENTION
 
  rlPolicy MODULE-IDENTITY
           LAST-UPDATED "200606260000Z"
-          ORGANIZATION "Cisco Small Business"
+          ORGANIZATION "Cisco Systems, Inc."
 
           CONTACT-INFO
           "Postal: 170 West Tasman Drive
           San Jose , CA 95134-1706
           USA
 
-          Website: Cisco Small Business Home http://www.cisco.com/smb>;,
-          Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
+          
+          Website:  Cisco Small Business Support Community <http://www.cisco.com/go/smallbizsupport>"
 
           DESCRIPTION
                   "The private MIB module definition generic traffic policy in CISCOSB devices."
@@ -1204,7 +1204,8 @@ rlPolicyRulesFilteringAction OBJECT-TYPE
         permit(4),
         blockAndDisablePort(5),
         blockTrapAndDisablePort(6),
-        blockAndLogInput(7)
+        blockAndLogInput(7),
+        permitAndLogInput(8)
   }
     MAX-ACCESS   read-write
     STATUS   current

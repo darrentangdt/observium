@@ -11,9 +11,6 @@
  *
  */
 
-$mib = 'DNOS-SWITCHING-MIB';
-echo("$mib ");
-
 // CPU Memory
 //
 // agentSwitchCpuProcessMemFree.0 = INTEGER: 343320
@@ -25,8 +22,10 @@ $used  = $total - $free;
 
 if (is_numeric($free))
 {
+  rename_rrd($device, 'mempool-dell-vendor-mib-0', 'mempool-dnos-switching-mib-0.rrd');
   discover_mempool($valid['mempool'], $device, 0, $mib, 'System Memory', 1024, $total, $used);
 }
+
 unset ($total, $used, $free);
 
 // EOF

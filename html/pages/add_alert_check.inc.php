@@ -42,7 +42,7 @@ include($config['html_dir']."/includes/alerting-navbar.inc.php");
       $check_array = array();
 
       $conds = array();
-      foreach (explode("\n", $vars['check_conditions']) AS $cond)
+      foreach (explode("\n", trim($vars['check_conditions'])) AS $cond)
       {
         list($this['metric'], $this['condition'], $this['value']) = explode(" ", trim($cond), 3);
         $conds[] = $this;
@@ -69,7 +69,7 @@ include($config['html_dir']."/includes/alerting-navbar.inc.php");
         $assoc_array['entity_type'] = $vars['entity_type'];
         $assoc_array['enable'] = '1';
         $dev_conds = array();
-        foreach (explode("\n", $vars['assoc_device_conditions']) AS $cond)
+        foreach (explode("\n", trim($vars['assoc_device_conditions'])) AS $cond)
         {
           list($this['attrib'], $this['condition'], $this['value']) = explode(" ", trim($cond), 3);
           $dev_conds[] = $this;
@@ -77,7 +77,7 @@ include($config['html_dir']."/includes/alerting-navbar.inc.php");
         $assoc_array['device_attribs'] = json_encode($dev_conds);
         if ($vars['assoc_device_conditions'] == "*") { $vars['assoc_device_conditions'] = json_encode(array()); }
         $ent_conds = array();
-        foreach (explode("\n", $vars['assoc_entity_conditions']) AS $cond)
+        foreach (explode("\n", trim($vars['assoc_entity_conditions'])) AS $cond)
         {
           list($this['attrib'], $this['condition'], $this['value']) = explode(" ", trim($cond), 3);
           $ent_conds[] = $this;

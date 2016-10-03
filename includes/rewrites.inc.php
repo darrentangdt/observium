@@ -73,21 +73,20 @@ function trim_quotes($string, $flags = OBS_QUOTES_TRIM)
 // TESTME needs unit testing
 function humanize_user(&$user)
 {
-  krsort($GLOBALS['config']['user_level']); // Order levels from max to low
-  foreach ($GLOBALS['config']['user_level'] as $level => $entry)
+  $level_permissions = auth_user_level_permissions($user['level']);
+  $level_real        = $level_permissions['level'];
+  if (isset($GLOBALS['config']['user_level'][$level_real]))
   {
-    if ($user['level'] >= $level)
-    {
-      $user['permission']  = $entry['permission'];
-      $user['icon']        = $entry['icon'];
-      $user['row_class']   = $entry['row_class'];
-      $user['subtext']     = $entry['subtext'];
-      $user['level_label'] = $entry['name'];
-      $user['level_name']  = $entry['name'];
-      $user['level_real']  = $level;
-      break;
-    }
+    $def        = $GLOBALS['config']['user_level'][$level_real];
+    $user['level_label'] = $def['name'];
+    $user['level_name']  = $def['name'];
+    $user['level_real']  = $level_real;
+    unset($def['name'], $level_permissions['level']);
+    $user = array_merge($user, $def, $level_permissions);
+    // Add label class
+    $user['label_class']  = ($user['row_class'] == 'disabled' ? 'inverse' : $user['row_class']);
   }
+  //r($user);
 }
 
 /**
@@ -107,11 +106,11 @@ function humanize_maintenance(&$maint)
     $maint['entities_text'] = '<span class="label label-info">Global Maintenance</span>';
   } else {
     $entities = dbFetchRows("SELECT * FROM `alerts_maint_assoc` WHERE `maint_id` = ?", array($maint['maint_id']));
-    if (count($entities))
+    if (is_array($entities) && count($entities))
     {
       foreach ($entities as $entity)
       {
-
+        // FIXME, what here should be?
       }
     } else {
       $maint['entities_text'] = '<span class="label label-error">Maintenance is not associated with any entities.</span>';
@@ -184,9 +183,9 @@ function humanize_alert_check(&$check)
     $check['entity_status']['class']  = "gray"; $check['table_tab_colour'] = "#555555"; $check['html_row_class'] = "disabled";
   }
 
-  $check['status_numbers'] = '<span class="green">'. $check['entity_status']['up']. '</span>/<span class="purple">'. $check['entity_status']['suppress'].
-         '</span>/<span class=red>'. $check['entity_status']['down']. '</span>/<span class=orange>'. $check['entity_status']['delay'].
-         '</span>/<span class=gray>'. $check['entity_status']['unknown']. '</span>';
+  $check['status_numbers'] = '<span class="label label-success">'. $check['entity_status']['up']. '</span><span class="label label-suppressed">'. $check['entity_status']['suppress'].
+         '</span><span class="label label-error">'. $check['entity_status']['down']. '</span><span class="label label-warning">'. $check['entity_status']['delay'].
+         '</span><span class="label">'. $check['entity_status']['unknown']. '</span>';
 
   // We return nothing, $check is modified in place.
 }
@@ -260,10 +259,13 @@ function humanize_device(&$device)
   // Set the HTML class and Tab color for the device based on status
   if ($device['status'] == '0')
   {
+    $device['row_class'] = "danger";
     $device['html_row_class'] = "error";
   } else {
+    $device['row_class'] = "";
     $device['html_row_class'] = "up";  // Fucking dull gay colour, but at least there's a semicolon now - tom
                                             // Your mum's a semicolon - adama
+                                            // Haha - mike
   }
   if ($device['ignore'] == '1')
   {
@@ -272,10 +274,13 @@ function humanize_device(&$device)
     {
       $device['html_row_class'] = "success";  // Why green for ignore? Confusing!
                                               // I chose this purely because using green for up and blue for up/ignore was uglier.
+    } else {
+      $device['row_class'] = "suppressed";
     }
   }
   if ($device['disabled'] == '1')
   {
+    $device['row_class'] = "disabled";
     $device['html_row_class'] = "disabled";
   }
 
@@ -335,7 +340,7 @@ function humanize_bgp(&$peer)
   // Set text and colour if peer is same AS, private AS or external.
   if ($peer['bgpPeerRemoteAs'] == $peer['bgpLocalAs'])                                  { $peer['peer_type_class'] = "info";    $peer['peer_type'] = "iBGP"; }
   else if ($peer['bgpPeerRemoteAS'] >= '64512' && $peer['bgpPeerRemoteAS'] <= '65535')  { $peer['peer_type_class'] = "warning"; $peer['peer_type'] = "Priv eBGP"; }
-  else                                                                                  { $peer['peer_type_class'] = "danger";  $peer['peer_type'] = "eBGP"; }
+  else                                                                                  { $peer['peer_type_class'] = "primary"; $peer['peer_type'] = "eBGP"; }
 
   // Format (compress) the local/remote IPs if they're IPv6
   $peer['human_localip']  = (strstr($peer['bgpPeerLocalAddr'],  ':')) ? Net_IPv6::compress($peer['bgpPeerLocalAddr'])  : $peer['bgpPeerLocalAddr'];
@@ -351,34 +356,18 @@ function process_port_label(&$this_port, $device)
 
   // OS Specific rewrites (get your shit together, vendors)
   if ($device['os'] == 'zxr10') { $this_port['ifAlias'] = preg_replace("/^" . str_replace("/", "\\/", $this_port['ifName']) . "\s*/", '', $this_port['ifDescr']); }
-  if ($device['os'] == 'ciscosb' && $this_port['ifType'] == 'propVirtual' && is_numeric($this_port['ifDescr'])) {  $this_port['ifName'] = 'Vl'.$this_port['ifDescr']; }
+  if ($device['os'] == 'ciscosb' && $this_port['ifType'] == 'propVirtual' && is_numeric($this_port['ifDescr'])) { $this_port['ifName'] = 'Vl'.$this_port['ifDescr']; }
 
   $this_port['ifAlias'] = snmp_fix_string($this_port['ifAlias']); // Fix ord chars
 
-  // Process ifDescr/ifName/ifAlias if needed
-  //$oids = array('ifDescr', 'ifAlias', 'ifName'); // FIXME, required examples.. currently used only for ifDescr
-  $oids = array('ifDescr');
-  foreach ($oids as $oid)
-  {
-    if (isset($config['os'][$device['os']][$oid]))
-    {
-      foreach ($config['os'][$device['os']][$oid] as $pattern)
-      {
-        if (preg_match($pattern, $this_port[$oid], $matches))
-        {
-          print_debug("Port oid '$oid' rewritten: '" . $this_port[$oid] . "' -> '" . $matches[1] . "'");
-          $this_port[$oid] = $matches[1];
-          break;
-        }
-      }
-    }
-  }
-
   // Added for Brocade NOS. Will copy ifDescr -> ifAlias if ifDescr != ifName
-  if ($config['os'][$device['os']]['ifDescr_ifAlias'] && $this_port['ifDescr'] != $this_port['ifName'])
+  // ifAlias can be passed over SW-MIB
+  if ($config['os'][$device['os']]['ifDescr_ifAlias'] && $this_port['ifAlias'] == '' && $this_port['ifDescr'] != $this_port['ifName'])
   {
     $this_port['ifAlias'] = $this_port['ifDescr'];
   }
+
+  // Write port_label, port_label_base and port_label_num
 
   // Here definition override for ifDescr, because Calix switch ifDescr <> ifName since fw 2.2
   // Note, only for 'calix' os now
@@ -394,6 +383,17 @@ function process_port_label(&$this_port, $device)
       } else {
         $this_port['port_label'] = $this_port['ifName'];
       }
+    }
+  }
+
+  if ($this_port['ifDescr'] === '' && $config['os'][$device['os']]['ifType_ifDescr'] && $this_port['ifIndex'])
+  {
+    // This happen on some liebert UPS devices
+    $type = rewrite_iftype($this_port['ifType']);
+    if ($type)
+    {
+      $this_port['ifDescr'] = $type . ' ' . $this_port['ifIndex'];
+      print_debug("Port 'ifDescr' rewritten: '' -> '" . $this_port['ifDescr'] . "'");
     }
   }
 
@@ -421,7 +421,142 @@ function process_port_label(&$this_port, $device)
     list($this_port['port_label']) = explode("thomson", $this_port['port_label']);
   }
 
+  // Process label by os definition rewrites
+  $oid = 'port_label';
+  if (isset($config['os'][$device['os']][$oid]))
+  {
+    $oid_base = $oid.'_base';
+    $oid_num  = $oid.'_num';
+    foreach ($config['os'][$device['os']][$oid] as $pattern)
+    {
+      if (preg_match($pattern, $this_port[$oid], $matches))
+      {
+        print_debug("Port '$oid' rewritten: '" . $this_port[$oid] . "' -> '" . $matches[1] . "'");
+        $this_port[$oid] = $matches[1];
+        if (isset($matches[$oid_base]))
+        {
+          $this_port[$oid_base] = $matches[$oid_base];
+        }
+        if (isset($matches[$oid_num]))
+        {
+          $this_port[$oid_num] = $matches[$oid_num];
+        }
+        break;
+      }
+    }
+  }
+
+  // Extract bracket part from port label and remove it
+  $label_bracket = '';
+  if (preg_match('/\s*(\([^\)]+\))$/', $this_port['port_label'], $matches))
+  {
+    // GigaVUE-212 Port  8/48 (Network Port)
+    // rtif(172.20.30.46/28)
+    $label_bracket = $matches[0];
+    list($this_port['port_label']) = explode($matches[0], $this_port['port_label'], 2);
+  }
+
+  // Detect port_label_base and port_label_num
+  if (isset($this_port['port_label_base'])) {} // already set by previous processing, ie os definitions
+  else if (preg_match('/\d+(?:(?:[\/:](?:[a-z])?[\d\.:]+)+[a-z\d\.\:]*(?:[\-\_][\w\.\:]+)*|\/\w+$)/i', $this_port['port_label'], $matches))
+  {
+    // Multipart numeric
+    /*
+    1/1/1
+    e1-0/0/1.0
+    e1-0/2/0:13.0
+    dwdm0/1/0/6
+    DTI1/1/0
+    Cable8/1/4-upstream2
+    Cable8/1/4
+    16GigabitEthernet1/2/1
+    cau4-0/2/0
+    dot11radio0/0
+    Dialer0/0.1
+    Downstream 0/2/0
+    1000BaseTX Port 8/48 Name
+    Backplane-GigabitEthernet0/3
+    Ethernet1/10
+    FC port 0/19
+    GigabitEthernet0/0/0/1
+    GigabitEthernet0/1.ServiceInstance.206
+    Integrated-Cable7/0/0:0
+    Logical Upstream Channel 1/0.0/0
+    Slot0/1
+    sonet_12/1
+    GigaVUE-212 Port  8/48 (Network Port)
+    Stacking Port 1/StackA
+    1:38
+    1/4/x24, mx480-xe-0-0-0
+    1/4/x24
+    */
+    $this_port['port_label_num'] = $matches[0];
+    list($this_port['port_label_base']) = explode($matches[0], $this_port['port_label'], 2);
+    $this_port['port_label'] = $this_port['port_label_base'] . $this_port['port_label_num']; // Remove additional part (after port number)
+  }
+  else if (preg_match('/(?<port_label_num>(?:\d+[a-z])?\d[\d\.\:]*(?:[\-\_]\w+)?)(?: [a-z()\[\] ]+)?$/i', $this_port['port_label'], $matches))
+  {
+    // Simple numeric
+    /*
+    GigaVUE-212 Port  1 (Network Port)
+    MMC-A s3 SW Port
+    Atm0_Physical_Interface
+    wan1_phys
+    fwbr101i0
+    Nortel Ethernet Switch 325-24G Module - Port 1
+    lo0.32768
+    vlan.818
+    jsrv.1
+    Bundle-Ether1.1701
+    Ethernet1
+    ethernet_13
+    eth0
+    eth0.101
+    BVI900
+    A/1
+    e1
+    CATV-MAC 1
+    16
+    */
+    $this_port['port_label_num'] = $matches['port_label_num'];
+    $this_port['port_label_base'] = substr($this_port['port_label'], 0, 0 - strlen($matches[0]));
+    $this_port['port_label'] = $this_port['port_label_base'] . $this_port['port_label_num']; // Remove additional part (after port number)
+  } else {
+    // All other (non-numeric)
+    /*
+    UniPing Server Solution v3/SMS Enet Port
+    MMC-A s2 SW Port
+    Control Plane
+    */
+    $this_port['port_label_base'] = $this_port['port_label'];
+  }
+
+  // When not empty label brackets and empty numeric part, re-add brackets to label
+  if (!empty($label_bracket) && $this_port['port_label_num'] == '')
+  {
+    // rtif(172.20.30.46/28)
+    $this_port['port_label'] .= $label_bracket;
+  }
+
   $this_port['port_label_short'] = short_ifname($this_port['port_label']);
+
+  // Set entity variables for use by code which uses entities
+  // Base label part: TenGigabitEthernet3/3 -> TenGigabitEthernet, GigabitEthernet4/8.722 -> GigabitEthernet, Vlan2603 -> Vlan
+  //$port['port_label_base'] = preg_replace('/^([A-Za-z ]*).*/', '$1', $port['port_label']);
+  //$port['port_label_num']  = substr($port['port_label'], strlen($port['port_label_base'])); // Second label part
+  //
+  //  // Index example for TenGigabitEthernet3/10.324:
+  //  //  $ports_links['Ethernet'][] = array('label_base' => 'TenGigabitEthernet', 'label_num0' => '3', 'label_num1' => '10', 'label_num2' => '324')
+  //  $label_num  = preg_replace('![^\d\.\/]!', '', substr($data['port_label'], strlen($data['port_label_base']))); // Remove base part and all not-numeric chars
+  //  preg_match('!^(\d+)(?:\/(\d+)(?:\.(\d+))*)*!', $label_num, $label_nums); // Split by slash and point (1/1.324)
+  //  $ports_links[$data['human_type']][$data['ifIndex']] = array(
+  //    'label'      => $data['port_label'],
+  //    'label_base' => $data['port_label_base'],
+  //    'label_num0' => $label_nums[0],
+  //    'label_num1' => $label_nums[1],
+  //    'label_num2' => $label_nums[2],
+  //    'link'       => generate_port_link($data, $data['port_label_short'])
+  //  );
 
   return TRUE;
 }
@@ -456,15 +591,10 @@ function humanize_port(&$port)
   }
 
   // Workaround for devices/ports who long time not updated and have empty port_label
-  if (empty($port['port_label']))
+  if (empty($port['port_label']) || strlen($port['port_label_base'].$port['port_label_num']) == 0)
   {
     process_port_label($port, $device);
   }
-
-  // Set entity variables for use by code which uses entities
-  // Base label part: TenGigabitEthernet3/3 -> TenGigabitEthernet, GigabitEthernet4/8.722 -> GigabitEthernet, Vlan2603 -> Vlan
-  $port['port_label_base'] = preg_replace('/^([A-Za-z ]*).*/', '$1', $port['port_label']);
-  $port['port_label_num']  = substr($port['port_label'], strlen($port['port_label_base'])); // Second label part
 
   // Set humanised values for use in UI
   $port['human_speed'] = humanspeed($port['ifSpeed']);
@@ -717,8 +847,11 @@ $rewrite_ftos_hardware = array (
   '.1.3.6.1.4.1.6027.1.1.3'=> 'E300',
   '.1.3.6.1.4.1.6027.1.1.4'=> 'E610',
   '.1.3.6.1.4.1.6027.1.1.5'=> 'E1200i',
+
   '.1.3.6.1.4.1.6027.1.2.1'=> 'C300',
   '.1.3.6.1.4.1.6027.1.2.2'=> 'C150',
+  '.1.3.6.1.4.1.6027.1.2.3'=> 'C9010',
+
   '.1.3.6.1.4.1.6027.1.3.1'=> 'S50',
   '.1.3.6.1.4.1.6027.1.3.2'=> 'S50E',
   '.1.3.6.1.4.1.6027.1.3.3'=> 'S50V',
@@ -733,126 +866,30 @@ $rewrite_ftos_hardware = array (
   '.1.3.6.1.4.1.6027.1.3.12'=> 'S60',
   '.1.3.6.1.4.1.6027.1.3.13'=> 'S55',
   '.1.3.6.1.4.1.6027.1.3.14'=> 'S4810',
-  '.1.3.6.1.4.1.6027.1.3.15'=> 'Z9000'
-);
+  '.1.3.6.1.4.1.6027.1.3.15'=> 'Z9000',
 
-$rewrite_fortinet_hardware = array(
-  '.1.3.6.1.4.1.12356.102.1.1000' => array('name' => 'FortiAnalyzer 100'),
-  '.1.3.6.1.4.1.12356.102.1.10002' => array('name' => 'FortiAnalyzer 1000B'),
-  '.1.3.6.1.4.1.12356.102.1.1001' => array('name' => 'FortiAnalyzer 100A'),
-  '.1.3.6.1.4.1.12356.102.1.1002' => array('name' => 'FortiAnalyzer 100B'),
-  '.1.3.6.1.4.1.12356.102.1.20000' => array('name' => 'FortiAnalyzer 2000'),
-  '.1.3.6.1.4.1.12356.102.1.20001' => array('name' => 'FortiAnalyzer 2000A'),
-  '.1.3.6.1.4.1.12356.102.1.4000' => array('name' => 'FortiAnalyzer 400'),
-  '.1.3.6.1.4.1.12356.102.1.40000' => array('name' => 'FortiAnalyzer 4000'),
-  '.1.3.6.1.4.1.12356.102.1.40001' => array('name' => 'FortiAnalyzer 4000A'),
-  '.1.3.6.1.4.1.12356.102.1.4002' => array('name' => 'FortiAnalyzer 400B'),
-  '.1.3.6.1.4.1.12356.102.1.8000' => array('name' => 'FortiAnalyzer 800'),
-  '.1.3.6.1.4.1.12356.102.1.8002' => array('name' => 'FortiAnalyzer 800B'),
-'.1.3.6.1.4.1.12356.101.1.10' => array('name' => 'FortiGate ONE'),
-'.1.3.6.1.4.1.12356.101.1.1000' => array('name' => 'FortiGate 100'),
-'.1.3.6.1.4.1.12356.101.1.10000' => array('name' => 'FortiGate 1000'),
-'.1.3.6.1.4.1.12356.101.1.10001' => array('name' => 'FortiGate 1000A'),
-'.1.3.6.1.4.1.12356.101.1.10002' => array('name' => 'FortiGate 1000AFA2'),
-'.1.3.6.1.4.1.12356.101.1.10003' => array('name' => 'FortiGate 1000ALENC'),
-'.1.3.6.1.4.1.12356.101.1.10004' => array('name' => 'Fortigate 1000C'),
-'.1.3.6.1.4.1.12356.101.1.1001' => array('name' => 'FortiGate 100A'),
-'.1.3.6.1.4.1.12356.101.1.1002' => array('name' => 'FortiGate 110C'),
-'.1.3.6.1.4.1.12356.101.1.1003' => array('name' => 'FortiGate 111C'),
-'.1.3.6.1.4.1.12356.101.1.1004' => array('name' => 'FortiGate 100D'),
-'.1.3.6.1.4.1.12356.101.1.1005' => array('name' => 'FortiRugged 100C'),
-'.1.3.6.1.4.1.12356.101.1.12400' => array('name' => 'FortiGate 1240B'),
-'.1.3.6.1.4.1.12356.101.1.1401' => array('name' => 'FortiGate 140D'),
-'.1.3.6.1.4.1.12356.101.1.1402' => array('name' => 'FortiGate 140P'),
-'.1.3.6.1.4.1.12356.101.1.1403' => array('name' => 'FortiGate 140T'),
-'.1.3.6.1.4.1.12356.101.1.20' => array('name' => 'FortiGate VM'),
-'.1.3.6.1.4.1.12356.101.1.2000' => array('name' => 'FortiGate 200'),
-'.1.3.6.1.4.1.12356.101.1.2001' => array('name' => 'FortiGate 200A'),
-'.1.3.6.1.4.1.12356.101.1.2002' => array('name' => 'FortiGate 224B'),
-'.1.3.6.1.4.1.12356.101.1.2003' => array('name' => 'FortiGate 200A'),
-'.1.3.6.1.4.1.12356.101.1.2004' => array('name' => 'FortiGate 200BPOE'),
-'.1.3.6.1.4.1.12356.101.1.2005' => array('name' => 'FortiGate 200D'),
-'.1.3.6.1.4.1.12356.101.1.2006' => array('name' => 'FortiGate 240D'),
-'.1.3.6.1.4.1.12356.101.1.210' => array('name' => 'FortiWiFi 20C'),
-'.1.3.6.1.4.1.12356.101.1.212' => array('name' => 'FortiGate 20C'),
-'.1.3.6.1.4.1.12356.101.1.213' => array('name' => 'FortiWiFi 20CA'),
-'.1.3.6.1.4.1.12356.101.1.214' => array('name' => 'FortiGate 20CA'),
-'.1.3.6.1.4.1.12356.101.1.30' => array('name' => 'FortiGate VM64'),
-'.1.3.6.1.4.1.12356.101.1.3000' => array('name' => 'FortiGate 300'),
-'.1.3.6.1.4.1.12356.101.1.30000' => array('name' => 'FortiGate 3000'),
-'.1.3.6.1.4.1.12356.101.1.3001' => array('name' => 'FortiGate 300A'),
-'.1.3.6.1.4.1.12356.101.1.3002' => array('name' => 'FortiGate 310B'),
-'.1.3.6.1.4.1.12356.101.1.3003' => array('name' => 'FortiGate 300D'),
-'.1.3.6.1.4.1.12356.101.1.3004' => array('name' => 'FortiGate 311B'),
-'.1.3.6.1.4.1.12356.101.1.3005' => array('name' => 'FortiGate 300C'),
-'.1.3.6.1.4.1.12356.101.1.30160' => array('name' => 'FortiGate 3016B'),
-'.1.3.6.1.4.1.12356.101.1.302' => array('name' => 'FortiGate 30B'),
-'.1.3.6.1.4.1.12356.101.1.30400' => array('name' => 'FortiGate 3040B'),
-'.1.3.6.1.4.1.12356.101.1.30401' => array('name' => 'FortiGate 3140B'),
-'.1.3.6.1.4.1.12356.101.1.310' => array('name' => 'FortiWiFi 30B'),
-'.1.3.6.1.4.1.12356.101.1.32401' => array('name' => 'FortiGate 3240C'),
-'.1.3.6.1.4.1.12356.101.1.36000' => array('name' => 'FortiGate 3600'),
-'.1.3.6.1.4.1.12356.101.1.36003' => array('name' => 'FortiGate 3600A'),
-'.1.3.6.1.4.1.12356.101.1.36004' => array('name' => 'FortiGate 3600C'),
-'.1.3.6.1.4.1.12356.101.1.38100' => array('name' => 'FortiGate 3810A'),
-'.1.3.6.1.4.1.12356.101.1.39500' => array('name' => 'FortiGate 3950B'),
-'.1.3.6.1.4.1.12356.101.1.39501' => array('name' => 'FortiGate 3951B'),
-'.1.3.6.1.4.1.12356.101.1.40' => array('name' => 'FortiGate VM64XEN'),
-'.1.3.6.1.4.1.12356.101.1.4000' => array('name' => 'FortiGate 400'),
-'.1.3.6.1.4.1.12356.101.1.4001' => array('name' => 'FortiGate 400A'),
-'.1.3.6.1.4.1.12356.101.1.410' => array('name' => 'FortiGate 40C'),
-'.1.3.6.1.4.1.12356.101.1.411' => array('name' => 'FortiWiFi 40C'),
-'.1.3.6.1.4.1.12356.101.1.500' => array('name' => 'FortiGate 50A'),
-'.1.3.6.1.4.1.12356.101.1.5000' => array('name' => 'FortiGate 500'),
-'.1.3.6.1.4.1.12356.101.1.50001' => array('name' => 'FortiGate 5002FB2'),
-'.1.3.6.1.4.1.12356.101.1.5001' => array('name' => 'FortiGate 500A'),
-'.1.3.6.1.4.1.12356.101.1.50010' => array('name' => 'FortiGate 5001'),
-'.1.3.6.1.4.1.12356.101.1.50011' => array('name' => 'FortiGate 5001A'),
-'.1.3.6.1.4.1.12356.101.1.50012' => array('name' => 'FortiGate 5001FA2'),
-'.1.3.6.1.4.1.12356.101.1.50013' => array('name' => 'FortiGate 5001B'),
-'.1.3.6.1.4.1.12356.101.1.50014' => array('name' => 'FortiGate 5001C'),
-'.1.3.6.1.4.1.12356.101.1.50023' => array('name' => 'FortiSwitch 5203B'),
-'.1.3.6.1.4.1.12356.101.1.50051' => array('name' => 'FortiGate 5005FA2'),
-'.1.3.6.1.4.1.12356.101.1.502' => array('name' => 'FortiGate 50B'),
-'.1.3.6.1.4.1.12356.101.1.504' => array('name' => 'FortiGate 51B'),
-'.1.3.6.1.4.1.12356.101.1.510' => array('name' => 'FortiWiFi 50B'),
-'.1.3.6.1.4.1.12356.101.1.51010' => array('name' => 'FortiGate 5101C'),
-'.1.3.6.1.4.1.12356.101.1.600' => array('name' => 'FortiGate 60'),
-'.1.3.6.1.4.1.12356.101.1.6003' => array('name' => 'FortiGate 600C'),
-'.1.3.6.1.4.1.12356.101.1.601' => array('name' => 'FortiGate 60M'),
-'.1.3.6.1.4.1.12356.101.1.602' => array('name' => 'FortiGate 60ADSL'),
-'.1.3.6.1.4.1.12356.101.1.603' => array('name' => 'FortiGate 60B'),
-'.1.3.6.1.4.1.12356.101.1.610' => array('name' => 'FortiWiFi 60'),
-'.1.3.6.1.4.1.12356.101.1.611' => array('name' => 'FortiWiFi 60A'),
-'.1.3.6.1.4.1.12356.101.1.612' => array('name' => 'FortiWiFi 60AM'),
-'.1.3.6.1.4.1.12356.101.1.613' => array('name' => 'FortiWiFi 60B'),
-'.1.3.6.1.4.1.12356.101.1.615' => array('name' => 'FortiGate 60C'),
-'.1.3.6.1.4.1.12356.101.1.616' => array('name' => 'FortiWiFi 30D'),
-'.1.3.6.1.4.1.12356.101.1.616' => array('name' => 'FortiWiFi 60C'),
-'.1.3.6.1.4.1.12356.101.1.616' => array('name' => 'FortiWiFi 30DPOE'),
-'.1.3.6.1.4.1.12356.101.1.617' => array('name' => 'FortiWiFi 60CM'),
-'.1.3.6.1.4.1.12356.101.1.618' => array('name' => 'FortiWiFi 60CA'),
-'.1.3.6.1.4.1.12356.101.1.619' => array('name' => 'FortiWiFi 6XMB'),
-'.1.3.6.1.4.1.12356.101.1.6200' => array('name' => 'FortiGate 620B'),
-'.1.3.6.1.4.1.12356.101.1.6201' => array('name' => 'FortiGate 600D'),
-'.1.3.6.1.4.1.12356.101.1.621' => array('name' => 'FortiGate 60CP'),
-'.1.3.6.1.4.1.12356.101.1.6210' => array('name' => 'FortiGate 621B'),
-'.1.3.6.1.4.1.12356.101.1.625' => array('name' => 'FortiGate 30D'),
-'.1.3.6.1.4.1.12356.101.1.625' => array('name' => 'FortiGate 60D'),
-'.1.3.6.1.4.1.12356.101.1.625' => array('name' => 'FortiGate 30DPOE'),
-'.1.3.6.1.4.1.12356.101.1.626' => array('name' => 'FortiWiFi 60D'),
-'.1.3.6.1.4.1.12356.101.1.630' => array('name' => 'FortiGate 90D'),
-'.1.3.6.1.4.1.12356.101.1.631' => array('name' => 'FortiGate 90DPOE'),
-'.1.3.6.1.4.1.12356.101.1.632' => array('name' => 'FortiWiFi 90D'),
-'.1.3.6.1.4.1.12356.101.1.633' => array('name' => 'FortiWiFi 90DPOE'),
-'.1.3.6.1.4.1.12356.101.1.800' => array('name' => 'FortiGate 80C'),
-'.1.3.6.1.4.1.12356.101.1.8000' => array('name' => 'FortiGate 800'),
-'.1.3.6.1.4.1.12356.101.1.8001' => array('name' => 'FortiGate 800F'),
-'.1.3.6.1.4.1.12356.101.1.8003' => array('name' => 'FortiGate 800C'),
-'.1.3.6.1.4.1.12356.101.1.801' => array('name' => 'FortiGate 80CM'),
-'.1.3.6.1.4.1.12356.101.1.802' => array('name' => 'FortiGate 82C'),
-'.1.3.6.1.4.1.12356.101.1.810' => array('name' => 'FortiWiFi 80CM'),
-'.1.3.6.1.4.1.12356.101.1.811' => array('name' => 'FortiWiFi 81CM'),
+  '.1.3.6.1.4.1.6027.1.3.17'=> 'S4820',
+  '.1.3.6.1.4.1.6027.1.3.18'=> 'S6000',
+  '.1.3.6.1.4.1.6027.1.3.19'=> 'S5000',
+  '.1.3.6.1.4.1.6027.1.3.20'=> 'S4810-ON',
+  '.1.3.6.1.4.1.6027.1.3.21'=> 'S6000-ON',
+  '.1.3.6.1.4.1.6027.1.3.22'=> 'S4048-ON',
+  '.1.3.6.1.4.1.6027.1.3.23'=> 'S3048-ON',
+  '.1.3.6.1.4.1.6027.1.3.24'=> 'S3148P',
+  '.1.3.6.1.4.1.6027.1.3.25'=> 'S3124P',
+  '.1.3.6.1.4.1.6027.1.3.26'=> 'S3124F',
+  '.1.3.6.1.4.1.6027.1.3.27'=> 'S3124',
+  '.1.3.6.1.4.1.6027.1.3.28'=> 'S6100',
+  '.1.3.6.1.4.1.6027.1.3.29'=> 'S6010',
+  '.1.3.6.1.4.1.6027.1.3.30'=> 'S4048T-ON',
+  '.1.3.6.1.4.1.6027.1.3.31'=> 'S3148',
+
+  '.1.3.6.1.4.1.6027.1.4.1'=> 'MXL',
+  '.1.3.6.1.4.1.6027.1.4.2'=> 'PE M I/O Aggregator',
+  '.1.3.6.1.4.1.6027.1.4.3'=> 'PE FN I/O Aggregator',
+
+  '.1.3.6.1.4.1.6027.1.5.1'=> 'Z9500',
+  '.1.3.6.1.4.1.6027.1.5.2'=> 'Z9100',
 );
 
 $rewrite_breeze_type = array(
@@ -1161,681 +1198,681 @@ $rewrite_aosw_hardware = array(
 );
 
 $rewrite_ironware_hardware = array(
-'.1.3.6.1.4.1.1991.1.3.1' => array('name' => 'snFastIron', 'object' => 'snFastIron'),
-'.1.3.6.1.4.1.1991.1.3.1.1' => array('name' => 'Stackable FastIron workgroup', 'object' => 'snFIWGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.1.2' => array('name' => 'Stackable FastIron backbone', 'object' => 'snFIBBSwitch'),
-'.1.3.6.1.4.1.1991.1.3.10' => array('name' => 'snNetIron400', 'object' => 'snNetIron400'),
-'.1.3.6.1.4.1.1991.1.3.10.1' => array('name' => 'NetIron 400', 'object' => 'snNI400Router'),
-'.1.3.6.1.4.1.1991.1.3.11' => array('name' => 'snNetIron800', 'object' => 'snNetIron800'),
-'.1.3.6.1.4.1.1991.1.3.11.1' => array('name' => 'NetIron 800', 'object' => 'snNI800Router'),
-'.1.3.6.1.4.1.1991.1.3.12' => array('name' => 'snFastIron2GC', 'object' => 'snFastIron2GC'),
-'.1.3.6.1.4.1.1991.1.3.12.1' => array('name' => 'FastIron II GC', 'object' => 'snFI2GCSwitch'),
-'.1.3.6.1.4.1.1991.1.3.12.2' => array('name' => 'FastIron II GC', 'object' => 'snFI2GCRouter'),
-'.1.3.6.1.4.1.1991.1.3.13' => array('name' => 'snFastIron2PlusGC', 'object' => 'snFastIron2PlusGC'),
-'.1.3.6.1.4.1.1991.1.3.13.1' => array('name' => 'FastIron II Plus GC', 'object' => 'snFI2PlusGCSwitch'),
-'.1.3.6.1.4.1.1991.1.3.13.2' => array('name' => 'FastIron II Plus GC', 'object' => 'snFI2PlusGCRouter'),
-'.1.3.6.1.4.1.1991.1.3.14' => array('name' => 'snBigIron15000', 'object' => 'snBigIron15000'),
-'.1.3.6.1.4.1.1991.1.3.14.1' => array('name' => 'BigIron 15000', 'object' => 'snBI15000Switch'),
-'.1.3.6.1.4.1.1991.1.3.14.2' => array('name' => 'BigIron 15000', 'object' => 'snBI15000Router'),
-'.1.3.6.1.4.1.1991.1.3.14.3' => array('name' => 'snBI15000SI', 'object' => 'snBI15000SI'),
-'.1.3.6.1.4.1.1991.1.3.15' => array('name' => 'snNetIron1500', 'object' => 'snNetIron1500'),
-'.1.3.6.1.4.1.1991.1.3.15.1' => array('name' => 'NetIron 1500', 'object' => 'snNI1500Router'),
-'.1.3.6.1.4.1.1991.1.3.16' => array('name' => 'snFastIron3', 'object' => 'snFastIron3'),
-'.1.3.6.1.4.1.1991.1.3.16.1' => array('name' => 'FastIron III', 'object' => 'snFI3Switch'),
-'.1.3.6.1.4.1.1991.1.3.16.2' => array('name' => 'FastIron III', 'object' => 'snFI3Router'),
-'.1.3.6.1.4.1.1991.1.3.17' => array('name' => 'snFastIron3GC', 'object' => 'snFastIron3GC'),
-'.1.3.6.1.4.1.1991.1.3.17.1' => array('name' => 'FastIron III GC', 'object' => 'snFI3GCSwitch'),
-'.1.3.6.1.4.1.1991.1.3.17.2' => array('name' => 'FastIron III GC', 'object' => 'snFI3GCRouter'),
-'.1.3.6.1.4.1.1991.1.3.18' => array('name' => 'snServerIron400', 'object' => 'snServerIron400'),
-'.1.3.6.1.4.1.1991.1.3.18.1' => array('name' => 'ServerIron 400', 'object' => 'snSI400Switch'),
-'.1.3.6.1.4.1.1991.1.3.18.2' => array('name' => 'ServerIron 400', 'object' => 'snSI400Router'),
-'.1.3.6.1.4.1.1991.1.3.19' => array('name' => 'snServerIron800', 'object' => 'snServerIron800'),
-'.1.3.6.1.4.1.1991.1.3.19.1' => array('name' => 'ServerIron800', 'object' => 'snSI800Switch'),
-'.1.3.6.1.4.1.1991.1.3.19.2' => array('name' => 'ServerIron800', 'object' => 'snSI800Router'),
-'.1.3.6.1.4.1.1991.1.3.2' => array('name' => 'snNetIron', 'object' => 'snNetIron'),
-'.1.3.6.1.4.1.1991.1.3.2.1' => array('name' => 'Stackable NetIron', 'object' => 'snNIRouter'),
-'.1.3.6.1.4.1.1991.1.3.20' => array('name' => 'snServerIron1500', 'object' => 'snServerIron1500'),
-'.1.3.6.1.4.1.1991.1.3.20.1' => array('name' => 'ServerIron1500', 'object' => 'snSI1500Switch'),
-'.1.3.6.1.4.1.1991.1.3.20.2' => array('name' => 'ServerIron1500', 'object' => 'snSI1500Router'),
-'.1.3.6.1.4.1.1991.1.3.21' => array('name' => 'sn4802', 'object' => 'sn4802'),
-'.1.3.6.1.4.1.1991.1.3.21.1' => array('name' => 'Stackable 4802', 'object' => 'sn4802Switch'),
-'.1.3.6.1.4.1.1991.1.3.21.2' => array('name' => 'Stackable 4802', 'object' => 'sn4802Router'),
-'.1.3.6.1.4.1.1991.1.3.21.3' => array('name' => 'Stackable 4802 ServerIron', 'object' => 'sn4802SI'),
-'.1.3.6.1.4.1.1991.1.3.22' => array('name' => 'snFastIron400', 'object' => 'snFastIron400'),
-'.1.3.6.1.4.1.1991.1.3.22.1' => array('name' => 'FastIron 400', 'object' => 'snFI400Switch'),
-'.1.3.6.1.4.1.1991.1.3.22.2' => array('name' => 'FastIron 400', 'object' => 'snFI400Router'),
-'.1.3.6.1.4.1.1991.1.3.23' => array('name' => 'snFastIron800', 'object' => 'snFastIron800'),
-'.1.3.6.1.4.1.1991.1.3.23.1' => array('name' => 'FastIron800', 'object' => 'snFI800Switch'),
-'.1.3.6.1.4.1.1991.1.3.23.2' => array('name' => 'FastIron800', 'object' => 'snFI800Router'),
-'.1.3.6.1.4.1.1991.1.3.24' => array('name' => 'snFastIron1500', 'object' => 'snFastIron1500'),
-'.1.3.6.1.4.1.1991.1.3.24.1' => array('name' => 'FastIron1500', 'object' => 'snFI1500Switch'),
-'.1.3.6.1.4.1.1991.1.3.24.2' => array('name' => 'FastIron1500', 'object' => 'snFI1500Router'),
-'.1.3.6.1.4.1.1991.1.3.25' => array('name' => 'FES 2402', 'object' => 'snFES2402'),
-'.1.3.6.1.4.1.1991.1.3.25.1' => array('name' => 'FES2402', 'object' => 'snFES2402Switch'),
-'.1.3.6.1.4.1.1991.1.3.25.2' => array('name' => 'FES2402', 'object' => 'snFES2402Router'),
-'.1.3.6.1.4.1.1991.1.3.26' => array('name' => 'FES 4802', 'object' => 'snFES4802'),
-'.1.3.6.1.4.1.1991.1.3.26.1' => array('name' => 'FES4802', 'object' => 'snFES4802Switch'),
-'.1.3.6.1.4.1.1991.1.3.26.2' => array('name' => 'FES4802', 'object' => 'snFES4802Router'),
-'.1.3.6.1.4.1.1991.1.3.27' => array('name' => 'FES 9604', 'object' => 'snFES9604'),
-'.1.3.6.1.4.1.1991.1.3.27.1' => array('name' => 'FES9604', 'object' => 'snFES9604Switch'),
-'.1.3.6.1.4.1.1991.1.3.27.2' => array('name' => 'FES9604', 'object' => 'snFES9604Router'),
-'.1.3.6.1.4.1.1991.1.3.28' => array('name' => 'FES 12GCF ', 'object' => 'snFES12GCF'),
-'.1.3.6.1.4.1.1991.1.3.28.1' => array('name' => 'FES12GCF ', 'object' => 'snFES12GCFSwitch'),
-'.1.3.6.1.4.1.1991.1.3.28.2' => array('name' => 'FES12GCF', 'object' => 'snFES12GCFRouter'),
-'.1.3.6.1.4.1.1991.1.3.29' => array('name' => 'snFES2402POE', 'object' => 'snFES2402POE'),
-'.1.3.6.1.4.1.1991.1.3.29.1' => array('name' => 'snFES2402POESwitch', 'object' => 'snFES2402POESwitch'),
-'.1.3.6.1.4.1.1991.1.3.29.2' => array('name' => 'snFES2402POERouter', 'object' => 'snFES2402POERouter'),
-'.1.3.6.1.4.1.1991.1.3.3' => array('name' => 'snServerIron', 'object' => 'snServerIron'),
-'.1.3.6.1.4.1.1991.1.3.3.1' => array('name' => 'Stackable ServerIron', 'object' => 'snSI'),
-'.1.3.6.1.4.1.1991.1.3.3.2' => array('name' => 'Stackable ServerIronXL', 'object' => 'snSIXL'),
-'.1.3.6.1.4.1.1991.1.3.3.3' => array('name' => 'Stackable ServerIronXL TCS', 'object' => 'snSIXLTCS'),
-'.1.3.6.1.4.1.1991.1.3.30' => array('name' => 'snFES4802POE', 'object' => 'snFES4802POE'),
-'.1.3.6.1.4.1.1991.1.3.30.1' => array('name' => 'snFES4802POESwitch', 'object' => 'snFES4802POESwitch'),
-'.1.3.6.1.4.1.1991.1.3.30.2' => array('name' => 'snFES4802POERouter', 'object' => 'snFES4802POERouter'),
-'.1.3.6.1.4.1.1991.1.3.31' => array('name' => 'snNetIron4802', 'object' => 'snNetIron4802'),
-'.1.3.6.1.4.1.1991.1.3.31.1' => array('name' => 'NetIron 4802', 'object' => 'snNI4802Switch'),
-'.1.3.6.1.4.1.1991.1.3.31.2' => array('name' => 'NetIron 4802', 'object' => 'snNI4802Router'),
-'.1.3.6.1.4.1.1991.1.3.32' => array('name' => 'snBigIronMG8', 'object' => 'snBigIronMG8'),
-'.1.3.6.1.4.1.1991.1.3.32.1' => array('name' => 'BigIron MG8', 'object' => 'snBIMG8Switch'),
-'.1.3.6.1.4.1.1991.1.3.32.2' => array('name' => 'BigIron MG8', 'object' => 'snBIMG8Router'),
-'.1.3.6.1.4.1.1991.1.3.33' => array('name' => 'snNetIron40G', 'object' => 'snNetIron40G'),
-'.1.3.6.1.4.1.1991.1.3.33.2' => array('name' => 'NetIron 40G', 'object' => 'snNI40GRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.1.1.1' => array('name' => 'FES 24G', 'object' => 'snFESX424'),
-'.1.3.6.1.4.1.1991.1.3.34.1.1.1.1' => array('name' => 'FESX424', 'object' => 'snFESX424Switch'),
-'.1.3.6.1.4.1.1991.1.3.34.1.1.1.2' => array('name' => 'FESX424', 'object' => 'snFESX424Router'),
-'.1.3.6.1.4.1.1991.1.3.34.1.1.2' => array('name' => 'FES 24G-PREM', 'object' => 'snFESX424Prem'),
-'.1.3.6.1.4.1.1991.1.3.34.1.1.2.1' => array('name' => 'FESX424-PREM', 'object' => 'snFESX424PremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.1.1.2.2' => array('name' => 'FESX424-PREM', 'object' => 'snFESX424PremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.1.2.1' => array('name' => 'FES 24G + 1 10G', 'object' => 'snFESX424Plus1XG'),
-'.1.3.6.1.4.1.1991.1.3.34.1.2.1.1' => array('name' => 'FESX424+1XG', 'object' => 'snFESX424Plus1XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.1.2.1.2' => array('name' => 'FESX424+1XG', 'object' => 'snFESX424Plus1XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.1.2.2' => array('name' => 'FES 24G + 1 10G-PREM', 'object' => 'snFESX424Plus1XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.1.2.2.1' => array('name' => 'FESX424+1XG-PREM', 'object' => 'snFESX424Plus1XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.1.2.2.2' => array('name' => 'FESX424+1XG-PREM', 'object' => 'snFESX424Plus1XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.1.3.1' => array('name' => 'FES 24G + 2 10G', 'object' => 'snFESX424Plus2XG'),
-'.1.3.6.1.4.1.1991.1.3.34.1.3.1.1' => array('name' => 'FESX424+2XG', 'object' => 'snFESX424Plus2XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.1.3.1.2' => array('name' => 'FESX424+2XG', 'object' => 'snFESX424Plus2XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.1.3.2' => array('name' => 'FES 24G + 2 10G-PREM', 'object' => 'snFESX424Plus2XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.1.3.2.1' => array('name' => 'FESX424+2XG-PREM', 'object' => 'snFESX424Plus2XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.1.3.2.2' => array('name' => 'FESX424+2XG-PREM', 'object' => 'snFESX424Plus2XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.10.1.1' => array('name' => 'snFESX624POE', 'object' => 'snFESX624POE'),
-'.1.3.6.1.4.1.1991.1.3.34.10.1.1.1' => array('name' => 'snFESX624POESwitch', 'object' => 'snFESX624POESwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.10.1.1.2' => array('name' => 'snFESX624POERouter', 'object' => 'snFESX624POERouter'),
-'.1.3.6.1.4.1.1991.1.3.34.10.1.2' => array('name' => 'snFESX624POEPrem', 'object' => 'snFESX624POEPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.10.1.2.1' => array('name' => 'snFESX624POEPremSwitch', 'object' => 'snFESX624POEPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.10.1.2.2' => array('name' => 'snFESX624POEPremRouter', 'object' => 'snFESX624POEPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.10.1.2.3' => array('name' => 'snFESX624POEPrem6Router', 'object' => 'snFESX624POEPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.10.2.1' => array('name' => 'snFESX624POEPlus1XG', 'object' => 'snFESX624POEPlus1XG'),
-'.1.3.6.1.4.1.1991.1.3.34.10.2.1.1' => array('name' => 'snFESX624POEPlus1XGSwitch', 'object' => 'snFESX624POEPlus1XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.10.2.1.2' => array('name' => 'snFESX624POEPlus1XGRouter', 'object' => 'snFESX624POEPlus1XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.10.2.2' => array('name' => 'snFESX624POEPlus1XGPrem', 'object' => 'snFESX624POEPlus1XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.10.2.2.1' => array('name' => 'snFESX624POEPlus1XGPremSwitch', 'object' => 'snFESX624POEPlus1XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.10.2.2.2' => array('name' => 'snFESX624POEPlus1XGPremRouter', 'object' => 'snFESX624POEPlus1XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.10.2.2.3' => array('name' => 'snFESX624POEPlus1XGPrem6Router', 'object' => 'snFESX624POEPlus1XGPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.10.3.1' => array('name' => 'snFESX624POEPlus2XG', 'object' => 'snFESX624POEPlus2XG'),
-'.1.3.6.1.4.1.1991.1.3.34.10.3.1.1' => array('name' => 'snFESX624POEPlus2XGSwitch', 'object' => 'snFESX624POEPlus2XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.10.3.1.2' => array('name' => 'snFESX624POEPlus2XGRouter', 'object' => 'snFESX624POEPlus2XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.10.3.2' => array('name' => 'snFESX624POEPlus2XGPrem', 'object' => 'snFESX624POEPlus2XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.10.3.2.1' => array('name' => 'snFESX624POEPlus2XGPremSwitch', 'object' => 'snFESX624POEPlus2XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.10.3.2.2' => array('name' => 'snFESX624POEPlus2XGPremRouter', 'object' => 'snFESX624POEPlus2XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.10.3.2.3' => array('name' => 'snFESX624POEPlus2XGPrem6Router', 'object' => 'snFESX624POEPlus2XGPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.11.1.1' => array('name' => 'snFESX624E', 'object' => 'snFESX624E'),
-'.1.3.6.1.4.1.1991.1.3.34.11.1.1.1' => array('name' => 'snFESX624ESwitch', 'object' => 'snFESX624ESwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.11.1.1.2' => array('name' => 'snFESX624ERouter', 'object' => 'snFESX624ERouter'),
-'.1.3.6.1.4.1.1991.1.3.34.11.1.2' => array('name' => 'snFESX624EPrem', 'object' => 'snFESX624EPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.11.1.2.1' => array('name' => 'snFESX624EPremSwitch', 'object' => 'snFESX624EPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.11.1.2.2' => array('name' => 'snFESX624EPremRouter', 'object' => 'snFESX624EPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.11.1.2.3' => array('name' => 'snFESX624EPrem6Router', 'object' => 'snFESX624EPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.11.2.1' => array('name' => 'snFESX624EPlus1XG', 'object' => 'snFESX624EPlus1XG'),
-'.1.3.6.1.4.1.1991.1.3.34.11.2.1.1' => array('name' => 'snFESX624EPlus1XGSwitch', 'object' => 'snFESX624EPlus1XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.11.2.1.2' => array('name' => 'snFESX624EPlus1XGRouter', 'object' => 'snFESX624EPlus1XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.11.2.2' => array('name' => 'snFESX624EPlus1XGPrem', 'object' => 'snFESX624EPlus1XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.11.2.2.1' => array('name' => 'snFESX624EPlus1XGPremSwitch', 'object' => 'snFESX624EPlus1XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.11.2.2.2' => array('name' => 'snFESX624EPlus1XGPremRouter', 'object' => 'snFESX624EPlus1XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.11.2.2.3' => array('name' => 'snFESX624EPlus1XGPrem6Router', 'object' => 'snFESX624EPlus1XGPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.11.3.1' => array('name' => 'snFESX624EPlus2XG', 'object' => 'snFESX624EPlus2XG'),
-'.1.3.6.1.4.1.1991.1.3.34.11.3.1.1' => array('name' => 'snFESX624EPlus2XGSwitch', 'object' => 'snFESX624EPlus2XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.11.3.1.2' => array('name' => 'snFESX624EPlus2XGRouter', 'object' => 'snFESX624EPlus2XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.11.3.2' => array('name' => 'snFESX624EPlus2XGPrem', 'object' => 'snFESX624EPlus2XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.11.3.2.1' => array('name' => 'snFESX624EPlus2XGPremSwitch', 'object' => 'snFESX624EPlus2XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.11.3.2.2' => array('name' => 'snFESX624EPlus2XGPremRouter', 'object' => 'snFESX624EPlus2XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.11.3.2.3' => array('name' => 'snFESX624EPlus2XGPrem6Router', 'object' => 'snFESX624EPlus2XGPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.12.1.1' => array('name' => 'snFESX624EFiber', 'object' => 'snFESX624EFiber'),
-'.1.3.6.1.4.1.1991.1.3.34.12.1.1.1' => array('name' => 'snFESX624EFiberSwitch', 'object' => 'snFESX624EFiberSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.12.1.1.2' => array('name' => 'snFESX624EFiberRouter', 'object' => 'snFESX624EFiberRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.12.1.2' => array('name' => 'snFESX624EFiberPrem', 'object' => 'snFESX624EFiberPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.12.1.2.1' => array('name' => 'snFESX624EFiberPremSwitch', 'object' => 'snFESX624EFiberPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.12.1.2.2' => array('name' => 'snFESX624EFiberPremRouter', 'object' => 'snFESX624EFiberPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.12.1.2.3' => array('name' => 'snFESX624EFiberPrem6Router', 'object' => 'snFESX624EFiberPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.12.2.1' => array('name' => 'snFESX624EFiberPlus1XG', 'object' => 'snFESX624EFiberPlus1XG'),
-'.1.3.6.1.4.1.1991.1.3.34.12.2.1.1' => array('name' => 'snFESX624EFiberPlus1XGSwitch', 'object' => 'snFESX624EFiberPlus1XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.12.2.1.2' => array('name' => 'snFESX624EFiberPlus1XGRouter', 'object' => 'snFESX624EFiberPlus1XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.12.2.2' => array('name' => 'snFESX624EFiberPlus1XGPrem', 'object' => 'snFESX624EFiberPlus1XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.12.2.2.1' => array('name' => 'snFESX624EFiberPlus1XGPremSwitch', 'object' => 'snFESX624EFiberPlus1XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.12.2.2.2' => array('name' => 'snFESX624EFiberPlus1XGPremRouter', 'object' => 'snFESX624EFiberPlus1XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.12.2.2.3' => array('name' => 'snFESX624EFiberPlus1XGPrem6Router', 'object' => 'snFESX624EFiberPlus1XGPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.12.3.1' => array('name' => 'snFESX624EFiberPlus2XG', 'object' => 'snFESX624EFiberPlus2XG'),
-'.1.3.6.1.4.1.1991.1.3.34.12.3.1.1' => array('name' => 'snFESX624EFiberPlus2XGSwitch', 'object' => 'snFESX624EFiberPlus2XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.12.3.1.2' => array('name' => 'snFESX624EFiberPlus2XGRouter', 'object' => 'snFESX624EFiberPlus2XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.12.3.2' => array('name' => 'snFESX624EFiberPlus2XGPrem', 'object' => 'snFESX624EFiberPlus2XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.12.3.2.1' => array('name' => 'snFESX624EFiberPlus2XGPremSwitch', 'object' => 'snFESX624EFiberPlus2XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.12.3.2.2' => array('name' => 'snFESX624EFiberPlus2XGPremRouter', 'object' => 'snFESX624EFiberPlus2XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.12.3.2.3' => array('name' => 'snFESX624EFiberPlus2XGPrem6Router', 'object' => 'snFESX624EFiberPlus2XGPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.13.1.1' => array('name' => 'snFESX648E', 'object' => 'snFESX648E'),
-'.1.3.6.1.4.1.1991.1.3.34.13.1.1.1' => array('name' => 'snFESX648ESwitch', 'object' => 'snFESX648ESwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.13.1.1.2' => array('name' => 'snFESX648ERouter', 'object' => 'snFESX648ERouter'),
-'.1.3.6.1.4.1.1991.1.3.34.13.1.2' => array('name' => 'snFESX648EPrem', 'object' => 'snFESX648EPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.13.1.2.1' => array('name' => 'snFESX648EPremSwitch', 'object' => 'snFESX648EPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.13.1.2.2' => array('name' => 'snFESX648EPremRouter', 'object' => 'snFESX648EPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.13.1.2.3' => array('name' => 'snFESX648EPrem6Router', 'object' => 'snFESX648EPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.13.2.1' => array('name' => 'snFESX648EPlus1XG', 'object' => 'snFESX648EPlus1XG'),
-'.1.3.6.1.4.1.1991.1.3.34.13.2.1.1' => array('name' => 'snFESX648EPlus1XGSwitch', 'object' => 'snFESX648EPlus1XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.13.2.1.2' => array('name' => 'snFESX648EPlus1XGRouter', 'object' => 'snFESX648EPlus1XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.13.2.2' => array('name' => 'snFESX648EPlus1XGPrem', 'object' => 'snFESX648EPlus1XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.13.2.2.1' => array('name' => 'snFESX648EPlus1XGPremSwitch', 'object' => 'snFESX648EPlus1XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.13.2.2.2' => array('name' => 'snFESX648EPlus1XGPremRouter', 'object' => 'snFESX648EPlus1XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.13.2.2.3' => array('name' => 'snFESX648EPlus1XGPrem6Router', 'object' => 'snFESX648EPlus1XGPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.13.3.1' => array('name' => 'snFESX648EPlus2XG', 'object' => 'snFESX648EPlus2XG'),
-'.1.3.6.1.4.1.1991.1.3.34.13.3.1.1' => array('name' => 'snFESX648EPlus2XGSwitch', 'object' => 'snFESX648EPlus2XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.13.3.1.2' => array('name' => 'snFESX648EPlus2XGRouter', 'object' => 'snFESX648EPlus2XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.13.3.2' => array('name' => 'snFESX648EPlus2XGPrem', 'object' => 'snFESX648EPlus2XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.13.3.2.1' => array('name' => 'snFESX648EPlus2XGPremSwitch', 'object' => 'snFESX648EPlus2XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.13.3.2.2' => array('name' => 'snFESX648EPlus2XGPremRouter', 'object' => 'snFESX648EPlus2XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.13.3.2.3' => array('name' => 'snFESX648EPlus2XGPrem6Router', 'object' => 'snFESX648EPlus2XGPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.2.1.1' => array('name' => 'FES 48G', 'object' => 'snFESX448'),
-'.1.3.6.1.4.1.1991.1.3.34.2.1.1.1' => array('name' => 'FESX448', 'object' => 'snFESX448Switch'),
-'.1.3.6.1.4.1.1991.1.3.34.2.1.1.2' => array('name' => 'FESX448', 'object' => 'snFESX448Router'),
-'.1.3.6.1.4.1.1991.1.3.34.2.1.2' => array('name' => 'FES 48G-PREM', 'object' => 'snFESX448Prem'),
-'.1.3.6.1.4.1.1991.1.3.34.2.1.2.1' => array('name' => 'FESX448-PREM', 'object' => 'snFESX448PremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.2.1.2.2' => array('name' => 'FESX448-PREM', 'object' => 'snFESX448PremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.2.2.1' => array('name' => 'FES 48G + 1 10G', 'object' => 'snFESX448Plus1XG'),
-'.1.3.6.1.4.1.1991.1.3.34.2.2.1.1' => array('name' => 'FESX448+1XG', 'object' => 'snFESX448Plus1XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.2.2.1.2' => array('name' => 'FESX448+1XG', 'object' => 'snFESX448Plus1XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.2.2.2' => array('name' => 'FES 48G + 1 10G-PREM', 'object' => 'snFESX448Plus1XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.2.2.2.1' => array('name' => 'FESX448+1XG-PREM', 'object' => 'snFESX448Plus1XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.2.2.2.2' => array('name' => 'FESX448+1XG-PREM', 'object' => 'snFESX448Plus1XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.2.3.1' => array('name' => 'FES 48G + 2 10G', 'object' => 'snFESX448Plus2XG'),
-'.1.3.6.1.4.1.1991.1.3.34.2.3.1.1' => array('name' => 'FESX448+2XG', 'object' => 'snFESX448Plus2XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.2.3.1.2' => array('name' => 'FESX448+2XG', 'object' => 'snFESX448Plus2XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.2.3.2' => array('name' => 'FES 48G + 2 10G-PREM', 'object' => 'snFESX448Plus2XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.2.3.2.1' => array('name' => 'FESX448+2XG-PREM', 'object' => 'snFESX448Plus2XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.2.3.2.2' => array('name' => 'FESX448+2XG-PREM', 'object' => 'snFESX448Plus2XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.3.1.1' => array('name' => 'FESFiber 24G', 'object' => 'snFESX424Fiber'),
-'.1.3.6.1.4.1.1991.1.3.34.3.1.1.1' => array('name' => 'FESX424Fiber', 'object' => 'snFESX424FiberSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.3.1.1.2' => array('name' => 'FESX424Fiber', 'object' => 'snFESX424FiberRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.3.1.2' => array('name' => 'FESFiber 24G-PREM', 'object' => 'snFESX424FiberPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.3.1.2.1' => array('name' => 'FESX424Fiber-PREM', 'object' => 'snFESX424FiberPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.3.1.2.2' => array('name' => 'FESX424Fiber-PREM', 'object' => 'snFESX424FiberPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.3.2.1' => array('name' => 'FESFiber 24G + 1 10G', 'object' => 'snFESX424FiberPlus1XG'),
-'.1.3.6.1.4.1.1991.1.3.34.3.2.1.1' => array('name' => 'FESX424Fiber+1XG', 'object' => 'snFESX424FiberPlus1XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.3.2.1.2' => array('name' => 'FESX424Fiber+1XG', 'object' => 'snFESX424FiberPlus1XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.3.2.2' => array('name' => 'FESFiber 24G + 1 10G-PREM', 'object' => 'snFESX424FiberPlus1XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.3.2.2.1' => array('name' => 'FESX424Fiber+1XG-PREM', 'object' => 'snFESX424FiberPlus1XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.3.2.2.2' => array('name' => 'FESX424Fiber+1XG-PREM', 'object' => 'snFESX424FiberPlus1XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.3.3.1' => array('name' => 'FESFiber 24G + 2 10G', 'object' => 'snFESX424FiberPlus2XG'),
-'.1.3.6.1.4.1.1991.1.3.34.3.3.1.1' => array('name' => 'FESX424Fiber+2XG', 'object' => 'snFESX424FiberPlus2XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.3.3.1.2' => array('name' => 'FESX424Fiber+2XG', 'object' => 'snFESX424FiberPlus2XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.3.3.2' => array('name' => 'FESFiber 24G + 2 10G-PREM', 'object' => 'snFESX424FiberPlus2XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.3.3.2.1' => array('name' => 'FESX424Fiber+2XG-PREM', 'object' => 'snFESX424FiberPlus2XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.3.3.2.2' => array('name' => 'FESX424Fiber+2XG-PREM', 'object' => 'snFESX424FiberPlus2XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.4.1.1' => array('name' => 'FESFiber 48G', 'object' => 'snFESX448Fiber'),
-'.1.3.6.1.4.1.1991.1.3.34.4.1.1.1' => array('name' => 'FESX448Fiber', 'object' => 'snFESX448FiberSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.4.1.1.2' => array('name' => 'FESX448Fiber', 'object' => 'snFESX448FiberRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.4.1.2' => array('name' => 'FESFiber 48G-PREM', 'object' => 'snFESX448FiberPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.4.1.2.1' => array('name' => 'FESX448Fiber-PREM', 'object' => 'snFESX448FiberPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.4.1.2.2' => array('name' => 'FESX448Fiber-PREM', 'object' => 'snFESX448FiberPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.4.2.1' => array('name' => 'FESFiber 48G + 1 10G', 'object' => 'snFESX448FiberPlus1XG'),
-'.1.3.6.1.4.1.1991.1.3.34.4.2.1.1' => array('name' => 'FESX448Fiber+1XG', 'object' => 'snFESX448FiberPlus1XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.4.2.1.2' => array('name' => 'FESX448Fiber+1XG', 'object' => 'snFESX448FiberPlus1XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.4.2.2' => array('name' => 'FESFiber 48G + 1 10G-PREM', 'object' => 'snFESX448FiberPlus1XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.4.2.2.1' => array('name' => 'FESX448Fiber+1XG-PREM', 'object' => 'snFESX448FiberPlus1XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.4.2.2.2' => array('name' => 'FESX448Fiber+1XG-PREM', 'object' => 'snFESX448FiberPlus1XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.4.3.1' => array('name' => 'FESFiber 48G + 2 10G', 'object' => 'snFESX448FiberPlus2XG'),
-'.1.3.6.1.4.1.1991.1.3.34.4.3.1.1' => array('name' => 'FESX448Fiber+2XG', 'object' => 'snFESX448FiberPlus2XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.4.3.1.2' => array('name' => 'FESX448+2XG', 'object' => 'snFESX448FiberPlus2XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.4.3.2' => array('name' => 'FESFiber 48G + 2 10G-PREM', 'object' => 'snFESX448FiberPlus2XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.4.3.2.1' => array('name' => 'FESX448Fiber+2XG-PREM', 'object' => 'snFESX448FiberPlus2XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.4.3.2.2' => array('name' => 'FESX448Fiber+2XG-PREM', 'object' => 'snFESX448FiberPlus2XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.5.1.1' => array('name' => 'snFESX424POE', 'object' => 'snFESX424POE'),
-'.1.3.6.1.4.1.1991.1.3.34.5.1.1.1' => array('name' => 'snFESX424POESwitch', 'object' => 'snFESX424POESwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.5.1.1.2' => array('name' => 'snFESX424POERouter', 'object' => 'snFESX424POERouter'),
-'.1.3.6.1.4.1.1991.1.3.34.5.1.2' => array('name' => 'snFESX424POEPrem', 'object' => 'snFESX424POEPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.5.1.2.1' => array('name' => 'snFESX424POEPremSwitch', 'object' => 'snFESX424POEPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.5.1.2.2' => array('name' => 'snFESX424POEPremRouter', 'object' => 'snFESX424POEPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.5.2.1' => array('name' => 'snFESX424POEPlus1XG', 'object' => 'snFESX424POEPlus1XG'),
-'.1.3.6.1.4.1.1991.1.3.34.5.2.1.1' => array('name' => 'snFESX424POEPlus1XGSwitch', 'object' => 'snFESX424POEPlus1XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.5.2.1.2' => array('name' => 'snFESX424POEPlus1XGRouter', 'object' => 'snFESX424POEPlus1XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.5.2.2' => array('name' => 'snFESX424POEPlus1XGPrem', 'object' => 'snFESX424POEPlus1XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.5.2.2.1' => array('name' => 'snFESX424POEPlus1XGPremSwitch', 'object' => 'snFESX424POEPlus1XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.5.2.2.2' => array('name' => 'snFESX424POEPlus1XGPremRouter', 'object' => 'snFESX424POEPlus1XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.5.3.1' => array('name' => 'snFESX424POEPlus2XG', 'object' => 'snFESX424POEPlus2XG'),
-'.1.3.6.1.4.1.1991.1.3.34.5.3.1.1' => array('name' => 'snFESX424POEPlus2XGSwitch', 'object' => 'snFESX424POEPlus2XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.5.3.1.2' => array('name' => 'snFESX424POEPlus2XGRouter', 'object' => 'snFESX424POEPlus2XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.5.3.2' => array('name' => 'snFESX424POEPlus2XGPrem', 'object' => 'snFESX424POEPlus2XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.5.3.2.1' => array('name' => 'snFESX424POEPlus2XGPremSwitch', 'object' => 'snFESX424POEPlus2XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.5.3.2.2' => array('name' => 'snFESX424POEPlus2XGPremRouter', 'object' => 'snFESX424POEPlus2XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.6.1.1' => array('name' => 'FastIron Edge V6 Switch(FES) 24G', 'object' => 'snFESX624'),
-'.1.3.6.1.4.1.1991.1.3.34.6.1.1.1' => array('name' => 'FESX624', 'object' => 'snFESX624Switch'),
-'.1.3.6.1.4.1.1991.1.3.34.6.1.1.2' => array('name' => 'FESX624', 'object' => 'snFESX624Router'),
-'.1.3.6.1.4.1.1991.1.3.34.6.1.2' => array('name' => 'FastIron Edge V6 Switch(FES) 24G-PREM', 'object' => 'snFESX624Prem'),
-'.1.3.6.1.4.1.1991.1.3.34.6.1.2.1' => array('name' => 'FESX624-PREM', 'object' => 'snFESX624PremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.6.1.2.2' => array('name' => 'FESX624-PREM', 'object' => 'snFESX624PremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.6.1.2.3' => array('name' => 'snFESX624Prem6Router', 'object' => 'snFESX624Prem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.6.2.1' => array('name' => 'FastIron Edge V6 Switch(FES) 24G + 1 10G', 'object' => 'snFESX624Plus1XG'),
-'.1.3.6.1.4.1.1991.1.3.34.6.2.1.1' => array('name' => 'FESX624+1XG', 'object' => 'snFESX624Plus1XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.6.2.1.2' => array('name' => 'FESX624+1XG', 'object' => 'snFESX624Plus1XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.6.2.2' => array('name' => 'FastIron Edge V6 Switch(FES) 24G + 1 10G-PREM', 'object' => 'snFESX624Plus1XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.6.2.2.1' => array('name' => 'FESX624+1XG-PREM', 'object' => 'snFESX624Plus1XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.6.2.2.2' => array('name' => 'FESX624+1XG-PREM', 'object' => 'snFESX624Plus1XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.6.2.2.3' => array('name' => 'snFESX624Plus1XGPrem6Router', 'object' => 'snFESX624Plus1XGPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.6.3.1' => array('name' => 'FastIron Edge V6 Switch(FES) 24G + 2 10G', 'object' => 'snFESX624Plus2XG'),
-'.1.3.6.1.4.1.1991.1.3.34.6.3.1.1' => array('name' => 'FESX624+2XG', 'object' => 'snFESX624Plus2XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.6.3.1.2' => array('name' => 'FESX624+2XG', 'object' => 'snFESX624Plus2XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.6.3.2' => array('name' => 'FastIron Edge V6 Switch(FES) 24G + 2 10G-PREM', 'object' => 'snFESX624Plus2XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.6.3.2.1' => array('name' => 'FESX624+2XG-PREM', 'object' => 'snFESX624Plus2XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.6.3.2.2' => array('name' => 'FESX624+2XG-PREM', 'object' => 'snFESX624Plus2XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.6.3.2.3' => array('name' => 'snFESX624Plus2XGPrem6Router', 'object' => 'snFESX624Plus2XGPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.7.1.1' => array('name' => 'FastIron Edge V6 Switch(FES) 48G', 'object' => 'snFESX648'),
-'.1.3.6.1.4.1.1991.1.3.34.7.1.1.1' => array('name' => 'FESX648', 'object' => 'snFESX648Switch'),
-'.1.3.6.1.4.1.1991.1.3.34.7.1.1.2' => array('name' => 'FESX648', 'object' => 'snFESX648Router'),
-'.1.3.6.1.4.1.1991.1.3.34.7.1.2' => array('name' => 'FastIron Edge V6 Switch(FES) 48G-PREM', 'object' => 'snFESX648Prem'),
-'.1.3.6.1.4.1.1991.1.3.34.7.1.2.1' => array('name' => 'FESX648-PREM', 'object' => 'snFESX648PremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.7.1.2.2' => array('name' => 'FESX648-PREM', 'object' => 'snFESX648PremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.7.1.2.3' => array('name' => 'snFESX648Prem6Router', 'object' => 'snFESX648Prem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.7.2.1' => array('name' => 'FastIron Edge V6 Switch(FES) 48G + 1 10G', 'object' => 'snFESX648Plus1XG'),
-'.1.3.6.1.4.1.1991.1.3.34.7.2.1.1' => array('name' => 'FESX648+1XG', 'object' => 'snFESX648Plus1XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.7.2.1.2' => array('name' => 'FESX648+1XG', 'object' => 'snFESX648Plus1XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.7.2.2' => array('name' => 'FastIron Edge V6 Switch(FES) 48G + 1 10G-PREM', 'object' => 'snFESX648Plus1XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.7.2.2.1' => array('name' => 'FESX648+1XG-PREM', 'object' => 'snFESX648Plus1XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.7.2.2.2' => array('name' => 'FESX648+1XG-PREM', 'object' => 'snFESX648Plus1XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.7.2.2.3' => array('name' => 'snFESX648Plus1XGPrem6Router', 'object' => 'snFESX648Plus1XGPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.7.3.1' => array('name' => 'FastIron Edge V6 Switch(FES) 48G + 2 10G', 'object' => 'snFESX648Plus2XG'),
-'.1.3.6.1.4.1.1991.1.3.34.7.3.1.1' => array('name' => 'FESX648+2XG', 'object' => 'snFESX648Plus2XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.7.3.1.2' => array('name' => 'FESX648+2XG', 'object' => 'snFESX648Plus2XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.7.3.2' => array('name' => 'FastIron Edge V6 Switch(FES) 48G + 2 10G-PREM', 'object' => 'snFESX648Plus2XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.7.3.2.1' => array('name' => 'FESX648+2XG-PREM', 'object' => 'snFESX648Plus2XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.7.3.2.2' => array('name' => 'FESX648+2XG-PREM', 'object' => 'snFESX648Plus2XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.7.3.2.3' => array('name' => 'snFESX648Plus2XGPrem6Router', 'object' => 'snFESX648Plus2XGPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.8.1.1' => array('name' => 'FastIron V6 Edge Switch(FES)Fiber 24G', 'object' => 'snFESX624Fiber'),
-'.1.3.6.1.4.1.1991.1.3.34.8.1.1.1' => array('name' => 'FESX624Fiber', 'object' => 'snFESX624FiberSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.8.1.1.2' => array('name' => 'FESX624Fiber', 'object' => 'snFESX624FiberRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.8.1.2' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 24G-PREM', 'object' => 'snFESX624FiberPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.8.1.2.1' => array('name' => 'FESX624Fiber-PREM', 'object' => 'snFESX624FiberPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.8.1.2.2' => array('name' => 'FESX624Fiber-PREM', 'object' => 'snFESX624FiberPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.8.1.2.3' => array('name' => 'snFESX624FiberPrem6Router', 'object' => 'snFESX624FiberPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.8.2.1' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 24G + 1 10G', 'object' => 'snFESX624FiberPlus1XG'),
-'.1.3.6.1.4.1.1991.1.3.34.8.2.1.1' => array('name' => 'FESX624Fiber+1XG', 'object' => 'snFESX624FiberPlus1XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.8.2.1.2' => array('name' => 'FESX624Fiber+1XG', 'object' => 'snFESX624FiberPlus1XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.8.2.2' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 24G + 1 10G-PREM', 'object' => 'snFESX624FiberPlus1XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.8.2.2.1' => array('name' => 'FESX624Fiber+1XG-PREM', 'object' => 'snFESX624FiberPlus1XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.8.2.2.2' => array('name' => 'FESX624Fiber+1XG-PREM', 'object' => 'snFESX624FiberPlus1XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.8.2.2.3' => array('name' => 'snFESX624FiberPlus1XGPrem6Router', 'object' => 'snFESX624FiberPlus1XGPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.8.3.1' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 24G + 2 10G', 'object' => 'snFESX624FiberPlus2XG'),
-'.1.3.6.1.4.1.1991.1.3.34.8.3.1.1' => array('name' => 'FESX624Fiber+2XG', 'object' => 'snFESX624FiberPlus2XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.8.3.1.2' => array('name' => 'FESX624Fiber+2XG', 'object' => 'snFESX624FiberPlus2XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.8.3.2' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 24G + 2 10G-PREM', 'object' => 'snFESX624FiberPlus2XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.8.3.2.1' => array('name' => 'FESX624Fiber+2XG-PREM', 'object' => 'snFESX624FiberPlus2XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.8.3.2.2' => array('name' => 'FESX624Fiber+2XG-PREM', 'object' => 'snFESX624FiberPlus2XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.8.3.2.3' => array('name' => 'snFESX624FiberPlus2XGPrem6Router', 'object' => 'snFESX624FiberPlus2XGPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.9.1.1' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 48G', 'object' => 'snFESX648Fiber'),
-'.1.3.6.1.4.1.1991.1.3.34.9.1.1.1' => array('name' => 'FESX648Fiber', 'object' => 'snFESX648FiberSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.9.1.1.2' => array('name' => 'FESX648Fiber', 'object' => 'snFESX648FiberRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.9.1.2' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 48G-PREM', 'object' => 'snFESX648FiberPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.9.1.2.1' => array('name' => 'FESX648Fiber-PREM', 'object' => 'snFESX648FiberPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.9.1.2.2' => array('name' => 'FESX648Fiber-PREM', 'object' => 'snFESX648FiberPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.9.1.2.3' => array('name' => 'snFESX648FiberPrem6Router', 'object' => 'snFESX648FiberPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.9.2.1' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 48G + 1 10G', 'object' => 'snFESX648FiberPlus1XG'),
-'.1.3.6.1.4.1.1991.1.3.34.9.2.1.1' => array('name' => 'FESX648Fiber+1XG', 'object' => 'snFESX648FiberPlus1XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.9.2.1.2' => array('name' => 'FESX648Fiber+1XG', 'object' => 'snFESX648FiberPlus1XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.9.2.2' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 48G + 1 10G-PREM', 'object' => 'snFESX648FiberPlus1XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.9.2.2.1' => array('name' => 'FESX648Fiber+1XG-PREM', 'object' => 'snFESX648FiberPlus1XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.9.2.2.2' => array('name' => 'FESX648Fiber+1XG-PREM', 'object' => 'snFESX648FiberPlus1XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.9.2.2.3' => array('name' => 'snFESX648FiberPlus1XGPrem6Router', 'object' => 'snFESX648FiberPlus1XGPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.34.9.3.1' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 48G + 2 10G', 'object' => 'snFESX648FiberPlus2XG'),
-'.1.3.6.1.4.1.1991.1.3.34.9.3.1.1' => array('name' => 'FESX648Fiber+2XG', 'object' => 'snFESX648FiberPlus2XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.9.3.1.2' => array('name' => 'FESX648+2XG', 'object' => 'snFESX648FiberPlus2XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.9.3.2' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 48G + 2 10G-PREM', 'object' => 'snFESX648FiberPlus2XGPrem'),
-'.1.3.6.1.4.1.1991.1.3.34.9.3.2.1' => array('name' => 'FESX648Fiber+2XG-PREM', 'object' => 'snFESX648FiberPlus2XGPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.34.9.3.2.2' => array('name' => 'FESX648Fiber+2XG-PREM', 'object' => 'snFESX648FiberPlus2XGPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.34.9.3.2.3' => array('name' => 'snFESX648FiberPlus2XGPrem6Router', 'object' => 'snFESX648FiberPlus2XGPrem6Router'),
-'.1.3.6.1.4.1.1991.1.3.35.1.1.1' => array('name' => 'FWSX24G', 'object' => 'snFWSX424'),
-'.1.3.6.1.4.1.1991.1.3.35.1.1.1.1' => array('name' => 'FWSX424', 'object' => 'snFWSX424Switch'),
-'.1.3.6.1.4.1.1991.1.3.35.1.1.1.2' => array('name' => 'FWSX424', 'object' => 'snFWSX424Router'),
-'.1.3.6.1.4.1.1991.1.3.35.1.2.1' => array('name' => 'FWSX24G + 1 10G', 'object' => 'snFWSX424Plus1XG'),
-'.1.3.6.1.4.1.1991.1.3.35.1.2.1.1' => array('name' => 'FWSX424+1XG', 'object' => 'snFWSX424Plus1XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.35.1.2.1.2' => array('name' => 'FWSX424+1XG', 'object' => 'snFWSX424Plus1XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.35.1.3.1' => array('name' => 'FWSX24G + 2 10G', 'object' => 'snFWSX424Plus2XG'),
-'.1.3.6.1.4.1.1991.1.3.35.1.3.1.1' => array('name' => 'FWSX424+2XG', 'object' => 'snFWSX424Plus2XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.35.1.3.1.2' => array('name' => 'FWSX424+2XG', 'object' => 'snFWSX424Plus2XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.35.2.1.1' => array('name' => 'FWSX48G', 'object' => 'snFWSX448'),
-'.1.3.6.1.4.1.1991.1.3.35.2.1.1.1' => array('name' => 'FWSX448', 'object' => 'snFWSX448Switch'),
-'.1.3.6.1.4.1.1991.1.3.35.2.1.1.2' => array('name' => 'FWSX448', 'object' => 'snFWSX448Router'),
-'.1.3.6.1.4.1.1991.1.3.35.2.2.1' => array('name' => 'FWSX48G + 1 10G', 'object' => 'snFWSX448Plus1XG'),
-'.1.3.6.1.4.1.1991.1.3.35.2.2.1.1' => array('name' => 'FWSX448+1XG', 'object' => 'snFWSX448Plus1XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.35.2.2.1.2' => array('name' => 'FWSX448+1XG', 'object' => 'snFWSX448Plus1XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.35.2.3.1' => array('name' => 'FWSX448G+2XG', 'object' => 'snFWSX448Plus2XG'),
-'.1.3.6.1.4.1.1991.1.3.35.2.3.1.1' => array('name' => 'FWSX448+2XG', 'object' => 'snFWSX448Plus2XGSwitch'),
-'.1.3.6.1.4.1.1991.1.3.35.2.3.1.2' => array('name' => 'FWSX448+2XG', 'object' => 'snFWSX448Plus2XGRouter'),
-'.1.3.6.1.4.1.1991.1.3.36.1' => array('name' => 'FastIron SuperX', 'object' => 'snFastIronSuperX'),
-'.1.3.6.1.4.1.1991.1.3.36.1.1' => array('name' => 'FastIron SuperX Switch', 'object' => 'snFastIronSuperXSwitch'),
-'.1.3.6.1.4.1.1991.1.3.36.1.2' => array('name' => 'FastIron SuperX Router', 'object' => 'snFastIronSuperXRouter'),
-'.1.3.6.1.4.1.1991.1.3.36.1.3' => array('name' => 'FastIron SuperX Base L3 Switch', 'object' => 'snFastIronSuperXBaseL3Switch'),
-'.1.3.6.1.4.1.1991.1.3.36.10' => array('name' => 'FastIron SuperX 800 V6 Premium', 'object' => 'snFastIronSuperX800V6Prem'),
-'.1.3.6.1.4.1.1991.1.3.36.10.1' => array('name' => 'FastIron SuperX 800 Premium V6 Switch', 'object' => 'snFastIronSuperX800V6PremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.36.10.2' => array('name' => 'FastIron SuperX 800 Premium V6 Router', 'object' => 'snFastIronSuperX800V6PremRouter'),
-'.1.3.6.1.4.1.1991.1.3.36.10.3' => array('name' => 'FastIron SuperX 800 Premium V6 Base L3 Switch', 'object' => 'snFastIronSuperX800V6PremBaseL3Switch'),
-'.1.3.6.1.4.1.1991.1.3.36.10.4' => array('name' => 'snFastIronSuperX800V6Prem6Router', 'object' => 'snFastIronSuperX800V6Prem6Router'),
-'.1.3.6.1.4.1.1991.1.3.36.11' => array('name' => 'FastIron SuperX 1600 V6 ', 'object' => 'snFastIronSuperX1600V6'),
-'.1.3.6.1.4.1.1991.1.3.36.11.1' => array('name' => 'FastIron SuperX 1600 V6 Switch', 'object' => 'snFastIronSuperX1600V6Switch'),
-'.1.3.6.1.4.1.1991.1.3.36.11.2' => array('name' => 'FastIron SuperX 1600 V6 Router', 'object' => 'snFastIronSuperX1600V6Router'),
-'.1.3.6.1.4.1.1991.1.3.36.11.3' => array('name' => 'FastIron SuperX 1600 V6 Base L3 Switch', 'object' => 'snFastIronSuperX1600V6BaseL3Switch'),
-'.1.3.6.1.4.1.1991.1.3.36.12' => array('name' => 'FastIron SuperX 1600 Premium V6', 'object' => 'snFastIronSuperX1600V6Prem'),
-'.1.3.6.1.4.1.1991.1.3.36.12.1' => array('name' => 'FastIron SuperX 1600 Premium V6 Switch', 'object' => 'snFastIronSuperX1600V6PremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.36.12.2' => array('name' => 'FastIron SuperX 1600 Premium V6 Router', 'object' => 'snFastIronSuperX1600V6PremRouter'),
-'.1.3.6.1.4.1.1991.1.3.36.12.3' => array('name' => 'FastIron SuperX 1600 Premium V6 Base L3 Switch', 'object' => 'snFastIronSuperX1600V6PremBaseL3Switch'),
-'.1.3.6.1.4.1.1991.1.3.36.12.4' => array('name' => 'snFastIronSuperX1600V6Prem6Router', 'object' => 'snFastIronSuperX1600V6Prem6Router'),
-'.1.3.6.1.4.1.1991.1.3.36.2' => array('name' => 'FastIron SuperX Premium', 'object' => 'snFastIronSuperXPrem'),
-'.1.3.6.1.4.1.1991.1.3.36.2.1' => array('name' => 'FastIron SuperX Premium Switch', 'object' => 'snFastIronSuperXPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.36.2.2' => array('name' => 'FastIron SuperX Premium Router', 'object' => 'snFastIronSuperXPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.36.2.3' => array('name' => 'FastIron SuperX Premium Base L3 Switch', 'object' => 'snFastIronSuperXPremBaseL3Switch'),
-'.1.3.6.1.4.1.1991.1.3.36.3' => array('name' => 'FastIron SuperX 800 ', 'object' => 'snFastIronSuperX800'),
-'.1.3.6.1.4.1.1991.1.3.36.3.1' => array('name' => 'FastIron SuperX 800 Switch', 'object' => 'snFastIronSuperX800Switch'),
-'.1.3.6.1.4.1.1991.1.3.36.3.2' => array('name' => 'FastIron SuperX 800 Router', 'object' => 'snFastIronSuperX800Router'),
-'.1.3.6.1.4.1.1991.1.3.36.3.3' => array('name' => 'FastIron SuperX 800 Base L3 Switch', 'object' => 'snFastIronSuperX800BaseL3Switch'),
-'.1.3.6.1.4.1.1991.1.3.36.4' => array('name' => 'FastIron SuperX 800 Premium', 'object' => 'snFastIronSuperX800Prem'),
-'.1.3.6.1.4.1.1991.1.3.36.4.1' => array('name' => 'FastIron SuperX 800 Premium Switch', 'object' => 'snFastIronSuperX800PremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.36.4.2' => array('name' => 'FastIron SuperX 800 Premium Router', 'object' => 'snFastIronSuperX800PremRouter'),
-'.1.3.6.1.4.1.1991.1.3.36.4.3' => array('name' => 'FastIron SuperX 800 Premium Base L3 Switch', 'object' => 'snFastIronSuperX800PremBaseL3Switch'),
-'.1.3.6.1.4.1.1991.1.3.36.5' => array('name' => 'FastIron SuperX 1600 ', 'object' => 'snFastIronSuperX1600'),
-'.1.3.6.1.4.1.1991.1.3.36.5.1' => array('name' => 'FastIron SuperX 1600 Switch', 'object' => 'snFastIronSuperX1600Switch'),
-'.1.3.6.1.4.1.1991.1.3.36.5.2' => array('name' => 'FastIron SuperX 1600 Router', 'object' => 'snFastIronSuperX1600Router'),
-'.1.3.6.1.4.1.1991.1.3.36.5.3' => array('name' => 'FastIron SuperX 1600 Base L3 Switch', 'object' => 'snFastIronSuperX1600BaseL3Switch'),
-'.1.3.6.1.4.1.1991.1.3.36.6' => array('name' => 'FastIron SuperX 1600 Premium', 'object' => 'snFastIronSuperX1600Prem'),
-'.1.3.6.1.4.1.1991.1.3.36.6.1' => array('name' => 'FastIron SuperX 1600 Premium Switch', 'object' => 'snFastIronSuperX1600PremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.36.6.2' => array('name' => 'FastIron SuperX 1600 Premium Router', 'object' => 'snFastIronSuperX1600PremRouter'),
-'.1.3.6.1.4.1.1991.1.3.36.6.3' => array('name' => 'FastIron SuperX 1600 Premium Base L3 Switch', 'object' => 'snFastIronSuperX1600PremBaseL3Switch'),
-'.1.3.6.1.4.1.1991.1.3.36.7' => array('name' => 'FastIron SuperX V6 ', 'object' => 'snFastIronSuperXV6'),
-'.1.3.6.1.4.1.1991.1.3.36.7.1' => array('name' => 'FastIron SuperX V6 Switch', 'object' => 'snFastIronSuperXV6Switch'),
-'.1.3.6.1.4.1.1991.1.3.36.7.2' => array('name' => 'FastIron SuperX V6 Router', 'object' => 'snFastIronSuperXV6Router'),
-'.1.3.6.1.4.1.1991.1.3.36.7.3' => array('name' => 'FastIron SuperX V6 Base L3 Switch', 'object' => 'snFastIronSuperXV6BaseL3Switch'),
-'.1.3.6.1.4.1.1991.1.3.36.8' => array('name' => 'FastIron SuperX V6 Premium', 'object' => 'snFastIronSuperXV6Prem'),
-'.1.3.6.1.4.1.1991.1.3.36.8.1' => array('name' => 'FastIron SuperX V6 Premium Switch', 'object' => 'snFastIronSuperXV6PremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.36.8.2' => array('name' => 'FastIron SuperX V6 Premium Router', 'object' => 'snFastIronSuperXV6PremRouter'),
-'.1.3.6.1.4.1.1991.1.3.36.8.3' => array('name' => 'FastIron SuperX V6 Premium Base L3 Switch', 'object' => 'snFastIronSuperXV6PremBaseL3Switch'),
-'.1.3.6.1.4.1.1991.1.3.36.8.4' => array('name' => 'snFastIronSuperXV6Prem6Router', 'object' => 'snFastIronSuperXV6Prem6Router'),
-'.1.3.6.1.4.1.1991.1.3.36.9' => array('name' => 'FastIron SuperX 800 V6 ', 'object' => 'snFastIronSuperX800V6'),
-'.1.3.6.1.4.1.1991.1.3.36.9.1' => array('name' => 'FastIron SuperX 800 V6 Switch', 'object' => 'snFastIronSuperX800V6Switch'),
-'.1.3.6.1.4.1.1991.1.3.36.9.2' => array('name' => 'FastIron SuperX 800 V6 Router', 'object' => 'snFastIronSuperX800V6Router'),
-'.1.3.6.1.4.1.1991.1.3.36.9.3' => array('name' => 'FastIron SuperX 800 V6 Base L3 Switch', 'object' => 'snFastIronSuperX800V6BaseL3Switch'),
-'.1.3.6.1.4.1.1991.1.3.37.1' => array('name' => 'BigIron SuperX', 'object' => 'snBigIronSuperX'),
-'.1.3.6.1.4.1.1991.1.3.37.1.1' => array('name' => 'BigIron SuperX Switch', 'object' => 'snBigIronSuperXSwitch'),
-'.1.3.6.1.4.1.1991.1.3.37.1.2' => array('name' => 'BigIron SuperX Router', 'object' => 'snBigIronSuperXRouter'),
-'.1.3.6.1.4.1.1991.1.3.37.1.3' => array('name' => 'BigIron SuperX Base L3 Switch', 'object' => 'snBigIronSuperXBaseL3Switch'),
-'.1.3.6.1.4.1.1991.1.3.38.1' => array('name' => 'TurboIron SuperX', 'object' => 'snTurboIronSuperX'),
-'.1.3.6.1.4.1.1991.1.3.38.1.1' => array('name' => 'TurboIron SuperX Switch', 'object' => 'snTurboIronSuperXSwitch'),
-'.1.3.6.1.4.1.1991.1.3.38.1.2' => array('name' => 'TurboIron SuperX Router', 'object' => 'snTurboIronSuperXRouter'),
-'.1.3.6.1.4.1.1991.1.3.38.1.3' => array('name' => 'TurboIron SuperX Base L3 Switch', 'object' => 'snTurboIronSuperXBaseL3Switch'),
-'.1.3.6.1.4.1.1991.1.3.38.2' => array('name' => 'TurboIron SuperX Premium', 'object' => 'snTurboIronSuperXPrem'),
-'.1.3.6.1.4.1.1991.1.3.38.2.1' => array('name' => 'TurboIron SuperX Premium Switch', 'object' => 'snTurboIronSuperXPremSwitch'),
-'.1.3.6.1.4.1.1991.1.3.38.2.2' => array('name' => 'TurboIron SuperX Premium Router', 'object' => 'snTurboIronSuperXPremRouter'),
-'.1.3.6.1.4.1.1991.1.3.38.2.3' => array('name' => 'TurboIron SuperX Premium Base L3 Switch', 'object' => 'snTurboIronSuperXPremBaseL3Switch'),
-'.1.3.6.1.4.1.1991.1.3.39.1' => array('name' => 'snNetIronIMR', 'object' => 'snNetIronIMR'),
-'.1.3.6.1.4.1.1991.1.3.39.1.2' => array('name' => 'NetIron IMR', 'object' => 'snNIIMRRouter'),
-'.1.3.6.1.4.1.1991.1.3.4' => array('name' => 'snTurboIron', 'object' => 'snTurboIron'),
-'.1.3.6.1.4.1.1991.1.3.4.1' => array('name' => 'Stackable TurboIron', 'object' => 'snTISwitch'),
-'.1.3.6.1.4.1.1991.1.3.4.2' => array('name' => 'Stackable TurboIron', 'object' => 'snTIRouter'),
-'.1.3.6.1.4.1.1991.1.3.40.1' => array('name' => 'snBigIronRX16', 'object' => 'snBigIronRX16'),
-'.1.3.6.1.4.1.1991.1.3.40.1.1' => array('name' => 'BigIron RX16', 'object' => 'snBIRX16Switch'),
-'.1.3.6.1.4.1.1991.1.3.40.1.2' => array('name' => 'BigIron RX16', 'object' => 'snBIRX16Router'),
-'.1.3.6.1.4.1.1991.1.3.40.2' => array('name' => 'snBigIronRX8', 'object' => 'snBigIronRX8'),
-'.1.3.6.1.4.1.1991.1.3.40.2.1' => array('name' => 'BigIron RX8', 'object' => 'snBIRX8Switch'),
-'.1.3.6.1.4.1.1991.1.3.40.2.2' => array('name' => 'BigIron RX8', 'object' => 'snBIRX8Router'),
-'.1.3.6.1.4.1.1991.1.3.40.3' => array('name' => 'snBigIronRX4', 'object' => 'snBigIronRX4'),
-'.1.3.6.1.4.1.1991.1.3.40.3.1' => array('name' => 'BigIron RX4', 'object' => 'snBIRX4Switch'),
-'.1.3.6.1.4.1.1991.1.3.40.3.2' => array('name' => 'BigIron RX4', 'object' => 'snBIRX4Router'),
-'.1.3.6.1.4.1.1991.1.3.40.4' => array('name' => 'snBigIronRX32', 'object' => 'snBigIronRX32'),
-'.1.3.6.1.4.1.1991.1.3.40.4.1' => array('name' => 'BigIron RX32', 'object' => 'snBIRX32Switch'),
-'.1.3.6.1.4.1.1991.1.3.40.4.2' => array('name' => 'BigIron RX32', 'object' => 'snBIRX32Router'),
-'.1.3.6.1.4.1.1991.1.3.41.1' => array('name' => 'snNetIronXMR16000', 'object' => 'snNetIronXMR16000'),
-'.1.3.6.1.4.1.1991.1.3.41.1.2' => array('name' => 'NetIron XMR16000', 'object' => 'snNIXMR16000Router'),
-'.1.3.6.1.4.1.1991.1.3.41.2' => array('name' => 'snNetIronXMR8000', 'object' => 'snNetIronXMR8000'),
-'.1.3.6.1.4.1.1991.1.3.41.2.2' => array('name' => 'NetIron XMR8000', 'object' => 'snNIXMR8000Router'),
-'.1.3.6.1.4.1.1991.1.3.41.3' => array('name' => 'snNetIronXMR4000', 'object' => 'snNetIronXMR4000'),
-'.1.3.6.1.4.1.1991.1.3.41.3.2' => array('name' => 'NetIron XMR4000', 'object' => 'snNIXMR4000Router'),
-'.1.3.6.1.4.1.1991.1.3.41.4' => array('name' => 'snNetIronXMR32000', 'object' => 'snNetIronXMR32000'),
-'.1.3.6.1.4.1.1991.1.3.41.4.2' => array('name' => 'NetIron XMR32000', 'object' => 'snNIXMR32000Router'),
-'.1.3.6.1.4.1.1991.1.3.42.10.1' => array('name' => 'SecureIronTM 100', 'object' => 'snSecureIronTM100'),
-'.1.3.6.1.4.1.1991.1.3.42.10.1.1' => array('name' => 'SecureIronTM 100 Switch', 'object' => 'snSecureIronTM100Switch'),
-'.1.3.6.1.4.1.1991.1.3.42.10.1.2' => array('name' => 'SecureIronTM 100 Router', 'object' => 'snSecureIronTM100Router'),
-'.1.3.6.1.4.1.1991.1.3.42.10.2' => array('name' => 'SecureIronTM 300', 'object' => 'snSecureIronTM300'),
-'.1.3.6.1.4.1.1991.1.3.42.10.2.1' => array('name' => 'SecureIronTM 300 Switch', 'object' => 'snSecureIronTM300Switch'),
-'.1.3.6.1.4.1.1991.1.3.42.10.2.2' => array('name' => 'SecureIronTM 300 Router', 'object' => 'snSecureIronTM300Router'),
-'.1.3.6.1.4.1.1991.1.3.42.9.1' => array('name' => 'SecureIronLS 100', 'object' => 'snSecureIronLS100'),
-'.1.3.6.1.4.1.1991.1.3.42.9.1.1' => array('name' => 'SecureIronLS 100 Switch', 'object' => 'snSecureIronLS100Switch'),
-'.1.3.6.1.4.1.1991.1.3.42.9.1.2' => array('name' => 'SecureIronLS 100 Router', 'object' => 'snSecureIronLS100Router'),
-'.1.3.6.1.4.1.1991.1.3.42.9.2' => array('name' => 'SecureIronLS 300', 'object' => 'snSecureIronLS300'),
-'.1.3.6.1.4.1.1991.1.3.42.9.2.1' => array('name' => 'SecureIronLS 300 Switch', 'object' => 'snSecureIronLS300Switch'),
-'.1.3.6.1.4.1.1991.1.3.42.9.2.2' => array('name' => 'SecureIronLS 300 Router', 'object' => 'snSecureIronLS300Router'),
-'.1.3.6.1.4.1.1991.1.3.44.1' => array('name' => 'snNetIronMLX16', 'object' => 'snNetIronMLX16'),
-'.1.3.6.1.4.1.1991.1.3.44.1.2' => array('name' => 'NetIron MLX-16', 'object' => 'snNetIronMLX16Router'),
-'.1.3.6.1.4.1.1991.1.3.44.2' => array('name' => 'snNetIronMLX8', 'object' => 'snNetIronMLX8'),
-'.1.3.6.1.4.1.1991.1.3.44.2.2' => array('name' => 'NetIron MLX-8', 'object' => 'snNetIronMLX8Router'),
-'.1.3.6.1.4.1.1991.1.3.44.3' => array('name' => 'snNetIronMLX4', 'object' => 'snNetIronMLX4'),
-'.1.3.6.1.4.1.1991.1.3.44.3.2' => array('name' => 'NetIron MLX-4', 'object' => 'snNetIronMLX4Router'),
-'.1.3.6.1.4.1.1991.1.3.44.4' => array('name' => 'snNetIronMLX32', 'object' => 'snNetIronMLX32'),
-'.1.3.6.1.4.1.1991.1.3.44.4.2' => array('name' => 'NetIron MLX-32', 'object' => 'snNetIronMLX32Router'),
-'.1.3.6.1.4.1.1991.1.3.45.1.1.1' => array('name' => 'FastIron FGS624P', 'object' => 'snFGS624P'),
-'.1.3.6.1.4.1.1991.1.3.45.1.1.1.1' => array('name' => 'FGS624P', 'object' => 'snFGS624PSwitch'),
-'.1.3.6.1.4.1.1991.1.3.45.1.1.1.2' => array('name' => 'FGS624P', 'object' => 'snFGS624PRouter'),
-'.1.3.6.1.4.1.1991.1.3.45.1.2.1' => array('name' => 'FastIron FGS624XGP', 'object' => 'snFGS624XGP'),
-'.1.3.6.1.4.1.1991.1.3.45.1.2.1.1' => array('name' => 'FGS624XGP', 'object' => 'snFGS624XGPSwitch'),
-'.1.3.6.1.4.1.1991.1.3.45.1.2.1.2' => array('name' => 'FGS624XGP', 'object' => 'snFGS624XGPRouter'),
-'.1.3.6.1.4.1.1991.1.3.45.1.3.1' => array('name' => 'snFGS624PPOE', 'object' => 'snFGS624PPOE'),
-'.1.3.6.1.4.1.1991.1.3.45.1.3.1.1' => array('name' => 'snFGS624PPOESwitch', 'object' => 'snFGS624PPOESwitch'),
-'.1.3.6.1.4.1.1991.1.3.45.1.3.1.2' => array('name' => 'snFGS624PPOERouter', 'object' => 'snFGS624PPOERouter'),
-'.1.3.6.1.4.1.1991.1.3.45.1.4.1' => array('name' => 'snFGS624XGPPOE', 'object' => 'snFGS624XGPPOE'),
-'.1.3.6.1.4.1.1991.1.3.45.1.4.1.1' => array('name' => 'snFGS624XGPPOESwitch', 'object' => 'snFGS624XGPPOESwitch'),
-'.1.3.6.1.4.1.1991.1.3.45.1.4.1.2' => array('name' => 'snFGS624XGPPOERouter', 'object' => 'snFGS624XGPPOERouter'),
-'.1.3.6.1.4.1.1991.1.3.45.2.1.1' => array('name' => 'FastIron GS FGS648P', 'object' => 'snFGS648P'),
-'.1.3.6.1.4.1.1991.1.3.45.2.1.1.1' => array('name' => 'FastIron FGS648P', 'object' => 'snFGS648PSwitch'),
-'.1.3.6.1.4.1.1991.1.3.45.2.1.1.2' => array('name' => 'FastIron FGS648P', 'object' => 'snFGS648PRouter'),
-'.1.3.6.1.4.1.1991.1.3.45.2.2.1' => array('name' => 'snFGS648PPOE', 'object' => 'snFGS648PPOE'),
-'.1.3.6.1.4.1.1991.1.3.45.2.2.1.1' => array('name' => 'snFGS648PPOESwitch', 'object' => 'snFGS648PPOESwitch'),
-'.1.3.6.1.4.1.1991.1.3.45.2.2.1.2' => array('name' => 'snFGS648PPOERouter', 'object' => 'snFGS648PPOERouter'),
-'.1.3.6.1.4.1.1991.1.3.46.1.1.1' => array('name' => 'FastIron FLS624', 'object' => 'snFLS624'),
-'.1.3.6.1.4.1.1991.1.3.46.1.1.1.1' => array('name' => 'FastIron FLS624', 'object' => 'snFLS624Switch'),
-'.1.3.6.1.4.1.1991.1.3.46.1.1.1.2' => array('name' => 'FastIron FLS624', 'object' => 'snFLS624Router'),
-'.1.3.6.1.4.1.1991.1.3.46.2.1.1' => array('name' => 'FastIron FLS648', 'object' => 'snFLS648'),
-'.1.3.6.1.4.1.1991.1.3.46.2.1.1.1' => array('name' => 'FastIron FLS648', 'object' => 'snFLS648Switch'),
-'.1.3.6.1.4.1.1991.1.3.46.2.1.1.2' => array('name' => 'FastIron FLS648', 'object' => 'snFLS648Router'),
-'.1.3.6.1.4.1.1991.1.3.47.1' => array('name' => 'ServerIron SI100', 'object' => 'snSI100'),
-'.1.3.6.1.4.1.1991.1.3.47.1.1' => array('name' => 'ServerIron SI100', 'object' => 'snSI100Switch'),
-'.1.3.6.1.4.1.1991.1.3.47.1.2' => array('name' => 'ServerIron SI100', 'object' => 'snSI100Router'),
-'.1.3.6.1.4.1.1991.1.3.47.10' => array('name' => 'ServerIronGT E Plus series', 'object' => 'snServerIronGTePlus'),
-'.1.3.6.1.4.1.1991.1.3.47.10.1' => array('name' => 'ServerIronGT E Plus', 'object' => 'snServerIronGTePlusSwitch'),
-'.1.3.6.1.4.1.1991.1.3.47.10.2' => array('name' => 'ServerIronGT E Plus', 'object' => 'snServerIronGTePlusRouter'),
-'.1.3.6.1.4.1.1991.1.3.47.11' => array('name' => 'ServerIron4G series', 'object' => 'snServerIron4G'),
-'.1.3.6.1.4.1.1991.1.3.47.11.1' => array('name' => 'ServerIron4G', 'object' => 'snServerIron4GSwitch'),
-'.1.3.6.1.4.1.1991.1.3.47.11.2' => array('name' => 'ServerIron4G', 'object' => 'snServerIron4GRouter'),
-'.1.3.6.1.4.1.1991.1.3.47.12' => array('name' => 'serverIronAdx1000', 'object' => 'serverIronAdx1000'),
-'.1.3.6.1.4.1.1991.1.3.47.12.1' => array('name' => 'serverIronAdx1000Switch', 'object' => 'serverIronAdx1000Switch'),
-'.1.3.6.1.4.1.1991.1.3.47.12.2' => array('name' => 'serverIronAdx1000Router', 'object' => 'serverIronAdx1000Router'),
-'.1.3.6.1.4.1.1991.1.3.47.13' => array('name' => 'serverIronAdx1000Ssl', 'object' => 'serverIronAdx1000Ssl'),
-'.1.3.6.1.4.1.1991.1.3.47.13.1' => array('name' => 'serverIronAdx1000SslSwitch', 'object' => 'serverIronAdx1000SslSwitch'),
-'.1.3.6.1.4.1.1991.1.3.47.13.2' => array('name' => 'serverIronAdx1000SslRouter', 'object' => 'serverIronAdx1000SslRouter'),
-'.1.3.6.1.4.1.1991.1.3.47.14' => array('name' => 'serverIronAdx4000', 'object' => 'serverIronAdx4000'),
-'.1.3.6.1.4.1.1991.1.3.47.14.1' => array('name' => 'serverIronAdx4000Switch', 'object' => 'serverIronAdx4000Switch'),
-'.1.3.6.1.4.1.1991.1.3.47.14.2' => array('name' => 'serverIronAdx4000Router', 'object' => 'serverIronAdx4000Router'),
-'.1.3.6.1.4.1.1991.1.3.47.15' => array('name' => 'serverIronAdx4000Ssl', 'object' => 'serverIronAdx4000Ssl'),
-'.1.3.6.1.4.1.1991.1.3.47.15.1' => array('name' => 'serverIronAdx4000SslSwitch', 'object' => 'serverIronAdx4000SslSwitch'),
-'.1.3.6.1.4.1.1991.1.3.47.15.2' => array('name' => 'serverIronAdx4000SslRouter', 'object' => 'serverIronAdx4000SslRouter'),
-'.1.3.6.1.4.1.1991.1.3.47.16' => array('name' => 'serverIronAdx8000', 'object' => 'serverIronAdx8000'),
-'.1.3.6.1.4.1.1991.1.3.47.16.1' => array('name' => 'serverIronAdx8000Switch', 'object' => 'serverIronAdx8000Switch'),
-'.1.3.6.1.4.1.1991.1.3.47.16.2' => array('name' => 'serverIronAdx8000Router', 'object' => 'serverIronAdx8000Router'),
-'.1.3.6.1.4.1.1991.1.3.47.17' => array('name' => 'serverIronAdx8000Ssl', 'object' => 'serverIronAdx8000Ssl'),
-'.1.3.6.1.4.1.1991.1.3.47.17.1' => array('name' => 'serverIronAdx8000SslSwitch', 'object' => 'serverIronAdx8000SslSwitch'),
-'.1.3.6.1.4.1.1991.1.3.47.17.2' => array('name' => 'serverIronAdx8000SslRouter', 'object' => 'serverIronAdx8000SslRouter'),
-'.1.3.6.1.4.1.1991.1.3.47.18' => array('name' => 'serverIronAdx10000', 'object' => 'serverIronAdx10000'),
-'.1.3.6.1.4.1.1991.1.3.47.18.1' => array('name' => 'serverIronAdx10000Switch', 'object' => 'serverIronAdx10000Switch'),
-'.1.3.6.1.4.1.1991.1.3.47.18.2' => array('name' => 'serverIronAdx10000Router', 'object' => 'serverIronAdx10000Router'),
-'.1.3.6.1.4.1.1991.1.3.47.19' => array('name' => 'serverIronAdx10000Ssl', 'object' => 'serverIronAdx10000Ssl'),
-'.1.3.6.1.4.1.1991.1.3.47.19.1' => array('name' => 'serverIronAdx10000SslSwitch', 'object' => 'serverIronAdx10000SslSwitch'),
-'.1.3.6.1.4.1.1991.1.3.47.19.2' => array('name' => 'serverIronAdx10000SslRouter', 'object' => 'serverIronAdx10000SslRouter'),
-'.1.3.6.1.4.1.1991.1.3.47.2' => array('name' => 'ServerIron 350 series', 'object' => 'snSI350'),
-'.1.3.6.1.4.1.1991.1.3.47.2.1' => array('name' => 'SI350', 'object' => 'snSI350Switch'),
-'.1.3.6.1.4.1.1991.1.3.47.2.2' => array('name' => 'SI350', 'object' => 'snSI350Router'),
-'.1.3.6.1.4.1.1991.1.3.47.3' => array('name' => 'ServerIron 450 series', 'object' => 'snSI450'),
-'.1.3.6.1.4.1.1991.1.3.47.3.1' => array('name' => 'SI450', 'object' => 'snSI450Switch'),
-'.1.3.6.1.4.1.1991.1.3.47.3.2' => array('name' => 'SI450', 'object' => 'snSI450Router'),
-'.1.3.6.1.4.1.1991.1.3.47.4' => array('name' => 'ServerIron 850 series', 'object' => 'snSI850'),
-'.1.3.6.1.4.1.1991.1.3.47.4.1' => array('name' => 'SI850', 'object' => 'snSI850Switch'),
-'.1.3.6.1.4.1.1991.1.3.47.4.2' => array('name' => 'SI850', 'object' => 'snSI850Router'),
-'.1.3.6.1.4.1.1991.1.3.47.5' => array('name' => 'ServerIron 350 Plus series', 'object' => 'snSI350Plus'),
-'.1.3.6.1.4.1.1991.1.3.47.5.1' => array('name' => 'SI350 Plus', 'object' => 'snSI350PlusSwitch'),
-'.1.3.6.1.4.1.1991.1.3.47.5.2' => array('name' => 'SI350 Plus', 'object' => 'snSI350PlusRouter'),
-'.1.3.6.1.4.1.1991.1.3.47.6' => array('name' => 'ServerIron 450 Plus series', 'object' => 'snSI450Plus'),
-'.1.3.6.1.4.1.1991.1.3.47.6.1' => array('name' => 'SI450 Plus', 'object' => 'snSI450PlusSwitch'),
-'.1.3.6.1.4.1.1991.1.3.47.6.2' => array('name' => 'SI450 Plus', 'object' => 'snSI450PlusRouter'),
-'.1.3.6.1.4.1.1991.1.3.47.7' => array('name' => 'ServerIron 850 Plus series', 'object' => 'snSI850Plus'),
-'.1.3.6.1.4.1.1991.1.3.47.7.1' => array('name' => 'SI850 Plus', 'object' => 'snSI850PlusSwitch'),
-'.1.3.6.1.4.1.1991.1.3.47.7.2' => array('name' => 'SI850 Plus', 'object' => 'snSI850PlusRouter'),
-'.1.3.6.1.4.1.1991.1.3.47.8' => array('name' => 'ServerIronGT C series', 'object' => 'snServerIronGTc'),
-'.1.3.6.1.4.1.1991.1.3.47.8.1' => array('name' => 'ServerIronGT C', 'object' => 'snServerIronGTcSwitch'),
-'.1.3.6.1.4.1.1991.1.3.47.8.2' => array('name' => 'ServerIronGT C', 'object' => 'snServerIronGTcRouter'),
-'.1.3.6.1.4.1.1991.1.3.47.9' => array('name' => 'ServerIronGT E series', 'object' => 'snServerIronGTe'),
-'.1.3.6.1.4.1.1991.1.3.47.9.1' => array('name' => 'ServerIronGT E', 'object' => 'snServerIronGTeSwitch'),
-'.1.3.6.1.4.1.1991.1.3.47.9.2' => array('name' => 'ServerIronGT E', 'object' => 'snServerIronGTeRouter'),
-'.1.3.6.1.4.1.1991.1.3.48.1' => array('name' => 'snFastIronStack', 'object' => 'snFastIronStack'),
-'.1.3.6.1.4.1.1991.1.3.48.1.1' => array('name' => 'snFastIronStackSwitch', 'object' => 'snFastIronStackSwitch'),
-'.1.3.6.1.4.1.1991.1.3.48.1.2' => array('name' => 'snFastIronStackRouter', 'object' => 'snFastIronStackRouter'),
-'.1.3.6.1.4.1.1991.1.3.48.2' => array('name' => 'snFastIronStackFCX', 'object' => 'snFastIronStackFCX'),
-'.1.3.6.1.4.1.1991.1.3.48.2.1' => array('name' => 'FCX switch', 'object' => 'snFastIronStackFCXSwitch'),
-'.1.3.6.1.4.1.1991.1.3.48.2.2' => array('name' => 'FCX Base L3 router', 'object' => 'snFastIronStackFCXBaseL3Router'),
-'.1.3.6.1.4.1.1991.1.3.48.2.3' => array('name' => 'FCX Premium Router', 'object' => 'snFastIronStackFCXRouter'),
-'.1.3.6.1.4.1.1991.1.3.48.2.4' => array('name' => 'FCX Advanced Premium Router (BGP)', 'object' => 'snFastIronStackFCXAdvRouter'),
-'.1.3.6.1.4.1.1991.1.3.49.1' => array('name' => 'NetIron CES 2024F', 'object' => 'snCes2024F'),
-'.1.3.6.1.4.1.1991.1.3.49.2' => array('name' => 'NetIron CES 2024C', 'object' => 'snCes2024C'),
-'.1.3.6.1.4.1.1991.1.3.49.3' => array('name' => 'NetIron CES 2048F', 'object' => 'snCes2048F'),
-'.1.3.6.1.4.1.1991.1.3.49.4' => array('name' => 'NetIron CES 2048C', 'object' => 'snCes2048C'),
-'.1.3.6.1.4.1.1991.1.3.49.5' => array('name' => 'NetIron CES 2048F + 2x10G', 'object' => 'snCes2048FX'),
-'.1.3.6.1.4.1.1991.1.3.49.6' => array('name' => 'NetIron CES 2048C + 2x10G', 'object' => 'snCes2048CX'),
-'.1.3.6.1.4.1.1991.1.3.5' => array('name' => 'snTurboIron8', 'object' => 'snTurboIron8'),
-'.1.3.6.1.4.1.1991.1.3.5.1' => array('name' => 'Stackable TurboIron 8', 'object' => 'snT8Switch'),
-'.1.3.6.1.4.1.1991.1.3.5.2' => array('name' => 'Stackable TurboIron 8', 'object' => 'snT8Router'),
-'.1.3.6.1.4.1.1991.1.3.5.3' => array('name' => 'snT8SI', 'object' => 'snT8SI'),
-'.1.3.6.1.4.1.1991.1.3.5.4' => array('name' => 'Stackable ServerIronXLG', 'object' => 'snT8SIXLG'),
-'.1.3.6.1.4.1.1991.1.3.50.1.1.1' => array('name' => 'snFLSLC624', 'object' => 'snFLSLC624'),
-'.1.3.6.1.4.1.1991.1.3.50.1.1.1.1' => array('name' => 'snFLSLC624Switch', 'object' => 'snFLSLC624Switch'),
-'.1.3.6.1.4.1.1991.1.3.50.1.1.1.2' => array('name' => 'snFLSLC624Router', 'object' => 'snFLSLC624Router'),
-'.1.3.6.1.4.1.1991.1.3.50.1.2.1' => array('name' => 'snFLSLC624POE', 'object' => 'snFLSLC624POE'),
-'.1.3.6.1.4.1.1991.1.3.50.1.2.1.1' => array('name' => 'snFLSLC624POESwitch', 'object' => 'snFLSLC624POESwitch'),
-'.1.3.6.1.4.1.1991.1.3.50.1.2.1.2' => array('name' => 'snFLSLC624POERouter', 'object' => 'snFLSLC624POERouter'),
-'.1.3.6.1.4.1.1991.1.3.50.2.1.1' => array('name' => 'snFLSLC648', 'object' => 'snFLSLC648'),
-'.1.3.6.1.4.1.1991.1.3.50.2.1.1.1' => array('name' => 'snFLSLC648Switch', 'object' => 'snFLSLC648Switch'),
-'.1.3.6.1.4.1.1991.1.3.50.2.1.1.2' => array('name' => 'snFLSLC648Router', 'object' => 'snFLSLC648Router'),
-'.1.3.6.1.4.1.1991.1.3.50.2.2.1' => array('name' => 'snFLSLC648POE', 'object' => 'snFLSLC648POE'),
-'.1.3.6.1.4.1.1991.1.3.50.2.2.1.1' => array('name' => 'snFLSLC648POESwitch', 'object' => 'snFLSLC648POESwitch'),
-'.1.3.6.1.4.1.1991.1.3.50.2.2.1.2' => array('name' => 'snFLSLC648POERouter', 'object' => 'snFLSLC648POERouter'),
-'.1.3.6.1.4.1.1991.1.3.51.1' => array('name' => 'NetIron CER 2024F', 'object' => 'snCer2024F'),
-'.1.3.6.1.4.1.1991.1.3.51.2' => array('name' => 'NetIron CER 2024C', 'object' => 'snCer2024C'),
-'.1.3.6.1.4.1.1991.1.3.51.3' => array('name' => 'NetIron CER 2048F', 'object' => 'snCer2048F'),
-'.1.3.6.1.4.1.1991.1.3.51.4' => array('name' => 'NetIron CER 2048C', 'object' => 'snCer2048C'),
-'.1.3.6.1.4.1.1991.1.3.51.5' => array('name' => 'NetIron CER 2048F + 2x10G', 'object' => 'snCer2048FX'),
-'.1.3.6.1.4.1.1991.1.3.51.6' => array('name' => 'NetIron CER 2048C + 2x10G', 'object' => 'snCer2048CX'),
-'.1.3.6.1.4.1.1991.1.3.52.1.1.1' => array('name' => 'FastIron WS Switch(FWS) 24-port 10/100', 'object' => 'snFWS624'),
-'.1.3.6.1.4.1.1991.1.3.52.1.1.1.1' => array('name' => 'FWS624 switch', 'object' => 'snFWS624Switch'),
-'.1.3.6.1.4.1.1991.1.3.52.1.1.1.2' => array('name' => 'FWS624 Base L3 router', 'object' => 'snFWS624BaseL3Router'),
-'.1.3.6.1.4.1.1991.1.3.52.1.1.1.3' => array('name' => 'FWS624 Edge Prem router', 'object' => 'snFWS624EdgePremRouter'),
-'.1.3.6.1.4.1.1991.1.3.52.1.2.1' => array('name' => 'FastIron WS Switch(FWS) 24-port 10/100/1000', 'object' => 'snFWS624G'),
-'.1.3.6.1.4.1.1991.1.3.52.1.2.1.1' => array('name' => 'FWS624G switch', 'object' => 'snFWS624GSwitch'),
-'.1.3.6.1.4.1.1991.1.3.52.1.2.1.2' => array('name' => 'FWS624G Base L3 router', 'object' => 'snFWS624GBaseL3Router'),
-'.1.3.6.1.4.1.1991.1.3.52.1.2.1.3' => array('name' => 'FWS624G Edge Prem router', 'object' => 'snFWS624GEdgePremRouter'),
-'.1.3.6.1.4.1.1991.1.3.52.1.3.1' => array('name' => 'FastIron WS Switch(FWS) 24-port 10/100 POE', 'object' => 'snFWS624POE'),
-'.1.3.6.1.4.1.1991.1.3.52.1.3.1.1' => array('name' => 'FWS624-POE switch', 'object' => 'snFWS624POESwitch'),
-'.1.3.6.1.4.1.1991.1.3.52.1.3.1.2' => array('name' => 'FWS624-POE Base L3 router', 'object' => 'snFWS624POEBaseL3Router'),
-'.1.3.6.1.4.1.1991.1.3.52.1.3.1.3' => array('name' => 'FWS624-POE Edge Prem router', 'object' => 'snFWS624POEEdgePremRouter'),
-'.1.3.6.1.4.1.1991.1.3.52.1.4.1' => array('name' => 'FastIron WS Switch(FWS) 24-port 10/100/1000 POE', 'object' => 'snFWS624GPOE'),
-'.1.3.6.1.4.1.1991.1.3.52.1.4.1.1' => array('name' => 'FWS624G-POE switch', 'object' => 'snFWS624GPOESwitch'),
-'.1.3.6.1.4.1.1991.1.3.52.1.4.1.2' => array('name' => 'FWS624G-POE Base L3 router', 'object' => 'snFWS624GPOEBaseL3Router'),
-'.1.3.6.1.4.1.1991.1.3.52.1.4.1.3' => array('name' => 'FWS624G-POE Edge Prem router', 'object' => 'snFWS624GPOEEdgePremRouter'),
-'.1.3.6.1.4.1.1991.1.3.52.2.1.1' => array('name' => 'FastIron WS Switch(FWS) 48-port 10/100 POE Ready', 'object' => 'snFWS648'),
-'.1.3.6.1.4.1.1991.1.3.52.2.1.1.1' => array('name' => 'FWS648 switch', 'object' => 'snFWS648Switch'),
-'.1.3.6.1.4.1.1991.1.3.52.2.1.1.2' => array('name' => 'FWS648 Base L3 router', 'object' => 'snFWS648BaseL3Router'),
-'.1.3.6.1.4.1.1991.1.3.52.2.1.1.3' => array('name' => 'FWS648 Edge Prem router', 'object' => 'snFWS648EdgePremRouter'),
-'.1.3.6.1.4.1.1991.1.3.52.2.2.1' => array('name' => 'FastIron WS Switch(FWS) 48-port 10/100/1000 POE Ready', 'object' => 'snFWS648G'),
-'.1.3.6.1.4.1.1991.1.3.52.2.2.1.1' => array('name' => 'FWS648G switch', 'object' => 'snFWS648GSwitch'),
-'.1.3.6.1.4.1.1991.1.3.52.2.2.1.2' => array('name' => 'FWS648G Base L3 router', 'object' => 'snFWS648GBaseL3Router'),
-'.1.3.6.1.4.1.1991.1.3.52.2.2.1.3' => array('name' => 'FWS648G Edge Prem router', 'object' => 'snFWS648GEdgePremRouter'),
-'.1.3.6.1.4.1.1991.1.3.52.2.3.1' => array('name' => 'FastIron WS Switch(FWS) 48-port 10/100 POE', 'object' => 'snFWS648POE'),
-'.1.3.6.1.4.1.1991.1.3.52.2.3.1.1' => array('name' => 'FWS648-POE switch', 'object' => 'snFWS648POESwitch'),
-'.1.3.6.1.4.1.1991.1.3.52.2.3.1.2' => array('name' => 'FWS648-POE Base L3 router', 'object' => 'snFWS648POEBaseL3Router'),
-'.1.3.6.1.4.1.1991.1.3.52.2.3.1.3' => array('name' => 'FWS648-POE Edge Prem router', 'object' => 'snFWS648POEEdgePremRouter'),
-'.1.3.6.1.4.1.1991.1.3.52.2.4.1' => array('name' => 'FastIron WS Switch(FWS) 48-port 10/100/1000 POE', 'object' => 'snFWS648GPOE'),
-'.1.3.6.1.4.1.1991.1.3.52.2.4.1.1' => array('name' => 'FWS648G-POE switch', 'object' => 'snFWS648GPOESwitch'),
-'.1.3.6.1.4.1.1991.1.3.52.2.4.1.2' => array('name' => 'FWS648G-POE Base L3 router', 'object' => 'snFWS648GPOEBaseL3Router'),
-'.1.3.6.1.4.1.1991.1.3.52.2.4.1.3' => array('name' => 'FWS648G-POE Edge Prem router', 'object' => 'snFWS648GPOEEdgePremRouter'),
-'.1.3.6.1.4.1.1991.1.3.53' => array('name' => 'snTurboIron2', 'object' => 'snTurboIron2'),
-'.1.3.6.1.4.1.1991.1.3.53.1.1' => array('name' => 'TurboIron 24X switch', 'object' => 'snTI2X24Switch'),
-'.1.3.6.1.4.1.1991.1.3.53.1.2' => array('name' => 'TurboIron 24X router', 'object' => 'snTI2X24Router'),
-'.1.3.6.1.4.1.1991.1.3.53.2.1' => array('name' => 'TurboIron 48X switch', 'object' => 'snTI2X48Switch'),
-'.1.3.6.1.4.1.1991.1.3.53.2.2' => array('name' => 'TurboIron 48X router', 'object' => 'snTI2X48Router'),
-'.1.3.6.1.4.1.1991.1.3.54.1.1.1' => array('name' => 'snFCX624S', 'object' => 'snFCX624S'),
-'.1.3.6.1.4.1.1991.1.3.54.1.1.1.1' => array('name' => 'snFCX624SSwitch', 'object' => 'snFCX624SSwitch'),
-'.1.3.6.1.4.1.1991.1.3.54.1.1.1.2' => array('name' => 'snFCX624SBaseL3Router', 'object' => 'snFCX624SBaseL3Router'),
-'.1.3.6.1.4.1.1991.1.3.54.1.1.1.3' => array('name' => 'FCX624S Premium Router', 'object' => 'snFCX624SRouter'),
-'.1.3.6.1.4.1.1991.1.3.54.1.1.1.4' => array('name' => 'snFCX624SAdvRouter', 'object' => 'snFCX624SAdvRouter'),
-'.1.3.6.1.4.1.1991.1.3.54.1.2.1' => array('name' => 'snFCX624SHPOE', 'object' => 'snFCX624SHPOE'),
-'.1.3.6.1.4.1.1991.1.3.54.1.2.1.1' => array('name' => 'snFCX624SHPOESwitch', 'object' => 'snFCX624SHPOESwitch'),
-'.1.3.6.1.4.1.1991.1.3.54.1.2.1.2' => array('name' => 'snFCX624SHPOEBaseL3Router', 'object' => 'snFCX624SHPOEBaseL3Router'),
-'.1.3.6.1.4.1.1991.1.3.54.1.2.1.3' => array('name' => 'snFCX624SHPOERouter', 'object' => 'snFCX624SHPOERouter'),
-'.1.3.6.1.4.1.1991.1.3.54.1.2.1.4' => array('name' => 'snFCX624SHPOEAdvRouter', 'object' => 'snFCX624SHPOEAdvRouter'),
-'.1.3.6.1.4.1.1991.1.3.54.1.3.1' => array('name' => 'snFCX624SF', 'object' => 'snFCX624SF'),
-'.1.3.6.1.4.1.1991.1.3.54.1.3.1.1' => array('name' => 'snFCX624SFSwitch', 'object' => 'snFCX624SFSwitch'),
-'.1.3.6.1.4.1.1991.1.3.54.1.3.1.2' => array('name' => 'snFCX624SFBaseL3Router', 'object' => 'snFCX624SFBaseL3Router'),
-'.1.3.6.1.4.1.1991.1.3.54.1.3.1.3' => array('name' => 'snFCX624SFRouter', 'object' => 'snFCX624SFRouter'),
-'.1.3.6.1.4.1.1991.1.3.54.1.3.1.4' => array('name' => 'snFCX624SFAdvRouter', 'object' => 'snFCX624SFAdvRouter'),
-'.1.3.6.1.4.1.1991.1.3.54.1.4.1' => array('name' => 'snFCX624', 'object' => 'snFCX624'),
-'.1.3.6.1.4.1.1991.1.3.54.1.4.1.1' => array('name' => 'snFCX624Switch', 'object' => 'snFCX624Switch'),
-'.1.3.6.1.4.1.1991.1.3.54.1.4.1.2' => array('name' => 'snFCX624BaseL3Router', 'object' => 'snFCX624BaseL3Router'),
-'.1.3.6.1.4.1.1991.1.3.54.1.4.1.3' => array('name' => 'snFCX624Router', 'object' => 'snFCX624Router'),
-'.1.3.6.1.4.1.1991.1.3.54.1.4.1.4' => array('name' => 'snFCX624AdvRouter', 'object' => 'snFCX624AdvRouter'),
-'.1.3.6.1.4.1.1991.1.3.54.2.1.1' => array('name' => 'snFCX648S', 'object' => 'snFCX648S'),
-'.1.3.6.1.4.1.1991.1.3.54.2.1.1.1' => array('name' => 'FCX648S switch', 'object' => 'snFCX648SSwitch'),
-'.1.3.6.1.4.1.1991.1.3.54.2.1.1.2' => array('name' => 'FCX648S Base L3 router', 'object' => 'snFCX648SBaseL3Router'),
-'.1.3.6.1.4.1.1991.1.3.54.2.1.1.3' => array('name' => 'FCX648S Premium Router', 'object' => 'snFCX648SRouter'),
-'.1.3.6.1.4.1.1991.1.3.54.2.1.1.4' => array('name' => 'FCX648S Advanced Premium Router (BGP)', 'object' => 'snFCX648SAdvRouter'),
-'.1.3.6.1.4.1.1991.1.3.54.2.2.1' => array('name' => 'FastIron CX Switch(FCX-S) 48-port 10/100/1000', 'object' => 'snFCX648SHPOE'),
-'.1.3.6.1.4.1.1991.1.3.54.2.2.1.1' => array('name' => 'FCX648S-HPOE switch', 'object' => 'snFCX648SHPOESwitch'),
-'.1.3.6.1.4.1.1991.1.3.54.2.2.1.2' => array('name' => 'FCX648S-HPOE Base L3 router', 'object' => 'snFCX648SHPOEBaseL3Router'),
-'.1.3.6.1.4.1.1991.1.3.54.2.2.1.3' => array('name' => 'FCX648S-HPOE Premium Router', 'object' => 'snFCX648SHPOERouter'),
-'.1.3.6.1.4.1.1991.1.3.54.2.2.1.4' => array('name' => 'FCX648S-HPOE Advanced Premium Router (BGP)', 'object' => 'snFCX648SHPOEAdvRouter'),
-'.1.3.6.1.4.1.1991.1.3.54.2.4.1' => array('name' => 'FastIron CX Switch(FCX) 48-port 10/100/1000', 'object' => 'snFCX648'),
-'.1.3.6.1.4.1.1991.1.3.54.2.4.1.1' => array('name' => 'FCX648 switch', 'object' => 'snFCX648Switch'),
-'.1.3.6.1.4.1.1991.1.3.54.2.4.1.2' => array('name' => 'FCX648 Base L3 router', 'object' => 'snFCX648BaseL3Router'),
-'.1.3.6.1.4.1.1991.1.3.54.2.4.1.3' => array('name' => 'FCX648 Premium Router', 'object' => 'snFCX648Router'),
-'.1.3.6.1.4.1.1991.1.3.54.2.4.1.4' => array('name' => 'FCX648 Advanced Premium Router (BGP)', 'object' => 'snFCX648AdvRouter'),
-'.1.3.6.1.4.1.1991.1.3.55.1' => array('name' => 'Brocade MLXe16', 'object' => 'snBrocadeMLXe16'),
-'.1.3.6.1.4.1.1991.1.3.55.1.2' => array('name' => 'Brocade MLXe16', 'object' => 'snBrocadeMLXe16Router'),
-'.1.3.6.1.4.1.1991.1.3.55.2' => array('name' => 'Brocade MLXe8', 'object' => 'snBrocadeMLXe8'),
-'.1.3.6.1.4.1.1991.1.3.55.2.2' => array('name' => 'Brocade MLXe8', 'object' => 'snBrocadeMLXe8Router'),
-'.1.3.6.1.4.1.1991.1.3.55.3' => array('name' => 'Brocade MLXe4', 'object' => 'snBrocadeMLXe4'),
-'.1.3.6.1.4.1.1991.1.3.55.3.2' => array('name' => 'Brocade MLXe4', 'object' => 'snBrocadeMLXe4Router'),
-'.1.3.6.1.4.1.1991.1.3.55.4' => array('name' => 'Brocade MLXe32', 'object' => 'snBrocadeMLXe32'),
-'.1.3.6.1.4.1.1991.1.3.55.4.2' => array('name' => 'Brocade MLXe32', 'object' => 'snBrocadeMLXe32Router'),
-'.1.3.6.1.4.1.1991.1.3.6' => array('name' => 'snBigIron4000', 'object' => 'snBigIron4000'),
-'.1.3.6.1.4.1.1991.1.3.6.1' => array('name' => 'BigIron 4000', 'object' => 'snBI4000Switch'),
-'.1.3.6.1.4.1.1991.1.3.6.2' => array('name' => 'BigIron 4000', 'object' => 'snBI4000Router'),
-'.1.3.6.1.4.1.1991.1.3.6.3' => array('name' => 'BigServerIron', 'object' => 'snBI4000SI'),
-'.1.3.6.1.4.1.1991.1.3.7' => array('name' => 'snBigIron8000', 'object' => 'snBigIron8000'),
-'.1.3.6.1.4.1.1991.1.3.7.1' => array('name' => 'BigIron 8000', 'object' => 'snBI8000Switch'),
-'.1.3.6.1.4.1.1991.1.3.7.2' => array('name' => 'BigIron 8000', 'object' => 'snBI8000Router'),
-'.1.3.6.1.4.1.1991.1.3.7.3' => array('name' => 'BigServerIron', 'object' => 'snBI8000SI'),
-'.1.3.6.1.4.1.1991.1.3.8' => array('name' => 'snFastIron2', 'object' => 'snFastIron2'),
-'.1.3.6.1.4.1.1991.1.3.8.1' => array('name' => 'FastIron II', 'object' => 'snFI2Switch'),
-'.1.3.6.1.4.1.1991.1.3.8.2' => array('name' => 'FastIron II', 'object' => 'snFI2Router'),
-'.1.3.6.1.4.1.1991.1.3.9' => array('name' => 'snFastIron2Plus', 'object' => 'snFastIron2Plus'),
-'.1.3.6.1.4.1.1991.1.3.9.1' => array('name' => 'FastIron II Plus', 'object' => 'snFI2PlusSwitch'),
-'.1.3.6.1.4.1.1991.1.3.9.2' => array('name' => 'FastIron II Plus', 'object' => 'snFI2PlusRouter'),
+  '.1.3.6.1.4.1.1991.1.3.1' => array('name' => 'snFastIron', 'object' => 'snFastIron'),
+  '.1.3.6.1.4.1.1991.1.3.1.1' => array('name' => 'Stackable FastIron workgroup', 'object' => 'snFIWGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.1.2' => array('name' => 'Stackable FastIron backbone', 'object' => 'snFIBBSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.10' => array('name' => 'snNetIron400', 'object' => 'snNetIron400'),
+  '.1.3.6.1.4.1.1991.1.3.10.1' => array('name' => 'NetIron 400', 'object' => 'snNI400Router'),
+  '.1.3.6.1.4.1.1991.1.3.11' => array('name' => 'snNetIron800', 'object' => 'snNetIron800'),
+  '.1.3.6.1.4.1.1991.1.3.11.1' => array('name' => 'NetIron 800', 'object' => 'snNI800Router'),
+  '.1.3.6.1.4.1.1991.1.3.12' => array('name' => 'snFastIron2GC', 'object' => 'snFastIron2GC'),
+  '.1.3.6.1.4.1.1991.1.3.12.1' => array('name' => 'FastIron II GC', 'object' => 'snFI2GCSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.12.2' => array('name' => 'FastIron II GC', 'object' => 'snFI2GCRouter'),
+  '.1.3.6.1.4.1.1991.1.3.13' => array('name' => 'snFastIron2PlusGC', 'object' => 'snFastIron2PlusGC'),
+  '.1.3.6.1.4.1.1991.1.3.13.1' => array('name' => 'FastIron II Plus GC', 'object' => 'snFI2PlusGCSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.13.2' => array('name' => 'FastIron II Plus GC', 'object' => 'snFI2PlusGCRouter'),
+  '.1.3.6.1.4.1.1991.1.3.14' => array('name' => 'snBigIron15000', 'object' => 'snBigIron15000'),
+  '.1.3.6.1.4.1.1991.1.3.14.1' => array('name' => 'BigIron 15000', 'object' => 'snBI15000Switch'),
+  '.1.3.6.1.4.1.1991.1.3.14.2' => array('name' => 'BigIron 15000', 'object' => 'snBI15000Router'),
+  '.1.3.6.1.4.1.1991.1.3.14.3' => array('name' => 'snBI15000SI', 'object' => 'snBI15000SI'),
+  '.1.3.6.1.4.1.1991.1.3.15' => array('name' => 'snNetIron1500', 'object' => 'snNetIron1500'),
+  '.1.3.6.1.4.1.1991.1.3.15.1' => array('name' => 'NetIron 1500', 'object' => 'snNI1500Router'),
+  '.1.3.6.1.4.1.1991.1.3.16' => array('name' => 'snFastIron3', 'object' => 'snFastIron3'),
+  '.1.3.6.1.4.1.1991.1.3.16.1' => array('name' => 'FastIron III', 'object' => 'snFI3Switch'),
+  '.1.3.6.1.4.1.1991.1.3.16.2' => array('name' => 'FastIron III', 'object' => 'snFI3Router'),
+  '.1.3.6.1.4.1.1991.1.3.17' => array('name' => 'snFastIron3GC', 'object' => 'snFastIron3GC'),
+  '.1.3.6.1.4.1.1991.1.3.17.1' => array('name' => 'FastIron III GC', 'object' => 'snFI3GCSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.17.2' => array('name' => 'FastIron III GC', 'object' => 'snFI3GCRouter'),
+  '.1.3.6.1.4.1.1991.1.3.18' => array('name' => 'snServerIron400', 'object' => 'snServerIron400'),
+  '.1.3.6.1.4.1.1991.1.3.18.1' => array('name' => 'ServerIron 400', 'object' => 'snSI400Switch'),
+  '.1.3.6.1.4.1.1991.1.3.18.2' => array('name' => 'ServerIron 400', 'object' => 'snSI400Router'),
+  '.1.3.6.1.4.1.1991.1.3.19' => array('name' => 'snServerIron800', 'object' => 'snServerIron800'),
+  '.1.3.6.1.4.1.1991.1.3.19.1' => array('name' => 'ServerIron800', 'object' => 'snSI800Switch'),
+  '.1.3.6.1.4.1.1991.1.3.19.2' => array('name' => 'ServerIron800', 'object' => 'snSI800Router'),
+  '.1.3.6.1.4.1.1991.1.3.2' => array('name' => 'snNetIron', 'object' => 'snNetIron'),
+  '.1.3.6.1.4.1.1991.1.3.2.1' => array('name' => 'Stackable NetIron', 'object' => 'snNIRouter'),
+  '.1.3.6.1.4.1.1991.1.3.20' => array('name' => 'snServerIron1500', 'object' => 'snServerIron1500'),
+  '.1.3.6.1.4.1.1991.1.3.20.1' => array('name' => 'ServerIron1500', 'object' => 'snSI1500Switch'),
+  '.1.3.6.1.4.1.1991.1.3.20.2' => array('name' => 'ServerIron1500', 'object' => 'snSI1500Router'),
+  '.1.3.6.1.4.1.1991.1.3.21' => array('name' => 'sn4802', 'object' => 'sn4802'),
+  '.1.3.6.1.4.1.1991.1.3.21.1' => array('name' => 'Stackable 4802', 'object' => 'sn4802Switch'),
+  '.1.3.6.1.4.1.1991.1.3.21.2' => array('name' => 'Stackable 4802', 'object' => 'sn4802Router'),
+  '.1.3.6.1.4.1.1991.1.3.21.3' => array('name' => 'Stackable 4802 ServerIron', 'object' => 'sn4802SI'),
+  '.1.3.6.1.4.1.1991.1.3.22' => array('name' => 'snFastIron400', 'object' => 'snFastIron400'),
+  '.1.3.6.1.4.1.1991.1.3.22.1' => array('name' => 'FastIron 400', 'object' => 'snFI400Switch'),
+  '.1.3.6.1.4.1.1991.1.3.22.2' => array('name' => 'FastIron 400', 'object' => 'snFI400Router'),
+  '.1.3.6.1.4.1.1991.1.3.23' => array('name' => 'snFastIron800', 'object' => 'snFastIron800'),
+  '.1.3.6.1.4.1.1991.1.3.23.1' => array('name' => 'FastIron800', 'object' => 'snFI800Switch'),
+  '.1.3.6.1.4.1.1991.1.3.23.2' => array('name' => 'FastIron800', 'object' => 'snFI800Router'),
+  '.1.3.6.1.4.1.1991.1.3.24' => array('name' => 'snFastIron1500', 'object' => 'snFastIron1500'),
+  '.1.3.6.1.4.1.1991.1.3.24.1' => array('name' => 'FastIron1500', 'object' => 'snFI1500Switch'),
+  '.1.3.6.1.4.1.1991.1.3.24.2' => array('name' => 'FastIron1500', 'object' => 'snFI1500Router'),
+  '.1.3.6.1.4.1.1991.1.3.25' => array('name' => 'FES 2402', 'object' => 'snFES2402'),
+  '.1.3.6.1.4.1.1991.1.3.25.1' => array('name' => 'FES2402', 'object' => 'snFES2402Switch'),
+  '.1.3.6.1.4.1.1991.1.3.25.2' => array('name' => 'FES2402', 'object' => 'snFES2402Router'),
+  '.1.3.6.1.4.1.1991.1.3.26' => array('name' => 'FES 4802', 'object' => 'snFES4802'),
+  '.1.3.6.1.4.1.1991.1.3.26.1' => array('name' => 'FES4802', 'object' => 'snFES4802Switch'),
+  '.1.3.6.1.4.1.1991.1.3.26.2' => array('name' => 'FES4802', 'object' => 'snFES4802Router'),
+  '.1.3.6.1.4.1.1991.1.3.27' => array('name' => 'FES 9604', 'object' => 'snFES9604'),
+  '.1.3.6.1.4.1.1991.1.3.27.1' => array('name' => 'FES9604', 'object' => 'snFES9604Switch'),
+  '.1.3.6.1.4.1.1991.1.3.27.2' => array('name' => 'FES9604', 'object' => 'snFES9604Router'),
+  '.1.3.6.1.4.1.1991.1.3.28' => array('name' => 'FES 12GCF ', 'object' => 'snFES12GCF'),
+  '.1.3.6.1.4.1.1991.1.3.28.1' => array('name' => 'FES12GCF ', 'object' => 'snFES12GCFSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.28.2' => array('name' => 'FES12GCF', 'object' => 'snFES12GCFRouter'),
+  '.1.3.6.1.4.1.1991.1.3.29' => array('name' => 'snFES2402POE', 'object' => 'snFES2402POE'),
+  '.1.3.6.1.4.1.1991.1.3.29.1' => array('name' => 'snFES2402POESwitch', 'object' => 'snFES2402POESwitch'),
+  '.1.3.6.1.4.1.1991.1.3.29.2' => array('name' => 'snFES2402POERouter', 'object' => 'snFES2402POERouter'),
+  '.1.3.6.1.4.1.1991.1.3.3' => array('name' => 'snServerIron', 'object' => 'snServerIron'),
+  '.1.3.6.1.4.1.1991.1.3.3.1' => array('name' => 'Stackable ServerIron', 'object' => 'snSI'),
+  '.1.3.6.1.4.1.1991.1.3.3.2' => array('name' => 'Stackable ServerIronXL', 'object' => 'snSIXL'),
+  '.1.3.6.1.4.1.1991.1.3.3.3' => array('name' => 'Stackable ServerIronXL TCS', 'object' => 'snSIXLTCS'),
+  '.1.3.6.1.4.1.1991.1.3.30' => array('name' => 'snFES4802POE', 'object' => 'snFES4802POE'),
+  '.1.3.6.1.4.1.1991.1.3.30.1' => array('name' => 'snFES4802POESwitch', 'object' => 'snFES4802POESwitch'),
+  '.1.3.6.1.4.1.1991.1.3.30.2' => array('name' => 'snFES4802POERouter', 'object' => 'snFES4802POERouter'),
+  '.1.3.6.1.4.1.1991.1.3.31' => array('name' => 'snNetIron4802', 'object' => 'snNetIron4802'),
+  '.1.3.6.1.4.1.1991.1.3.31.1' => array('name' => 'NetIron 4802', 'object' => 'snNI4802Switch'),
+  '.1.3.6.1.4.1.1991.1.3.31.2' => array('name' => 'NetIron 4802', 'object' => 'snNI4802Router'),
+  '.1.3.6.1.4.1.1991.1.3.32' => array('name' => 'snBigIronMG8', 'object' => 'snBigIronMG8'),
+  '.1.3.6.1.4.1.1991.1.3.32.1' => array('name' => 'BigIron MG8', 'object' => 'snBIMG8Switch'),
+  '.1.3.6.1.4.1.1991.1.3.32.2' => array('name' => 'BigIron MG8', 'object' => 'snBIMG8Router'),
+  '.1.3.6.1.4.1.1991.1.3.33' => array('name' => 'snNetIron40G', 'object' => 'snNetIron40G'),
+  '.1.3.6.1.4.1.1991.1.3.33.2' => array('name' => 'NetIron 40G', 'object' => 'snNI40GRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.1.1' => array('name' => 'FES 24G', 'object' => 'snFESX424'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.1.1.1' => array('name' => 'FESX424', 'object' => 'snFESX424Switch'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.1.1.2' => array('name' => 'FESX424', 'object' => 'snFESX424Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.1.2' => array('name' => 'FES 24G-PREM', 'object' => 'snFESX424Prem'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.1.2.1' => array('name' => 'FESX424-PREM', 'object' => 'snFESX424PremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.1.2.2' => array('name' => 'FESX424-PREM', 'object' => 'snFESX424PremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.2.1' => array('name' => 'FES 24G + 1 10G', 'object' => 'snFESX424Plus1XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.2.1.1' => array('name' => 'FESX424+1XG', 'object' => 'snFESX424Plus1XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.2.1.2' => array('name' => 'FESX424+1XG', 'object' => 'snFESX424Plus1XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.2.2' => array('name' => 'FES 24G + 1 10G-PREM', 'object' => 'snFESX424Plus1XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.2.2.1' => array('name' => 'FESX424+1XG-PREM', 'object' => 'snFESX424Plus1XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.2.2.2' => array('name' => 'FESX424+1XG-PREM', 'object' => 'snFESX424Plus1XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.3.1' => array('name' => 'FES 24G + 2 10G', 'object' => 'snFESX424Plus2XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.3.1.1' => array('name' => 'FESX424+2XG', 'object' => 'snFESX424Plus2XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.3.1.2' => array('name' => 'FESX424+2XG', 'object' => 'snFESX424Plus2XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.3.2' => array('name' => 'FES 24G + 2 10G-PREM', 'object' => 'snFESX424Plus2XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.3.2.1' => array('name' => 'FESX424+2XG-PREM', 'object' => 'snFESX424Plus2XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.1.3.2.2' => array('name' => 'FESX424+2XG-PREM', 'object' => 'snFESX424Plus2XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.1.1' => array('name' => 'snFESX624POE', 'object' => 'snFESX624POE'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.1.1.1' => array('name' => 'snFESX624POESwitch', 'object' => 'snFESX624POESwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.1.1.2' => array('name' => 'snFESX624POERouter', 'object' => 'snFESX624POERouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.1.2' => array('name' => 'snFESX624POEPrem', 'object' => 'snFESX624POEPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.1.2.1' => array('name' => 'snFESX624POEPremSwitch', 'object' => 'snFESX624POEPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.1.2.2' => array('name' => 'snFESX624POEPremRouter', 'object' => 'snFESX624POEPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.1.2.3' => array('name' => 'snFESX624POEPrem6Router', 'object' => 'snFESX624POEPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.2.1' => array('name' => 'snFESX624POEPlus1XG', 'object' => 'snFESX624POEPlus1XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.2.1.1' => array('name' => 'snFESX624POEPlus1XGSwitch', 'object' => 'snFESX624POEPlus1XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.2.1.2' => array('name' => 'snFESX624POEPlus1XGRouter', 'object' => 'snFESX624POEPlus1XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.2.2' => array('name' => 'snFESX624POEPlus1XGPrem', 'object' => 'snFESX624POEPlus1XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.2.2.1' => array('name' => 'snFESX624POEPlus1XGPremSwitch', 'object' => 'snFESX624POEPlus1XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.2.2.2' => array('name' => 'snFESX624POEPlus1XGPremRouter', 'object' => 'snFESX624POEPlus1XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.2.2.3' => array('name' => 'snFESX624POEPlus1XGPrem6Router', 'object' => 'snFESX624POEPlus1XGPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.3.1' => array('name' => 'snFESX624POEPlus2XG', 'object' => 'snFESX624POEPlus2XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.3.1.1' => array('name' => 'snFESX624POEPlus2XGSwitch', 'object' => 'snFESX624POEPlus2XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.3.1.2' => array('name' => 'snFESX624POEPlus2XGRouter', 'object' => 'snFESX624POEPlus2XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.3.2' => array('name' => 'snFESX624POEPlus2XGPrem', 'object' => 'snFESX624POEPlus2XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.3.2.1' => array('name' => 'snFESX624POEPlus2XGPremSwitch', 'object' => 'snFESX624POEPlus2XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.3.2.2' => array('name' => 'snFESX624POEPlus2XGPremRouter', 'object' => 'snFESX624POEPlus2XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.10.3.2.3' => array('name' => 'snFESX624POEPlus2XGPrem6Router', 'object' => 'snFESX624POEPlus2XGPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.1.1' => array('name' => 'snFESX624E', 'object' => 'snFESX624E'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.1.1.1' => array('name' => 'snFESX624ESwitch', 'object' => 'snFESX624ESwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.1.1.2' => array('name' => 'snFESX624ERouter', 'object' => 'snFESX624ERouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.1.2' => array('name' => 'snFESX624EPrem', 'object' => 'snFESX624EPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.1.2.1' => array('name' => 'snFESX624EPremSwitch', 'object' => 'snFESX624EPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.1.2.2' => array('name' => 'snFESX624EPremRouter', 'object' => 'snFESX624EPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.1.2.3' => array('name' => 'snFESX624EPrem6Router', 'object' => 'snFESX624EPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.2.1' => array('name' => 'snFESX624EPlus1XG', 'object' => 'snFESX624EPlus1XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.2.1.1' => array('name' => 'snFESX624EPlus1XGSwitch', 'object' => 'snFESX624EPlus1XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.2.1.2' => array('name' => 'snFESX624EPlus1XGRouter', 'object' => 'snFESX624EPlus1XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.2.2' => array('name' => 'snFESX624EPlus1XGPrem', 'object' => 'snFESX624EPlus1XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.2.2.1' => array('name' => 'snFESX624EPlus1XGPremSwitch', 'object' => 'snFESX624EPlus1XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.2.2.2' => array('name' => 'snFESX624EPlus1XGPremRouter', 'object' => 'snFESX624EPlus1XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.2.2.3' => array('name' => 'snFESX624EPlus1XGPrem6Router', 'object' => 'snFESX624EPlus1XGPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.3.1' => array('name' => 'snFESX624EPlus2XG', 'object' => 'snFESX624EPlus2XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.3.1.1' => array('name' => 'snFESX624EPlus2XGSwitch', 'object' => 'snFESX624EPlus2XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.3.1.2' => array('name' => 'snFESX624EPlus2XGRouter', 'object' => 'snFESX624EPlus2XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.3.2' => array('name' => 'snFESX624EPlus2XGPrem', 'object' => 'snFESX624EPlus2XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.3.2.1' => array('name' => 'snFESX624EPlus2XGPremSwitch', 'object' => 'snFESX624EPlus2XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.3.2.2' => array('name' => 'snFESX624EPlus2XGPremRouter', 'object' => 'snFESX624EPlus2XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.11.3.2.3' => array('name' => 'snFESX624EPlus2XGPrem6Router', 'object' => 'snFESX624EPlus2XGPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.1.1' => array('name' => 'snFESX624EFiber', 'object' => 'snFESX624EFiber'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.1.1.1' => array('name' => 'snFESX624EFiberSwitch', 'object' => 'snFESX624EFiberSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.1.1.2' => array('name' => 'snFESX624EFiberRouter', 'object' => 'snFESX624EFiberRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.1.2' => array('name' => 'snFESX624EFiberPrem', 'object' => 'snFESX624EFiberPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.1.2.1' => array('name' => 'snFESX624EFiberPremSwitch', 'object' => 'snFESX624EFiberPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.1.2.2' => array('name' => 'snFESX624EFiberPremRouter', 'object' => 'snFESX624EFiberPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.1.2.3' => array('name' => 'snFESX624EFiberPrem6Router', 'object' => 'snFESX624EFiberPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.2.1' => array('name' => 'snFESX624EFiberPlus1XG', 'object' => 'snFESX624EFiberPlus1XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.2.1.1' => array('name' => 'snFESX624EFiberPlus1XGSwitch', 'object' => 'snFESX624EFiberPlus1XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.2.1.2' => array('name' => 'snFESX624EFiberPlus1XGRouter', 'object' => 'snFESX624EFiberPlus1XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.2.2' => array('name' => 'snFESX624EFiberPlus1XGPrem', 'object' => 'snFESX624EFiberPlus1XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.2.2.1' => array('name' => 'snFESX624EFiberPlus1XGPremSwitch', 'object' => 'snFESX624EFiberPlus1XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.2.2.2' => array('name' => 'snFESX624EFiberPlus1XGPremRouter', 'object' => 'snFESX624EFiberPlus1XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.2.2.3' => array('name' => 'snFESX624EFiberPlus1XGPrem6Router', 'object' => 'snFESX624EFiberPlus1XGPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.3.1' => array('name' => 'snFESX624EFiberPlus2XG', 'object' => 'snFESX624EFiberPlus2XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.3.1.1' => array('name' => 'snFESX624EFiberPlus2XGSwitch', 'object' => 'snFESX624EFiberPlus2XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.3.1.2' => array('name' => 'snFESX624EFiberPlus2XGRouter', 'object' => 'snFESX624EFiberPlus2XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.3.2' => array('name' => 'snFESX624EFiberPlus2XGPrem', 'object' => 'snFESX624EFiberPlus2XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.3.2.1' => array('name' => 'snFESX624EFiberPlus2XGPremSwitch', 'object' => 'snFESX624EFiberPlus2XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.3.2.2' => array('name' => 'snFESX624EFiberPlus2XGPremRouter', 'object' => 'snFESX624EFiberPlus2XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.12.3.2.3' => array('name' => 'snFESX624EFiberPlus2XGPrem6Router', 'object' => 'snFESX624EFiberPlus2XGPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.1.1' => array('name' => 'snFESX648E', 'object' => 'snFESX648E'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.1.1.1' => array('name' => 'snFESX648ESwitch', 'object' => 'snFESX648ESwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.1.1.2' => array('name' => 'snFESX648ERouter', 'object' => 'snFESX648ERouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.1.2' => array('name' => 'snFESX648EPrem', 'object' => 'snFESX648EPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.1.2.1' => array('name' => 'snFESX648EPremSwitch', 'object' => 'snFESX648EPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.1.2.2' => array('name' => 'snFESX648EPremRouter', 'object' => 'snFESX648EPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.1.2.3' => array('name' => 'snFESX648EPrem6Router', 'object' => 'snFESX648EPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.2.1' => array('name' => 'snFESX648EPlus1XG', 'object' => 'snFESX648EPlus1XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.2.1.1' => array('name' => 'snFESX648EPlus1XGSwitch', 'object' => 'snFESX648EPlus1XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.2.1.2' => array('name' => 'snFESX648EPlus1XGRouter', 'object' => 'snFESX648EPlus1XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.2.2' => array('name' => 'snFESX648EPlus1XGPrem', 'object' => 'snFESX648EPlus1XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.2.2.1' => array('name' => 'snFESX648EPlus1XGPremSwitch', 'object' => 'snFESX648EPlus1XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.2.2.2' => array('name' => 'snFESX648EPlus1XGPremRouter', 'object' => 'snFESX648EPlus1XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.2.2.3' => array('name' => 'snFESX648EPlus1XGPrem6Router', 'object' => 'snFESX648EPlus1XGPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.3.1' => array('name' => 'snFESX648EPlus2XG', 'object' => 'snFESX648EPlus2XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.3.1.1' => array('name' => 'snFESX648EPlus2XGSwitch', 'object' => 'snFESX648EPlus2XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.3.1.2' => array('name' => 'snFESX648EPlus2XGRouter', 'object' => 'snFESX648EPlus2XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.3.2' => array('name' => 'snFESX648EPlus2XGPrem', 'object' => 'snFESX648EPlus2XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.3.2.1' => array('name' => 'snFESX648EPlus2XGPremSwitch', 'object' => 'snFESX648EPlus2XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.3.2.2' => array('name' => 'snFESX648EPlus2XGPremRouter', 'object' => 'snFESX648EPlus2XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.13.3.2.3' => array('name' => 'snFESX648EPlus2XGPrem6Router', 'object' => 'snFESX648EPlus2XGPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.1.1' => array('name' => 'FES 48G', 'object' => 'snFESX448'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.1.1.1' => array('name' => 'FESX448', 'object' => 'snFESX448Switch'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.1.1.2' => array('name' => 'FESX448', 'object' => 'snFESX448Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.1.2' => array('name' => 'FES 48G-PREM', 'object' => 'snFESX448Prem'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.1.2.1' => array('name' => 'FESX448-PREM', 'object' => 'snFESX448PremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.1.2.2' => array('name' => 'FESX448-PREM', 'object' => 'snFESX448PremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.2.1' => array('name' => 'FES 48G + 1 10G', 'object' => 'snFESX448Plus1XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.2.1.1' => array('name' => 'FESX448+1XG', 'object' => 'snFESX448Plus1XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.2.1.2' => array('name' => 'FESX448+1XG', 'object' => 'snFESX448Plus1XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.2.2' => array('name' => 'FES 48G + 1 10G-PREM', 'object' => 'snFESX448Plus1XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.2.2.1' => array('name' => 'FESX448+1XG-PREM', 'object' => 'snFESX448Plus1XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.2.2.2' => array('name' => 'FESX448+1XG-PREM', 'object' => 'snFESX448Plus1XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.3.1' => array('name' => 'FES 48G + 2 10G', 'object' => 'snFESX448Plus2XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.3.1.1' => array('name' => 'FESX448+2XG', 'object' => 'snFESX448Plus2XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.3.1.2' => array('name' => 'FESX448+2XG', 'object' => 'snFESX448Plus2XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.3.2' => array('name' => 'FES 48G + 2 10G-PREM', 'object' => 'snFESX448Plus2XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.3.2.1' => array('name' => 'FESX448+2XG-PREM', 'object' => 'snFESX448Plus2XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.2.3.2.2' => array('name' => 'FESX448+2XG-PREM', 'object' => 'snFESX448Plus2XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.1.1' => array('name' => 'FESFiber 24G', 'object' => 'snFESX424Fiber'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.1.1.1' => array('name' => 'FESX424Fiber', 'object' => 'snFESX424FiberSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.1.1.2' => array('name' => 'FESX424Fiber', 'object' => 'snFESX424FiberRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.1.2' => array('name' => 'FESFiber 24G-PREM', 'object' => 'snFESX424FiberPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.1.2.1' => array('name' => 'FESX424Fiber-PREM', 'object' => 'snFESX424FiberPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.1.2.2' => array('name' => 'FESX424Fiber-PREM', 'object' => 'snFESX424FiberPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.2.1' => array('name' => 'FESFiber 24G + 1 10G', 'object' => 'snFESX424FiberPlus1XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.2.1.1' => array('name' => 'FESX424Fiber+1XG', 'object' => 'snFESX424FiberPlus1XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.2.1.2' => array('name' => 'FESX424Fiber+1XG', 'object' => 'snFESX424FiberPlus1XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.2.2' => array('name' => 'FESFiber 24G + 1 10G-PREM', 'object' => 'snFESX424FiberPlus1XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.2.2.1' => array('name' => 'FESX424Fiber+1XG-PREM', 'object' => 'snFESX424FiberPlus1XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.2.2.2' => array('name' => 'FESX424Fiber+1XG-PREM', 'object' => 'snFESX424FiberPlus1XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.3.1' => array('name' => 'FESFiber 24G + 2 10G', 'object' => 'snFESX424FiberPlus2XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.3.1.1' => array('name' => 'FESX424Fiber+2XG', 'object' => 'snFESX424FiberPlus2XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.3.1.2' => array('name' => 'FESX424Fiber+2XG', 'object' => 'snFESX424FiberPlus2XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.3.2' => array('name' => 'FESFiber 24G + 2 10G-PREM', 'object' => 'snFESX424FiberPlus2XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.3.2.1' => array('name' => 'FESX424Fiber+2XG-PREM', 'object' => 'snFESX424FiberPlus2XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.3.3.2.2' => array('name' => 'FESX424Fiber+2XG-PREM', 'object' => 'snFESX424FiberPlus2XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.1.1' => array('name' => 'FESFiber 48G', 'object' => 'snFESX448Fiber'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.1.1.1' => array('name' => 'FESX448Fiber', 'object' => 'snFESX448FiberSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.1.1.2' => array('name' => 'FESX448Fiber', 'object' => 'snFESX448FiberRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.1.2' => array('name' => 'FESFiber 48G-PREM', 'object' => 'snFESX448FiberPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.1.2.1' => array('name' => 'FESX448Fiber-PREM', 'object' => 'snFESX448FiberPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.1.2.2' => array('name' => 'FESX448Fiber-PREM', 'object' => 'snFESX448FiberPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.2.1' => array('name' => 'FESFiber 48G + 1 10G', 'object' => 'snFESX448FiberPlus1XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.2.1.1' => array('name' => 'FESX448Fiber+1XG', 'object' => 'snFESX448FiberPlus1XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.2.1.2' => array('name' => 'FESX448Fiber+1XG', 'object' => 'snFESX448FiberPlus1XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.2.2' => array('name' => 'FESFiber 48G + 1 10G-PREM', 'object' => 'snFESX448FiberPlus1XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.2.2.1' => array('name' => 'FESX448Fiber+1XG-PREM', 'object' => 'snFESX448FiberPlus1XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.2.2.2' => array('name' => 'FESX448Fiber+1XG-PREM', 'object' => 'snFESX448FiberPlus1XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.3.1' => array('name' => 'FESFiber 48G + 2 10G', 'object' => 'snFESX448FiberPlus2XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.3.1.1' => array('name' => 'FESX448Fiber+2XG', 'object' => 'snFESX448FiberPlus2XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.3.1.2' => array('name' => 'FESX448+2XG', 'object' => 'snFESX448FiberPlus2XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.3.2' => array('name' => 'FESFiber 48G + 2 10G-PREM', 'object' => 'snFESX448FiberPlus2XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.3.2.1' => array('name' => 'FESX448Fiber+2XG-PREM', 'object' => 'snFESX448FiberPlus2XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.4.3.2.2' => array('name' => 'FESX448Fiber+2XG-PREM', 'object' => 'snFESX448FiberPlus2XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.1.1' => array('name' => 'snFESX424POE', 'object' => 'snFESX424POE'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.1.1.1' => array('name' => 'snFESX424POESwitch', 'object' => 'snFESX424POESwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.1.1.2' => array('name' => 'snFESX424POERouter', 'object' => 'snFESX424POERouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.1.2' => array('name' => 'snFESX424POEPrem', 'object' => 'snFESX424POEPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.1.2.1' => array('name' => 'snFESX424POEPremSwitch', 'object' => 'snFESX424POEPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.1.2.2' => array('name' => 'snFESX424POEPremRouter', 'object' => 'snFESX424POEPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.2.1' => array('name' => 'snFESX424POEPlus1XG', 'object' => 'snFESX424POEPlus1XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.2.1.1' => array('name' => 'snFESX424POEPlus1XGSwitch', 'object' => 'snFESX424POEPlus1XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.2.1.2' => array('name' => 'snFESX424POEPlus1XGRouter', 'object' => 'snFESX424POEPlus1XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.2.2' => array('name' => 'snFESX424POEPlus1XGPrem', 'object' => 'snFESX424POEPlus1XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.2.2.1' => array('name' => 'snFESX424POEPlus1XGPremSwitch', 'object' => 'snFESX424POEPlus1XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.2.2.2' => array('name' => 'snFESX424POEPlus1XGPremRouter', 'object' => 'snFESX424POEPlus1XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.3.1' => array('name' => 'snFESX424POEPlus2XG', 'object' => 'snFESX424POEPlus2XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.3.1.1' => array('name' => 'snFESX424POEPlus2XGSwitch', 'object' => 'snFESX424POEPlus2XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.3.1.2' => array('name' => 'snFESX424POEPlus2XGRouter', 'object' => 'snFESX424POEPlus2XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.3.2' => array('name' => 'snFESX424POEPlus2XGPrem', 'object' => 'snFESX424POEPlus2XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.3.2.1' => array('name' => 'snFESX424POEPlus2XGPremSwitch', 'object' => 'snFESX424POEPlus2XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.5.3.2.2' => array('name' => 'snFESX424POEPlus2XGPremRouter', 'object' => 'snFESX424POEPlus2XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.1.1' => array('name' => 'FastIron Edge V6 Switch(FES) 24G', 'object' => 'snFESX624'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.1.1.1' => array('name' => 'FESX624', 'object' => 'snFESX624Switch'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.1.1.2' => array('name' => 'FESX624', 'object' => 'snFESX624Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.1.2' => array('name' => 'FastIron Edge V6 Switch(FES) 24G-PREM', 'object' => 'snFESX624Prem'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.1.2.1' => array('name' => 'FESX624-PREM', 'object' => 'snFESX624PremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.1.2.2' => array('name' => 'FESX624-PREM', 'object' => 'snFESX624PremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.1.2.3' => array('name' => 'snFESX624Prem6Router', 'object' => 'snFESX624Prem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.2.1' => array('name' => 'FastIron Edge V6 Switch(FES) 24G + 1 10G', 'object' => 'snFESX624Plus1XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.2.1.1' => array('name' => 'FESX624+1XG', 'object' => 'snFESX624Plus1XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.2.1.2' => array('name' => 'FESX624+1XG', 'object' => 'snFESX624Plus1XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.2.2' => array('name' => 'FastIron Edge V6 Switch(FES) 24G + 1 10G-PREM', 'object' => 'snFESX624Plus1XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.2.2.1' => array('name' => 'FESX624+1XG-PREM', 'object' => 'snFESX624Plus1XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.2.2.2' => array('name' => 'FESX624+1XG-PREM', 'object' => 'snFESX624Plus1XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.2.2.3' => array('name' => 'snFESX624Plus1XGPrem6Router', 'object' => 'snFESX624Plus1XGPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.3.1' => array('name' => 'FastIron Edge V6 Switch(FES) 24G + 2 10G', 'object' => 'snFESX624Plus2XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.3.1.1' => array('name' => 'FESX624+2XG', 'object' => 'snFESX624Plus2XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.3.1.2' => array('name' => 'FESX624+2XG', 'object' => 'snFESX624Plus2XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.3.2' => array('name' => 'FastIron Edge V6 Switch(FES) 24G + 2 10G-PREM', 'object' => 'snFESX624Plus2XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.3.2.1' => array('name' => 'FESX624+2XG-PREM', 'object' => 'snFESX624Plus2XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.3.2.2' => array('name' => 'FESX624+2XG-PREM', 'object' => 'snFESX624Plus2XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.6.3.2.3' => array('name' => 'snFESX624Plus2XGPrem6Router', 'object' => 'snFESX624Plus2XGPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.1.1' => array('name' => 'FastIron Edge V6 Switch(FES) 48G', 'object' => 'snFESX648'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.1.1.1' => array('name' => 'FESX648', 'object' => 'snFESX648Switch'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.1.1.2' => array('name' => 'FESX648', 'object' => 'snFESX648Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.1.2' => array('name' => 'FastIron Edge V6 Switch(FES) 48G-PREM', 'object' => 'snFESX648Prem'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.1.2.1' => array('name' => 'FESX648-PREM', 'object' => 'snFESX648PremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.1.2.2' => array('name' => 'FESX648-PREM', 'object' => 'snFESX648PremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.1.2.3' => array('name' => 'snFESX648Prem6Router', 'object' => 'snFESX648Prem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.2.1' => array('name' => 'FastIron Edge V6 Switch(FES) 48G + 1 10G', 'object' => 'snFESX648Plus1XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.2.1.1' => array('name' => 'FESX648+1XG', 'object' => 'snFESX648Plus1XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.2.1.2' => array('name' => 'FESX648+1XG', 'object' => 'snFESX648Plus1XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.2.2' => array('name' => 'FastIron Edge V6 Switch(FES) 48G + 1 10G-PREM', 'object' => 'snFESX648Plus1XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.2.2.1' => array('name' => 'FESX648+1XG-PREM', 'object' => 'snFESX648Plus1XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.2.2.2' => array('name' => 'FESX648+1XG-PREM', 'object' => 'snFESX648Plus1XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.2.2.3' => array('name' => 'snFESX648Plus1XGPrem6Router', 'object' => 'snFESX648Plus1XGPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.3.1' => array('name' => 'FastIron Edge V6 Switch(FES) 48G + 2 10G', 'object' => 'snFESX648Plus2XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.3.1.1' => array('name' => 'FESX648+2XG', 'object' => 'snFESX648Plus2XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.3.1.2' => array('name' => 'FESX648+2XG', 'object' => 'snFESX648Plus2XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.3.2' => array('name' => 'FastIron Edge V6 Switch(FES) 48G + 2 10G-PREM', 'object' => 'snFESX648Plus2XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.3.2.1' => array('name' => 'FESX648+2XG-PREM', 'object' => 'snFESX648Plus2XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.3.2.2' => array('name' => 'FESX648+2XG-PREM', 'object' => 'snFESX648Plus2XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.7.3.2.3' => array('name' => 'snFESX648Plus2XGPrem6Router', 'object' => 'snFESX648Plus2XGPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.1.1' => array('name' => 'FastIron V6 Edge Switch(FES)Fiber 24G', 'object' => 'snFESX624Fiber'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.1.1.1' => array('name' => 'FESX624Fiber', 'object' => 'snFESX624FiberSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.1.1.2' => array('name' => 'FESX624Fiber', 'object' => 'snFESX624FiberRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.1.2' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 24G-PREM', 'object' => 'snFESX624FiberPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.1.2.1' => array('name' => 'FESX624Fiber-PREM', 'object' => 'snFESX624FiberPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.1.2.2' => array('name' => 'FESX624Fiber-PREM', 'object' => 'snFESX624FiberPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.1.2.3' => array('name' => 'snFESX624FiberPrem6Router', 'object' => 'snFESX624FiberPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.2.1' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 24G + 1 10G', 'object' => 'snFESX624FiberPlus1XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.2.1.1' => array('name' => 'FESX624Fiber+1XG', 'object' => 'snFESX624FiberPlus1XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.2.1.2' => array('name' => 'FESX624Fiber+1XG', 'object' => 'snFESX624FiberPlus1XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.2.2' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 24G + 1 10G-PREM', 'object' => 'snFESX624FiberPlus1XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.2.2.1' => array('name' => 'FESX624Fiber+1XG-PREM', 'object' => 'snFESX624FiberPlus1XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.2.2.2' => array('name' => 'FESX624Fiber+1XG-PREM', 'object' => 'snFESX624FiberPlus1XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.2.2.3' => array('name' => 'snFESX624FiberPlus1XGPrem6Router', 'object' => 'snFESX624FiberPlus1XGPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.3.1' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 24G + 2 10G', 'object' => 'snFESX624FiberPlus2XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.3.1.1' => array('name' => 'FESX624Fiber+2XG', 'object' => 'snFESX624FiberPlus2XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.3.1.2' => array('name' => 'FESX624Fiber+2XG', 'object' => 'snFESX624FiberPlus2XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.3.2' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 24G + 2 10G-PREM', 'object' => 'snFESX624FiberPlus2XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.3.2.1' => array('name' => 'FESX624Fiber+2XG-PREM', 'object' => 'snFESX624FiberPlus2XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.3.2.2' => array('name' => 'FESX624Fiber+2XG-PREM', 'object' => 'snFESX624FiberPlus2XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.8.3.2.3' => array('name' => 'snFESX624FiberPlus2XGPrem6Router', 'object' => 'snFESX624FiberPlus2XGPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.1.1' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 48G', 'object' => 'snFESX648Fiber'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.1.1.1' => array('name' => 'FESX648Fiber', 'object' => 'snFESX648FiberSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.1.1.2' => array('name' => 'FESX648Fiber', 'object' => 'snFESX648FiberRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.1.2' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 48G-PREM', 'object' => 'snFESX648FiberPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.1.2.1' => array('name' => 'FESX648Fiber-PREM', 'object' => 'snFESX648FiberPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.1.2.2' => array('name' => 'FESX648Fiber-PREM', 'object' => 'snFESX648FiberPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.1.2.3' => array('name' => 'snFESX648FiberPrem6Router', 'object' => 'snFESX648FiberPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.2.1' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 48G + 1 10G', 'object' => 'snFESX648FiberPlus1XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.2.1.1' => array('name' => 'FESX648Fiber+1XG', 'object' => 'snFESX648FiberPlus1XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.2.1.2' => array('name' => 'FESX648Fiber+1XG', 'object' => 'snFESX648FiberPlus1XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.2.2' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 48G + 1 10G-PREM', 'object' => 'snFESX648FiberPlus1XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.2.2.1' => array('name' => 'FESX648Fiber+1XG-PREM', 'object' => 'snFESX648FiberPlus1XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.2.2.2' => array('name' => 'FESX648Fiber+1XG-PREM', 'object' => 'snFESX648FiberPlus1XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.2.2.3' => array('name' => 'snFESX648FiberPlus1XGPrem6Router', 'object' => 'snFESX648FiberPlus1XGPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.3.1' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 48G + 2 10G', 'object' => 'snFESX648FiberPlus2XG'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.3.1.1' => array('name' => 'FESX648Fiber+2XG', 'object' => 'snFESX648FiberPlus2XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.3.1.2' => array('name' => 'FESX648+2XG', 'object' => 'snFESX648FiberPlus2XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.3.2' => array('name' => 'FastIron Edge V6 Switch(FES)Fiber 48G + 2 10G-PREM', 'object' => 'snFESX648FiberPlus2XGPrem'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.3.2.1' => array('name' => 'FESX648Fiber+2XG-PREM', 'object' => 'snFESX648FiberPlus2XGPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.3.2.2' => array('name' => 'FESX648Fiber+2XG-PREM', 'object' => 'snFESX648FiberPlus2XGPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.34.9.3.2.3' => array('name' => 'snFESX648FiberPlus2XGPrem6Router', 'object' => 'snFESX648FiberPlus2XGPrem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.35.1.1.1' => array('name' => 'FWSX24G', 'object' => 'snFWSX424'),
+  '.1.3.6.1.4.1.1991.1.3.35.1.1.1.1' => array('name' => 'FWSX424', 'object' => 'snFWSX424Switch'),
+  '.1.3.6.1.4.1.1991.1.3.35.1.1.1.2' => array('name' => 'FWSX424', 'object' => 'snFWSX424Router'),
+  '.1.3.6.1.4.1.1991.1.3.35.1.2.1' => array('name' => 'FWSX24G + 1 10G', 'object' => 'snFWSX424Plus1XG'),
+  '.1.3.6.1.4.1.1991.1.3.35.1.2.1.1' => array('name' => 'FWSX424+1XG', 'object' => 'snFWSX424Plus1XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.35.1.2.1.2' => array('name' => 'FWSX424+1XG', 'object' => 'snFWSX424Plus1XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.35.1.3.1' => array('name' => 'FWSX24G + 2 10G', 'object' => 'snFWSX424Plus2XG'),
+  '.1.3.6.1.4.1.1991.1.3.35.1.3.1.1' => array('name' => 'FWSX424+2XG', 'object' => 'snFWSX424Plus2XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.35.1.3.1.2' => array('name' => 'FWSX424+2XG', 'object' => 'snFWSX424Plus2XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.35.2.1.1' => array('name' => 'FWSX48G', 'object' => 'snFWSX448'),
+  '.1.3.6.1.4.1.1991.1.3.35.2.1.1.1' => array('name' => 'FWSX448', 'object' => 'snFWSX448Switch'),
+  '.1.3.6.1.4.1.1991.1.3.35.2.1.1.2' => array('name' => 'FWSX448', 'object' => 'snFWSX448Router'),
+  '.1.3.6.1.4.1.1991.1.3.35.2.2.1' => array('name' => 'FWSX48G + 1 10G', 'object' => 'snFWSX448Plus1XG'),
+  '.1.3.6.1.4.1.1991.1.3.35.2.2.1.1' => array('name' => 'FWSX448+1XG', 'object' => 'snFWSX448Plus1XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.35.2.2.1.2' => array('name' => 'FWSX448+1XG', 'object' => 'snFWSX448Plus1XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.35.2.3.1' => array('name' => 'FWSX448G+2XG', 'object' => 'snFWSX448Plus2XG'),
+  '.1.3.6.1.4.1.1991.1.3.35.2.3.1.1' => array('name' => 'FWSX448+2XG', 'object' => 'snFWSX448Plus2XGSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.35.2.3.1.2' => array('name' => 'FWSX448+2XG', 'object' => 'snFWSX448Plus2XGRouter'),
+  '.1.3.6.1.4.1.1991.1.3.36.1' => array('name' => 'FastIron SuperX', 'object' => 'snFastIronSuperX'),
+  '.1.3.6.1.4.1.1991.1.3.36.1.1' => array('name' => 'FastIron SuperX Switch', 'object' => 'snFastIronSuperXSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.36.1.2' => array('name' => 'FastIron SuperX Router', 'object' => 'snFastIronSuperXRouter'),
+  '.1.3.6.1.4.1.1991.1.3.36.1.3' => array('name' => 'FastIron SuperX Base L3 Switch', 'object' => 'snFastIronSuperXBaseL3Switch'),
+  '.1.3.6.1.4.1.1991.1.3.36.10' => array('name' => 'FastIron SuperX 800 V6 Premium', 'object' => 'snFastIronSuperX800V6Prem'),
+  '.1.3.6.1.4.1.1991.1.3.36.10.1' => array('name' => 'FastIron SuperX 800 Premium V6 Switch', 'object' => 'snFastIronSuperX800V6PremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.36.10.2' => array('name' => 'FastIron SuperX 800 Premium V6 Router', 'object' => 'snFastIronSuperX800V6PremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.36.10.3' => array('name' => 'FastIron SuperX 800 Premium V6 Base L3 Switch', 'object' => 'snFastIronSuperX800V6PremBaseL3Switch'),
+  '.1.3.6.1.4.1.1991.1.3.36.10.4' => array('name' => 'snFastIronSuperX800V6Prem6Router', 'object' => 'snFastIronSuperX800V6Prem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.36.11' => array('name' => 'FastIron SuperX 1600 V6 ', 'object' => 'snFastIronSuperX1600V6'),
+  '.1.3.6.1.4.1.1991.1.3.36.11.1' => array('name' => 'FastIron SuperX 1600 V6 Switch', 'object' => 'snFastIronSuperX1600V6Switch'),
+  '.1.3.6.1.4.1.1991.1.3.36.11.2' => array('name' => 'FastIron SuperX 1600 V6 Router', 'object' => 'snFastIronSuperX1600V6Router'),
+  '.1.3.6.1.4.1.1991.1.3.36.11.3' => array('name' => 'FastIron SuperX 1600 V6 Base L3 Switch', 'object' => 'snFastIronSuperX1600V6BaseL3Switch'),
+  '.1.3.6.1.4.1.1991.1.3.36.12' => array('name' => 'FastIron SuperX 1600 Premium V6', 'object' => 'snFastIronSuperX1600V6Prem'),
+  '.1.3.6.1.4.1.1991.1.3.36.12.1' => array('name' => 'FastIron SuperX 1600 Premium V6 Switch', 'object' => 'snFastIronSuperX1600V6PremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.36.12.2' => array('name' => 'FastIron SuperX 1600 Premium V6 Router', 'object' => 'snFastIronSuperX1600V6PremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.36.12.3' => array('name' => 'FastIron SuperX 1600 Premium V6 Base L3 Switch', 'object' => 'snFastIronSuperX1600V6PremBaseL3Switch'),
+  '.1.3.6.1.4.1.1991.1.3.36.12.4' => array('name' => 'snFastIronSuperX1600V6Prem6Router', 'object' => 'snFastIronSuperX1600V6Prem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.36.2' => array('name' => 'FastIron SuperX Premium', 'object' => 'snFastIronSuperXPrem'),
+  '.1.3.6.1.4.1.1991.1.3.36.2.1' => array('name' => 'FastIron SuperX Premium Switch', 'object' => 'snFastIronSuperXPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.36.2.2' => array('name' => 'FastIron SuperX Premium Router', 'object' => 'snFastIronSuperXPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.36.2.3' => array('name' => 'FastIron SuperX Premium Base L3 Switch', 'object' => 'snFastIronSuperXPremBaseL3Switch'),
+  '.1.3.6.1.4.1.1991.1.3.36.3' => array('name' => 'FastIron SuperX 800 ', 'object' => 'snFastIronSuperX800'),
+  '.1.3.6.1.4.1.1991.1.3.36.3.1' => array('name' => 'FastIron SuperX 800 Switch', 'object' => 'snFastIronSuperX800Switch'),
+  '.1.3.6.1.4.1.1991.1.3.36.3.2' => array('name' => 'FastIron SuperX 800 Router', 'object' => 'snFastIronSuperX800Router'),
+  '.1.3.6.1.4.1.1991.1.3.36.3.3' => array('name' => 'FastIron SuperX 800 Base L3 Switch', 'object' => 'snFastIronSuperX800BaseL3Switch'),
+  '.1.3.6.1.4.1.1991.1.3.36.4' => array('name' => 'FastIron SuperX 800 Premium', 'object' => 'snFastIronSuperX800Prem'),
+  '.1.3.6.1.4.1.1991.1.3.36.4.1' => array('name' => 'FastIron SuperX 800 Premium Switch', 'object' => 'snFastIronSuperX800PremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.36.4.2' => array('name' => 'FastIron SuperX 800 Premium Router', 'object' => 'snFastIronSuperX800PremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.36.4.3' => array('name' => 'FastIron SuperX 800 Premium Base L3 Switch', 'object' => 'snFastIronSuperX800PremBaseL3Switch'),
+  '.1.3.6.1.4.1.1991.1.3.36.5' => array('name' => 'FastIron SuperX 1600 ', 'object' => 'snFastIronSuperX1600'),
+  '.1.3.6.1.4.1.1991.1.3.36.5.1' => array('name' => 'FastIron SuperX 1600 Switch', 'object' => 'snFastIronSuperX1600Switch'),
+  '.1.3.6.1.4.1.1991.1.3.36.5.2' => array('name' => 'FastIron SuperX 1600 Router', 'object' => 'snFastIronSuperX1600Router'),
+  '.1.3.6.1.4.1.1991.1.3.36.5.3' => array('name' => 'FastIron SuperX 1600 Base L3 Switch', 'object' => 'snFastIronSuperX1600BaseL3Switch'),
+  '.1.3.6.1.4.1.1991.1.3.36.6' => array('name' => 'FastIron SuperX 1600 Premium', 'object' => 'snFastIronSuperX1600Prem'),
+  '.1.3.6.1.4.1.1991.1.3.36.6.1' => array('name' => 'FastIron SuperX 1600 Premium Switch', 'object' => 'snFastIronSuperX1600PremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.36.6.2' => array('name' => 'FastIron SuperX 1600 Premium Router', 'object' => 'snFastIronSuperX1600PremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.36.6.3' => array('name' => 'FastIron SuperX 1600 Premium Base L3 Switch', 'object' => 'snFastIronSuperX1600PremBaseL3Switch'),
+  '.1.3.6.1.4.1.1991.1.3.36.7' => array('name' => 'FastIron SuperX V6 ', 'object' => 'snFastIronSuperXV6'),
+  '.1.3.6.1.4.1.1991.1.3.36.7.1' => array('name' => 'FastIron SuperX V6 Switch', 'object' => 'snFastIronSuperXV6Switch'),
+  '.1.3.6.1.4.1.1991.1.3.36.7.2' => array('name' => 'FastIron SuperX V6 Router', 'object' => 'snFastIronSuperXV6Router'),
+  '.1.3.6.1.4.1.1991.1.3.36.7.3' => array('name' => 'FastIron SuperX V6 Base L3 Switch', 'object' => 'snFastIronSuperXV6BaseL3Switch'),
+  '.1.3.6.1.4.1.1991.1.3.36.8' => array('name' => 'FastIron SuperX V6 Premium', 'object' => 'snFastIronSuperXV6Prem'),
+  '.1.3.6.1.4.1.1991.1.3.36.8.1' => array('name' => 'FastIron SuperX V6 Premium Switch', 'object' => 'snFastIronSuperXV6PremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.36.8.2' => array('name' => 'FastIron SuperX V6 Premium Router', 'object' => 'snFastIronSuperXV6PremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.36.8.3' => array('name' => 'FastIron SuperX V6 Premium Base L3 Switch', 'object' => 'snFastIronSuperXV6PremBaseL3Switch'),
+  '.1.3.6.1.4.1.1991.1.3.36.8.4' => array('name' => 'snFastIronSuperXV6Prem6Router', 'object' => 'snFastIronSuperXV6Prem6Router'),
+  '.1.3.6.1.4.1.1991.1.3.36.9' => array('name' => 'FastIron SuperX 800 V6 ', 'object' => 'snFastIronSuperX800V6'),
+  '.1.3.6.1.4.1.1991.1.3.36.9.1' => array('name' => 'FastIron SuperX 800 V6 Switch', 'object' => 'snFastIronSuperX800V6Switch'),
+  '.1.3.6.1.4.1.1991.1.3.36.9.2' => array('name' => 'FastIron SuperX 800 V6 Router', 'object' => 'snFastIronSuperX800V6Router'),
+  '.1.3.6.1.4.1.1991.1.3.36.9.3' => array('name' => 'FastIron SuperX 800 V6 Base L3 Switch', 'object' => 'snFastIronSuperX800V6BaseL3Switch'),
+  '.1.3.6.1.4.1.1991.1.3.37.1' => array('name' => 'BigIron SuperX', 'object' => 'snBigIronSuperX'),
+  '.1.3.6.1.4.1.1991.1.3.37.1.1' => array('name' => 'BigIron SuperX Switch', 'object' => 'snBigIronSuperXSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.37.1.2' => array('name' => 'BigIron SuperX Router', 'object' => 'snBigIronSuperXRouter'),
+  '.1.3.6.1.4.1.1991.1.3.37.1.3' => array('name' => 'BigIron SuperX Base L3 Switch', 'object' => 'snBigIronSuperXBaseL3Switch'),
+  '.1.3.6.1.4.1.1991.1.3.38.1' => array('name' => 'TurboIron SuperX', 'object' => 'snTurboIronSuperX'),
+  '.1.3.6.1.4.1.1991.1.3.38.1.1' => array('name' => 'TurboIron SuperX Switch', 'object' => 'snTurboIronSuperXSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.38.1.2' => array('name' => 'TurboIron SuperX Router', 'object' => 'snTurboIronSuperXRouter'),
+  '.1.3.6.1.4.1.1991.1.3.38.1.3' => array('name' => 'TurboIron SuperX Base L3 Switch', 'object' => 'snTurboIronSuperXBaseL3Switch'),
+  '.1.3.6.1.4.1.1991.1.3.38.2' => array('name' => 'TurboIron SuperX Premium', 'object' => 'snTurboIronSuperXPrem'),
+  '.1.3.6.1.4.1.1991.1.3.38.2.1' => array('name' => 'TurboIron SuperX Premium Switch', 'object' => 'snTurboIronSuperXPremSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.38.2.2' => array('name' => 'TurboIron SuperX Premium Router', 'object' => 'snTurboIronSuperXPremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.38.2.3' => array('name' => 'TurboIron SuperX Premium Base L3 Switch', 'object' => 'snTurboIronSuperXPremBaseL3Switch'),
+  '.1.3.6.1.4.1.1991.1.3.39.1' => array('name' => 'snNetIronIMR', 'object' => 'snNetIronIMR'),
+  '.1.3.6.1.4.1.1991.1.3.39.1.2' => array('name' => 'NetIron IMR', 'object' => 'snNIIMRRouter'),
+  '.1.3.6.1.4.1.1991.1.3.4' => array('name' => 'snTurboIron', 'object' => 'snTurboIron'),
+  '.1.3.6.1.4.1.1991.1.3.4.1' => array('name' => 'Stackable TurboIron', 'object' => 'snTISwitch'),
+  '.1.3.6.1.4.1.1991.1.3.4.2' => array('name' => 'Stackable TurboIron', 'object' => 'snTIRouter'),
+  '.1.3.6.1.4.1.1991.1.3.40.1' => array('name' => 'snBigIronRX16', 'object' => 'snBigIronRX16'),
+  '.1.3.6.1.4.1.1991.1.3.40.1.1' => array('name' => 'BigIron RX16', 'object' => 'snBIRX16Switch'),
+  '.1.3.6.1.4.1.1991.1.3.40.1.2' => array('name' => 'BigIron RX16', 'object' => 'snBIRX16Router'),
+  '.1.3.6.1.4.1.1991.1.3.40.2' => array('name' => 'snBigIronRX8', 'object' => 'snBigIronRX8'),
+  '.1.3.6.1.4.1.1991.1.3.40.2.1' => array('name' => 'BigIron RX8', 'object' => 'snBIRX8Switch'),
+  '.1.3.6.1.4.1.1991.1.3.40.2.2' => array('name' => 'BigIron RX8', 'object' => 'snBIRX8Router'),
+  '.1.3.6.1.4.1.1991.1.3.40.3' => array('name' => 'snBigIronRX4', 'object' => 'snBigIronRX4'),
+  '.1.3.6.1.4.1.1991.1.3.40.3.1' => array('name' => 'BigIron RX4', 'object' => 'snBIRX4Switch'),
+  '.1.3.6.1.4.1.1991.1.3.40.3.2' => array('name' => 'BigIron RX4', 'object' => 'snBIRX4Router'),
+  '.1.3.6.1.4.1.1991.1.3.40.4' => array('name' => 'snBigIronRX32', 'object' => 'snBigIronRX32'),
+  '.1.3.6.1.4.1.1991.1.3.40.4.1' => array('name' => 'BigIron RX32', 'object' => 'snBIRX32Switch'),
+  '.1.3.6.1.4.1.1991.1.3.40.4.2' => array('name' => 'BigIron RX32', 'object' => 'snBIRX32Router'),
+  '.1.3.6.1.4.1.1991.1.3.41.1' => array('name' => 'snNetIronXMR16000', 'object' => 'snNetIronXMR16000'),
+  '.1.3.6.1.4.1.1991.1.3.41.1.2' => array('name' => 'NetIron XMR16000', 'object' => 'snNIXMR16000Router'),
+  '.1.3.6.1.4.1.1991.1.3.41.2' => array('name' => 'snNetIronXMR8000', 'object' => 'snNetIronXMR8000'),
+  '.1.3.6.1.4.1.1991.1.3.41.2.2' => array('name' => 'NetIron XMR8000', 'object' => 'snNIXMR8000Router'),
+  '.1.3.6.1.4.1.1991.1.3.41.3' => array('name' => 'snNetIronXMR4000', 'object' => 'snNetIronXMR4000'),
+  '.1.3.6.1.4.1.1991.1.3.41.3.2' => array('name' => 'NetIron XMR4000', 'object' => 'snNIXMR4000Router'),
+  '.1.3.6.1.4.1.1991.1.3.41.4' => array('name' => 'snNetIronXMR32000', 'object' => 'snNetIronXMR32000'),
+  '.1.3.6.1.4.1.1991.1.3.41.4.2' => array('name' => 'NetIron XMR32000', 'object' => 'snNIXMR32000Router'),
+  '.1.3.6.1.4.1.1991.1.3.42.10.1' => array('name' => 'SecureIronTM 100', 'object' => 'snSecureIronTM100'),
+  '.1.3.6.1.4.1.1991.1.3.42.10.1.1' => array('name' => 'SecureIronTM 100 Switch', 'object' => 'snSecureIronTM100Switch'),
+  '.1.3.6.1.4.1.1991.1.3.42.10.1.2' => array('name' => 'SecureIronTM 100 Router', 'object' => 'snSecureIronTM100Router'),
+  '.1.3.6.1.4.1.1991.1.3.42.10.2' => array('name' => 'SecureIronTM 300', 'object' => 'snSecureIronTM300'),
+  '.1.3.6.1.4.1.1991.1.3.42.10.2.1' => array('name' => 'SecureIronTM 300 Switch', 'object' => 'snSecureIronTM300Switch'),
+  '.1.3.6.1.4.1.1991.1.3.42.10.2.2' => array('name' => 'SecureIronTM 300 Router', 'object' => 'snSecureIronTM300Router'),
+  '.1.3.6.1.4.1.1991.1.3.42.9.1' => array('name' => 'SecureIronLS 100', 'object' => 'snSecureIronLS100'),
+  '.1.3.6.1.4.1.1991.1.3.42.9.1.1' => array('name' => 'SecureIronLS 100 Switch', 'object' => 'snSecureIronLS100Switch'),
+  '.1.3.6.1.4.1.1991.1.3.42.9.1.2' => array('name' => 'SecureIronLS 100 Router', 'object' => 'snSecureIronLS100Router'),
+  '.1.3.6.1.4.1.1991.1.3.42.9.2' => array('name' => 'SecureIronLS 300', 'object' => 'snSecureIronLS300'),
+  '.1.3.6.1.4.1.1991.1.3.42.9.2.1' => array('name' => 'SecureIronLS 300 Switch', 'object' => 'snSecureIronLS300Switch'),
+  '.1.3.6.1.4.1.1991.1.3.42.9.2.2' => array('name' => 'SecureIronLS 300 Router', 'object' => 'snSecureIronLS300Router'),
+  '.1.3.6.1.4.1.1991.1.3.44.1' => array('name' => 'snNetIronMLX16', 'object' => 'snNetIronMLX16'),
+  '.1.3.6.1.4.1.1991.1.3.44.1.2' => array('name' => 'NetIron MLX-16', 'object' => 'snNetIronMLX16Router'),
+  '.1.3.6.1.4.1.1991.1.3.44.2' => array('name' => 'snNetIronMLX8', 'object' => 'snNetIronMLX8'),
+  '.1.3.6.1.4.1.1991.1.3.44.2.2' => array('name' => 'NetIron MLX-8', 'object' => 'snNetIronMLX8Router'),
+  '.1.3.6.1.4.1.1991.1.3.44.3' => array('name' => 'snNetIronMLX4', 'object' => 'snNetIronMLX4'),
+  '.1.3.6.1.4.1.1991.1.3.44.3.2' => array('name' => 'NetIron MLX-4', 'object' => 'snNetIronMLX4Router'),
+  '.1.3.6.1.4.1.1991.1.3.44.4' => array('name' => 'snNetIronMLX32', 'object' => 'snNetIronMLX32'),
+  '.1.3.6.1.4.1.1991.1.3.44.4.2' => array('name' => 'NetIron MLX-32', 'object' => 'snNetIronMLX32Router'),
+  '.1.3.6.1.4.1.1991.1.3.45.1.1.1' => array('name' => 'FastIron FGS624P', 'object' => 'snFGS624P'),
+  '.1.3.6.1.4.1.1991.1.3.45.1.1.1.1' => array('name' => 'FGS624P', 'object' => 'snFGS624PSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.45.1.1.1.2' => array('name' => 'FGS624P', 'object' => 'snFGS624PRouter'),
+  '.1.3.6.1.4.1.1991.1.3.45.1.2.1' => array('name' => 'FastIron FGS624XGP', 'object' => 'snFGS624XGP'),
+  '.1.3.6.1.4.1.1991.1.3.45.1.2.1.1' => array('name' => 'FGS624XGP', 'object' => 'snFGS624XGPSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.45.1.2.1.2' => array('name' => 'FGS624XGP', 'object' => 'snFGS624XGPRouter'),
+  '.1.3.6.1.4.1.1991.1.3.45.1.3.1' => array('name' => 'snFGS624PPOE', 'object' => 'snFGS624PPOE'),
+  '.1.3.6.1.4.1.1991.1.3.45.1.3.1.1' => array('name' => 'snFGS624PPOESwitch', 'object' => 'snFGS624PPOESwitch'),
+  '.1.3.6.1.4.1.1991.1.3.45.1.3.1.2' => array('name' => 'snFGS624PPOERouter', 'object' => 'snFGS624PPOERouter'),
+  '.1.3.6.1.4.1.1991.1.3.45.1.4.1' => array('name' => 'snFGS624XGPPOE', 'object' => 'snFGS624XGPPOE'),
+  '.1.3.6.1.4.1.1991.1.3.45.1.4.1.1' => array('name' => 'snFGS624XGPPOESwitch', 'object' => 'snFGS624XGPPOESwitch'),
+  '.1.3.6.1.4.1.1991.1.3.45.1.4.1.2' => array('name' => 'snFGS624XGPPOERouter', 'object' => 'snFGS624XGPPOERouter'),
+  '.1.3.6.1.4.1.1991.1.3.45.2.1.1' => array('name' => 'FastIron GS FGS648P', 'object' => 'snFGS648P'),
+  '.1.3.6.1.4.1.1991.1.3.45.2.1.1.1' => array('name' => 'FastIron FGS648P', 'object' => 'snFGS648PSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.45.2.1.1.2' => array('name' => 'FastIron FGS648P', 'object' => 'snFGS648PRouter'),
+  '.1.3.6.1.4.1.1991.1.3.45.2.2.1' => array('name' => 'snFGS648PPOE', 'object' => 'snFGS648PPOE'),
+  '.1.3.6.1.4.1.1991.1.3.45.2.2.1.1' => array('name' => 'snFGS648PPOESwitch', 'object' => 'snFGS648PPOESwitch'),
+  '.1.3.6.1.4.1.1991.1.3.45.2.2.1.2' => array('name' => 'snFGS648PPOERouter', 'object' => 'snFGS648PPOERouter'),
+  '.1.3.6.1.4.1.1991.1.3.46.1.1.1' => array('name' => 'FastIron FLS624', 'object' => 'snFLS624'),
+  '.1.3.6.1.4.1.1991.1.3.46.1.1.1.1' => array('name' => 'FastIron FLS624', 'object' => 'snFLS624Switch'),
+  '.1.3.6.1.4.1.1991.1.3.46.1.1.1.2' => array('name' => 'FastIron FLS624', 'object' => 'snFLS624Router'),
+  '.1.3.6.1.4.1.1991.1.3.46.2.1.1' => array('name' => 'FastIron FLS648', 'object' => 'snFLS648'),
+  '.1.3.6.1.4.1.1991.1.3.46.2.1.1.1' => array('name' => 'FastIron FLS648', 'object' => 'snFLS648Switch'),
+  '.1.3.6.1.4.1.1991.1.3.46.2.1.1.2' => array('name' => 'FastIron FLS648', 'object' => 'snFLS648Router'),
+  '.1.3.6.1.4.1.1991.1.3.47.1' => array('name' => 'ServerIron SI100', 'object' => 'snSI100'),
+  '.1.3.6.1.4.1.1991.1.3.47.1.1' => array('name' => 'ServerIron SI100', 'object' => 'snSI100Switch'),
+  '.1.3.6.1.4.1.1991.1.3.47.1.2' => array('name' => 'ServerIron SI100', 'object' => 'snSI100Router'),
+  '.1.3.6.1.4.1.1991.1.3.47.10' => array('name' => 'ServerIronGT E Plus series', 'object' => 'snServerIronGTePlus'),
+  '.1.3.6.1.4.1.1991.1.3.47.10.1' => array('name' => 'ServerIronGT E Plus', 'object' => 'snServerIronGTePlusSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.47.10.2' => array('name' => 'ServerIronGT E Plus', 'object' => 'snServerIronGTePlusRouter'),
+  '.1.3.6.1.4.1.1991.1.3.47.11' => array('name' => 'ServerIron4G series', 'object' => 'snServerIron4G'),
+  '.1.3.6.1.4.1.1991.1.3.47.11.1' => array('name' => 'ServerIron4G', 'object' => 'snServerIron4GSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.47.11.2' => array('name' => 'ServerIron4G', 'object' => 'snServerIron4GRouter'),
+  '.1.3.6.1.4.1.1991.1.3.47.12' => array('name' => 'serverIronAdx1000', 'object' => 'serverIronAdx1000'),
+  '.1.3.6.1.4.1.1991.1.3.47.12.1' => array('name' => 'serverIronAdx1000Switch', 'object' => 'serverIronAdx1000Switch'),
+  '.1.3.6.1.4.1.1991.1.3.47.12.2' => array('name' => 'serverIronAdx1000Router', 'object' => 'serverIronAdx1000Router'),
+  '.1.3.6.1.4.1.1991.1.3.47.13' => array('name' => 'serverIronAdx1000Ssl', 'object' => 'serverIronAdx1000Ssl'),
+  '.1.3.6.1.4.1.1991.1.3.47.13.1' => array('name' => 'serverIronAdx1000SslSwitch', 'object' => 'serverIronAdx1000SslSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.47.13.2' => array('name' => 'serverIronAdx1000SslRouter', 'object' => 'serverIronAdx1000SslRouter'),
+  '.1.3.6.1.4.1.1991.1.3.47.14' => array('name' => 'serverIronAdx4000', 'object' => 'serverIronAdx4000'),
+  '.1.3.6.1.4.1.1991.1.3.47.14.1' => array('name' => 'serverIronAdx4000Switch', 'object' => 'serverIronAdx4000Switch'),
+  '.1.3.6.1.4.1.1991.1.3.47.14.2' => array('name' => 'serverIronAdx4000Router', 'object' => 'serverIronAdx4000Router'),
+  '.1.3.6.1.4.1.1991.1.3.47.15' => array('name' => 'serverIronAdx4000Ssl', 'object' => 'serverIronAdx4000Ssl'),
+  '.1.3.6.1.4.1.1991.1.3.47.15.1' => array('name' => 'serverIronAdx4000SslSwitch', 'object' => 'serverIronAdx4000SslSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.47.15.2' => array('name' => 'serverIronAdx4000SslRouter', 'object' => 'serverIronAdx4000SslRouter'),
+  '.1.3.6.1.4.1.1991.1.3.47.16' => array('name' => 'serverIronAdx8000', 'object' => 'serverIronAdx8000'),
+  '.1.3.6.1.4.1.1991.1.3.47.16.1' => array('name' => 'serverIronAdx8000Switch', 'object' => 'serverIronAdx8000Switch'),
+  '.1.3.6.1.4.1.1991.1.3.47.16.2' => array('name' => 'serverIronAdx8000Router', 'object' => 'serverIronAdx8000Router'),
+  '.1.3.6.1.4.1.1991.1.3.47.17' => array('name' => 'serverIronAdx8000Ssl', 'object' => 'serverIronAdx8000Ssl'),
+  '.1.3.6.1.4.1.1991.1.3.47.17.1' => array('name' => 'serverIronAdx8000SslSwitch', 'object' => 'serverIronAdx8000SslSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.47.17.2' => array('name' => 'serverIronAdx8000SslRouter', 'object' => 'serverIronAdx8000SslRouter'),
+  '.1.3.6.1.4.1.1991.1.3.47.18' => array('name' => 'serverIronAdx10000', 'object' => 'serverIronAdx10000'),
+  '.1.3.6.1.4.1.1991.1.3.47.18.1' => array('name' => 'serverIronAdx10000Switch', 'object' => 'serverIronAdx10000Switch'),
+  '.1.3.6.1.4.1.1991.1.3.47.18.2' => array('name' => 'serverIronAdx10000Router', 'object' => 'serverIronAdx10000Router'),
+  '.1.3.6.1.4.1.1991.1.3.47.19' => array('name' => 'serverIronAdx10000Ssl', 'object' => 'serverIronAdx10000Ssl'),
+  '.1.3.6.1.4.1.1991.1.3.47.19.1' => array('name' => 'serverIronAdx10000SslSwitch', 'object' => 'serverIronAdx10000SslSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.47.19.2' => array('name' => 'serverIronAdx10000SslRouter', 'object' => 'serverIronAdx10000SslRouter'),
+  '.1.3.6.1.4.1.1991.1.3.47.2' => array('name' => 'ServerIron 350 series', 'object' => 'snSI350'),
+  '.1.3.6.1.4.1.1991.1.3.47.2.1' => array('name' => 'SI350', 'object' => 'snSI350Switch'),
+  '.1.3.6.1.4.1.1991.1.3.47.2.2' => array('name' => 'SI350', 'object' => 'snSI350Router'),
+  '.1.3.6.1.4.1.1991.1.3.47.3' => array('name' => 'ServerIron 450 series', 'object' => 'snSI450'),
+  '.1.3.6.1.4.1.1991.1.3.47.3.1' => array('name' => 'SI450', 'object' => 'snSI450Switch'),
+  '.1.3.6.1.4.1.1991.1.3.47.3.2' => array('name' => 'SI450', 'object' => 'snSI450Router'),
+  '.1.3.6.1.4.1.1991.1.3.47.4' => array('name' => 'ServerIron 850 series', 'object' => 'snSI850'),
+  '.1.3.6.1.4.1.1991.1.3.47.4.1' => array('name' => 'SI850', 'object' => 'snSI850Switch'),
+  '.1.3.6.1.4.1.1991.1.3.47.4.2' => array('name' => 'SI850', 'object' => 'snSI850Router'),
+  '.1.3.6.1.4.1.1991.1.3.47.5' => array('name' => 'ServerIron 350 Plus series', 'object' => 'snSI350Plus'),
+  '.1.3.6.1.4.1.1991.1.3.47.5.1' => array('name' => 'SI350 Plus', 'object' => 'snSI350PlusSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.47.5.2' => array('name' => 'SI350 Plus', 'object' => 'snSI350PlusRouter'),
+  '.1.3.6.1.4.1.1991.1.3.47.6' => array('name' => 'ServerIron 450 Plus series', 'object' => 'snSI450Plus'),
+  '.1.3.6.1.4.1.1991.1.3.47.6.1' => array('name' => 'SI450 Plus', 'object' => 'snSI450PlusSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.47.6.2' => array('name' => 'SI450 Plus', 'object' => 'snSI450PlusRouter'),
+  '.1.3.6.1.4.1.1991.1.3.47.7' => array('name' => 'ServerIron 850 Plus series', 'object' => 'snSI850Plus'),
+  '.1.3.6.1.4.1.1991.1.3.47.7.1' => array('name' => 'SI850 Plus', 'object' => 'snSI850PlusSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.47.7.2' => array('name' => 'SI850 Plus', 'object' => 'snSI850PlusRouter'),
+  '.1.3.6.1.4.1.1991.1.3.47.8' => array('name' => 'ServerIronGT C series', 'object' => 'snServerIronGTc'),
+  '.1.3.6.1.4.1.1991.1.3.47.8.1' => array('name' => 'ServerIronGT C', 'object' => 'snServerIronGTcSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.47.8.2' => array('name' => 'ServerIronGT C', 'object' => 'snServerIronGTcRouter'),
+  '.1.3.6.1.4.1.1991.1.3.47.9' => array('name' => 'ServerIronGT E series', 'object' => 'snServerIronGTe'),
+  '.1.3.6.1.4.1.1991.1.3.47.9.1' => array('name' => 'ServerIronGT E', 'object' => 'snServerIronGTeSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.47.9.2' => array('name' => 'ServerIronGT E', 'object' => 'snServerIronGTeRouter'),
+  '.1.3.6.1.4.1.1991.1.3.48.1' => array('name' => 'snFastIronStack', 'object' => 'snFastIronStack'),
+  '.1.3.6.1.4.1.1991.1.3.48.1.1' => array('name' => 'snFastIronStackSwitch', 'object' => 'snFastIronStackSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.48.1.2' => array('name' => 'snFastIronStackRouter', 'object' => 'snFastIronStackRouter'),
+  '.1.3.6.1.4.1.1991.1.3.48.2' => array('name' => 'snFastIronStackFCX', 'object' => 'snFastIronStackFCX'),
+  '.1.3.6.1.4.1.1991.1.3.48.2.1' => array('name' => 'FCX switch', 'object' => 'snFastIronStackFCXSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.48.2.2' => array('name' => 'FCX Base L3 router', 'object' => 'snFastIronStackFCXBaseL3Router'),
+  '.1.3.6.1.4.1.1991.1.3.48.2.3' => array('name' => 'FCX Premium Router', 'object' => 'snFastIronStackFCXRouter'),
+  '.1.3.6.1.4.1.1991.1.3.48.2.4' => array('name' => 'FCX Advanced Premium Router (BGP)', 'object' => 'snFastIronStackFCXAdvRouter'),
+  '.1.3.6.1.4.1.1991.1.3.49.1' => array('name' => 'NetIron CES 2024F', 'object' => 'snCes2024F'),
+  '.1.3.6.1.4.1.1991.1.3.49.2' => array('name' => 'NetIron CES 2024C', 'object' => 'snCes2024C'),
+  '.1.3.6.1.4.1.1991.1.3.49.3' => array('name' => 'NetIron CES 2048F', 'object' => 'snCes2048F'),
+  '.1.3.6.1.4.1.1991.1.3.49.4' => array('name' => 'NetIron CES 2048C', 'object' => 'snCes2048C'),
+  '.1.3.6.1.4.1.1991.1.3.49.5' => array('name' => 'NetIron CES 2048F + 2x10G', 'object' => 'snCes2048FX'),
+  '.1.3.6.1.4.1.1991.1.3.49.6' => array('name' => 'NetIron CES 2048C + 2x10G', 'object' => 'snCes2048CX'),
+  '.1.3.6.1.4.1.1991.1.3.5' => array('name' => 'snTurboIron8', 'object' => 'snTurboIron8'),
+  '.1.3.6.1.4.1.1991.1.3.5.1' => array('name' => 'Stackable TurboIron 8', 'object' => 'snT8Switch'),
+  '.1.3.6.1.4.1.1991.1.3.5.2' => array('name' => 'Stackable TurboIron 8', 'object' => 'snT8Router'),
+  '.1.3.6.1.4.1.1991.1.3.5.3' => array('name' => 'snT8SI', 'object' => 'snT8SI'),
+  '.1.3.6.1.4.1.1991.1.3.5.4' => array('name' => 'Stackable ServerIronXLG', 'object' => 'snT8SIXLG'),
+  '.1.3.6.1.4.1.1991.1.3.50.1.1.1' => array('name' => 'snFLSLC624', 'object' => 'snFLSLC624'),
+  '.1.3.6.1.4.1.1991.1.3.50.1.1.1.1' => array('name' => 'snFLSLC624Switch', 'object' => 'snFLSLC624Switch'),
+  '.1.3.6.1.4.1.1991.1.3.50.1.1.1.2' => array('name' => 'snFLSLC624Router', 'object' => 'snFLSLC624Router'),
+  '.1.3.6.1.4.1.1991.1.3.50.1.2.1' => array('name' => 'snFLSLC624POE', 'object' => 'snFLSLC624POE'),
+  '.1.3.6.1.4.1.1991.1.3.50.1.2.1.1' => array('name' => 'snFLSLC624POESwitch', 'object' => 'snFLSLC624POESwitch'),
+  '.1.3.6.1.4.1.1991.1.3.50.1.2.1.2' => array('name' => 'snFLSLC624POERouter', 'object' => 'snFLSLC624POERouter'),
+  '.1.3.6.1.4.1.1991.1.3.50.2.1.1' => array('name' => 'snFLSLC648', 'object' => 'snFLSLC648'),
+  '.1.3.6.1.4.1.1991.1.3.50.2.1.1.1' => array('name' => 'snFLSLC648Switch', 'object' => 'snFLSLC648Switch'),
+  '.1.3.6.1.4.1.1991.1.3.50.2.1.1.2' => array('name' => 'snFLSLC648Router', 'object' => 'snFLSLC648Router'),
+  '.1.3.6.1.4.1.1991.1.3.50.2.2.1' => array('name' => 'snFLSLC648POE', 'object' => 'snFLSLC648POE'),
+  '.1.3.6.1.4.1.1991.1.3.50.2.2.1.1' => array('name' => 'snFLSLC648POESwitch', 'object' => 'snFLSLC648POESwitch'),
+  '.1.3.6.1.4.1.1991.1.3.50.2.2.1.2' => array('name' => 'snFLSLC648POERouter', 'object' => 'snFLSLC648POERouter'),
+  '.1.3.6.1.4.1.1991.1.3.51.1' => array('name' => 'NetIron CER 2024F', 'object' => 'snCer2024F'),
+  '.1.3.6.1.4.1.1991.1.3.51.2' => array('name' => 'NetIron CER 2024C', 'object' => 'snCer2024C'),
+  '.1.3.6.1.4.1.1991.1.3.51.3' => array('name' => 'NetIron CER 2048F', 'object' => 'snCer2048F'),
+  '.1.3.6.1.4.1.1991.1.3.51.4' => array('name' => 'NetIron CER 2048C', 'object' => 'snCer2048C'),
+  '.1.3.6.1.4.1.1991.1.3.51.5' => array('name' => 'NetIron CER 2048F + 2x10G', 'object' => 'snCer2048FX'),
+  '.1.3.6.1.4.1.1991.1.3.51.6' => array('name' => 'NetIron CER 2048C + 2x10G', 'object' => 'snCer2048CX'),
+  '.1.3.6.1.4.1.1991.1.3.52.1.1.1' => array('name' => 'FastIron WS Switch(FWS) 24-port 10/100', 'object' => 'snFWS624'),
+  '.1.3.6.1.4.1.1991.1.3.52.1.1.1.1' => array('name' => 'FWS624 switch', 'object' => 'snFWS624Switch'),
+  '.1.3.6.1.4.1.1991.1.3.52.1.1.1.2' => array('name' => 'FWS624 Base L3 router', 'object' => 'snFWS624BaseL3Router'),
+  '.1.3.6.1.4.1.1991.1.3.52.1.1.1.3' => array('name' => 'FWS624 Edge Prem router', 'object' => 'snFWS624EdgePremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.52.1.2.1' => array('name' => 'FastIron WS Switch(FWS) 24-port 10/100/1000', 'object' => 'snFWS624G'),
+  '.1.3.6.1.4.1.1991.1.3.52.1.2.1.1' => array('name' => 'FWS624G switch', 'object' => 'snFWS624GSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.52.1.2.1.2' => array('name' => 'FWS624G Base L3 router', 'object' => 'snFWS624GBaseL3Router'),
+  '.1.3.6.1.4.1.1991.1.3.52.1.2.1.3' => array('name' => 'FWS624G Edge Prem router', 'object' => 'snFWS624GEdgePremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.52.1.3.1' => array('name' => 'FastIron WS Switch(FWS) 24-port 10/100 POE', 'object' => 'snFWS624POE'),
+  '.1.3.6.1.4.1.1991.1.3.52.1.3.1.1' => array('name' => 'FWS624-POE switch', 'object' => 'snFWS624POESwitch'),
+  '.1.3.6.1.4.1.1991.1.3.52.1.3.1.2' => array('name' => 'FWS624-POE Base L3 router', 'object' => 'snFWS624POEBaseL3Router'),
+  '.1.3.6.1.4.1.1991.1.3.52.1.3.1.3' => array('name' => 'FWS624-POE Edge Prem router', 'object' => 'snFWS624POEEdgePremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.52.1.4.1' => array('name' => 'FastIron WS Switch(FWS) 24-port 10/100/1000 POE', 'object' => 'snFWS624GPOE'),
+  '.1.3.6.1.4.1.1991.1.3.52.1.4.1.1' => array('name' => 'FWS624G-POE switch', 'object' => 'snFWS624GPOESwitch'),
+  '.1.3.6.1.4.1.1991.1.3.52.1.4.1.2' => array('name' => 'FWS624G-POE Base L3 router', 'object' => 'snFWS624GPOEBaseL3Router'),
+  '.1.3.6.1.4.1.1991.1.3.52.1.4.1.3' => array('name' => 'FWS624G-POE Edge Prem router', 'object' => 'snFWS624GPOEEdgePremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.52.2.1.1' => array('name' => 'FastIron WS Switch(FWS) 48-port 10/100 POE Ready', 'object' => 'snFWS648'),
+  '.1.3.6.1.4.1.1991.1.3.52.2.1.1.1' => array('name' => 'FWS648 switch', 'object' => 'snFWS648Switch'),
+  '.1.3.6.1.4.1.1991.1.3.52.2.1.1.2' => array('name' => 'FWS648 Base L3 router', 'object' => 'snFWS648BaseL3Router'),
+  '.1.3.6.1.4.1.1991.1.3.52.2.1.1.3' => array('name' => 'FWS648 Edge Prem router', 'object' => 'snFWS648EdgePremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.52.2.2.1' => array('name' => 'FastIron WS Switch(FWS) 48-port 10/100/1000 POE Ready', 'object' => 'snFWS648G'),
+  '.1.3.6.1.4.1.1991.1.3.52.2.2.1.1' => array('name' => 'FWS648G switch', 'object' => 'snFWS648GSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.52.2.2.1.2' => array('name' => 'FWS648G Base L3 router', 'object' => 'snFWS648GBaseL3Router'),
+  '.1.3.6.1.4.1.1991.1.3.52.2.2.1.3' => array('name' => 'FWS648G Edge Prem router', 'object' => 'snFWS648GEdgePremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.52.2.3.1' => array('name' => 'FastIron WS Switch(FWS) 48-port 10/100 POE', 'object' => 'snFWS648POE'),
+  '.1.3.6.1.4.1.1991.1.3.52.2.3.1.1' => array('name' => 'FWS648-POE switch', 'object' => 'snFWS648POESwitch'),
+  '.1.3.6.1.4.1.1991.1.3.52.2.3.1.2' => array('name' => 'FWS648-POE Base L3 router', 'object' => 'snFWS648POEBaseL3Router'),
+  '.1.3.6.1.4.1.1991.1.3.52.2.3.1.3' => array('name' => 'FWS648-POE Edge Prem router', 'object' => 'snFWS648POEEdgePremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.52.2.4.1' => array('name' => 'FastIron WS Switch(FWS) 48-port 10/100/1000 POE', 'object' => 'snFWS648GPOE'),
+  '.1.3.6.1.4.1.1991.1.3.52.2.4.1.1' => array('name' => 'FWS648G-POE switch', 'object' => 'snFWS648GPOESwitch'),
+  '.1.3.6.1.4.1.1991.1.3.52.2.4.1.2' => array('name' => 'FWS648G-POE Base L3 router', 'object' => 'snFWS648GPOEBaseL3Router'),
+  '.1.3.6.1.4.1.1991.1.3.52.2.4.1.3' => array('name' => 'FWS648G-POE Edge Prem router', 'object' => 'snFWS648GPOEEdgePremRouter'),
+  '.1.3.6.1.4.1.1991.1.3.53' => array('name' => 'snTurboIron2', 'object' => 'snTurboIron2'),
+  '.1.3.6.1.4.1.1991.1.3.53.1.1' => array('name' => 'TurboIron 24X switch', 'object' => 'snTI2X24Switch'),
+  '.1.3.6.1.4.1.1991.1.3.53.1.2' => array('name' => 'TurboIron 24X router', 'object' => 'snTI2X24Router'),
+  '.1.3.6.1.4.1.1991.1.3.53.2.1' => array('name' => 'TurboIron 48X switch', 'object' => 'snTI2X48Switch'),
+  '.1.3.6.1.4.1.1991.1.3.53.2.2' => array('name' => 'TurboIron 48X router', 'object' => 'snTI2X48Router'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.1.1' => array('name' => 'snFCX624S', 'object' => 'snFCX624S'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.1.1.1' => array('name' => 'snFCX624SSwitch', 'object' => 'snFCX624SSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.1.1.2' => array('name' => 'snFCX624SBaseL3Router', 'object' => 'snFCX624SBaseL3Router'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.1.1.3' => array('name' => 'FCX624S Premium Router', 'object' => 'snFCX624SRouter'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.1.1.4' => array('name' => 'snFCX624SAdvRouter', 'object' => 'snFCX624SAdvRouter'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.2.1' => array('name' => 'snFCX624SHPOE', 'object' => 'snFCX624SHPOE'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.2.1.1' => array('name' => 'snFCX624SHPOESwitch', 'object' => 'snFCX624SHPOESwitch'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.2.1.2' => array('name' => 'snFCX624SHPOEBaseL3Router', 'object' => 'snFCX624SHPOEBaseL3Router'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.2.1.3' => array('name' => 'snFCX624SHPOERouter', 'object' => 'snFCX624SHPOERouter'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.2.1.4' => array('name' => 'snFCX624SHPOEAdvRouter', 'object' => 'snFCX624SHPOEAdvRouter'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.3.1' => array('name' => 'snFCX624SF', 'object' => 'snFCX624SF'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.3.1.1' => array('name' => 'snFCX624SFSwitch', 'object' => 'snFCX624SFSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.3.1.2' => array('name' => 'snFCX624SFBaseL3Router', 'object' => 'snFCX624SFBaseL3Router'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.3.1.3' => array('name' => 'snFCX624SFRouter', 'object' => 'snFCX624SFRouter'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.3.1.4' => array('name' => 'snFCX624SFAdvRouter', 'object' => 'snFCX624SFAdvRouter'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.4.1' => array('name' => 'snFCX624', 'object' => 'snFCX624'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.4.1.1' => array('name' => 'snFCX624Switch', 'object' => 'snFCX624Switch'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.4.1.2' => array('name' => 'snFCX624BaseL3Router', 'object' => 'snFCX624BaseL3Router'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.4.1.3' => array('name' => 'snFCX624Router', 'object' => 'snFCX624Router'),
+  '.1.3.6.1.4.1.1991.1.3.54.1.4.1.4' => array('name' => 'snFCX624AdvRouter', 'object' => 'snFCX624AdvRouter'),
+  '.1.3.6.1.4.1.1991.1.3.54.2.1.1' => array('name' => 'snFCX648S', 'object' => 'snFCX648S'),
+  '.1.3.6.1.4.1.1991.1.3.54.2.1.1.1' => array('name' => 'FCX648S switch', 'object' => 'snFCX648SSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.54.2.1.1.2' => array('name' => 'FCX648S Base L3 router', 'object' => 'snFCX648SBaseL3Router'),
+  '.1.3.6.1.4.1.1991.1.3.54.2.1.1.3' => array('name' => 'FCX648S Premium Router', 'object' => 'snFCX648SRouter'),
+  '.1.3.6.1.4.1.1991.1.3.54.2.1.1.4' => array('name' => 'FCX648S Advanced Premium Router (BGP)', 'object' => 'snFCX648SAdvRouter'),
+  '.1.3.6.1.4.1.1991.1.3.54.2.2.1' => array('name' => 'FastIron CX Switch(FCX-S) 48-port 10/100/1000', 'object' => 'snFCX648SHPOE'),
+  '.1.3.6.1.4.1.1991.1.3.54.2.2.1.1' => array('name' => 'FCX648S-HPOE switch', 'object' => 'snFCX648SHPOESwitch'),
+  '.1.3.6.1.4.1.1991.1.3.54.2.2.1.2' => array('name' => 'FCX648S-HPOE Base L3 router', 'object' => 'snFCX648SHPOEBaseL3Router'),
+  '.1.3.6.1.4.1.1991.1.3.54.2.2.1.3' => array('name' => 'FCX648S-HPOE Premium Router', 'object' => 'snFCX648SHPOERouter'),
+  '.1.3.6.1.4.1.1991.1.3.54.2.2.1.4' => array('name' => 'FCX648S-HPOE Advanced Premium Router (BGP)', 'object' => 'snFCX648SHPOEAdvRouter'),
+  '.1.3.6.1.4.1.1991.1.3.54.2.4.1' => array('name' => 'FastIron CX Switch(FCX) 48-port 10/100/1000', 'object' => 'snFCX648'),
+  '.1.3.6.1.4.1.1991.1.3.54.2.4.1.1' => array('name' => 'FCX648 switch', 'object' => 'snFCX648Switch'),
+  '.1.3.6.1.4.1.1991.1.3.54.2.4.1.2' => array('name' => 'FCX648 Base L3 router', 'object' => 'snFCX648BaseL3Router'),
+  '.1.3.6.1.4.1.1991.1.3.54.2.4.1.3' => array('name' => 'FCX648 Premium Router', 'object' => 'snFCX648Router'),
+  '.1.3.6.1.4.1.1991.1.3.54.2.4.1.4' => array('name' => 'FCX648 Advanced Premium Router (BGP)', 'object' => 'snFCX648AdvRouter'),
+  '.1.3.6.1.4.1.1991.1.3.55.1' => array('name' => 'Brocade MLXe16', 'object' => 'snBrocadeMLXe16'),
+  '.1.3.6.1.4.1.1991.1.3.55.1.2' => array('name' => 'Brocade MLXe16', 'object' => 'snBrocadeMLXe16Router'),
+  '.1.3.6.1.4.1.1991.1.3.55.2' => array('name' => 'Brocade MLXe8', 'object' => 'snBrocadeMLXe8'),
+  '.1.3.6.1.4.1.1991.1.3.55.2.2' => array('name' => 'Brocade MLXe8', 'object' => 'snBrocadeMLXe8Router'),
+  '.1.3.6.1.4.1.1991.1.3.55.3' => array('name' => 'Brocade MLXe4', 'object' => 'snBrocadeMLXe4'),
+  '.1.3.6.1.4.1.1991.1.3.55.3.2' => array('name' => 'Brocade MLXe4', 'object' => 'snBrocadeMLXe4Router'),
+  '.1.3.6.1.4.1.1991.1.3.55.4' => array('name' => 'Brocade MLXe32', 'object' => 'snBrocadeMLXe32'),
+  '.1.3.6.1.4.1.1991.1.3.55.4.2' => array('name' => 'Brocade MLXe32', 'object' => 'snBrocadeMLXe32Router'),
+  '.1.3.6.1.4.1.1991.1.3.6' => array('name' => 'snBigIron4000', 'object' => 'snBigIron4000'),
+  '.1.3.6.1.4.1.1991.1.3.6.1' => array('name' => 'BigIron 4000', 'object' => 'snBI4000Switch'),
+  '.1.3.6.1.4.1.1991.1.3.6.2' => array('name' => 'BigIron 4000', 'object' => 'snBI4000Router'),
+  '.1.3.6.1.4.1.1991.1.3.6.3' => array('name' => 'BigServerIron', 'object' => 'snBI4000SI'),
+  '.1.3.6.1.4.1.1991.1.3.7' => array('name' => 'snBigIron8000', 'object' => 'snBigIron8000'),
+  '.1.3.6.1.4.1.1991.1.3.7.1' => array('name' => 'BigIron 8000', 'object' => 'snBI8000Switch'),
+  '.1.3.6.1.4.1.1991.1.3.7.2' => array('name' => 'BigIron 8000', 'object' => 'snBI8000Router'),
+  '.1.3.6.1.4.1.1991.1.3.7.3' => array('name' => 'BigServerIron', 'object' => 'snBI8000SI'),
+  '.1.3.6.1.4.1.1991.1.3.8' => array('name' => 'snFastIron2', 'object' => 'snFastIron2'),
+  '.1.3.6.1.4.1.1991.1.3.8.1' => array('name' => 'FastIron II', 'object' => 'snFI2Switch'),
+  '.1.3.6.1.4.1.1991.1.3.8.2' => array('name' => 'FastIron II', 'object' => 'snFI2Router'),
+  '.1.3.6.1.4.1.1991.1.3.9' => array('name' => 'snFastIron2Plus', 'object' => 'snFastIron2Plus'),
+  '.1.3.6.1.4.1.1991.1.3.9.1' => array('name' => 'FastIron II Plus', 'object' => 'snFI2PlusSwitch'),
+  '.1.3.6.1.4.1.1991.1.3.9.2' => array('name' => 'FastIron II Plus', 'object' => 'snFI2PlusRouter'),
 );
 
 $rewrite_liebert_hardware = array(
@@ -2334,6 +2371,7 @@ $rewrite_ifname = array(
   'port-channel' => 'Port-Channel',
   'dial' => 'Dial',
   'hp procurve switch software loopback interface' => 'Loopback Interface',
+  'uniping server solution v3/sms' => '',
   'control plane interface' => 'Control Plane',
   'loopback' => 'Loopback',
   '802.1q encapsulation tag' => 'Vlan',
@@ -2341,16 +2379,20 @@ $rewrite_ifname = array(
 
 $rewrite_ifname_regexp = array(
   '/Nortel .* Module - /i' => '',
-  '/Baystack .* - /i' => ''
+  '/Baystack .* - /i' => '',
+  '/DEC [a-z\d]+ PCI /i' => '',
+  //'/^APC /' => '',
 );
 
 $rewrite_shortif = array(
   'tengigabitethernet' => 'Te',
   'tengige' => 'Te',
   'gigabitethernet' => 'Gi',
-  'fortygige' => 'Fo',
+  'gigabit ethernet' => 'Gi',
   'fastethernet' => 'Fa',
+  'fast ethernet' => 'Fa',
   'ethernet' => 'Et',
+  'fortygige' => 'Fo',
   'management' => 'Mgmt',
   'serial' => 'Se',
   'pos' => 'Pos',
@@ -2386,17 +2428,18 @@ $rewrite_hrDevice = array (
 // Rewrite functions
 
 /**
- * Rewrites device hardware based on device os/sysObjectID and hw definitions
+ * Return model array, based on device sysObjectID
  *
- * @param array $device Device array required keys -> os, sysObjectID
- * @param string $sysObjectID_new If passed, than use "new" sysObjectID instead from device array
- * @return string Device hw name or empty string
+ * @param	array	 $device          Device array required keys -> os, sysObjectID
+ * @param	string $sysObjectID_new If passed, than use "new" sysObjectID instead from device array
+ * @return array                  Model array
  */
-function rewrite_definition_hardware($device, $sysObjectID_new = NULL)
+function get_model_array($device, $sysObjectID_new = NULL)
 {
   if (isset($GLOBALS['config']['os'][$device['os']]['model']))
   {
-    $model = $GLOBALS['config']['os'][$device['os']]['model'];
+    $model  = $GLOBALS['config']['os'][$device['os']]['model'];
+    $models = $GLOBALS['config']['model'][$model];
     if ($sysObjectID_new && preg_match('/^\.\d[\d\.]+$/', $sysObjectID_new))
     {
       $sysObjectID = $sysObjectID_new;
@@ -2408,28 +2451,53 @@ function rewrite_definition_hardware($device, $sysObjectID_new = NULL)
       // Just random non empty string
       $sysObjectID = 'WRONG_ID_3948ffakc';
     }
+    if (isset($models[$sysObjectID]))
+    {
+      // Exactly match
+      return $models[$sysObjectID];
+    }
     krsort($GLOBALS['config']['model'][$model]); // Resort array by key with high to low order!
     foreach ($GLOBALS['config']['model'][$model] as $key => $entry)
     {
-      if (isset($entry['name']) && strpos($sysObjectID, $key) === 0)
+      if (strpos($sysObjectID, $key) === 0)
       {
-        return $entry['name'];
+        return $entry;
         break;
       }
     }
   }
 }
 
-// DOCME needs phpdoc block
-// TESTME needs unit testing
-function rewrite_fortinet_hardware($oid)
+/**
+ * Rewrites device hardware based on device os/sysObjectID and hw definitions
+ *
+ * @param array $device Device array required keys -> os, sysObjectID
+ * @param string $sysObjectID_new If passed, than use "new" sysObjectID instead from device array
+ * @return string Device hw name or empty string
+ */
+function rewrite_definition_hardware($device, $sysObjectID_new = NULL)
 {
+  $model_array = get_model_array($device, $sysObjectID_new);
+  if (is_array($model_array) && isset($model_array['name']))
+  {
+    return $model_array['name'];
+  }
+}
 
-  global $rewrite_fortinet_hardware;
-
-  $hardware = $rewrite_fortinet_hardware[$oid]['name'];
-
-  return ($hardware);
+/**
+ * Rewrites device type based on device os/sysObjectID and hw definitions
+ *
+ * @param array $device Device array required keys -> os, sysObjectID
+ * @param string $sysObjectID_new If passed, than use "new" sysObjectID instead from device array
+ * @return string Device type or empty string
+ */
+function rewrite_definition_type($device, $sysObjectID_new = NULL)
+{
+  $model_array = get_model_array($device, $sysObjectID_new);
+  if (is_array($model_array) && isset($model_array['type']))
+  {
+    return $model_array['type'];
+  }
 }
 
 // DOCME needs phpdoc block
@@ -2614,6 +2682,8 @@ function short_hostname($hostname, $len = NULL, $escape = TRUE)
     $short_hostname = custom_short_hostname($hostname, $len);
   } else {
 
+    if (get_ip_version($hostname)) { return $hostname; } // If hostname is IP address, always return full hostname
+
     $parts = explode('.', $hostname);
     $short_hostname = $parts[0];
     $i = 1;
@@ -2685,7 +2755,7 @@ function rewrite_entity_name($string)
   $string = str_replace("DFC Card", "DFC", $string);
   $string = str_replace("Centralized Forwarding Card", "CFC", $string);
   $string = str_replace(array('fan-tray'), 'Fan Tray', $string);
-  $string = str_replace(array('Temp: ', 'CPU of ', 'CPU ', '(TM)', '(R)'), '', $string);
+  $string = str_replace(array('Temp: ', 'CPU of ', 'CPU ', '(TM)', '(R)', '(r)'), '', $string);
   $string = str_replace('GenuineIntel Intel', 'Intel', $string);
   $string = preg_replace("/(HP \w+) Switch/", "$1", $string);
   $string = preg_replace("/power[ -]supply( \d+)?(?: (?:module|sensor))?/i", "Power Supply$1", $string);
@@ -2729,10 +2799,25 @@ function rewrite_location($location)
     $by = 'function custom_rewrite_location()';
   }
   // This uses a statically defined array to map locations.
-  if (!isset($new_location) && isset($config['location_map'][$location]))
+  if (!isset($new_location))
   {
-    $new_location = $config['location_map'][$location];
-    $by = '$config[\'location_map\']';
+    if (isset($config['location']['map'][$location]))
+    {
+      $new_location = $config['location']['map'][$location];
+      $by = '$config[\'location\'][\'map\']';
+    }
+    else if (isset($config['location']['map_regexp']))
+    {
+      foreach ($config['location']['map_regexp'] as $pattern => $entry)
+      {
+        if (preg_match($pattern, $location))
+        {
+          $new_location = $entry;
+          $by = '$config[\'location\'][\'map_regexp\']';
+          break; // stop foreach
+        }
+      }
+    }
   }
 
   if (isset($new_location))

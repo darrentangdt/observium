@@ -1,11 +1,11 @@
 <?php
 
-include("includes/graphs/common.inc.php");
+include($config['html_dir']."/includes/graphs/common.inc.php");
 
 $colours      = "mixed";
 $nototal      = (($width<224) ? 1 : 0);
 $unit_text    = "Servers";
-$rrd_filename = $config['rrd_dir'] . "/" . $device['hostname'] . "/app-lighttpd-".$app['app_id'].".rrd";
+$rrd_filename = get_rrd_path($device, "app-lighttpd-".$app['app_id']);
 
 $array = array(
                'busyservers' => array('descr' => 'Busy Workers'),
@@ -26,6 +26,6 @@ if (is_file($rrd_filename))
     echo("file missing: $file");
 }
 
-include("includes/graphs/generic_multi_line.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_line.inc.php");
 
 ?>

@@ -14,15 +14,9 @@
 // Ignore this discovery module if we have already discovered things in CISCO-ENHANCED-MEMPOOL-MIB. Dirty duplication.
 if (!isset($valid['mempool']['cisco-enhanced-mempool-mib']) && !isset($valid['mempool']['cisco-memory-pool-mib']))
 {
-
-  $mib = 'CISCO-PROCESS-MIB';
-  echo("$mib ");
-
-  $mempool_array = snmpwalk_cache_oid($device, 'cpmCPUMemoryUsed', NULL, $mib, mib_dirs('cisco'));
-  $mempool_array = snmpwalk_cache_oid($device, 'cpmCPUMemoryFree', $mempool_array, $mib, mib_dirs('cisco'));
-  $mempool_array = snmpwalk_cache_oid($device, 'cpmCPUTotalPhysicalIndex', $mempool_array, $mib, mib_dirs('cisco'));
-
-  if (OBS_DEBUG > 1) { print_vars($mempool_array); }
+  $mempool_array = snmpwalk_cache_oid($device, 'cpmCPUMemoryUsed', array(), $mib);
+  $mempool_array = snmpwalk_cache_oid($device, 'cpmCPUMemoryFree', $mempool_array, $mib);
+  $mempool_array = snmpwalk_cache_oid($device, 'cpmCPUTotalPhysicalIndex', $mempool_array, $mib);
 
   foreach ($mempool_array as $index => $entry)
   {
@@ -30,17 +24,16 @@ if (!isset($valid['mempool']['cisco-enhanced-mempool-mib']) && !isset($valid['me
     {
       if ($entry['cpmCPUTotalPhysicalIndex'])
       {
-        $descr = snmp_get($device, "entPhysicalName." . $entry['cpmCPUTotalPhysicalIndex'], "-Oqv", "ENTITY-MIB", mib_dirs());
+        $descr = snmp_get($device, 'entPhysicalName.' . $entry['cpmCPUTotalPhysicalIndex'], '-Oqv', 'ENTITY-MIB');
       } else {
-        $descr = "Memory Pool ".$index;
+        $descr = "Memory Pool $index";
       }
 
-      $precision = 1024;
-      //$used      = $entry['cpmCPUMemoryUsed'] * $precision;
-      //$free      = $entry['cpmCPUMemoryFree'] * $precision;
+      $used      = $entry['cpmCPUMemoryUsed'];
+      $free      = $entry['cpmCPUMemoryFree'];
       $total     = $used + $free;
 
-      discover_mempool($valid['mempool'], $device, $index, $mib, $descr, $precision, $total, $used);
+      discover_mempool($valid['mempool'], $device, $index, 'CISCO-PROCESS-MIB', $descr, 1024, $total, $used);
     }
   }
 }

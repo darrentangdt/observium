@@ -1,12 +1,16 @@
 -- ==================================================================
--- Copyright (C) 2011 by HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by HUAWEI TECHNOLOGIES. All rights reserved.
 -- Description:   This MIB is used for defining the HUAWEI private   
 --                extended Multiprotocol Label Switching (MPLS) MIB 
 --                object. All MIB objects are used to describe private
 --                managed objects and trap definitions for MPLS.
 -- Reference:
--- Version: V2.34
+-- Version: V2.39
 -- History:
+-- V2.38 zhangtan, 2015-04-11, modify for hwMplsResourceType
+-- V2.37 xuejianguo, 2015-03-31, add for hwMplsTunnelStatisticsTable
+-- V2.36 zhangtan, 2015-03-19, modify for hwMplsResourceType
+-- V2.35 wangbin, 2015-01-22, modify for hwMplsIngressLsrId, hwMplsEgressLsrId
 -- V2.34 wangbin, 2015-01-12, modify for TE OPT
 -- V2.33 zhangtan, 2014-11-21, modify for mpls te commit
 -- V2.32 wangbin, 2014-11-14, modify for BiStatic Lsp LoopBack
@@ -45,7 +49,7 @@
                 FROM SNMP-FRAMEWORK-MIB            
             OBJECT-GROUP, NOTIFICATION-GROUP, MODULE-COMPLIANCE            
                 FROM SNMPv2-CONF            
-            Integer32, Unsigned32, Counter32, Counter64, BITS, OBJECT-TYPE, 
+            Integer32, Unsigned32, Counter32, IpAddress, Counter64, BITS, OBJECT-TYPE, 
             MODULE-IDENTITY, NOTIFICATION-TYPE            
                 FROM SNMPv2-SMI
             mplsTunnelAdminStatus, mplsTunnelOperStatus
@@ -57,7 +61,7 @@
 
         -- 1.3.6.1.4.1.2011.5.25.121
         hwMplsExtendMib MODULE-IDENTITY 
-            LAST-UPDATED "201501122016Z"        
+            LAST-UPDATED "201508011200Z"        
             ORGANIZATION 
                 "Huawei Technologies Co.,Ltd."
             CONTACT-INFO 
@@ -73,8 +77,23 @@
                  extended Multiprotocol Label Switching (MPLS) MIB
                  object. All MIB objects are used to describe private
                  managed objects and trap definitions for MPLS."
-                                
+
             --  Revision history 
+            REVISION   "201508011200Z"
+            DESCRIPTION "V2.39, add a new alarm, hwMplsTunnelHotstandbySwitch hwMplsTunnelHotstandbyResume."
+
+            REVISION   "201504111200Z"
+            DESCRIPTION "V2.38, modify enum hwMplsResourceType for supporting MPLS CSPF resource total exceed alarm."
+
+            REVISION   "201503311419Z"
+            DESCRIPTION "V2.37, add for hwMplsTunnelStatisticsTable."
+                                
+            REVISION   "201503191700Z"
+            DESCRIPTION "V2.36, add enum hwMplsResourceType for supporting MPLS CSPF resource total exceed alarm."
+            
+            REVISION   "201501221916Z"
+            DESCRIPTION "V2.35, modify hwMplsIngressLsrId hwMplsEgressLsrId."
+			
             REVISION   "201501122016Z"
             DESCRIPTION "V2.34, modify hwMplsTeFrrSwitch."
 			
@@ -1589,7 +1608,135 @@
                 10. Static LSP/CR-LSP configuration update
                 11. The bound ring is invalid."                
             ::= { hwMplsExtendMibTunnel 13 }
-                                                           
+
+--   1.3.6.1.4.1.2011.5.25.121.1.14
+        hwMplsTunnelStatisticsTable OBJECT-TYPE
+            SYNTAX SEQUENCE OF HwMplsTunnelStatisticsEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "A tunnel needs to be uniquely identified across  
+                 an MPLS network. hwMplsTunnelStatisticsTunnelIndex 
+                 uniquely identifies a tunnel on the LSR originating 
+                 the tunnel. hwMplsTunnelStatisticsIngressLSRId 
+                 uniquely identifies a tunnel across an MPLS network. 
+                 The last index hwMplsTunnelStatisticsEgressLSRId is 
+                 useful in identifying all instances of a tunnel that
+                 are terminated on the same egress LSR. 
+
+                 The indexes of this table are 
+                 hwMplsTunnelStatisticsTunnelIndex,    
+                 hwMplsTunnelStatisticsIngressLSRId and  
+                 hwMplsTunnelStatisticsEgressLSRId."
+            ::= { hwMplsExtendMibTunnel 14 }
+
+--   1.3.6.1.4.1.2011.5.25.121.1.14.1
+        hwMplsTunnelStatisticsEntry OBJECT-TYPE
+            SYNTAX HwMplsTunnelStatisticsEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "A tunnel needs to be uniquely identified across 
+                 an MPLS network. hwMplsTunnelStatisticsTunnelIndex 
+                 uniquely identifies a tunnel on the LSR originating 
+                 the tunnel. hwMplsTunnelStatisticsIngressLSRId uniquely 
+                 identifies a tunnel across an MPLS network. The last 
+                 index hwMplsTunnelStatisticsEgressLSRId is useful in 
+                 identifying all instances of a tunnel that are terminated
+                 on the same egress LSR.
+
+                 The indexes of this table are 
+                 hwMplsTunnelStatisticsTunnelIndex,    
+                 hwMplsTunnelStatisticsIngressLSRId and  
+                 hwMplsTunnelStatisticsEgressLSRId."
+            REFERENCE
+                "1. RFC 2863 - The Interfaces Group MIB, McCloghrie,
+                K., and F. Kastenholtz, June 2000 "
+            INDEX { hwMplsTunnelStatisticsTunnelIndex, hwMplsTunnelStatisticsIngressLSRId, hwMplsTunnelStatisticsEgressLSRId }
+            ::= { hwMplsTunnelStatisticsTable 1 }
+
+        
+        HwMplsTunnelStatisticsEntry ::=
+            SEQUENCE { 
+                hwMplsTunnelStatisticsTunnelIndex
+                    Unsigned32,
+                hwMplsTunnelStatisticsIngressLSRId
+                    IpAddress,
+                hwMplsTunnelStatisticsEgressLSRId
+                    IpAddress,
+                hwMplsTunnelStatisticsHCInOctets 
+                    Counter64,
+                hwMplsTunnelStatisticsHCOutOctets
+                    Counter64
+             }
+
+--   1.3.6.1.4.1.2011.5.25.121.1.14.1.1
+        hwMplsTunnelStatisticsTunnelIndex OBJECT-TYPE
+            SYNTAX Unsigned32
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "Uniquely identifies a set of tunnel instances 
+                 between a pair of ingress and egress LSRs. 
+                 When the MPLS signalling protocol is rsvp(2), this value 
+                 equals to the value signaled in the Tunnel ID 
+                 of the SESSION object. When the MPLS signalling protocol 
+                 is crldp(3), this value equals to the value 
+                 signaled in the LSP ID. Reference to MPLS-TE-STD-MIB."
+            ::= { hwMplsTunnelStatisticsEntry 1 }
+
+        
+--   1.3.6.1.4.1.2011.5.25.121.1.14.1.2
+        hwMplsTunnelStatisticsIngressLSRId OBJECT-TYPE
+            SYNTAX IpAddress
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "Indicates the ingress LSR ID of this tunnel. 
+                 When the MPLS signalling protocol 
+                 is rsvp(2), this value equals to the Tunnel 
+                 Sender Address in the Sender Template object and may 
+                 equal to the Extended Tunnel ID in the 
+                 SESSION object. When the MPLS signalling protocol is 
+                 crldp(3), this value equals to the Ingress 
+                 LSR Router ID in the LSPID TLV object. 
+                 Reference to MPLS-TE-STD-MIB."
+            ::= { hwMplsTunnelStatisticsEntry 2 }
+
+        
+--   1.3.6.1.4.1.2011.5.25.121.1.14.1.3
+        hwMplsTunnelStatisticsEgressLSRId OBJECT-TYPE
+            SYNTAX IpAddress
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "Indicates the egress LSR ID of this 
+                 tunnel. Reference to MPLS-TE-STD-MIB."
+            ::= { hwMplsTunnelStatisticsEntry 3 }
+
+        
+--   1.3.6.1.4.1.2011.5.25.121.1.14.1.4
+        hwMplsTunnelStatisticsHCInOctets OBJECT-TYPE
+            SYNTAX Counter64
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The total number of octets received on the interface,
+                 including framing characters."
+            ::= { hwMplsTunnelStatisticsEntry 4 }
+
+        
+--   1.3.6.1.4.1.2011.5.25.121.1.14.1.5
+        hwMplsTunnelStatisticsHCOutOctets OBJECT-TYPE
+            SYNTAX Counter64
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The total number of octets transmitted out of the
+                 interface, including framing characters."
+            ::= { hwMplsTunnelStatisticsEntry 5 }
+
+                                                         
 --   1.3.6.1.4.1.2011.5.25.121.2
         hwMplsExtendTrap OBJECT IDENTIFIER ::= { hwMplsExtendMib 2 }
 
@@ -2325,6 +2472,23 @@
                 This object indicates that, after the device saves MPLS TE tunnel configurations, the device commits all MPLS tunnel configurations.
                 " 
             ::= { hwLspTrap 78 }
+
+--   1.3.6.1.4.1.2011.5.25.121.2.1.79
+        hwMplsTunnelHotstandbySwitch NOTIFICATION-TYPE
+            OBJECTS { hwMplsTunnelInterfaceName }
+            STATUS current
+            DESCRIPTION 
+                "This notification indicates that the data is switched from the primary CR-LSP to the HSB CR-LSP."
+            ::= { hwLspTrap 79 }
+
+        
+--   1.3.6.1.4.1.2011.5.25.121.2.1.80
+        hwMplsTunnelHotstandbyResume NOTIFICATION-TYPE
+            OBJECTS { hwMplsTunnelInterfaceName }
+            STATUS current
+            DESCRIPTION 
+                "This notification indicates that the data is switched from the HSB CR-LSP to the primary CR-LSP."
+            ::= { hwLspTrap 80 }
             
 -- 1.3.6.1.4.1.2011.5.25.121.2.2
         hwMplsTrapObjects OBJECT IDENTIFIER ::= { hwMplsExtendTrap 2 }
@@ -2551,6 +2715,10 @@
              outSegment(8),
              autoPrimaryTunnelIf(9),
              ldpTotalLocalAdjacency(10),
+             cspfNode(11),
+             cspfLink(12),
+             cspfNlsa(13),
+             cspfSrlg(14),
              unknown(100)
              }
         MAX-ACCESS     accessible-for-notify
@@ -2568,7 +2736,11 @@
             8.outSegment(8)         -Indicates that the resource is LDP outSegment.
             9.autoPrimaryTunnelIf(9)         -Indicates that the resource is auto primary tunnel interface.
             10.ldpTotalLocalAdjacency(10)         -Indicates that the resource is LDP total local adjacency.
-            11.unknown(100)   -Indicates that the resource type is unknown. "
+            11.cspfNode(11)                       -Indicates that the resource is cspf node.
+            12.cspfLink(12)                       -Indicates that the resource is cspf link.
+            13.cspfNlsa(13)                       -Indicates that the resource is cspf nlsa.
+            14.cspfSrlg(14)                       -Indicates that the resource is cspf srlg.
+            15.unknown(100)   -Indicates that the resource type is unknown. "
         ::= { hwMplsTrapObjects 11 }
         
      hwMplsResourceCurrentCount OBJECT-TYPE
@@ -2596,7 +2768,7 @@
         ::= { hwMplsTrapObjects 14 }
  
       hwMplsSessionTunnelId OBJECT-TYPE
-        SYNTAX  Integer32
+        SYNTAX Integer32
         MAX-ACCESS     accessible-for-notify
         STATUS           current
         DESCRIPTION
@@ -2604,7 +2776,7 @@
         ::= { hwMplsTrapObjects 15 }
 
       hwMplsLocalLspId OBJECT-TYPE
-        SYNTAX  Integer32
+        SYNTAX Integer32
         MAX-ACCESS     accessible-for-notify
         STATUS           current
         DESCRIPTION
@@ -2612,7 +2784,7 @@
         ::= { hwMplsTrapObjects 16 }
 
       hwMplsIngressLsrId OBJECT-TYPE
-        SYNTAX  Integer32
+        SYNTAX  MplsLsrIdentifier
         MAX-ACCESS     accessible-for-notify
         STATUS           current
         DESCRIPTION
@@ -2620,7 +2792,7 @@
         ::= { hwMplsTrapObjects 17 }
 
       hwMplsEgressLsrId OBJECT-TYPE
-        SYNTAX  Integer32
+        SYNTAX  MplsLsrIdentifier
         MAX-ACCESS     accessible-for-notify
         STATUS           current
         DESCRIPTION
@@ -3090,7 +3262,7 @@
                 hwMplsLspTotalCountExceed, hwMplsLspThresholdExceed, hwMplsLspTotalCountExceedClear, hwMplsLspThresholdExceedClear, hwMplsDynamicLabelThresholdExceed,
                 hwMplsDynamicLabelThresholdExceedClear, hwMplsDynamicLabelTotalCountExceed, hwMplsDynamicLabelTotalCountExceedClear,
                 hwMplsResourceThresholdExceed, hwMplsResourceThresholdExceedClear, hwMplsResourceTotalCountExceed, hwMplsResourceTotalCountExceedClear,
-                hwMplsLspLoopBack, hwMplsLspLoopBackClear, hwMplsTunnelCommitLost, hwMplsTunnelCommitLostClear
+                hwMplsLspLoopBack, hwMplsLspLoopBackClear, hwMplsTunnelCommitLost, hwMplsTunnelCommitLostClear, hwMplsTunnelHotstandbySwitch, hwMplsTunnelHotstandbyResume
             }
             STATUS current
             DESCRIPTION 

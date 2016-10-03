@@ -14,9 +14,12 @@
 if ($vars['from'])    { $from   = $vars['from']; }
 if ($vars['to'])      { $to     = $vars['to']; }
 
-if ($vars['width'])   { $width  = $vars['width']; }
-if ($config['trim_tobias']) { $width+=12; }
-if ($vars['height'])  { $height = $vars['height']; }
+if (isset($vars['width']))  { $width  = $vars['width']; }
+if (!is_numeric($width))    { $width  = 400; }
+if ($config['trim_tobias']) { $width += 12; }
+
+if ($vars['height'])        { $height = $vars['height']; }
+if (!is_numeric($height))   { $height = 150; }
 
 if ($vars['inverse']) { $in = 'out'; $out = 'in'; $inverse = TRUE; } else { $in = 'in'; $out = 'out'; $inverse = FALSE; }
 
@@ -30,6 +33,7 @@ if ((isset($alt_y) && !$alt_y) || $vars['alt_y'] == 'no') {} else { $rrd_options
 
 if (isset($vars['zoom']) && is_numeric($vars['zoom']))  { $rrd_options .= " --zoom='".$vars['zoom']."' "; }
 
+if (isset($vars['yscale']) && $vars['yscale'] == 'none') { $rrd_options .= " --y none"; }
 
 // Alternative graph style (default|mrtg)
 if (isset($vars['style']) && $vars['style'])
@@ -68,6 +72,8 @@ if (!isset($scale_min) && !isset($scale_max))
   if (isset($scale_rigid) && $scale_rigid) { $rrd_options .= ' --rigid'; }
 }
 
+if(isset($vars['max']) && $vars['max'] == 'yes') { $graph_max = TRUE; }
+
 if (is_numeric($from))
 {
   if ($to-$from <= 172800) { $graph_max = 0; } // Do not graph MAX areas for intervals less then 48 hours
@@ -76,7 +82,7 @@ if (is_numeric($from))
   $graph_max = 0; // Also for RRD style from (6h, 2day)
 }
 
-$rrd_options .= '  --start '.$from.' --end ' . $to . ' --width '.$width.' --height '.$height.' ';
+$rrd_options .= '  --start ' . $from . ' --end ' . $to . ' --width '.$width.' --height '.$height.' ';
 $rrd_options .= $config['rrdgraph_def_text'];
 
 if ($vars['bg']) { $rrd_options .= ' -c CANVAS#' . $vars['bg'] . ' '; }

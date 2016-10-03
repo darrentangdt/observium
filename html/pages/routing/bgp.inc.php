@@ -18,6 +18,110 @@ if ($_SESSION['userlevel'] < '5')
   return;
 }
 
+$form_items = array();
+
+$form_devices = dbFetchColumn('SELECT DISTINCT `device_id` FROM `bgpPeers`;');
+$form_items['devices'] = generate_form_values('device', $form_devices);
+//r($form_items['devices']);
+
+$param  = 'peer_as';
+$column = 'bgpPeerRemoteAs';
+foreach (dbFetchRows('SELECT DISTINCT `' . $column . '`, `astext` FROM `bgpPeers` WHERE 1 ' . $cache['where']['devices_permitted'] . ' ORDER BY `' . $column . '`') as $entry)
+{
+  if (empty($entry[$column])) { continue; }
+
+  $form_items[$param][$entry[$column]]['name']    = 'AS'.$entry[$column];
+  $form_items[$param][$entry[$column]]['subtext'] = $entry['astext'];
+}
+
+$form_params = array('local_ip' => 'bgpPeerLocalAddr',
+                     'peer_ip'  => 'bgpPeerRemoteAddr',
+                     //'peer_as'  => 'bgpPeerRemoteAs',
+                    );
+foreach ($form_params as $param => $column)
+{
+  foreach (dbFetchColumn('SELECT DISTINCT `' . $column . '` FROM `bgpPeers` WHERE 1 ' . $cache['where']['devices_permitted'] . ' ORDER BY `' . $column . '`') as $entry)
+  {
+    if (empty($entry)) { continue; }
+
+    if (strpos($entry, ':') !== FALSE)
+    {
+      $form_items[$param][$entry]['group'] = 'IPv6';
+      $form_items[$param][$entry]['name']  = Net_IPv6::compress($entry);
+    } else {
+      $form_items[$param][$entry]['group'] = 'IPv4';
+      $form_items[$param][$entry]['name']  = escape_html($entry);
+    }
+  }
+}
+
+$form = array('type'  => 'rows',
+              'space' => '5px',
+              'submit_by_key' => TRUE,
+              'url'   => generate_url($vars));
+$form['row'][0]['device']   = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'Local Device',
+                                'width'       => '100%',
+                                'value'       => $vars['device'],
+                                'values'      => $form_items['devices']);
+$form['row'][0]['local_ip'] = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'Local address',
+                                'width'       => '100%',
+                                'value'       => $vars['local_ip'],
+                                'values'      => $form_items['local_ip']);
+$form['row'][0]['peer_ip']  = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'Peer address',
+                                'width'       => '100%',
+                                'value'       => $vars['peer_ip'],
+                                'values'      => $form_items['peer_ip']);
+$form['row'][0]['peer_as']  = array(
+                                'type'        => 'multiselect',
+                                'name'        => 'Remote AS',
+                                'width'       => '100%',
+                                'value'       => $vars['peer_as'],
+                                'values'      => $form_items['peer_as']);
+$form['row'][0]['type']     = array(
+                                'type'        => 'select',
+                                'name'        => 'Type',
+                                'width'       => '100%',
+                                'value'       => $vars['type'],
+                                'values'      => array('' => 'All', 'internal' => 'iBGP', 'external' => 'eBGP'));
+
+// search button
+$form['row'][0]['search']   = array(
+                                'type'        => 'submit',
+                                //'name'        => 'Search',
+                                //'icon'        => 'icon-search',
+                                'right'       => TRUE);
+
+$panel_form = array('type'          => 'rows',
+                    'title'         => 'Search BGP',
+                    'space'         => '10px',
+                    'submit_by_key' => TRUE,
+                    'url'           => generate_url($vars));
+
+$panel_form['row'][0]['device']         = $form['row'][0]['device'];
+//$panel_form['row'][0]['device']['grid'] = 6;
+$panel_form['row'][0]['local_ip']       = $form['row'][0]['local_ip'];
+
+$panel_form['row'][1]['peer_as']        = $form['row'][0]['peer_as'];
+$panel_form['row'][1]['peer_ip']        = $form['row'][0]['peer_ip'];
+
+$panel_form['row'][2]['type']           = $form['row'][0]['type'];
+$panel_form['row'][2]['search']         = $form['row'][0]['search'];
+
+// Register custom panel
+register_html_panel(generate_form($panel_form));
+
+echo '<div class="hidden-xl">';
+print_form($form);
+echo '</div>';
+
+unset($form, $panel_form, $form_items);
+
   if (!isset($vars['view'])) { $vars['view'] = 'details'; }
   unset($navbar);
   $link_array = array('page' => 'routing',
@@ -96,6 +200,7 @@ if ($_SESSION['userlevel'] < '5')
   $navbar['class'] = "navbar-narrow";
   $navbar['brand'] = "BGP";
   print_navbar($navbar);
+  unset($navbar);
 
   // Pagination
   $vars['pagination'] = TRUE;

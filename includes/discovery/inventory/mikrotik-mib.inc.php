@@ -11,9 +11,7 @@
  *
  */
 
-echo("MIKROTIK-MIB ");
-
-$mtxrSerialNumber = snmp_get($device, 'mtxrSerialNumber.0', '-Oqvn', 'MIKROTIK-MIB', mib_dirs('mikrotik'));
+$mtxrSerialNumber = snmp_get($device, 'mtxrSerialNumber.0', '-Oqvn', 'MIKROTIK-MIB');
 
 $system_index = 1;
 if ($mtxrSerialNumber)
@@ -33,7 +31,5 @@ if ($mtxrSerialNumber)
 
   if (OBS_DEBUG > 1 && count($inventory)) { print_vars($inventory); }
 }
-
-echo(PHP_EOL);
 
 // EOF

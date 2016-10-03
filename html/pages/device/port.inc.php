@@ -17,7 +17,7 @@ if ($permit_tabs['ports'])
 {
   $sql  = "SELECT *, `ports`.`port_id` AS `port_id`";
   $sql .= " FROM  `ports`";
-  $sql .= " LEFT JOIN  `ports-state` ON  `ports`.port_id = `ports-state`.port_id";
+  //$sql .= " LEFT JOIN  `ports-state` USING(`port_id`)";
   $sql .= " WHERE `ports`.`port_id` = ?";
 
   $port = dbFetchRow($sql, array($vars['port']));

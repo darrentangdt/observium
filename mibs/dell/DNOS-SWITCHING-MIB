@@ -26,16 +26,22 @@ IMPORTS
                                         FROM Q-BRIDGE-MIB
     IANAifType                          FROM IANAifType-MIB
     ifIndex, InterfaceIndex             FROM IF-MIB
-    InetAddressType, InetAddress        FROM INET-ADDRESS-MIB;
+    InetAddressType, InetAddress        FROM INET-ADDRESS-MIB
+    AgentLogSeverity                    FROM DNOS-LOGGING-MIB;
 
     fastPathSwitching MODULE-IDENTITY
-        LAST-UPDATED "201110170000Z" -- 17 Oct 2011 12:00:00 GMT
+        LAST-UPDATED "201404090000Z" -- 09 Apr 2014 12:00:00 GMT
         ORGANIZATION "Dell, Inc."
         CONTACT-INFO ""
         DESCRIPTION
           "The Dell Networking Private MIB for Switching"
 
         -- Revision history.
+        REVISION
+          "201404090000Z" -- 09 Apr 2014 12:00:00 GMT
+        DESCRIPTION
+          "Added group agentDynamicAuthorizationGroup to the agentConfigGroup to support
+           Dynamic Authorization."		
         REVISION
           "201110170000Z" -- 17 Oct 2011 12:00:00 GMT
         DESCRIPTION
@@ -533,6 +539,12 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
               DisplayString,
           agentSwitchCpuProcessPercentageUtilization
               DisplayString,
+          agentSwitchCpuProcessPercentageUtilizationFive
+              Gauge32,
+          agentSwitchCpuProcessPercentageUtilizationSixty
+              Gauge32,
+          agentSwitchCpuProcessPercentageUtilizationThreeHundred
+              Gauge32,
           agentSwitchCpuProcessId
               DisplayString
           }
@@ -556,11 +568,38 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
     agentSwitchCpuProcessPercentageUtilization OBJECT-TYPE
          SYNTAX      DisplayString
          MAX-ACCESS  read-only
-         STATUS      current
+         STATUS      obsolete
          DESCRIPTION
                      "CPU utilization per task in Percentage over a period of 5, 60, 300 seconds,
                      and the Rising threshold period also in seconds, if configured."
          ::= { agentSwitchCpuProcessEntry 3 }
+
+    agentSwitchCpuProcessPercentageUtilizationFive OBJECT-TYPE
+         SYNTAX      Gauge32(0..100)
+         UNITS       "percent"
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+                     "CPU utilization per task in percentage over a period of 5 seconds."
+         ::= { agentSwitchCpuProcessEntry 4 }
+
+    agentSwitchCpuProcessPercentageUtilizationSixty OBJECT-TYPE
+         SYNTAX      Gauge32(0..100)
+         UNITS       "percent"
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+                     "CPU utilization per task in percentage over a period of 60 seconds."
+         ::= { agentSwitchCpuProcessEntry 5 }
+
+    agentSwitchCpuProcessPercentageUtilizationThreeHundred OBJECT-TYPE
+         SYNTAX      Gauge32(0..100)
+         UNITS       "percent"
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+                     "CPU utilization per task in percentage over a period of 300 seconds."
+         ::= { agentSwitchCpuProcessEntry 6 }
 
     agentSwitchCpuProcessId OBJECT-TYPE
          SYNTAX      DisplayString
@@ -568,7 +607,7 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
          STATUS      current
          DESCRIPTION
                      "Process ID"
-         ::= { agentSwitchCpuProcessEntry 4 }
+         ::= { agentSwitchCpuProcessEntry 7 }
 
 
    --**************************************************************************************
@@ -577,11 +616,47 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
     agentSwitchCpuProcessTotalUtilization OBJECT-TYPE
          SYNTAX      DisplayString
          MAX-ACCESS  read-only
-         STATUS      current
+         STATUS      obsolete
          DESCRIPTION
                     "Total CPU utilization over a period of 5, 60, 300 seconds,
                     and the Rising threshold period also in seconds, if configured."
          ::= { agentSwitchCpuProcessGroup 9 }
+
+   --**************************************************************************************
+   -- agentSwitchCpuProcessTotalUtilizationFive
+
+    agentSwitchCpuProcessTotalUtilizationFive OBJECT-TYPE
+         SYNTAX      Gauge32(0..100)
+         UNITS       "percent"
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+                    "Total CPU utilization over a period of 5 seconds."
+         ::= { agentSwitchCpuProcessGroup 10 }
+
+   --**************************************************************************************
+   -- agentSwitchCpuProcessTotalUtilizationSixty
+
+    agentSwitchCpuProcessTotalUtilizationSixty OBJECT-TYPE
+         SYNTAX      Gauge32(0..100)
+         UNITS       "percent"
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+                    "Total CPU utilization over a period of 60 seconds."
+         ::= { agentSwitchCpuProcessGroup 11 }
+
+   --**************************************************************************************
+   -- agentSwitchCpuProcessTotalUtilizationThreeHundred
+
+    agentSwitchCpuProcessTotalUtilizationThreeHundred OBJECT-TYPE
+         SYNTAX      Gauge32(0..100)
+         UNITS       "percent"
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+                    "Total CPU utilization over a period of 300 seconds."
+         ::= { agentSwitchCpuProcessGroup 12 }
 
 --**********************************************************
    -- agentSwitchCpuCosQDropGroup
@@ -650,6 +725,13 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
     --
     --**********************************************************
 
+    agentSwitchMbufsTotal OBJECT-TYPE
+         SYNTAX      Counter32
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+                     "Total number of message buffers in the system."
+         ::= { agentSwitchMbufGroup 3 }
 
    agentSwitchMbufsFree OBJECT-TYPE
          SYNTAX      Gauge32
@@ -659,6 +741,13 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
                      "Number of message buffers currently available."
          ::= { agentSwitchMbufGroup 1 }
 
+    agentSwitchMbufsUsed OBJECT-TYPE
+         SYNTAX      Counter32
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+                     "Number of message buffers currently in use."
+         ::= { agentSwitchMbufGroup 4 }
    agentSwitchMbufTable OBJECT-TYPE
       SYNTAX     SEQUENCE OF AgentSwitchMbufEntry
       MAX-ACCESS not-accessible
@@ -2456,6 +2545,27 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
                      leaves Broadcast Storm Recovery.
                      "
          ::= { agentSnmpTrapFlagsConfigGroup 5 }
+
+    agentSnmpCpuTresholdTrapFlag OBJECT-TYPE
+         SYNTAX      INTEGER {
+                     enable(1),
+                     disable(2)
+                  }
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION "Enables sending of a trap on the CPU occupancy exceeding the rising threshold."
+         ::= { agentSnmpTrapFlagsConfigGroup 6 }
+
+    agentSnmpBuffersTrapFlag OBJECT-TYPE
+         SYNTAX      INTEGER {
+                     enable(1),
+                     disable(2)
+                  }
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION "Enables sending of a trap on the internal message buffer count 
+                      exceeding the rising threshold."
+         ::= { agentSnmpTrapFlagsConfigGroup 7 }
 
     --**************************************************************************************
     -- agentSpanningTreeConfigGroup
@@ -4301,13 +4411,14 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
                      zmodem(4),
                      sftp(5),
                      scp(6),
-                     usb(7)
+                     usb(7),
+                     ftp(8)
                   }
          MAX-ACCESS  read-write
          STATUS      current
          DESCRIPTION
                      "Transfer upload mode configures the mode to use when uploading from the
-                     switch. The mode is either X/Y/ZMODEM, TFTP, SFTP or SCP. X/Y/ZMODEM is
+                     switch. The mode is either X/Y/ZMODEM, TFTP, SFTP, FTP or SCP. X/Y/ZMODEM is
                      valid only when the file transfer is initiated by the serial EIA 232 port.
                      on the Linux platform.
                      SFTP and SCP are only allowed if the SSH feature is present.
@@ -4357,7 +4468,7 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
     agentTransferUploadDataType OBJECT-TYPE
          SYNTAX      INTEGER {
                       code(2),
-                      config(3),
+                      config-script(3),
                       operationallog(4),
                       startuplog(5)
                   }
@@ -4430,7 +4541,7 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
          DESCRIPTION
                      "Transfer upload tftpserverip configures the IP address of the server
                      where the file is to be uploaded to.It is valid only when the
-                     Transfer Mode is TFTP, SFTP or SCP.
+                     Transfer Mode is TFTP, SFTP, FTP or SCP.
                      The type of this address is determined by the value of the
                      agentTransferUploadServerAddressType object.
                      The values for agentTransferUploadServerAddressType and
@@ -4451,7 +4562,7 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
                       name. Imagename cannot be set to unknown(1) option. When no name is set
                       this object returns unknown(1) by default.
                      Note: Imagename, File Name, File Path, and Server IP Address are applicable
-                     only if the Transfer Mode is TFTP, SFTP or SCP."
+                     only if the Transfer Mode is TFTP, SFTP, FTP or SCP."
 
          ::= { agentTransferUploadGroup 10 }
 
@@ -4460,7 +4571,7 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
          MAX-ACCESS  read-write
          STATUS      current
          DESCRIPTION
-                     "Username applicable only to secure upload types, i.e., SFTP or SCP.
+                     "Username applicable only to secure upload types, i.e., SFTP, FTP or SCP.
                      "
 
          ::= { agentTransferUploadGroup 11 }
@@ -4470,7 +4581,7 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
          MAX-ACCESS  read-write
          STATUS      current
          DESCRIPTION
-                     "Password applicable only to secure upload types, i.e. SFTP or SCP.
+                     "Password applicable only to secure upload types, i.e. SFTP, FTP or SCP.
                      "
 
          ::= { agentTransferUploadGroup 12 }
@@ -4483,7 +4594,7 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
                      "Transfer upload remote filename configures the file name for the file being
                      created remotely. It can be up to 32 alphanumeric characters.
                      Note: File Name, File Path, and Server IP Address are applicable
-                     only if the Transfer Mode is TFTP, SFTP or SCP."
+                     only if the Transfer Mode is TFTP, SFTP, FTP or SCP."
          ::= { agentTransferUploadGroup 13 }
 
     --**************************************************************************************
@@ -4501,13 +4612,14 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
                      zmodem(4),
                      sftp(5),
                      scp(6),
-                     usb(7)
+                     usb(7),
+                     ftp(8)
                   }
          MAX-ACCESS  read-write
          STATUS      current
          DESCRIPTION
                      "Transfer download mode configures the mode to use when downloading
-                     to the switch. The mode is either X/Y/ZMODEM, TFTP, SFTP or SCP. X/Y/ZMODEM is valid only
+                     to the switch. The mode is either X/Y/ZMODEM, TFTP, SFTP, FTP or SCP. X/Y/ZMODEM is valid only
                      when the file transfer is initiated by the serial EIA 232 port. Y/ZMODEM is
                      valid only on the Linux platform.
                      SFTP and SCP are only allowed if the SSH feature is present.
@@ -4554,7 +4666,7 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
                      File Name will be appended to the File Path as is. An example would be
                      File Path set to c:\tftp\code\ and File Name set to e1r1v1.opr.
                      Note: Imagename, File Name, File Path, and TFTP Server IP Address are applicable
-                     only if the Transfer Mode is TFTP, SFTP or SCP and the object agentTransferDownloadDataType
+                     only if the Transfer Mode is TFTP, SFTP, FTP or SCP and the object agentTransferDownloadDataType
                      download type is not set to code."
 
          ::= { agentTransferDownloadGroup 4 }
@@ -4562,7 +4674,7 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
     agentTransferDownloadDataType OBJECT-TYPE
          SYNTAX      INTEGER {
                      code(2),
-                     config(3),
+                     config-script(3),
                      sshkey-rsa1(4),
                      sshkey-rsa2(5),
                      sshkey-dsa(6),
@@ -4570,8 +4682,7 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
                      sslpem-server(8),
                      sslpem-dhweak(9),
                      sslpem-dhstrong(10),
-                     clibanner(11),
-                     kernel(12)
+                     ias-users(11)
                      }
          MAX-ACCESS  read-write
          STATUS      current
@@ -4581,7 +4692,7 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
                      The types for download are:
 
                      code               - Code File
-                     config             - Configuration File
+                     config-script      - Configuration File
                      sshkey-rsa1        - SSH-1 RSA Key File
                      sshkey-rsa2        - SSH-2 RSA Key PEM File
                      sshkey-dsa         - SSH-2 DSA Key PEM File
@@ -4589,9 +4700,8 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
                      sslpem-server      - SSL Server Certificate PEM File
                      sslpem-dhweak      - SSL DH Weak Encryption Parameter PEM File
                      sslpem-dhstrong    - SSL DH Strong Encryption Parameter PEM File
-                     cli-banner         - CLI Banner File
-                     kernel             - Kernel File
-
+                     ias-users          - IAS user file
+ 
                      Note: SSH Key files can only be downloaded if SSH Server is administratively
                      disabled, and there are no active SSH sessions.
                      Kernel file can be downloaded only on raptor platform and linux operating system.
@@ -4654,7 +4764,7 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
          DESCRIPTION
                      "Transfer download tftpserverip configures the IP address of the server
                      where the file is to be downloaded from.It is valid only when the
-                     Transfer Mode is TFTP, SFTP, or SCP.
+                     Transfer Mode is TFTP, SFTP, FTP or SCP.
                      The type of this address is determined by the value of the
                      agentTransferDownloadServerAddressType object.
                      The values for agentTransferDownloadServerAddressType and
@@ -4675,7 +4785,7 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
                       name. Imagename cannot be set to unknown(1) option. When no name is set
                       this object returns unknown(1) by default.
                      Note: Imagename, File Name, File Path, and Server IP Address are applicable
-                     only if the Transfer Mode is TFTP, SFTP or SCP."
+                     only if the Transfer Mode is TFTP, SFTP, FTP or SCP."
 
          ::= { agentTransferDownloadGroup 10 }
 
@@ -4684,7 +4794,7 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
          MAX-ACCESS  read-write
          STATUS      current
          DESCRIPTION
-                     "Username applicable only to secure download types, i.e., SFTP or SCP.
+                     "Username applicable only to secure download types, i.e., SFTP, FTP or SCP.
                      "
 
          ::= { agentTransferDownloadGroup 11 }
@@ -4694,7 +4804,7 @@ agentInfoGroup                             OBJECT IDENTIFIER ::= { fastPathSwitc
          MAX-ACCESS  read-write
          STATUS      current
          DESCRIPTION
-                     "Password applicable only to secure download types, i.e. SFTP or SCP.
+                     "Password applicable only to secure download types, i.e. SFTP, FTP or SCP.
                      "
 
          ::= { agentTransferDownloadGroup 12 }
@@ -5007,10 +5117,59 @@ agentPortMirrorTypeTable OBJECT-TYPE
     agentPortMirrorRemoteVlan OBJECT-TYPE
          SYNTAX      Unsigned32
          MAX-ACCESS  read-write
-         STATUS      current
+         STATUS      obsolete
          DESCRIPTION
                      "The VLAN configured as RSPAN VLAN."
          ::= { agentPortMirroringGroup 6 }
+
+    --**************************************************************************************
+    --    agentPortMirrorRemoteVlanTable
+    --**************************************************************************************
+
+    agentPortMirrorRemoteVlanTable OBJECT-TYPE
+         SYNTAX      SEQUENCE OF AgentPortMirrorRemoteVlanEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+                     "A table of the RSPAN VLAN config entries"
+         ::= { agentPortMirroringGroup 7 }
+
+    agentPortMirrorRemoteVlanEntry OBJECT-TYPE
+         SYNTAX      AgentPortMirrorRemoteVlanEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+                     "RSPAN VLAN config entry"
+         INDEX       {agentPortMirrorRemoteVlanIndex }
+         ::= { agentPortMirrorRemoteVlanTable 1 }
+
+    AgentPortMirrorRemoteVlanEntry ::= SEQUENCE {
+          agentPortMirrorRemoteVlanIndex
+              VlanIndex,
+          agentPortMirrorRemoteVlanRowStatus
+              RowStatus
+          }
+
+    agentPortMirrorRemoteVlanIndex OBJECT-TYPE
+         SYNTAX  VlanIndex
+         MAX-ACCESS  read-create
+         STATUS  current
+         DESCRIPTION
+                 "The VLAN which is configured as a remote-span VLAN."
+         ::= { agentPortMirrorRemoteVlanEntry 1 }
+
+    agentPortMirrorRemoteVlanRowStatus OBJECT-TYPE
+         SYNTAX  RowStatus
+         MAX-ACCESS  read-create
+         STATUS  current
+         DESCRIPTION
+                 "The status of this entry.
+
+                 active(1)        - the VLAN is configured as a remote-span VLAN
+                 createAndGo(4)   - add the VLAN as a remote-span VLAN
+                 destroy(6)       - remove the VLAN from the list of Remote-span VLAN.
+                                  RSPAN VLAN cannot be removed or changed while it is used with a Monitor session."
+         ::= { agentPortMirrorRemoteVlanEntry 2 }
 
     --**************************************************************************************
     -- agentDot3adAggPortTable
@@ -8128,8 +8287,237 @@ agentPortMirrorTypeTable OBJECT-TYPE
                       this list is specified."
 
          ::= { agentExecAuthorizationListEntry 7 }
+   --**********************************************************
+   -- agentSwitchMbufConfigGroup
+   --**********************************************************
+
+    agentSwitchMbufConfigGroup                 OBJECT IDENTIFIER ::= { agentConfigGroup 29 }
+
+    --**********************************************************
+    --agentSwitchMbufConfigGroup 
+    --Allows user to configure rising threshold, falling threshold
+    --and LOG notification severity.
+    --**********************************************************
+
+    agentSwitchMbufRisingThreshold OBJECT-TYPE
+      SYNTAX        Unsigned32(0..100)
+      MAX-ACCESS    read-write
+      STATUS        current
+      DESCRIPTION
+                    "The Mbuf utilization rising threshold in percentage.
+                    A single notification (rising event) is generated when
+                    the total Mbuf utilization exceeds this threshold.
+
+                    After a rising event is generated, another such event
+                    will not be generated until the total Mbuf utilization
+                    falls below the agentSwitchMbufFallingThreshold and then
+                    exceeds the agentSwitchMbufRisingThreshold."
+      ::= { agentSwitchMbufConfigGroup 1 }
 
 
+    agentSwitchMbufFallingThreshold OBJECT-TYPE
+      SYNTAX        Unsigned32(0..100)
+      MAX-ACCESS    read-write
+      STATUS        current
+      DESCRIPTION
+                    "The Mbuf utilization falling threshold in percentage. 
+                    A single notification (falling event) is generated when 
+                    the total Mbuf utilization falls below this threshold.
+
+                    After a falling event is generated, another such event
+                    will not be generated until the total Mbuf utilization
+                    exceeds the agentSwitchMbufRisingThreshold and then falls
+                    below the agentSwitchMbufFallingThreshold."
+      ::= { agentSwitchMbufConfigGroup 2 }
+
+    agentSwitchMbufNotificationSeverity OBJECT-TYPE
+      SYNTAX        AgentLogSeverity
+      MAX-ACCESS    read-write
+      STATUS        current
+      DESCRIPTION
+                    "Severity level while notification is generated for rising
+                     and falling threshold."
+      ::= { agentSwitchMbufConfigGroup 3 }
+
+    --**************************************************************************************
+    -- agentDynamicAuthorizationGroup
+    --
+    --**************************************************************************************
+
+    agentDynamicAuthorizationGroup                 OBJECT IDENTIFIER ::= { agentConfigGroup 30 }
+
+    agentDynamicAuthorizationMode OBJECT-TYPE
+        SYNTAX      INTEGER {
+                    enable(1),
+                    disable(2)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+                    "Configures the Dynamic Authorization mode which must be 
+                     enabled to support CoA functionality."
+        ::= { agentDynamicAuthorizationGroup 1 }
+		  
+    agentDynamicAuthorizationServerKey OBJECT-TYPE
+        SYNTAX      DisplayString
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+                    "Configures a global shared secret that is used for all
+                     dynamic authorization clients that do not have an 
+                     individual shared secret key configured.
+                     If agentDynamicAuthorizationEncryptServerKey is
+                     set to true, then the length of this string has to be 
+                     exactly 256 else it can be 1-128."
+        ::= { agentDynamicAuthorizationGroup 2 }
+		
+    agentDynamicAuthorizationEncryptServerKey OBJECT-TYPE
+        SYNTAX      INTEGER {
+                    true(1),
+                    false(2)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+                    "Specifies whether the global shared secret configured
+                     is to be encrypted or not. Set this in conjnction with 
+                     agentDynamicAuthorizationServerKey."
+        ::= { agentDynamicAuthorizationGroup 3 }
+
+    agentDynamicAuthorizationPortNum OBJECT-TYPE		
+        SYNTAX      Integer32 (1025..65535)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+                    "Configures UDP port on which a device listens for 
+                     RADIUS requests from configured RADIUS clients.
+                     The default port number is 3799.
+                     The supported range for the port-number is 1025 to 65535."
+        DEFVAL { 3799 }
+        ::= { agentDynamicAuthorizationGroup 4 }
+		
+    agentDynamicAuthorizationType OBJECT-TYPE
+        SYNTAX      INTEGER {
+                    any(1),
+                    all(2),
+                    session-key(3)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+                    "Configures the type of authorization that the device
+                     must use for RADIUS clients. The client must match 
+                     the configured attributes for authorization."
+        DEFVAL { all }
+        ::= { agentDynamicAuthorizationGroup 5 }
+
+    agentDynamicAuthorizationIgnoreSessionKey OBJECT-TYPE
+        SYNTAX      INTEGER {
+                    true(1),
+                    false(2)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+                    "Specifies whether the session-key is to be ignored or not."
+        ::= { agentDynamicAuthorizationGroup 6 }
+
+    agentDynamicAuthorizationIgnoreServerKey OBJECT-TYPE
+        SYNTAX      INTEGER {
+                    true(1),
+                    false(2)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+                    "Specifies whether the server-key is to be ignored or not."
+        ::= { agentDynamicAuthorizationGroup 7 }
+		
+    agentDynamicAuthorizationClientTable OBJECT-TYPE
+         SYNTAX      SEQUENCE OF AgentDynamicAuthorizationClientEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+                     "A table of the Dynamic Authorization Client entries"
+         ::= { agentDynamicAuthorizationGroup 8 }
+
+    agentDynamicAuthorizationClientEntry OBJECT-TYPE
+         SYNTAX      AgentDynamicAuthorizationClientEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+                     "Represents entry for a set of Dynamic Authorization Clients"
+         INDEX       { agentDynamicAuthorizationClientAddress }
+         ::= { agentDynamicAuthorizationClientTable 1 }
+
+    AgentDynamicAuthorizationClientEntry ::= SEQUENCE {
+          agentDynamicAuthorizationClientAddress
+              DisplayString,
+          agentDynamicAuthorizationClientServerKey
+              DisplayString,
+          agentDynamicAuthorizationClientEncryptServerKey
+              INTEGER,
+          agentDynamicAuthorizationClientRowStatus
+              RowStatus
+          }
+		  
+    agentDynamicAuthorizationClientAddress OBJECT-TYPE
+         SYNTAX      DisplayString
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+                     "Configures a Dynamic Authorization Client IP Address or Hostname."
+         ::= { agentDynamicAuthorizationClientEntry 1 }
+
+    agentDynamicAuthorizationClientServerKey OBJECT-TYPE
+         SYNTAX      DisplayString
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+                     "Configures a Dynamic Authorization Client Server Key.
+                      If agentDynamicAuthorizationClientEncryptServerKey is
+                      set to true, then the length of this string has to be 
+                      exactly 256 else it can be 1-128."
+         ::= { agentDynamicAuthorizationClientEntry 2 }
+		 
+    agentDynamicAuthorizationClientEncryptServerKey OBJECT-TYPE
+        SYNTAX       INTEGER {
+                     true(1),
+                     false(2)
+                     }
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+                     "Specifies whether the client server-key configured
+                      is to be encrypted or not.Set this in conjunction with
+                      agentDynamicAuthorizationClientServerKey."
+         ::= { agentDynamicAuthorizationClientEntry 3 }
+
+    agentDynamicAuthorizationClientRowStatus OBJECT-TYPE
+         SYNTAX      RowStatus
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+                     "The status of this conceptual row.
+
+                     active(1)      - this client is active
+                     createAndGo(4) - set to this value to create an instance
+                     destroy(6)     - set to this value to delete an instance"
+         ::= { agentDynamicAuthorizationClientEntry 4 }
+
+
+    agentDynamicAuthorizationStatsClear OBJECT-TYPE
+         SYNTAX      INTEGER {
+                     enable(1),
+                     disable(2)
+                     }
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+                     "When set to enable(1), all dynamic authorization statistics will be reset."
+         DEFVAL { disable }
+         ::= { agentDynamicAuthorizationGroup 9 }
+		 
 --**************************************************************************************
 --    agentSystemGroup
 --**************************************************************************************
@@ -9674,6 +10062,34 @@ agentCableTesterGroup               OBJECT IDENTIFIER ::= { fastPathSwitching 4 
         ::= { fastPathSwitchingTraps 26 }
 
 
+    
+    agentSwitchMbufRisingThresholdTrap NOTIFICATION-TYPE
+        OBJECTS {
+                    agentSwitchMbufRisingThreshold,
+                    agentSwitchMbufsTotal,
+                    agentSwitchMbufsUsed,
+                    agentSwitchMbufsFree 
+                }
+        STATUS      current
+        DESCRIPTION
+                    "Trap is sent when the Mbuf utilization exceeds rising
+                    utilization threshold."
+        ::= { fastPathSwitchingTraps 27 }
+
+    agentSwitchMbufFallingThresholdTrap NOTIFICATION-TYPE
+        OBJECTS {
+                    agentSwitchMbufFallingThreshold,
+                    agentSwitchMbufsTotal,
+                    agentSwitchMbufsUsed,
+                    agentSwitchMbufsFree
+                }
+        STATUS      current
+        DESCRIPTION
+                    "Trap is sent when the Mbuf utilization falls below falling
+                    utilization threshold."
+        ::= { fastPathSwitchingTraps 28 }
+
+
 --*****************************************************************************************
 --    sdmTemplate
 --
@@ -10267,6 +10683,211 @@ agentCableTesterGroup               OBJECT IDENTIFIER ::= { fastPathSwitching 4 
         "This object indicates the number of DHCP client messages received without Option-82 field
          on the trusted interface."
     ::= { agentDhcpL2RelayStatsEntry  4 }
+  --**************************************************************************************
+    --    agentPvrstpSwitchConfigGroup
+    --**************************************************************************************
+
+    agentPvrstpSwitchConfigGroup                     OBJECT IDENTIFIER ::= { agentStpSwitchConfigGroup 15 }
+
+    agentPvstpAdminMode OBJECT-TYPE
+         SYNTAX      INTEGER {
+                     enable(1),
+                     disable(2)
+                     }
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+                     "The per VLAN spanning tree operational status.
+
+                     enable(1)  - enables PVSTP on the switch.
+                     disable(2) - disables PVSTP on the switch.
+
+                     The default status is disabled."
+         ::= { agentPvrstpSwitchConfigGroup 1 }
+
+
+    agentPvrstpAdminMode OBJECT-TYPE
+         SYNTAX      INTEGER {
+                     enable(1),
+                     disable(2)
+                     }
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+                     "The per VLAN rapid spanning tree operational status.
+
+                     enable(1)  - enables PVRSTP on the switch.
+                     disable(2) - disables PVRSTP on the switch.
+
+                     The default status is disabled."
+         ::= { agentPvrstpSwitchConfigGroup 2 }
+      agentPvrstpUplinkFast OBJECT-TYPE
+         SYNTAX      INTEGER {
+                     enable(1),
+                     disable(2)
+                     }
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+                     "Enables or disabled uplink fast feature when switch is in PVST mode.
+
+                     enable(1)  - enables UPLINK FAST  on the switch.
+                     disable(2) - disables UPLINK FAST  on the switch.
+
+                     The default status is disabled."
+         ::= { agentPvrstpSwitchConfigGroup 3 }
+
+   agentPvrstpBackboneFast OBJECT-TYPE
+         SYNTAX      INTEGER {
+                     enable(1),
+                     disable(2)
+                     }
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+                     "Enables or disabled backbone fast feature when switch is in PVST mode.
+
+                     enable(1)  - enables BACKBONE FAST on the switch.
+                     disable(2) - disables BACKBONE FAST on the switch.
+
+                     The default status is disabled."
+         ::= { agentPvrstpSwitchConfigGroup 4 }
+
+    -- **************************************************************************************
+    -- agentPvrstpVlanTable
+    --
+    --**************************************************************************************
+
+    agentPvrstpVlanTable OBJECT-TYPE
+        SYNTAX         SEQUENCE OF AgentPvrstpVlanEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "PVRSTP table containing PVRSTP per vlan entries."
+        ::= { agentPvrstpSwitchConfigGroup 5 }
+
+    agentPvrstpVlanEntry OBJECT-TYPE
+        SYNTAX         AgentPvrstpVlanEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "PVRSTP vlan entry attributes."
+        INDEX          { agentPvrstpVlanTableIndex }
+        ::= { agentPvrstpVlanTable 1 }
+
+    AgentPvrstpVlanEntry ::=
+        SEQUENCE {
+         agentPvrstpVlanTableIndex
+                 VlanId,
+         agentPvrstpVlanRootPriSec
+                 INTEGER,
+         agentPvrstpVlanHelloTime
+                 INTEGER,
+         agentPvrstpVlanFwdDelayTime
+                 INTEGER,
+         agentPvrstpVlanMaxAgeTime
+                 INTEGER
+    }
+
+    agentPvrstpVlanTableIndex OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Index to PVRSTP vlan entry in PVRSTP vlan table."
+        ::= { agentPvrstpVlanEntry 1 }
+
+    agentPvrstpVlanRootPriSec OBJECT-TYPE
+        SYNTAX      INTEGER {
+                    primary(1),
+                    secondary(2)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The PVRSTP primary or secondary root for the VLAN instance."
+        ::= { agentPvrstpVlanEntry 2 }
+
+    agentPvrstpVlanHelloTime OBJECT-TYPE
+        SYNTAX      INTEGER (1..10)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The PVRSTP hello time for the VLAN instance."
+        ::= { agentPvrstpVlanEntry 3 }
+
+    agentPvrstpVlanFwdDelayTime OBJECT-TYPE
+         SYNTAX      INTEGER (4..30)
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+                     "The PVRSTP forward delay for the VLAN instance."
+         ::= { agentPvrstpVlanEntry 4 }
+
+    agentPvrstpVlanMaxAgeTime OBJECT-TYPE
+         SYNTAX      INTEGER (6..40)
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+                     "The PVRSTP max age for the VLAN instance."
+         ::= { agentPvrstpVlanEntry 5 }
+
+    -- **************************************************************************************
+    -- agentPvrstpPortVlanTable
+    --
+    --**************************************************************************************
+
+    agentPvrstpPortVlanTable OBJECT-TYPE
+        SYNTAX         SEQUENCE OF AgentPvrstpPortVlanEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "PVRSTP table containing PVRSTP per port per vlan entries."
+        ::= { agentPvrstpSwitchConfigGroup 6 }
+
+    agentPvrstpPortVlanEntry OBJECT-TYPE
+        SYNTAX         AgentPvrstpPortVlanEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "PVRSTP port entry per vlan attributes."
+        INDEX          { agentPvrstpPortIndex,
+                         agentPvrstpVlanIndex
+                       }
+        ::= { agentPvrstpPortVlanTable 1 }
+
+    AgentPvrstpPortVlanEntry ::=
+        SEQUENCE {
+         agentPvrstpPortIndex
+                 Unsigned32,
+         agentPvrstpVlanIndex
+                 Unsigned32,
+         agentPvrstpPortVlanPriority
+                 Unsigned32
+         }
+     agentPvrstpPortIndex OBJECT-TYPE
+        SYNTAX      Unsigned32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Port index to PVRSTP port entry in PVRSTP port vlan table."
+        ::= { agentPvrstpPortVlanEntry 1 }
+
+    agentPvrstpVlanIndex OBJECT-TYPE
+        SYNTAX      Unsigned32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Vlan index to PVRSTP port entry in PVRSTP port vlan table."
+        ::= { agentPvrstpPortVlanEntry 2 }
+
+    agentPvrstpPortVlanPriority OBJECT-TYPE
+        SYNTAX      Unsigned32 (0..240)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "PVRSTP port vlan priority is in the range of 0 to 240."
+        ::= { agentPvrstpPortVlanEntry 3 }
 
 --**************************************************************************************
     agentDhcpv6SnoopingConfigGroup     OBJECT IDENTIFIER ::= { agentSwitchConfigGroup 33 }

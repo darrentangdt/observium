@@ -11,28 +11,24 @@
  *
  */
 
-$scale_min = "0";
 
-include_once($config['html_dir']."/includes/graphs/common.inc.php");
+$ds = "sensor";
 
-$rrd_options .= " -A ";
-$rrd_options .= " COMMENT:'                           Last    Max\\n'";
+$line_text = rrdtool_escape($sensor['sensor_descr'],8);
 
-$rrd_options .= " DEF:sensor=$rrd_filename:sensor:AVERAGE";
-$rrd_options .= " DEF:sensor_max=$rrd_filename:sensor:MAX";
-$rrd_options .= " DEF:sensor_min=$rrd_filename:sensor:MIN";
+$colour_line = "cc0000";
+$colour_area = "FFBBBB";
+$colour_minmax = "c5c5c5";
 
-$rrd_options .= " AREA:sensor_max#c5c5c5";
-$rrd_options .= " AREA:sensor_min#ffffffff";
+$graph_max = 1;
+$unit_text = "Watts";
+$print_min = 1;
 
-#$rrd_options .= " AREA:sensor#FFFF99";
-$rrd_options .= " LINE1.5:sensor#cc0000:'" . rrdtool_escape($sensor['sensor_descr'],22)."'";
-$rrd_options .= " GPRINT:sensor:LAST:%6.2lfW";
-$rrd_options .= " GPRINT:sensor:MAX:%6.2lfW\\\\l";
+include($config['html_dir']."/includes/graphs/generic_simplex.inc.php");
 
-if (is_numeric($sensor['sensor_limit'])) $rrd_options .= " HRULE:".$sensor['sensor_limit']."#999999::dashes";
-if (is_numeric($sensor['sensor_limit_low'])) $rrd_options .= " HRULE:".$sensor['sensor_limit_low']."#999999::dashes";
+//if (is_numeric($sensor['sensor_limit'])) $rrd_options .= " HRULE:".$sensor['sensor_limit']."#999999::dashes";
+//if (is_numeric($sensor['sensor_limit_low'])) $rrd_options .= " HRULE:".$sensor['sensor_limit_low']."#999999::dashes";
 
-$graph_return = array('rrds' => array($rrd_filename), 'descr' => 'Power sensor measured in watts.', 'valid_options');
+$graph_return['descr'] = 'Power sensor measured in watts.';
 
 // EOF

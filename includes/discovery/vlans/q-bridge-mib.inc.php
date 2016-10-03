@@ -12,21 +12,19 @@
  *
  */
 
-echo(" Q-BRIDGE-MIB ");
-
-$vtpdomain_id = "1";
-//$q_bridge_index = snmpwalk_cache_oid($device, "dot1qPortVlanTable", array(), "Q-BRIDGE-MIB");
-$vlans = snmpwalk_cache_oid($device, "dot1qVlanStaticTable", array(), "Q-BRIDGE-MIB", mib_dirs(), OBS_SNMP_ALL | OBS_QUOTES_STRIP | OBS_SNMP_CONCAT);
+$vtpdomain_id = '1';
+//$q_bridge_index = snmpwalk_cache_oid($device, 'dot1qPortVlanTable', array(), 'Q-BRIDGE-MIB');
+$vlans = snmpwalk_cache_oid($device, 'dot1qVlanStaticTable', array(), 'Q-BRIDGE-MIB', NULL, OBS_SNMP_ALL | OBS_QUOTES_STRIP | OBS_SNMP_CONCAT);
 if ($vlans)
 {
-  $vlan_ifindex_map = snmpwalk_cache_oid($device, "dot1dBasePortIfIndex", array(), "Q-BRIDGE-MIB", mib_dirs());
+  $vlan_ifindex_map = snmpwalk_cache_oid($device, 'dot1dBasePortIfIndex', array(), 'Q-BRIDGE-MIB');
   $vlan_ifindex_min = $vlan_ifindex_map[key($vlan_ifindex_map)]['dot1dBasePortIfIndex'];
 }
 
 if (is_device_mib($device, 'JUNIPER-VLAN-MIB')) // Unsure if other Juniper platforms "affected"
 {
   // Fetch Juniper VLAN table for correct tag
-  $vlans = snmpwalk_cache_oid($device, "jnxExVlanTable", $vlans, "JUNIPER-VLAN-MIB");
+  $vlans = snmpwalk_cache_oid($device, 'jnxExVlanTable', $vlans, 'JUNIPER-VLAN-MIB');
 }
 
 foreach ($vlans as $vlan_id => $vlan)
@@ -62,7 +60,7 @@ foreach ($vlans as $vlan_id => $vlan)
   elseif (is_array($vlans_db[$vtpdomain_id][$vlan_id]))
   {
     $module_stats[$vlan_id]['V'] = '.';
-    //echo(".");
+    //echo('.');
   } else {
     dbInsert(array('device_id' => $device['device_id'], 'vlan_domain' => $vtpdomain_id, 'vlan_vlan' => $vlan_id, 'vlan_name' => $vlan['dot1qVlanStaticName'], 'vlan_type' => array('NULL')), 'vlans');
     $module_stats[$vlan_id]['V'] = '+';

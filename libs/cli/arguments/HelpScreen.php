@@ -105,10 +105,10 @@ class HelpScreen {
 		$out = array();
 
 		foreach ($options as $option => $settings) {
-			$names = array('-' . $option);
+			$names = array('--' . $option);
 
 			foreach ($settings['aliases'] as $alias) {
-				array_push($names, '--' . $alias);
+				array_push($names, '-' . $alias);
 			}
 
 			$names = join($names, ', ');

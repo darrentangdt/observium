@@ -11,11 +11,9 @@
  *
  */
 
-$mib = "ZHNSYSTEM";
-
-$hardware = snmp_get($device, 'modelNumber.0', '-Osqv', $mib, mib_dirs('zhone'));
-// $serial   = snmp_get($device, '', '-Osqv', $mib, mib_dirs('zhone'));
-$version = snmp_get($device, 'sysFirmwareVersion.0', '-Osqv', $mib, mib_dirs('zhone'));
-// $features = snmp_get($device, '', '-Osqv', $mib, mib_dirs('zhone'));
+$hardware = snmp_get($device, 'modelNumber.0', '-Osqv', 'ZHNSYSTEM');
+// $serial   = snmp_get($device, '', '-Osqv', 'ZHNSYSTEM');
+$version = snmp_get($device, 'sysFirmwareVersion.0', '-Osqv', 'ZHNSYSTEM');
+// $features = snmp_get($device, '', '-Osqv', 'ZHNSYSTEM');
 
 // EOF

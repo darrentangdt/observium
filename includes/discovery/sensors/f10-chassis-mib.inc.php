@@ -20,16 +20,12 @@
 #F10-CHASSIS-MIB::chSysCardUpperTemp.3 = Gauge32: 34
 #F10-CHASSIS-MIB::chSysCardUpperTemp.4 = Gauge32: 34
 
-echo(" F10-CHASSIS-MIB ");
-
-$sensor_state_type = 'f10-chassis-state';
-
 // Temperatures
-$oids = snmpwalk_cache_oid($device, "chSysCardUpperTemp", array(), "F10-CHASSIS-MIB", mib_dirs('force10'));
+$oids = snmpwalk_cache_oid($device, 'chSysCardUpperTemp', array(), 'F10-CHASSIS-MIB');
 
 foreach ($oids as $index => $entry)
 {
-  $descr = "Slot ".$index;
+  $descr = "Slot $index";
   $oid   = ".1.3.6.1.4.1.6027.3.1.1.2.3.1.8.$index";
   $value = $entry['chSysCardUpperTemp'];
 
@@ -37,14 +33,14 @@ foreach ($oids as $index => $entry)
 }
 
 // Supply
-$oids = snmpwalk_cache_oid($device, "chSysPowerSupplyOperStatus", array(), "F10-CHASSIS-MIB", mib_dirs('force10'));
+$oids = snmpwalk_cache_oid($device, 'chSysPowerSupplyOperStatus', array(), 'F10-CHASSIS-MIB');
 
 foreach ($oids as $index => $entry)
 {
-  $descr = "Power Supply ".$index;
+  $descr = "Power Supply $index";
   $oid   = ".1.3.6.1.4.1.6027.3.1.1.2.1.1.2.$index";
   $value = $entry['chSysPowerSupplyOperStatus'];
-  discover_sensor($valid['sensor'], 'state', $device, $oid, 'supply-'.$index, $sensor_state_type, $descr, NULL, $value, array('entPhysicalClass' => 'power'));
+  discover_sensor($valid['sensor'], 'state', $device, $oid, 'supply-'.$index, 'f10-chassis-state', $descr, NULL, $value, array('entPhysicalClass' => 'power'));
 }
 
 // EOF

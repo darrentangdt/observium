@@ -23,8 +23,8 @@ $ds_out = "writes";
 
 $nototal = 1;
 
-include("includes/graphs/device/diskio_common.inc.php");
+include($config['html_dir']."/includes/graphs/device/diskio_common.inc.php");
 
-include("includes/graphs/generic_multi_separated.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_separated.inc.php");
 
 // EOF

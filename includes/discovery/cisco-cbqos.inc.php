@@ -24,18 +24,18 @@ foreach ($cbq_db as $cbq) { $cbq_table[$cbq['policy_index']][$cbq['object_index'
 // Walk the first service policies OID and then see if it was populated before we continue
 
 $service_policies = array(); // This ends up being indexed by cbQosPolicyIndex
-$service_policies = snmpwalk_cache_oid($device, "cbQosIfType", $service_policies, "CISCO-CLASS-BASED-QOS-MIB", mib_dirs('cisco'));
+$service_policies = snmpwalk_cache_oid($device, "cbQosIfType", $service_policies, 'CISCO-CLASS-BASED-QOS-MIB');
 
 if (count($service_policies))
 {
 
   // Continue populating service policies
-  $service_policies = snmpwalk_cache_oid($device, "cbQosPolicyDirection", $service_policies, "CISCO-CLASS-BASED-QOS-MIB", mib_dirs('cisco'));
-  $service_policies = snmpwalk_cache_oid($device, "cbQosIfIndex", $service_policies, "CISCO-CLASS-BASED-QOS-MIB", mib_dirs('cisco'));
+  $service_policies = snmpwalk_cache_oid($device, "cbQosPolicyDirection", $service_policies, 'CISCO-CLASS-BASED-QOS-MIB');
+  $service_policies = snmpwalk_cache_oid($device, "cbQosIfIndex", $service_policies, 'CISCO-CLASS-BASED-QOS-MIB');
 
-  $policy_maps    = snmpwalk_cache_oid($device, "cbQosPolicyMapCfgEntry", array(), "CISCO-CLASS-BASED-QOS-MIB", mib_dirs('cisco'));
-  $class_maps     = snmpwalk_cache_oid($device, "cbQosCMCfgEntry", array(), "CISCO-CLASS-BASED-QOS-MIB", mib_dirs('cisco'));
-  $object_indexes = snmpwalk_cache_twopart_oid($device, "cbQosObjectsEntry", array(), "CISCO-CLASS-BASED-QOS-MIB", mib_dirs('cisco'));
+  $policy_maps    = snmpwalk_cache_oid($device, "cbQosPolicyMapCfgEntry", array(), 'CISCO-CLASS-BASED-QOS-MIB');
+  $class_maps     = snmpwalk_cache_oid($device, "cbQosCMCfgEntry", array(), 'CISCO-CLASS-BASED-QOS-MIB');
+  $object_indexes = snmpwalk_cache_twopart_oid($device, "cbQosObjectsEntry", array(), 'CISCO-CLASS-BASED-QOS-MIB');
 
 #  print_r($policy_maps);
 #  print_r($class_maps);
@@ -46,7 +46,7 @@ if (count($service_policies))
   $oids = array('cbQosCMPrePolicyPkt64');
   foreach ($oids as $oid)
   {
-    $cm_stats = snmpwalk_cache_twopart_oid($device, $oid, $cm_stats, "CISCO-CLASS-BASED-QOS-MIB", mib_dirs('cisco'));
+    $cm_stats = snmpwalk_cache_twopart_oid($device, $oid, $cm_stats, 'CISCO-CLASS-BASED-QOS-MIB');
   }
 
   foreach ($cm_stats as $policy_index => $policy_entry)

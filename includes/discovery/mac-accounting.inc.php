@@ -14,12 +14,14 @@
 $mac_list = array();
 
 // Disabled because we can do this better in poller now without performance hit
+// CLEANME FIXME do we do it in poller? Can this code go?
 
 if ($device['os_group'] == "cisco" && FALSE)
 {
   echo("Cisco MAC Accounting : ");
-  $datas = snmp_walk($device, "cipMacSwitchedBytes", "-OUqsX", "CISCO-IP-STAT-MIB", mib_dirs('cisco'));
-  foreach (explode("\n", $datas) as $data) {
+  $datas = snmp_walk($device, "cipMacSwitchedBytes", "-OUqsX", "CISCO-IP-STAT-MIB");
+  foreach (explode("\n", $datas) as $data)
+  {
     list(,$ifIndex,$dir,$mac,) = parse_oid2($data);
     list($a_a, $a_b, $a_c, $a_d, $a_e, $a_f) = explode(":", $mac);
     $ah_a = zeropad($a_a);
@@ -31,13 +33,13 @@ if ($device['os_group'] == "cisco" && FALSE)
     $clean_mac = "$ah_a$ah_b$ah_c$ah_d$ah_e$ah_f";
 
     $mac_list[$ifIndex.'_'.$clean_mac] = array('ifIndex' => $ifIndex, 'mac' => $clean_mac);
-
   }
 
   foreach ($mac_list as $mac_entry)
   {
     $port = dbFetchRow("SELECT * FROM `ports` WHERE `device_id` = ? AND `ifIndex` = ? LIMIT 1", array($device['device_id'], $mac_entry['ifIndex']));
-    if ($port) {
+    if ($port)
+    {
       echo($port['ifDescr'] . ' ('.$mac_entry['ifIndex'].') -> '.$mac_entry['mac']);
       if (dbFetchCell("SELECT COUNT(*) from `mac_accounting` WHERE `port_id` = ? AND `mac` = ?", array($port['port_id'], $mac_entry['mac'])))
       {

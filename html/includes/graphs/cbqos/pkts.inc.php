@@ -11,7 +11,7 @@
  *
  */
 
-include("includes/graphs/common.inc.php");
+include($config['html_dir']."/includes/graphs/common.inc.php");
 
 $rrd_options .= " DEF:pre=$rrd_filename:PrePolicyPkt:AVERAGE";
 $rrd_options .= " DEF:drop=$rrd_filename:DropPkt:AVERAGE";
@@ -27,12 +27,14 @@ $rrd_options .= " GPRINT:pre:LAST:' %6.2lf%s'";
 $rrd_options .= " GPRINT:pre:AVERAGE:' %6.2lf%s'";
 $rrd_options .= " GPRINT:pre:MAX:' %6.2lf%s\\n'";
 
-$rrd_options .= " AREA:drop#ea8f00:'Dropped     ':";
+$rrd_options .= " AREA:drop#ea8f00:'Dropped     '";
 $rrd_options .= " GPRINT:drop:LAST:' %6.2lf%s'";
 $rrd_options .= " GPRINT:drop:AVERAGE:' %6.2lf%s'";
 $rrd_options .= " GPRINT:drop:MAX:' %6.2lf%s\\n'";
 
-$rrd_options .= " AREA:bufdrop#008f00:'Buffer Drops':";
+$rrd_options .= " AREA:bufdrop#008f00:'Buffer Drops'";
 $rrd_options .= " GPRINT:bufdrop:LAST:' %6.2lf%s'";
 $rrd_options .= " GPRINT:bufdrop:AVERAGE:' %6.2lf%s'";
 $rrd_options .= " GPRINT:bufdrop:MAX:' %6.2lf%s\\n'";
+
+// EOF

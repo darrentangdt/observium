@@ -53,6 +53,8 @@ $mibs_blacklist = get_device_mibs_blacklist($device);
 
 foreach ($netstats_poll as $type => $netstats)
 {
+  // FIXME same as ipSystemStats: shouldn't we just use is_device_mib and make sure those MIBs are assigned to all devices by default?
+  // You can't turn them off in the web interface now.
   if (in_array($netstats['mib'], $mibs_blacklist)) { continue; } // Skip blacklisted MIBs
 
   $oids = $netstats['oids'];
@@ -60,15 +62,15 @@ foreach ($netstats_poll as $type => $netstats)
   if (isset($netstats['oids_t']))
   {
     $oids_string = implode('.0 ', $netstats['oids_t']).'.0';
-    $data = snmp_get_multi($device, $oids_string, '-OQUs', $netstats['mib'], mib_dirs()); // get testing oids
+    $data = snmp_get_multi($device, $oids_string, '-OQUs', $netstats['mib']); // get testing oids
     if (!count($data)) { continue; }
     $data_array = $data[0];
 
     $oids_string = implode('.0 ', array_diff($oids, $netstats['oids_t'])).'.0';
-    $data = snmp_get_multi($device, $oids_string, '-OQUs', $netstats['mib'], mib_dirs());
+    $data = snmp_get_multi($device, $oids_string, '-OQUs', $netstats['mib']);
     $data_array = array_merge($data_array, $data[0]);
   } else {
-    $data = snmpwalk_cache_oid($device, $type, array(), $netstats['mib'], mib_dirs());
+    $data = snmpwalk_cache_oid($device, $type, array(), $netstats['mib']);
     if (!count($data)) { continue; }
     $data_array = $data[0];
   }

@@ -30,17 +30,11 @@ foreach (dbFetchRows($sql, array($device['device_id'])) as $processor)
     $proc = snmp_get($device, $processor['processor_oid'], "-OUQnv");
   }
 
-  $procrrd = "processor-" . $processor['processor_type'] . "-" . $processor['processor_index'] . ".rrd";
-
-  rrdtool_create($device, $procrrd, " \
-     DS:usage:GAUGE:600:-273:1000 ");
-
   $proc = snmp_fix_numeric($proc);
-  //list($proc) = preg_split("@\ @", $proc);
-  if ($processor['processor_returns_idle'] == 1) { $proc = 100 - $proc; } // The OID returns idle value, so we subtract it from 100.
 
-  if (!$processor['processor_precision']) { $processor['processor_precision'] = "1"; };
+  if (!$processor['processor_precision']) { $processor['processor_precision'] = 1; };
   $proc = round($proc / $processor['processor_precision'], 2);
+  if ($processor['processor_returns_idle'] == 1) { $proc = 100 - $proc; } // The OID returns idle value, so we subtract it from 100.
 
   $graphs['processor'] = TRUE;
 
@@ -53,7 +47,7 @@ foreach (dbFetchRows($sql, array($device['device_id'])) as $processor)
   }
 
   // Update RRD
-  rrdtool_update($device, $procrrd,"N:$proc");
+  rrdtool_update_ng($device, 'processor', array('usage' => $proc), $processor['processor_type'] . "-" . $processor['processor_index']);
 
   // Update SQL State
   if (is_numeric($processor['processor_polled']))

@@ -100,7 +100,7 @@ function print_search($data, $title = NULL, $button = 'search', $url = NULL)
     {
       $action .= 'this.form.prop(\'action\', form_to_path(\'' . $form_id . '\'));';
     }
-    $GLOBALS['cache_html']['script'][] = '$(function(){$(\'form#' . $form_id . '\').each(function(){$(this).find(\'input\').keypress(function(e){if(e.which==10||e.which==13){'.$action.'this.form.submit();}});});});';
+    register_html_resource('script', '$(function(){$(\'form#' . $form_id . '\').each(function(){$(this).find(\'input\').keypress(function(e){if(e.which==10||e.which==13){'.$action.'this.form.submit();}});});});');
   }
 
   // Form header
@@ -122,7 +122,8 @@ function print_search($data, $title = NULL, $button = 'search', $url = NULL)
   /// FIXME. I don't know how to put this buttons to middle or bottom..
   $string .= '    <div class="nav pull-right"';
 
-  $button_style = 'line-height: 20px;';
+  //$button_style = 'line-height: 20px;';
+  $button_style = '';
   // Add sort switcher if present
   if (isset($sort))
   {
@@ -153,7 +154,7 @@ function print_search($data, $title = NULL, $button = 'search', $url = NULL)
     $button_onclick = " onclick=\"form_to_path('".$form_id."');\"";
   }
 
-  $string .= '      <button type="'.$button_type.'" class="btn pull-right" style="'.$button_style.'"'.$button_onclick.'>';
+  $string .= '      <button type="'.$button_type.'" class="btn btn-default pull-right" style="'.$button_style.'"'.$button_onclick.'>';
   switch($button)
   {
     // Note. 'update' - use POST request, all other - use GET with generate url from js.
@@ -169,6 +170,17 @@ function print_search($data, $title = NULL, $button = 'search', $url = NULL)
 
   // Print search form
   echo($string);
+}
+
+// Just callback functions to print_form with $return flag
+function generate_form($data)
+{
+  return print_form($data, TRUE);
+}
+
+function generate_form_box($data)
+{
+  return print_form_box($data, TRUE);
 }
 
 /**
@@ -189,11 +201,16 @@ function print_search($data, $title = NULL, $button = 'search', $url = NULL)
  *
  * Elements options see in generate_form_element() description
  *
- * @param array $data Form options and form elements
+ * @param array $data   Form options and form elements
+ * @param bool  $return If used and set to TRUE, print_form() will return form html instead of outputting it.
+ *
  * @return NULL
  */
-function print_form($data)
+function print_form($data, $return = FALSE)
 {
+  // Time our form filling.
+  $form_start = microtime(true);
+
   $form_id    = (isset($data['id']) ? $data['id'] : 'form-'.strgen());
   $form_class = 'form form-inline'; // default for rows and simple
   if (isset($data['style']))
@@ -217,57 +234,101 @@ function print_form($data)
     {
       $action .= 'this.form.prop(\'action\', form_to_path(\'' . $form_id . '\'));';
     }
-    $GLOBALS['cache_html']['script'][] = '$(function(){$(\'form#' . $form_id . '\').each(function(){$(this).find(\'input\').keypress(function(e){if(e.which==10||e.which==13){'.$action.'this.form.submit();}});});});';
+    register_html_resource('script', '$(function(){$(\'form#' . $form_id . '\').each(function(){$(this).find(\'input\').keypress(function(e){if(e.which==10||e.which==13){'.$action.'this.form.submit();}});});});');
   }
 
   // Form elements
   if ($data['type'] == 'rows')
   {
     // Rows form, see example in html/pages/devices.inc.php
+    //$div_padding = 'padding: 0px '.$base_space.' '.$base_space.' '.$base_space.' !important;'; // Top padding set as 0px, all other to base
+    $div_padding = 'padding: '.$base_space.' !important;';
     if (strpos($base_class, 'box') !== FALSE)
     {
       $base_space = ($data['space'] ? $data['space'] : '10px');
 
       // Box horizontal style
       $box_args  = array('header-border' => TRUE,
-                         'body-style' => 'padding: '.$base_space.' !important;'); // Override top padding
+                         'body-style' => $div_padding); // Override top padding
       if (isset($data['title'])) { $box_args['title'] = $data['title']; }
       $div_begin = generate_box_open($box_args);
       $div_end   = generate_box_close();
       unset($box_args);
     } else {
-      $div_begin = '<div class="'.$base_class.'" style="padding: '.$base_space.';">' . PHP_EOL;
+      $div_begin = '<div class="'.$base_class.'" style="'.$div_padding.'">' . PHP_EOL;
       $div_end   = '</div>' . PHP_EOL;
     }
     $row_style = '';
     $string_elements = '';
 
-    //$max_count = 0;
-    //foreach ($data['row'] as $row)
-    //{
-    //  // Search max row
-    //  if (count($row) > $max_count) { $max_count = count($row); }
-    //}
-    //// Calculate grid system
-    //$grid = intval(12 / $max_count);
-    //if ($grid < 2) { $grid = 2; } // minimum 2 for auto
-    //$div_class = 'col-lg-' . $grid . ' col-md-' . $grid . ' col-sm-' . $grid;
+    // Calculate grid sizes for rows
+    foreach ($data['row'] as $k => $row)
+    {
+      $row_count = count($row);
+      // Default (auto) grid size for elements
+      $row_grid = intval(12 / $row_count);
+      $grid_count = 0; // Count for custom passed grid sizes
+      foreach ($row as $id => $element)
+      {
+        if (isset($element['div_class']) && preg_match('/col-(?:lg|md|sm)-(\d+)/', $element['div_class'], $matches))
+        {
+          // Class with col size passed
+          $grid_count += intval($matches[1]);
+        }
+        else if (isset($element['grid']))
+        {
+          // Grid size passed
+          if ($element['grid'] > 0 && $element['grid'] <= 12)
+          {
+            $grid_count += intval($element['grid']);
+          } else {
+            // Incorrect size
+            unset($row[$k]['grid']);
+          }
+        }
+      }
+      $row_grid = 12 - $grid_count;                            // Free grid size after custom grind
+      $row_grid = intval($row_grid / $row_count);              // Default (auto) grid size for elements
+      if ($grid_count > 2 && $row_grid < 1) { $row_grid = 1; } // minimum 1 for auto if custom grid passed
+      else if ($row_grid < 2)               { $row_grid = 2; } // minimum 2 for auto
+
+      $data['grid'][$k] = $row_grid;                           // Store default grid size for row
+    }
+    //r($data);
 
     foreach ($data['row'] as $k => $row)
     {
-      // Calculate grid system for current row
-      $grid = intval(12 / count($row));
-      if ($grid < 2) { $grid = 2; } // minimum 2 for auto
-      $div_class = 'col-lg-' . $grid . ' col-md-' . $grid . ' col-sm-' . $grid;
-
-      $string_elements .= '  <div class="row" '.$row_style.'> <!-- START row-'.$k.' -->' . PHP_EOL;
+      $row_class = 'row';
+      if (isset($data['row_options'][$k])) // If row options exist for current row
+      {
+        if ($data['row_options'][$k]['class'])
+        {
+          $row_class .= ' ' . $data['row_options'][$k]['class'];
+        }
+      }
+      $string_elements .= '  <div class="'.$row_class.'" '.$row_style.'> <!-- START row-'.$k.' -->' . PHP_EOL;
       foreach ($row as $id => $element)
       {
         $used_vars[]      = $id;
         $element['id']    = $id;
+
+        // Default class with default row grid size or passed from options
+        $grid      = (isset($element['grid']) ? $element['grid'] : $data['grid'][$k]);
+        $div_class = 'col-lg-' . $grid . ' col-md-' . $grid . ' col-sm-' . $grid;
+        // By default xs grid always 12
+        if (isset($element['grid_xs']) && $element['grid_xs'] > 0 && $element['grid_xs'] <= 12)
+        {
+          $div_class .= ' col-xs-' . $element['grid_xs'];
+        }
+
         if (empty($element['div_class']))
         {
           $element['div_class'] = $div_class;
+        }
+        else if (isset($element['grid']) && !preg_match('/col-(?:lg|md|sm|xs)-(\d+)/', $element['div_class']))
+        {
+          // Combine if passed both: grid size and div_class (and class not has col-* grid elements)
+          $element['div_class'] = $div_class . ' ' . $element['div_class'];
         }
         if ($element['right'])
         {
@@ -278,12 +339,15 @@ function print_form($data)
           // Add form_id here, for generate onclick action in submit button
           $element['form_id'] = $form_id;
         }
+        // Here added padding-block-start for space between rows (also if row elements moved to newline)
+        //$string_elements .= '    <div class="'.$element['div_class'].'" style="padding-block-start: '.$base_space.';">' . PHP_EOL;
         $string_elements .= '    <div class="'.$element['div_class'].'">' . PHP_EOL;
         $string_elements .= generate_form_element($element);
         $string_elements .= '    </div>' . PHP_EOL;
       }
       $string_elements .= '  </div> <!-- END row-'.$k.' -->' . PHP_EOL;
-      $row_style = 'style="margin-top: '.$base_space.';"'; // Add space between rows
+      // Add space between rows
+      $row_style = 'style="margin-top: '.$base_space.';"';
     }
   } // end rows type
   else if ($data['type'] == 'horizontal')
@@ -492,8 +556,20 @@ function print_form($data)
   $string .= $div_end;
   $string .= "<!-- END $form_id -->" . PHP_EOL;
 
-  // Print form
-  echo($string);
+  if ($return)
+  {
+    // Save generation time for profiling
+    $GLOBALS['form_time'] += utime() - $form_start;
+
+    // Return form as string
+    return $string;
+  } else {
+    // Print form
+    echo($string);
+
+    // Save generation time for profiling (after echo)
+    $GLOBALS['form_time'] += utime() - $form_start;
+  }
 }
 
 // Box specific form
@@ -504,7 +580,7 @@ function print_form_widget($data)
 
 // Box specific form (mostly same as in print_form, but support only box style and fieldset options)
 // FIXME should likely not be in this file? As it's used throughout the software now...
-function print_form_box($data)
+function print_form_box($data, $return = FALSE)
 {
   $form_id    = (isset($data['id']) ? $data['id'] : 'form-'.strgen());
   $form_class = 'form form-horizontal';
@@ -529,7 +605,7 @@ function print_form_box($data)
     {
       $action .= 'this.form.prop(\'action\', form_to_path(\'' . $form_id . '\'));';
     }
-    $GLOBALS['cache_html']['script'][] = '$(function(){$(\'form#' . $form_id . '\').each(function(){$(this).find(\'input\').keypress(function(e){if(e.which==10||e.which==13){'.$action.'this.form.submit();}});});});';
+    register_html_resource('script', '$(function(){$(\'form#' . $form_id . '\').each(function(){$(this).find(\'input\').keypress(function(e){if(e.which==10||e.which==13){'.$action.'this.form.submit();}});});});');
   }
 
   $header = '';
@@ -673,7 +749,7 @@ function print_form_box($data)
           }
         }
 
-        if(isset($entry['tooltip']))
+        if (isset($entry['tooltip']))
         {
           $box_args['header-controls'] = array('controls' => array('tooltip'   => array('icon'   => 'icon-info text-primary',
                                                                                         'anchor' => TRUE,
@@ -685,7 +761,7 @@ function print_form_box($data)
           $fieldset_tooltip .= $entry['tooltip'] . '</div>' . PHP_EOL;
         }
 
-        if(isset($entry['tooltip'])) { $box_args['style'] = $entry['style']; }
+        if (isset($entry['tooltip'])) { $box_args['style'] = $entry['style']; }
 
         $fieldset_begin = generate_box_open($box_args);
 
@@ -714,7 +790,7 @@ function print_form_box($data)
         $row_elements .= $fieldset[$group];
         if ($i > 0)
         {
-          // unset all fieldsets instead first for replace later
+          // unset all fieldsets except first one for replace later
           unset($fieldset[$group]);
         }
       }
@@ -748,8 +824,20 @@ function print_form_box($data)
   $string .= $fieldset_tooltip;
   $string .= "<!-- END $form_id -->" . PHP_EOL;
 
-  // Print form
-  echo($string);
+  if ($return)
+  {
+    // Save generation time for profiling
+    $GLOBALS['form_time'] += utime() - $form_start;
+
+    // Return form as string
+    return $string;
+  } else {
+    // Print form
+    echo($string);
+
+    // Save generation time for profiling (after echo)
+    $GLOBALS['form_time'] += utime() - $form_start;
+  }
 }
 
 /**
@@ -770,7 +858,8 @@ function print_form_box($data)
  *     (string)id, (string)name, (bool)readonly, (bool)disabled, (string)onchange, (string)width,
  *     (string)title, (int)size, (bool)right, (bool)live-search, (bool)encode, (bool)subtext
  *     (string)value, (array)values, (string)icon,
- *     values can be as array('name' => string, 'icon' => string)
+ *     values items can be arrays, ie:
+ *         value => array('name' => string, 'group' => string, 'icon' => string, 'class' => string, 'style' => string)
  * datetime -\
  *     (string)id, (string)name, (bool)readonly, (bool)disabled,
  *     (string|FALSE)from, (string|FALSE)to, (bool)presets, (string)min, (string)max
@@ -781,7 +870,7 @@ function print_form_box($data)
  *     (string)value, (string)placeholder, (string)title
  * submit -\
  *     (string)id, (string)name, (bool)readonly, (bool)disabled,
- *     (string)class, (bool)right,
+ *     (string)class, (bool)right, (string)tooltip,
  *     (string)value, (string)form_id, (string)icon
  * html, raw -\
  *     (string)id,
@@ -800,6 +889,7 @@ function generate_form_element($item, $type = '')
   if (!$value_isset) { $item['value'] = ''; }
   if (!isset($item['type']))  { $item['type'] = $type; }
   $string = '';
+  $element_tooltip = '';
   switch ($item['type'])
   {
     case 'hidden':
@@ -808,6 +898,7 @@ function generate_form_element($item, $type = '')
         $string .= '    <input type="'.$item['type'].'" name="'.$item['id'] . '" id="' .$item['id'] . '" value="'.$item['value'].'" />' . PHP_EOL;
       }
       break;
+
     case 'password':
     case 'textarea':
     case 'text':
@@ -832,7 +923,7 @@ function generate_form_element($item, $type = '')
           if ($item['show_password'])
           {
             $item_begin .= ' data-toggle="password" ';
-            $GLOBALS['cache_html']['js'][] = 'js/bootstrap-show-password.min.js';
+            register_html_resource('js', 'bootstrap-show-password.min.js');
             $GLOBALS['cache_html']['javascript'][] = "$('[data-toggle=\"password\"]').password();";
           }
         }
@@ -897,12 +988,47 @@ function generate_form_element($item, $type = '')
           $ajax_vars[] = urlencode($k) . '=' . var_encode($v);
         }
         $string .= ' ajax-typeahead" autocomplete="off" data-link="/ajax/input.php?' . implode('&amp;', $ajax_vars);
+
+        // Register scripts/css
+        register_html_resource('js', 'typeahead.bundle.min.js');
+        register_html_resource('css', 'typeaheadjs.css');
+
+        // Ajax autocomplete for input
+        // <input type='text' class='ajax-typeahead' data-link='your-json-link' />
+        $item_id = $item['id'];
+        $script = <<<SCRIPT
+  var element_$item_id = $('#$item_id.ajax-typeahead');
+  var entries_$item_id = new Bloodhound({
+    datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+    queryTokenizer: Bloodhound.tokenizers.whitespace,
+    remote: {
+      url: element_$item_id.data('link') + '&query=%QUERY',
+      wildcard: '%QUERY',
+      filter: function(json) {
+        return json.options;
+      }
+    }
+  });
+  element_$item_id.typeahead({
+      hint: false,
+      highlight: true,
+      minLength: 1
+    },
+    {
+      name: 'options',
+      limit: 16,
+      source: entries_$item_id
+    }
+  );
+SCRIPT;
+        register_html_resource('script', $script);
       }
 
       $string .= '" ' . $item_end . PHP_EOL;
       $string .= ($item['placeholder'] ? PHP_EOL : '  </div>' . PHP_EOL);
       // End 'text' & 'input'
       break;
+
     case 'switch':
       // switch specific options
       if ($item['revert'])
@@ -952,8 +1078,9 @@ function generate_form_element($item, $type = '')
       }
       // End 'switch' & 'checkbox'
       break;
+
     case 'datetime':
-      $GLOBALS['cache_html']['js'][] = 'js/bootstrap-datetimepicker.min.js'; // Enable DateTime JS
+      register_html_resource('js', 'bootstrap-datetimepicker.min.js'); // Enable DateTime JS
       $id_from = $item['id'].'_from';
       $id_to = $item['id'].'_to';
       if ($value_isset && !$item['from'] && !$item['to'])
@@ -975,31 +1102,33 @@ function generate_form_element($item, $type = '')
 
       if ($item['presets'])
       {
-        $presets = array('sixhours'  => 'Last 6 hours',
-                         'today'     => 'Today',
-                         'yesterday' => 'Yesterday',
-                         'tweek'     => 'This week',
-                         'lweek'     => 'Last week',
-                         'tmonth'    => 'This month',
-                         'lmonth'    => 'Last month',
-                         'tquarter'  => 'This quarter',
-                         'lquarter'  => 'Last quarter',
-                         'tyear'     => 'This year',
-                         'lyear'     => 'Last year');
-        $string .= '    <select id="'.$item['id'].'_preset" class="selectpicker show-tick" data-size="false" data-width="120px">' . PHP_EOL . '      ';
-        $string .= '<option value="" selected>Date presets</option>';
-        foreach ($presets as $k => $v)
-        {
-          $string .= '<option value="'.$k.'">'.$v.'</option> ';
-        }
-        $string .= PHP_EOL . '    </select>' . PHP_EOL;
+        $presets = array('sixhours'   => 'Last 6 hours',
+                         'today'      => 'Today',
+                         'yesterday'  => 'Yesterday',
+                         'tweek'      => 'This week',
+                         'lweek'      => 'Last week',
+                         'tmonth'     => 'This month',
+                         'lmonth'     => 'Last month',
+                         'tquarter'   => 'This quarter',
+                         'lquarter'   => 'Last quarter',
+                         'tyear'      => 'This year',
+                         'lyear'      => 'Last year');
+        // Recursive call
+        $preset_item = array('id'     => $item['id'].'_preset',
+                             'type'   => 'select',
+                             'name'   => 'Date presets',
+                             'width'  => '110px',
+                             'values' => $presets);
+        $string .= generate_form_element($preset_item)  . PHP_EOL;
       }
       // Date/Time input fields
       if ($item['from'] !== FALSE)
       {
         $string .= '  <div id="'.$id_from.'_div" class="input-prepend" style="margin-bottom: 0;">' . PHP_EOL;
         $string .= '    <span class="add-on btn"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i> '.$name_from.'</span>' . PHP_EOL;
-        $string .= '    <input type="text" class="input-medium" data-format="yyyy-MM-dd hh:mm:ss" ';
+        //$string .= '    <input type="text" class="input-medium" data-format="yyyy-MM-dd hh:mm:ss" ';
+        $string .= '    <input type="text" data-format="yyyy-MM-dd hh:mm:ss" ';
+        $string .= (isset($item['width'])) ? 'style="width:' . escape_html($item['width']) . '" ' : 'style="width: 130px;" ';
         if ($item['disabled'])
         {
           $string .= 'disabled="1" ';
@@ -1009,15 +1138,17 @@ function generate_form_element($item, $type = '')
           $item['disabled'] = TRUE; // for js
           $string .= 'readonly="1" ';
         }
-        $string .= 'name="'.$id_from.'" id="'.$id_from.'" value="'.$item['from'].'"/>' . PHP_EOL;
+        $string .= 'name="'.$id_from.'" id="'.$id_from.'" value="'.escape_html($item['from']).'"/>' . PHP_EOL;
         $string .= '  </div>' . PHP_EOL;
       }
       if ($item['to'] !== FALSE)
       {
         $string .= '  <div id="'.$id_to.'_div" class="input-prepend" style="margin-bottom: 0;">' . PHP_EOL;
         $string .= '    <span class="add-on btn"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i> To</span>' . PHP_EOL;
-        $string .= '    <input type="text" class="input-medium" data-format="yyyy-MM-dd hh:mm:ss" ';
-        $string .= 'name="'.$id_to.'" id="'.$id_to.'" value="'.$item['to'].'"/>' . PHP_EOL;
+        //$string .= '    <input type="text" class="input-medium" data-format="yyyy-MM-dd hh:mm:ss" ';
+        $string .= '    <input type="text" data-format="yyyy-MM-dd hh:mm:ss" ';
+        $string .= (isset($item['width'])) ? 'style="width:' . escape_html($item['width']) . '" ' : 'style="width: 140px;" ';
+        $string .= 'name="'.$id_to.'" id="'.$id_to.'" value="'.escape_html($item['to']).'"/>' . PHP_EOL;
         $string .= '  </div>' . PHP_EOL;
       }
       // JS SCRIPT
@@ -1055,7 +1186,7 @@ function generate_form_element($item, $type = '')
       var startDate = '.$min.';
       var endDate   = '.$max.';
       $(document).ready(function() {
-        $(\'#'.$id_from.'_div\').datetimepicker({
+        $(\'[id='.$id_from.'_div]\').datetimepicker({
           //pickSeconds: false,
           weekStart: 1,
           startDate: startDate,
@@ -1064,12 +1195,12 @@ function generate_form_element($item, $type = '')
       if ($item['disabled'])
       {
         $script .= '
-        $(\'#'.$id_from.'_div\').datetimepicker(\'disable\');';
+        $(\'[id='.$id_from.'_div]\').datetimepicker(\'disable\');';
       }
       if ($item['to'] !== FALSE)
       {
         $script .= '
-        $(\'#'.$id_to.'_div\').datetimepicker({
+        $(\'[id='.$id_to.'_div]\').datetimepicker({
           //pickSeconds: false,
           weekStart: 1,
           startDate: startDate,
@@ -1082,7 +1213,7 @@ function generate_form_element($item, $type = '')
       if ($item['presets'])
       {
         $script .= '
-      $(\'select#'.$item['id'].'_preset\').change(function() {
+      $(\'select[id='.$item['id'].'_preset]\').change(function() {
         var input_from = $(\'input#'.$id_from.'\');
         var input_to   = $(\'input#'.$id_to.'\');
         switch ($(this).val()) {' . PHP_EOL;
@@ -1102,16 +1233,135 @@ function generate_form_element($item, $type = '')
         }
       });';
       }
-      $GLOBALS['cache_html']['script'][] = $script;
+      register_html_resource('script', $script);
       // End 'datetime'
       break;
+
+    case 'tags': // Tags mostly same as multiselect, but used separate options and Bootstrap Tags Input JS
+      register_html_resource('js',  'bootstrap-tagsinput.min.js');  // Enable Tags Input JS
+      //register_html_resource('js',  'bootstrap-tagsinput.js');      // Enable Tags Input JS
+      register_html_resource('css', 'bootstrap-tagsinput.css');     // Enable Tags Input CSS
+      // defaults
+      $delimiter = empty($item['delimiter']) ? ',' : $item['delimiter'];
+      $script_begin   = '';
+      $script_options = array('trimValue' => 'true',
+                              'tagClass'  => 'function(item) {return "label label-default";}',
+                              );
+      //register_html_resource('script', '$("input[data-role=tagsinput], select[multiple][data-role=tagsinput]").tagsinput({trimValue: true, tagClass: function(item) {return "label label-default";} });');
+
+      $string .= '    <select multiple data-toggle="tagsinput" name="'.$item['id'].'[]" ' . $title;
+      $string .= 'id="'.$item['id'].'" ';
+
+      if      ($item['title'])       { $string .= 'title="' . $item['title'] . '" '; }
+      else if (isset($item['name'])) { $string .= 'title="' . $item['name']  . '" '; }
+      if (isset($item['placeholder']) && $item['placeholder'] !== FALSE)
+      {
+        if ($item['placeholder'] === TRUE)
+        {
+          $item['placeholder'] = $item['name'];
+        }
+        //$string .= PHP_EOL;
+        $string .= ' placeholder="'.$item['placeholder'].'"';
+        //$item['placeholder'] = TRUE; // Set to true for check at end
+      }
+
+      if ($item['disabled'])
+      {
+        $string .= ' disabled="1"';
+      }
+      else if ($item['readonly'])
+      {
+        $string .= ' disabled="1" readonly="1"'; // Bootstrap Tags Input not support readonly attribute, currently use disable
+      }
+      if ($item['onchange'])
+      {
+        $string .= ' onchange="'.$item['onchange'].'"';
+      }
+      $string .= '>' . PHP_EOL . '      '; // end <select>
+
+      // Process values
+      if (!is_array($item['value']))
+      {
+        //$item['value'] = explode($delimiter, $item['value']);
+        $item['value'] = array($item['value']);
+      }
+      //$item['value'] = array('test', 'hello');
+
+      $suggest = array();
+      foreach ($item['value'] as $entry)
+      {
+        $value   = (string)$entry;
+        if ($value == '[there is no data]' || $value === '') { continue; }
+        $suggest[] = $value;
+
+        $string .= '<option value="'.$value.'"';
+        $string .= '>'.escape_html($value).'</option> ';
+      }
+      $string .= PHP_EOL . '    </select>' . PHP_EOL;
+
+      // Generate typeahead from values
+      $suggest = array_merge($suggest, (array)$item['values']);
+      if (count($suggest))
+      {
+        $option = '[{ hint: false, highlight: true, minLength: 1 },
+                    { name: "suggest", limit: 16, source: suggest_'.$item['id'].' }]';
+
+        $script_begin .= 'var suggest_' . $item['id'] . ' = new Bloodhound({ matchAnyQueryToken: true, queryTokenizer: Bloodhound.tokenizers.nonword, datumTokenizer: Bloodhound.tokenizers.nonword,
+        local: [';
+        $values = array();
+        foreach (array_unique($suggest) as $k => $entry)
+        {
+          if (is_array($entry))
+          {
+            $value = (string)$k;
+          } else {
+            $value = (string)$entry;
+          }
+          $values[] = "'" . str_replace("'", "\'", $value) . "'";
+        }
+        $script_begin .= implode(',', $values);
+        $script_begin .= ']});' . PHP_EOL;
+
+        $script_options['typeaheadjs'] = $option;
+
+        // Register scripts/css
+        //register_html_resource('js', 'typeahead.bundle.js');
+        register_html_resource('js', 'typeahead.bundle.min.js');
+        register_html_resource('css', 'typeaheadjs.css');
+      }
+
+      if (count($script_options))
+      {
+        $script  = $script_begin;
+        $script .= "$('#".$item['id']."').tagsinput({" . PHP_EOL;
+        foreach ($script_options as $key => &$option)
+        {
+          $option = '  ' . $key . ': ' . $option;
+        }
+        $script .= implode(','.PHP_EOL, $script_options) . PHP_EOL;
+        $script .= "});";
+        register_html_resource('script', $script);
+      }
+      // End 'tags'
+      break;
+
     case 'multiselect':
       unset($item['icon']); // For now not used icons in multiselect
     case 'select':
-      if (empty($item['values'])) { $item['values'] = array(0 => '[there is no data]'); }
+      $count_values = count($item['values']);
+      if (empty($item['values']))
+      {
+        $item['values'] = array(0 => '[there is no data]');
+        $item['subtext'] = FALSE;
+      }
       if ($item['type'] == 'multiselect')
       {
         $string .= '    <select multiple name="'.$item['id'].'[]" ' . $title;
+        // Enable Select/Deselect all (if select values count more than 4)
+        if ($count_values > 4)
+        {
+          $string .= ' data-actions-box="true" ';
+        }
       } else {
         $string .= '    <select name="'.$item['id'].'" ';
       }
@@ -1125,7 +1375,9 @@ function generate_form_element($item, $type = '')
       $string .= 'class="selectpicker show-tick';
       if ($item['right']) { $string .= ' pull-right'; }
       $string .= '" data-selected-text-format="count>2"';
-      if (count($item['values']) > 12 && $item['live-search'] !== FALSE) { $string .= ' data-live-search="true"'; }
+      if ($item['data-style']) { $string .= ' data-style="'.$item['data-style'].'"'; }
+      // Enable Live search in values list (if select values count more than 12)
+      if ($count_values > 12 && $item['live-search'] !== FALSE) { $string .= ' data-live-search="true"'; }
 
       if ($item['disabled'])
       {
@@ -1142,72 +1394,152 @@ function generate_form_element($item, $type = '')
 
       $string .= $data_width . $data_size . '>' . PHP_EOL . '      '; // end <select>
       if (!is_array($item['value'])) { $item['value'] = array($item['value']); }
-      foreach ($item['values'] as $k => $name)
+
+      // Prepare values for optgroups
+      $values = array();
+      $optgroup = array();
+      foreach ($item['values'] as $k => $entry)
       {
         $k = (string)$k;
-        $value = ($item['encode'] ? var_encode($k) : $k); // Use base64+serialize encoding
-        $subtext = ($item['subtext']) ? ' data-subtext="'.$k.'"' : '';
-        $string .= '<option value="'.$value.'"';
+        $value   = ($item['encode'] ? var_encode($k) : $k); // Use base64+serialize encoding
+        // Default group is '' (empty string), for allow to use 0 as group name!
+        $group = '';
+        if (!is_array($entry))
+        {
+          $entry = array('name' => $entry);
+        }
+        else if (isset($entry['group']))
+        {
+          $group = $entry['group'];
+        }
+        if ($item['subtext'] && !isset($entry['subtext']))
+        {
+          $entry['subtext'] = $k;
+        }
 
-        // Allow more complex values list (with icons for example)
-        if (is_array($name))
-        {
-          $icon = $name['icon'];
-          if (isset($name['subtext']))
-          {
-            $subtext = ' data-subtext="' . $name['subtext'] . '"';
-          }
-          if (isset($name['class']))
-          {
-            $string .= ' class="' . $name['class'] . '"';
-          }
-          else if (isset($name['color']))
-          {
-            $string .= ' data-content="<span style=\'color: ' . $name['color'] . '\'>' . $name['name'] . '</span>"';
-          }
-          $name = $name['name']; // Rewrite name to string
-        }
-        else if ($name == '[there is no data]')
-        {
-          $string .= ' disabled="1"';
-        }
-        $string .= $subtext;
-
-        // Icons
-        if ($icon)
-        {
-          // For each value
-          $string .= ' data-icon="'.$icon.'"';
-        }
-        else if ($item['icon'] && $item['value'] === array(''))
+        // Icons and empty name fix
+        if ($item['icon'] && $item['value'] === array(''))
         {
           // Only one main icon
-          $string .= ' data-icon="'.$item['icon'].'"';
+          $entry['icon'] = $item['icon']; // Set value icon as global icon
           unset($item['icon']);
         }
-
         if (in_array($k, $item['value']))
         {
-          if (!($k === '' && $name === '')) // additionaly skip if value and name empty
+          if (!($k === '' && $entry['name'] === '')) // additionaly skip if value and name empty
           {
-            if ($item['icon']) { $string .= ' data-icon="'.$item['icon'].'"'; }
-            $string .= ' selected';
+            if ($item['icon'])
+            {
+              $entry['icon'] = $item['icon']; // Set value icon as global icon
+            }
+            // Element selected
+            $entry['selected'] = TRUE;
           }
         }
+        else if ($entry['name'] == '[there is no data]')
+        {
+          $entry['disabled'] = TRUE;
+        }
+        if (strlen($entry['name']) == 0 && $k !== '') { $entry['name'] = $k; } // if name still empty set it as value
 
-        if (!isset($name[0]) && $k !== '') { $name = $k; } // if name still empty set it as value
-        $string .= '>'.escape_html($name).'</option> ';
+        $values[$group][$value] = $entry;
       }
+
+      // Generate optgroups for values
+      foreach ($values as $group => $entries)
+      {
+        $optgroup[$group] = '';
+        foreach ($entries as $value => $entry)
+        {
+          $optgroup[$group] .= '<option value="'.$value.'"';
+          if (isset($entry['subtext']) && strlen($entry['subtext']))
+          {
+            $optgroup[$group] .= ' data-subtext="' . $entry['subtext'] . '"';
+          }
+          if ($entry['name'] == '[there is no data]')
+          {
+            $optgroup[$group] .= ' disabled="1"';
+          }
+
+          if (isset($entry['class']) && $entry['class'])
+          {
+            $optgroup[$group] .= ' class="' . $entry['class'] . '"';
+          }
+          else if (isset($entry['style']) && $entry['style'])
+          {
+            $optgroup[$group] .= ' style="' . $entry['style'] . '"';
+          }
+          else if (isset($entry['color']) && $entry['color'])
+          {
+            $optgroup[$group] .= ' style="color:' . $entry['color'] . ' !important;"';
+            //$optgroup[$group] .= ' data-content="<span style=\'color: ' . $entry['color'] . '\'>' . $entry['name'] . '</span>"';
+          }
+
+          // Icons
+          if (isset($entry['icon']) && $entry['icon'])
+          {
+            $optgroup[$group] .= ' data-icon="'.$entry['icon'].'"';
+          }
+          // Disabled, Selected
+          if (isset($entry['disabled']) && $entry['disabled'])
+          {
+            $optgroup[$group] .= ' disabled="1"';
+          }
+          else if (isset($entry['selected']) && $entry['selected'])
+          {
+            $optgroup[$group] .= ' selected';
+          }
+
+          $optgroup[$group] .= '>'.escape_html($entry['name']).'</option> ';
+        }
+      }
+
+      // If item groups passed, use order passed from it
+      $optgroups = array_keys($optgroup);
+      if (isset($item['groups']))
+      {
+        $groups = array_intersect((array)$item['groups'], $optgroups);
+        $optgroups = array_diff($optgroups, $groups);
+        $optgroups = array_merge($groups, $optgroups);
+      }
+
+      if (count($optgroups) === 1) // && isset($optgroup['']))
+      {
+        // Single optgroup, do not use optgroup tags
+        $string .= array_shift($optgroup);
+      } else {
+        // Multiple optgroups implode
+        foreach($optgroups as $group)
+        {
+          $entry = $optgroup[$group];
+          $label = ($group !== '' ? ' label="'.$group.'"' : '');
+          $string .= '<optgroup'.$label.'>' . PHP_EOL;
+          $string .= $entry;
+          $string .= '</optgroup>' . PHP_EOL;
+        }
+      }
+
       $string .= PHP_EOL . '    </select>' . PHP_EOL;
       // End 'select' & 'multiselect'
       break;
     case 'submit':
       $button_type    = 'submit';
       $button_onclick = '';
-      $button_class = ($item['right'] ? 'btn pull-right' : 'btn');
-      if ($item['class'])
+      $button_class   = 'btn';
+      if (!empty($item['class']))
       {
+        if (!preg_match('/btn-(default|primary|success|info|warning|danger)/', $item['class']))
+        {
+          // Add default class if custom class hot have it
+          $button_class .= ' btn-default';
+        }
         $button_class .= ' ' . $item['class'];
+      } else {
+        $button_class .= ' btn-default';
+      }
+      if ($item['right'])
+      {
+        $button_class .= ' pull-right';
       }
       if ($item['form_id'] && $item['id'] == 'search')
       {
@@ -1222,7 +1554,18 @@ function generate_form_element($item, $type = '')
         $button_class .= ' disabled';
       }
 
-      $string .= '      <button id="' . $item['id'] . '" name="' . $item['id'] . '" type="'.$button_type.'" class="'.$button_class.'" style="line-height: 20px;"'.$button_onclick;
+      $string .= '      <button id="' . $item['id'] . '" name="' . $item['id'] . '" type="'.$button_type.'"';
+
+      // Add tooltip data
+      if ($item['tooltip'])
+      {
+        $button_class .= ' tooltip-from-element';
+        $string .= ' data-tooltip-id="tooltip-' . $item['id'] . '"';
+        $element_tooltip .= '<div id="tooltip-' . $item['id'] . '" style="display: none;">' . $item['tooltip'] . '</div>' . PHP_EOL;
+      }
+
+      //$string .= ' class="'.$button_class.' text-nowrap" style="line-height: 20px;"'.$button_onclick;
+      $string .= ' class="'.$button_class.' text-nowrap"'.$button_onclick;
       if ($button_disabled)
       {
         $string .= ' disabled="1"';
@@ -1288,7 +1631,28 @@ function generate_form_element($item, $type = '')
       break;
   }
 
-  return($string);
+  return($string . $element_tooltip);
+}
+
+function generate_form_values($type, $form_filter = FALSE, $column = NULL)
+{
+  //global $cache;
+
+  $form_items = array();
+  switch ($type)
+  {
+    case 'example':
+      break;
+    default:
+      // Entity based
+      $form_function = 'generate_' . $type . '_form_values';
+      if (function_exists($form_function))
+      {
+        return call_user_func_array($form_function, array($form_filter, $column));
+      }
+  }
+
+  return $form_items;
 }
 
 // EOF

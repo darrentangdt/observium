@@ -49,12 +49,12 @@ function messagebus_send($message)
   if ($socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP))
   {
     $message = json_encode($message);
-    print_debug('Sending JSON via AQMP: ' . $message);
+    print_debug('Sending JSON via AMQP: ' . $message);
     socket_sendto($socket, $message, strlen($message), 0, $config['amqp']['proxy']['host'], $config['amqp']['proxy']['port']);
     socket_close($socket);
     return TRUE;
   } else {
-    print_error("Failed to create UDP socket towards AQMP proxy.");
+    print_error("Failed to create UDP socket towards AMQP proxy.");
     return FALSE;
   }
 }
@@ -135,9 +135,9 @@ function array_sort_by()
  * Includes filename with global config variable
  *
  * @param string $filename Filename for include
+ *
  * @return boolean Status of include
  */
-// TESTME needs unit testing
 function include_wrapper($filename)
 {
   global $config;
@@ -165,8 +165,8 @@ function get_device_os($device)
   // If $recheck sets as TRUE, verified that 'os' corresponds to the old value.
   $recheck = (strlen($device['os']) == 0 || $device['os'] == 'generic') ? FALSE : TRUE;
 
-  $sysDescr     = snmp_get($device, "sysDescr.0", "-Ovq", "SNMPv2-MIB", mib_dirs());
-  $sysObjectId  = snmp_get($device, "sysObjectID.0", "-Ovqn", "SNMPv2-MIB", mib_dirs());
+  $sysDescr     = snmp_get($device, 'sysDescr.0', '-Ovq', 'SNMPv2-MIB');
+  $sysObjectId  = snmp_get($device, 'sysObjectID.0', '-Ovqn', 'SNMPv2-MIB');
   if (strpos($sysObjectId, 'Wrong Type') !== FALSE)
   {
     // Wrong Type (should be OBJECT IDENTIFIER): "1.3.6.1.4.1.25651.1.2"
@@ -270,26 +270,27 @@ function get_device_os($device)
   if (!$os)
   {
     // Check by include file
-    $path = $config['install_dir'] . "/includes/discovery/os";
+    $path = $config['install_dir'] . '/includes/discovery/os';
     $dir_handle = @opendir($path) or die("Unable to open $path");
     while ($file = readdir($dir_handle))
      {
-      if (preg_match("/.php$/", $file))
+      if (preg_match('/.php$/', $file))
       {
         print_debug("Including $file");
 
-        include($config['install_dir'] . "/includes/discovery/os/" . $file);
+        include($config['install_dir'] . '/includes/discovery/os/' . $file);
       }
     }
     closedir($dir_handle);
   }
 
-  if ($os) { return $os; } else { return "generic"; }
+  if ($os) { return $os; } else { return 'generic'; }
 }
 
 // Fetch the number of input/output errors on an interface for $period.
 // DOCME needs phpdoc block
 // TESTME needs unit testing
+// FIXME this function is not used. OK to remove?
 function interface_errors($rrd_file, $period = '-1d') // Returns the last in/out errors value in RRD
 {
   global $config;
@@ -315,17 +316,37 @@ function renamehost($id, $new, $source = 'console', $options = array())
 {
   global $config;
 
+  $new = strtolower(trim($new));
+
   // Test if new host exists in database
   if (dbFetchCell('SELECT COUNT(`device_id`) FROM `devices` WHERE `hostname` = ?', array($new)) == 0)
   {
     $flags = OBS_DNS_ALL;
     $transport = strtolower(dbFetchCell("SELECT `snmp_transport` FROM `devices` WHERE `device_id` = ?", array($id)));
-    if ($transport == 'udp6' || $transport == 'tcp6') // Exclude IPv4 if used transport 'udp6' or 'tcp6'
+
+    // Try detect if hostname is IP
+    switch (get_ip_version($new))
     {
-      $flags = $flags ^ OBS_DNS_A; // exclude A
+      case 6:
+        $new     = Net_IPv6::compress($hostname, TRUE); // Always use compressed IPv6 name
+      case 4:
+        if ($config['require_hostname'])
+        {
+          print_error("Hostname should be a valid resolvable FQDN name. Or set config option \$config['require_hostname'] as FALSE.");
+ 	 	      return FALSE;
+        }
+        $ip      = $new;
+        break;
+      default:
+        if ($transport == 'udp6' || $transport == 'tcp6') // Exclude IPv4 if used transport 'udp6' or 'tcp6'
+        {
+          $flags = $flags ^ OBS_DNS_A; // exclude A
+        }
+        // Test DNS lookup.
+        $ip      = gethostbyname6($new, $flags);
     }
-    // Test DNS lookup.
-    if (gethostbyname6($new, $flags))
+
+    if ($ip)
     {
       $options['ping_skip'] = (isset($options['ping_skip']) && $options['ping_skip']) || get_entity_attrib('device', $id, 'ping_skip');
       if ($options['ping_skip'])
@@ -455,7 +476,9 @@ function delete_port($int_id, $delete_rrd = TRUE)
 {
   global $config;
 
-  $port = dbFetchRow("SELECT * FROM `ports` AS P, `devices` AS D WHERE P.`port_id` = ? AND D.`device_id` = P.`device_id`", array($int_id));
+  $port = dbFetchRow("SELECT * FROM `ports`
+                      LEFT JOIN `devices` USING (`device_id`)
+                      WHERE `port_id` = ?", array($int_id));
   $ret = "> Deleted interface from ".$port['hostname'].": id=$int_id (".$port['ifDescr'].")\n";
 
   // Remove entities from common tables
@@ -471,7 +494,8 @@ function delete_port($int_id, $delete_rrd = TRUE)
     $ret .= ' * Deleted common entity entries linked to port.' . PHP_EOL;
   }
 
-  $port_tables = array('bill_ports', 'eigrp_ports', 'ipv4_addresses', 'ipv6_addresses',
+  // FIXME, move to definitions
+  $port_tables = array('eigrp_ports', 'ipv4_addresses', 'ipv6_addresses',
                        'ip_mac', 'juniAtmVp', 'mac_accounting', 'ospf_nbrs', 'ospf_ports',
                        'ports_adsl', 'ports_cbqos', 'ports_vlans', 'pseudowires', 'vlans_fdb',
                        'neighbours', 'ports');
@@ -537,18 +561,35 @@ function add_device($hostname, $snmp_version = array(), $snmp_port = 161, $snmp_
   // Reset snmp timeout and retries options for speedup device adding
   unset($config['snmp']['timeout'], $config['snmp']['retries']);
 
-  $hostname = trim($hostname);
-  list($hostshort) = explode(".", $hostname);
+  $snmp_transport = strtolower($snmp_transport);
+
+  $hostname = strtolower(trim($hostname));
+
+  // Try detect if hostname is IP
+  switch (get_ip_version($hostname))
+  {
+    case 6:
+      $hostname = Net_IPv6::compress($hostname, TRUE); // Always use compressed IPv6 name
+    case 4:
+      if ($config['require_hostname'])
+      {
+        print_error("Hostname should be a valid resolvable FQDN name. Or set config option \$config['require_hostname'] as FALSE.");
+        return $return;
+      }
+      $ip       = $hostname;
+      break;
+    default:
+      if ($snmp_transport == 'udp6' || $snmp_transport == 'tcp6') // IPv6 used only if transport 'udp6' or 'tcp6'
+      {
+        $flags = $flags ^ OBS_DNS_A; // exclude A
+      }
+      // Test DNS lookup.
+      $ip       = gethostbyname6($hostname, $flags);
+  }
+
   // Test if host exists in database
   if (dbFetchCell("SELECT COUNT(*) FROM `devices` WHERE `hostname` = ?", array($hostname)) == '0')
   {
-    $snmp_transport = strtolower($snmp_transport);
-    if ($snmp_transport == 'udp6' || $snmp_transport == 'tcp6') // IPv6 used only if transport 'udp6' or 'tcp6'
-    {
-      $flags = $flags ^ OBS_DNS_A; // exclude A
-    }
-    // Test DNS lookup.
-    $ip = gethostbyname6($hostname, $flags);
     if ($ip)
     {
       $ip_version = get_ip_version($ip);
@@ -730,7 +771,7 @@ function check_device_duplicated($device)
   }
 
   $snmpEngineID = snmp_cache_snmpEngineID($device);
-  $sysName      = snmp_get($device, "sysName.0", "-Oqv", "SNMPv2-MIB", mib_dirs());
+  $sysName      = snmp_get($device, 'sysName.0', '-Oqv', 'SNMPv2-MIB');
   if (empty($sysName) || strpos($sysName, '.') === FALSE) { $sysName = FALSE; }
 
   if (!empty($snmpEngineID))
@@ -744,7 +785,7 @@ function check_device_duplicated($device)
         $test_entPhysical = dbFetchRow('SELECT * FROM `entPhysical` WHERE `device_id` = ? AND `entPhysicalSerialNum` != ? ORDER BY `entPhysicalClass` LIMIT 1', array($test['device_id'], ''));
         if (isset($test_entPhysical['entPhysicalSerialNum']))
         {
-          $serial = snmp_get($device, "entPhysicalSerialNum.".$test_entPhysical['entPhysicalIndex'], "-OQv", "ENTITY-MIB", mib_dirs());
+          $serial = snmp_get($device, 'entPhysicalSerialNum.'.$test_entPhysical['entPhysicalIndex'], '-OQv', 'ENTITY-MIB');
           if ($serial == $test_entPhysical['entPhysicalSerialNum'])
           {
             // This devices really same, with same sysName, snmpEngineID and entPhysicalSerialNum
@@ -761,7 +802,7 @@ function check_device_duplicated($device)
   } else {
     // If snmpEngineID empty, check only by sysName
     $test_devices = dbFetchRows('SELECT * FROM `devices` WHERE `disabled` = 0 AND `sysName` = ?', array($sysName));
-    if ($sysName !== FALSE && count($test_devices) > 0)
+    if ($sysName !== FALSE && is_array($test_devices) && count($test_devices) > 0)
     {
       $has_serial = FALSE;
       foreach ($test_devices as $test)
@@ -770,7 +811,7 @@ function check_device_duplicated($device)
         $test_entPhysical = dbFetchRow('SELECT * FROM `entPhysical` WHERE `device_id` = ? AND `entPhysicalSerialNum` != ? ORDER BY `entPhysicalClass` LIMIT 1', array($test['device_id'], ''));
         if (isset($test_entPhysical['entPhysicalSerialNum']))
         {
-          $serial = snmp_get($device, "entPhysicalSerialNum.".$test_entPhysical['entPhysicalIndex'], "-OQv", "ENTITY-MIB", mib_dirs());
+          $serial = snmp_get($device, "entPhysicalSerialNum.".$test_entPhysical['entPhysicalIndex'], "-OQv", "ENTITY-MIB");
           if ($serial == $test_entPhysical['entPhysicalSerialNum'])
           {
             // This devices really same, with same sysName, snmpEngineID and entPhysicalSerialNum
@@ -959,11 +1000,11 @@ function isSNMPable($device)
   if (isset($GLOBALS['config']['os'][$device['os']]['snmpable']) && $device['os'] != 'generic')
   {
     // Custom device checks by defined OIDs
-    $pos   = snmp_get_multi($device, $GLOBALS['config']['os'][$device['os']]['snmpable'], '-OQUst', 'SNMPv2-MIB', mib_dirs());
+    $pos   = snmp_get_multi($device, $GLOBALS['config']['os'][$device['os']]['snmpable'], '-OQUst', 'SNMPv2-MIB');
     $count = count($pos);
   } else {
     // Normal checks by sysObjectID and sysUpTime
-    $pos   = snmp_get_multi($device, 'sysObjectID.0 sysUpTime.0', '-OQUst', 'SNMPv2-MIB', mib_dirs());
+    $pos   = snmp_get_multi($device, 'sysObjectID.0 sysUpTime.0', '-OQUst', 'SNMPv2-MIB');
     $count = count($pos[0]);
   }
 
@@ -977,7 +1018,7 @@ function isSNMPable($device)
   else if ($device['os'] == 'generic' && strpos($GLOBALS['exec_status']['stdout'], 'No Such Object') !== FALSE)
   {
     // Here specific logic for generic os
-    $pos = snmp_get_multi($device, $GLOBALS['config']['os'][$device['os']]['snmpable'], '-OQUst', 'SNMPv2-MIB', mib_dirs());
+    $pos = snmp_get_multi($device, $GLOBALS['config']['os'][$device['os']]['snmpable'], '-OQUst', 'SNMPv2-MIB');
     if ($GLOBALS['snmp_status'] && count($pos))
     {
       // SNMP response time in milliseconds.
@@ -1124,29 +1165,11 @@ function createHost($hostname, $snmp_community = NULL, $snmp_version, $snmp_port
     }
   }
 
-  // This is compatibility code after refactor in r6306, for keep devices up before DB updated
-  if (get_db_version() < 189)
-  {
-    // FIXME. Remove this in r7000
-    $device['snmpver'] = $device['snmp_version'];
-    unset($device['snmp_version']);
-    foreach (array('transport', 'port', 'timeout', 'retries', 'community',
-                   'authlevel', 'authname', 'authpass', 'authalgo', 'cryptopass', 'cryptoalgo') as $old_key)
-    {
-      if (isset($device['snmp_'.$old_key]))
-      {
-        // Convert to old device snmp keys
-        $device[$old_key] = $device['snmp_'.$old_key];
-        unset($device['snmp_'.$old_key]);
-      }
-    }
-  }
-
   $device['os']           = get_device_os($device);
   $device['snmpEngineID'] = snmp_cache_snmpEngineID($device);
-  $device['sysName']      = snmp_get($device, "sysName.0", "-Oqv", "SNMPv2-MIB", mib_dirs());
-  $device['location']     = snmp_get($device, "sysLocation.0", "-Oqv", "SNMPv2-MIB", mib_dirs());
-  $device['sysContact']   = snmp_get($device, "sysContact.0", "-Oqv", "SNMPv2-MIB", mib_dirs());
+  $device['sysName']      = snmp_get($device, 'sysName.0', '-Oqv', 'SNMPv2-MIB');
+  $device['location']     = snmp_get($device, 'sysLocation.0', '-Oqv', 'SNMPv2-MIB');
+  $device['sysContact']   = snmp_get($device, 'sysContact.0', '-Oqv', 'SNMPv2-MIB');
 
   if ($device['os'])
   {
@@ -1185,24 +1208,48 @@ function isDomainResolves($hostname, $flags = OBS_DNS_ALL)
   return (TRUE && gethostbyname6($hostname, $flags));
 }
 
-// Returns IP version for string or FALSE if string not an IP
-// get_ip_version('127.0.0.1')   === 4
-// get_ip_version('::1')         === 6
-// get_ip_version('my_hostname') === FALSE
-// DOCME needs phpdoc block
-// TESTME needs unit testing
+/**
+ * Returns IP version for string or FALSE if string not an IP
+ *
+ * Examples:
+ *  get_ip_version('127.0.0.1')   === 4
+ *  get_ip_version('::1')         === 6
+ *  get_ip_version('my_hostname') === FALSE
+ *
+ * @param sting $address IP address string
+ * @return mixed IP version or FALSE if passed incorrect address
+ */
 function get_ip_version($address)
 {
   $address_version = FALSE;
-  if (Net_IPv4::validateIP($address))    { $address_version = 4; }
-  elseif (Net_IPv6::checkIPv6($address)) { $address_version = 6; }
+  if      (strpos($address, '/') !== FALSE)
+  {
+    // Dump condition,
+    // while Net_IPv6::checkIPv6 thinks IP with mask as valid address, not correct for us here
+  }
+  else if (strpos($address, '.') !== FALSE && Net_IPv4::validateIP($address))
+  {
+    $address_version = 4;
+  }
+  else if (strpos($address, ':') !== FALSE && Net_IPv6::checkIPv6($address))
+  {
+    $address_version = 6;
+  }
   return $address_version;
 }
 
-// DOCME needs phpdoc block
+/**
+ * Check if a given IPv4 address (and prefix length) is valid.
+ *
+ * @param string $ipv4_address    IPv4 Address
+ * @param string $ipv4_prefixlen  IPv4 Prefix length (optional, either 24 or 255.255.255.0)
+ *
+ * @return bool Returns TRUE if address is valid, FALSE if not valid.
+ */
 // TESTME needs unit testing
 function is_ipv4_valid($ipv4_address, $ipv4_prefixlen = NULL)
 {
+  // Strip prefix length if given in address
   if (strpos($ipv4_address, '/') !== FALSE) { list($ipv4_address, $ipv4_prefixlen) = explode('/', $ipv4_address); }
   if (strpos($ipv4_prefixlen, '.')) { $ipv4_prefixlen = netmask2cidr($ipv4_prefixlen); }
   // False if prefix less or equal 0 and more 32
@@ -1211,13 +1258,23 @@ function is_ipv4_valid($ipv4_address, $ipv4_prefixlen = NULL)
   if (!Net_IPv4::validateIP($ipv4_address)) { return FALSE; }
   // False if 0.0.0.0
   if ($ipv4_address == '0.0.0.0') { return FALSE; }
+
   return TRUE;
 }
 
-// DOCME needs phpdoc block
+/**
+ * Check if a given IPv6 address (and prefix length) is valid.
+ * Link-local addresses are considered invalid.
+ *
+ * @param string $ipv6_address    IPv6 Address
+ * @param string $ipv6_prefixlen  IPv6 Prefix length (optional)
+ *
+ * @return bool Returns TRUE if address is valid, FALSE if not valid.
+ */
 // TESTME needs unit testing
 function is_ipv6_valid($ipv6_address, $ipv6_prefixlen = NULL)
 {
+  // Strip prefix length if given in address
   if (strpos($ipv6_address, '/') !== FALSE) { list($ipv6_address, $ipv6_prefixlen) = explode('/', $ipv6_address); }
   // False if prefix less or equal 0 and more 128
   if (is_numeric($ipv6_prefixlen) && ($ipv6_prefixlen < '0' || $ipv6_prefixlen > '128')) { return FALSE; }
@@ -1226,12 +1283,20 @@ function is_ipv6_valid($ipv6_address, $ipv6_prefixlen = NULL)
   $ipv6_type = Net_IPv6::getAddressType($ipv6_address);
   // False if link-local
   if ($ipv6_type == NET_IPV6_LOCAL_LINK || $ipv6_type == NET_IPV6_UNSPECIFIED) { return FALSE; }
+
   return TRUE;
 }
 
-// Determines whether or not the supplied IP address is within the supplied network.
-// BOOLEAN safe, support IPv4 and IPv6
-// DOCME needs phpdoc block
+/**
+ * Determines whether or not the supplied IP address is within the supplied network (IPv4 or IPv6).
+ *
+ * @param string $ip     IP Address
+ * @param string $nets   IPv4/v6 networks
+ * @param bool   $first  FIXME
+ *
+ * @return bool Returns TRUE if address is found in supplied network, FALSE if it is not.
+ */
+// TESTME needs unit testing
 function match_network($ip, $nets, $first = FALSE)
 {
   $return = FALSE;
@@ -1257,8 +1322,8 @@ function match_network($ip, $nets, $first = FALSE)
         $ip_in_net = Net_IPv6::isInNetmask($ip, $net);
       }
 
-      if ($revert && $ip_in_net) { return FALSE; } // Return FALSE if IP founded in network where should NOT match
-      if ($first  && $ip_in_net) { return TRUE; }  // Return TRUE if IP founded in first match
+      if ($revert && $ip_in_net) { return FALSE; } // Return FALSE if IP found in network where should NOT match
+      if ($first  && $ip_in_net) { return TRUE; }  // Return TRUE if IP found in first match
       $return = $return || $ip_in_net;
     }
   }
@@ -1276,6 +1341,7 @@ function match_network($ip, $nets, $first = FALSE)
  *  IPv6 "20:01:07:F8:00:12:00:01:00:00:00:00:00:05:02:72" => "2001:07f8:0012:0001:0000:0000:0005:0272"
  *
  * @param string $ip_hex HEX encoded IP address
+ *
  * @return string IP address or original input string if not contains IP address
  */
 function hex2ip($ip_hex)
@@ -1334,6 +1400,7 @@ function hex2ip($ip_hex)
  *
  * @param string $ip IP address string
  * @param string $separator Separator for HEX parts
+ *
  * @return string HEX encoded address
  */
 function ip2hex($ip, $separator = ' ')
@@ -1396,37 +1463,6 @@ function ipv62snmp($ipv6)
 
 // DOCME needs phpdoc block
 // TESTME needs unit testing
-function parse_bgpmib_v2_peer_index($idx, $mib='BGP4V2-MIB') {
-  # The $mib argument is to handle different INDEX structures
-  # from different vendors.  Since the RFC is not yet published,
-  # the 'BGP4V2-MIB' type is not yet implemented.
-  $peerAf = NULL;
-  $peerIp = NULL;
-  if ($mib == 'ARISTA-BGP4V2-MIB') {
-    $oids = explode('.', $idx);
-    # 1. aristaBgp4V2PeerInstance.  None of the code here handles multiple
-    # instances, so we just ignore it.
-    array_shift($oids);
-    # 2. aristaBgp4V2PeerRemoteAddrType.
-    $peerAf = array_shift($oids);
-    # 3. length of the IP address
-    $ipLen = array_shift($oids);
-    # 4. IP address
-    $ipOids = array_slice($oids, 0, $ipLen);
-    # Note that there may be more oids in $oids, but we
-    # ignore them (e.g., so that this function can be
-    # used inside the aristaBgp4V2PrefixGaugesTable)
-    if ($peerAf == 1 and $ipLen == 4) {
-      $peerIp = implode(".", $ipOids);
-    } elseif ($peerAf == 2 and $ipLen == 16) {
-      $peerIp = snmp2ipv6(implode(".", $ipOids));
-    }
-  }
-  return array('peerRemoteAddrFamily' => $peerAf, 'peerRemoteAddr' => $peerIp);
-}
-
-// DOCME needs phpdoc block
-// TESTME needs unit testing
 // MOVEME to includes/common.inc.php
 function get_astext($asn)
 {
@@ -1438,17 +1474,18 @@ function get_astext($asn)
     return $config['astext'][$asn];
   } else {
     // Not preconfigured, check cache before doing a new DNS request
-    if (isset($cache['astext'][$asn]))
+    if (!isset($cache['astext'][$asn]))
     {
-      return $cache['astext'][$asn];
-    } else {
-      $result = dns_get_record("AS$asn.asn.cymru.com",DNS_TXT);
-      $txt = explode('|',$result[0]['txt']);
-      $result = trim(str_replace('"', '', $txt[4]));
-      $cache['astext'][$asn] = $result;
-
-      return $result;
+      $result = dns_get_record("AS$asn.asn.cymru.com", DNS_TXT);
+      if (OBS_DEBUG > 1)
+      {
+        print_vars($result);
+      }
+      $txt = explode('|', $result[0]['txt']);
+      $cache['astext'][$asn] = trim(str_replace('"', '', $txt[4]));
     }
+
+    return $cache['astext'][$asn];
   }
 }
 
@@ -1543,6 +1580,7 @@ function parse_email($emails)
  * We claim no copyright over this function and assume that it is free to use.
  *
  * @param string $string
+ *
  * @return string
  */
 // MOVEME to includes/common.inc.php
@@ -1564,6 +1602,7 @@ function str2hex($string)
  * We claim no copyright over this function and assume that it is free to use.
  *
  * @param string $hex
+ *
  * @return string
  */
 // TESTME needs unit testing
@@ -1590,6 +1629,7 @@ function hex2str($hex)
  * Used together with snmp_fix_string()
  *
  * @param string $hex
+ *
  * @return string
  */
 function convert_ord_char($ord)
@@ -1712,13 +1752,13 @@ function is_port_valid($port, $device)
 
   $valid = TRUE;
 
-  if (isset($port['ifOperStatus']) && $port['ifOperStatus'] == 'notPresent')
+  if (isset($port['ifOperStatus']) && strlen($port['ifOperStatus']) && // Currently skiped empty ifOperStatus for exclude false positives
+      !in_array($port['ifOperStatus'], array('testing', 'dormant', 'down', 'lowerLayerDown', 'unknown', 'up', 'monitoring')))
   {
     // See http://tools.cisco.com/Support/SNMP/do/BrowseOID.do?objectInput=ifOperStatus
     $valid = FALSE;
+    print_debug("ignored (by ifOperStatus = notPresent or invalid value).");
   }
-
-  $if = ($config['os'][$device['os']]['ifname'] ? $port['ifName'] : $port['ifDescr']);
 
   if ($valid && !isset($port['ifType']))
   {
@@ -1742,6 +1782,18 @@ function is_port_valid($port, $device)
     print_debug("ignored (by empty ifType).");
   }
 
+  if ($port['ifDescr'] === '' && $config['os'][$device['os']]['ifType_ifDescr'] && $port['ifIndex'])
+  {
+    // This happen on some liebert UPS devices
+    $type = rewrite_iftype($port['ifType']);
+    if ($type)
+    {
+      $port['ifDescr'] = $type . ' ' . $port['ifIndex'];
+    }
+  }
+
+  $if = ($config['os'][$device['os']]['ifname'] ? $port['ifName'] : $port['ifDescr']);
+
   if ($valid && is_array($config['bad_if']))
   {
     foreach ($config['bad_if'] as $bi)
@@ -1750,6 +1802,19 @@ function is_port_valid($port, $device)
       {
         $valid = FALSE;
         print_debug("ignored (by descr): $if [ $bi ]");
+        break;
+      }
+    }
+  }
+
+  if ($valid && is_array($config['bad_ifalias_regexp']))
+  {
+    foreach ($config['bad_ifalias_regexp'] as $bi)
+    {
+      if (preg_match($bi . 'i', $port['ifAlias']))
+      {
+        $valid = FALSE;
+        print_debug("ignored (by ifAlias): ".$port['ifAlias']." [ $bi ]");
         break;
       }
     }
@@ -1788,6 +1853,203 @@ function is_port_valid($port, $device)
   if ($valid && $device['os'] == 'catos' && strstr($if, "vlan")) { $valid = FALSE; }
 
   return $valid;
+}
+
+function is_bgp_peer_valid($peer, $device)
+{
+  $valid = TRUE;
+
+  if (isset($peer['admin_status']) && empty($peer['admin_status']))
+  {
+    $valid = FALSE;
+    print_debug("Peer ignored (by empty Admin Status).");
+  }
+
+  if ($valid && !(is_numeric($peer['as']) && $peer['as'] != 0))
+  {
+    $valid = FALSE;
+    print_debug("Peer ignored (by invalid AS number '".$peer['as']."').");
+  }
+
+  if ($valid && !get_ip_version($peer['ip']))
+  {
+    $valid = FALSE;
+    print_debug("Peer ignored (by invalid Remote IP '".$peer['ip']."').");
+  }
+
+  return $valid;
+}
+
+/**
+ * Convert BGP peer index to vendor MIB specific entries
+ *
+ * @param array $peer Array with walked peer oids
+ * @param string $index Peer index
+ * @param string $mib MIB name
+ */
+function parse_bgp_peer_index(&$peer, $index, $mib = 'BGP4V2-MIB')
+{
+  $address_types = $GLOBALS['config']['mibs']['INET-ADDRESS-MIB']['rewrite']['InetAddressType'];
+  $index_parts   = explode('.', $index);
+  switch ($mib)
+  {
+    case 'BGP4-MIB':
+      // bgpPeerRemoteAddr
+      if (get_ip_version($index))
+      {
+        $peer['bgpPeerRemoteAddr'] = $index;
+      }
+      break;
+
+    case 'ARISTA-BGP4V2-MIB':
+      // 1. aristaBgp4V2PeerInstance
+      $peer['aristaBgp4V2PeerInstance'] = array_shift($index_parts);
+      // 2. aristaBgp4V2PeerRemoteAddrType.
+      $peer_addr_type = array_shift($index_parts);
+      if (strlen($peer['aristaBgp4V2PeerRemoteAddrType']) == 0)
+      {
+        $peer['aristaBgp4V2PeerRemoteAddrType'] = $peer_addr_type;
+      }
+      if (isset($address_types[$peer['aristaBgp4V2PeerRemoteAddrType']]))
+      {
+        $peer['aristaBgp4V2PeerRemoteAddrType'] = $address_types[$peer['aristaBgp4V2PeerRemoteAddrType']];
+      }
+      // 3. length of the IP address
+      $ip_len = array_shift($index_parts);
+      // 4. IP address
+      $ip_parts = array_slice($index_parts, 0, $ip_len);
+
+      // 5. aristaBgp4V2PeerRemoteAddr
+      $peer_ip = implode('.', $ip_parts);
+      if ($ip_len == 16)
+      {
+        $peer_ip = snmp2ipv6($peer_ip);
+      }
+      if ($peer_addr_type = get_ip_version($peer_ip))
+      {
+        $peer['aristaBgp4V2PeerRemoteAddr']     = $peer_ip;
+        $peer['aristaBgp4V2PeerRemoteAddrType'] = 'ipv' . $peer_addr_type; // FIXME. not sure, but seems as Arista use only ipv4/ipv6 for afi
+      }
+      break;
+
+    case 'BGP4-V2-MIB-JUNIPER':
+      // 1. jnxBgpM2PeerRoutingInstance
+      $peer['jnxBgpM2PeerRoutingInstance'] = array_shift($index_parts);
+      // 2. jnxBgpM2PeerLocalAddrType
+      $local_addr_type = array_shift($index_parts);
+      if (strlen($peer['jnxBgpM2PeerLocalAddrType']) == 0)
+      {
+        $peer['jnxBgpM2PeerLocalAddrType'] = $local_addr_type;
+      }
+      if (isset($address_types[$peer['jnxBgpM2PeerLocalAddrType']]))
+      {
+        $peer['jnxBgpM2PeerLocalAddrType'] = $address_types[$peer['jnxBgpM2PeerLocalAddrType']];
+      }
+      // 3. length of the local IP address
+      $ip_len = (strstr($peer['jnxBgpM2PeerLocalAddrType'], 'ipv6') ? 16 : 4);
+      // 4. IP address
+      $ip_parts = array_slice($index_parts, 0, $ip_len);
+
+      // 5. jnxBgpM2PeerLocalAddr
+      $local_ip = implode('.', $ip_parts);
+      if ($ip_len == 16)
+      {
+        $local_ip = snmp2ipv6($local_ip);
+      }
+      if (get_ip_version($local_ip))
+      {
+        $peer['jnxBgpM2PeerLocalAddr'] = $local_ip;
+      }
+
+      // Get second part of index
+      $index_parts = array_slice($index_parts, $ip_len);
+      // 6. jnxBgpM2PeerRemoteAddrType
+      $peer_addr_type = array_shift($index_parts);
+      if (strlen($peer['jnxBgpM2PeerRemoteAddrType']) == 0)
+      {
+        $peer['jnxBgpM2PeerRemoteAddrType'] = $peer_addr_type;
+      }
+      if (isset($address_types[$peer['jnxBgpM2PeerRemoteAddrType']]))
+      {
+        $peer['jnxBgpM2PeerRemoteAddrType'] = $address_types[$peer['jnxBgpM2PeerRemoteAddrType']];
+      }
+      // 7. length of the remote IP address
+      $ip_len = (strstr($peer['jnxBgpM2PeerRemoteAddrType'], 'ipv6') ? 16 : 4);
+      // 8. IP address
+      $ip_parts = array_slice($index_parts, 0, $ip_len);
+
+      // 9. jnxBgpM2PeerRemoteAddr
+      $peer_ip = implode('.', $ip_parts);
+      if ($ip_len == 16)
+      {
+        $peer_ip = snmp2ipv6($peer_ip);
+      }
+      if (get_ip_version($peer_ip))
+      {
+        $peer['jnxBgpM2PeerRemoteAddr'] = $peer_ip;
+      }
+      break;
+
+    case 'FORCE10-BGP4-V2-MIB':
+      // 1. f10BgpM2PeerInstance
+      $peer['f10BgpM2PeerInstance'] = array_shift($index_parts);
+      // 2. f10BgpM2PeerLocalAddrType
+      $local_addr_type = array_shift($index_parts);
+      if (strlen($peer['f10BgpM2PeerLocalAddrType']) == 0)
+      {
+        $peer['f10BgpM2PeerLocalAddrType'] = $local_addr_type;
+      }
+      if (isset($address_types[$peer['f10BgpM2PeerLocalAddrType']]))
+      {
+        $peer['f10BgpM2PeerLocalAddrType'] = $address_types[$peer['f10BgpM2PeerLocalAddrType']];
+      }
+      // 3. length of the local IP address
+      $ip_len = (strstr($peer['f10BgpM2PeerLocalAddrType'], 'ipv6') ? 16 : 4);
+      // 4. IP address
+      $ip_parts = array_slice($index_parts, 0, $ip_len);
+
+      // 5. f10BgpM2PeerLocalAddr
+      $local_ip = implode('.', $ip_parts);
+      if ($ip_len == 16)
+      {
+        $local_ip = snmp2ipv6($local_ip);
+      }
+      if (get_ip_version($local_ip))
+      {
+        $peer['f10BgpM2PeerLocalAddr'] = $local_ip;
+      }
+
+      // Get second part of index
+      $index_parts = array_slice($index_parts, $ip_len);
+      // 6. f10BgpM2PeerRemoteAddrType
+      $peer_addr_type = array_shift($index_parts);
+      if (strlen($peer['f10BgpM2PeerRemoteAddrType']) == 0)
+      {
+        $peer['f10BgpM2PeerRemoteAddrType'] = $peer_addr_type;
+      }
+      if (isset($address_types[$peer['f10BgpM2PeerRemoteAddrType']]))
+      {
+        $peer['f10BgpM2PeerRemoteAddrType'] = $address_types[$peer['f10BgpM2PeerRemoteAddrType']];
+      }
+      // 7. length of the remote IP address
+      $ip_len = (strstr($peer['f10BgpM2PeerRemoteAddrType'], 'ipv6') ? 16 : 4);
+      // 8. IP address
+      $ip_parts = array_slice($index_parts, 0, $ip_len);
+
+      // 9. f10BgpM2PeerRemoteAddr
+      $peer_ip = implode('.', $ip_parts);
+      if ($ip_len == 16)
+      {
+        $peer_ip = snmp2ipv6($peer_ip);
+      }
+      if (get_ip_version($peer_ip))
+      {
+        $peer['f10BgpM2PeerRemoteAddr'] = $peer_ip;
+      }
+      break;
+
+  }
+
 }
 
 # Parse CSV files with or without header, and return a multidimensional array
@@ -1845,27 +2107,80 @@ function parse_csv($content, $has_header = 1, $separator = ",")
 }
 
 /**
+ * Return normalized state array by type and value (numeric or string)
+ *
+ * DOCME parameter docs?
+ */
+function get_state_array($type, $value, $poller_type = 'snmp')
+{
+  $state_array = array('value' => FALSE);
+
+  switch ($poller_type)
+  {
+    case 'agent':
+    case 'ipmi':
+      $state = state_string_to_numeric($type, $value, $poller_type);
+      if ($state !== FALSE)
+      {
+        $state_array['value'] = $state; // Numeric value
+        $state_array['name']  = $GLOBALS['config'][$poller_type]['states'][$type][$state]['name'];  // Named value
+        $state_array['event'] = $GLOBALS['config'][$poller_type]['states'][$type][$state]['event']; // Event type
+        $state_array['mib']   = $poller_type;
+      }
+      break;
+
+    default: // SNMP
+      $state = state_string_to_numeric($type, $value);
+      if ($state !== FALSE)
+      {
+        $mib = state_type_to_mib($type);
+        $state_array['value'] = $state; // Numeric value
+        $state_array['name']  = $GLOBALS['config']['mibs'][$mib]['states'][$type][$state]['name'];  // Named value
+        $state_array['event'] = $GLOBALS['config']['mibs'][$mib]['states'][$type][$state]['event']; // Event type
+        $state_array['mib']   = $mib; // MIB name
+      }
+  }
+
+  return $state_array;
+}
+
+/**
  * Converts named oid values to numerical interpretation based on oid descriptions and stored in definitions
  *
- * @param string $type Sensor type which has definition in $config['status_states'][$type]
+ * @param string $type Sensor type which has definitions in $config['mibs'][$mib]['states'][$type]
  * @param mixed $value Value which must be converted
+ *
  * @return integer Note, if definition not found or incorrect value, returns FALSE
  */
-function state_string_to_numeric($type, $value)
+function state_string_to_numeric($type, $value, $poller_type = 'snmp')
 {
-  global $config;
+  switch ($poller_type)
+  {
+    case 'agent':
+    case 'ipmi':
+      if (!isset($GLOBALS['config'][$poller_type]['states'][$type]))
+      {
+        return FALSE;
+      }
+      $state_def = $GLOBALS['config'][$poller_type]['states'][$type];
+      break;
+
+    default:
+      $mib       = state_type_to_mib($type);
+      $state_def = $GLOBALS['config']['mibs'][$mib]['states'][$type];
+  }
 
   if (is_numeric($value))
   {
     // Return value if already numeric
-    if ($value == (int)$value && isset($config['status_states'][$type][(int)$value]))
+    if ($value == (int)$value && isset($state_def[(int)$value]))
     {
       return (int)$value;
     } else {
       return FALSE;
     }
   }
-  foreach ($config['status_states'][$type] as $index => $content)
+  foreach ($state_def as $index => $content)
   {
     if (strcasecmp($content['name'], trim($value)) == 0) { return $index; }
   }
@@ -1873,24 +2188,37 @@ function state_string_to_numeric($type, $value)
   return FALSE;
 }
 
-// Convert Fahrenheit -> Celsius
-// DOCME needs phpdoc block
-// TESTME needs unit testing
-// MOVEME to includes/common.inc.php
-function f2c($fahrenheit)
+/**
+ * Helper function for get MIB name by status type.
+ * Currently we use unique status types over all MIBs
+ *
+ * @param string $type Unique status type
+ *
+ * @return string MIB name corresponding to this type
+ */
+function state_type_to_mib($state_type)
 {
-  if (is_numeric($fahrenheit)) { return ($fahrenheit - 32) * (5/9); }
-  else                         { return $fahrenheit; }
-}
+  // By first cache all type -> mib from definitions
+  if (!isset($GLOBALS['cache']['state_type_mib']))
+  {
+    $GLOBALS['cache']['state_type_mib'] = array();
+    // $config['mibs'][$mib]['states']['dskf-mib-hum-state'][0] = array('name' => 'error',    'event' => 'alert');
+    foreach ($GLOBALS['config']['mibs'] as $mib => $entries)
+    {
+      if (!isset($entries['states'])) { continue; }
+      foreach ($entries['states'] as $type => $entry)
+      {
+        if (isset($GLOBALS['cache']['state_type_mib'][$type]))
+        {
+          print_warning('Warning, status type name "'.$type.'" for MIB "'.$mib.'" also exist in MIB "'.$GLOBALS['cache']['state_type_mib'][$type].'". Type name MUST be unique!');
+        }
+        $GLOBALS['cache']['state_type_mib'][$type] = $mib;
+      }
+    }
+  }
 
-// Convert Celsius -> Fahrenheit
-// DOCME needs phpdoc block
-// TESTME needs unit testing
-// MOVEME to includes/common.inc.php
-function c2f($celsius)
-{
-  if (is_numeric($celsius)) { return $celsius * (9/5) + 32; }
-  else                      { return $celsius; }
+  //print_vars($GLOBALS['cache']['state_type_mib']);
+  return $GLOBALS['cache']['state_type_mib'][$state_type];
 }
 
 function get_defined_settings()
@@ -1931,6 +2259,7 @@ function load_sqlconfig(&$config)
 
     // Unfortunately, I don't know of a better way to do this...
     // Perhaps using array_map() ? Unclear... hacky. :[
+    // FIXME use a loop with references! (cf. nested location menu)
     switch (count($tree))
     {
       case 1:
@@ -1972,10 +2301,11 @@ function si_to_scale($si = 'units', $precision = NULL)
   $si       = strtolower($si);
   $si_array = array('yocto' => -24, 'zepto' => -21, 'atto'  => -18,
                     'femto' => -15, 'pico'  => -12, 'nano'  => -9,
-                    'micro' => -6,  'milli' => -3,  'units' => 0,
-                    'kilo'  => 3,   'mega'  => 6,   'giga'  => 9,
-                    'tera'  => 12,  'exa'   => 15,  'peta'  => 18,
-                    'zetta' => 21,  'yotta' => 24);
+                    'micro' => -6,  'milli' => -3,  'centi' => -2,
+                    'deci'  => -1,  'units' => 0,   'deca'  => 1,
+                    'hecto' => 2,   'kilo'  => 3,   'mega'  => 6,
+                    'giga'  => 9,   'tera'  => 12,  'peta'  => 15,
+                    'exa'   => 18,  'zetta' => 21,  'yotta' => 24);
   $exp = 0;
   if (isset($si_array[$si]))
   {
@@ -2010,6 +2340,7 @@ function si_to_scale($si = 'units', $precision = NULL)
  * @param mixed $a First compare number
  * @param mixed $b Second compare number
  * @param float $epsilon
+ *
  * @return integer $compare
  */
 // MOVEME to includes/common.inc.php
@@ -2235,7 +2566,9 @@ function print_cli_table($table_rows, $table_header = array(), $descr = NULL)
   }
 }
 
-// DOCME needs phpdoc block
+/**
+ * Prints Observium banner containing ASCII logo and version information for use in CLI utilities.
+ */
 function print_cli_banner()
 {
   if (OBS_QUIET) { return; }
@@ -2275,6 +2608,53 @@ function config_get_front_page_files()
   }
 
   return $frontpages;
+}
+
+/**
+ * Triggers a rediscovery of the given device at the following discovery -h new run.
+ *
+ * @param array $device  Device array.
+ * @param array $modules Array with modules required for rediscovery, if empty rediscover device full
+ *
+ * @return mixed Status of added or not force device discovery
+ */
+// TESTME needs unit testing
+function force_discovery($device, $modules = array())
+{
+  $return = FALSE;
+
+  if (count($modules) == 0)
+  {
+    // Modules not passed, just full rediscover device
+    $return = dbUpdate(array('force_discovery' => 1), 'devices', '`device_id` = ?', array($device['device_id']));
+  } else {
+    // Modules passed, check if modules valid and enabled
+    $modules = (array)$modules;
+    $forced_modules = get_entity_attrib('device', $device['device_id'], 'force_discovery_modules');
+    if ($forced_modules)
+    {
+      // Already forced modules exist, merge it with new
+      $modules = array_unique(array_merge($modules, json_decode($forced_modules, TRUE)));
+    }
+
+    $valid_modules = array();
+    foreach ($GLOBALS['config']['discovery_modules'] as $module => $ok)
+    {
+      // Filter by valid and enabled modules
+      if ($ok && in_array($module, $modules))
+      {
+        $valid_modules[] = $module;
+      }
+    }
+
+    if (count($valid_modules))
+    {
+      $return = dbUpdate(array('force_discovery' => 1), 'devices', '`device_id` = ?', array($device['device_id']));
+      set_entity_attrib('device', $device['device_id'], 'force_discovery_modules', json_encode($valid_modules));
+    }
+  }
+
+  return $return;
 }
 
 // EOF

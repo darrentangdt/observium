@@ -32,21 +32,13 @@ if (!empty($wmi['exchange']['services']))
     $app_found['exchange'] = TRUE;
     echo("Active Sync; ");
 
-    $rrd_filename = "wmi-app-exchange-as.rrd";
+    rrdtool_update_ng($device, 'exchange-as', array(
+      'synccommandspending' => $wmi['exchange']['cas']['activesync']['SyncCommandsPending'],
+      'pingcommandspending' => $wmi['exchange']['cas']['activesync']['PingCommandsPending'],
+      'currentrequests'     => $wmi['exchange']['cas']['activesync']['CurrentRequests'],
+    ));
 
-    rrdtool_create($device, $rrd_filename,
-        "DS:synccommandspending:GAUGE:600:0:125000000000 ".
-        "DS:pingcommandspending:GAUGE:600:0:125000000000 ".
-        "DS:currentrequests:GAUGE:600:0:125000000000 "
-      );
-
-    rrdtool_update($device, $rrd_filename, "N:".
-      $wmi['exchange']['cas']['activesync']['SyncCommandsPending'].":".
-      $wmi['exchange']['cas']['activesync']['PingCommandsPending'].":".
-      $wmi['exchange']['cas']['activesync']['CurrentRequests']
-    );
-
-    unset($wmi['exchange']['cas']['activesync'], $rrd_filename);
+    unset($wmi['exchange']['cas']['activesync']);
   }
 
   // Exchange Client Access - Autodiscover
@@ -58,19 +50,13 @@ if (!empty($wmi['exchange']['services']))
   {
     $app_found['exchange'] = TRUE;
     echo("Auto Discover; ");
-    $rrd_filename = "wmi-app-exchange-auto.rrd";
 
-    rrdtool_create($device, $rrd_filename,
-        "DS:totalrequests:COUNTER:600:0:125000000000 ".
-        "DS:errorresponses:COUNTER:600:0:125000000000 "
-      );
+    rrdtool_update_ng($device, 'exchange-as', array(
+      'totalrequests'  => $wmi['exchange']['cas']['autodiscover']['TotalRequests'],
+      'errorresponses' => $wmi['exchange']['cas']['autodiscover']['ErrorResponses'],
+    ));
 
-    rrdtool_update($device, $rrd_filename, "N:".
-      $wmi['exchange']['cas']['autodiscover']['TotalRequests'].":".
-      $wmi['exchange']['cas']['autodiscover']['ErrorResponses']
-    );
-
-    unset($wmi['exchange']['cas']['autodiscover'], $rrd_filename);
+    unset($wmi['exchange']['cas']['autodiscover']);
   }
 
   // Exchange Client Access - Offline Address Book
@@ -83,19 +69,12 @@ if (!empty($wmi['exchange']['services']))
     $app_found['exchange'] = TRUE;
     echo("OAB; ");
 
-    $rrd_filename = "wmi-app-exchange-oab.rrd";
+    rrdtool_update_ng($device, 'exchange-oab', array(
+      'dltasksqueued'    => $wmi['exchange']['cas']['oab']['DownloadTaskQueued'],
+      'dltaskscompleted' => $wmi['exchange']['cas']['oab']['DownloadTasksCompleted'],
+    ));
 
-    rrdtool_create($device, $rrd_filename,
-        "DS:dltasksqueued:GAUGE:600:0:125000000000 ".
-        "DS:dltaskscompleted:GAUGE:600:0:125000000000 "
-      );
-
-    rrdtool_update($device, $rrd_filename, "N:".
-      $wmi['exchange']['cas']['oab']['DownloadTaskQueued'].":".
-      $wmi['exchange']['cas']['oab']['DownloadTasksCompleted']
-    );
-
-    unset($wmi['exchange']['cas']['oab'], $rrd_filename);
+    unset($wmi['exchange']['cas']['oab']);
   }
 
   // Exchange Client Access - Outlook Web App
@@ -108,22 +87,13 @@ if (!empty($wmi['exchange']['services']))
     $app_found['exchange'] = TRUE;
     echo("OWA; ");
 
-    $rrd_filename = "wmi-app-exchange-owa.rrd";
+    rrdtool_update_ng($device, 'exchange-owa', array(
+      'currentuniqueusers' => $wmi['exchange']['cas']['owa']['CurrentUniqueUsers'],
+      'avgresponsetime'    => $wmi['exchange']['cas']['owa']['AverageResponseTime'],
+      'avgsearchtime'      => $wmi['exchange']['cas']['owa']['AverageSearchTime'],
+    ));
 
-    rrdtool_create($device, $rrd_filename,
-        "DS:currentuniqueusers:GAUGE:600:0:125000000000 ".
-        "DS:avgresponsetime:GAUGE:600:0:125000000000 ".
-        "DS:avgsearchtime:GAUGE:600:0:125000000000 ",
-        "RRA:LAST:0.5:1:2016  RRA:LAST:0.5:6:2976  RRA:LAST:0.5:24:1440  RRA:LAST:0.5:288:1440 " . $GLOBALS['config']['rrd']['rra']
-      );
-
-    rrdtool_update($device, $rrd_filename, "N:".
-      $wmi['exchange']['cas']['owa']['CurrentUniqueUsers'].":".
-      $wmi['exchange']['cas']['owa']['AverageResponseTime'].":".
-      $wmi['exchange']['cas']['owa']['AverageSearchTime']
-    );
-
-    unset($wmi['exchange']['cas']['owa'], $rrd_filename);
+    unset($wmi['exchange']['cas']['owa']);
   }
 
   // Exchange Hub Transport - Queues
@@ -136,23 +106,14 @@ if (!empty($wmi['exchange']['services']))
     $app_found['exchange'] = TRUE;
     echo("Transport Queues; ");
 
-    $rrd_filename = "wmi-app-exchange-tqs.rrd";
+    rrdtool_update_ng($device, 'exchange-tqs', array(
+      'aggregatequeue'  => $wmi['exchange']['transport']['queues']['AggregateDeliveryQueueLengthAllQueues'],
+      'deliveryqpersec' => $wmi['exchange']['transport']['queues']['ItemsQueuedforDeliveryPerSecond'],
+      'mbdeliverqueue'  => $wmi['exchange']['transport']['queues']['ActiveMailboxDeliveryQueueLength'],
+      'submissionqueue' => $wmi['exchange']['transport']['queues']['SubmissionQueueLength'],
+    ));
 
-    rrdtool_create($device, $rrd_filename,
-        "DS:aggregatequeue:GAUGE:600:0:125000000000 ".
-        "DS:deliveryqpersec:GAUGE:600:0:125000000000 ".
-        "DS:mbdeliverqueue:GAUGE:600:0:125000000000 ".
-        "DS:submissionqueue:GAUGE:600:0:125000000000 "
-      );
-
-    rrdtool_update($device, $rrd_filename, "N:".
-      $wmi['exchange']['transport']['queues']['AggregateDeliveryQueueLengthAllQueues'].":".
-      $wmi['exchange']['transport']['queues']['ItemsQueuedforDeliveryPerSecond'].":".
-      $wmi['exchange']['transport']['queues']['ActiveMailboxDeliveryQueueLength'].":".
-      $wmi['exchange']['transport']['queues']['SubmissionQueueLength']
-    );
-
-    unset($wmi['exchange']['transport']['queues'], $rrd_filename);
+    unset($wmi['exchange']['transport']['queues']);
   }
 
   // Exchange Hub Transport - SMTP SEND
@@ -165,19 +126,12 @@ if (!empty($wmi['exchange']['services']))
     $app_found['exchange'] = TRUE;
     echo("SMTP; ");
 
-    $rrd_filename = "wmi-app-exchange-smtp.rrd";
+    rrdtool_update_ng($device, 'exchange-smtp', array(
+      'currentconnections' => $wmi['exchange']['transport']['smtp']['ConnectionsCurrent'],
+      'msgsentpersec'      => $wmi['exchange']['transport']['smtp']['MessagesSentPersec'],
+    ));
 
-    rrdtool_create($device, $rrd_filename,
-        "DS:currentconnections:GAUGE:600:0:125000000000 ".
-        "DS:msgsentpersec:GAUGE:600:0:125000000000 "
-      );
-
-    rrdtool_update($device, $rrd_filename, "N:".
-      $wmi['exchange']['transport']['smtp']['ConnectionsCurrent'].":".
-      $wmi['exchange']['transport']['smtp']['MessagesSentPersec']
-    );
-
-    unset($wmi['exchange']['transport']['queues'], $rrd_filename);
+    unset($wmi['exchange']['transport']['queues']);
   }
 
   // Exchange Information Store
@@ -190,25 +144,15 @@ if (!empty($wmi['exchange']['services']))
     $app_found['exchange'] = TRUE;
     echo("IS; ");
 
-    $rrd_filename = "wmi-app-exchange-is.rrd";
+    rrdtool_update_ng($device, 'exchange-is', array(
+      'activeconcount'    => $wmi['exchange']['mailbox']['is']['ActiveConnectionCount'],
+      'usercount'         => $wmi['exchange']['mailbox']['is']['UserCount'],
+      'rpcrequests'       => $wmi['exchange']['mailbox']['is']['RPCRequests'],
+      'rpcavglatency'     => $wmi['exchange']['mailbox']['is']['RPCAveragedLatency'],
+      'clientrpcfailbusy' => $wmi['exchange']['mailbox']['is']['ClientRPCsFailedServerTooBusy'],
+    ));
 
-    rrdtool_create($device, $rrd_filename,
-        "DS:activeconcount:GAUGE:600:0:125000000000 ".
-        "DS:usercount:GAUGE:600:0:125000000000 ".
-        "DS:rpcrequests:GAUGE:600:0:125000000000 ".
-        "DS:rpcavglatency:GAUGE:600:0:125000000000 ".
-        "DS:clientrpcfailbusy:GAUGE:600:0:125000000000 "
-      );
-
-    rrdtool_update($device, $rrd_filename, "N:".
-      $wmi['exchange']['mailbox']['is']['ActiveConnectionCount'].":".
-      $wmi['exchange']['mailbox']['is']['UserCount'].":".
-      $wmi['exchange']['mailbox']['is']['RPCRequests'].":".
-      $wmi['exchange']['mailbox']['is']['RPCAveragedLatency'].":".
-      $wmi['exchange']['mailbox']['is']['ClientRPCsFailedServerTooBusy']
-    );
-
-    unset($wmi['exchange']['mailbox']['is'], $rrd_filename);
+    unset($wmi['exchange']['mailbox']['is']);
   }
 
   // Exchange Information Store - Mailbox Data
@@ -221,23 +165,13 @@ if (!empty($wmi['exchange']['services']))
     $app_found['exchange'] = TRUE;
     echo("Mailbox; ");
 
-    $rrd_filename = "wmi-app-exchange-mailbox.rrd";
-
-    rrdtool_create($device, $rrd_filename,
-        "DS:rpcavglatency:GAUGE:600:0:125000000000 ".
-        "DS:msgqueued:GAUGE:600:0:125000000000 ".
-        "DS:msgsentsec:GAUGE:600:0:125000000000 ".
-        "DS:msgdeliversec:GAUGE:600:0:125000000000 ".
-        "DS:msgsubmitsec:GAUGE:600:0:125000000000 "
-      );
-
-    rrdtool_update($device, $rrd_filename, "N:".
-      $wmi['exchange']['mailbox']['mailbox']['RPCAverageLatency'].":".
-      $wmi['exchange']['mailbox']['mailbox']['MessagesQueuedForSubmission'].":".
-      $wmi['exchange']['mailbox']['mailbox']['MessagesSentPersec'].":".
-      $wmi['exchange']['mailbox']['mailbox']['MessagesDeliveredPersec'].":".
-      $wmi['exchange']['mailbox']['mailbox']['MessagesSubmittedPersec']
-    );
+    rrdtool_update_ng($device, 'exchange-mailbox', array(
+      'rpcavglatency' => $wmi['exchange']['mailbox']['mailbox']['RPCAverageLatency'],
+      'msgqueued'     => $wmi['exchange']['mailbox']['mailbox']['MessagesQueuedForSubmission'],
+      'msgsentsec'    => $wmi['exchange']['mailbox']['mailbox']['MessagesSentPersec'],
+      'msgdeliversec' => $wmi['exchange']['mailbox']['mailbox']['MessagesDeliveredPersec'],
+      'msgsubmitsec'  => $wmi['exchange']['mailbox']['mailbox']['MessagesSubmittedPersec'],
+    ));
   }
 
   echo("\n");
@@ -245,10 +179,8 @@ if (!empty($wmi['exchange']['services']))
 
 if ($app_found['exchange'] == TRUE)
 {
-  $app['type'] = "exchange";
-  $app['name'] = "Exchange";
-  wmi_dbAppInsert($device['device_id'], $app); // FIXME discover_app ?
-  unset($app);
+  $app_id = discover_app($device, 'exchange');
+  update_application($app_id, array());
 }
 
 unset ($wmi['exchange']);

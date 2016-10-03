@@ -11,70 +11,43 @@
  *
  */
 
-echo(" JUNIPER-DOM-MIB ");
+$jnxDomCurrentTable_oids = array(
+  'jnxDomCurrentModuleTemperature',
+  'jnxDomCurrentModuleTemperatureHighAlarmThreshold',
+  'jnxDomCurrentModuleTemperatureLowAlarmThreshold',
+  'jnxDomCurrentModuleTemperatureHighWarningThreshold',
+  'jnxDomCurrentModuleTemperatureLowWarningThreshold',
 
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentTxLaserBiasCurrent",                    array(), "JUNIPER-DOM-MIB");
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentTxLaserBiasCurrentHighAlarmThreshold",    $oids, "JUNIPER-DOM-MIB");
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentTxLaserBiasCurrentLowAlarmThreshold",     $oids, "JUNIPER-DOM-MIB");
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentTxLaserBiasCurrentHighWarningThreshold",  $oids, "JUNIPER-DOM-MIB");
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentTxLaserBiasCurrentLowWarningThreshold",   $oids, "JUNIPER-DOM-MIB");
+  'jnxDomCurrentTxLaserBiasCurrent',
+  'jnxDomCurrentTxLaserBiasCurrentHighAlarmThreshold',
+  'jnxDomCurrentTxLaserBiasCurrentLowAlarmThreshold',
+  'jnxDomCurrentTxLaserBiasCurrentHighWarningThreshold',
+  'jnxDomCurrentTxLaserBiasCurrentLowWarningThreshold',
 
-//foreach (array_keys($oids) as $index)
-//{
-//  $oids[$index]['ifDescr'] = snmp_get($device, "ifDescr.".$index, "-Oqv", "IF-MIB", mib_dirs());
-//}
+  'jnxDomCurrentRxLaserPower',
+  'jnxDomCurrentRxLaserPowerHighAlarmThreshold',
+  'jnxDomCurrentRxLaserPowerLowAlarmThreshold',
+  'jnxDomCurrentRxLaserPowerHighWarningThreshold',
+  'jnxDomCurrentRxLaserPowerLowWarningThreshold',
 
-$scale = si_to_scale('micro');
-foreach ($oids as $index => $entry)
+  'jnxDomCurrentTxLaserOutputPower',
+  'jnxDomCurrentTxLaserOutputPowerHighAlarmThreshold',
+  'jnxDomCurrentTxLaserOutputPowerLowAlarmThreshold',
+  'jnxDomCurrentTxLaserOutputPowerHighWarningThreshold',
+  'jnxDomCurrentTxLaserOutputPowerLowWarningThreshold'
+);
+
+$oids = array();
+foreach ($jnxDomCurrentTable_oids as $oid)
 {
-  $oid     = ".1.3.6.1.4.1.2636.3.60.1.1.1.1.6.".$index;
-  $value   = $entry['jnxDomCurrentTxLaserBiasCurrent'];
-
-  $options = array('entPhysicalIndex' => $index,
-                   'limit_high'       => $entry['jnxDomCurrentTxLaserBiasCurrentHighAlarmThreshold']   * $scale,
-                   'limit_low'        => $entry['jnxDomCurrentTxLaserBiasCurrentLowAlarmThreshold']    * $scale,
-                   'limit_high_warn'  => $entry['jnxDomCurrentTxLaserBiasCurrentHighWarningThreshold'] * $scale,
-                   'limit_low_warn'   => $entry['jnxDomCurrentTxLaserBiasCurrentLowWarningThreshold']  * $scale);
-
-  $port    = get_port_by_index_cache($device['device_id'], $index);
-  if (is_array($port))
-  {
-    $entry['ifDescr'] = $port['ifDescr'];
-    $options['measured_class']  = 'port';
-    $options['measured_entity'] = $port['port_id'];
-  } else {
-    $entry['ifDescr'] = snmp_get($device, "ifDescr.".$index, "-Oqv", "IF-MIB", mib_dirs());
-  }
-  $descr   = $entry['ifDescr'] . " tx bias current";
-
-  if (is_numeric($value))
-  {
-    discover_sensor($valid['sensor'], 'current', $device, $oid, $index, 'juniper-dom', $descr, $scale, $value, $options);
-  }
+  $oids = snmpwalk_cache_oid($device, $oid, $oids, 'JUNIPER-DOM-MIB');
 }
-
-# jnxDomCurrentModuleTemperature[508] 35
-# jnxDomCurrentModuleTemperatureHighAlarmThreshold[508] 100
-# jnxDomCurrentModuleTemperatureLowAlarmThreshold[508] -25
-# jnxDomCurrentModuleTemperatureHighWarningThreshold[508] 95
-# jnxDomCurrentModuleTemperatureLowWarningThreshold[508] -20
-
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentModuleTemperature", array(), "JUNIPER-DOM-MIB");
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentModuleTemperatureHighAlarmThreshold", $oids, "JUNIPER-DOM-MIB");
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentModuleTemperatureLowAlarmThreshold", $oids, "JUNIPER-DOM-MIB");
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentModuleTemperatureHighWarningThreshold", $oids, "JUNIPER-DOM-MIB");
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentModuleTemperatureLowWarningThreshold", $oids, "JUNIPER-DOM-MIB");
+//$oids = snmpwalk_cache_oid($device, 'jnxDomCurrentEntry',                    array(), 'JUNIPER-DOM-MIB');
 
 foreach ($oids as $index => $entry)
 {
-  $oid     = ".1.3.6.1.4.1.2636.3.60.1.1.1.1.8.".$index;
-  $value   = $entry['jnxDomCurrentModuleTemperature'];
 
-  $options = array('entPhysicalIndex' => $index,
-                   'limit_high'       => $entry['jnxDomCurrentModuleTemperatureHighAlarmThreshold'],
-                   'limit_low'        => $entry['jnxDomCurrentModuleTemperatureLowAlarmThreshold'],
-                   'limit_high_warn'  => $entry['jnxDomCurrentModuleTemperatureHighWarningThreshold'],
-                   'limit_low_warn'   => $entry['jnxDomCurrentModuleTemperatureLowWarningThreshold']);
+  $options = array('entPhysicalIndex' => $index);
 
   $port    = get_port_by_index_cache($device['device_id'], $index);
   if (is_array($port))
@@ -83,88 +56,82 @@ foreach ($oids as $index => $entry)
     $options['measured_class']  = 'port';
     $options['measured_entity'] = $port['port_id'];
   } else {
-    $entry['ifDescr'] = snmp_get($device, "ifDescr.".$index, "-Oqv", "IF-MIB", mib_dirs());
+    $entry['ifDescr'] = snmp_get($device, "ifDescr.$index", '-Oqv', 'IF-MIB');
   }
-  $descr   = $entry['ifDescr'] . " DOM";
 
-  if (is_numeric($value))
+  # jnxDomCurrentModuleTemperature[508] 35
+  # jnxDomCurrentModuleTemperatureHighAlarmThreshold[508] 100
+  # jnxDomCurrentModuleTemperatureLowAlarmThreshold[508] -25
+  # jnxDomCurrentModuleTemperatureHighWarningThreshold[508] 95
+  # jnxDomCurrentModuleTemperatureLowWarningThreshold[508] -20
+  $descr    = $entry['ifDescr'] . ' DOM';
+  $oid_name = 'jnxDomCurrentModuleTemperature';
+  $oid_num  = ".1.3.6.1.4.1.2636.3.60.1.1.1.1.8.{$index}";
+  $type     = 'juniper-dom'; // $mib . '-' . $oid_name;
+  $scale    = 1;
+  $value    = $entry[$oid_name];
+
+  $limits   = array('limit_high'       => $entry['jnxDomCurrentModuleTemperatureHighAlarmThreshold'],
+                    'limit_low'        => $entry['jnxDomCurrentModuleTemperatureLowAlarmThreshold'],
+                    'limit_high_warn'  => $entry['jnxDomCurrentModuleTemperatureHighWarningThreshold'],
+                    'limit_low_warn'   => $entry['jnxDomCurrentModuleTemperatureLowWarningThreshold']);
+
+  if ($value != 0)
   {
-    discover_sensor($valid['sensor'], 'temperature', $device, $oid, $index, 'juniper-dom', $descr, 1, $value, $options);
+    discover_sensor($valid['sensor'], 'temperature', $device, $oid_num, $index, $type, $descr, $scale, $value, array_merge($options, $limits));
   }
-}
 
-# jnxDomCurrentRxLaserPower[508] -507 0.01 dbm
-
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentRxLaserPower",                  array(), "JUNIPER-DOM-MIB");
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentRxLaserPowerHighAlarmThreshold",  $oids, "JUNIPER-DOM-MIB");
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentRxLaserPowerLowAlarmThreshold",   $oids, "JUNIPER-DOM-MIB");
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentRxLaserPowerHighWarningThreshold",$oids, "JUNIPER-DOM-MIB");
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentRxLaserPowerLowWarningThreshold", $oids, "JUNIPER-DOM-MIB");
-
-$scale = 0.01;
-foreach ($oids as $index => $entry)
-{
-  $oid     = ".1.3.6.1.4.1.2636.3.60.1.1.1.1.5.".$index;
-  $value   = $entry['jnxDomCurrentRxLaserPower'];
-
-  $options = array('entPhysicalIndex' => $index,
-                   'limit_high'       => $entry['jnxDomCurrentRxLaserPowerHighAlarmThreshold']   * $scale,
-                   'limit_low'        => $entry['jnxDomCurrentRxLaserPowerLowAlarmThreshold']    * $scale,
-                   'limit_high_warn'  => $entry['jnxDomCurrentRxLaserPowerHighWarningThreshold'] * $scale,
-                   'limit_low_warn'   => $entry['jnxDomCurrentRxLaserPowerLowWarningThreshold']  * $scale);
-
-  $port    = get_port_by_index_cache($device['device_id'], $index);
-  if (is_array($port))
+  if ($entry['jnxDomCurrentTxLaserBiasCurrent'] == 0 &&
+      $entry['jnxDomCurrentTxLaserOutputPower'] == 0 && $entry['jnxDomCurrentRxLaserPower'] == 0)
   {
-    $entry['ifDescr'] = $port['ifDescr'];
-    $options['measured_class']  = 'port';
-    $options['measured_entity'] = $port['port_id'];
-  } else {
-    $entry['ifDescr'] = snmp_get($device, "ifDescr.".$index, "-Oqv", "IF-MIB", mib_dirs());
+    // Skip other empty dom sensors
+    continue;
   }
-  $descr   = $entry['ifDescr'] . " rx power";
 
-  if (is_numeric($value))
-  {
-    discover_sensor($valid['sensor'], 'dbm', $device, $oid, $index, 'juniper-dom-rx', $descr, $scale, $value, $options);
-  }
-}
+  // jnxDomCurrentTxLaserBiasCurrent
+  $descr    = $entry['ifDescr'] . " TX Bias";
+  $oid_name = 'jnxDomCurrentTxLaserBiasCurrent';
+  $oid_num  = ".1.3.6.1.4.1.2636.3.60.1.1.1.1.6.{$index}";
+  $type     = 'juniper-dom'; // $mib . '-' . $oid_name;
+  $scale    = si_to_scale('micro'); // Yah, I forgot number :)
+  $value    = $entry[$oid_name];
 
-# jnxDomCurrentTxLaserOutputPower[508] -507 0.01 dbm
+  $limits   = array('limit_high'       => $entry['jnxDomCurrentTxLaserBiasCurrentHighAlarmThreshold']   * $scale,
+                    'limit_low'        => $entry['jnxDomCurrentTxLaserBiasCurrentLowAlarmThreshold']    * $scale,
+                    'limit_high_warn'  => $entry['jnxDomCurrentTxLaserBiasCurrentHighWarningThreshold'] * $scale,
+                    'limit_low_warn'   => $entry['jnxDomCurrentTxLaserBiasCurrentLowWarningThreshold']  * $scale);
 
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentTxLaserOutputPower",                  array(), "JUNIPER-DOM-MIB");
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentTxLaserOutputPowerHighAlarmThreshold",  $oids, "JUNIPER-DOM-MIB");
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentTxLaserOutputPowerLowAlarmThreshold",   $oids, "JUNIPER-DOM-MIB");
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentTxLaserOutputPowerHighWarningThreshold",$oids, "JUNIPER-DOM-MIB");
-$oids = snmpwalk_cache_oid($device, "jnxDomCurrentTxLaserOutputPowerLowWarningThreshold", $oids, "JUNIPER-DOM-MIB");
+  discover_sensor($valid['sensor'], 'current', $device, $oid_num, $index, $type, $descr, $scale, $value, array_merge($options, $limits));
 
-$scale = 0.01;
-foreach ($oids as $index => $entry)
-{
-  $oid     = ".1.3.6.1.4.1.2636.3.60.1.1.1.1.7.".$index;
-  $value   = $entry['jnxDomCurrentTxLaserOutputPower'];
+  # jnxDomCurrentRxLaserPower[508] -507 0.01 dbm
+  $descr    = $entry['ifDescr'] . " RX Power";
+  $oid_name = 'jnxDomCurrentRxLaserPower';
+  $oid_num  = ".1.3.6.1.4.1.2636.3.60.1.1.1.1.5.{$index}";
+  $type     = 'juniper-dom-rx'; // $mib . '-' . $oid_name;
+  $scale    = 0.01;
+  $value    = $entry[$oid_name];
 
-  $options = array('entPhysicalIndex' => $index,
-                   'limit_high'       => $entry['jnxDomCurrentTxLaserOutputPowerHighAlarmThreshold']   * $scale,
-                   'limit_low'        => $entry['jnxDomCurrentTxLaserOutputPowerLowAlarmThreshold']    * $scale,
-                   'limit_high_warn'  => $entry['jnxDomCurrentTxLaserOutputPowerHighWarningThreshold'] * $scale,
-                   'limit_low_warn'   => $entry['jnxDomCurrentTxLaserOutputPowerLowWarningThreshold']  * $scale);
+  $limits   = array('limit_high'       => $entry['jnxDomCurrentRxLaserPowerHighAlarmThreshold']   * $scale,
+                    'limit_low'        => $entry['jnxDomCurrentRxLaserPowerLowAlarmThreshold']    * $scale,
+                    'limit_high_warn'  => $entry['jnxDomCurrentRxLaserPowerHighWarningThreshold'] * $scale,
+                    'limit_low_warn'   => $entry['jnxDomCurrentRxLaserPowerLowWarningThreshold']  * $scale);
 
-  $port    = get_port_by_index_cache($device['device_id'], $index);
-  if (is_array($port))
-  {
-    $entry['ifDescr'] = $port['ifDescr'];
-    $options['measured_class']  = 'port';
-    $options['measured_entity'] = $port['port_id'];
-  } else {
-    $entry['ifDescr'] = snmp_get($device, "ifDescr.".$index, "-Oqv", "IF-MIB", mib_dirs());
-  }
-  $descr   = $entry['ifDescr'] . " tx output power";
+  discover_sensor($valid['sensor'], 'dbm', $device, $oid_num, $index, $type, $descr, $scale, $value, array_merge($options, $limits));
 
-  if (is_numeric($value))
-  {
-    discover_sensor($valid['sensor'], 'dbm', $device, $oid, $index, 'juniper-dom-tx', $descr, $scale, $value, $options);
-  }
+  # jnxDomCurrentTxLaserOutputPower[508] -507 0.01 dbm
+  $descr    = $entry['ifDescr'] . " TX Power";
+  $oid_name = 'jnxDomCurrentTxLaserOutputPower';
+  $oid_num  = ".1.3.6.1.4.1.2636.3.60.1.1.1.1.7.{$index}";
+  $type     = 'juniper-dom-tx'; // $mib . '-' . $oid_name;
+  $scale    = 0.01;
+  $value    = $entry[$oid_name];
+
+  $limits   = array('limit_high'       => $entry['jnxDomCurrentTxLaserOutputPowerHighAlarmThreshold']   * $scale,
+                    'limit_low'        => $entry['jnxDomCurrentTxLaserOutputPowerLowAlarmThreshold']    * $scale,
+                    'limit_high_warn'  => $entry['jnxDomCurrentTxLaserOutputPowerHighWarningThreshold'] * $scale,
+                    'limit_low_warn'   => $entry['jnxDomCurrentTxLaserOutputPowerLowWarningThreshold']  * $scale);
+
+  discover_sensor($valid['sensor'], 'dbm', $device, $oid_num, $index, $type, $descr, $scale, $value, array_merge($options, $limits));
 }
 
 // EOF

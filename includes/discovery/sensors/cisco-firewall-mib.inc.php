@@ -11,26 +11,21 @@
  *
  */
 
-echo(' CISCO-FIREWALL-MIB');
+$status_array = snmpwalk_cache_oid($device, 'cfwHardwareStatusTable', array(), 'CISCO-FIREWALL-MIB');
 
-if ($device['os'] == 'asa')
+if ($status_array['netInterface']['cfwHardwareStatusValue'] != 'down')
 {
-  $status_array = snmpwalk_cache_oid($device, 'cfwHardwareStatusTable', array(), 'CISCO-FIREWALL-MIB');
+  // device is configured for failover
 
-  if ($status_array['netInterface']['cfwHardwareStatusValue'] != 'down')
-  {
-    // device is configured for failover
+  $descr = 'Failover ' . strtolower($status_array['primaryUnit']['cfwHardwareInformation']);
+  $oid = '.1.3.6.1.4.1.9.9.147.1.2.1.1.1.3.6';
+  $value = $status_array['primaryUnit']['cfwHardwareStatusValue'];
+  discover_status($device, $oid, 'cfwHardwareStatusValue.primaryUnit', 'cisco-firewall-hardware-primary-state', $descr, $value, array('entPhysicalClass' => 'other'));
 
-    $descr = 'Failover ' . strtolower($status_array['primaryUnit']['cfwHardwareInformation']);
-    $oid = '.1.3.6.1.4.1.9.9.147.1.2.1.1.1.3.6';
-    $value = $status_array['primaryUnit']['cfwHardwareStatusValue'];
-    discover_status($device, $oid, 'cfwHardwareStatusValue.primaryUnit', 'cisco-firewall-hardware-primary-state', $descr, $value, array('entPhysicalClass' => 'other'));
-
-    $descr = 'Failover ' . strtolower($status_array['secondaryUnit']['cfwHardwareInformation']);
-    $oid = '.1.3.6.1.4.1.9.9.147.1.2.1.1.1.3.7';
-    $value = $status_array['secondaryUnit']['cfwHardwareStatusValue'];
-    discover_status($device, $oid, 'cfwHardwareStatusValue.secondaryUnit', 'cisco-firewall-hardware-secondary-state', $descr, $value, array('entPhysicalClass' => 'other'));
-  }
+  $descr = 'Failover ' . strtolower($status_array['secondaryUnit']['cfwHardwareInformation']);
+  $oid = '.1.3.6.1.4.1.9.9.147.1.2.1.1.1.3.7';
+  $value = $status_array['secondaryUnit']['cfwHardwareStatusValue'];
+  discover_status($device, $oid, 'cfwHardwareStatusValue.secondaryUnit', 'cisco-firewall-hardware-secondary-state', $descr, $value, array('entPhysicalClass' => 'other'));
 }
 
 // EOF

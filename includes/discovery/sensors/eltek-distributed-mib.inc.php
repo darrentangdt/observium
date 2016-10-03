@@ -18,14 +18,14 @@
 // .1.3.6.1.4.1.12148.9.6.2.0 = 235
 // .1.3.6.1.4.1.12148.9.6.3.0 = 237
 
-$list[] = array('oid' => '.1.3.6.1.4.1.12148.9.6.1.0', 'descr' => "AC Voltage 1", 'index' => '1', 'type' => 'acVoltage');
-$list[] = array('oid' => '.1.3.6.1.4.1.12148.9.6.2.0', 'descr' => "AC Voltage 2", 'index' => '2', 'type' => 'acVoltage');
-$list[] = array('oid' => '.1.3.6.1.4.1.12148.9.6.3.0', 'descr' => "AC Voltage 3", 'index' => '3', 'type' => 'acVoltage');
+$list[] = array('oid' => '.1.3.6.1.4.1.12148.9.6.1.0', 'descr' => 'AC Voltage 1', 'index' => '1', 'type' => 'acVoltage');
+$list[] = array('oid' => '.1.3.6.1.4.1.12148.9.6.2.0', 'descr' => 'AC Voltage 2', 'index' => '2', 'type' => 'acVoltage');
+$list[] = array('oid' => '.1.3.6.1.4.1.12148.9.6.3.0', 'descr' => 'AC Voltage 3', 'index' => '3', 'type' => 'acVoltage');
 
 foreach ($list as $entry)
 {
 
-  $value = trim(snmp_get($device, $entry['oid'], "-OUvq", "ELTEK-DISTRIBUTED-MIB", mib_dirs('eltek')), '"');
+  $value = trim(snmp_get($device, $entry['oid'], '-OUvq', 'ELTEK-DISTRIBUTED-MIB'), '"');
 
   if (is_numeric($value))
   {
@@ -54,21 +54,18 @@ foreach ($list as $entry)
 //.1.3.6.1.4.1.12148.9.5.5.2.1.8.1 = 1051711xxxx
 //.1.3.6.1.4.1.12148.9.5.5.2.1.9.1 = 2.1
 
-$oids = snmpwalk_cache_oid($device, "rectifierStatusTable", array(), "ELTEK-DISTRIBUTED-MIB", mib_dirs('eltek'));
+$oids = snmpwalk_cache_oid($device, 'rectifierStatusTable', array(), 'ELTEK-DISTRIBUTED-MIB');
 foreach ($oids as $index => $entry)
 {
-
   if ($entry['rectifierStatusStatus'] != 'notPresent')
   {
-    $descr = "Rectifier ".$entry['rectifierStatusID']. " (".$entry['rectifierStatusType'].")";
-    discover_sensor($valid['sensor'], 'voltage', $device, '.1.3.6.1.4.1.12148.9.5.5.2.1.4.'.$index, $index, 'eltek-distributed-mib_rectifierStatusOutputVoltage', $descr, "0.01", $entry['rectifierStatusOutputVoltage']);
-    discover_sensor($valid['sensor'], 'current', $device, '.1.3.6.1.4.1.12148.9.5.5.2.1.3.'.$index, $index, 'eltek-distributed-mib_rectifierStatusOutputCurrent', $descr, "1", $entry['rectifierStatusOutputCurrent']);
-    discover_sensor($valid['sensor'], 'temperature', $device, '.1.3.6.1.4.1.12148.9.5.5.2.1.5.'.$index, $index, 'eltek-distributed-mib_rectifierStatusTemp', $descr, "1", $entry['rectifierStatusTemp']);
+    $descr = 'Rectifier '.$entry['rectifierStatusID']. ' ('.$entry['rectifierStatusType'].')';
+    discover_sensor($valid['sensor'], 'voltage', $device, '.1.3.6.1.4.1.12148.9.5.5.2.1.4.'.$index, $index, 'eltek-distributed-mib_rectifierStatusOutputVoltage', $descr, 0.01, $entry['rectifierStatusOutputVoltage']);
+    discover_sensor($valid['sensor'], 'current', $device, '.1.3.6.1.4.1.12148.9.5.5.2.1.3.'.$index, $index, 'eltek-distributed-mib_rectifierStatusOutputCurrent', $descr, 1, $entry['rectifierStatusOutputCurrent']);
+    discover_sensor($valid['sensor'], 'temperature', $device, '.1.3.6.1.4.1.12148.9.5.5.2.1.5.'.$index, $index, 'eltek-distributed-mib_rectifierStatusTemp', $descr, 1, $entry['rectifierStatusTemp']);
 
-    discover_status($device, '.1.3.6.1.4.1.12148.9.5.5.2.1.2.'.$index, "rectifierStatusStatus.".$index, 'eltek-distributed-mib_rectifierStatusStatus', $descr, $entry['rectifierStatusStatus']);
-
+    discover_status($device, '.1.3.6.1.4.1.12148.9.5.5.2.1.2.'.$index, 'rectifierStatusStatus.'.$index, 'eltek-distributed-mib_rectifierStatusStatus', $descr, $entry['rectifierStatusStatus']);
   }
-
 }
 
 // EOF

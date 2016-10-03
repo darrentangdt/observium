@@ -11,7 +11,7 @@
  *
  */
 
-echo ' Rename old mempools RRDs and DB: ';
+echo 'Rename old mempools RRDs and DB: ';
 
 // Update mempools table
 dbQuery("ALTER TABLE `mempools` CHANGE `mempool_type` `mempool_mib` VARCHAR(64);");
@@ -62,7 +62,5 @@ foreach ($mempool_rename as $old_mib => $new_mib)
     echo('.');
   }
 }
-
-echo(PHP_EOL);
 
 // EOF

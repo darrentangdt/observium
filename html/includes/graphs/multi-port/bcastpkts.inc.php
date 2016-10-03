@@ -52,6 +52,6 @@ foreach ($vars['id'] as $ifid)
 }
 
 
-include("includes/graphs/generic_multi_separated.inc.php");
+include($config['html_dir']."/includes/graphs/generic_multi_separated.inc.php");
 
 // EOF

@@ -27,6 +27,6 @@ if (is_file($ntpclient_rrd))
   $rrd_filename = $ntpclient_rrd;
 }
 
-include("includes/graphs/generic_simplex.inc.php");
+include($config['html_dir']."/includes/graphs/generic_simplex.inc.php");
 
 // EOF

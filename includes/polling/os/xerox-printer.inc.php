@@ -13,7 +13,7 @@
 
 // ...253.8.51.1.2.1.20.1 = STRING: "MFG:Xerox;CMD:Adobe PostScript 3,PCL;MDL:Phaser 4510N;CLS:Printer;DES:Xerox Phaser 4510 Laser Printer, PostScript 3, Letter/A4 Size"
 
-$xinfo = explode(';',trim(snmp_get($device, "1.3.6.1.4.1.253.8.51.1.2.1.20.1", "-OQv", "", ""),'" '));
+$xinfo = explode(';', snmp_get($device, '1.3.6.1.4.1.253.8.51.1.2.1.20.1', '-OQv'));
 
 foreach ($xinfo as $xi)
 {
@@ -28,9 +28,9 @@ list($hardware) = explode(',',$xerox['DES']);
 
 if ($hardware == '')
 {
-  $hardware = trim(snmp_get($device, "1.3.6.1.4.1.236.11.5.1.1.1.1.0", "-OQv", "", ""),'" ');
+  $hardware = snmp_get($device, '1.3.6.1.4.1.236.11.5.1.1.1.1.0', '-OQv');
 }
 
-$version = trim(snmp_get($device, "1.3.6.1.4.1.236.11.5.1.1.1.2.0", "-OQv", "", ""),'" ');
+$version = snmp_get($device, '1.3.6.1.4.1.236.11.5.1.1.1.2.0', '-OQv');
 
 // EOF

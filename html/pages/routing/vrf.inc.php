@@ -152,12 +152,13 @@ $link_array = array('page'    => 'routing',
      }
      echo("</table>");
 
-     echo print_box_close();
+     echo generate_box_close();
 
   } else {
 
     // Print single VRF
-
+    
+    echo generate_box_open();
     echo('<table class="table  table-striped">');
     $vrf = dbFetchRow("SELECT * FROM `vrfs` WHERE `mplsVpnVrfRouteDistinguisher` = ? ".$GLOBALS['cache']['where']['devices_permitted'], array($vars['vrf']));
     echo('<tr>');
@@ -165,16 +166,19 @@ $link_array = array('page'    => 'routing',
     echo('<td style="width: 100px;" class="small">' . $vrf['mplsVpnVrfRouteDistinguisher'] . '</td>');
     echo('<td style="width: 200px;" class="small">' . $vrf['mplsVpnVrfDescription'] . '</td>');
     echo('</table>');
+    echo generate_box_close();
 
     $vrf_devices = dbFetchRows("SELECT * FROM `vrfs` LEFT JOIN `devices` USING (`device_id`) WHERE `mplsVpnVrfRouteDistinguisher` = ? ".$GLOBALS['cache']['where']['devices_permitted'], array($vrf['mplsVpnVrfRouteDistinguisher']));
     foreach ($vrf_devices as $device)
     {
       $hostname = $device['hostname'];
+      echo generate_box_open();
       echo('<table cellpadding="10" cellspacing="0" class="table  table-striped" width="100%">');
 
       print_device_row($device);
 
       echo('</table>');
+      echo generate_box_close();
       unset($seperator);
       echo('<div style="margin: 10px;"><table class="table  table-striped">');
       $i=1;

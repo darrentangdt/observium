@@ -24,9 +24,30 @@ foreach ($app_list as $app)
   $navbar['options'][$app['app_type']]['url']  = generate_url(array('page' => 'apps', 'app' => $app['app_type']));
   $navbar['options'][$app['app_type']]['text'] = nicecase($app['app_type']);
 
-  $image = $config['html_dir'].'/images/icons/'.$app['app_type'].'.png';
-  $icon = (is_file($image) ? $app['app_type'] : 'apps');
-  $navbar['options'][$app['app_type']]['image'] = 'images/icons/'.$icon.'.png';
+  // Detect and add application icon
+  $icon = $app['app_type'];
+  $image = $config['html_dir'].'/images/apps/'.$icon.'.png';
+  if (is_file($image))
+  {
+    // Icon found
+    //$icon = $app['app_type'];
+  } else {
+    list($icon) = explode('-', str_replace('_', '-', $app['app_type']));
+    $image = $config['html_dir'].'/images/apps/'.$icon.'.png';
+    if ($icon != $app['app_type'] && is_file($image))
+    {
+      // 'postfix_qshape' -> 'postfix'
+      // 'exim-mailqueue' -> 'exim'
+    } else {
+      $icon = 'apps'; // Generic
+    }
+  }
+  $navbar['options'][$app['app_type']]['image'] = 'images/apps/'.$icon.'.png';
+  if (is_file($config['html_dir'].'/images/apps/'.$icon.'_2x.png'))
+  {
+    // HiDPI icon
+    $navbar['options'][$app['app_type']]['image_2x'] = 'images/apps/'.$icon.'_2x.png';
+  }
 
   $app_types[$app['app_type']] = array();
 }
@@ -47,6 +68,6 @@ if ($vars['app'])
   include($config['html_dir'].'/pages/apps/overview.inc.php');
 }
 
-$page_title[] = "Apps";
+register_html_title('Applications');
 
 // EOF

@@ -18,6 +18,6 @@
 </div>
 
 <?php
-$page_title[] = "Map";
+register_html_title("Map");
 
 // EOF

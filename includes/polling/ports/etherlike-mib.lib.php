@@ -16,6 +16,7 @@
 // Process in main ports loop
 function process_port_etherlike(&$this_port, $device)
 {
+  // Used to loop below for StatsD
   $etherlike_oids = array(
     'dot3StatsAlignmentErrors', 'dot3StatsFCSErrors', 'dot3StatsSingleCollisionFrames', 'dot3StatsMultipleCollisionFrames',
     'dot3StatsSQETestErrors', 'dot3StatsDeferredTransmissions', 'dot3StatsLateCollisions', 'dot3StatsExcessiveCollisions',
@@ -33,16 +34,21 @@ function process_port_etherlike(&$this_port, $device)
   if ($this_port['ifType'] == "ethernetCsmacd" && isset($this_port['dot3StatsIndex']))
   { // Check to make sure Port data is cached.
 
-    $rrd_create = "";
-    foreach ($etherlike_oids as $oid)
-    {
-      $oid = truncate(str_replace("dot3Stats", "", $oid), 19, '');
-      $rrd_create .= " DS:$oid:COUNTER:600:U:100000000000";
-    }
-
-    $rrdfile_dot3 = get_port_rrdfilename($this_port, "dot3");
-
-    rrdtool_create($device, $rrdfile_dot3, $rrd_create);
+    rrdtool_update_ng($device, 'port-dot3', array(
+      'dot3StatsAlignmentErrors'           => $this_port['dot3StatsAlignmentErrors'],
+      'dot3StatsFCSErrors'                 => $this_port['dot3StatsFCSErrors'],
+      'dot3StatsSingleCollisionFrames'     => $this_port['dot3StatsSingleCollisionFrames'],
+      'dot3StatsMultipleCollisionFrames'   => $this_port['dot3StatsMultipleCollisionFrames'],
+      'dot3StatsSQETestErrors'             => $this_port['dot3StatsSQETestErrors'],
+      'dot3StatsDeferredTransmissions'     => $this_port['dot3StatsDeferredTransmissions'],
+      'dot3StatsLateCollisions'            => $this_port['dot3StatsLateCollisions'],
+      'dot3StatsExcessiveCollisions'       => $this_port['dot3StatsExcessiveCollisions'],
+      'dot3StatsInternalMacTransmitErrors' => $this_port['dot3StatsInternalMacTransmitErrors'],
+      'dot3StatsCarrierSenseErrors'        => $this_port['dot3StatsCarrierSenseErrors'],
+      'dot3StatsFrameTooLongs'             => $this_port['dot3StatsFrameTooLongs'],
+      'dot3StatsInternalMacReceiveErrors'  => $this_port['dot3StatsInternalMacReceiveErrors'],
+      'dot3StatsSymbolErrors'              => $this_port['dot3StatsSymbolErrors'],
+    ), get_port_rrdindex($this_port));
 
     if ($GLOBALS['config']['statsd']['enable'] == TRUE)
     {
@@ -53,13 +59,7 @@ function process_port_etherlike(&$this_port, $device)
       }
     }
 
-    $rrdupdate = "N";
-    foreach ($etherlike_oids as $oid)
-    {
-      $data = $this_port[$oid] + 0;
-      $rrdupdate .= ":$data";
-    }
-    rrdtool_update($device, $rrdfile_dot3, $rrdupdate);
+
   }
 }
 

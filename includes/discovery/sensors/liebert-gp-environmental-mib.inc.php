@@ -11,8 +11,6 @@
  *
  */
 
-echo(" LIEBERT-GP-ENVIRONMENTAL-MIB ");
-
 #LIEBERT-GP-ENVIRONMENTAL-MIB::lgpEnvTemperatureMeasurementDegC.1 = INTEGER: 22 degrees Celsius
 #LIEBERT-GP-ENVIRONMENTAL-MIB::lgpEnvTemperatureHighThresholdDegC.1 = INTEGER: 26 degrees Celsius
 #LIEBERT-GP-ENVIRONMENTAL-MIB::lgpEnvTemperatureLowThresholdDegC.1 = INTEGER: 16 degrees Celsius
@@ -27,7 +25,7 @@ echo(" LIEBERT-GP-ENVIRONMENTAL-MIB ");
 #LIEBERT-GP-ENVIRONMENTAL-MIB::lgpEnvTemperatureDescrDegC.10 = OID: LIEBERT-GP-ENVIRONMENTAL-MIB::lgpCoolantTemperature
 
 // temperature/humidity sensor
-$lgpEnvTemperature = snmpwalk_cache_oid($device, 'lgpEnvTemperature', array(), 'LIEBERT-GP-ENVIRONMENTAL-MIB', mib_dirs('liebert'));
+$lgpEnvTemperature = snmpwalk_cache_oid($device, 'lgpEnvTemperature', array(), 'LIEBERT-GP-ENVIRONMENTAL-MIB');
 
 foreach ($lgpEnvTemperature as $index => $entry)
 {
@@ -66,7 +64,7 @@ foreach ($lgpEnvTemperature as $index => $entry)
 #LIEBERT-GP-ENVIRONMENTAL-MIB::lgpEnvHumidityLowThresholdRelTenths.1 = 150
 #LIEBERT-GP-ENVIRONMENTAL-MIB::lgpEnvHumidityDescrRel.1 = lgpEnvControlHumidity
 
-$lgpEnvHumidity = snmpwalk_cache_oid($device, 'lgpEnvHumidity', array(), 'LIEBERT-GP-ENVIRONMENTAL-MIB', mib_dirs('liebert'));
+$lgpEnvHumidity = snmpwalk_cache_oid($device, 'lgpEnvHumidity', array(), 'LIEBERT-GP-ENVIRONMENTAL-MIB');
 
 foreach ($lgpEnvHumidity as $index => $entry)
 {
@@ -112,7 +110,7 @@ foreach ($lgpEnvHumidity as $index => $entry)
 //LIEBERT-GP-ENVIRONMENTAL-MIB::lgpEnvStateFreeCooling.0 = INTEGER: off(2)
 //LIEBERT-GP-ENVIRONMENTAL-MIB::lgpEnvStateElectricHeater.0 = INTEGER: off(2)
 //LIEBERT-GP-ENVIRONMENTAL-MIB::lgpEnvStateHotWater.0 = INTEGER: off(2)
-$lgpEnvState = snmpwalk_cache_oid($device, 'lgpEnvState', array(), 'LIEBERT-GP-ENVIRONMENTAL-MIB', mib_dirs('liebert'));
+$lgpEnvState = snmpwalk_cache_oid($device, 'lgpEnvState', array(), 'LIEBERT-GP-ENVIRONMENTAL-MIB');
 
 $states = array(
   'lgpEnvStateSystem'         => array('type' => 'state', 'oid' => '.1.3.6.1.4.1.476.1.42.3.4.3.1.0'),

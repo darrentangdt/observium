@@ -1,5 +1,5 @@
 -- ============================================================================
--- Copyright (C) 2013 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2011 by  HUAWEI TECHNOLOGIES. All rights reserved.
 -- Description:  The mib is used for configuring time range. 
 --               When configuring the ACL rule, if you need to specify the time 
 --               for the ACL rule to take effect, you need to run this command 
@@ -488,4 +488,3 @@
 --
 -- HUAWEI-TRNG-MIB.mib
 --
-

@@ -112,6 +112,12 @@ if ($config['old_graphs'])
 
   $rrd_options .= " GPRINT:".$ds.":LAST:".$ds_format;
   $rrd_options .= " GPRINT:".$ds.":AVERAGE:".$ds_format;
+
+//  if ($print_min || TRUE)
+//  {
+//    $rrd_options .= " GPRINT:".$ds."_min:MIN:%6.2lf%s";
+//  }
+
   $rrd_options .= " GPRINT:".$ds."_max:MAX:".$ds_format;
 
   if ($percentile)
@@ -119,12 +125,12 @@ if ($config['old_graphs'])
     $rrd_options .= " GPRINT:".$ds."_percentile:".$ds_format;
   }
 
-  $rrd_options .= "\\\\n";
-  $rrd_options .= " COMMENT:\\\\n";
+  $rrd_options .= "\\n";
+  $rrd_options .= " COMMENT:\\n";
 
   if ($print_total)
   {
-    $rrd_options .= " GPRINT:".$ds."_tot:Total\ ".$ds_format."\)\\\\l";
+    $rrd_options .= " GPRINT:".$ds."_tot:Total\ ".$ds_format."\)\\l";
   }
 
   if ($percentile)
@@ -134,7 +140,7 @@ if ($config['old_graphs'])
 
   if ($_GET['previous'] == "yes")
   {
-    $rrd_options .= " LINE1.25:".$ds."X#666666:'Prev \\\\n'";
+    $rrd_options .= " LINE1.25:".$ds."X#666666:'Prev \\n'";
     $rrd_options .= " AREA:".$ds."X#99999966:";
   }
 }

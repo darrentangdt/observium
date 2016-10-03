@@ -11,10 +11,10 @@
  *
  */
 
-$version  = snmp_get($device, "productVersion.0", "-Ovq", "GEIST-V4-MIB", mib_dirs('geist'));
-$hardware = "Geist " . snmp_get($device, "productTitle.0", "-Ovq", "GEIST-V4-MIB", mib_dirs('geist'));
+$version  = snmp_get($device, 'productVersion.0', '-Ovq', 'GEIST-V4-MIB');
+$hardware = 'Geist ' . snmp_get($device, 'productTitle.0', '-Ovq', 'GEIST-V4-MIB');
 
-$ra_url_http = snmp_get($device, "productUrl.0", "-Ovq", "GEIST-V4-MIB", mib_dirs('geist'));
+$ra_url_http = snmp_get($device, 'productUrl.0', '-Ovq', 'GEIST-V4-MIB');
 
 // Can be either STRING or IpAddress, check for leading http://
 if (substr($ra_url_http,0,7) != 'http://') { $ra_url_http = "http://$ra_url_http"; }

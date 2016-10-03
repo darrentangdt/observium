@@ -47,6 +47,13 @@ if (is_numeric($vars['bill_id']))
   exit;
 }
 
+// Workaround for JPGraph 3.5 on Ubuntu per 0015246
+if( !function_exists('imageantialias') ) {
+    function imageantialias( $image, $enabled ) {
+        return false;
+    }
+}
+
 $start        = $vars['from'];
 $end          = $vars['to'];
 $xsize        = (is_numeric($vars['x']) ? $vars['x'] : "800" );

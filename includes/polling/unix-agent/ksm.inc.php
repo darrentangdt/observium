@@ -20,14 +20,11 @@ foreach (explode("\n",$ksm) as $line)
   $agent_data['ksm'][$field] = trim($contents);
 }
 
-$rrd_filename = "ksm-pages.rrd";
-
-rrdtool_create($device, $rrd_filename, " \
-    DS:pagesShared:GAUGE:600:0:125000000000 \
-    DS:pagesSharing:GAUGE:600:0:125000000000 \
-    DS:pagesUnshared:GAUGE:600:0:125000000000 ");
-
-rrdtool_update($device, $rrd_filename, "N:" . $agent_data['ksm']['pages_shared'] . ":" . $agent_data['ksm']['pages_sharing'] . ":" . $agent_data['ksm']['pages_unshared']);
+rrdtool_update_ng($device, 'ksm-pages', array(
+  'pagesShared'   => $agent_data['ksm']['pages_shared'],
+  'pagesSharing'  => $agent_data['ksm']['pages_sharing'],
+  'pagesUnshared' => $agent_data['ksm']['pages_unshared'],
+));
 
 $graphs['ksm_pages'] = TRUE;
 

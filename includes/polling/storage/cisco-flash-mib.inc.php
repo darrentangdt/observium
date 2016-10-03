@@ -17,15 +17,15 @@
 
 //if (!is_array($cache_storage['cisco-flash-mib']))
 //{
-//  $cache_storage['cisco-flash-mib'] = snmpwalk_cache_oid($device, "ciscoFlashPartitionTable", NULL, "CISCO-FLASH-MIB", mib_dirs("cisco"));
+//  $cache_storage['cisco-flash-mib'] = snmpwalk_cache_oid($device, "ciscoFlashPartitionTable", NULL, "CISCO-FLASH-MIB");
 //  /** produce timeouts
-//  $cache_storage['cisco-flash-mib'] = snmpwalk_cache_oid($device, "ciscoFlashPartitionSizeExtended", NULL, "CISCO-FLASH-MIB", mib_dirs("cisco"));
+//  $cache_storage['cisco-flash-mib'] = snmpwalk_cache_oid($device, "ciscoFlashPartitionSizeExtended", NULL, "CISCO-FLASH-MIB");
 //  if ($GLOBALS['snmp_status'])
 //  {
-//    $cache_storage['cisco-flash-mib'] = snmpwalk_cache_oid($device, "ciscoFlashPartitionFreeSpaceExtended", $cache_storage['cisco-flash-mib'], "CISCO-FLASH-MIB", mib_dirs("cisco"));
+//    $cache_storage['cisco-flash-mib'] = snmpwalk_cache_oid($device, "ciscoFlashPartitionFreeSpaceExtended", $cache_storage['cisco-flash-mib'], "CISCO-FLASH-MIB");
 //  }
-//  $cache_storage['cisco-flash-mib'] = snmpwalk_cache_oid($device, "ciscoFlashPartitionSize", $cache_storage['cisco-flash-mib'], "CISCO-FLASH-MIB", mib_dirs("cisco"));
-//  $cache_storage['cisco-flash-mib'] = snmpwalk_cache_oid($device, "ciscoFlashPartitionFreeSpace", $cache_storage['cisco-flash-mib'], "CISCO-FLASH-MIB", mib_dirs("cisco"));
+//  $cache_storage['cisco-flash-mib'] = snmpwalk_cache_oid($device, "ciscoFlashPartitionSize", $cache_storage['cisco-flash-mib'], "CISCO-FLASH-MIB");
+//  $cache_storage['cisco-flash-mib'] = snmpwalk_cache_oid($device, "ciscoFlashPartitionFreeSpace", $cache_storage['cisco-flash-mib'], "CISCO-FLASH-MIB");
 //  */
 //  if (OBS_DEBUG > 1 && count($cache_storage['cisco-flash-mib'])) { print_vars($cache_storage['cisco-flash-mib']); }
 //}
@@ -36,13 +36,13 @@ $storage['units'] = 1;
 if ($storage['storage_hc'])
 {
   $oids = array('ciscoFlashPartitionSizeExtended.' . $storage['storage_index'], 'ciscoFlashPartitionFreeSpaceExtended.' . $storage['storage_index']);
-  $entry = snmp_get_multi($device, $oids, "-OQUs", "CISCO-FLASH-MIB", mib_dirs("cisco"));
+  $entry = snmp_get_multi($device, $oids, "-OQUs", "CISCO-FLASH-MIB");
   $entry = array_shift($entry);
   $storage['size']  = $entry['ciscoFlashPartitionSizeExtended'];
   $storage['free']  = $entry['ciscoFlashPartitionFreeSpaceExtended'];
 } else {
   $oids = array('ciscoFlashPartitionSize.' . $storage['storage_index'], 'ciscoFlashPartitionFreeSpace.' . $storage['storage_index']);
-  $entry = snmp_get_multi($device, $oids, "-OQUs", "CISCO-FLASH-MIB", mib_dirs("cisco"));
+  $entry = snmp_get_multi($device, $oids, "-OQUs", "CISCO-FLASH-MIB");
   $entry = array_shift($entry);
   $storage['size']  = $entry['ciscoFlashPartitionSize'];
   $storage['free']  = $entry['ciscoFlashPartitionFreeSpace'];

@@ -1,9 +1,9 @@
 -- =================================================================
--- Copyright (C) 2003 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2015 by  HUAWEI TECHNOLOGIES. All rights reserved.
 --
 -- DESCRIPTION:  HUAWEI-AAA-MIB
 -- Reference:  
--- Version: V2.39
+-- Version: V2.52
 -- History:
 --         v3.02
 --         modified by huangjun 2009-12-08
@@ -31,7 +31,20 @@
 --         modified by h63155    2014-09-21
 --         modified by g00304944  2014-12-26
 --         modified by w00213468  2014-12-27
-
+--         modified by w00280908 2015-1-17
+--         modified by w00289258 2015-01-23
+--         modified by q00278806 2015-03-20
+--         modified by d00284225 2015-04-23
+--         modified by l00199557 2015-07-07
+--         modified by z00242837 2015-07-16
+--         modified by z00242837 2015-07-28
+--         modified by d00289266 2015-07-28
+--         modified by z00297089 2015-07-29
+--         modified by w00215195 2015-07-29
+--         modified by l00347324 2015-07-31
+--         modified by s00292246 2015-08-08
+--         modified by z00242837 2015-08-26
+--         modified by t00305052 2015-09-11
 -- =================================================================
 
     HUAWEI-AAA-MIB DEFINITIONS ::= BEGIN
@@ -50,7 +63,7 @@
                 FROM IPV6-TC;
 
         hwAaa MODULE-IDENTITY 
-            LAST-UPDATED "201412261617Z"
+            LAST-UPDATED "201506101250Z"
             ORGANIZATION "Huawei Technologies Co.,Ltd."
             CONTACT-INFO 
                 "Huawei Industrial Base
@@ -59,6 +72,25 @@
                  People's Republic of China
                  Website: http://www.huawei.com
                  Email: support@huawei.com"
+
+           DESCRIPTION 
+                "Modify  hwAccessSSID hwAccessDomain hwAccessUserName hwPortalAccessProfileDetectPeriod" 
+           REVISION    "201506101250Z"
+
+			
+		   DESCRIPTION 
+           "Add  userAuthenticationFreeRuleExtTable , modify userAuthenticationFreeRuleTable" 
+           REVISION    "201504231655Z"
+
+				 
+		   DESCRIPTION 
+                "Add  hwAAAInboundVPNAccessUserStatTable hwAAAInboundVPNAccessUserStatTable" 
+           REVISION    "201504171250Z"
+
+          DESCRIPTION 
+                "Add  hwAAADomainInboundQoSProfile hwAAADomainOutboundQoSProfile" 
+           REVISION    "201503101250Z"
+
  
            DESCRIPTION 
                 "Add  hwDhcpUserOnlineFailCount" 
@@ -166,7 +198,54 @@
             DESCRIPTION 
              "Add hwAAACpuUsage and hwAAAUserResourceUsage"
 
+            REVISION    "201412261617Z"
+            DESCRIPTION 
+             "Add hwAAATimerExpireMajorLevelThreshold, hwAAATimerExpireMajorLevelResumeThreshold, hwAAATimerExpireCriticalLevelThreshold and hwAAATimerExpireCriticalLevelResumeThreshold"
+            
+            REVISION	"201501231025Z"
+            DESCRIPTION
+            "Add userAuthenProfile, userAuthenticationFreeRule, hwDot1xAccessProfile, hwMACAuthenAccessProfile and hwPortalAccessProfile"
 
+            REVISION	"201503201314Z"
+            DESCRIPTION
+            "Modify hwLocalUserPasswordLifetimeMin and hwLocalUserPasswordLifetimeMax in hwLocalUserEntry"
+
+            REVISION    "201503260935Z"
+            DESCRIPTION
+            "Add userAuthenProfileDefaultDomain, userAuthenProfileForceDomain, userAuthenProfileDomainNameDelimiter, userAuthenProfileDomainNameLocation, userAuthenProfileDomainNameParseDirection and userAuthenProfilePermitDomain in userAuthenProfileEntry"
+            REVISION    "201507072036Z"
+            DESCRIPTION
+            "Add hwMacMovedQuietUserSpec, hwMacMovedUserPercentage, hwLowerMacMovedUserPercentage, hwUpperMacMovedUserPercentage, hwMacMovedQuietMaxUserAlarm and hwMacMovedQuietUserClearAlarm "
+            REVISION    "201507161711Z"
+            DESCRIPTION
+            "Modify hwLocalUserAccessLimitNum in hwLocalUserEntry"
+            REVISION    "201507281641Z"
+            DESCRIPTION
+            "Modify hwMACAuthenAccessProfileTriggerPktType in HwMACAuthenAccessProfileEntry"
+            REVISION    "201507282055Z"
+            DESCRIPTION
+            "Modify hwUserGroupCarCir,hwUserGroupCarPir,hwUserGroupCarCbs,hwUserGroupCarPbs,hwUserGroupCarInBoundCir,hwUserGroupCarInBoundPir,hwUserGroupCarInBoundCbs,hwUserGroupCarInBoundPbs in hwUserGroupEntry"
+
+            REVISION    "201507282100Z"
+            DESCRIPTION
+            "Modify hwDot1xAccessProfileEthTrunkHandShakePeriod,userAuthenProfileAuthenFailAgingTime,userAuthenProfilePreAuthenAgingTime,userAuthenProfileAuthenFailReAuthenTimer"
+          
+            REVISION    "201507310917Z"
+            DESCRIPTION 
+            "Modify  hwAccessSSID,hwAccessDomain,hwAccessUserName"           
+
+            REVISION    "201508080935Z"
+            DESCRIPTION
+            "Add hwAAAChasisIPv6AddressThreshold,hwAAASlotIPv6AddressThreshold,hwAAAChasisIPv6AddressThresholdAlarm,hwAAAChasisIPv6AddressThresholdResume,hwAAASlotIPv6AddressThresholdAlarm and hwAAASlotIPv6AddressThresholdResume"
+
+            REVISION    "201508261605Z"
+            DESCRIPTION
+            "Add userAuthenProfileAuthenFailAuthorResponseSuccess in userAuthenProfileEntry; Modify userAuthenProfilePreAuthenUserGroupName,userAuthenProfileAuthenFailAuthorUserGroupName,userAuthenProfileAuthenServerDownUserGroupName in userAuthenProfileEntry"
+
+            REVISION    "201509111138Z"
+            DESCRIPTION
+            "Add hwAAASessionGroupUpperLimitThreshold, hwAAASessionGroupUpperLimitResume, hwAAASessionGroupLowerLimitThreshold, hwAAASessionGroupLowerLimitAlarm, hwAAASessionGroupLowerLimitResume, hwAAASessionUpperLimitThreshold, hwAAAOnlineSessoinUpperLimitAlarm, hwAAAOnlineSessoinUpperLimitResume, hwAAASessionLowerLimitThreshold, hwAAAOnlineSessoinLowerLimitAlarm, hwAAAOnlineSessoinLowerLimitResume, hwAAASlotOnlineUserNumAlarm,hwAAASlotOnlineUserNumResume"            
+            
             ::= { huaweiMgmt 2 }
 
         hwAAAMibObjects OBJECT IDENTIFIER ::= { hwAaa 1 }
@@ -2033,7 +2112,7 @@
                     hwLocalUserVpnInstance
                             DisplayString,
                hwLocalUserAccessLimitNum
-                    Integer32,
+                    Unsigned32,
                hwLocalUserPasswordLifetimeMin
                     Integer32,
                hwLocalUserPasswordLifetimeMax
@@ -2136,7 +2215,7 @@
             ::= { hwLocalUserEntry 14 }
             
         hwLocalUserAccessLimitNum OBJECT-TYPE
-            SYNTAX Integer32 (1..4294967295)
+            SYNTAX Unsigned32 (1..4294967295)
             MAX-ACCESS read-create
             STATUS current
             DESCRIPTION
@@ -2144,7 +2223,7 @@
             ::= { hwLocalUserEntry 15 }
 
         hwLocalUserPasswordLifetimeMin OBJECT-TYPE
-            SYNTAX Integer32 (1..65535)
+            SYNTAX Integer32 (0..65535)
             MAX-ACCESS read-create
             STATUS current
             DESCRIPTION
@@ -2152,7 +2231,7 @@
             ::= { hwLocalUserEntry 16 }
             
         hwLocalUserPasswordLifetimeMax OBJECT-TYPE
-            SYNTAX Integer32 (1..65535)
+            SYNTAX Integer32 (0..65535)
             MAX-ACCESS read-create
             STATUS current
             DESCRIPTION
@@ -4705,6 +4784,128 @@
             DESCRIPTION                                                                                                                                                           
                 "User resource usage."                                                                                                                            
             ::= { hwAAATrapOid 23 }
+            
+            hwAAASessionGroupUpperLimitThreshold OBJECT-TYPE
+                    SYNTAX Integer32(1..100|255)
+                    MAX-ACCESS accessible-for-notify
+            STATUS current
+            DESCRIPTION
+                    "The session-group users upper limit warning threshold"
+            DEFVAL { 255 }
+            ::= { hwAAATrapOid 24 }
+            
+            hwAAASessionGroupLowerLimitThreshold OBJECT-TYPE
+                    SYNTAX Integer32 (0..99|255)
+                    MAX-ACCESS accessible-for-notify
+            STATUS current
+            DESCRIPTION
+                "The session-group users lower limit warning threshold"
+            DEFVAL { 255 }
+            ::= { hwAAATrapOid 25 }
+            
+            hwAAASessionUpperLimitThreshold OBJECT-TYPE
+            SYNTAX Integer32(1..100|255)
+            MAX-ACCESS accessible-for-notify
+            STATUS current
+            DESCRIPTION
+                "The online sessions upper limit warning threshold"
+            DEFVAL { 255 }
+            ::= { hwAAATrapOid 26 }        
+
+            hwAAASessionLowerLimitThreshold OBJECT-TYPE
+            SYNTAX Integer32(0..99|255)
+            MAX-ACCESS accessible-for-notify
+            STATUS current
+            DESCRIPTION
+                "The online sessions lower limit warning threshold"
+            DEFVAL { 255 }
+            ::= { hwAAATrapOid 27 }            
+
+           hwAAATimerExpireMajorLevelThreshold OBJECT-TYPE
+                     SYNTAX Unsigned32 (1..100)
+                     MAX-ACCESS accessible-for-notify
+           STATUS current
+           DESCRIPTION
+                   "Major alarm threshold for resources occupied by real-time accounting services"
+           ::= { hwAAATrapOid 28 }
+
+          hwAAATimerExpireMajorLevelResumeThreshold OBJECT-TYPE
+                   SYNTAX Unsigned32 (1..100)
+                   MAX-ACCESS accessible-for-notify
+          STATUS current
+          DESCRIPTION
+                   "Major alarm clear threshold for resources occupied by real-time accounting services"
+          ::= { hwAAATrapOid 29 }
+          
+          hwAAATimerExpireCriticalLevelThreshold OBJECT-TYPE
+                  SYNTAX Unsigned32 (1..100)
+                  MAX-ACCESS accessible-for-notify
+          STATUS current
+          DESCRIPTION
+                   "Critical alarm threshold for resources occupied by real-time accounting services"
+           ::= { hwAAATrapOid 30 }
+
+          hwAAATimerExpireCriticalLevelResumeThreshold OBJECT-TYPE
+                 SYNTAX Unsigned32 (1..100)
+                 MAX-ACCESS accessible-for-notify
+          STATUS current
+          DESCRIPTION
+                "Critical alarm clear threshold for resources occupied by real-time accounting services"
+          ::= { hwAAATrapOid 31 }
+
+		-- 1.3.6.1.4.1.2011.5.2.2.1.32
+		hwMacMovedQuietUserSpec OBJECT-TYPE
+			SYNTAX Integer32
+			MAX-ACCESS accessible-for-notify
+			STATUS current
+			DESCRIPTION
+				"The  mac moved quiet user spec ."
+			::= { hwAAATrapOid 32 }
+
+		
+		-- 1.3.6.1.4.1.2011.5.2.2.1.33
+		hwMacMovedUserPercentage OBJECT-TYPE
+			SYNTAX Integer32
+			MAX-ACCESS accessible-for-notify
+			STATUS current
+			DESCRIPTION
+				"The  mac moved quiet user percentage ."
+			::= { hwAAATrapOid 33 }
+
+		
+		-- 1.3.6.1.4.1.2011.5.2.2.1.34
+		hwLowerMacMovedUserPercentage OBJECT-TYPE
+			SYNTAX Integer32
+			MAX-ACCESS accessible-for-notify
+			STATUS current
+			DESCRIPTION
+				"The configuration of mac moved quiet user lower percentage."
+			::= { hwAAATrapOid 34 }
+		
+		-- 1.3.6.1.4.1.2011.5.2.2.1.35
+		hwUpperMacMovedUserPercentage OBJECT-TYPE
+			SYNTAX Integer32
+			MAX-ACCESS accessible-for-notify
+			STATUS current
+			DESCRIPTION
+				"The configuration of mac moved quiet user  upper percentage."
+			::= { hwAAATrapOid 35 }
+ 
+          hwAAAChasisIPv6AddressThreshold OBJECT-TYPE
+                 SYNTAX Unsigned32 (0..100)
+                 MAX-ACCESS accessible-for-notify
+          STATUS current
+          DESCRIPTION
+                "The number of IPv6 addresses on the device reached the threshold."
+          ::= { hwAAATrapOid 36 }
+
+          hwAAASlotIPv6AddressThreshold OBJECT-TYPE
+                 SYNTAX Unsigned32 (0..100)
+                 MAX-ACCESS accessible-for-notify
+          STATUS current
+          DESCRIPTION
+                "The number of IPv6 addresses on the slot reached the threshold."
+          ::= { hwAAATrapOid 37 }
 
             hwAAATrapsDefine OBJECT IDENTIFIER ::= { hwAAAMibTrap 2 }
 
@@ -5153,8 +5354,232 @@
                 3 Repair suggestions: NA. 
                 "
             ::= { hwAAATraps 38 }
-                
-            hwLAMTrapsDefine OBJECT IDENTIFIER ::= { hwAAAMibTrap 3 }
+            
+            hwAAASessionGroupUpperLimitAlarm NOTIFICATION-TYPE
+            OBJECTS { hwAAASessionGroupUpperLimitThreshold }
+            STATUS current
+            DESCRIPTION
+                "
+                1 Notice/Trap name:  Reach Session-group Upper Limit 
+                2 Notice/Trap generation cause:  The number of session-group users reached the upper limit of the device.
+                3 Repair suggestions:  Check your machine.
+                "
+            ::= { hwAAATraps 39 }  
+            
+            hwAAASessionGroupUpperLimitResume NOTIFICATION-TYPE
+            OBJECTS { hwAAASessionGroupUpperLimitThreshold }
+            STATUS current
+            DESCRIPTION
+                "
+                1 Notice/Trap name:  Session-group Upper Limit Recovery
+                2 Notice/Trap generation cause:   The number of session-group users fell below the upper limit of the device.
+                3 Repair suggestions: NA
+                "
+            ::= { hwAAATraps 40 }      
+
+            hwAAASessionGroupLowerLimitAlarm NOTIFICATION-TYPE
+            OBJECTS { hwAAASessionGroupLowerLimitThreshold }
+            STATUS current
+            DESCRIPTION
+                "
+                1 Notice/Trap name:  Fell Below Session-group Lower Limit 
+                2 Notice/Trap generation cause:  The number of session-group users fell below the lower limit of the device .
+                3 Repair suggestions:
+                       Check your machine.
+                "
+            ::= { hwAAATraps 41 } 
+            
+            hwAAASessionGroupLowerLimitResume NOTIFICATION-TYPE
+            OBJECTS { hwAAASessionGroupLowerLimitThreshold }
+            STATUS current
+            DESCRIPTION
+                "
+                1 Notice/Trap name:  Session-group Lower Limit Recovery
+                2 Notice/Trap generation cause:   The number of session-group users on the device reached the lower limit of the device.
+                3 Repair suggestions: NA
+                "
+            ::= { hwAAATraps 42 }            
+            
+            hwAAAOnlineSessoinUpperLimitAlarm NOTIFICATION-TYPE
+            OBJECTS { hwAAASessionUpperLimitThreshold }
+            STATUS current
+            DESCRIPTION
+                "
+                1 Notice/Trap name:  Reach Online Sessions Upper Limit
+                2 Notice/Trap generation cause:  The number of session reached the upper limit of the device.
+                3 Repair suggestions:  Check your machine.
+                "
+            ::= { hwAAATraps 43 }  
+
+            hwAAAOnlineSessoinUpperLimitResume NOTIFICATION-TYPE
+            OBJECTS { hwAAASessionUpperLimitThreshold }
+            STATUS current
+            DESCRIPTION
+                "
+                1 Notice/Trap name:  Online Sessions Upper Limit Recovery
+                2 Notice/Trap generation cause:  The number of sessions fell below the upper limit of the device..
+                3 Repair suggestions: NA
+                "
+            ::= { hwAAATraps 44 }      
+            
+            hwAAAOnlineSessoinLowerLimitAlarm NOTIFICATION-TYPE
+            OBJECTS { hwAAASessionLowerLimitThreshold }
+            STATUS current
+            DESCRIPTION
+                "
+                1 Notice/Trap name:  Fell Below Online Sessions Lower Limit 
+                2 Notice/Trap generation cause:  The number of sessions  fell below the lower limit of the device.
+                3 Repair suggestions: Check your machine.
+                "
+            ::= { hwAAATraps 45 }            
+
+            hwAAAOnlineSessoinLowerLimitResume NOTIFICATION-TYPE
+            OBJECTS { hwAAASessionLowerLimitThreshold }
+            STATUS current
+            DESCRIPTION
+                "
+                1 Notice/Trap name:  Online Sessions Lower Limit Recovery
+                2 Notice/Trap generation cause: The number of sessions  reached the lower limit of the device.
+                3 Repair suggestions: NA
+                "
+            ::= { hwAAATraps 46 }     
+
+            hwAAASlotOnlineUserNumAlarm NOTIFICATION-TYPE
+            OBJECTS { hwUserSlot, hwUserSlotMaxNumThreshold }
+            STATUS current
+            DESCRIPTION
+                "
+                1 Notice/Trap name:  Reach Slot Online Users Upper Limit 
+                2 Notice/Trap generation cause:  The number of users reached the upper limit of the board.
+                3 Repair suggestions:  Please change to another board which can support more sessions.
+                "
+            ::= { hwAAATraps 47 }              
+            
+            hwAAASlotOnlineUserNumResume NOTIFICATION-TYPE
+            OBJECTS { hwUserSlot, hwUserSlotMaxNumThreshold}
+            STATUS current
+            DESCRIPTION
+                "
+                1 Notice/Trap name:  Slot Online Users Upper Limit Recovery
+                2 Notice/Trap generation cause:   The number of users fell below the upper limit of the board.
+                3 Repair suggestions: NA
+                "
+            ::= { hwAAATraps 48 }  
+            
+
+          hwAAATimerExpireMajorLevelAlarm NOTIFICATION-TYPE
+          OBJECTS { hwAAATimerExpireMajorLevelThreshold }
+          STATUS current
+          DESCRIPTION
+              "
+                1 Notice/Trap name:  The resource occupied by real-time accounting services reached the major alarm threshold.
+                2 Notice/Trap generation cause:  The resource occupied by real-time accounting services reached the major alarm threshold. 
+                3 Repair suggestions: NA. 
+               "
+          ::= { hwAAATraps 49 } 
+
+         hwAAATimerExpireMajorLevelResume NOTIFICATION-TYPE
+         OBJECTS { hwAAATimerExpireMajorLevelResumeThreshold }
+         STATUS current
+         DESCRIPTION
+            "
+            1 Notice/Trap name:  The resource occupied by real-time accounting services reached the major alarm clear threshold.
+            2 Notice/Trap generation cause:  The resource occupied by real-time accounting services reached the major alarm clear threshold. 
+            3 Repair suggestions: NA. 
+            "
+         ::= { hwAAATraps 50 } 
+
+         hwAAATimerExpireCriticalLevelAlarm NOTIFICATION-TYPE
+         OBJECTS { hwAAATimerExpireCriticalLevelThreshold }
+         STATUS current
+         DESCRIPTION
+             "
+             1 Notice/Trap name:  The resource occupied by real-time accounting services reached the critical alarm threshold.
+             2 Notice/Trap generation cause:  The resource occupied by real-time accounting services reached the critical alarm threshold. 
+             3 Repair suggestions: NA. 
+             "
+          ::= { hwAAATraps 51 }  
+
+         hwAAATimerExpireCriticalLevelResume NOTIFICATION-TYPE
+         OBJECTS { hwAAATimerExpireCriticalLevelResumeThreshold }
+         STATUS current
+         DESCRIPTION
+             "
+            1 Notice/Trap name:  The resource occupied by real-time accounting services reached the critical alarm clear threshold.
+            2 Notice/Trap generation cause:  The resource occupied by real-time accounting services reached the critical alarm clear threshold. 
+            3 Repair suggestions: NA. 
+            "
+         ::= { hwAAATraps 52 }  
+	-- 1.3.6.1.4.1.2011.5.2.2.3.1.53
+	hwMacMovedQuietMaxUserAlarm NOTIFICATION-TYPE
+            OBJECTS { hwMacMovedQuietUserSpec, hwMacMovedUserPercentage, hwLowerMacMovedUserPercentage, hwUpperMacMovedUserPercentage }
+	    STATUS current
+	    DESCRIPTION 
+	    "                          
+                         1Notice/Trap name:  The mac moved quiet user percentage has reached the mac move quiet user alarm threshold.
+                         2 Notice/Trap generation cause:  The mac moved quiet user percentage has reached the mac move quiet user alarm threshold. 
+                         3 Repair suggestions: NA. 
+                        "	
+         ::= { hwAAATraps 53 }
+
+		
+	-- 1.3.6.1.4.1.2011.5.2.2.3.1.54
+	hwMacMovedQuietUserClearAlarm NOTIFICATION-TYPE
+	    OBJECTS { hwMacMovedQuietUserSpec, hwMacMovedUserPercentage, hwLowerMacMovedUserPercentage, hwUpperMacMovedUserPercentage }
+	    STATUS current
+	    DESCRIPTION 
+	    "                          
+                         1Notice/Trap name:  The mac moved quiet user percentage has reached mac moved quiet user alarm clear threshold.
+                         2 Notice/Trap generation cause:  The mac moved quiet user percentage has reached mac moved quiet user alarm clear threshold. 
+                         3 Repair suggestions: NA. 
+                        "	
+           ::= { hwAAATraps 54 }
+
+         hwAAAChasisIPv6AddressThresholdAlarm NOTIFICATION-TYPE
+         OBJECTS { hwAAAChasisIPv6AddressThreshold }
+         STATUS current
+         DESCRIPTION
+             "
+            1 Notice/Trap name:  The number of IPv6 addresses reached the upper limit of the device.
+            2 Notice/Trap generation cause:  The number of IPv6 addresses reached the upper limit of the device. 
+            3 Repair suggestions: NA. 
+            "
+         ::= { hwAAATraps 55 }  
+
+         hwAAAChasisIPv6AddressThresholdResume NOTIFICATION-TYPE
+         OBJECTS { hwAAAChasisIPv6AddressThreshold }
+         STATUS current
+         DESCRIPTION
+             "
+            1 Notice/Trap name:  The number of IPv6 addresses fell below the lower limit of the device.
+            2 Notice/Trap generation cause:  The number of IPv6 addresses fell below the lower limit of the device. 
+            3 Repair suggestions: NA.
+            "
+         ::= { hwAAATraps 56 }  
+
+         hwAAASlotIPv6AddressThresholdAlarm NOTIFICATION-TYPE
+         OBJECTS { hwUserSlot, hwAAASlotIPv6AddressThreshold }
+         STATUS current
+         DESCRIPTION
+             "
+            1 Notice/Trap name:  The number of IPv6 addresses on the slot reached the upper limit of the device.
+            2 Notice/Trap generation cause:  The number of IPv6 addresses on the slot reached the upper limit of the device.
+            3 Repair suggestions: NA.
+            "
+         ::= { hwAAATraps 57 }  
+
+         hwAAASlotIPv6AddressThresholdResume NOTIFICATION-TYPE
+         OBJECTS { hwUserSlot, hwAAASlotIPv6AddressThreshold }
+         STATUS current
+         DESCRIPTION
+             "
+            1 Notice/Trap name:  The number of IPv6 addresses on the slot fell below the lower limit of the device.
+            2 Notice/Trap generation cause:  The number of IPv6 addresses on the slot fell below the lower limit of the device.
+            3 Repair suggestions: NA.
+            "
+         ::= { hwAAATraps 58 }  
+
+        hwLAMTrapsDefine OBJECT IDENTIFIER ::= { hwAAAMibTrap 3 }
 
         hwLAMTraps OBJECT IDENTIFIER ::= { hwLAMTrapsDefine 0 }
         hwHarddiskoverflow NOTIFICATION-TYPE
@@ -6815,7 +7240,13 @@
                 hwPoolLowerLimitWarningThreshold
                     Integer32,
                 hwIPv6PoolLowerLimitWarningThreshold
-                    Integer32
+                    Integer32,
+                hwAAADomainInboundQoSProfile
+                    DisplayString, 
+                hwAAADomainOutboundQoSProfile    
+                    DisplayString,
+                hwAAADomainInboundVPNInstance
+                    DisplayString
                  }
                  
         hwRedKeyUserMac OBJECT-TYPE
@@ -6852,6 +7283,33 @@
                 "The IPv6 lower limit warning threshold."
             DEFVAL { 255 }
             ::= { hwDomainExt2Entry 4 } 
+
+         hwAAADomainInboundQoSProfile OBJECT-TYPE
+            SYNTAX DisplayString (SIZE (1..64))
+            MAX-ACCESS read-write
+            STATUS current
+            DESCRIPTION
+                "Configure inbound QOS Profile
+                 "
+            ::= { hwDomainExt2Entry 5}
+            
+        hwAAADomainOutboundQoSProfile OBJECT-TYPE
+            SYNTAX DisplayString (SIZE (1..64))
+            MAX-ACCESS read-write
+            STATUS current
+            DESCRIPTION
+                "Configure outbound QOS Profile
+                 "
+            ::= { hwDomainExt2Entry 6}
+	
+            hwAAADomainInboundVPNInstance OBJECT-TYPE
+            SYNTAX DisplayString (SIZE (1..31))
+            MAX-ACCESS read-write
+            STATUS current
+            DESCRIPTION
+                "The domain inbound VPN instance name
+                "
+            ::= { hwDomainExt2Entry 7}
 
         hwAAAOnlineFailRecordTable OBJECT-TYPE
             SYNTAX SEQUENCE OF HwAAAOnlineFailRecordEntry
@@ -7232,15 +7690,17 @@
                 hwDscpRemark     Integer32,
                 hwExpRemark     Integer32,
                 hwLpRemark     Integer32,
-                hwUserGroupCarCir    Integer32,
-                hwUserGroupCarPir    Integer32,
-                hwUserGroupCarCbs    Integer32,
-                hwUserGroupCarPbs    Integer32,
+                hwUserGroupCarCir    Unsigned32,
+                hwUserGroupCarPir    Unsigned32,
+                hwUserGroupCarCbs    Unsigned32,
+                hwUserGroupCarPbs    Unsigned32,
                 hwUserGroupEnable     INTEGER,
-                hwUserGroupCarInBoundCir    Integer32,
-                hwUserGroupCarInBoundPir    Integer32,
-                hwUserGroupCarInBoundCbs    Integer32,
-                hwUserGroupCarInBoundPbs    Integer32
+                hwUserGroupCarInBoundCir    Unsigned32,
+                hwUserGroupCarInBoundPir    Unsigned32,
+                hwUserGroupCarInBoundCbs    Unsigned32,
+                hwUserGroupCarInBoundPbs    Unsigned32,
+                hwUserGroupUserVlanPool     DisplayString
+
              }
 	hwUserGroupIndex OBJECT-TYPE
 	    SYNTAX      Integer32(1..128)
@@ -7347,7 +7807,7 @@
             ::= { hwUserGroupEntry 12 }
              
         hwUserGroupCarCir OBJECT-TYPE
-            SYNTAX      Integer32
+            SYNTAX      Unsigned32
             MAX-ACCESS  read-write
             STATUS      current
             DESCRIPTION
@@ -7355,7 +7815,7 @@
             ::={ hwUserGroupEntry 13 }
 
         hwUserGroupCarPir OBJECT-TYPE
-            SYNTAX      Integer32
+            SYNTAX      Unsigned32
             MAX-ACCESS  read-write
             STATUS      current
             DESCRIPTION
@@ -7363,7 +7823,7 @@
             ::={ hwUserGroupEntry 14 }
 				
         hwUserGroupCarCbs OBJECT-TYPE
-            SYNTAX      Integer32
+            SYNTAX      Unsigned32
             MAX-ACCESS  read-write
             STATUS      current
             DESCRIPTION
@@ -7371,7 +7831,7 @@
             ::={ hwUserGroupEntry 15 }
 				
         hwUserGroupCarPbs OBJECT-TYPE
-            SYNTAX      Integer32
+            SYNTAX      Unsigned32
             MAX-ACCESS  read-write
             STATUS      current
             DESCRIPTION
@@ -7392,7 +7852,7 @@
             ::= { hwUserGroupEntry 17 }
 
         hwUserGroupCarInBoundCir OBJECT-TYPE
-            SYNTAX      Integer32
+            SYNTAX      Unsigned32
             MAX-ACCESS  read-write
             STATUS      current
             DESCRIPTION
@@ -7400,7 +7860,7 @@
             ::={ hwUserGroupEntry 18 }
 
         hwUserGroupCarInBoundPir OBJECT-TYPE
-            SYNTAX      Integer32
+            SYNTAX      Unsigned32
             MAX-ACCESS  read-write
             STATUS      current
             DESCRIPTION
@@ -7408,7 +7868,7 @@
             ::={ hwUserGroupEntry 19 }
 				
         hwUserGroupCarInBoundCbs OBJECT-TYPE
-            SYNTAX      Integer32
+            SYNTAX      Unsigned32
             MAX-ACCESS  read-write
             STATUS      current
             DESCRIPTION
@@ -7416,12 +7876,20 @@
             ::={ hwUserGroupEntry 20 }
 				
         hwUserGroupCarInBoundPbs OBJECT-TYPE
-            SYNTAX      Integer32
+            SYNTAX      Unsigned32
             MAX-ACCESS  read-write
             STATUS      current
             DESCRIPTION
                 "User group peak burst size ."
             ::={ hwUserGroupEntry 21 }
+
+        hwUserGroupUserVlanPool OBJECT-TYPE
+        	SYNTAX DisplayString (SIZE (1..31))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "Specify Vlan Pool."
+            ::= { hwUserGroupEntry 22 }
                                           
         hwAAAOfflineRecordTable OBJECT-TYPE
             SYNTAX SEQUENCE OF HwAAAOfflineRecordEntry
@@ -8136,7 +8604,1512 @@
                 DESCRIPTION
                     "The row administration status, only supporting add or delete."
                 ::= { hwAAADomainIPPoolEntry 50 }
-                                                       
+        
+        userAuthenProfileTable OBJECT-TYPE
+     			SYNTAX SEQUENCE OF UserAuthenProfileEntry
+            	MAX-ACCESS not-accessible
+            	STATUS current
+            	DESCRIPTION
+                	"The authentication profile table."
+            	::= { hwAAAMibObjects 62 }
+             			
+        userAuthenProfileEntry OBJECT-TYPE
+            SYNTAX UserAuthenProfileEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "The authentication profile entry."
+            INDEX { userAuthenProfileName }
+            ::= { userAuthenProfileTable 1 }
+
+        UserAuthenProfileEntry ::=
+            SEQUENCE {
+                userAuthenProfileName
+                     OCTET STRING,
+                userAuthenProfileDot1xAccessProfileName
+                     OCTET STRING, 
+                userAuthenProfileMacAuthenAccessProfileName 
+                	OCTET STRING,
+                userAuthenProfilePortalAccessProfileName 
+                	OCTET STRING,  
+                userAuthenProfileSingleAccess
+               	TruthValue,
+                userAuthenProfilePreAuthenServiceSchemeName 
+                	OCTET STRING,
+                userAuthenProfilePreAuthenUserGroupName 
+                	OCTET STRING, 	
+                userAuthenProfilePreAuthenVLAN 
+                	Integer32,
+                userAuthenProfileAuthenFailAuthorServiceSchemeName 
+                	OCTET STRING,
+                userAuthenProfileAuthenFailAuthorUserGroupName 
+                	OCTET STRING, 	
+                userAuthenProfileAuthenFailAuthorVLAN  
+                	Integer32, 
+                userAuthenProfileAuthenServerDownServiceSchemeName 
+                	OCTET STRING,
+                userAuthenProfileAuthenServerDownUserGroupName 
+                	OCTET STRING, 	
+                userAuthenProfileAuthenServerDownVLAN  
+                	Integer32,  
+                userAuthenProfileAuthenServerDownResponseSuccess  
+                	TruthValue,    
+                userAuthenProfileAuthenServerUpReauthen
+               	TruthValue,  
+                userAuthenProfileMacAuthenFirst 
+               	TruthValue,
+                userAuthenProfileMACBypass            
+               	TruthValue,             
+                userAuthenProfileDot1xForceDomain  
+                	OCTET STRING, 	
+                userAuthenProfileMACAuthenForceDomain     
+                	OCTET STRING, 	
+                userAuthenProfilePortalForceDomain      
+                	OCTET STRING, 	
+                userAuthenProfileDot1xDefaultDomain    
+                	OCTET STRING, 	
+                userAuthenProfileMACAuthenDefaultDomain  
+                	OCTET STRING, 	
+                userAuthenProfilePortalDefaultDomain    
+                	OCTET STRING,
+                userAuthenProfileDefaultDomain    
+                	OCTET STRING,   
+                userAuthenProfileForceDomain    
+                	OCTET STRING,
+                userAuthenProfileDomainNameDelimiter
+                	OCTET STRING, 
+                userAuthenProfileDomainNameLocation
+                	INTEGER,
+                userAuthenProfileDomainNameParseDirection
+                	INTEGER,
+                userAuthenProfileSecurityNameDelimiter
+                     OCTET STRING,
+                userAuthenProfilePreAuthenReAuthenTimer
+                	Integer32,
+                userAuthenProfileAuthenFailReAuthenTimer
+                	Integer32,
+                userAuthenProfilePreAuthenAgingTime   
+                	Integer32,
+                userAuthenProfileAuthenFailAgingTime
+                	Integer32,  
+                userAuthenProfileFreeRuleName
+                	OCTET STRING, 
+                userAuthenProfileAuthenSchemeName
+                	OCTET STRING,
+                userAuthenProfileAuthorSchemeName
+                	OCTET STRING,
+                userAuthenProfileAcctSchemeName
+                	OCTET STRING,
+                userAuthenProfileServiceSchemeName
+                	OCTET STRING,
+                userAuthenProfileUserGroupName
+                	OCTET STRING,
+                userAuthenProfileRadiusServerName
+                	OCTET STRING,
+                userAuthenProfileHwtacacsServerName
+                	OCTET STRING,
+                userAuthenProfileAuthenticationMode
+                	INTEGER,
+                userAuthenProfileMaxUser         
+                	Integer32,
+                userAuthenProfileArpDetect         
+                	TruthValue,
+                userAuthenProfileArpDetectTimer    
+                	Integer32,	 	
+                userAuthenProfileRowStatus
+                    RowStatus,
+                userAuthenProfilePermitDomain
+                	OCTET STRING, 
+                userAuthenProfileAuthenticationMaxUser
+                    Integer32,
+                userAuthenProfileAuthenFailAuthorResponseSuccess  
+                    TruthValue 
+             }
+
+        userAuthenProfileName OBJECT-TYPE
+            SYNTAX OCTET STRING (SIZE (1..31))
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The authentication profile name."
+            ::= { userAuthenProfileEntry 1 }
+            
+        userAuthenProfileDot1xAccessProfileName OBJECT-TYPE    
+            SYNTAX OCTET STRING (SIZE (1..31))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The dot1x access profile name."
+            ::= { userAuthenProfileEntry 2 }
+            
+        userAuthenProfileMacAuthenAccessProfileName OBJECT-TYPE    
+            SYNTAX OCTET STRING (SIZE (1..31))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The mac-authen access profile name."
+            ::= { userAuthenProfileEntry 3 }  
+            
+        userAuthenProfilePortalAccessProfileName OBJECT-TYPE    
+            SYNTAX OCTET STRING (SIZE (1..31))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The portal access profile name."
+            ::= { userAuthenProfileEntry 4 }
+       
+       userAuthenProfileSingleAccess OBJECT-TYPE
+            SYNTAX TruthValue
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The portal access profile name."
+            ::= { userAuthenProfileEntry 5 }            
+       userAuthenProfilePreAuthenServiceSchemeName OBJECT-TYPE    
+            SYNTAX OCTET STRING (SIZE (1..32))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The pre-authen service scheme name."
+            ::= { userAuthenProfileEntry 6 } 
+           
+        userAuthenProfilePreAuthenUserGroupName OBJECT-TYPE    
+            SYNTAX OCTET STRING (SIZE (1..64))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+               "The pre-authen user group or ucl group name.
+                This object is shared by a user group and ucl group name.
+                The value for a user group name rangs from 1 to 64, and the value for a ucl group name ranges from 1 to 31."
+            ::= { userAuthenProfileEntry 7 }   
+            
+        userAuthenProfilePreAuthenVLAN OBJECT-TYPE    
+            SYNTAX Integer32 (0..4094)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The pre-authen VLAN."
+            ::= { userAuthenProfileEntry 8 } 
+            
+        userAuthenProfileAuthenFailAuthorServiceSchemeName OBJECT-TYPE    
+            SYNTAX OCTET STRING (SIZE (1..32))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The authen-fail service scheme name."
+            ::= { userAuthenProfileEntry 9 } 
+            
+        userAuthenProfileAuthenFailAuthorUserGroupName OBJECT-TYPE    
+            SYNTAX OCTET STRING (SIZE (1..64))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The authen-fail user group or ucl group name.
+                This object is shared by a user group and ucl group name.
+                The value for a user group name rangs from 1 to 64, and the value for a ucl group name ranges from 1 to 31."
+            ::= { userAuthenProfileEntry 10 }
+        
+        userAuthenProfileAuthenFailAuthorVLAN OBJECT-TYPE    
+            SYNTAX Integer32 (0..4094)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The authen-fail VLAN."
+            ::= { userAuthenProfileEntry 11 }
+            
+        userAuthenProfileAuthenServerDownServiceSchemeName OBJECT-TYPE    
+            SYNTAX OCTET STRING (SIZE (1..32))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The authen-server-down service scheme name."
+            ::= { userAuthenProfileEntry 12 }
+            
+        userAuthenProfileAuthenServerDownUserGroupName OBJECT-TYPE    
+            SYNTAX OCTET STRING (SIZE (1..64))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+               "The authen-server-down user group or ucl group name.
+                This object is shared by a user group and ucl group name.
+                The value for a user group name rangs from 1 to 64, and the value for a ucl group name ranges from 1 to 31."
+            ::= { userAuthenProfileEntry 13 }
+            
+        userAuthenProfileAuthenServerDownVLAN OBJECT-TYPE    
+            SYNTAX Integer32 (0..4094)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The authen-server-down VLAN."
+            ::= { userAuthenProfileEntry 14 }    
+            
+        userAuthenProfileAuthenServerDownResponseSuccess OBJECT-TYPE
+            SYNTAX TruthValue
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The authen-server-down response success."
+            ::= { userAuthenProfileEntry 15 }
+
+        userAuthenProfileAuthenServerUpReauthen OBJECT-TYPE
+        	SYNTAX TruthValue
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The authen-server-up reauthentication."
+            ::= { userAuthenProfileEntry 16 }
+        
+        userAuthenProfileMacAuthenFirst OBJECT-TYPE
+            SYNTAX TruthValue
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The mac-authen first switch."
+            ::= { userAuthenProfileEntry 17 }
+        
+        userAuthenProfileMACBypass OBJECT-TYPE
+            SYNTAX TruthValue
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The mac bypass switch."
+            ::= { userAuthenProfileEntry 18 }
+        
+        userAuthenProfileDot1xForceDomain OBJECT-TYPE  
+            SYNTAX OCTET STRING (SIZE (1..64))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The force domain for dot1x."
+            ::= { userAuthenProfileEntry 19 } 
+            
+        userAuthenProfileMACAuthenForceDomain OBJECT-TYPE  
+            SYNTAX OCTET STRING (SIZE (1..64))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The force domain for MAC authen."
+            ::= { userAuthenProfileEntry 20 }   
+        
+        userAuthenProfilePortalForceDomain OBJECT-TYPE  
+            SYNTAX OCTET STRING (SIZE (1..64))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The force domain for portal."
+            ::= { userAuthenProfileEntry 21 }
+            
+        userAuthenProfileDot1xDefaultDomain OBJECT-TYPE  
+            SYNTAX OCTET STRING (SIZE (1..64))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The default domain for dot1x."
+            ::= { userAuthenProfileEntry 22 } 
+            
+        userAuthenProfileMACAuthenDefaultDomain OBJECT-TYPE  
+            SYNTAX OCTET STRING (SIZE (1..64))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The default domain for MAC authen."
+            ::= { userAuthenProfileEntry 23 }
+            
+        userAuthenProfilePortalDefaultDomain OBJECT-TYPE  
+            SYNTAX OCTET STRING (SIZE (1..64))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The default domain for portal."
+            ::= { userAuthenProfileEntry 24 } 
+            
+        userAuthenProfileDefaultDomain OBJECT-TYPE   
+            SYNTAX OCTET STRING (SIZE (1..64))
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The default domain."
+            ::= { userAuthenProfileEntry 25 }   
+                
+        userAuthenProfileForceDomain OBJECT-TYPE   
+            SYNTAX OCTET STRING (SIZE (1..64))
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The force domain."
+            ::= { userAuthenProfileEntry 26 }
+            
+        userAuthenProfileDomainNameDelimiter OBJECT-TYPE
+            SYNTAX OCTET STRING (SIZE (1..1))
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "Domain name delimiter."
+            ::= { userAuthenProfileEntry 27 }  
+            
+        userAuthenProfileDomainNameLocation OBJECT-TYPE
+            SYNTAX INTEGER
+            {
+            	domainnamepositionahead    (0),
+            	domainnamepositionbehind   (1),
+            	domainnamepositioninvalid  (2)
+            }
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "Domain name location."
+            ::= { userAuthenProfileEntry 28 }  
+            
+        userAuthenProfileDomainNameParseDirection OBJECT-TYPE
+            SYNTAX INTEGER
+            {
+            	domainparselefttoright    (0),
+            	domainparserighttoleft    (1),
+            	domainparseinvalid        (2)
+            }
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "Domain name parse direction."
+            ::= { userAuthenProfileEntry 29 }
+
+        userAuthenProfileSecurityNameDelimiter OBJECT-TYPE
+        	SYNTAX OCTET STRING (SIZE (1..1))
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The security name delimiter."
+            ::= { userAuthenProfileEntry 30 }
+        
+        userAuthenProfilePreAuthenReAuthenTimer OBJECT-TYPE
+        	SYNTAX Integer32 (0|30..7200)
+        	MAX-ACCESS read-create 
+        	STATUS current
+            DESCRIPTION
+                "The reauthenticate time for pre-authen."
+            ::= { userAuthenProfileEntry 31 }   
+            
+        userAuthenProfileAuthenFailReAuthenTimer OBJECT-TYPE
+        	SYNTAX Integer32 (0|30..7200)
+        	MAX-ACCESS read-create 
+        	STATUS current
+            DESCRIPTION
+                "The reauthenticate time for authen-fail."
+            ::= { userAuthenProfileEntry 32 }
+            
+        userAuthenProfilePreAuthenAgingTime OBJECT-TYPE
+        	SYNTAX Integer32 (0|60..4294860)
+        	MAX-ACCESS read-create 
+        	STATUS current
+            DESCRIPTION
+                "The aging time for pre-authen."
+            ::= { userAuthenProfileEntry 33 }   
+            
+        userAuthenProfileAuthenFailAgingTime OBJECT-TYPE
+        	SYNTAX Integer32 (0|60..4294860)
+        	MAX-ACCESS read-create 
+        	STATUS current
+            DESCRIPTION
+                "The aging time for authen-fail."
+            ::= { userAuthenProfileEntry 34 } 
+            
+        userAuthenProfileFreeRuleName OBJECT-TYPE
+        	SYNTAX OCTET STRING (SIZE (1..31))
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The free rule name."
+            ::= { userAuthenProfileEntry 35 }
+            
+        userAuthenProfileAuthenSchemeName OBJECT-TYPE
+            SYNTAX OCTET STRING (SIZE (1..32))
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The authentication scheme name."
+            ::= { userAuthenProfileEntry 36 }
+            
+        userAuthenProfileAuthorSchemeName OBJECT-TYPE
+            SYNTAX OCTET STRING (SIZE (1..32))
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The authorization scheme name."
+            ::= { userAuthenProfileEntry 37 }
+            
+        userAuthenProfileAcctSchemeName OBJECT-TYPE
+            SYNTAX OCTET STRING (SIZE (1..32))
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The accouting scheme name."
+            ::= { userAuthenProfileEntry 38 }
+            
+        userAuthenProfileServiceSchemeName OBJECT-TYPE
+            SYNTAX OCTET STRING (SIZE (1..32))
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The service scheme name."
+            ::= { userAuthenProfileEntry 39 }
+        
+        userAuthenProfileUserGroupName OBJECT-TYPE
+        	SYNTAX OCTET STRING (SIZE (1..64))
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The user group name."
+            ::= { userAuthenProfileEntry 40 } 
+            
+        userAuthenProfileRadiusServerName OBJECT-TYPE
+            SYNTAX OCTET STRING (SIZE (1..32))
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The radius server name."
+            ::= { userAuthenProfileEntry 41 }
+            
+        userAuthenProfileHwtacacsServerName OBJECT-TYPE
+            SYNTAX OCTET STRING (SIZE (1..32))
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The hwtacacs server name."
+            ::= { userAuthenProfileEntry 42 }
+            
+        userAuthenProfileAuthenticationMode OBJECT-TYPE
+            SYNTAX INTEGER
+            { 
+            	singleterminal(0),
+            	singlevoicewithdata(1),
+            	multishare(2),
+            	multiterminal(3)            	
+            }
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The authentication mode."
+            ::= { userAuthenProfileEntry 43 }
+            
+        userAuthenProfileMaxUser OBJECT-TYPE        
+            SYNTAX Integer32
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The max user number."
+            ::= { userAuthenProfileEntry 44 }
+            
+        userAuthenProfileArpDetect OBJECT-TYPE        
+            SYNTAX TruthValue
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The arp detect switch."
+            ::= { userAuthenProfileEntry 45 }
+            
+        userAuthenProfileArpDetectTimer OBJECT-TYPE
+        	SYNTAX Integer32 (5..7200)
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The arp detect period."
+            ::= { userAuthenProfileEntry 46 }
+                 
+        userAuthenProfileRowStatus OBJECT-TYPE
+        	SYNTAX RowStatus
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The row administration status, only supporting add or delete."
+            ::= { userAuthenProfileEntry 47 }    
+            
+        userAuthenProfilePermitDomain OBJECT-TYPE    
+        	SYNTAX OCTET STRING (SIZE (1..259))
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The permit domain."
+            ::= { userAuthenProfileEntry 48 }
+		
+		userAuthenProfileAuthenticationMaxUser OBJECT-TYPE    
+        	SYNTAX Integer32 (1..128)
+        	MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "Wlan ess max user."
+            ::= { userAuthenProfileEntry 49 }
+
+         userAuthenProfileAuthenFailAuthorResponseSuccess OBJECT-TYPE
+                    SYNTAX TruthValue
+                    MAX-ACCESS read-create
+                    STATUS current
+                    DESCRIPTION
+                         "The authen-fail response success."
+                   ::= { userAuthenProfileEntry 50 }
+        	
+            
+        
+        userAuthenticationFreeRuleTable OBJECT-TYPE
+     	SYNTAX SEQUENCE OF UserAuthenticationFreeRuleEntry
+            	MAX-ACCESS not-accessible
+            	STATUS current
+            	DESCRIPTION
+                	"The authentication free rule table."
+            	::= { hwAAAMibObjects 63 }
+             			
+        userAuthenticationFreeRuleEntry OBJECT-TYPE
+            SYNTAX UserAuthenticationFreeRuleEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "The authentication free rule entry."
+            INDEX { userAuthenticationFreeRuleName }
+            ::= { userAuthenticationFreeRuleTable 1 }
+
+        UserAuthenticationFreeRuleEntry ::=
+            SEQUENCE {   
+                userAuthenticationFreeRuleName 
+                    DisplayString,
+                userAuthenticationFreeRuleACLNumber
+                    Integer32,
+                userAuthenticationFreeRuleIPv6ACLNumber
+                	Integer32,
+                userAuthenticationFreeRuleRowStatus         
+                    RowStatus
+            }
+            
+        userAuthenticationFreeRuleName OBJECT-TYPE
+            SYNTAX DisplayString (SIZE (1..31))
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The authentication free rule name."
+            ::= { userAuthenticationFreeRuleEntry 1 }
+            
+        userAuthenticationFreeRuleACLNumber OBJECT-TYPE
+        	SYNTAX Integer32 (0|6000..6031)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The ACL number."
+            ::= { userAuthenticationFreeRuleEntry 2 } 
+             
+        userAuthenticationFreeRuleIPv6ACLNumber OBJECT-TYPE  
+            SYNTAX Integer32 (0|3000..3031)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The ACL number for ipv6."
+            ::= { userAuthenticationFreeRuleEntry 3 }  
+                        
+        userAuthenticationFreeRuleRowStatus OBJECT-TYPE
+            SYNTAX RowStatus
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The row administration status, only supporting add or delete."
+            ::= { userAuthenticationFreeRuleEntry 4 } 
+            
+        
+        hwDot1xAccessProfileTable OBJECT-TYPE
+     	SYNTAX SEQUENCE OF HwDot1xAccessProfileEntry 
+               	MAX-ACCESS not-accessible
+            	STATUS current
+            	DESCRIPTION
+                	"The dot1x access profile table."
+            	::= { hwAAAMibObjects 64 }
+             			
+        hwDot1xAccessProfileEntry OBJECT-TYPE
+            SYNTAX HwDot1xAccessProfileEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "The dot1x access profile entry."
+            INDEX { hwDot1xAccessProfileName }
+            ::= { hwDot1xAccessProfileTable 1 }
+            
+        HwDot1xAccessProfileEntry ::=
+            SEQUENCE {
+            	hwDot1xAccessProfileName 
+            	    DisplayString,
+            	hwDot1xAccessProfileGuestAuthorServiceSchemeName
+            	    DisplayString,
+        	hwDot1xAccessProfileGuestAuthorUserGroupName         
+        	    DisplayString,
+        	hwDot1xAccessProfileGuestAuthorVLAN         
+        	    Integer32,        
+        	hwDot1xAccessProfileHandshakeSwitch
+        	    TruthValue,
+	hwDot1xAccessProfileHandShakePktType
+	    INTEGER,
+        	hwDot1xAccessProfileHandshakeInterval 
+        	    Integer32,
+        	hwDot1xAccessProfileIfEAPEnd               
+        	    TruthValue,
+        	hwDot1xAccessProfileEAPEndMethod         
+        	    INTEGER,
+	hwDot1xAccessProfileEAPNotifyPktEAPCode    
+	    Integer32,
+	hwDot1xAccessProfileEAPNotifyPktEAPType    
+	    Integer32,
+        	hwDot1xAccessProfileReAuthenEnable       
+        	    TruthValue,
+        	hwDot1xAccessProfileReauthenticationTimeout     
+        	    Integer32,
+        	hwDot1xAccessProfileClientTimeout     
+        	    Integer32,
+       	hwDot1xAccessProfileServerTimeout     
+       	    Integer32,
+        	hwDot1xAccessProfileTxPeriod     
+        	    Integer32,
+        	hwDot1xAccessProfileMaxRetryValue     
+        	    Integer32,
+        	hwDot1xAccessProfileSpeedLimitAuto       
+        	    TruthValue, 
+        	hwDot1xAccessProfileTriggerPktType
+        	    INTEGER,
+        	hwDot1xAccessProfileUnicastTrigger 
+        	    TruthValue,
+        	hwDot1xAccessProfileURL         
+        	    DisplayString,
+        	hwDot1xAccessProfileEthTrunkHandShakePeriod
+        	    Integer32,
+        	hwDot1xAccessProfileRowStatus         
+        	    RowStatus  
+        	}
+        
+        hwDot1xAccessProfileName OBJECT-TYPE
+            SYNTAX DisplayString (SIZE (1..31))
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The dot1x access profile name."
+            ::= { hwDot1xAccessProfileEntry 1 }
+            
+        hwDot1xAccessProfileGuestAuthorServiceSchemeName OBJECT-TYPE
+            SYNTAX DisplayString (SIZE (1..32))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The guest service scheme name."
+            ::= { hwDot1xAccessProfileEntry 2 }
+             
+        hwDot1xAccessProfileGuestAuthorUserGroupName OBJECT-TYPE
+            SYNTAX DisplayString (SIZE (1..64))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The guest user group name."
+            ::= { hwDot1xAccessProfileEntry 3 }
+
+        hwDot1xAccessProfileGuestAuthorVLAN OBJECT-TYPE
+            SYNTAX Integer32 (0..4094)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The guest VLAN."
+            ::= { hwDot1xAccessProfileEntry 4 } 
+        
+        hwDot1xAccessProfileHandshakeSwitch OBJECT-TYPE
+            SYNTAX TruthValue
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The handshake switch."
+            ::= { hwDot1xAccessProfileEntry 5 }
+            
+        hwDot1xAccessProfileHandShakePktType OBJECT-TYPE
+            SYNTAX INTEGER
+            {
+                default(1),
+                srpsha1(20)
+            }
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The handshake packet type."
+            ::= { hwDot1xAccessProfileEntry 6 } 
+            
+        hwDot1xAccessProfileHandshakeInterval OBJECT-TYPE
+            SYNTAX Integer32 (5..7200)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The handshake period."
+            ::= { hwDot1xAccessProfileEntry 7 }
+            
+        hwDot1xAccessProfileIfEAPEnd OBJECT-TYPE
+            SYNTAX TruthValue
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The EAP end."
+            ::= { hwDot1xAccessProfileEntry 8 }   
+            
+        hwDot1xAccessProfileEAPEndMethod OBJECT-TYPE
+            SYNTAX INTEGER 
+        	{
+        		chap(1),
+        		pap(2),
+        		eap(3)
+        	}
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The authentication method."
+            ::= { hwDot1xAccessProfileEntry 9 }
+             
+        hwDot1xAccessProfileEAPNotifyPktEAPCode OBJECT-TYPE
+            SYNTAX Integer32  (5..255)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The EAP packet type."
+            ::= { hwDot1xAccessProfileEntry 10 } 
+            
+        hwDot1xAccessProfileEAPNotifyPktEAPType OBJECT-TYPE
+            SYNTAX Integer32  (1..255)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The EAP packet data type."
+            ::= { hwDot1xAccessProfileEntry 11 }
+                          
+        hwDot1xAccessProfileReAuthenEnable OBJECT-TYPE
+            SYNTAX TruthValue
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "Enable reauthenticate."
+            ::= { hwDot1xAccessProfileEntry 12 }
+            
+        hwDot1xAccessProfileReauthenticationTimeout OBJECT-TYPE 
+            SYNTAX Integer32  (60..7200)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The reauthenticate time."
+            ::= { hwDot1xAccessProfileEntry 13 }
+            
+        hwDot1xAccessProfileClientTimeout OBJECT-TYPE
+            SYNTAX Integer32 (1..120)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The client timeout."
+            ::= { hwDot1xAccessProfileEntry 14 }
+               
+        hwDot1xAccessProfileServerTimeout OBJECT-TYPE
+            SYNTAX Integer32 (1..120)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The server timeout."
+            ::= { hwDot1xAccessProfileEntry 15 } 
+            
+        hwDot1xAccessProfileTxPeriod OBJECT-TYPE 
+            SYNTAX Integer32  (1..120)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The tx period."
+            ::= { hwDot1xAccessProfileEntry 16 }
+            
+        hwDot1xAccessProfileMaxRetryValue OBJECT-TYPE
+            SYNTAX Integer32  (1..10)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The max retry value."
+            ::= { hwDot1xAccessProfileEntry 17 }
+            
+        hwDot1xAccessProfileSpeedLimitAuto OBJECT-TYPE
+            SYNTAX TruthValue
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "Enable speed limit automatically."
+            ::= { hwDot1xAccessProfileEntry 18 } 
+        
+        hwDot1xAccessProfileTriggerPktType OBJECT-TYPE
+            SYNTAX INTEGER
+        	{
+        		default(0),
+        		arp(1),
+        		dhcp(2)
+        	}
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The max retry value."
+            ::= { hwDot1xAccessProfileEntry 19 }
+            
+        hwDot1xAccessProfileUnicastTrigger OBJECT-TYPE
+            SYNTAX TruthValue
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The unicast trigger switch."
+            ::= { hwDot1xAccessProfileEntry 20 }
+        
+        hwDot1xAccessProfileURL OBJECT-TYPE
+            SYNTAX DisplayString (SIZE(1..200))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The url."
+            ::= { hwDot1xAccessProfileEntry 21 }
+        
+        hwDot1xAccessProfileEthTrunkHandShakePeriod OBJECT-TYPE
+            SYNTAX Integer32  (30..7200)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The handshake period for Eth-Trunk port."
+            ::= { hwDot1xAccessProfileEntry 22 }
+        		         		          
+        hwDot1xAccessProfileRowStatus OBJECT-TYPE
+            SYNTAX RowStatus
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The row administration status, only supporting add or delete."
+            ::= { hwDot1xAccessProfileEntry 23 }
+            
+            
+        hwMACAuthenAccessProfileTable OBJECT-TYPE
+     	SYNTAX SEQUENCE OF HwMACAuthenAccessProfileEntry 
+               	MAX-ACCESS not-accessible
+            	STATUS current
+            	DESCRIPTION
+                	"The MAC-authen access profile table."
+            	::= { hwAAAMibObjects 65 }
+             			
+        hwMACAuthenAccessProfileEntry OBJECT-TYPE
+            SYNTAX HwMACAuthenAccessProfileEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "The MAC-authen access profile entry."
+            INDEX { hwMACAuthenAccessProfileName }
+            ::= { hwMACAuthenAccessProfileTable 1 }
+            
+        HwMACAuthenAccessProfileEntry ::=
+            SEQUENCE {  
+            	hwMACAuthenAccessProfileName
+            	    DisplayString,
+        	hwMACAuthenAccessProfileReAuthenEnable       
+       	    TruthValue,
+        	hwMACAuthenAccessProfileReauthenticationTimeout     
+        	     Integer32,
+	hwMACAuthenAccessProfileServerTimeout     
+	    Integer32,
+        	hwMACAuthenAccessProfileUserNameFixedUserName     
+        	    OCTET STRING,
+	hwMACAuthenAccessProfileFixedPassword    
+	    OCTET STRING,
+	hwMACAuthenAccessProfileMACAddressFormat    
+	    INTEGER,
+	hwMACAuthenAccessProfileMACAddressPassword    
+	    OCTET STRING,
+	hwMACAuthenAccessProfileUserNameDHCPOption    
+	    INTEGER,
+	hwMACAuthenAccessProfileUserNameDHCPOSubOption    
+	    INTEGER,
+	hwMACAuthenAccessProfileTriggerPktType
+	    Integer32,
+	hwMACAuthenAccessProfileTriggerDHCPOptionType
+	    INTEGER,
+	hwMACAuthenAccessProfileDHCPRelaseOffline
+	    TruthValue,
+	hwMACAuthenAccessProfileDHCPRenewReAuthen
+	    TruthValue,
+	hwMACAuthenAccessProfilePermitAuthenMAC 
+	    MacAddress,
+	hwMACAuthenAccessProfilePermitAuthenMACMask
+	    MacAddress,
+        	hwMACAuthenAccessProfileRowStatus         
+        	    RowStatus 
+        	} 
+        	
+        hwMACAuthenAccessProfileName OBJECT-TYPE 
+            SYNTAX DisplayString (SIZE (1..31))
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The MAC-authen access profile name."
+            ::= { hwMACAuthenAccessProfileEntry 1 }  
+                        
+        hwMACAuthenAccessProfileReAuthenEnable OBJECT-TYPE
+            SYNTAX TruthValue
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The reauthenticate switch."
+            ::= { hwMACAuthenAccessProfileEntry 2 }
+                      	
+        hwMACAuthenAccessProfileReauthenticationTimeout OBJECT-TYPE
+            SYNTAX Integer32  (60..7200)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The reauthenticate period."
+            ::= { hwMACAuthenAccessProfileEntry 3 } 
+               
+        hwMACAuthenAccessProfileServerTimeout OBJECT-TYPE
+            SYNTAX Integer32  (1..120)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The server timeout period."
+            ::= { hwMACAuthenAccessProfileEntry 4 }
+            
+        hwMACAuthenAccessProfileUserNameFixedUserName OBJECT-TYPE
+            SYNTAX OCTET STRING  (SIZE (1..64))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The fixed username."
+            ::= { hwMACAuthenAccessProfileEntry 5 }
+            
+        hwMACAuthenAccessProfileFixedPassword OBJECT-TYPE
+            SYNTAX OCTET STRING  (SIZE (1..128))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The fixed password."
+            ::= { hwMACAuthenAccessProfileEntry 6 }
+                
+        hwMACAuthenAccessProfileMACAddressFormat OBJECT-TYPE
+            SYNTAX INTEGER 
+        	{
+        		invalid(0),
+        		macAddressWithoutHyphen(1),
+        		macAddressWithHyphen(2),
+        		fixed(3),
+        		option(4)
+        	}
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The  MAC address format."
+            ::= { hwMACAuthenAccessProfileEntry 7 } 
+            
+        hwMACAuthenAccessProfileMACAddressPassword OBJECT-TYPE
+            SYNTAX OCTET STRING (SIZE (1..128))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The MAC address password."
+            ::= { hwMACAuthenAccessProfileEntry 8 }
+              
+        hwMACAuthenAccessProfileUserNameDHCPOption OBJECT-TYPE
+            SYNTAX INTEGER
+        	{
+        	    default(0),
+        	    dhcpoption(82)
+        	}
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The DHCP option."
+            ::= { hwMACAuthenAccessProfileEntry 9 }
+              
+        hwMACAuthenAccessProfileUserNameDHCPOSubOption OBJECT-TYPE
+            SYNTAX INTEGER  
+        	{
+        		optionsubinvalid(0),
+        		optionsubcircuitid(1),
+        		optionremoteid(2)
+        	}
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The DHCP suboption."
+            ::= { hwMACAuthenAccessProfileEntry 10 }
+            
+        hwMACAuthenAccessProfileTriggerPktType OBJECT-TYPE
+            SYNTAX Integer32 (1..255)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The trigger packet type.
+                0xFF all
+                0x02 arp
+                0x04 dhcp
+                0x08 nd
+                0x10 dhcpv6"
+            ::= { hwMACAuthenAccessProfileEntry 11 }
+            
+        hwMACAuthenAccessProfileTriggerDHCPOptionType OBJECT-TYPE
+            SYNTAX INTEGER
+			{
+                                                                                     default(0),
+				optioncode(82)
+			}
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The DHCP suboption."
+            ::= { hwMACAuthenAccessProfileEntry 12 }
+            
+		hwMACAuthenAccessProfileDHCPRelaseOffline OBJECT-TYPE
+			SYNTAX TruthValue
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The dhcp release offline switch ."
+            ::= { hwMACAuthenAccessProfileEntry 13 } 
+            
+        hwMACAuthenAccessProfileDHCPRenewReAuthen OBJECT-TYPE
+            SYNTAX TruthValue
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The dhcp renew reauthenticate switch."
+            ::= { hwMACAuthenAccessProfileEntry 14 }
+            
+        hwMACAuthenAccessProfilePermitAuthenMAC OBJECT-TYPE
+            SYNTAX MacAddress
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The permit mac address."
+            ::= { hwMACAuthenAccessProfileEntry 15 }
+            
+        hwMACAuthenAccessProfilePermitAuthenMACMask OBJECT-TYPE
+            SYNTAX MacAddress
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The mask of permit mac address."
+            ::= { hwMACAuthenAccessProfileEntry 16 }
+
+        hwMACAuthenAccessProfileRowStatus OBJECT-TYPE
+        	SYNTAX RowStatus
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The row administration status, only supporting add or delete."
+            ::= { hwMACAuthenAccessProfileEntry 17 }    
+            
+            
+        hwPortalAccessProfileTable OBJECT-TYPE
+     	SYNTAX SEQUENCE OF HwPortalAccessProfileEntry 
+               	MAX-ACCESS not-accessible
+            	STATUS current
+            	DESCRIPTION
+                	"The portal access profile table."
+            	::= { hwAAAMibObjects 66 }
+             			
+        hwPortalAccessProfileEntry OBJECT-TYPE
+            SYNTAX HwPortalAccessProfileEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "The portal access profile entry."
+            INDEX { hwPortalAccessProfileName }
+            ::= { hwPortalAccessProfileTable 1 }
+            
+        HwPortalAccessProfileEntry ::=
+            SEQUENCE {     
+            	                                                                hwPortalAccessProfileName         
+            		                                               DisplayString,
+				hwPortalAccessProfileDetectPeriod
+				    Integer32,				
+				hwPortalAccessProfilePortalServerDownServiceSchemeName    
+				    OCTET STRING,
+				hwPortalAccessProfilePortalServerDownUserGroupName     
+					OCTET STRING,
+				hwPortalAccessProfilePortalServerUpReAuthen     
+					TruthValue,
+				hwPortalAccessProfileAlarmUserLowNum    
+					Integer32,
+				hwPortalAccessProfileAlarmUserHighNum    
+					Integer32,
+				hwPortalAccessProfileAuthenNetWork    
+					OCTET STRING,
+				hwPortalAccessProfileAuthenNetWorkMask    
+					OCTET STRING,
+				hwPortalAccessProfilePortalServerName      
+					DisplayString,
+				hwPortalAccessProfilePortalAccessDirect      
+					INTEGER,
+				hwPortalAccessProfileLocalServerEnable       
+					TruthValue,
+                                                                                     hwPortalAccessProfileLocalServerAnonymous 
+					TruthValue,
+				hwPortalAccessProfileRowStatus         
+					RowStatus,
+			        hwPortalAccessProfilePortalBackupServerName      
+					DisplayString
+			}
+			
+        hwPortalAccessProfileName OBJECT-TYPE
+            SYNTAX DisplayString (SIZE (1..31))
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The portal access profile name."
+            ::= { hwPortalAccessProfileEntry 1 }
+            
+		hwPortalAccessProfileDetectPeriod OBJECT-TYPE
+			SYNTAX Integer32 (0|30..7200)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The detect period."
+            ::= { hwPortalAccessProfileEntry 2 }  
+                        
+		hwPortalAccessProfilePortalServerDownServiceSchemeName OBJECT-TYPE
+			SYNTAX OCTET STRING (SIZE (1..32))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The portal server down service scheme."
+            ::= { hwPortalAccessProfileEntry 3 }
+              
+		hwPortalAccessProfilePortalServerDownUserGroupName OBJECT-TYPE
+			SYNTAX OCTET STRING (SIZE (1..64))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The portal server down user group."
+            ::= { hwPortalAccessProfileEntry 4 } 
+            
+		hwPortalAccessProfilePortalServerUpReAuthen OBJECT-TYPE
+			SYNTAX TruthValue
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The portal server up reauthenticate."
+            ::= { hwPortalAccessProfileEntry 5 }
+             
+		hwPortalAccessProfileAlarmUserLowNum OBJECT-TYPE
+			SYNTAX Integer32 (1..100)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The minum alarm user number."
+            ::= { hwPortalAccessProfileEntry 6 } 
+             
+		hwPortalAccessProfileAlarmUserHighNum OBJECT-TYPE
+			SYNTAX Integer32 (1..100)
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The maxium alarm user number."
+            ::= { hwPortalAccessProfileEntry 7 }
+              
+		hwPortalAccessProfileAuthenNetWork OBJECT-TYPE
+			SYNTAX OCTET STRING (SIZE(1..1024))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The ip address of  authentication network."
+            ::= { hwPortalAccessProfileEntry 8 } 
+            
+		hwPortalAccessProfileAuthenNetWorkMask OBJECT-TYPE
+			SYNTAX OCTET STRING (SIZE(1..1024))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The mask of ip address of  authentication network."
+            ::= { hwPortalAccessProfileEntry 9 }
+             
+            hwPortalAccessProfilePortalServerName OBJECT-TYPE
+            SYNTAX DisplayString (SIZE(1..31))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The portal server name."
+            ::= { hwPortalAccessProfileEntry 10 }
+              
+            hwPortalAccessProfilePortalAccessDirect OBJECT-TYPE
+			SYNTAX INTEGER
+                                                               {
+				invalid(0),
+				direct(2),
+				layer3(3)	
+			}
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The type of portal authentication."
+            ::= { hwPortalAccessProfileEntry 11 }
+
+            hwPortalAccessProfileLocalServerEnable OBJECT-TYPE
+			SYNTAX TruthValue
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The local portal server switch."
+            ::= { hwPortalAccessProfileEntry 12 }
+
+            hwPortalAccessProfileLocalServerAnonymous OBJECT-TYPE
+			SYNTAX TruthValue
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The local portal server anonymous switch."
+            ::= { hwPortalAccessProfileEntry 13 }
+             
+            hwPortalAccessProfileRowStatus OBJECT-TYPE
+            SYNTAX RowStatus
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The row administration status, only supporting add or delete."
+            ::= { hwPortalAccessProfileEntry 14 } 
+        
+	    hwPortalAccessProfilePortalBackupServerName OBJECT-TYPE
+            SYNTAX DisplayString (SIZE(1..31))
+            MAX-ACCESS read-create
+            STATUS current
+            DESCRIPTION
+                "The portal backup server name."
+            ::= { hwPortalAccessProfileEntry 15 }
+
+		--  ============== hwAAAInboundVPNAccessUserStatTable ============== 
+        hwAAAInboundVPNAccessUserStatTable OBJECT-TYPE
+            SYNTAX SEQUENCE OF HwAAAInboundVPNAccessUserStatEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "hwAAAInboundVPNAccessUserStatTable"
+            ::= { hwAAAMibObjects 67 }     
+            
+        hwAAAInboundVPNAccessUserStatEntry OBJECT-TYPE
+            SYNTAX HwAAAInboundVPNAccessUserStatEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "hwAAAInboundVPNAccessUserStatEntry"
+            INDEX { hwAAAInboundVPNUserType, hwAAAInboundVPNName }
+            ::= { hwAAAInboundVPNAccessUserStatTable 1 }
+                                                 
+        HwAAAInboundVPNAccessUserStatEntry ::=
+            SEQUENCE {
+                hwAAAInboundVPNUserType         INTEGER,
+                hwAAAInboundVPNName             DisplayString,
+                hwAAAInboundVPNAccessUserStat   Integer32
+             }
+
+        hwAAAInboundVPNUserType OBJECT-TYPE
+            SYNTAX INTEGER
+                {
+                pppoe(1),
+                pppoa(2),
+                dhcp(3),
+                lns(4),
+                lac(5),
+                ipv4(6),
+                ipv6(7),
+                dualStack(8),
+                all(9)
+                }
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "user type
+                1:pppoe
+                2:pppoa
+                3:dhcp
+                4:lns
+                5:lac
+                6:ipv4
+                7:ipv6
+                8:dualStack
+                9:all"
+            ::= { hwAAAInboundVPNAccessUserStatEntry 1 }
+
+                      
+        hwAAAInboundVPNName OBJECT-TYPE
+            SYNTAX DisplayString (SIZE (1..31))
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "hwAAAInboundVPNName"
+            ::= { hwAAAInboundVPNAccessUserStatEntry 2 }
+                                                          
+        hwAAAInboundVPNAccessUserStat OBJECT-TYPE
+            SYNTAX Integer32 (0..256000)
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "hwAAAInboundVPNAccessUserStat"
+            ::= { hwAAAInboundVPNAccessUserStatEntry 3 }   
+
+        --  ============== hwInterfaceAccessUserStatTable ==============                                                 
+	    
+        --  ============== FreeRule Extend Begin ==============
+ 		userAuthenticationFreeRuleExtTable OBJECT-TYPE
+     			SYNTAX SEQUENCE OF UserAuthenticationFreeRuleExtEntry
+            	MAX-ACCESS not-accessible
+            	STATUS current
+            	DESCRIPTION
+                	"The authentication free rule extend table."
+            	::= { hwAAAMibObjects 68 }
+             			
+        userAuthenticationFreeRuleExtEntry OBJECT-TYPE
+            SYNTAX UserAuthenticationFreeRuleExtEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "The authentication free rule extend entry."
+            INDEX { userAuthenticationFreeRuleName , userAuthenticationFreeRuleNumber }
+            ::= { userAuthenticationFreeRuleExtTable 1 }
+
+        UserAuthenticationFreeRuleExtEntry ::=
+            SEQUENCE {   
+            	userAuthenticationFreeRuleNumber
+           			Integer32,
+           		userAuthenticationFreeRuleSourceMode
+           			Integer32,
+           		userAuthenticationFreeRuleSourceVlan
+           			Integer32,
+           		userAuthenticationFreeRuleSourceInterface
+           			OCTET STRING,
+          		userAuthenticationFreeRuleSourceIP 			
+            		IpAddress,
+            	userAuthenticationFreeRuleSourceIPMask 
+            		IpAddress,
+            	userAuthenticationFreeRuleSourceMac
+                    MacAddress,
+                userAuthenticationFreeRuleDestinationMode
+                    Integer32,
+                userAuthenticationFreeRuleDestinationIP
+                	IpAddress,
+                userAuthenticationFreeRuleDestinationIPMask
+                	IpAddress,
+                userAuthenticationFreeRuleDestinationProtocol	
+                	INTEGER,
+                userAuthenticationFreeRuleDestinationPort
+                	Integer32,
+                userAuthenticationFreeRuleDestinationUserGroup		    
+                    OCTET STRING,
+                userAuthenticationFreeRuleExtRowStatus         
+                    RowStatus
+            }
+                        
+        userAuthenticationFreeRuleNumber OBJECT-TYPE  
+        	SYNTAX Integer32 (0..129)
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The free rule id."
+            ::= { userAuthenticationFreeRuleExtEntry 1 }
+                       
+        userAuthenticationFreeRuleSourceMode OBJECT-TYPE
+        	SYNTAX Integer32 (0..3)
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The free rule source mode."
+            ::= { userAuthenticationFreeRuleExtEntry 2 }      
+            
+        userAuthenticationFreeRuleSourceVlan OBJECT-TYPE
+        	SYNTAX Integer32 (0..4094)
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The free rule source vlan."
+            ::= { userAuthenticationFreeRuleExtEntry 3 }
+              
+        userAuthenticationFreeRuleSourceInterface OBJECT-TYPE
+        	SYNTAX OCTET STRING (SIZE(1..63)) 
+        	MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The free rule source interface."
+            ::= { userAuthenticationFreeRuleExtEntry 4 } 
+            
+        userAuthenticationFreeRuleSourceIP OBJECT-TYPE
+        	SYNTAX IpAddress 
+        	MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The free rule source ip address."
+            ::= { userAuthenticationFreeRuleExtEntry 5 }
+             
+        userAuthenticationFreeRuleSourceIPMask OBJECT-TYPE
+        	SYNTAX IpAddress 
+        	MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The mask of free rule source ip address."
+            ::= { userAuthenticationFreeRuleExtEntry 6 }
+               
+        userAuthenticationFreeRuleSourceMac OBJECT-TYPE
+            SYNTAX MacAddress 
+        	MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The free rule source mac address."
+            ::= { userAuthenticationFreeRuleExtEntry 7 }  
+            
+        userAuthenticationFreeRuleDestinationMode OBJECT-TYPE
+        	SYNTAX Integer32 (0..3) 
+        	MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The free rule destination mode."
+            ::= { userAuthenticationFreeRuleExtEntry 8 }
+                
+        userAuthenticationFreeRuleDestinationIP OBJECT-TYPE
+        	SYNTAX IpAddress 
+        	MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The free rule destination ip address."
+            ::= { userAuthenticationFreeRuleExtEntry 9 }
+    
+        userAuthenticationFreeRuleDestinationIPMask OBJECT-TYPE
+        	SYNTAX IpAddress 
+        	MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The mask of free rule destination ip address."
+            ::= { userAuthenticationFreeRuleExtEntry 10 }
+               
+        userAuthenticationFreeRuleDestinationProtocol OBJECT-TYPE 
+        	SYNTAX INTEGER
+        	{
+        		tcp(1),
+        		udp(2),
+        		none(3)
+        	}
+        	MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The free rule destination protocol."
+            ::= { userAuthenticationFreeRuleExtEntry 11 } 
+              
+        userAuthenticationFreeRuleDestinationPort OBJECT-TYPE
+        	SYNTAX Integer32 
+        	MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The free rule destination port."
+            ::= { userAuthenticationFreeRuleExtEntry 12 }
+                
+        userAuthenticationFreeRuleDestinationUserGroup OBJECT-TYPE
+        	SYNTAX OCTET STRING (SIZE(1..64)) 
+        	MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The free rule destination user group."
+            ::= { userAuthenticationFreeRuleExtEntry 13 }
+            
+        userAuthenticationFreeRuleExtRowStatus OBJECT-TYPE
+        	SYNTAX RowStatus
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The row administration status, only supporting add or delete."
+            ::= { userAuthenticationFreeRuleExtEntry 14 } 
+	    -- =============== FreeRule Extend End =================
+                                                           
             --  ============== conformance information ==============
         hwAaaConformance OBJECT IDENTIFIER ::= { hwAaa 5 }
         
@@ -8669,7 +10642,63 @@
        STATUS current
        DESCRIPTION 
             "The IP pool of domain."
-          ::= { hwAaaObjectGroups 61 }        
+          ::= { hwAaaObjectGroups 61 }
+  userAuthenProfileGroup OBJECT-GROUP
+  		OBJECTS {userAuthenProfileName, userAuthenProfileDot1xAccessProfileName, userAuthenProfileMacAuthenAccessProfileName,
+  					userAuthenProfilePortalAccessProfileName, userAuthenProfileSingleAccess, userAuthenProfilePreAuthenServiceSchemeName,
+  					userAuthenProfilePreAuthenUserGroupName, userAuthenProfilePreAuthenVLAN, userAuthenProfileAuthenFailAuthorServiceSchemeName,
+  					userAuthenProfileAuthenFailAuthorUserGroupName, userAuthenProfileAuthenFailAuthorVLAN, userAuthenProfileAuthenServerDownServiceSchemeName,
+  					userAuthenProfileAuthenServerDownUserGroupName, userAuthenProfileAuthenServerDownVLAN, userAuthenProfileAuthenServerDownResponseSuccess, userAuthenProfileAuthenServerUpReauthen,
+  					userAuthenProfileMacAuthenFirst, userAuthenProfileMACBypass, userAuthenProfileDot1xForceDomain, userAuthenProfileMACAuthenForceDomain,
+  					userAuthenProfilePortalForceDomain, userAuthenProfileDot1xDefaultDomain, userAuthenProfileMACAuthenDefaultDomain, userAuthenProfilePortalDefaultDomain, userAuthenProfileSecurityNameDelimiter,
+  					userAuthenProfilePreAuthenReAuthenTimer, userAuthenProfileAuthenFailReAuthenTimer, userAuthenProfilePreAuthenAgingTime, userAuthenProfileAuthenFailAgingTime,
+  					userAuthenProfileFreeRuleName, userAuthenProfileAuthenSchemeName, userAuthenProfileAuthorSchemeName, userAuthenProfileAcctSchemeName,
+  					userAuthenProfileServiceSchemeName,userAuthenProfileUserGroupName, userAuthenProfileRadiusServerName, userAuthenProfileHwtacacsServerName, userAuthenProfileAuthenticationMode,
+  					userAuthenProfileMaxUser, userAuthenProfileAuthenFailAuthorResponseSuccess, userAuthenProfileArpDetect, userAuthenProfileArpDetectTimer, userAuthenProfileRowStatus}
+  		STATUS current
+  		DESCRIPTION
+  			"The authentication profile." 
+  			::= { hwAaaObjectGroups 62 } 
+  userAuthenticationFreeRuleGroup OBJECT-GROUP 
+  		OBJECTS {userAuthenticationFreeRuleName, userAuthenticationFreeRuleACLNumber, userAuthenticationFreeRuleIPv6ACLNumber, userAuthenticationFreeRuleNumber,
+  					userAuthenticationFreeRuleSourceMode, userAuthenticationFreeRuleSourceVlan, userAuthenticationFreeRuleSourceInterface, userAuthenticationFreeRuleSourceIP,
+  					userAuthenticationFreeRuleSourceIPMask, userAuthenticationFreeRuleSourceMac, userAuthenticationFreeRuleDestinationMode, userAuthenticationFreeRuleDestinationIP,
+  					userAuthenticationFreeRuleDestinationIPMask, userAuthenticationFreeRuleDestinationProtocol, userAuthenticationFreeRuleDestinationPort,
+  					userAuthenticationFreeRuleDestinationUserGroup, userAuthenticationFreeRuleRowStatus}  
+  		STATUS current
+  		DESCRIPTION
+  			"The authentication free rule." 
+  			::= { hwAaaObjectGroups 63 }
+  hwDot1xAccessProfileGroup OBJECT-GROUP
+  		OBJECTS {hwDot1xAccessProfileName, hwDot1xAccessProfileGuestAuthorServiceSchemeName, hwDot1xAccessProfileGuestAuthorUserGroupName, hwDot1xAccessProfileGuestAuthorVLAN,
+  					hwDot1xAccessProfileHandshakeSwitch, hwDot1xAccessProfileHandShakePktType, hwDot1xAccessProfileHandshakeInterval, hwDot1xAccessProfileIfEAPEnd,
+  					hwDot1xAccessProfileEAPEndMethod, hwDot1xAccessProfileEAPNotifyPktEAPCode, hwDot1xAccessProfileEAPNotifyPktEAPType, hwDot1xAccessProfileReAuthenEnable,
+  					hwDot1xAccessProfileReauthenticationTimeout, hwDot1xAccessProfileClientTimeout, hwDot1xAccessProfileServerTimeout, hwDot1xAccessProfileTxPeriod,
+  					hwDot1xAccessProfileMaxRetryValue, hwDot1xAccessProfileSpeedLimitAuto, hwDot1xAccessProfileTriggerPktType, hwDot1xAccessProfileUnicastTrigger,
+  					hwDot1xAccessProfileURL, hwDot1xAccessProfileEthTrunkHandShakePeriod, hwDot1xAccessProfileRowStatus}  
+  		STATUS current
+  		DESCRIPTION
+  			"The dot1x access profile." 
+  			::= { hwAaaObjectGroups 64 } 
+  hwMACAuthenAccessProfileGroup OBJECT-GROUP
+  		OBJECTS {hwMACAuthenAccessProfileName, hwMACAuthenAccessProfileReAuthenEnable, hwMACAuthenAccessProfileReauthenticationTimeout, hwMACAuthenAccessProfileServerTimeout,
+  					hwMACAuthenAccessProfileUserNameFixedUserName, hwMACAuthenAccessProfileFixedPassword, hwMACAuthenAccessProfileMACAddressFormat, hwMACAuthenAccessProfileMACAddressPassword,
+  					hwMACAuthenAccessProfileUserNameDHCPOption, hwMACAuthenAccessProfileUserNameDHCPOSubOption, hwMACAuthenAccessProfileTriggerPktType, hwMACAuthenAccessProfileTriggerDHCPOptionType,
+  					hwMACAuthenAccessProfileDHCPRelaseOffline, hwMACAuthenAccessProfileDHCPRenewReAuthen, hwMACAuthenAccessProfilePermitAuthenMAC, hwMACAuthenAccessProfilePermitAuthenMACMask,
+  					hwMACAuthenAccessProfileRowStatus}
+  		STATUS current
+  		DESCRIPTION
+  			"The mac-authen access profile." 
+  			::= { hwAaaObjectGroups 65 } 
+  hwPortalAccessProfileGroup OBJECT-GROUP  
+  		OBJECTS {hwPortalAccessProfileName, hwPortalAccessProfileDetectPeriod, hwPortalAccessProfilePortalServerDownServiceSchemeName, hwPortalAccessProfilePortalServerDownUserGroupName,
+  					hwPortalAccessProfilePortalServerUpReAuthen, hwPortalAccessProfileAlarmUserLowNum, hwPortalAccessProfileAlarmUserHighNum, hwPortalAccessProfileAuthenNetWork,
+  					hwPortalAccessProfileAuthenNetWorkMask, hwPortalAccessProfilePortalServerName, hwPortalAccessProfilePortalAccessDirect, hwPortalAccessProfileLocalServerEnable,
+  					hwPortalAccessProfileRowStatus, hwPortalAccessProfilePortalBackupServerName} 
+  		STATUS current
+  		DESCRIPTION
+  			"The portal access profile." 
+  			::= { hwAaaObjectGroups 66 }    
 
 
 

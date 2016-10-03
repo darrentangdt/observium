@@ -32,17 +32,17 @@ foreach (get_device_mibs($device) as $mib)
       $entry['found'] = FALSE;
       if ($entry['type'] == 'table')
       {
-        $processors_array = snmpwalk_cache_oid($device, $entry['table'], array(), $mib, mib_dirs($config['mibs'][$mib]['mib_dir']));
+        $processors_array = snmpwalk_cache_oid($device, $entry['table'], array(), $mib);
         if ($entry['table_descr'])
         {
           // If descr in separate table with same indexes
-          $processors_array = snmpwalk_cache_oid($device, $entry['table_descr'], $processors_array, $mib, mib_dirs($config['mibs'][$mib]['mib_dir']));
+          $processors_array = snmpwalk_cache_oid($device, $entry['table_descr'], $processors_array, $mib);
         }
         $i = 1; // Used in descr as $i++
         foreach ($processors_array as $index => $processor)
         {
           $dot_index = '.' . $index;
-          $oid   = $entry['oid_num'] . $dot_index;
+          $oid_num   = $entry['oid_num'] . $dot_index;
           if ($entry['oid_descr'] && $processor[$entry['oid_descr']])
           {
             $descr = $processor[$entry['oid_descr']];
@@ -51,28 +51,48 @@ foreach (get_device_mibs($device) as $mib)
           {
             if (isset($entry['descr']))
             {
-              if (strpos($entry['descr'], '{i}') === FALSE)
+              if (strpos($entry['descr'], '%i%') === FALSE)
               {
                 $descr = $entry['descr'] . ' ' . $index;
               } else {
-                $descr = str_replace('{i}', $i, $entry['descr']);
+                $descr = str_replace('%i%', $i, $entry['descr']);
               }
             } else {
               $descr = 'Processor ' . $index;
             }
           }
+          $idle  = (isset($entry['idle']) && $entry['idle'] ? 1 : 0);
+
+          // Precision (scale)
+          $precision = 1;
+          if (isset($entry['scale']) && is_numeric($entry['scale']) && $entry['scale'] != 1)
+          {
+            // FIXME, currently we support only int precision, need convert all to float scale!
+            $precision = round(1 / $entry['scale'], 0);
+          }
+
           $usage = snmp_fix_numeric($processor[$entry['oid']]);
           if (is_numeric($usage))
           {
-            discover_processor($valid['processor'], $device, $oid, $entry['table'] . $dot_index, $entry_name, $descr, 1, $usage);
+            if (isset($entry['rename_rrd']))
+            {
+              $old_rrd = 'processor-'.$entry['rename_rrd'].'-'.$index;
+              $new_rrd = 'processor-'.$entry_name.'-'.$entry['table'] . $dot_index;
+              rename_rrd($device, $old_rrd, $new_rrd);
+              unset($old_rrd, $new_rrd);
+            }
+            discover_processor($valid['processor'], $device, $oid_num, $entry['table'] . $dot_index, $entry_name, $descr, $precision, $usage, NULL, NULL, $idle);
             $entry['found'] = TRUE;
           }
           $i++;
         }
       } else {
-        if ($entry['oid_descr'])
+        // Static processor
+        $index = 0; // FIXME. Need use same indexes style as in sensons
+        if (isset($entry['oid_descr']) && $entry['oid_descr'])
         {
-          $descr = snmp_get($device, $entry['oid_descr'], '-OQUvs', $mib, mib_dirs($config['mibs'][$mib]['mib_dir']));
+          // Get description from specified OID
+          $descr = snmp_get($device, $entry['oid_descr'], '-OQUvs', $mib);
         }
         if (!$descr)
         {
@@ -83,16 +103,50 @@ foreach (get_device_mibs($device) as $mib)
             $descr = 'Processor';
           }
         }
-        $usage = snmp_get($device, $entry['oid'], '-OQUvs', $mib, mib_dirs($config['mibs'][$mib]['mib_dir']));
+        if (isset($entry['oid_count']) && $entry['oid_count'])
+        {
+          // Get processors count if exist for MIB
+          $processor_count = snmp_get($device, $entry['oid_count'], '-OQUvs', $mib);
+          if ($processor_count > 1)
+          {
+            $descr .= ' x'.$processor_count;
+          }
+        }
+
+        // Idle
+        $idle  = (isset($entry['idle']) && $entry['idle'] ? 1 : 0);
+
+        // Precision (scale)
+        $precision = 1;
+        if (isset($entry['scale']) && is_numeric($entry['scale']) && $entry['scale'] != 1)
+        {
+          // FIXME, currently we support only int precision, need convert all to float scale!
+          $precision = round(1 / $entry['scale'], 0);
+        }
+
+        $usage = snmp_get($device, $entry['oid'], '-OQUvs', $mib);
         $usage = snmp_fix_numeric($usage);
+
         if (is_numeric($usage))
         {
-          discover_processor($valid['processor'], $device, $entry['oid_num'], 0, $entry_name, $descr, 1, $usage);
+          if (empty($entry['oid_num']))
+          {
+            // Use snmptranslate if oid_num not set
+            $entry['oid_num'] = snmp_translate($entry['oid'], $mib);
+          }
+          if (isset($entry['rename_rrd']))
+          {
+            $old_rrd = 'processor-'.$entry['rename_rrd'];
+            $new_rrd = 'processor-'.$entry_name.'-'.$index;
+            rename_rrd($device, $old_rrd, $new_rrd);
+            unset($old_rrd, $new_rrd);
+          }
+          discover_processor($valid['processor'], $device, $entry['oid_num'], $index, $entry_name, $descr, $precision, $usage, NULL, NULL, $idle);
           $entry['found'] = TRUE;
         }
       }
-      unset($processors_array, $processor, $dot_index, $descr, $i); // clean
-      if (isset($entry['stop_if_found']) && $entry['stop_if_found'] && $entry['found']) { break; } // Stop loop if processor founded
+      unset($processors_array, $processor, $dot_index, $descr, $i); // Clean up
+      if (isset($entry['stop_if_found']) && $entry['stop_if_found'] && $entry['found']) { break; } // Stop loop if processor found
     }
   }
 }

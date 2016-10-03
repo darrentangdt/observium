@@ -11,12 +11,9 @@
  *
  */
 
-$mib = 'HOST-RESOURCES-MIB';
-echo("$mib ");
-
 if (!isset($cache_discovery['host-resources-mib']))
 {
-  $cache_discovery['host-resources-mib'] = snmpwalk_cache_oid($device, "hrStorageEntry", NULL, "HOST-RESOURCES-MIB:HOST-RESOURCES-TYPES", mib_dirs());
+  $cache_discovery['host-resources-mib'] = snmpwalk_cache_oid($device, "hrStorageEntry", array(), "HOST-RESOURCES-MIB:HOST-RESOURCES-TYPES");
 }
 
 //$debug_stats = array('total' => 0, 'used' => 0);
@@ -26,8 +23,8 @@ if (count($cache_discovery['host-resources-mib']))
   {
     $descr  = $entry['hrStorageDescr'];
     $units  = $entry['hrStorageAllocationUnits'];
-    $total  = $entry['hrStorageSize']; // * $units;
-    $used   = $entry['hrStorageUsed']; // * $units;
+    $total  = snmp_dewrap32bit($entry['hrStorageSize']);
+    $used   = snmp_dewrap32bit($entry['hrStorageUsed']);
     $deny   = TRUE;
 
     switch($entry['hrStorageType'])
@@ -73,6 +70,8 @@ if (count($cache_discovery['host-resources-mib']))
 
     if (strstr($descr, "MALLOC") || strstr($descr, "UMA")) { $deny = TRUE;  }   // Ignore FreeBSD INSANITY
     if (strstr($descr, "procfs") || strstr($descr, "/proc")) { $deny = TRUE;  } // Ignore ProcFS
+    if ($descr == "Cached memory" || $descr == "Shared memory" || $descr == "Physical memory") { $deny = TRUE;  }   // Ignore worthless data on Unix hosts
+
 
     if (!$deny && is_numeric($entry['hrStorageSize']) && $total)
     {

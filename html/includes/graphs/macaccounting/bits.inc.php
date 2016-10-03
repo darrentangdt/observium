@@ -14,6 +14,6 @@
 $ds_in = "IN";
 $ds_out = "OUT";
 
-include("includes/graphs/generic_data.inc.php");
+include($config['html_dir']."/includes/graphs/generic_data.inc.php");
 
 ?>

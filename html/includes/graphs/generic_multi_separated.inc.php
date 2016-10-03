@@ -83,8 +83,6 @@ foreach ($rrd_list as $rrd)
 {
   if (!$config['graph_colours'][$colours_in][$iter] || !$config['graph_colours'][$colours_out][$iter]) { $iter = 0; }
 
-  $graph_return['rrds'][] = $rrd['filename'];
-
   $colour_in=$config['graph_colours'][$colours_in][$iter];
   $colour_out=$config['graph_colours'][$colours_out][$iter];
 

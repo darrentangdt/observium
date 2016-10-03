@@ -12,7 +12,6 @@
  */
 
 $mib = 'WebGraph-Thermo-Hygrometer-US-MIB';
-echo(" $mib ");
 
 //WebGraph-Thermo-Hygrometer-US-MIB::wtWebGraphThermHygroBinaryTempValue.1 = INTEGER: 266
 //WebGraph-Thermo-Hygrometer-US-MIB::wtWebGraphThermHygroBinaryTempValue.2 = INTEGER: 587

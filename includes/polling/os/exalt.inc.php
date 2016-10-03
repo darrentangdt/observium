@@ -17,7 +17,8 @@
 // EX-5i
 //$hardware = $poll_device['sysDescr'];
 
-$data = snmpwalk_cache_multi_oid($device, 'radioInfo', array(), 'ExaltComProducts', mib_dirs('exalt'));
+$data = snmpwalk_cache_multi_oid($device, 'radioInfo', array(), 'ExaltComProducts');
+
 $hardware      = $data[0]['modelName'];
 list($version) = explode(' ', $data[0]['firmwareVersion']);
 $features      = $data[0]['interfaceType'];

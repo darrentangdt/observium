@@ -15,13 +15,12 @@
 
 // Collect HAMode & HAState
 
-$sysHighAvailabilityMode = snmp_get($device, 'sysHighAvailabilityMode.0', '-Ovq', 'NS-ROOT-MIB', mib_dirs('citrix'));
-$haCurState              = snmp_get($device, 'haCurState.0',              '-Ovq', 'NS-ROOT-MIB', mib_dirs('citrix'));
-$haPeerState             = snmp_get($device, 'haPeerState.0',              '-Ovq', 'NS-ROOT-MIB', mib_dirs('citrix'));
+$sysHighAvailabilityMode = snmp_get($device, 'sysHighAvailabilityMode.0', '-Ovq', 'NS-ROOT-MIB');
+$haCurState              = snmp_get($device, 'haCurState.0',              '-Ovq', 'NS-ROOT-MIB');
+$haPeerState             = snmp_get($device, 'haPeerState.0',              '-Ovq', 'NS-ROOT-MIB');
 
 if ($sysHighAvailabilityMode !== '' && $haCurState !== '')
 {
-
   switch ($sysHighAvailabilityMode)
   {
     case "standalone":
@@ -80,7 +79,6 @@ if ($sysHighAvailabilityMode !== '' && $haCurState !== '')
       $status_poll['status_name']  = $sysHighAvailabilityMode.'/'.$haCurState.'/'.$haPeerState;
       $status_value = "0";
   }
-
 } else {
   $status_poll['status_event'] = 'warning';
   $status_poll['status_name']  = 'unknown';

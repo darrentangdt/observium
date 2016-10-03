@@ -39,8 +39,10 @@ function print_alert_log($vars)
 
   if (!$events['count'])
   {
-    // There have been no entries returned. Print the warning.
-    print_warning('<h4>No alert log entries found!</h4>');
+    if(!$vars['no_empty_message']) {
+      // There have been no entries returned. Print the warning.
+      print_message('<h4>No alert log entries found!</h4>', FALSE);
+    }
   } else {
     // Entries have been returned. Print the table.
     $list = array('device' => FALSE, 'entity' => FALSE);
@@ -63,6 +65,7 @@ function print_alert_log($vars)
       if ($list['entity'])        { $cols['entity']        = 'Entity'; }
       $cols[]         = 'Message';
       $cols['status'] = 'Status';
+      $cols['notified'] = array('Notified', 'style="width: 40px"');
       $string .= get_table_header($cols); // , $vars); // Actually sorting is disabled now
     }
     $string   .= '  <tbody>' . PHP_EOL;
@@ -74,26 +77,26 @@ function print_alert_log($vars)
 
       // Functionize?
 
-  // Set colours and classes based on the status of the alert
-  if ($entry['log_type'] == 'OK')
-  {
-    $entry['class']  = "green";  $entry['html_row_class'] = "success";
-  } else if ($entry['log_type'] == 'RECOVER_NOTIFY') {
-    $entry['class']  = "green";  $entry['html_row_class'] = "info";
-  } else if ($entry['log_type'] == 'ALERT_NOTIFY') {
-    $entry['class']  = "red";    $entry['html_row_class'] = "error";
-  } elseif($entry['log_type'] == 'FAIL') {
-    $entry['class']  = "red";    $entry['html_row_class'] = "error";
-  } elseif($entry['log_type'] == 'FAIL_DELAYED') {
-    $entry['class']  = "purple"; $entry['html_row_class'] = "warning";
-  } elseif($entry['log_type'] == 'FAIL_SUPPRESSED') {
-    $entry['class']  = "purple"; $entry['html_row_class'] = "suppressed";
-  } elseif($entry['log_type'] == 'RECOVER_SUPPRESSED') {
-    $entry['class']  = "purple"; $entry['html_row_class'] = "suppressed";
-  } else {
-    // Anything else set the colour to grey and the class to disabled.
-    $entry['class']  = "gray"; $entry['html_row_class'] = "disabled";
-  }
+      // Set colours and classes based on the status of the alert
+      if ($entry['log_type'] == 'OK')
+      {
+        $entry['class']  = "green";  $entry['html_row_class'] = "success";
+      } else if ($entry['log_type'] == 'RECOVER_NOTIFY') {
+        $entry['class']  = "green";  $entry['html_row_class'] = "info";
+      } else if ($entry['log_type'] == 'ALERT_NOTIFY') {
+        $entry['class']  = "red";    $entry['html_row_class'] = "error";
+      } elseif($entry['log_type'] == 'FAIL') {
+        $entry['class']  = "red";    $entry['html_row_class'] = "error";
+      } elseif($entry['log_type'] == 'FAIL_DELAYED') {
+        $entry['class']  = "purple"; $entry['html_row_class'] = "warning";
+      } elseif($entry['log_type'] == 'FAIL_SUPPRESSED') {
+        $entry['class']  = "purple"; $entry['html_row_class'] = "suppressed";
+      } elseif($entry['log_type'] == 'RECOVER_SUPPRESSED') {
+        $entry['class']  = "purple"; $entry['html_row_class'] = "suppressed";
+      } else {
+        // Anything else set the colour to grey and the class to disabled.
+        $entry['class']  = "gray"; $entry['html_row_class'] = "disabled";
+      }
 
       $string .= '  <tr class="'.$entry['html_row_class'].'">' . PHP_EOL;
 
@@ -133,7 +136,11 @@ function print_alert_log($vars)
       }
 
       $string .= '<td>' . escape_html($entry['message']) . '</td>' . PHP_EOL;
-      if(!$vars['short']) { $string .= '<td>' . escape_html($entry['log_type']) . '</td>' . PHP_EOL; }
+      if (!$vars['short'])
+      {
+        $string .= '<td>' . escape_html($entry['log_type']) . '</td>' . PHP_EOL;
+        $string .= '<td style="text-align: right">'. ($entry['notified'] ? '<span class="label label-success">YES</span>' : '<span class="label">NO</span>') . '</td>' . PHP_EOL;
+      }
 
       $string .= '  </tr>' . PHP_EOL;
     }
@@ -181,6 +188,7 @@ function get_alert_log($vars)
 
   // Short events? (no pagination, small out)
   $array['short'] = (isset($vars['short']) && $vars['short']);
+
   // With pagination? (display page numbers in header)
   $array['pagination'] = (isset($vars['pagination']) && $vars['pagination']);
   pagination($vars, 0, TRUE); // Get default pagesize/pageno
@@ -257,6 +265,43 @@ function get_alert_log($vars)
   $array['updated'] = dbFetchCell($query_updated, $param);
 
   return $array;
+}
+
+function generate_alert_log_form_values($form_filter = FALSE, $column = NULL)
+{
+  //global $cache;
+
+  $form_items = array();
+  $filter = is_array($form_filter); // Use filer or not
+
+  switch ($column)
+  {
+    case 'alert_test_id':
+      foreach ($GLOBALS['alert_rules'] as $alert_test_id => $entry)
+      {
+        if ($filter && !in_array($alert_test_id, $form_filter)) { continue; } // Skip filtered entries
+
+        $form_items[$alert_test_id] = $entry['alert_name'];
+      }
+      natcasesort($form_items);
+      break;
+    case 'log_type':
+      foreach (array('OK','FAIL','FAIL_DELAYED','FAIL_SUPPRESSED','ALERT_NOTIFY','RECOVER_NOTIFY','RECOVER_SUPPRESSED') as $entry)
+      {
+        if ($filter && !in_array($entry, $form_filter)) { continue; } // Skip filtered entries
+
+        // Set colours and classes based on the status of the alert
+        if      (strstr($entry, 'OK'))                              { $class = "success"; }
+        else if (strstr($entry, 'SUPPRESSED'))                      { $class = "suppressed"; }
+        else if (strstr($entry, 'DELAYED'))                         { $class = "warning"; }
+        else if (strstr($entry, 'ALERT') || strstr($entry, 'FAIL')) { $class = "danger"; }
+        else if (strstr($entry, 'RECOVER'))                         { $class = "info"; }
+        else                                                        { $class = "disabled"; }
+        $form_items[$entry] = array('name' => $entry, 'class' => 'bg-'.$class);
+      }
+      break;
+  }
+  return $form_items;
 }
 
 // EOF

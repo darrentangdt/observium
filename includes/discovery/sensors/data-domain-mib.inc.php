@@ -11,13 +11,10 @@
  *
  */
 
-$mib = 'DATA-DOMAIN-MIB';
-echo(" $mib ");
-
-$cache['datadomain']['power'] = snmpwalk_cache_oid($device, 'powerModuleTable', array(), $mib);
-$cache['datadomain']['temp']  = snmpwalk_cache_oid($device, 'temperatureSensorTable', array(), $mib);
-$cache['datadomain']['fan']   = snmpwalk_cache_oid($device, 'fanPropertiesTable', array(), $mib);
-$cache['datadomain']['disk']  = snmpwalk_cache_oid($device, 'diskPropertiesTable', array(), $mib);
+$cache['datadomain']['power'] = snmpwalk_cache_oid($device, 'powerModuleTable', array(), 'DATA-DOMAIN-MIB');
+$cache['datadomain']['temp']  = snmpwalk_cache_oid($device, 'temperatureSensorTable', array(), 'DATA-DOMAIN-MIB');
+$cache['datadomain']['fan']   = snmpwalk_cache_oid($device, 'fanPropertiesTable', array(), 'DATA-DOMAIN-MIB');
+$cache['datadomain']['disk']  = snmpwalk_cache_oid($device, 'diskPropertiesTable', array(), 'DATA-DOMAIN-MIB');
 
 foreach ($cache['datadomain']['power'] as $index => $entry)
 {

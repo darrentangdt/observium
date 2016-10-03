@@ -132,7 +132,7 @@ function get_table_header($cols, &$vars = array())
         switch ($sort_order)
         {
           case 'desc':
-            $name .= '&nbsp;&uarr;';
+            $name .= '&nbsp;&nbsp;<i class="small glyphicon glyphicon-triangle-top"></i>';
             $sort_array = array();
             //$vars['sort_order'] = 'reset';
             break;
@@ -142,7 +142,7 @@ function get_table_header($cols, &$vars = array())
             break;
           default:
             // ASC
-            $name .= '&nbsp;&darr;';
+            $name .= '&nbsp;&nbsp;<i class="small glyphicon glyphicon-triangle-bottom"></i>';
             $sort_array = array('sort' => $id, 'sort_order' => 'desc');
             //$vars['sort_order'] = 'desc';
         }

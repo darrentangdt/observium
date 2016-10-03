@@ -1,9 +1,9 @@
 -- =================================================================
--- Copyright (C) 2001,2002 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- Copyright (C) 2001-2014 by  HUAWEI TECHNOLOGIES. All rights reserved.
 --
 -- Description: the huawei cpu mib from huawei-device-mib
 -- Reference:
--- Version:     V1.0
+-- Version:     V1.00
 -- History:
 --    
 -- =================================================================
@@ -24,17 +24,20 @@ HUAWEI-CPU-MIB DEFINITIONS ::= BEGIN
     --from device by the mib.
     
     hwDev MODULE-IDENTITY
-        LAST-UPDATED "200406280900Z"
-        ORGANIZATION "Fix-Net Dept, Huawei Technologies Co.,Ltd."
+        LAST-UPDATED "201407260000Z"
+        ORGANIZATION "Huawei Technologies Co.,Ltd."
         CONTACT-INFO 
-            "Block 4, R&D Building,
-            Huawei Longgang Production Base,
-            Shenzhen,   P.R.C.
-            http://www.huawei.com
-            Zip:518057
-            "
+            "Huawei Industrial Base
+            Bantian, Longgang
+            Shenzhen 518129
+            People's Republic of China
+            Website: http://www.huawei.com
+            Email: support@huawei.com
+            " 
         DESCRIPTION 
-            "huawei device  mib."
+            "huawei device  mib."	
+	REVISION     "201407260000Z"
+        DESCRIPTION  "V1.00, initial version."
         ::= { huaweiUtility 3 }
     
     hwCpuDevTable OBJECT-TYPE

@@ -16,16 +16,6 @@ $localhost = get_localhost();
 
 $emails = array();
 
-// Generate Mail text in both plain text and html
-$message['text'] = simple_template('email_text.tpl', $message_tags, array('is_file' => TRUE));
-
-$message_tags_html = $message_tags;
-$message_tags_html['CONDITIONS'] = nl2br($message_tags['CONDITIONS']);
-$message_tags_html['METRICS']    = nl2br($message_tags['METRICS']);
-
-$message['html'] = simple_template('email_html.tpl', $message_tags_html, array('is_file' => TRUE));
-unset($message_tags_html);
-
 $emails[$endpoint['email']] = $endpoint['contact_descr'];
 
 // Mail backend params
@@ -86,8 +76,8 @@ foreach ($emails as $to => $to_name)
 $rcpts_full = implode(', ', $rcpts_full);
 $rcpts      = implode(', ', $rcpts);
 
-$headers['To']           = $rcpts_full;   // To:
-$headers['Subject']      = $title;        // Subject:
+$headers['To']           = $rcpts_full;            // To:
+$headers['Subject']      = $message_tags['TITLE']; // Subject:
 // ID and Date, leave it before X- headers
 $headers['Message-ID']   = '<' . md5(uniqid(time())) . '@' . $localhost . '>';
 $headers['Date']         = $time_rfc;
@@ -107,6 +97,40 @@ $mime = new Mail_mime(array('head_charset' => 'utf-8',
                             'text_charset' => 'utf-8',
                             'html_charset' => 'utf-8',
                             'eol' => PHP_EOL));
+
+// Generate Mail text in both plain text and html
+$message['text'] = simple_template('email_text', $message_tags, array('is_file' => TRUE));
+
+$message_tags_html = $message_tags;
+$message_tags_html['CONDITIONS'] = nl2br($message_tags['CONDITIONS']);
+$message_tags_html['METRICS']    = nl2br($message_tags['METRICS']);
+
+// Generate image attach
+$graphs = json_decode($message_tags_html['ENTITY_GRAPHS_ARRAY'], TRUE);
+//print_vars($graphs);
+if (is_array($graphs) && count($graphs))
+{
+  $message_tags_html['ENTITY_GRAPHS'] = ''; // Reinit graphs html
+  foreach ($graphs as $key => $graph)
+  {
+    $cid = $graph['type'].$key;
+    // Unencode data uri tag to file content
+    list($gmime, $base64) = explode(';', $graph['data'], 2);
+    $gmime  = substr($gmime, 5);
+    $base64 = substr($base64, 7);
+    //print_vars(substr($graph['data'], 0, 20));
+    //print_vars($gmime);
+    //print_vars(substr($base64, 0, 20));
+    $mime->addHTMLImage(base64_decode($base64), $gmime, $cid.'.png', FALSE, $cid);
+
+    $message_tags_html['ENTITY_GRAPHS'] .= '<h4>'.$graph['type'].'</h4>';
+    $message_tags_html['ENTITY_GRAPHS'] .= '<a href="'.$graph['url'].'"><img src="cid:'.$cid.'"></a><br />';
+  }
+}
+//print_vars($message_tags_html);
+
+$message['html'] = simple_template('email_html', $message_tags_html, array('is_file' => TRUE));
+unset($message_tags_html);
 
 foreach ($message as $part => $part_body)
 {

@@ -11,16 +11,28 @@
  *
  */
 
-$mib = 'CISCO-PROCESS-MIB';
+$mib  = 'CISCO-PROCESS-MIB';
+$oids = array('used' => 'cpmCPUMemoryUsed',
+              'free' => 'cpmCPUMemoryFree');
 
-foreach (array('cpmCPUMemoryUsed', 'cpmCPUMemoryFree') as $oid)
+if (!is_array($cache_storage[$mib]))
 {
-  $cache_mempool = snmpwalk_cache_multi_oid($device, $oid, $cache_mempool, $mib, mib_dirs('cisco'));
+  foreach ($oids as $oid)
+  {
+    $cache_mempool = snmpwalk_cache_multi_oid($device, $oid, $cache_mempool, $mib);
+  }
+  $cache_storage[$mib] = $cache_mempool;
+} else {
+  print_debug("Cached!");
+  $cache_mempool = $cache_storage[$mib];
 }
 
 $index            = $mempool['mempool_index'];
-$mempool['used']  = $cache_mempool[$index]['cpmCPUMemoryUsed'];
-$mempool['free']  = $cache_mempool[$index]['cpmCPUMemoryFree'];
-$mempool['total'] = $mempool['used'] + $mempool['free'];
+foreach ($oids as $param => $oid)
+{
+  $mempool[$param] = $cache_mempool[$index][$oid];
+}
+
+unset ($index, $oid, $oids);
 
 // EOF

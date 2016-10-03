@@ -1,5 +1,15 @@
+-- =================================================================
+-- Copyright (C) 2015 by HUAWEI TECHNOLOGIES. All rights reserved.
+-- 
+-- Description: HUAWEI HGMP MIB. 
+-- Reference:
+-- Version:     V2.03
+-- History:
+--              V2.02 maotiantian 2015.4.7, modify 
+--              V2.03 maotiantian 2015.4.11, modify 
+-- =================================================================
+
     HUAWEI-HGMP-MIB DEFINITIONS ::= BEGIN
- 
         IMPORTS
             huaweiUtility            
                 FROM HUAWEI-MIB            
@@ -14,7 +24,7 @@
     
     
         hwCluster MODULE-IDENTITY 
-            LAST-UPDATED "200704251206Z"        -- April 25, 2007 at 12:06 GMT
+            LAST-UPDATED "201504111531Z"        
             ORGANIZATION 
                   "Huawei Technologies Co.,Ltd."
             CONTACT-INFO 
@@ -30,6 +40,15 @@
                 This MIB includes four parts: the cluster, stack, Neighbor Discovery Protocol (NDP), 
                 and Network Topology Discovery Protocol (NTDP). 
                 This MIB can monitor the cluster, stack and topology collection."
+
+            REVISION     "201504111531Z"
+            DESCRIPTION  "Modify the description of hgmpNTDPExplore and hgmpNTDPHopRange node."
+            
+            REVISION     "201504071525Z"
+            DESCRIPTION  "Add hgmpNTDPExplore, hgmpNTDPTopoLinkTable and trap node hgmpNTDPTopoChange for NTDP function. Add hwNDPTrunkMemberEnable node for NDP function."
+
+            REVISION     "201309070000Z"
+            DESCRIPTION  "Fix the errors checked by a tool."
             ::= { huaweiUtility 7 }
 
         
@@ -796,10 +815,7 @@
                 "Results returned from member switches."
             ::= { hgmpUnrelatedPortNtdpResultEntry 3 }         
     -- hgmpUnrelatedPortNtdpResultTable  
-
-  --------------------------------------------------------------------------------------------------------
-  --------------------------------------------------------------------------------------------------------
-             
+            
    -- hgmpBatchUpgradeTable                          
         hgmpBatchUpgradeTable  OBJECT-TYPE     
         SYNTAX SEQUENCE OF HgmpBatchUpgradeEntry
@@ -1675,7 +1691,7 @@
             MAX-ACCESS read-write
             STATUS current
             DESCRIPTION
-                "Range of the topology collection of the command switch."
+                "Range of the topology collection of the command switch. The maximum value of this object may vary with different types of products."
             ::= { hwNTDPObject 2 }
 
         
@@ -1693,7 +1709,7 @@
 
         
         hgmpNTDPPortDelay OBJECT-TYPE
-            SYNTAX Integer32 (1..100)
+            SYNTAX Integer32 (1..1000)
             MAX-ACCESS read-write
             STATUS current
             DESCRIPTION
@@ -2053,7 +2069,112 @@
                 "The iterface index of the end port."
             ::= { hgmpNTDPTopEntry 10 }
 
-        
+        hgmpNTDPExplore OBJECT-TYPE
+            SYNTAX INTEGER
+                {
+                invalid(0),
+                start(1)
+                }
+            MAX-ACCESS read-write
+            STATUS current
+            DESCRIPTION
+                "The value of this object identifies whether to start collecting topology information.
+                1 indicates to start collecting topology information. 0 is the default value, indicating doing nothing. The get operation always returns 0."
+            ::= { hwNTDPObject 12 }
+
+            
+        hgmpNTDPTopoLinkTable OBJECT-TYPE
+            SYNTAX SEQUENCE OF HgmpNTDPTopoLinkEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "This object indicates the topology link table collected using NTDP."
+            ::= { hwNTDPObject 13 }
+
+            
+        hgmpNTDPTopoLinkEntry OBJECT-TYPE
+            SYNTAX HgmpNTDPTopoLinkEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "This object indicates the topology link information collected using NTDP."
+            INDEX { hgmpNTDPTopoLocalDeviceID, hgmpNTDPTopoLocalPortName, hgmpNTDPTopoNbrDeviceID, hgmpNTDPTopoNbrPortName }
+            ::= { hgmpNTDPTopoLinkTable 1 }
+
+            
+        HgmpNTDPTopoLinkEntry ::=
+            SEQUENCE { 
+                hgmpNTDPTopoLocalDeviceID
+                    OCTET STRING,
+                hgmpNTDPTopoLocalPortName
+                    OCTET STRING,
+                hgmpNTDPTopoNbrDeviceID
+                    OCTET STRING,
+                hgmpNTDPTopoNbrPortName
+                    OCTET STRING,
+                hgmpNTDPTopoLinkStatus
+                    INTEGER
+            }
+
+
+        hgmpNTDPTopoLocalDeviceID OBJECT-TYPE
+            SYNTAX OCTET STRING (SIZE (0..10))
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "This object indicates the ID of the local device. 
+                This ID is a hexadecimal string that comprises 2 bytes address type of the member switch, 2 bytes /0, and MAC address."
+            ::= { hgmpNTDPTopoLinkEntry 1 }
+
+            
+        hgmpNTDPTopoLocalPortName OBJECT-TYPE
+            SYNTAX OCTET STRING (SIZE (0..64))
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "This object indicates the name of the local port."
+            ::= { hgmpNTDPTopoLinkEntry 2 }
+
+            
+        hgmpNTDPTopoNbrDeviceID OBJECT-TYPE
+            SYNTAX OCTET STRING (SIZE (0..10))
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "This object indicates the ID of the neighbor device. 
+                This ID is a hexadecimal string that comprises 2 bytes address type of the member switch, 2 bytes /0, and MAC address."
+            ::= { hgmpNTDPTopoLinkEntry 3 }
+
+
+        hgmpNTDPTopoNbrPortName OBJECT-TYPE
+            SYNTAX OCTET STRING (SIZE (0..64))
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "This object indicates the name of the neighbor port."
+            ::= { hgmpNTDPTopoLinkEntry 4 }
+
+        hgmpNTDPTopoLinkStatus OBJECT-TYPE
+            SYNTAX INTEGER
+                {
+                active(1)
+                }
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "This object indicates the topology link status."
+            ::= { hgmpNTDPTopoLinkEntry 5 }
+
+            
+        hgmpNTDPNotifications OBJECT IDENTIFIER ::= { hwNTDPObject 14 }
+
+            
+        hgmpNTDPTopoChange NOTIFICATION-TYPE
+            STATUS current
+            DESCRIPTION 
+                "This object indicates that an SNMP trap is sent to the NMS when the NTDP topology is changed."
+            ::= { hgmpNTDPNotifications 1 }
+
 -- defination  of ndp
 -- 
         hwNDPObject OBJECT IDENTIFIER ::= { hwCluster 5 }
@@ -2275,7 +2396,16 @@
                 "How long NDP information about the local switch can be hold in the adjacent switch, measured in seconds."
             ::= { hwNDPPortNbEntry 9 }
 
-        
+
+        hwNDPTrunkMemberEnable OBJECT-TYPE
+            SYNTAX EnabledStatus
+            MAX-ACCESS read-write
+            STATUS current
+            DESCRIPTION
+                "The value of this object identifies whether to enable neighbor discovery on trunk member interfaces."
+            ::= { hwNDPObject 7 }
+ 
+
         hwClusterConformance OBJECT IDENTIFIER ::= { hwCluster 6 }
 
         
@@ -2315,7 +2445,8 @@
                 hgmpNTDPTopEdgeEndPort, hgmpNTDPTopEdgeStartPortIfIndex, hgmpNTDPTopEdgeEndPortIfIndex, hwNDPStatus, hwNDPHelloTimer, 
                 hwNDPAgingTime, hwNDPChange, hwNDPIfIndex, hwNDPPortStatus, hwNDPPortNbDeviceId, 
                 hwNDPPortNbPortName, hwNDPPortNbDeviceName, hwNDPPortNbPortMode, hwNDPPortNbProductVer, hwNDPPortNbHardVer, 
-                hwNDPPortNbBootromVer, hwNDPPortNbSoftVer, hwNDPPortNbAgingtime, hgmpClusterVersion }
+                hwNDPPortNbBootromVer, hwNDPPortNbSoftVer, hwNDPPortNbAgingtime, hgmpClusterVersion,
+                hgmpNTDPExplore, hgmpNTDPTopoLinkStatus, hwNDPTrunkMemberEnable }
             STATUS current
             DESCRIPTION 
                 "Enter the description of the created OBJECT-GROUP."
@@ -2324,7 +2455,7 @@
         
         currentNotificationGroup NOTIFICATION-GROUP
             NOTIFICATIONS { hgmpMemberfailure, hgmpMemberRecover, hgmpMemberStatusChange, hgmpMemberAdd, hgmpStackMemberfailure, hgmpStackMemberRecover, 
-                hgmpStackMemberStatusChange, hgmpNetTopChange }
+                hgmpStackMemberStatusChange, hgmpNetTopChange, hgmpNTDPTopoChange }
             STATUS current
             DESCRIPTION 
                 "Enter the description of the created NOTIFICATION-GROUP."

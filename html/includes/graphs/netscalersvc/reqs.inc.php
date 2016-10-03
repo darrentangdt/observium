@@ -26,8 +26,8 @@ $in_text  = "Requests";
 $out_text = "Responses";
 
 $graph_max = 1;
-$unit_text = "";
+$unit_text = "Req/Res";
 
-include("includes/graphs/generic_duplex.inc.php");
+include($config['html_dir']."/includes/graphs/generic_duplex.inc.php");
 
 ?>

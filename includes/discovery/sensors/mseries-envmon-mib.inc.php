@@ -38,13 +38,11 @@ MSERIES-ENVMON-MIB::smartEnvMonTemperatureValue.43 = INTEGER: 32 degrees Celsius
 MSERIES-ENVMON-MIB::smartEnvMonTemperatureValue.44 = INTEGER: 32 degrees Celsius
 */
 
-echo(' MSERIES-ENVMON-MIB ');
-
 $oids = array();
 $todo = array('smartEnvMonTemperatureDescr', 'smartEnvMonTemperatureValue');
 foreach ($todo as $table)
 {
-  $oids = snmpwalk_cache_oid($device, $table, $oids, 'MSERIES-ENVMON-MIB', mib_dirs('smartoptics'));
+  $oids = snmpwalk_cache_oid($device, $table, $oids, 'MSERIES-ENVMON-MIB');
 }
 
 foreach ($oids as $index => $entry)

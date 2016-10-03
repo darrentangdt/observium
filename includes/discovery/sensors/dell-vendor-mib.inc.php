@@ -11,14 +11,18 @@
  *
  */
 
-echo(" Dell-Vendor-MIB ");
+if (count($valid['status']['dnos-boxservices-state']))
+{
+  // Exit from discovery, since already added valid statuses by DNOS-BOXSERVICES-PRIVATE-MIB
+  return;
+}
 
 // Dell-Vendor-MIB::envMonFanStatusDescr.67109249 = STRING: fan1
 // Dell-Vendor-MIB::envMonFanStatusDescr.67109250 = STRING: fan2
 // Dell-Vendor-MIB::envMonFanState.67109249 = INTEGER: normal(1)
 // Dell-Vendor-MIB::envMonFanState.67109250 = INTEGER: normal(1)
 
-$oids = snmpwalk_cache_multi_oid($device, "envMonFanStatusTable", array(), "Dell-Vendor-MIB", mib_dirs('dell'));
+$oids = snmpwalk_cache_multi_oid($device, 'envMonFanStatusTable', array(), 'Dell-Vendor-MIB');
 
 foreach ($oids as $index => $entry)
 {
@@ -43,11 +47,15 @@ foreach ($oids as $index => $entry)
 // Dell-Vendor-MIB::envMonSupplySource.67109185 = INTEGER: ac(2)
 // Dell-Vendor-MIB::envMonSupplySource.67109186 = INTEGER: unknown(1)
 
-$oids = snmpwalk_cache_multi_oid($device, "envMonSupplyStatusTable", array(), "Dell-Vendor-MIB", mib_dirs('dell'));
+$oids = snmpwalk_cache_multi_oid($device, 'envMonSupplyStatusTable', array(), 'Dell-Vendor-MIB');
 
 foreach ($oids as $index => $entry)
 {
-  $descr = ucfirst($entry['envMonSupplyStatusDescr']);
+  $descr = ucfirst($entry['envMonSupplyStatusDescr']) . ' Power Supply';
+  if (in_array($entry['envMonSupplySource'], array('ac', 'dc')))
+  {
+    $descr .= ' ' . strtoupper($entry['envMonSupplySource']);
+  }
   $oid   = ".1.3.6.1.4.1.674.10895.3000.1.2.110.7.2.1.3.".$index;
   $value = $entry['envMonSupplyState'];
 

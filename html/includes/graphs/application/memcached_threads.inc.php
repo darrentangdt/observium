@@ -22,6 +22,6 @@ $colour_area_max = "FFEE99";
 #$graph_max       = 100;
 $unit_text       = "Threads";
 
-include("includes/graphs/generic_simplex.inc.php");
+include($config['html_dir']."/includes/graphs/generic_simplex.inc.php");
 
 // EOF

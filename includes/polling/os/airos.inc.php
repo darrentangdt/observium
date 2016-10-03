@@ -12,10 +12,10 @@
  */
 
 // FIXME. airos != unifi. required device for tests
-$data = snmpwalk_cache_oid($device, "dot11manufacturerProductName", array(), "IEEE802dot11-MIB", mib_dirs());
+$data = snmpwalk_cache_oid($device, "dot11manufacturerProductName", array(), "IEEE802dot11-MIB");
 if ($data)
 {
-  $data = snmpwalk_cache_oid($device, "dot11manufacturerProductVersion", $data, "IEEE802dot11-MIB", mib_dirs());
+  $data = snmpwalk_cache_oid($device, "dot11manufacturerProductVersion", $data, "IEEE802dot11-MIB");
 
   $data = current($data);
   $hardware = $data['dot11manufacturerProductName'];

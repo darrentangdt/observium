@@ -51,7 +51,7 @@ function humanize_status(&$status)
       $status['row_class']   = 'ignore';
       break;
     default:
-      $status['state_class'] = 'label label-info';
+      $status['state_class'] = 'label label-primary';
       $status['row_class']   = '';
   }
 
@@ -239,7 +239,7 @@ function generate_status_row($status, $vars)
   $graph_array['legend'] = "no";
   $graph_array['width'] = 80;
   $graph_array['height'] = 20;
-  $graph_array['bg'] = 'ffffff00'; # the 00 at the end makes the area transparent.
+  $graph_array['bg'] = 'ffffff00';
   $graph_array['from'] = $config['time']['day'];
 
   $status_misc = '<span class="label">' . $status['entPhysicalClass'] . '</span>';

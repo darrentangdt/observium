@@ -3,6 +3,7 @@
 # Requires perl module DBI and correct postgresql.conf file.
 # Ivan Dimitrov <zlobber at gmail dot com> - Open for ideas/fixes anytime
 # For Observium - Network management and monitoring
+# For Postgres > v8.0, advanced stats for Postgres > v8.3
 
 my $DEBUG=0; # Value greater than 0 sets debug mode. Useful for testing (not for production).
 my $confFile='postgresql.conf';
@@ -84,7 +85,7 @@ $all =~ /\w+ (\d\.\d)/;
 $version=$1;
 
 # get the stats
-if ($version =~ /^(8|9)\.\d$/) {
+if ($version =~ /^[89]\.\d$/) {
     $cmd="select datname, usename, client_addr, current_query from pg_stat_activity";
 }
 
@@ -129,12 +130,16 @@ for (; $all=$query->fetchrow_hashref() ;) {
 # Running this query every N minutes/seconds would allow you to draw nice graph \
 # (subtracting previous value from the current one would give you number of commits finished in N minutes).
 
-# postgresql version 8.x have fewer stats
-if ($version =~ /^9\.\d$/) {
+# postgresql version 8.x have fewer stats (no tuples)
+if ($version =~ /^8\.[34]|9\.\d$/) {
     $cmd="SELECT SUM(xact_commit) as xact_commit, SUM(xact_rollback) as xact_rollback, SUM(blks_read) as blks_read, 
   SUM(blks_hit) as blks_hit, SUM(tup_returned) as tup_returned, SUM(tup_fetched) as tup_fetched, 
   SUM(tup_inserted) as tup_inserted, SUM(tup_updated) as tup_updated, SUM(tup_deleted) as tup_deleted 
   FROM pg_stat_database";
+}
+elsif ($version =~ /^8\.[012]$/) {
+    $cmd="SELECT SUM(xact_commit) as xact_commit, SUM(xact_rollback) as xact_rollback, SUM(blks_read) as blks_read,
+  SUM(blks_hit) as blks_hit FROM pg_stat_database";
 }
 $all=sqlHashRef($cmd);
 
@@ -157,8 +162,10 @@ print "xact_commit:" . $all->{xact_commit} . "\n";
 print "xact_rollback:" . $all->{xact_rollback} . "\n";
 print "blks_read:" . $all->{blks_read} . "\n";
 print "blks_hit:" . $all->{blks_hit} . "\n";
+if ($version !~ /^8\.[012]$/) {
 print "tup_returned:" . $all->{tup_returned} . "\n";
 print "tup_fetched:" . $all->{tup_fetched} . "\n";
 print "tup_inserted:" . $all->{tup_inserted} . "\n";
 print "tup_updated:" . $all->{tup_updated} . "\n";
 print "tup_deleted:" . $all->{tup_deleted} . "\n";
+}

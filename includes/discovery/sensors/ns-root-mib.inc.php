@@ -11,13 +11,11 @@
  *
  */
 
-echo(" NS-ROOT-MIB ");
-
 if (!is_array($ns_sensor_array) && strpos($device['hardware'], 'NetScaler Virtual Appliance') === FALSE)
 {
   $ns_sensor_array = array();
   echo(" sysHealthCounterValue ");
-  $ns_sensor_array = snmpwalk_cache_multi_oid($device, "sysHealthCounterValue", $ns_sensor_array, "NS-ROOT-MIB", mib_dirs('citrix'));
+  $ns_sensor_array = snmpwalk_cache_multi_oid($device, "sysHealthCounterValue", $ns_sensor_array, "NS-ROOT-MIB");
 }
 
 foreach ($ns_sensor_array as $descr => $data)
@@ -37,7 +35,7 @@ foreach ($ns_sensor_array as $descr => $data)
   {
     discover_sensor($valid['sensor'], $type, $device, $oid, $descr, 'netscaler-state',  $descr, NULL, $value, array('entPhysicalClass' => $physical));
   }
-  else if (is_numeric($value))
+  else if (is_numeric($value) && $value !== '0')
   {
     discover_sensor($valid['sensor'], $type, $device, $oid, $descr, 'netscaler-health', $descr, $scale, $value);
   }
@@ -47,7 +45,7 @@ unset($ns_sensor_array);
 
 // Collect HAMode
 
-$sysHighAvailabilityMode = snmp_get($device, 'sysHighAvailabilityMode.0', '-Ovq', 'NS-ROOT-MIB', mib_dirs('citrix'));
+$sysHighAvailabilityMode = snmp_get($device, 'sysHighAvailabilityMode.0', '-Ovq', 'NS-ROOT-MIB');
 
 if ($sysHighAvailabilityMode !== '')
 {
@@ -61,7 +59,7 @@ unset($sysHighAvailabilityMode);
 
 // Collect HAState
 
-$haCurState = snmp_get($device, 'haCurState.0', '-Ovq', 'NS-ROOT-MIB', mib_dirs('citrix'));
+$haCurState = snmp_get($device, 'haCurState.0', '-Ovq', 'NS-ROOT-MIB');
 
 if ($haCurState !== '')
 {

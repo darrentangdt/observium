@@ -24,6 +24,8 @@ function build_alert_table_query($vars)
 {
   $args = array();
   $where = ' WHERE 1 ';
+  // default sort order
+  $sort  = ' ORDER BY `device_id`, `alert_test_id`, `entity_type`, `entity_id` DESC ';
 
   // Loop through the vars building a sql query from relevant values
   foreach ($vars as $var => $value)
@@ -60,6 +62,14 @@ function build_alert_table_query($vars)
             $where .= " AND `alert_status` = 3";
           }
           break;
+        case 'sort':
+          if ($value == 'changed') {
+	    $sort = ' ORDER BY `last_changed` DESC ';
+          } elseif ($value == 'device') {
+            // fix this to sort by hostname
+	    $sort = ' ORDER BY `device_id` ';
+          }
+          break;
       }
     }
   }
@@ -77,7 +87,8 @@ function build_alert_table_query($vars)
 
   // Build the query to get the list of entries
   $query = 'SELECT * '.$query;
-  $query .= ' ORDER BY `device_id`, `alert_test_id`, `entity_type`, `entity_id` DESC ';
+  //$query .= ' ORDER BY `device_id`, `alert_test_id`, `entity_type`, `entity_id` DESC ';
+  $query .= $sort;
 
   if (isset($vars['pagination']) && $vars['pagination'])
   {
@@ -213,7 +224,7 @@ function print_alert_table($vars)
     // Set the alert_rule from the prebuilt cache array
     $alert_rule = $alert_rules[$alert['alert_test_id']];
 
-    echo('<tr class="'.$alert['html_row_class'].'" style="cursor: pointer;" onclick="location.href=\''.generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'alert', 'alert_entry' => $alert['alert_table_id'])).'\'">');
+    echo('<tr class="'.$alert['html_row_class'].'" style="cursor: pointer;" onclick="openLink(\''.generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'alert', 'alert_entry' => $alert['alert_table_id'])).'\')">');
 
     echo('<td class="state-marker"></td>');
     echo('<td style="width: 1px;"></td>');

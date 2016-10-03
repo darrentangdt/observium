@@ -11,8 +11,6 @@
  *
  */
 
-echo(" POSEIDON-MIB ");
-
 /**
 POSEIDON-MIB::sensName.1 = STRING: "Humidity indoor"
 POSEIDON-MIB::sensName.2 = STRING: "Prague Outdoor"

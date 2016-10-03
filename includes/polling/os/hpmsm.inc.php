@@ -24,11 +24,10 @@ COLUBRIS-SYSTEM-MIB::systemDeviceIdentification.0 = STRING: 0:24:a8:xx:xx:xx
 COLUBRIS-SYSTEM-MIB::systemFirmwareBuildDate.0 = STRING: "2010/06/23"
 */
 
-
-$version  = trim(snmp_get($device, ".1.3.6.1.4.1.8744.5.6.1.1.2.0", "-Ovq"),'"');
-$hardware = trim(snmp_get($device, ".1.3.6.1.4.1.8744.5.6.1.1.1.0", "-Ovq"),'"');
-$serial   = trim(snmp_get($device, ".1.3.6.1.4.1.8744.5.6.1.1.5.0", "-Ovq"),'"');
-$features = trim(snmp_get($device, ".1.3.6.1.4.1.8744.5.6.1.1.3.0", "-Ovq"),'"');
+$version  = trim(snmp_get($device, '.1.3.6.1.4.1.8744.5.6.1.1.2.0', '-Ovq'),'"');
+$hardware = trim(snmp_get($device, '.1.3.6.1.4.1.8744.5.6.1.1.1.0', '-Ovq'),'"');
+$serial   = trim(snmp_get($device, '.1.3.6.1.4.1.8744.5.6.1.1.5.0', '-Ovq'),'"');
+$features = trim(snmp_get($device, '.1.3.6.1.4.1.8744.5.6.1.1.3.0', '-Ovq'),'"');
 
 // EOF
 

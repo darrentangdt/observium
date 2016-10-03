@@ -13,12 +13,12 @@
 
 $link_array = array('page'    => 'slas');
 
-$navbar['brand'] = "SLAs";
-$navbar['class'] = "navbar-narrow";
+$navbar['brand'] = 'SLAs';
+$navbar['class'] = 'navbar-narrow';
 
-if (!isset($vars['rtt_type'])) { $navbar['options']['all']['class'] = "active"; }
+if (!isset($vars['rtt_type'])) { $navbar['options']['all']['class'] = 'active'; }
 $navbar['options']['all']['url']  = generate_url(array('page' => 'slas', 'rtt_type' => NULL));
-$navbar['options']['all']['text'] = "All SLAs";
+$navbar['options']['all']['text'] = 'All SLAs';
 
 $vars_filter = $vars;
 unset($vars_filter['rtt_type'], $vars_filter['owner']); // Do not filter rtt_type and owner for navbar
@@ -61,7 +61,7 @@ foreach ($rtt_types as $text => $type)
 {
   $type = implode(',', $type);
 
-  if ($vars['rtt_type'] == $type) { $navbar['options'][$type]['class'] = "active"; }
+  if ($vars['rtt_type'] == $type) { $navbar['options'][$type]['class'] = 'active'; }
   $navbar['options'][$type]['url']  = generate_url(array('page' => 'slas', 'rtt_type' => $type));
   $navbar['options'][$type]['text'] = $text;
 }
@@ -75,7 +75,7 @@ foreach ($sla_owners as $owner => $name)
   {
     $navbar['options']['owner']['class'] = 'active';
     $navbar['options']['owner']['url']   = generate_url($vars, array('owner' => NULL));
-    $navbar['options']['owner']['text'] .= " (".$name.')';
+    $navbar['options']['owner']['text'] .= ' ('.$name.')';
     $navbar['options']['owner']['suboptions'][$owner]['url'] = generate_url($vars, array('owner' => NULL));
     $navbar['options']['owner']['suboptions'][$owner]['class'] = 'active';
   } else {
@@ -94,7 +94,7 @@ foreach ($groups as $group)
   {
     $navbar['options']['group']['class'] = 'active';
     $navbar['options']['group']['url']   = generate_url($vars, array('group' => NULL));
-    $navbar['options']['group']['text'] .= " (".$group['group_name'].')';
+    $navbar['options']['group']['text'] .= ' ('.$group['group_name'].')';
     $navbar['options']['group']['suboptions'][$group['group_id']]['url'] = generate_url($vars, array('group' => NULL));
     $navbar['options']['group']['suboptions'][$group['group_id']]['class'] = 'active';
   } else {
@@ -107,13 +107,15 @@ $navbar['options']['graphs']['text']  = 'Graphs';
 $navbar['options']['graphs']['icon']  = 'oicon-chart-up';
 $navbar['options']['graphs']['right'] = TRUE;
 
-if ($vars['view'] == "graphs")
+if ($vars['view'] == 'graphs')
 {
   $navbar['options']['graphs']['class'] = 'active';
   $navbar['options']['graphs']['url']   = generate_url($vars, array('view' => NULL));
 } else {
-  $navbar['options']['graphs']['url']    = generate_url($vars, array('view' => "graphs"));
+  $navbar['options']['graphs']['url']    = generate_url($vars, array('view' => 'graphs'));
 }
+
+register_html_title('SLAs');
 
 print_navbar($navbar);
 

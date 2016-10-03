@@ -11,10 +11,8 @@
  *
  */
 
-$mib = 'COMPELLENT-MIB';
-
-$version  = snmp_get($device, 'productIDVersion.0', '-OQv', $mib);
-$hardware = 'Compellent '.trim(snmp_get($device, 'scEnclModel.1', '-OQv', $mib), 'EN-');;
-//$serial   = snmp_get($device, 'productIDSerialNumber.0', '-OQv', $mib);
+$version  = snmp_get($device, 'productIDVersion.0', '-OQv', 'COMPELLENT-MIB');
+$hardware = 'Compellent '.trim(snmp_get($device, 'scEnclModel.1', '-OQv', 'COMPELLENT-MIB'), 'EN-');;
+//$serial   = snmp_get($device, 'productIDSerialNumber.0', '-OQv', 'COMPELLENT-MIB');
 
 // EOF

@@ -13,8 +13,6 @@
 
 # FIXME - Needs a rewrite; discovered oids should not be textual, instead of for loops, use table walks if possible. -TL
 
-echo(" GAMATRONIC-MIB ");
-
 $type        = "gamatronicups";
 $limits      = array('limit_low' => 0);
 

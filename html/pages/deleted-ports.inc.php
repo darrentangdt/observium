@@ -11,7 +11,7 @@
  *
  */
 
-$page_title[] = 'Deleted ports';
+register_html_title('Deleted ports');
 
 if ($vars['purge'] == 'all')
 {
@@ -31,6 +31,8 @@ else if (is_numeric($vars['purge']))
     print_message(delete_port($port['port_id']), 'console');
   }
 }
+
+echo generate_box_open();
 
 echo('<table class="table table-condensed table-striped  table-condensed">
   <thead><tr>
@@ -58,5 +60,7 @@ foreach (dbFetchRows('SELECT * FROM `ports` AS P, `devices` as D WHERE P.`delete
 }
 
 echo('</table>');
+
+echo generate_box_close();
 
 // EOF

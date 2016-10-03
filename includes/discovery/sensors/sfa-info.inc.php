@@ -10,8 +10,6 @@
  *
  */
 
-echo(" SFA-INFO ");
-
 // SFA-INFO::physDiskIndex.1 = INTEGER: 1
 // SFA-INFO::physDiskPoolId.1 = INTEGER: 1
 // SFA-INFO::physDiskId.1 = INTEGER: 24
