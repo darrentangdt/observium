@@ -15,10 +15,8 @@ $user_data = array('user_id'  => $_SESSION['user_id'],
                    'username' => $_SESSION['username'],
                    'level'    => $_SESSION['userlevel']);
 
-// Additional info (only for mysql auth)
-
-//$user_data2 = dbFetchRow("SELECT * FROM `users` WHERE `user_id` = ?", array($_SESSION['user_id']));
-$user_data2 = ldap_auth_user_info($_SESSION['username']);
+// Additional info
+$user_data2 = auth_user_info($_SESSION['username']);
 if (is_array($user_data2))
 {
   $user_data = array_merge($user_data, $user_data2);

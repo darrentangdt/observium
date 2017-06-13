@@ -13,17 +13,18 @@
 
 if (!$os)
 {
-  if (preg_match("/^SunOS/", $sysDescr))
+  if (str_starts($sysDescr, 'SunOS'))
   {
     $os = "solaris";
-    list(,,$version) = explode (" ", $sysDescr);
-    if ($version > "5.10") { $os = "opensolaris"; }
-    if ($version > "5.10") {
-      if (preg_match("/oi_/", $sysDescr)) { $os = "openindiana"; }
+    list(,, $version) = explode (' ', $sysDescr);
+    if (version_compare($version, '5.10', '>'))
+    {
+      $os = "opensolaris";
+      if (str_contains($sysDescr, 'oi_')) { $os = "openindiana"; }
     }
   }
 
-  if (strstr($sysDescr, "Nexenta")) { $os = "nexenta"; }
+  if (str_contains($sysDescr, 'Nexenta')) { $os = "nexenta"; }
 }
 
 // EOF

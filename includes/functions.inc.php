@@ -203,10 +203,10 @@ function get_device_os($device)
     if (substr($oid, -1) === '.')
     {
       // Use wildcard compare if sysObjectID definition have '.' at end
-      if (strpos($sysObjectId, $oid) === 0) { $os = $cos; break; }
+      if (str_starts($sysObjectId, $oid)) { $os = $cos; break; }
     } else {
       // Use exact match sysObjectID definition or wildcard compare with '.' at end
-      if ($sysObjectId === $oid || strpos($sysObjectId, $oid.'.') === 0) { $os = $cos; break; }
+      if ($sysObjectId === $oid || str_starts($sysObjectId, $oid.'.')) { $os = $cos; break; }
     }
   }
 
@@ -1712,7 +1712,7 @@ function convert_ord_char($ord)
 // MOVEME to includes/snmp.inc.php
 function isHexString($str)
 {
-  return (preg_match("/^[a-f0-9][a-f0-9]( [a-f0-9][a-f0-9])*$/is", trim($str)) ? TRUE : FALSE);
+  return (preg_match("/^[a-f0-9][a-f0-9](\ +[a-f0-9][a-f0-9])*$/is", trim($str)) ? TRUE : FALSE);
 }
 
 // Include all .inc.php files in $dir

@@ -15,18 +15,18 @@
 
 //include("../includes/billing.inc.php");
 
-if (is_numeric($_GET['id']) && ($auth || bill_permitted($_GET['id'])))
+if (is_numeric($vars['id']) && ($auth || bill_permitted($vars['id'])))
 {
-  $bill     = dbFetchRow("SELECT * FROM `bills` WHERE bill_id = ?", array($_GET['id']));
+  $bill     = dbFetchRow("SELECT * FROM `bills` WHERE bill_id = ?", array($vars['id']));
 
-  $datefrom = date('YmdHis', $_GET['from']);
-  $dateto   = date('YmdHis', $_GET['to']);
+  $datefrom = date('YmdHis', $vars['from']);
+  $dateto   = date('YmdHis', $vars['to']);
 
-  $rates = getRates($_GET['id'], $datefrom,  $dateto);
+  $rates = getRates($vars['id'], $datefrom,  $dateto);
 
-  $ports = dbFetchRows("SELECT * FROM `bill_ports` AS B, `ports` AS P, `devices` AS D WHERE B.bill_id = ? AND P.port_id = B.port_id AND D.device_id = P.device_id", array($_GET['id']));
+  $ports = dbFetchRows("SELECT * FROM `bill_ports` AS B, `ports` AS P, `devices` AS D WHERE B.bill_id = ? AND P.port_id = B.port_id AND D.device_id = P.device_id", array($vars['id']));
 
   $auth = TRUE;
 }
 
-?>
+// EOF

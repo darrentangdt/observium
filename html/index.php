@@ -66,9 +66,10 @@ ob_start('html_callback');
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <base href="<?php echo($config['base_url']); ?>" />
+  <base href="<?php echo(escape_html($config['base_url'])); ?>" />
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <!-- ##META_CACHE## -->
   <!-- ##CSS_CACHE## -->
   <!-- ##JS_CACHE## -->
 <?php /* html5.js below from https://github.com/aFarkas/html5shiv */ ?>
@@ -99,26 +100,29 @@ ini_set('display_errors', 0);
 
 $_SERVER['PATH_INFO'] = (isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : $_SERVER['ORIG_PATH_INFO']);
 
-$vars = get_vars(); // Parse vars from GET/POST/URI
-
-if ($vars['export'] == 'yes') // This is for display XML on export pages
-{
-  // Code prettify (but it's still horrible)
-  register_html_resource('js', 'google-code-prettify.js');
-  register_html_resource('css', 'google-code-prettify.css');
-}
+// Clean global $vars variable, it populated only after correct authenticate
+unset($vars);
 
 include($config['html_dir'] . "/includes/authenticate.inc.php");
 
-$page_refresh = print_refresh($vars); // $page_refresh used in navbar for refresh menu
-
 ?>
   <title>##TITLE##</title>
-  <link rel="shortcut icon" href="<?php echo($config['favicon']);  ?>" />
+  <link rel="shortcut icon" href="<?php echo(escape_html($config['favicon']));  ?>" />
 <?php
 
 if ($_SESSION['authenticated'])
 {
+  $vars = get_vars(); // Parse vars from GET/POST/URI
+
+  if ($vars['export'] == 'yes') // This is for display XML on export pages
+  {
+    // Code prettify (but it's still horrible)
+    register_html_resource('js', 'google-code-prettify.js');
+    register_html_resource('css', 'google-code-prettify.css');
+  }
+
+  $page_refresh = print_refresh($vars); // $page_refresh used in navbar for refresh menu
+
   $feeds = array('eventlog');
   //if ($config['enable_syslog']) { $feeds[] = 'syslog'; }
   foreach ($feeds as $feed)

@@ -29,7 +29,7 @@ $colour_line_out = "000099";
 $colour_area_in  = "CDEB8B";
 $colour_area_out = "C3D9FF";
 
-$hostname        = (isset($_GET['hostname']) ? $_GET['hostname'] : "unkown");
+$hostname        = (isset($vars['hostname']) ? $vars['hostname'] : "unknown");
 $rrd_filename    = get_rrd_path($device, "app-shoutcast-".$app['app_id']."-".$hostname.".rrd");
 
 include($config['html_dir']."/includes/graphs/generic_data.inc.php");

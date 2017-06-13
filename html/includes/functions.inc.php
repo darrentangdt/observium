@@ -51,25 +51,39 @@ function html_callback($buffer)
 
   // Install registered CSS/JS links
   $types = array(
-    'css'    => '  <link href="STRING?v=' . OBSERVIUM_VERSION . '" rel="stylesheet" type="text/css" />' . PHP_EOL,
-    'js'     => '  <script type="text/javascript" src="STRING?v=' . OBSERVIUM_VERSION . '"></script>' . PHP_EOL,
+    'css'    => '  <link href="%%STRING%%?v=' . OBSERVIUM_VERSION . '" rel="stylesheet" type="text/css" />' . PHP_EOL,
+    'js'     => '  <script type="text/javascript" src="%%STRING%%?v=' . OBSERVIUM_VERSION . '"></script>' . PHP_EOL,
     'script' => '  <script type="text/javascript">' . PHP_EOL .
-                '  <!-- Begin' . PHP_EOL . 'STRING' . PHP_EOL .
+                '  <!-- Begin' . PHP_EOL . '%%STRING%%' . PHP_EOL .
                 '  // End -->' . PHP_EOL . '  </script>' . PHP_EOL,
+    'meta'   => '  <meta http-equiv="%%STRING_http-equiv%%" content="%%STRING_content%%" />' . PHP_EOL,
   );
 
   foreach ($types as $type => $string)
   {
+    $uptype = strtoupper($type);
     if (isset($GLOBALS['cache_html']['resources'][$type]))
     {
-      $uptype = strtoupper($type);
       $$type = '<!-- ' . $uptype . ' BEGIN -->' . PHP_EOL;
-      foreach (array_unique($GLOBALS['cache_html']['resources'][$type]) as $link) // Do not use global $cache variable, because it is reset before flush ob_cache
+      foreach (array_unique($GLOBALS['cache_html']['resources'][$type]) as $content) // Do not use global $cache variable, because it is reset before flush ob_cache
       {
-        $$type .= str_replace('STRING', $link, $string);
+        if (is_array($content))
+        {
+          // for meta
+          foreach($content as $param => $value)
+          {
+            $string = str_replace('%%STRING_'.$param.'%%', $value, $string);
+          }
+          $$type .= $string;
+        } else {
+          $$type .= str_replace('%%STRING%%', $content, $string);
+        }
       }
       $$type .= '  <!-- ' . $uptype . ' END -->' . PHP_EOL;
       $buffer = str_replace('<!-- ##' . $uptype . '_CACHE## -->' . PHP_EOL, $$type, $buffer);
+    } else {
+      // Clean template string
+      $buffer = str_replace('<!-- ##' . $uptype . '_CACHE## -->', '', $buffer);
     }
   }
 
@@ -105,10 +119,14 @@ function html_callback($buffer)
   return $buffer;
 }
 
-// Parce $_GET, $_POST and URI into $vars
-// TESTME needs unit testing
-// DOCME needs phpdoc block
-function get_vars($vars_order = array())
+/**
+ * Parse $_GET, $_POST and REQUEST_URI into $vars array
+ * 
+ * @param array $vars_order Request variables order (POST, URI, GET)
+ * @param boolean $auth this var or ($_SESSION['authenticated']) used for allow to use var_decode()
+ * @return array array of vars
+ */
+function get_vars($vars_order = array(), $auth = FALSE)
 {
   if (is_string($vars_order))
   {
@@ -122,6 +140,9 @@ function get_vars($vars_order = array())
   // XSS script regex
   $prevent_xss = '!<\s*/?\s*s\s*c\s*r\s*i\s*p\s*t\s*>!i'; // <sCrIpT> < / s c r i p t >
 
+  // Allow to use var_decode(), this prevent to use potentially unsafe serialize functions
+  $auth = $auth || $_SESSION['authenticated'];
+
   $vars = array();
   foreach ($vars_order as $order)
   {
@@ -134,7 +155,7 @@ function get_vars($vars_order = array())
         {
           if (!isset($vars[$name]))
           {
-            $vars[$name] = var_decode($value);
+            $vars[$name] = $auth ? var_decode($value) : $value;
             if (preg_match($prevent_xss, $vars[$name]))
             {
               // Prevent any <script> html tag inside vars, exclude any possible XSS with scripts
@@ -174,7 +195,7 @@ function get_vars($vars_order = array())
                   $vars[$name] = explode(',', $value);
                 } else {
                   // Here can be string as encoded array
-                  $vars[$name] = var_decode($value);
+                  $vars[$name] = $auth ? var_decode($value) : $value;
                   if (is_string($vars[$name]) && preg_match($prevent_xss, $vars[$name]))
                   {
                     // Prevent any <script> html tag inside vars, exclude any possible XSS with scripts
@@ -208,7 +229,7 @@ function get_vars($vars_order = array())
               $vars[$name] = explode(',', $value);
             } else {
               // Here can be string as encoded array
-              $vars[$name] = var_decode($value);
+              $vars[$name] = $auth ? var_decode($value) : $value;
               if (is_string($vars[$name]) && preg_match($prevent_xss, $vars[$name]))
               {
                 // Prevent any <script> html tag inside vars, exclude any possible XSS with scripts
@@ -238,7 +259,7 @@ function get_vars($vars_order = array())
       // Additionaly decode locations if array entries encoded
       foreach ($vars['location'] as $k => $location)
       {
-        $vars['location'][$k] = var_decode($location);
+        $vars['location'][$k] = $auth ? var_decode($location) : $location;
       }
     } else {
        // All other location strings covert to array
@@ -2302,20 +2323,20 @@ function _json_format($json, $options = 448)
  * Scripts are inserted literally as passed in $name.
  *
  * @param string $type Type of resource (css/js/script)
- * @param string $name Filename or script content
+ * @param string $content Filename or script content or array (for meta)
  */
 // TESTME needs unit testing
-function register_html_resource($type, $name)
+function register_html_resource($type, $content)
 {
   // If no path specified, default to subdirectory of resource type (for CSS and JS only)
   $type = strtolower($type);
-  if (in_array($type, array('css', 'js')) && strpos($name, '/') === FALSE)
+  if (in_array($type, array('css', 'js')) && strpos($content, '/') === FALSE)
   {
-    $name = $type . '/' . $name;
+    $content = $type . '/' . $content;
   }
 
   // Insert into global variable, used in html callback function
-  $GLOBALS['cache_html']['resources'][$type][] = $name;
+  $GLOBALS['cache_html']['resources'][$type][] = $content;
 }
 
 /**

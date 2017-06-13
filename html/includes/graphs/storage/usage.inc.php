@@ -41,7 +41,7 @@ $rrd_options .= " GPRINT:size:LAST:%6.2lf%sB";
 $rrd_options .= " GPRINT:free:LAST:%6.2lf%sB";
 $rrd_options .= " GPRINT:perc:LAST:%5.2lf%%\\n";
 
-if ($_GET['trend'])
+if ($vars['trend'])
 {
   $rrd_options .= " VDEF:slope=perc,LSLSLOPE ";
   $rrd_options .= " VDEF:cons=perc,LSLINT ";
@@ -49,7 +49,7 @@ if ($_GET['trend'])
   $rrd_options .= ' LINE1.25:lsl2#ff0000::dashes=2';
 }
 
-if ($_GET['previous'])
+if ($vars['previous'])
 {
   $descr = rrdtool_escape("Prev ".$storage['storage_descr'], 12);
 

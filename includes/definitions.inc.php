@@ -35,7 +35,7 @@ define('OBS_SNMP_NUMERIC',        16); // Use numeric OIDs  (-On)
 define('OBS_SNMP_NUMERIC_INDEX',  32); // Use numeric index (-Ob)
 define('OBS_SNMP_CONCAT',         64); // Concatinate multiline snmp variable (newline chars removed)
 define('OBS_SNMP_ENUM',          128); // Don't enumerate SNMP values
-define('OBS_SNMP_HEX',           256); // Force HEX output
+define('OBS_SNMP_HEX',           256); // Force HEX output (-Ox)
 #define('OBS_SNMP_',             512); // Reserved
 #define('OBS_SNMP_',            1024); // Reserved
 #define('OBS_SNMP_',            2048); // Reserved
@@ -61,6 +61,15 @@ define('OBS_PERMIT_SECURE',   262144); // Can read secure data
 define('OBS_PERMIT_EDIT',     524288); // Can edit
 define('OBS_PERMIT_ADMIN',   1048576); // Can add/remove
 define('OBS_PERMIT_ALL', OBS_PERMIT_ACCESS | OBS_PERMIT_READ | OBS_PERMIT_SECURE | OBS_PERMIT_EDIT | OBS_PERMIT_ADMIN); // Permit all
+
+// Json flags
+define('OBS_JSON_BIGINT_AS_STRING', version_compare(PHP_VERSION, '5.4.0', '>=') && !(defined('JSON_C_VERSION') && PHP_INT_SIZE > 4)); // Check if BIGINT supported
+$json_encode = defined('JSON_UNESCAPED_UNICODE') ? JSON_UNESCAPED_UNICODE : 0;
+$json_encode = defined('JSON_PRESERVE_ZERO_FRACTION') ? $json_encode | JSON_PRESERVE_ZERO_FRACTION : $json_encode;
+$json_decode = OBS_JSON_BIGINT_AS_STRING ? JSON_BIGINT_AS_STRING : 0;
+define('OBS_JSON_ENCODE', $json_encode);
+define('OBS_JSON_DECODE', $json_decode);
+unset($json_encode, $json_decode);
 
 // Set QUIET
 define('OBS_QUIET', isset($options['q']));
@@ -291,18 +300,18 @@ $config['sla']['loss_value'] = array(0, 2, 4, 6, 8, 10, 15, 20, 25, 40, 50, 100)
 
 // Syslog colour and name translation
 
-$config['syslog']['priorities']['0'] = array('name' => 'emergency',     'color' => '#D94640', 'label-class' => 'error');
-$config['syslog']['priorities']['1'] = array('name' => 'alert',         'color' => '#D94640', 'label-class' => 'error');
-$config['syslog']['priorities']['2'] = array('name' => 'critical',      'color' => '#D94640', 'label-class' => 'error');
-$config['syslog']['priorities']['3'] = array('name' => 'error',         'color' => '#E88126', 'label-class' => 'error');
-$config['syslog']['priorities']['4'] = array('name' => 'warning',       'color' => '#F2CA3F', 'label-class' => 'warning');
-$config['syslog']['priorities']['5'] = array('name' => 'notification',  'color' => '#107373', 'label-class' => 'suppressed');
-$config['syslog']['priorities']['6'] = array('name' => 'informational', 'color' => '#499CA6', 'label-class' => 'primary');
-$config['syslog']['priorities']['7'] = array('name' => 'debugging',     'color' => '#5AA637', 'label-class' => 'success');
+$config['syslog']['priorities']['0'] = array('name' => 'emergency',     'color' => '#D94640', 'label-class' => 'inverse',    'row-class' => 'error');
+$config['syslog']['priorities']['1'] = array('name' => 'alert',         'color' => '#D94640', 'label-class' => 'delayed',    'row-class' => 'error');
+$config['syslog']['priorities']['2'] = array('name' => 'critical',      'color' => '#D94640', 'label-class' => 'error',      'row-class' => 'error');
+$config['syslog']['priorities']['3'] = array('name' => 'error',         'color' => '#E88126', 'label-class' => 'error',      'row-class' => 'error');
+$config['syslog']['priorities']['4'] = array('name' => 'warning',       'color' => '#F2CA3F', 'label-class' => 'warning',    'row-class' => 'warning');
+$config['syslog']['priorities']['5'] = array('name' => 'notification',  'color' => '#107373', 'label-class' => 'success',    'row-class' => 'recovery');
+$config['syslog']['priorities']['6'] = array('name' => 'informational', 'color' => '#499CA6', 'label-class' => 'primary',    'row-class' => ''); //'row-class' => 'info');
+$config['syslog']['priorities']['7'] = array('name' => 'debugging',     'color' => '#5AA637', 'label-class' => 'suppressed', 'row-class' => 'suppressed');
 
 for ($i = 8; $i < 16; $i++)
 {
-  $config['syslog']['priorities'][$i] = array('name' => 'other',        'color' => '#D2D8F9', 'label-class' => 'disabled');
+  $config['syslog']['priorities'][$i] = array('name' => 'other',        'color' => '#D2D8F9', 'label-class' => 'disabled',   'row-class' => 'disabled');
 }
 
 // Possible transports for net-snmp, used for enumeration in several functions

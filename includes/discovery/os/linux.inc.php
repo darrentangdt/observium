@@ -14,14 +14,14 @@
 if (!$os)
 {
   // First check the sysObjectID, then the sysDescr
-  if (strstr($sysObjectId, '1.3.6.1.4.1.8072.3.2.10'))
+  if (str_starts($sysObjectId, '.1.3.6.1.4.1.8072.3.2.10'))
   {
     $os = 'linux';
   }
-  else if (preg_match('/^Linux/', $sysDescr))
+  else if (str_starts($sysDescr, 'Linux'))
   {
     $os = 'linux';
-    if (strstr($sysObjectId, '.1.3.6.1.4.1.1332.1.3'))
+    if (str_starts($sysObjectId, '.1.3.6.1.4.1.1332.1.3'))
     {
       $os = 'iskratel-linux';
     }
@@ -40,7 +40,7 @@ if (!$os)
     {
       foreach ($config['os'][$legacy_os]['sysObjectID'] as $oid)
       {
-        if (strpos($sysObjectId, $oid) === 0) { unset($os); break 2; }
+        if (str_starts($sysObjectId, $oid)) { unset($os); break 2; }
       }
     }
 
@@ -75,10 +75,10 @@ if (!$os)
   if ($os == 'linux')
   {
     // Check for devices based on Linux by simple sysDescr parse
-    if ($sysDescr == 'Open-E') { $os = 'dss'; } // Checked: SysObjectId is equal to Linux, unfortunately
-    elseif (stripos($sysDescr, 'endian') !== FALSE)   { $os = 'endian'; }
-    elseif (stripos($sysDescr, 'OpenWrt') !== FALSE) { $os = 'openwrt'; }
-    elseif (stripos($sysDescr, 'DD-WRT') !== FALSE)  { $os = 'ddwrt'; }
+    if     ($sysDescr == 'Open-E')               { $os = 'dss'; } // Checked: SysObjectId is equal to Linux, unfortunately
+    elseif (str_icontains($sysDescr, 'endian'))  { $os = 'endian'; }
+    elseif (str_icontains($sysDescr, 'OpenWrt')) { $os = 'openwrt'; }
+    elseif (str_icontains($sysDescr, 'DD-WRT'))  { $os = 'ddwrt'; }
     else if (preg_match('/^Linux [\w\.\:]+ \d[\.\d]+-\d[\.\d]+\.g\w{7}(?:\.rb\d+)?-smp(?:64)? #/', $sysDescr))
     {
       $os = 'sophos'; // Sophos -chune
@@ -90,40 +90,41 @@ if (!$os)
     // Now network based checks
     $upsIdentManufacturer          = snmp_get($device, 'upsIdentManufacturer.0', '-Osqnv', 'GEPARALLELUPS-MIB');
     $hrSystemInitialLoadParameters = snmp_get($device, 'hrSystemInitialLoadParameters.0', '-Osqnv', 'HOST-RESOURCES-MIB');
-    if      (strstr($upsIdentManufacturer, 'GE'))                                                         { $os = 'ge-ups'; }
-    else if (snmp_get($device, 'systemName.0', '-OQv', 'ENGENIUS-PRIVATE-MIB') != '')                     { $os = 'engenius'; } // Checked, also Linux
-    else if (strpos(snmp_get($device, 'entPhysicalMfgName.1', '-Osqnv', 'ENTITY-MIB'), 'QNAP') !== FALSE) { $os = 'qnap'; }
-    else if (is_numeric(trim(snmp_get($device, 'roomTemp.0', '-OqvU', 'CAREL-ug40cdz-MIB'))))             { $os = 'pcoweb'; }
-    else if (strpos($hrSystemInitialLoadParameters, 'syno_hw_version=RT') !== FALSE)                      { $os = 'srm'; } // Synology Router
-    else if (is_numeric(snmp_get($device, 'systemStatus.0', '-Osqnv', 'SYNOLOGY-SYSTEM-MIB')))            { $os = 'dsm'; }
-    else if (strpos($hrSystemInitialLoadParameters, 'syno_hw_vers') !== FALSE)                            { $os = 'dsm'; } // Old Synology not supporting SYNOLOGY-SYSTEM-MIB
-    else if (strstr($sysObjectId, '.1.3.6.1.4.1.10002.1') || strpos(snmp_get($device, 'dot11manufacturerName.5', '-Osqnv', 'IEEE802dot11-MIB'), 'Ubiquiti') !== FALSE)
+    if      (str_contains($upsIdentManufacturer, 'GE'))                                               { $os = 'ge-ups'; }
+    else if (snmp_get($device, 'systemName.0', '-OQv', 'ENGENIUS-PRIVATE-MIB') != '')                 { $os = 'engenius'; } // Checked, also Linux
+    else if (str_contains(snmp_get($device, 'entPhysicalMfgName.1', '-Osqnv', 'ENTITY-MIB'), 'QNAP')) { $os = 'qnap'; }
+    else if (is_numeric(trim(snmp_get($device, 'roomTemp.0', '-OqvU', 'CAREL-ug40cdz-MIB'))))         { $os = 'pcoweb'; }
+    else if (str_contains($hrSystemInitialLoadParameters, 'syno_hw_version=RT'))                      { $os = 'srm'; } // Synology Router
+    else if (is_numeric(snmp_get($device, 'systemStatus.0', '-Osqnv', 'SYNOLOGY-SYSTEM-MIB')))        { $os = 'dsm'; }
+    else if (str_contains($hrSystemInitialLoadParameters, 'syno_hw_vers'))                            { $os = 'dsm'; } // Old Synology not supporting SYNOLOGY-SYSTEM-MIB
+    else if (str_starts($sysObjectId, '.1.3.6.1.4.1.10002.1') ||
+             str_contains(snmp_get($device, 'dot11manufacturerName.5', '-Osqnv', 'IEEE802dot11-MIB'), 'Ubiquiti'))
     {
       $os = 'airos';
       $data = snmpwalk_cache_oid($device, 'dot11manufacturerProductName', array(), 'IEEE802dot11-MIB');
       if ($data)
       {
         $data = current($data);
-        if (strpos($data['dot11manufacturerProductName'], 'UAP') !== FALSE) { $os = 'unifi'; }
+        if (str_contains($data['dot11manufacturerProductName'], 'UAP')) { $os = 'unifi'; }
       }
     }
-    else if (strpos(snmp_get($device, 'feHardwareModel.0', '-Oqv', 'FE-FIREEYE-MIB'), 'FireEye') !== FALSE) { $os = 'fireeye'; }
+    else if (str_contains(snmp_get($device, 'feHardwareModel.0', '-Oqv', 'FE-FIREEYE-MIB'), 'FireEye')) { $os = 'fireeye'; }
   }
 
   if ($os == 'linux')
   {
     // Check DD-WRT/OpenWrt, since it changed sysDescr, but still use dd-wrt/openwrt in sysName
     $sysName = snmp_get($device, 'sysName.0', '-Oqv', 'SNMPv2-MIB');
-    if     (stripos($sysName, 'dd-wrt')  !== FALSE) { $os = 'ddwrt'; }
-    elseif (stripos($sysName, 'openwrt') !== FALSE) { $os = 'openwrt'; }
+    if      (str_icontains($sysName, 'dd-wrt'))  { $os = 'ddwrt'; }
+    else if (str_icontains($sysName, 'openwrt')) { $os = 'openwrt'; }
   }
 
   if ($os == 'linux')
   {
     // Check Point SecurePlatform and GAiA
     $checkpoint_osName = snmp_get($device, '.1.3.6.1.4.1.2620.1.6.5.1.0', '-Oqv', 'CHECKPOINT-MIB');
-    if     (strpos($checkpoint_osName, 'SecurePlatform') !== FALSE) { $os = 'splat'; }
-    elseif (strpos($checkpoint_osName, 'Gaia') !== FALSE) { $os = 'gaia'; }
+    if      (str_contains($checkpoint_osName, 'SecurePlatform')) { $os = 'splat'; }
+    else if (str_contains($checkpoint_osName, 'Gaia'))           { $os = 'gaia'; }
   }
 
   if ($os == 'linux')

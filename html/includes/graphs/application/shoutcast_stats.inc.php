@@ -11,7 +11,7 @@
  *
  */
 
-$hostname     = (isset($_GET['hostname']) ? $_GET['hostname'] : "unknown");
+$hostname     = (isset($vars['hostname']) ? $vars['hostname'] : "unknown");
 
 $rrd_filename = get_rrd_path($device, "app-shoutcast-".$app['app_id']."-".$hostname);
 

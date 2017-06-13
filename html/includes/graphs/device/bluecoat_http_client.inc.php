@@ -25,8 +25,6 @@ $rrd_list[2]['filename'] = $file;
 $rrd_list[2]['descr'] = "ClientConnId";
 $rrd_list[2]['ds'] = "ClientConnId";
 
-if ($_GET['debug']) { print_vars($rrd_list); }
-
 $colours   = "mixed";
 $nototal   = 1;
 $unit_text = "Connections/sec";

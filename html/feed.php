@@ -11,6 +11,7 @@
  *
  */
 
+/*
 if (isset($_GET['debug']) && $_GET['debug'])
 {
   ini_set('display_errors', 1);
@@ -19,28 +20,70 @@ if (isset($_GET['debug']) && $_GET['debug'])
   ini_set('allow_url_fopen', 0);
   ini_set('error_reporting', E_ALL);
 }
-
+*/
 include_once("../includes/sql-config.inc.php");
 
 include($config['html_dir'] . "/includes/functions.inc.php");
 //include($config['html_dir'] . "/includes/authenticate.inc.php"); // not for RSS!
 
-if (isset($_GET['hash']) && is_numeric($_GET['id']))
+$auth = FALSE;
+$vars = get_vars('GET');
+
+// Auth
+if (isset($vars['hash']) && strlen($vars['hash']) >= 16 &&
+    is_numeric($vars['id']) && $vars['id'] > 0)
 {
-  $key = get_user_pref($_GET['id'], 'atom_key');
-  $data = explode('|', decrypt($_GET['hash'], $key)); // user_id|user_level|auth_mechanism
-
-  $user_id    = $data[0];
-  $user_level = $data[1]; // FIXME, need new way for check userlevel, because it can be changed
-  if (count($data) == 3)
+  $key = get_user_pref($vars['id'], 'atom_key');
+  if ($key)
   {
-    $check_auth_mechanism = $config['auth_mechanism'] == $data[2];
-  } else {
-    $check_auth_mechanism = TRUE; // Old way
+    // Check hash auth
+    if ($data = decrypt($vars['hash'], $key))
+    {
+      //var_dump($data);
+      $data = explode('|', $data); // user_id|user_level|auth_mechanism
+
+      $data_c = count($data);
+      if ($data_c == 3)
+      {
+        $user_id    = $data[0];
+        $user_level = $data[1]; // FIXME, need new way for check userlevel, because it can be changed
+        $check_auth_mechanism = $config['auth_mechanism'] == $data[2];
+
+        // Now set auth
+        $auth = $check_auth_mechanism && $user_level > 0 && $user_id == $vars['id'];
+      }
+      //else if ($data_c == 2)
+      //{
+      //  // Force delete old keys without auth_mechanism
+      //}
+    }
   }
+}
 
-  if ($user_id == $_GET['id'] && $check_auth_mechanism)
+//var_dump($auth);
+if (!$auth)
+{
+  //header("HTTP/1.1 401 Unauthorized"); // This force basic auth form (login/password), which unsupported here
+  header("HTTP/1.1 403 Forbidden");
+
+  if ($vars)
   {
+?>
+<HTML>
+<HEAD>
+<TITLE>Unauthorized</TITLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+<H1>Unauthorized</H1>
+<H2>Update feed url</H2>
+</BODY>
+</HTML>
+<?php
+  }
+  exit;
+}
+// End auth
+
     session_start();
     $_SESSION['user_id']   = $user_id;
     $_SESSION['userlevel'] = $user_level;
@@ -49,11 +92,11 @@ if (isset($_GET['hash']) && is_numeric($_GET['id']))
 
     include($config['html_dir'] . "/includes/cache-data.inc.php"); // Need for check permissions
 
-    $use_rss = ($_GET['v'] == 'rss' ? TRUE : FALSE); // In most cases used ATOM feed
+    $use_rss = ($vars['v'] == 'rss' ? TRUE : FALSE); // In most cases used ATOM feed
     $param = array('short' => TRUE, 'pagesize' => 25);
-    if (is_numeric($_GET['size']))
+    if (is_numeric($vars['size']))
     {
-      $param['pagesize'] = $_GET['size'];
+      $param['pagesize'] = $vars['size'];
     }
 
     // base feed info
@@ -142,8 +185,7 @@ if (isset($_GET['hash']) && is_numeric($_GET['id']))
     // Print feed
     header('Content-Type: text/xml; charset=utf-8');
     echo $xml->asXML();
-  } // else none returned
-}
+
 
 // DOCME needs phpdoc block
 function content_cdata($content)

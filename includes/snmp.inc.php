@@ -432,7 +432,7 @@ function snmp_parser_unquote($str)
  * @return string
  */
 // TESTME needs unit testing
-function snmp_command($command, $device, $oids, $options, $mib = NULL, $mibdir = NULL, $flags = OBS_SNMP_ALL)
+function snmp_command($command, $device, $oids, $options, $mib = NULL, &$mibdir = NULL, $flags = OBS_SNMP_ALL)
 {
   global $config;
 
@@ -533,12 +533,12 @@ function snmp_command($command, $device, $oids, $options, $mib = NULL, $mibdir =
 
   // Set correct MIB directories based on passed dirs and OS definition
   // If $mibdir variable is passed, we use it directly
-  if ($mibdir)
+  if (empty($mibdir))
   {
-    $cmd .= " -M $mibdir";
-  } else {
-    $cmd .= ' -M ' . snmp_mib2mibdirs($mib);
+    // Change to correct mibdir, required for store in snmp_errors
+    $mibdir = snmp_mib2mibdirs($mib);
   }
+  $cmd .= " -M $mibdir";
 
   // Add the device URI to the string
   $cmd .= ' ' . escapeshellarg($device['snmp_transport']).':'.escapeshellarg($device['hostname']).':'.escapeshellarg($device['snmp_port']);
@@ -701,8 +701,11 @@ function snmp_log_errors($command, $device, $oid, $options, $mib, $mibdir)
         $poll_period = $GLOBALS['config']['rrd']['step'];
         // Count critical errors into DB (only for poller)
         $sql  = 'SELECT * FROM `snmp_errors` ';
-        $sql .= 'WHERE `device_id` = ? AND `error_code` = ? AND `snmp_cmd` = ? AND `snmp_options` = ? AND `mib` = ? AND `oid` = ?;';
-        $error_db = dbFetchRow($sql, array($device['device_id'], $error_code, $command, $options, $mib, $oid));
+        // Note, snmp_options not in unique db index
+        //$sql .= 'WHERE `device_id` = ? AND `error_code` = ? AND `snmp_cmd` = ? AND `snmp_options` = ? AND `mib` = ? AND `oid` = ?;';
+        //$error_db = dbFetchRow($sql, array($device['device_id'], $error_code, $command, $options, $mib, $oid));
+        $sql .= 'WHERE `device_id` = ? AND `error_code` = ? AND `snmp_cmd` = ? AND `mib` = ? AND `oid` = ?;';
+        $error_db = dbFetchRow($sql, array($device['device_id'], $error_code, $command, $mib, $oid));
         if (isset($error_db['error_id']))
         {
           $error_db['error_count']++;
@@ -716,10 +719,8 @@ function snmp_log_errors($command, $device, $oid, $options, $mib, $mibdir)
           // Update count
           $update_array = array('error_count' => $error_db['error_count'],
                                 'updated'     => $error_timestamp);
-          if ($error_db['mib_dir'] != $mibdir)
-          {
-            $update_array['mib_dir'] = $mibdir;
-          }
+          if ($error_db['mib_dir']      != $mibdir)  { $update_array['mib_dir']      = $mibdir; }
+          if ($error_db['snmp_options'] != $options) { $update_array['snmp_options'] = $options; }
           dbUpdate($update_array, 'snmp_errors', '`error_id` = ?', array($error_db['error_id']));
         } else {
           dbInsert(array('device_id'          => $device['device_id'],
@@ -995,12 +996,19 @@ function snmp_walk($device, $oid, $options = NULL, $mib = NULL, $mibdir = NULL, 
       $data = array();
       foreach (explode("\n", $old_data) as $line)
       {
-        if (strpos($line, '=') !== FALSE)
+        if (strpos($line, ' = ') !== FALSE)
         {
           $data[] = $line;
         } else {
+          $key = count($data) - 1;
+          list(,$end) = explode(' = ', $data[$key], 2);
+          if ($line !== '' && $end !== '')
+          {
+            $data[$key] .= ' ';
+            //var_dump($line);
+          }
           //$data[count($data)-1] .= '\n' . $line; // here NOT newline char, but two chars!
-          $data[count($data)-1] .= ' ' . $line;
+          $data[$key] .= $line;
         }
       }
       unset($old_data);

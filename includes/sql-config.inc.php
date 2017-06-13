@@ -91,6 +91,21 @@ include($config['install_dir']."/config.php");
 
 */
 
+// Escape all cmd paths
+//FIXME, move all cmd config into $config['cmd'][path]
+$cmds = array('rrdtool', 'fping', 'fping6', 'snmpwalk', 'snmpget',
+              'snmpbulkget', 'snmpbulkwalk', 'snmptranslate', 'whois',
+              'mtr', 'nmap', 'ipmitool', 'virsh', 'dot', 'unflatten',
+              'neato', 'sfdp', 'svn', 'git', 'wmic', 'file', 'wc',
+              'sudo', 'tail', 'cut', 'tr',
+             );
+
+foreach ($cmds as $path)
+{
+  if (isset($config[$path])) { $config[$path] = escapeshellcmd($config[$path]); }
+}
+unset($cmds, $path);
+
 // Disable nonexistant features in CE, do not try to turn on, it will not give effect
 if (OBSERVIUM_EDITION == 'community')
 {

@@ -70,7 +70,7 @@ foreach ($rrd_list as $i => $rrd)
     $rrd_options .= " DEF:".$rrd['ds'].$i."max=".$rrd['filename'].":".$rrd['ds'].":MAX ";
   }
 
-  if ($_GET['previous'])
+  if ($vars['previous'])
   {
     $rrd_options .= " DEF:".$i . "X=".$rrd['filename'].":".$rrd['ds'].":AVERAGE:start=".$prev_from.":end=".$from;
     $rrd_options .= " SHIFT:".$i . "X:$period";

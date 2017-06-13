@@ -47,15 +47,22 @@ if (!is_device_mib($device, 'CISCO-IPSEC-FLOW-MONITOR-MIB'))
 
   print_cli_data("Collecting", "CISCO-IPSEC-FLOW-MONITOR-MIB::cikeTunnelEntry", 3);
 
-  $ike_poll   = snmpwalk_cache_oid($device_context, 'cikeTunnelEntry', array(), 'CISCO-IPSEC-FLOW-MONITOR-MIB');
+  $flags = OBS_SNMP_ALL_MULTILINE | OBS_SNMP_HEX;
+  //$flags = OBS_SNMP_ALL_HEX;
+  $ike_poll   = snmpwalk_cache_oid($device_context, 'cikeTunnelEntry', array(), 'CISCO-IPSEC-FLOW-MONITOR-MIB', NULL, $flags);
   unset($device_context);
   if ($GLOBALS['snmp_status'])
   {
     print_cli_data("Collecting", "CISCO-IPSEC-FLOW-MONITOR-MIB::cipSecTunnelEntry", 3);
-    $ipsec_poll = snmpwalk_cache_oid($device, 'cipSecTunnelEntry', array(), 'CISCO-IPSEC-FLOW-MONITOR-MIB');
+    $ipsec_poll = snmpwalk_cache_oid($device, 'cipSecTunnelEntry', array(), 'CISCO-IPSEC-FLOW-MONITOR-MIB', NULL, $flags);
 
+    // F.. cisco issue, some time it return incorrect multiline data, ie:
+    //   cipSecEndPtLocalAddr1.6802.1 = "
+    //   ^KL="
+    // instead:
+    //   cipSecEndPtLocalAddr1.6803.1 = "0A 0E 33 12 "
     print_cli_data("Collecting", "CISCO-IPSEC-FLOW-MONITOR-MIB::cipSecEndPtEntry", 3);
-    $ipsec_endpt_poll = snmpwalk_cache_twopart_oid($device, 'cipSecEndPtEntry', array(), 'CISCO-IPSEC-FLOW-MONITOR-MIB');
+    $ipsec_endpt_poll = snmpwalk_cache_twopart_oid($device, 'cipSecEndPtEntry', array(), 'CISCO-IPSEC-FLOW-MONITOR-MIB', NULL, $flags);
 
     //print_cli_data("Collecting", "CISCO-IPSEC-FLOW-MONITOR-MIB::cikePeerCorrTable", 3);
     //$ike_peer_poll = snmpwalk_cache_oid($device, 'cikePeerCorrTable', array(), 'CISCO-IPSEC-FLOW-MONITOR-MIB', NULL, OBS_SNMP_ALL_NUMERIC_INDEX);
@@ -69,6 +76,11 @@ if (!is_device_mib($device, 'CISCO-IPSEC-FLOW-MONITOR-MIB'))
     foreach (array('cikeTunLocalAddr', 'cikeTunRemoteAddr') as $oid)
     {
       $entry[$oid] = hex2ip($entry[$oid]);
+      $ike_poll[$index][$oid] = $entry[$oid];
+    }
+    foreach (array('cikeTunLocalValue', 'cikeTunLocalName', 'cikeTunRemoteValue', 'cikeTunRemoteName') as $oid)
+    {
+      $entry[$oid] = snmp_hexstring($entry[$oid]);
       $ike_poll[$index][$oid] = $entry[$oid];
     }
     $ike_poll_index[$entry['cikeTunLocalAddr']][$entry['cikeTunRemoteAddr']] = $index;

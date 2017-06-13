@@ -17,8 +17,6 @@ $rrd_list[0]['filename'] = $file;
 $rrd_list[0]['descr'] = "tcpCurrEstab";
 $rrd_list[0]['ds'] = "tcpCurrEstab";
 
-if ($_GET['debug']) { print_vars($rrd_list); }
-
 $colours   = "mixed";
 $nototal   = 1;
 $unit_text = "Established Sessions";

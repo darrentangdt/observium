@@ -77,7 +77,8 @@ function print_refresh($vars)
 
   if ($refresh_allowed && $refresh_time)
   {
-    echo('  <meta http-equiv="refresh" content="'.$refresh_time.'" />' . "\n");
+    register_html_resource('meta', array('http-equiv' => 'refresh', 'content' => $refresh_time));
+    //echo('  <meta http-equiv="refresh" content="'.$refresh_time.'" />' . "\n");
     $return['nexttime'] = time() + $refresh_time; // Add unixtime for next refresh
   }
 

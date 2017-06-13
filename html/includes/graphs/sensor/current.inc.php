@@ -26,7 +26,7 @@ $rrd_options .= " GPRINT:sensor:MAX:%5.2lfA\\l";
 if (is_numeric($sensor['sensor_limit'])) $rrd_options .= " HRULE:".$sensor['sensor_limit']."#999999::dashes";
 if (is_numeric($sensor['sensor_limit_low'])) $rrd_options .= " HRULE:".$sensor['sensor_limit_low']."#999999::dashes";
 
-if ($_GET['previous'] == 'yes')
+if ($vars['previous'] == 'yes')
 {
   $rrd_options .= " DEF:sensorX=$rrd_filename:sensor:AVERAGE:start=".$prev_from.":end=".$from;
   $rrd_options .= " LINE1.5:sensorX#0000cc:'Prev " . rrdtool_escape($sensor['sensor_descr'],18)."'";

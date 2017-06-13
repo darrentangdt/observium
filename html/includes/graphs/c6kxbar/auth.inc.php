@@ -13,17 +13,17 @@
 
 include($config['html_dir']."/includes/graphs/device/auth.inc.php");
 
-if ($auth && is_numeric($_GET['mod']) && is_numeric($_GET['chan']))
+if ($auth && is_numeric($vars['mod']) && is_numeric($vars['chan']))
 {
 
-  $entity = dbFetchRow("SELECT * FROM entPhysical WHERE device_id = ? AND entPhysicalIndex = ?", array($device['device_id'], $_GET['mod']));
+  $entity = dbFetchRow("SELECT * FROM entPhysical WHERE device_id = ? AND entPhysicalIndex = ?", array($device['device_id'], $vars['mod']));
 
   $title .= " :: ".$entity['entPhysicalName'];
-  $title .= " :: Fabric ".$_GET['chan'];
+  $title .= " :: Fabric ".$vars['chan'];
 
-  $graph_title = short_hostname($device['hostname']) . "::" . $entity['entPhysicalName']. "::Fabric".$_GET['chan'];
+  $graph_title = short_hostname($device['hostname']) . "::" . $entity['entPhysicalName']. "::Fabric".$vars['chan'];
 
-  $rrd_filename = get_rrd_path($device, "c6kxbar-" . $_GET['mod']. "-".$_GET['chan']. ".rrd");
+  $rrd_filename = get_rrd_path($device, "c6kxbar-" . $vars['mod']. "-".$vars['chan']. ".rrd");
 }
 
 ?>

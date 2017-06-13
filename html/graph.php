@@ -41,7 +41,7 @@ if (!$auth)
 }
 
 // Push $_GET into $vars to be compatible with web interface naming
-$vars = get_vars('GET');
+$vars = get_vars('GET', $auth);
 
 include($config['html_dir'] . "/includes/graphs/graph.inc.php");
 

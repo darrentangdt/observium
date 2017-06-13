@@ -21,8 +21,6 @@ $rrd_list[1]['filename'] = $rrd_filename;
 $rrd_list[1]['descr'] = "Local";
 $rrd_list[1]['ds'] = "iveusers";
 
-if ($_GET['debug']) { print_vars($rrd_list); }
-
 $colours = "juniperive";
 $nototal = 1;
 $unit_text = "Users";

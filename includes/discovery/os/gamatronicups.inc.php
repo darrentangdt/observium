@@ -13,12 +13,9 @@
 
 if (!$os)
 {
-  if ($sysDescr == "")
+  if ($sysDescr == "" && str_contains(snmp_get($device, "psUnitManufacture.0", "-Oqv", "GAMATRONIC-MIB"), 'Gamatronic'))
   {
-    if (snmp_get($device, "GAMATRONIC-MIB::psUnitManufacture.0", "-Oqv", "") == "Gamatronic")
-    {
-      $os = "gamatronicups";
-    }
+    $os = "gamatronicups";
   }
 }
 

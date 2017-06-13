@@ -132,39 +132,16 @@ See <a href="'.OBSERVIUM_URL.'/wiki/Category:Documentation" target="_blank">docu
 
     foreach ($entries as $entry)
     {
-      switch ($entry['priority'])
-      {
-        case "0": // Emergency
-        case "1": // Alert
-        case "2": // Critical
-        case "3": // Error
-            $entry['html_row_class'] = "error";
-            break;
-        case "4": // Warning
-            $entry['html_row_class'] = "warning";
-            break;
-        case "5": // Notification
-            $entry['html_row_class'] = "recovery";
-            break;
-        case "6": // Informational
-            $entry['html_row_class'] = "up";
-            break;
-        case "7": // Debugging
-            $entry['html_row_class'] = "suppressed";
-            break;
-        default:
-      }
-
-      $string .= '  <tr class="'.$entry['html_row_class'].'">' . PHP_EOL;
+      $string .= '  <tr class="'.$priorities[$entry['priority']]['row-class'].'">' . PHP_EOL;
       $string .= '<td class="state-marker"></td>' . PHP_EOL;
 
       if ($short)
       {
-        $string .= '    <td class="syslog" style="white-space: nowrap">';
+        $string .= '    <td class="syslog text-nowrap">';
         $timediff = $GLOBALS['config']['time']['now'] - strtotime($entry['timestamp']);
         $string .= generate_tooltip_link('', formatUptime($timediff, "short-3"), format_timestamp($entry['timestamp']), NULL) . '</td>' . PHP_EOL;
       } else {
-        $string .= '    <td width="130">';
+        $string .= '    <td style="width: 130px">';
         $string .= format_timestamp($entry['timestamp']) . '</td>' . PHP_EOL;
       }
 
@@ -179,7 +156,7 @@ See <a href="'.OBSERVIUM_URL.'/wiki/Category:Documentation" target="_blank">docu
       }
       if ($list['priority'])
       {
-        if (!$short) { $string .= '    <td style="color: ' . $priorities[$entry['priority']]['color'] . '; white-space: nowrap; width: 95px;"><span class="label label-' . $priorities[$entry['priority']]['label-class'] . '">' . nicecase($priorities[$entry['priority']]['name']) . ' (' . $entry['priority'] . ')</span></td>' . PHP_EOL; }
+        if (!$short) { $string .= '    <td style="width: 95px"><span class="label label-' . $priorities[$entry['priority']]['label-class'] . '">' . nicecase($priorities[$entry['priority']]['name']) . ' (' . $entry['priority'] . ')</span></td>' . PHP_EOL; }
       }
       $entry['program'] = (empty($entry['program'])) ? '[[EMPTY]]' : $entry['program'];
       if ($short)

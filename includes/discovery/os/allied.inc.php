@@ -11,10 +11,10 @@
  *
  */
 
-if (strstr($sysObjectId, ".1.3.6.1.4.1.207."))
+if (!$os && str_starts($sysObjectId, '.1.3.6.1.4.1.207.'))
 {
   $os = "allied";
-  if (preg_match('/AW\+/', $sysDescr))
+  if (str_contains($sysDescr, 'AW+'))
   {
     $os = "alliedwareplus";
   }

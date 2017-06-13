@@ -240,9 +240,12 @@ class IncludesFunctionsTest extends PHPUnit_Framework_TestCase
   public function providerSNMPHexString()
   {
     $results = array(
+      // HEX strings
       array('49 6E 70 75 74 20 31 00 ', 'Input 1'),
       array('49 6E 70 75 74 20 31',     'Input 1'),
       array('4A 7D 34 3D',              'J}4='),
+      array('73 70 62 2D    6F 66 66 2D 67 77', 'spb-off-gw'),
+      //Incorrect HEX strings
       array('49 6E 70 75 74 20 31 0',   '49 6E 70 75 74 20 31 0'),
       array('Simple String',            'Simple String'),
       array('49 6E 70 75 74 20 31 0R ', '49 6E 70 75 74 20 31 0R ')
@@ -289,6 +292,11 @@ class IncludesFunctionsTest extends PHPUnit_Framework_TestCase
       // IPv4 (converted to snmp string)
       array('J}4=',         '74.125.52.61'),
       array('J}4:',         '74.125.52.58'),
+      // with newline
+      array('
+^KL=', '94.75.76.61'),
+      // with first space char (possible for OBS_SNMP_CONCAT)
+      array(' ^KL=', '94.75.76.61'),
       array('    ',         '32.32.32.32'),
       // IPv6
       array('20 01 07 F8 00 12 00 01 00 00 00 00 00 05 02 72',  '2001:07f8:0012:0001:0000:0000:0005:0272'),

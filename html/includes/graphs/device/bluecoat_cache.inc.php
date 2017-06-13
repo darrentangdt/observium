@@ -33,8 +33,6 @@ $rrd_list[4]['filename'] = $file;
 $rrd_list[4]['descr'] = "ClientErrors";
 $rrd_list[4]['ds'] = "ClientErrors";
 
-if ($_GET['debug']) { print_vars($rrd_list); }
-
 $colours   = "mixed";
 $nototal   = 1;
 $unit_text = "Requests/sec";

@@ -11,7 +11,7 @@
  *
  */
 
-if ($_GET['id'] && is_numeric($_GET['id'])) { $atm_vp_id = $_GET['id']; }
+if ($vars['id'] && is_numeric($vars['id'])) { $atm_vp_id = $vars['id']; }
 
 $vp = dbFetchRow("SELECT * FROM `juniAtmVp` as J, `ports` AS I, `devices` AS D WHERE J.juniAtmVp_id = ? AND I.port_id = J.port_id AND I.device_id = D.device_id", array($atm_vp_id));
 

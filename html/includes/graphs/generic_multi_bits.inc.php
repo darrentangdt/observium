@@ -30,7 +30,7 @@ foreach ($rrd_filenames as $key => $rrd_filename)
   $rrd_multi['in_thing'][]  = "inoctets" .  $i . ",UN,0," . "inoctets" .  $i . ",IF";
   $rrd_multi['out_thing'][] = "outoctets" . $i . ",UN,0," . "outoctets" . $i . ",IF";
 
-  if ($_GET['previous'])
+  if ($vars['previous'])
   {
     $rrd_options .= " DEF:".$in."octets" . $i . "X=".$rrd_filename.":".$ds_in.":AVERAGE:start=".$prev_from.":end=".$from;
     $rrd_options .= " DEF:".$out."octets" . $i . "X=".$rrd_filename.":".$ds_out.":AVERAGE:start=".$prev_from.":end=".$from;

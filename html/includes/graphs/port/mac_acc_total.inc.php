@@ -11,53 +11,64 @@
  *
  */
 
-$port      = (int)$_GET['id'];
-if ($_GET['stat']) { $stat      = $_GET['stat']; } else { $stat = "bits"; }
-$sort      = $_GET['sort'];
-
-if (is_numeric($_GET['topn'])) { $topn = $_GET['topn']; } else { $topn = '10'; }
+//$port      = (int)$vars['id'];
+$sort      = $vars['sort'];
+if ($vars['stat'])             { $stat = $vars['stat']; } else { $stat = "bits"; }
+if (is_numeric($vars['topn']) && $vars['topn'] > 0) { $topn = $vars['topn']; } else { $topn = '10'; }
 
 include_once($config['html_dir']."/includes/graphs/common.inc.php");
 
 if ($stat == "pkts")
 {
-  $units='pps'; $unit = 'p'; $multiplier = '1';
+  $units = 'pps';
+  $unit = 'p';
+  $multiplier = '1';
   $colours_in  = 'purples';
   $colours_out = 'oranges';
   $prefix = "P";
   if ($sort == "in")
   {
     $sort = "pkts_input_rate";
-  } elseif ($sort == "out") {
+  }
+  else if ($sort == "out")
+  {
     $sort = "pkts_output_rate";
   } else {
     $sort = "bps";
   }
-} elseif ($stat == "bits") {
-  $units='bps'; $unit='B'; $multiplier='8';
+}
+else if ($stat == "bits")
+{
+  $units = 'bps';
+  $unit = 'B';
+  $multiplier = '8';
   $colours_in  = 'greens';
   $colours_out = 'blues';
   if ($sort == "in")
   {
-     $sort = "bytes_input_rate";
+    $sort = "bytes_input_rate";
   } elseif ($sort == "out") {
-     $sort = "bytes_output_rate";
+    $sort = "bytes_output_rate";
   } else {
     $sort = "bps";
   }
 }
 
+// Already populated in auth?
+//$port   = get_port_by_id($vars['id']);
+//$device = device_by_id_cache($port['device_id']);
+
 $mas = dbFetchRows("SELECT *, (bytes_input_rate + bytes_output_rate) AS bps,
-        (pkts_input_rate + pkts_output_rate) AS pps
-        FROM `mac_accounting`
-        LEFT JOIN  `mac_accounting-state` ON  `mac_accounting`.ma_id =  `mac_accounting-state`.ma_id
-        WHERE `mac_accounting`.port_id = ?
-        ORDER BY $sort DESC LIMIT 0," . $topn, array($port));
+                              (pkts_input_rate + pkts_output_rate) AS pps
+                    FROM `mac_accounting`
+                    LEFT JOIN  `mac_accounting-state` USING(`ma_id`)
+                    WHERE `mac_accounting`.port_id = ?
+                    ORDER BY ? DESC LIMIT 0, ?", array($port['port_id'], $sort, $topn));
 
-$port    = get_port_by_id($port);
-$device =  device_by_id_cache($port['device_id']);
 
-$pluses = ""; $iter = '0';
+
+$pluses = "";
+$iter = '0';
 $rrd_options .= " COMMENT:'                                     In\: Current     Maximum      Total      Out\: Current     Maximum     Total\\n'";
 
 foreach ($mas as $ma)
@@ -68,7 +79,7 @@ foreach ($mas as $ma)
   {
     $mac = format_mac($ma['mac']);
     $name = $mac;
-    $addy = dbFetchRow("SELECT * FROM ipv4_mac where mac_address = ? AND port_id = ?", array($ma['mac'], $ma['port_id']));
+    $addy = dbFetchRow("SELECT * FROM `ip_mac` WHERE `mac_address` = ? AND `port_id` = ?", array($ma['mac'], $ma['port_id']));
 
     if ($addy)
     {

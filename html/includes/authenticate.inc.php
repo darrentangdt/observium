@@ -106,8 +106,11 @@ if (is_file($auth_file))
   exit();
 }
 
-if ($vars['page'] == "logout" && $_SESSION['authenticated'])
+// Check logout
+if ($_SESSION['authenticated'] && str_starts(ltrim($_SERVER['REQUEST_URI'], '/'), 'logout'))
 {
+  // Do not use $vars and get_vars here!
+  //print_vars($_SERVER['REQUEST_URI']);
   if (auth_can_logout())
   {
     // No need for a feedback message if user requested a logout

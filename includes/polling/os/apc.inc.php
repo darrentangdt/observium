@@ -11,13 +11,14 @@
  *
  */
 
-#sysDescr.0 = STRING: APC Web/SNMP Management Card (MB:v3.9.2 PF:v3.7.4 PN:apc_hw02_aos_374.bin AF1:v3.7.4 AN1:apc_hw02_rpdu_374.bin MN:AP7920 HR:B2 SN: ZA0619025106 MD:05/08/2006)
-#sysDescr.0 = STRING: APC Web/SNMP Management Card (MB:v3.8.6 PF:v3.5.7 PN:apc_hw03_aos_357.bin AF1:v3.5.6 AN1:apc_hw03_mem_356.bin MN:AP9340 HR:05 SN: ZA0723023958 MD:06/11/2007)
-#sysDescr.0 = STRING: APC Environmental Manager (MB:v3.8.0 PF:v3.0.3 PN:apc_hw03_aos_303.bin AF1:v3.0.4 AN1:apc_hw03_mem_304.bin MN:AP9340 HR:05 SN: IA0711004586 MD:03/16/2007)
-#sysDescr.0 = STRING: APC Web/SNMP Management Card (MB:v3.9.2 PF:v3.7.3 PN:apc_hw02_aos_373.bin AF1:v3.7.2 AN1:apc_hw02_sumx_372.bin MN:AP9617 HR:A10 SN: JA0412054242 MD:03/21/2004) (Embedded PowerNet SNMP Agent SW v2.2 compatible)
+// APC Web/SNMP Management Card (MB:v3.9.2 PF:v3.7.4 PN:apc_hw02_aos_374.bin AF1:v3.7.4 AN1:apc_hw02_rpdu_374.bin MN:AP7920 HR:B2 SN: ZA0619025106 MD:05/08/2006)
+// APC Web/SNMP Management Card (MB:v3.8.6 PF:v3.5.7 PN:apc_hw03_aos_357.bin AF1:v3.5.6 AN1:apc_hw03_mem_356.bin MN:AP9340 HR:05 SN: ZA0723023958 MD:06/11/2007)
+// APC Environmental Manager (MB:v3.8.0 PF:v3.0.3 PN:apc_hw03_aos_303.bin AF1:v3.0.4 AN1:apc_hw03_mem_304.bin MN:AP9340 HR:05 SN: IA0711004586 MD:03/16/2007)
+// APC Web/SNMP Management Card (MB:v3.9.2 PF:v3.7.3 PN:apc_hw02_aos_373.bin AF1:v3.7.2 AN1:apc_hw02_sumx_372.bin MN:AP9617 HR:A10 SN: JA0412054242 MD:03/21/2004) (Embedded PowerNet SNMP Agent SW v2.2 compatible)
+// APC Embedded PowerNet SNMP Agent (FW v3.0.0 SW v2.2.0.a, HW B2, MOD: AP9605, Mfg: 09/10/1997, SN: WA0711004586)
 
 $apc_pattern = '/^APC .*\(MB:.* PF:(.*) PN:.* AF1:(.*) AN1:.* MN:(.*) HR:(.*) SN:(.*) MD:.*/';
-if (preg_match($apc_pattern, $poll_device['sysDescr'], $matches) && stripos($poll_device['sysDescr'], 'Embedded') === FALSE)
+if (preg_match($apc_pattern, $poll_device['sysDescr'], $matches) && !str_icontains($poll_device['sysDescr'], 'Embedded'))
 {
   $version  = $matches[1];
   $features = 'App ' . $matches[2];
@@ -39,26 +40,27 @@ if (preg_match($apc_pattern, $poll_device['sysDescr'], $matches) && stripos($pol
   );
 
   // These oids are in APC's "experimental" tree, but there is no "real" UPS equivalent for the firmware versions.
-  $AOSrev = trim(snmp_get($device, '1.3.6.1.4.1.318.1.4.2.4.1.4.1', '-OQv', 'PowerNet-MIB'),'"');
+  $AOSrev = snmp_get($device, '1.3.6.1.4.1.318.1.4.2.4.1.4.1', '-OQv', 'PowerNet-MIB');
   if ($AOSrev)
   {
-    $APPrev = trim(snmp_get($device, '1.3.6.1.4.1.318.1.4.2.4.1.4.2', '-OQv', 'PowerNet-MIB'),'"');
+    $APPrev   = snmp_get($device, '1.3.6.1.4.1.318.1.4.2.4.1.4.2', '-OQv', 'PowerNet-MIB');
     $version  = $AOSrev;
     $features = "App $APPrev";
   }
 
   foreach ($apc_oids as $oid_list)
   {
-    $serial = trim(snmp_get($device, $oid_list['serial'] . '.0', '-OQv', 'PowerNet-MIB'),'"');
+    $serial = snmp_get($device, $oid_list['serial'] . '.0', '-OQv', 'PowerNet-MIB');
 
     if ($serial)
     {
       // If we can find the serial, we'll get the rest of the data too.
 
-      $hardware = trim(trim(snmp_get($device, $oid_list['model'] . '.0', '-OQv', 'PowerNet-MIB'),'"') . ' ' . trim(snmp_get($device, $oid_list['hwrev'] . '.0', '-OQv', 'PowerNet-MIB'),'"'));
+      $hardware = trim(snmp_get($device, $oid_list['model'] . '.0', '-OQv', 'PowerNet-MIB') . ' ' .
+                       snmp_get($device, $oid_list['hwrev'] . '.0', '-OQv', 'PowerNet-MIB'));
       if ($hardware == ' ') { unset($hardware); }
 
-      if (!$AOSrev) { $version = trim(snmp_get($device, $oid_list['fwrev'] . '.0', '-OQv', 'PowerNet-MIB'),'"'); }
+      if (!$AOSrev) { $version = snmp_get($device, $oid_list['fwrev'] . '.0', '-OQv', 'PowerNet-MIB'); }
 
       break;
     }

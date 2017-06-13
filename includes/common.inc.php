@@ -1405,6 +1405,159 @@ function is_array_assoc($array)
   return (is_array($array) && $array !== array_values($array));
 }
 
+/**
+ * Fast string compare function, checks if string contain $needle
+ *
+ * @param string $string              The string to search in
+ * @param mixed  $needle              If needle is not a string, it is converted to an string
+ * @param mixed  $encoding            For use "slow" multibyte compare, pass required encoding here (ie: UTF-8)
+ * @param binary $case_insensitivity  If case_insensitivity is TRUE, comparison is case insensitive
+ * @return binary                     Returns TRUE if $string starts with $needle or FALSE otherwise
+ */
+function str_contains($string, $needle, $encoding = FALSE, $case_insensitivity = FALSE)
+{
+  // If needle is array, use recursive compare
+  if (is_array($needle))
+  {
+    foreach ($needle as $findme)
+    {
+      if (str_contains($string, (string)$findme, $encoding, $case_insensitivity))
+      {
+        return TRUE;
+      }
+    }
+    return FALSE;
+  }
+
+  $needle  = (string)$needle;
+  $compare = $string === $needle;
+  if ($case_insensitivity)
+  {
+    // Case-INsensitive
+
+    // NOTE, multibyte compare required mb_* functions and slower than general functions
+    if ($encoding && mb_strlen($string, $encoding) != strlen($string))
+    {
+      //$encoding = 'UTF-8';
+      //return mb_strripos($string, $needle, -mb_strlen($string, $encoding), $encoding) !== FALSE;
+      return $compare || mb_stripos($string, $needle) !== FALSE;
+    }
+
+    return $compare || stripos($string, $needle) !== FALSE;
+  } else {
+    // Case-sensitive
+    return $compare || strpos($string, $needle) !== FALSE;
+  }
+}
+
+function str_icontains($string, $needle, $encoding = FALSE)
+{
+  return str_contains($string, $needle, $encoding, TRUE);
+}
+
+/**
+ * Fast string compare function, checks if string begin with $needle
+ *
+ * @param string $string              The string to search in
+ * @param mixed  $needle              If needle is not a string, it is converted to an string
+ * @param mixed  $encoding            For use "slow" multibyte compare, pass required encoding here (ie: UTF-8)
+ * @param binary $case_insensitivity  If case_insensitivity is TRUE, comparison is case insensitive
+ * @return binary                     Returns TRUE if $string starts with $needle or FALSE otherwise
+ */
+function str_starts($string, $needle, $encoding = FALSE, $case_insensitivity = FALSE)
+{
+  // If needle is array, use recursive compare
+  if (is_array($needle))
+  {
+    foreach ($needle as $findme)
+    {
+      if (str_starts($string, (string)$findme, $encoding, $case_insensitivity))
+      {
+        return TRUE;
+      }
+    }
+    return FALSE;
+  }
+
+  $needle = (string)$needle;
+  if ($case_insensitivity)
+  {
+    // Case-INsensitive
+
+    // NOTE, multibyte compare required mb_* functions and slower than general functions
+    if ($encoding && mb_strlen($string, $encoding) != strlen($string))
+    {
+      //$encoding = 'UTF-8';
+      return mb_strripos($string, $needle, -mb_strlen($string, $encoding), $encoding) !== FALSE;
+    }
+
+    return $needle !== ''
+           ? strncasecmp($string, $needle, strlen($needle)) === 0
+           : $string === '';
+  } else {
+    // Case-sensitive
+    return $string[0] === $needle[0]
+           ? strncmp($string, $needle, strlen($needle)) === 0
+           : FALSE;
+  }
+}
+
+function str_istarts($string, $needle, $encoding = FALSE)
+{
+  return str_starts($string, $needle, $encoding, TRUE);
+}
+
+/**
+ * Fast string compare function, checks if string end with $needle
+ *
+ * @param string $string              The string to search in
+ * @param mixed  $needle              If needle is not a string, it is converted to an string
+ * @param mixed  $encoding            For use "slow" multibyte compare, pass required encoding here (ie: UTF-8)
+ * @param binary $case_insensitivity  If case_insensitivity is TRUE, comparison is case insensitive
+ * @return binary                     Returns TRUE if $string ends with $needle or FALSE otherwise
+ */
+function str_ends($string, $needle, $encoding = FALSE, $case_insensitivity = FALSE)
+{
+  // If needle is array, use recursive compare
+  if (is_array($needle))
+  {
+    foreach ($needle as $findme)
+    {
+      if (str_ends($string, (string)$findme, $encoding, $case_insensitivity))
+      {
+        return TRUE;
+      }
+    }
+    return FALSE;
+  }
+
+  $needle  = (string)$needle;
+  $nlen    = strlen($needle);
+  $compare = $needle !== '';
+
+  // NOTE, multibyte compare required mb_* functions and slower than general functions
+  if ($encoding && $compare && mb_strlen($string, $encoding) != strlen($string))
+  {
+    //$encoding = 'UTF-8';
+    $diff = mb_strlen($string, $encoding) - mb_strlen($needle, $encoding);
+    if ($case_insensitivity)
+    {
+      return $diff >= 0 && mb_stripos($string, $needle, $diff, $encoding) !== FALSE;
+    } else {
+      return $diff >= 0 && mb_strpos($string, $needle, $diff, $encoding) !== FALSE;
+    }
+  }
+
+  return $compare
+         ? substr_compare($string, $needle, -$nlen, $nlen, $case_insensitivity) === 0
+         : $string === '';
+}
+
+function str_iends($string, $needle, $encoding = FALSE)
+{
+  return str_ends($string, $needle, $encoding, TRUE);
+}
+
 // DOCME needs phpdoc block
 // TESTME needs unit testing
 function is_cli()
@@ -3231,7 +3384,7 @@ function age_to_unixtime($age, $min_age = 1)
  *
  * This function converts any array or other variable to encoded string
  * which can be used in urls.
- * Can use serialize(default) and json methods.
+ * Can use serialize and json(default) methods.
  *
  * NOTE. In PHP < 5.4 json converts UTF-8 characters to Unicode escape sequences
  * also json rounds float numbers (98172397.1234567890 ==> 98172397.123457)
@@ -3240,21 +3393,15 @@ function age_to_unixtime($age, $min_age = 1)
  * @param string $method
  * @return string
  */
-function var_encode($var, $method = 'serialize')
+function var_encode($var, $method = 'json')
 {
   switch ($method)
   {
-    case 'json':
-      if (defined('JSON_UNESCAPED_UNICODE'))
-      {
-        $string = base64_encode(json_encode($var, JSON_UNESCAPED_UNICODE));
-      } else {
-        // In pre 5.4 used escaped UTF8 (this broke not ASCII texts)
-        $string = base64_encode(json_encode($var));
-      }
+    case 'serialize':
+      $string = base64_encode(serialize($var));
       break;
     default:
-      $string = base64_encode(serialize($var));
+      $string = base64_encode(json_encode($var, OBS_JSON_ENCODE));
       break;
   }
   return $string;
@@ -3264,7 +3411,7 @@ function var_encode($var, $method = 'serialize')
  * Decode an previously encoded string by var_encode() to original variable
  *
  * This function converts base64 encoded string to original variable.
- * Can use serialize(default) and json methods.
+ * Can use serialize and json(default) methods.
  * If json/serialize not detected returns original var
  *
  * NOTE. In PHP < 5.4 json converts UTF-8 characters to Unicode escape sequences,
@@ -3273,7 +3420,7 @@ function var_encode($var, $method = 'serialize')
  * @param string $string
  * @return mixed
  */
-function var_decode($string, $method = 'serialize')
+function var_decode($string, $method = 'json')
 {
   $value = base64_decode($string, TRUE);
   if ($value === FALSE)
@@ -3284,16 +3431,8 @@ function var_decode($string, $method = 'serialize')
 
   switch ($method)
   {
-    case 'json':
-      if ($string === 'bnVsbA==') { return NULL; };
-      $decoded = @json_decode($value, TRUE);
-      if ($decoded !== NULL)
-      {
-        // JSON encoded string detected
-        return $decoded;
-      }
-      break;
-    default:
+    case 'serialize':
+    case 'unserialize':
       if ($value === 'b:0;') { return FALSE; };
       $decoded = @unserialize($value);
       if ($decoded !== FALSE)
@@ -3301,6 +3440,16 @@ function var_decode($string, $method = 'serialize')
         // Serialized encoded string detected
         return $decoded;
       }
+      break;
+    default:
+      if ($string === 'bnVsbA==') { return NULL; };
+      $decoded = @json_decode($value, TRUE, 512, OBS_JSON_DECODE);
+      if ($decoded !== NULL)
+      {
+        // JSON encoded string detected
+        return $decoded;
+      }
+      break;
   }
 
   // In all other cases return original var

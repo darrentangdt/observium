@@ -11,7 +11,7 @@
  *
  */
 
-if (!$os && ($sysObjectId == '.1.3.6.1.4.1.21317' || strpos($sysObjectId, '.1.3.6.1.4.1.21317.') === 0))
+if (!$os && ($sysObjectId == '.1.3.6.1.4.1.21317' || str_starts($sysObjectId, '.1.3.6.1.4.1.21317.')))
 {
   $os = 'aten';
   // ATEN-PE-CFG::modelName.0 = STRING: "PE8108G"

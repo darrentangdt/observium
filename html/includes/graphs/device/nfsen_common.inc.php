@@ -37,7 +37,6 @@ if ($rrd_filename)
     $unit_text = $dsdescr;
     $scale_min = "0";
 
-    if ($_GET['debug']) { print_vars($rrd_list); }
     $nfsen_iter++;
   }
 }

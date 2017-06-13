@@ -1428,6 +1428,219 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
   }
 
   /**
+   * @dataProvider providerStrContains
+   * @group string
+   */
+  public function testStrContains($result, $incase, $string, $needle, $encoding)
+  {
+    if ($incase)
+    {
+      $this->assertSame($result, str_icontains($string, $needle, $encoding));
+    } else {
+      $this->assertSame($result, str_contains($string, $needle, $encoding));
+    }
+  }
+
+  public function providerStrContains()
+  {
+    $test_string1 = 'Observium is a low-maintenance auto-discovering network monitoring platform.';
+    $test_string2 = 'Съешь ещё этих мягких французских булок, да выпей же чаю.'; // UTF-8
+    return array(
+      // case-sensitive
+      array(FALSE, FALSE, $test_string1, ''),
+      array( TRUE, FALSE, $test_string1, $test_string1),
+      array(FALSE, FALSE, $test_string1, $test_string2),
+      array( TRUE, FALSE, $test_string1, 'Observium is a '),
+      array(FALSE, FALSE, $test_string1, 'ObserVium is A '),
+      array(FALSE, FALSE, $test_string1, 'observium is a '),
+      array( TRUE, FALSE, $test_string1, 'bservium'),
+      array(FALSE, FALSE, $test_string2, ''),
+      array( TRUE, FALSE, $test_string2, $test_string2),
+      array(FALSE, FALSE, $test_string2, $test_string1),
+      array( TRUE, FALSE, $test_string2, 'Съешь ещё этих '),
+      array(FALSE, FALSE, $test_string2, 'СъЕшь ещё этиХ '),
+      array(FALSE, FALSE, $test_string2, 'Съешь еще этих '),
+      array( TRUE, FALSE, $test_string2, 'ъешь'),
+      // case-insensitive
+      array(FALSE,  TRUE, $test_string1, ''),
+      array( TRUE,  TRUE, $test_string1, $test_string1),
+      array(FALSE,  TRUE, $test_string1, $test_string2),
+      array( TRUE,  TRUE, $test_string1, 'Observium is a '),
+      array( TRUE,  TRUE, $test_string1, 'ObserVium is A '),
+      array( TRUE,  TRUE, $test_string1, 'observium is a '),
+      array( TRUE,  TRUE, $test_string1, 'bservium'),
+      array(FALSE,  TRUE, $test_string2, ''),
+      array( TRUE,  TRUE, $test_string2, $test_string2),
+      array(FALSE,  TRUE, $test_string2, $test_string1),
+      array( TRUE,  TRUE, $test_string2, 'Съешь ещё этих '),
+      array( TRUE,  TRUE, $test_string2, 'СъЕшь ещё этиХ ', 'UTF-8'), // Require enable "slow" multibyte code in str_startwith()
+      array(FALSE,  TRUE, $test_string2, 'Съешь еще этих '),
+      array( TRUE,  TRUE, $test_string2, 'ъешь'),
+      // other
+      array( TRUE, FALSE,            '', ''),
+      array(FALSE, FALSE,          'abc', 'abcd'),
+      array( TRUE, FALSE, '.1.2.3.1.2.3', '.'),
+      array( TRUE, FALSE, '.1.2.3.1.2.3', '.1.2.3'),
+      array( TRUE, FALSE, '.1.2.3.1.2.3', '1.2.3'),
+      array( TRUE, FALSE,  '1.2.3.1.2.3', 1),
+      array(FALSE, FALSE,  '1.2.3.1.2.3', 7),
+      array( TRUE, FALSE,  '1.2.3.1.2.3', 3.1), // Hrm :)
+      // Arrays (recursive)
+      array( TRUE, FALSE, $test_string1, array(11,   'Observium is a ')),
+      array(FALSE, FALSE, $test_string1, array(11,   'ObserviuM is a ')),
+      array(FALSE, FALSE, $test_string1, array(11,   'observium is a ')),
+      array( TRUE,  TRUE, $test_string1, array(11,   'Observium is a ')),
+      array( TRUE,  TRUE, $test_string1, array(11,   'ObserviuM is a ')),
+      array( TRUE,  TRUE, $test_string1, array(11,   'bservium is a ')),
+      // Not strings
+      array(FALSE,  TRUE, $test_string1, array('fs', array('Observium is a '))),
+      array(FALSE, FALSE, $test_string1, NULL),
+    );
+  }
+
+  /**
+   * @dataProvider providerStrStarts
+   * @group string
+   */
+  public function testStrStarts($result, $incase, $string, $needle, $encoding)
+  {
+    if ($incase)
+    {
+      $this->assertSame($result, str_istarts($string, $needle, $encoding));
+    } else {
+      $this->assertSame($result, str_starts($string, $needle, $encoding));
+    }
+  }
+
+  public function providerStrStarts()
+  {
+    $test_string1 = 'Observium is a low-maintenance auto-discovering network monitoring platform.';
+    $test_string2 = 'Съешь ещё этих мягких французских булок, да выпей же чаю.'; // UTF-8
+    return array(
+      // case-sensitive
+      array(FALSE, FALSE, $test_string1, ''),
+      array( TRUE, FALSE, $test_string1, $test_string1),
+      array(FALSE, FALSE, $test_string1, $test_string2),
+      array( TRUE, FALSE, $test_string1, 'Observium is a '),
+      array(FALSE, FALSE, $test_string1, 'ObserVium is A '),
+      array(FALSE, FALSE, $test_string1, 'observium is a '),
+      array(FALSE, FALSE, $test_string1, 'bservium'),
+      array(FALSE, FALSE, $test_string2, ''),
+      array( TRUE, FALSE, $test_string2, $test_string2),
+      array(FALSE, FALSE, $test_string2, $test_string1),
+      array( TRUE, FALSE, $test_string2, 'Съешь ещё этих '),
+      array(FALSE, FALSE, $test_string2, 'СъЕшь ещё этиХ '),
+      array(FALSE, FALSE, $test_string2, 'Съешь еще этих '),
+      array(FALSE, FALSE, $test_string2, 'ъешь'),
+      // case-insensitive
+      array(FALSE,  TRUE, $test_string1, ''),
+      array( TRUE,  TRUE, $test_string1, $test_string1),
+      array(FALSE,  TRUE, $test_string1, $test_string2),
+      array( TRUE,  TRUE, $test_string1, 'Observium is a '),
+      array( TRUE,  TRUE, $test_string1, 'ObserVium is A '),
+      array( TRUE,  TRUE, $test_string1, 'observium is a '),
+      array(FALSE,  TRUE, $test_string1, 'bservium'),
+      array(FALSE,  TRUE, $test_string2, ''),
+      array( TRUE,  TRUE, $test_string2, $test_string2),
+      array(FALSE,  TRUE, $test_string2, $test_string1),
+      array( TRUE,  TRUE, $test_string2, 'Съешь ещё этих '),
+      array( TRUE,  TRUE, $test_string2, 'СъЕшь ещё этиХ ', 'UTF-8'), // Require enable "slow" multibyte code in str_startwith()
+      array(FALSE,  TRUE, $test_string2, 'Съешь еще этих '),
+      array(FALSE,  TRUE, $test_string2, 'ъешь'),
+      // other
+      array( TRUE, FALSE,            '', ''),
+      array(FALSE, FALSE,          'abc', 'abcd'),
+      array( TRUE, FALSE, '.1.2.3.1.2.3', '.'),
+      array( TRUE, FALSE, '.1.2.3.1.2.3', '.1.2.3'),
+      array(FALSE, FALSE, '.1.2.3.1.2.3', '1.2.3'),
+      array( TRUE, FALSE,  '1.2.3.1.2.3', 1),
+      array(FALSE, FALSE,  '1.2.3.1.2.3', 3),
+      array( TRUE, FALSE,  '1.2.3.1.2.3', 1.2), // Hrm :)
+      // Arrays (recursive)
+      array( TRUE, FALSE, $test_string1, array(11,   'Observium is a ')),
+      array(FALSE, FALSE, $test_string1, array(11,   'ObserviuM is a ')),
+      array(FALSE, FALSE, $test_string1, array(11,   'observium is a ')),
+      array( TRUE,  TRUE, $test_string1, array(11,   'Observium is a ')),
+      array( TRUE,  TRUE, $test_string1, array(11,   'ObserviuM is a ')),
+      array( TRUE,  TRUE, $test_string1, array(11,   'observium is a ')),
+      // Not strings
+      array(FALSE,  TRUE, $test_string1, array('fs', array('Observium is a '))),
+      array(FALSE, FALSE, $test_string1, NULL),
+    );
+  }
+
+  /**
+   * @dataProvider providerStrEnds
+   * @group string
+   */
+  public function testStrEnds($result, $incase, $string, $needle, $encoding)
+  {
+    if ($incase)
+    {
+      $this->assertSame($result, str_iends($string, $needle, $encoding));
+    } else {
+      $this->assertSame($result, str_ends($string, $needle, $encoding));
+    }
+  }
+
+  public function providerStrEnds()
+  {
+    $test_string1 = 'Observium is a low-maintenance auto-discovering network monitoring platforM.';
+    $test_string2 = 'Съешь ещё этих мягких французских булок, да выпей же чаЮ.'; // UTF-8
+    return array(
+      // case-sensitive
+      array(FALSE, FALSE, $test_string1, ''),
+      array( TRUE, FALSE, $test_string1, $test_string1),
+      array(FALSE, FALSE, $test_string1, $test_string2),
+      array( TRUE, FALSE, $test_string1, 'monitoring platforM.'),
+      array(FALSE, FALSE, $test_string1, 'monitOring Platform.'),
+      array(FALSE, FALSE, $test_string1, 'monitoring platform.'),
+      array(FALSE, FALSE, $test_string1, 'Observium is a'),
+      array(FALSE, FALSE, $test_string2, ''),
+      array( TRUE, FALSE, $test_string2, $test_string2),
+      array(FALSE, FALSE, $test_string2, $test_string1),
+      array( TRUE, FALSE, $test_string2, ', да выпей же чаЮ.'),
+      array(FALSE, FALSE, $test_string2, ', Да выпей же ЧаЮ.'),
+      array(FALSE, FALSE, $test_string2, ', да выпеи же чаю.'),
+      array(FALSE, FALSE, $test_string2, 'чаю'),
+      // case-insensitive
+      array(FALSE,  TRUE, $test_string1, ''),
+      array( TRUE,  TRUE, $test_string1, $test_string1),
+      array(FALSE,  TRUE, $test_string1, $test_string2),
+      array( TRUE,  TRUE, $test_string1, 'monitoring platforM.'),
+      array( TRUE,  TRUE, $test_string1, 'monitOring Platform.'),
+      array( TRUE,  TRUE, $test_string1, 'monitoring platform.'),
+      array(FALSE,  TRUE, $test_string1, 'platforM'),
+      array(FALSE,  TRUE, $test_string2, ''),
+      array( TRUE,  TRUE, $test_string2, $test_string2),
+      array(FALSE,  TRUE, $test_string2, $test_string1),
+      array( TRUE,  TRUE, $test_string2, ', да выпей же чаЮ.'),
+      array( TRUE,  TRUE, $test_string2, ', Да выпей же ЧаЮ.', 'UTF-8'), // Require enable "slow" multibyte code in str_endwith()
+      array(FALSE,  TRUE, $test_string2, ', да выпеи же чаю.'),
+      array(FALSE,  TRUE, $test_string2, 'чаю'),
+      // other
+      array( TRUE, FALSE,            '', ''),
+      array(FALSE, FALSE,          'abc', 'abcd'),
+      array( TRUE, FALSE, '.1.2.3.1.2.3', '3'),
+      array( TRUE, FALSE, '.1.2.3.1.2.3', '.1.2.3'),
+      array(FALSE, FALSE, '.1.2.3.1.2.3', '1.2.'),
+      array( TRUE, FALSE,  '1.2.3.1.2.3', 3),
+      array(FALSE, FALSE,  '1.2.3.1.2.3', 1),
+      array( TRUE, FALSE,  '1.2.3.1.2.3', 2.3), // Hrm :)
+      // Arrays (recursive)
+      array( TRUE, FALSE, $test_string1, array(11,   'monitoring platforM.')),
+      array(FALSE, FALSE, $test_string1, array(11,   'Monitoring platforM.')),
+      array(FALSE, FALSE, $test_string1, array(11,   'monitoring platform.')),
+      array( TRUE,  TRUE, $test_string1, array(11,   'monitoring platforM.')),
+      array( TRUE,  TRUE, $test_string1, array(11,   'Monitoring platforM.')),
+      array( TRUE,  TRUE, $test_string1, array(11,   'monitoring platform.')),
+      // Not strings
+      array(FALSE,  TRUE, $test_string1, array('fs', array('monitoring platforM.'))),
+      array(FALSE, FALSE, $test_string1, NULL),
+    );
+  }
+
+  /**
    * @dataProvider providerPrintMessage
    * @group print
    */

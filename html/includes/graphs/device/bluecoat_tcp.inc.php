@@ -29,8 +29,6 @@ $rrd_list[3]['filename'] = $file;
 $rrd_list[3]['descr'] = "tcpEstabResets";
 $rrd_list[3]['ds'] = "tcpEstabResets";
 
-if ($_GET['debug']) { print_vars($rrd_list); }
-
 $colours   = "mixed";
 $nototal   = 1;
 $unit_text = "TCP Connections/sec";

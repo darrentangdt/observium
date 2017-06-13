@@ -961,7 +961,7 @@ $config_variable[$setting]['name']       = "Observium Performance Data Max Age";
 $config_variable[$setting]['type']       = "string";
 $config_variable[$setting]['shortdesc']  = "Maximum age of timing (discovery and poll time) entries in seconds; 0 to disable (i.e. 7*86400 for 7 days.)";
 
-
+/* Paths commented out
 /// PATHS ////////////////////////////////////////////////////////////
 
 $section = 'paths';
@@ -1082,14 +1082,12 @@ $config_variable[$setting]['name']       = "Path to 'mtr' binary";
 $config_variable[$setting]['type']       = "string";
 $config_variable[$setting]['shortdesc']  = "Path to the 'mtr' binary. Required for mtr support in the web interface.";
 
-/*
 $setting = 'nmap';
 $config_variable[$setting]['section']    = $section;
 $config_variable[$setting]['subsection'] = "Network tools";
 $config_variable[$setting]['name']       = "Path to 'nmap' binary";
 $config_variable[$setting]['type']       = "string";
 $config_variable[$setting]['shortdesc']  = "Path to the 'nmap' binary. Required for nmap support in the web interface.";
-*/
 
 // Housekeeping
 
@@ -1117,6 +1115,7 @@ $config_variable[$setting]['subsection'] = "Neighbour maps";
 $config_variable[$setting]['name']       = "Path to 'dot' binary";
 $config_variable[$setting]['type']       = "string";
 $config_variable[$setting]['shortdesc']  = "Path to the 'dot' graphviz binary. Required for display of neighbour maps";
+*/
 
 /* All of this binaries not used for now in neighbour maps
 $setting = 'unflatten';

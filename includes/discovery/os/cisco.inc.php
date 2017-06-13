@@ -34,23 +34,20 @@ if (empty($os))
   );
   foreach ($cisco_os_descr as $cos => $cdescr)
   {
-    foreach ($cdescr as $descr)
+    if (str_contains($sysDescr, $cdescr))
     {
-      if (strpos($sysDescr, $descr) !== FALSE)
-      {
-        $os = $cos;
-        break 2;
-      }
+      $os = $cos;
+      break;
     }
   }
 
-  if (!$os && strpos($sysObjectId, '.1.3.6.1.4.1.9.10.56') !== FALSE)
+  if (!$os && str_starts($sysObjectId, '.1.3.6.1.4.1.9.10.56'))
   {
     // This sysObjectId intersects with Cisco ACS
     $os = 'cisco-lms';
   }
 }
 
-unset($cos, $cdescr, $descr, $cisco_os_descr);
+unset($cos, $cdescr, $cisco_os_descr);
 
 // EOF

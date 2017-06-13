@@ -12,12 +12,12 @@
  */
 
 // First check the sysObjectID, then the sysDescr
-if (strstr($sysObjectId, ".1.3.6.1.4.1.21239.2"))
+if (str_starts($sysObjectId, '.1.3.6.1.4.1.21239.2'))
 {
   $os = 'geist-pdu'; // Default is PDU
 
   // Watchdog 1000
-  if (strstr($sysDescr, "Watchdog")) { $os = "geist-watchdog"; }
+  if (str_contains($sysDescr, 'Watchdog')) { $os = "geist-watchdog"; }
 }
 
 // EOF

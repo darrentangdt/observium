@@ -12,15 +12,15 @@
  */
 
 // First check the sysObjectID, then the sysDescr
-if (strstr($sysObjectId, '.1.3.6.1.4.1.332.11.6'))
+if (str_starts($sysObjectId, '.1.3.6.1.4.1.332.11.6'))
 {
   // FIXME. I not know what it's, but this is not Digi:
   // T.I.M.: Itelsis Module which provides SNMP and HTTP telemanagement.
   // T.I.M.: Module which provides SNMP and HTTP telemanagement.
-  if (!strstr($sysDescr, 'T.I.M.'))     { $os = 'digios'; }
+  if (!str_contains($sysDescr, 'T.I.M.')) { $os = 'digios'; }
 
-  if      (strstr($sysDescr, 'AnywhereUSB')) { $os = 'digi-anyusb'; }
-  else if (strstr(snmp_get($device, 'mdu12Ident.0', '-Oqv', 'TSL-MIB'), 'MDU12')) { $os = 'tsl-mdu12'; }
+  if      (str_contains($sysDescr, 'AnywhereUSB')) { $os = 'digi-anyusb'; }
+  else if (str_contains(snmp_get($device, 'mdu12Ident.0', '-Oqv', 'TSL-MIB'), 'MDU12')) { $os = 'tsl-mdu12'; }
 }
 
 // EOF

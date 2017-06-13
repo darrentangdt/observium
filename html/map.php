@@ -30,7 +30,7 @@ if ($_SESSION['authenticated'])
     return;
   }
 }
-else if (!is_file($config['dot']))
+else //if (!is_file($config['dot']))
 {
   exit;
 }

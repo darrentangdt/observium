@@ -67,12 +67,15 @@ echo '<table class="table table-hover  '.$table_class.' table-condensed ">';
   echo get_table_header($cols, $vars);
 
 $where = 'WHERE 1';
+$order = '';
 if ($vars['deleted'] != 1)
 {
   $where .= ' AND `deleted` = 0';
+} else {
+  $order .= '`deleted`,';
 }
 $where .= ' AND `device_id` = ? AND `peer_addr` != ?';
-$query = "SELECT * FROM `ipsec_tunnels` $where ORDER BY `peer_addr`, `tunnel_index`";
+$query = "SELECT * FROM `ipsec_tunnels` $where ORDER BY $order `tunnel_added` DESC, `peer_addr`";
 
 foreach (dbFetchRows($query, array($device['device_id'], '')) as $tunnel)
 {
@@ -119,7 +122,7 @@ foreach (dbFetchRows($query, array($device['device_id'], '')) as $tunnel)
   <td><b>&#187;</b></td>
   <td>' . generate_popup_link('ip', $tunnel['peer_addr']) . '</td>
   <td>' . $tunnel['tunnel_name'] . '</td>
-  <td><span>' . $tunnel_endpoint . '</span></td>
+  <td><span class="text-nowrap">' . $tunnel_endpoint . '</span></td>
   <td><span>' . generate_tooltip_link(NULL, formatUptime($tunnel['tunnel_lifetime'], 'short-3'), $tunnel['tunnel_lifetime'] . ' sec') . '</span></td>
   <td><span class="label '.$tunnel['ike_label_class'].'">' . $tunnel['tunnel_ike_alive'] . '</span></td>
   <td><span>' . generate_tooltip_link(NULL, formatUptime($tunnel['tunnel_ike_lifetime'], 'short-3'), $tunnel['tunnel_ike_lifetime'] . ' sec') . '</span></td>

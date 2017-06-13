@@ -11,10 +11,10 @@
  *
  */
 
-if (!$os && strpos($sysObjectId, '.1.3.6.1.4.1.4413') === 0)
+if (!$os && ($sysObjectId == '.1.3.6.1.4.1.4413' || str_starts($sysObjectId, '.1.3.6.1.4.1.4413.')))
 {
   $os = 'broadcom_fastpath'; // Generic Broadcom
-  if (preg_match('/^USW-/', $sysDescr))
+  if (str_starts($sysDescr, 'USW-'))
   {
     //USW-48P-750, 3.3.1.3458, Linux 3.6.5
     //USW-48P-500, 3.3.5.3734, Linux 3.6.5

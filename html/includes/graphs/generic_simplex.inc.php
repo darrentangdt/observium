@@ -138,7 +138,7 @@ if ($config['old_graphs'])
     $rrd_options .= " LINE1:".$ds."_percentile#aa0000";
   }
 
-  if ($_GET['previous'] == "yes")
+  if ($vars['previous'] == "yes")
   {
     $rrd_options .= " LINE1.25:".$ds."X#666666:'Prev \\n'";
     $rrd_options .= " AREA:".$ds."X#99999966:";

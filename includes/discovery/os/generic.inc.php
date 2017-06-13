@@ -11,7 +11,7 @@
  *
  */
 
-if (!$os && ($sysObjectId == '.1.3.6.1.4.1.16972' || strpos($sysObjectId, '.1.3.6.1.4.1.1.2.3.4.5') === 0)) // Too many vendors/devices
+if (!$os && ($sysObjectId == '.1.3.6.1.4.1.16972' || str_starts($sysObjectId, '.1.3.6.1.4.1.1.2.3.4.5'))) // Too many vendors/devices
 {
   if (preg_match('/^\d+\.\d+\.\d+(?: \d\.\d+ v[\w\.]+)? Build \d+ Rel\.\d+\w?/', $sysDescr))
   {

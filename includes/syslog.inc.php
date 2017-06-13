@@ -224,6 +224,19 @@ function process_syslog($entry, $update)
       list(, $entry['msg']) = explode(': %', $entry['msg'], 2);
       list($entry['program'], $entry['msg']) = explode(' : ', $entry['msg'], 2);
     }
+    else if (in_array($os, array('junos', 'junose')))
+    {
+      //1.1.1.1||9||6||6||/usr/sbin/cron[1305]:||2015-04-08 14:30:01|| (root) CMD (   /usr/libexec/atrun)||
+      if (empty($entry['program']))
+      {
+        $entry['program'] = preg_replace('/\[\d+\]$/', '', rtrim($entry['tag'], ':')); // /usr/sbin/cron[1305]: -> /usr/sbin/cron
+        $entry['program'] = end(explode('/', $entry['program'])); // /usr/sbin/cron -> cron
+      }
+      // FIXME, not sure about this messages, probably also parse program like for cisco?
+      //1.1.1.1||3||4||4||mib2d[1230]:||2015-04-08 14:30:11|| SNMP_TRAP_LINK_DOWN: ifIndex 602, ifAdminStatus up(1), ifOperStatus down(2), ifName ge-0/1/0||mib2d
+      //1.1.1.1||3||6||6||chassism[1210]:||2015-04-08 14:30:16|| ethswitch_eth_devstop: called for port ge-0/1/1||chassism
+      //1.1.1.1||3||3||3||chassism[1210]:||2015-04-08 14:30:22|| ETH:if_ethgetinfo() returns error||chassism
+    }
     else if ($os == 'linux' && get_cache($entry['host'], 'version') == 'Point')
     {
       // Cisco WAP200 and similar
@@ -301,6 +314,19 @@ function process_syslog($entry, $update)
       list(,,,$entry['msg']) = explode(' ', $entry['msg'], 4);
       list($entry['program'], $entry['msg']) = explode(' : ', $entry['msg'], 3);
     }
+    else if (str_starts($entry['program'], '(') && str_contains($entry['msg'], ': '))
+    {
+      // Ubiquiti Unifi devices
+      // Wtf is BZ2LR and BZ@..
+      /**
+       *Old:  10.10.34.10||3||6||6||hostapd:||2014-07-18 11:29:35|| ath2: STA c8:dd:c9:d1:d4:aa IEEE 802.11: associated||hostapd
+       *New:  10.10.34.10||3||6||6||(BZ2LR,00272250c1cd,v3.2.5.2791)||2014-12-12 09:36:39|| hostapd: ath2: STA dc:a9:71:1b:d6:c7 IEEE 802.11: associated||(BZ2LR,00272250c1cd,v3.2.5.2791)
+       *New2: 10.10.34.11||1||6||6||("BZ2LR,00272250c119,v3.7.8.5016")||2016-10-06 18:20:25|| syslog: wevent.ubnt_custom_event(): EVENT_STA_LEAVE ath0: dc:a9:71:1b:d6:c7 / 3||("BZ2LR,00272250c119,v3.7.8.5016")
+       *      10.10.34.7||1||6||6||("U7LR,44d9e7f618f2,v3.7.17.5220")||2016-10-06 18:21:22|| libubnt[16915]: wevent.ubnt_custom_event(): EVENT_STA_JOIN ath0: fc:64:ba:c1:7d:28 / 1||("U7LR,44d9e7f618f2,v3.7.17.5220")
+       */
+      list($entry['program'], $entry['msg']) = explode(': ', $entry['msg'], 2);
+      $entry['program'] = preg_replace('/\[\d+\]$/', '', $entry['program']);
+    }
 
     if ($entry['program'] == '')
     {
@@ -313,15 +339,6 @@ function process_syslog($entry, $update)
         // Something wrong, both program and msg empty
         return $entry;
       }
-    }
-    else if (strpos($entry['program'], '(BZ2') === 0)
-    {
-      // Wtf is BZ2LR and BZ@..
-      /**
-       *Old: 10.10.34.10||3||6||6||hostapd:||2014-07-18 11:29:35|| ath2: STA c8:dd:c9:d1:d4:aa IEEE 802.11: associated||hostapd
-       *New: 10.10.34.10||3||6||6||(BZ2LR,00272250c1cd,v3.2.5.2791)||2014-12-12 09:36:39|| hostapd: ath2: STA dc:a9:71:1b:d6:c7 IEEE 802.11: associated||(BZ2LR,00272250c1cd,v3.2.5.2791)
-       */
-      list($entry['program'], $entry['msg']) = explode(': ', $entry['msg'], 2);
     }
 
     $entry['program'] = strtoupper($entry['program']);

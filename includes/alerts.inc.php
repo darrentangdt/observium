@@ -1012,10 +1012,8 @@ function process_alerts($device)
 
       if (!$alert['suppress_recovery'])
       {
-
-        alert_notifier($entry, "recovery");
-
         $log_id = log_alert('Recovery notification sent', $device, $entry, 'RECOVER_NOTIFY');
+        alert_notifier($entry, "recovery", $log_id);
       } else {
         echo('Recovery suppressed.');
         $log_id = log_alert('Recovery notification suppressed', $device, $entry, 'RECOVER_SUPPRESSED');
@@ -1046,9 +1044,8 @@ function process_alerts($device)
       {
         echo('Requires notification. ');
 
-        alert_notifier($entry, "alert");
-
         $log_id = log_alert('Alert notification sent', $device, $entry, 'ALERT_NOTIFY');
+        alert_notifier($entry, "alert", $log_id);
 
         $update_array['last_alerted'] = time();
         $update_array['has_alerted'] = 1;
@@ -1086,14 +1083,21 @@ function process_alerts($device)
  * Generate notifications for an alert entry
  *
  * @param array entry
+ * @param string Alert type
+ * @param integer Log entry ID
  * @return NULL
  */
-function alert_notifier($entry, $type = "alert")
+function alert_notifier($entry, $type = "alert", $log_id = NULL)
 {
-
   global $config, $alert_rules;
 
   $device = device_by_id_cache($entry['device_id']);
+
+  if (empty($log_id) && is_numeric($entry['log_id']))
+  {
+    // Log ID can passed as argument or inside entry array
+    $log_id = $entry['log_id'];
+  }
 
   $alert = $alert_rules[$entry['alert_test_id']];
 
@@ -1278,9 +1282,9 @@ function alert_notifier($entry, $type = "alert")
         }
       }
 
-      if ($notification_count)
+      if ($notification_count && $log_id)
       {
-        dbUpdate(array('notified' => 1), 'alert_log', '`event_id` = ?', array($notification['log_id']));
+        dbUpdate(array('notified' => 1), 'alert_log', '`event_id` = ?', array($log_id));
       }
     }
   }

@@ -21,8 +21,6 @@ $rrd_list[1]['filename'] = $file;
 $rrd_list[1]['descr'] = "ServerErrors";
 $rrd_list[1]['ds'] = "ServerErrors";
 
-if ($_GET['debug']) { print_vars($rrd_list); }
-
 $colours   = "mixed";
 $nototal   = 1;
 $unit_text = "Requests/sec";
