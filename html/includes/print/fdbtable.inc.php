@@ -47,6 +47,16 @@ function print_fdbtable($vars)
         case 'port_name':
           $where .= generate_query_values($value, 'I.ifDescr', 'LIKE%');
           break;
+        case 'trunk':
+          if (in_array($value, array('ok', 'yes', '1')))
+          {
+            $where .= " AND (`I`.`ifTrunk` IS NOT NULL AND `I`.`ifTrunk` != '')";
+          }
+          else if (in_array($value, array('none', 'no', '0')))
+          {
+            $where .= " AND (`I`.`ifTrunk` IS NULL OR `I`.`ifTrunk` = '')";
+          }
+          break;
         case 'vlan_id':
           $where .= generate_query_values($value, 'F.vlan_id');
           break;
@@ -113,6 +123,7 @@ function print_fdbtable($vars)
     'mac'            => array('MAC Address', 'style="width: 160px;"'),
     'status'         => array('Status', 'style="width: 100px;"'),
     'port'           => 'Port',
+    'trunk'          => 'Trunk',
     'vlan_id'        => 'VLAN ID',
     'vlan_name'      => 'VLAN NAME',
   );
@@ -138,6 +149,7 @@ function print_fdbtable($vars)
     $string .= '    <td>' . generate_popup_link('mac', format_mac($entry['mac_address'])) . '</td>' . PHP_EOL;
     $string .= '    <td>' . $entry['fdb_status'] . '</td>' . PHP_EOL;
     if ($list['port']) { $string .= '    <td class="entity">' . generate_port_link($entry, $entry['port_label_short']) . ' ' . $port_error . '</td>' . PHP_EOL; }
+    $string .= '    <td><span class="label">' . $entry['ifTrunk'] . '</span></td>' . PHP_EOL;
     $string .= '    <td>Vlan' . $entry['vlan_vlan'] . '</td>' . PHP_EOL;
     $string .= '    <td>' . $entry['vlan_name'] . '</td>' . PHP_EOL;
     $string .= '  </tr>' . PHP_EOL;

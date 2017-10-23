@@ -13,133 +13,493 @@
  */
 
 echo(" PDU2-MIB ");
+$mib = 'PDU2-MIB';
 
-$measures = array(
-  'rmsCurrent'    => array('class' => 'current', 'oid_suffix' => 1, 'scale' => 0.1),
-  'rmsVoltage'    => array('class' => 'voltage', 'oid_suffix' => 4, 'scale' => 1),
-  'activePower'   => array('class' => 'power',   'oid_suffix' => 5, 'scale' => 1),
-  'apparentPower' => array('class' => 'apower',  'oid_suffix' => 6, 'scale' => 1),
-  // Todo: we don't support power factor yet
+$pduId = '1'; // PX2/3 and transfer switch: pduiId = 1
+
+// SensorTypeEnumeration
+$oid_types = array(
+  'rmsCurrent'            => array('type' => 'current',     'index' => 1),
+  'peakCurrent'           => array('type' => 'current',     'index' => 2),
+  'unbalancedCurrent'     => array('type' => 'current',     'index' => 3),
+  'rmsVoltage'            => array('type' => 'voltage',     'index' => 4),
+  'activePower'           => array('type' => 'power',       'index' => 5),
+  'apparentPower'         => array('type' => 'apower',      'index' => 6),
+  'powerFactor'           => array('type' => 'powerfactor', 'index' => 7),
+  //'activeEnergy'          => array('type' => 'energy',      'index' => 8), // currently not supported
+  //'apparentEnergy'        => array('type' => 'energy',      'index' => 9), // currently not supported
+  'temperature'           => array('type' => 'temperature', 'index' => 10),
+  'humidity'              => array('type' => 'humidity',    'index' => 11),
+  'airFlow'               => array('type' => '',            'index' => 12),
+  'airPressure'           => array('type' => '',            'index' => 13),
+  'onOff'                 => array('type' => '',            'index' => 14),
+  'trip'                  => array('type' => '',            'index' => 15),
+  'vibration'             => array('type' => '',            'index' => 16),
+  'waterDetection'        => array('type' => '',            'index' => 17),
+  'smokeDetection'        => array('type' => '',            'index' => 18),
+  'binary'                => array('type' => '',            'index' => 19),
+  //'contact'               => array('type' => '',            'index' => 20),
+  'fanSpeed'              => array('type' => 'fanspeed',    'index' => 21),
+  'surgeProtectorStatus'  => array('type' => '',            'index' => 22),
+  'frequency'             => array('type' => 'frequency',   'index' => 23),
+  //'phaseAngle'            => array('type' => '',            'index' => 24),
+  'rmsVoltageLN'          => array('type' => 'voltage',     'index' => 25),
+  'residualCurrent'       => array('type' => 'current',     'index' => 26),
+  'rcmState'              => array('type' => '',            'index' => 27),
+  'absoluteHumidity'      => array('type' => 'humidity',    'index' => 28),
+  'reactivePower'         => array('type' => 'rpower',      'index' => 29),
+  'other'                 => array('type' => '',            'index' => 30),
+  'none'                  => array('type' => '',            'index' => 31),
+  'powerQuality'          => array('type' => '',            'index' => 32),
+  'overloadStatus'        => array('type' => '',            'index' => 33),
+  'overheatStatus'        => array('type' => '',            'index' => 34),
+  'displacementPowerFactor' => array('type' => '',          'index' => 35),
+  'fanStatus'             => array('type' => '',            'index' => 37),
+  //'inletPhaseSyncAngle'   => array('type' => '',            'index' => 38),
+  //'inletPhaseSync'        => array('type' => '',            'index' => 39),
+  'operatingState'        => array('type' => '',            'index' => 40),
+  'activeInlet'           => array('type' => '',            'index' => 41),
+  'illuminance'           => array('type' => 'illuminance', 'index' => 42),
+  'doorContact'           => array('type' => '',            'index' => 43),
+  'tamperDetection'       => array('type' => '',            'index' => 44),
+  'motionDetection'       => array('type' => '',            'index' => 45),
+  'i1smpsStatus'          => array('type' => '',            'index' => 46),
+  'i2smpsStatus'          => array('type' => '',            'index' => 47),
+  'switchStatus'          => array('type' => '',            'index' => 48),
 );
 
-// Outlets
-$outletNames                 = snmpwalk_cache_oid($device, "PDU2-MIB::outletName.1",                         array(), "PDU2-MIB");
-$outletThresholds            = snmpwalk_cache_oid($device, "PDU2-MIB::outletSensorEnabledThresholds.1",      array(), "PDU2-MIB");
-$measurements                = snmpwalk_cache_oid($device, "PDU2-MIB::measurementsOutletSensorValue.1",      array(), "PDU2-MIB");
-$outlet_lower_crit_threshold = snmpwalk_cache_oid($device, "PDU2-MIB::outletSensorLowerCriticalThreshold.1", array(), "PDU2-MIB");
-$outlet_lower_warn_threshold = snmpwalk_cache_oid($device, "PDU2-MIB::outletSensorLowerWarningThreshold.1",  array(), "PDU2-MIB");
-$outlet_upper_warn_threshold = snmpwalk_cache_oid($device, "PDU2-MIB::outletSensorUpperWarningThreshold.1",  array(), "PDU2-MIB");
-$outlet_upper_crit_threshold = snmpwalk_cache_oid($device, "PDU2-MIB::outletSensorUpperCriticalThreshold.1", array(), "PDU2-MIB");
+// SensorUnitsEnumeration
+$oid_units = array(
+  //none(-1),
+  //other(0),
+  'volt'            => array('type' => 'voltage'),
+  'amp'             => array('type' => 'current'),
+  'watt'            => array('type' => 'power'),
+  'voltamp'         => array('type' => 'apower'),
+  //wattHour(5),
+  //voltampHour(6),
+  'degreeC'         => array('type' => 'temperature', 'unit' => 'C'),
+  'hertz'           => array('type' => 'frequency'),
+  'percent'         => array('type' => 'humidity'),
+  'meterpersec'     => array('type' => 'velocity'),
+  'pascal'          => array('type' => 'pressure'),
+  'psi'             => array('type' => 'pressure', 'unit' => 'psi'),
+  //g(13),
+  'degreeF'         => array('type' => 'temperature', 'unit' => 'F'),
+  //feet(15),
+  //inches(16),
+  //cm(17),
+  //meters(18),
+  'rpm'             => array('type' => 'fanspeed'),
+  //degrees(20),
+  'lux'             => array('type' => 'illuminance'),
+  //grampercubicmeter(22),
+  'var'             => array('type' => 'rpower'),
+);
 
-foreach($measures as $measure_type => $measure_data)
+// Inlets
+$names = snmpwalk_cache_oid($device, "inletName.$pduId",                          array(), $mib);
+$oids  = snmpwalk_cache_oid($device, "inletSensorUnits.$pduId",                   array(), $mib);
+$oids  = snmpwalk_cache_oid($device, "inletSensorDecimalDigits.$pduId",             $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "inletSensorEnabledThresholds.$pduId",         $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "inletSensorLowerCriticalThreshold.$pduId",    $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "inletSensorLowerWarningThreshold.$pduId",     $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "inletSensorUpperWarningThreshold.$pduId",     $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "inletSensorUpperCriticalThreshold.$pduId",    $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "measurementsInletSensorIsAvailable.$pduId",   $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "measurementsInletSensorState.$pduId",         $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "measurementsInletSensorValue.$pduId",         $oids, $mib);
+print_debug_vars($names);
+print_debug_vars($oids);
+
+foreach ($oids as $index => $entry)
 {
-  foreach ($outletNames as $index => $entry)
+  //list($pduId, $id, $sensorType) = explode('.', $index);
+  list(, $id, $sensorType) = explode('.', $index);
+  $index_id     = $pduId . '.' . $id;
+  $index        = $index_id . '.' . $oid_types[$sensorType]['index']; // Convert to numeric index
+
+  if (!isset($oid_types[$sensorType]) || $entry['measurementsInletSensorIsAvailable'] == 'false')
   {
-    $oid = ".1.3.6.1.4.1.13742.6.5.4.3.1.4.$index." . $measure_data['oid_suffix'];
-    $value = $measurements["$index.$measure_type"]['measurementsOutletSensorValue'];
-    if ($entry['outletName'] != '')
+    continue;
+  }
+
+  if ($names[$index_id]['inletName'] != '')
+  {
+    $descr = "Inlet $index_id: " . $names[$index_id]['inletName'];
+  } else {
+    $descr = "Inlet $index_id";
+  }
+
+  $scale    = si_to_scale($entry['inletSensorDecimalDigits'] * -1);
+  $oid_name = 'measurementsInletSensorValue';
+  $oid_num  = '.1.3.6.1.4.1.13742.6.5.2.3.1.4.' . $index;
+  $type     = $mib . '-' . $oid_name;
+  $value    = $entry[$oid_name];
+
+  // Limits (based on enabled thresholds)
+  //  SYNTAX BITS {
+  //    lowerCritical(0),
+  //    lowerWarning(1),
+  //    upperWarning(2),
+  //    upperCritical(3),
+  // }
+  $options      = array();
+  $limits_flags = base_convert($entry['inletSensorEnabledThresholds'], 16, 10);
+  if (is_flag_set(bindec(10000000), $limits_flags)) // 0b 1000 0000
+  {
+    $options['limit_low']       = $entry['inletSensorLowerCriticalThreshold'] * $scale;
+  }
+  if (is_flag_set(bindec(1000000),  $limits_flags)) // 0b 0100 0000
+  {
+    $options['limit_low_warn']  = $entry['inletSensorLowerWarningThreshold']  * $scale;
+  }
+  if (is_flag_set(bindec(100000),   $limits_flags)) // 0b 0010 0000
+  {
+    $options['limit_high_warn'] = $entry['inletSensorUpperWarningThreshold']  * $scale;
+  }
+  if (is_flag_set(bindec(10000),    $limits_flags)) // 0b 0001 0000
+  {
+    $options['limit_high']      = $entry['inletSensorUpperCriticalThreshold'] * $scale;
+  }
+
+  // Detect type & unit
+  $unit = array();
+  if (isset($oid_units[$entry['inletSensorUnits']]))
+  {
+    $unit = $oid_units[$entry['inletSensorUnits']];
+  }
+  else if (!empty($oid_types[$sensorType]['type']))
+  {
+    // Other sensors based on SensorTypeEnumeration
+    $unit = $oid_types[$sensorType];
+  } else {
+    $oid_name = 'measurementsInletSensorState';
+    $oid_num  = '.1.3.6.1.4.1.13742.6.5.2.3.1.3.'.$index;
+    $type     = 'pdu2-sensorstate';
+    $value    = $entry[$oid_name];
+
+    discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr, $value, array('entPhysicalClass' => 'other'));
+    continue;
+  }
+
+  if (isset($unit['type']))
+  {
+    if (isset($unit['unit']))
     {
-      $descr = "Outlet $index: " . $entry['outletName'];
-    } else {
-      $descr = "Outlet $index";
+      $options['sensor_unit'] = $unit['unit'];
     }
 
-    $rmsCurrentThreshold = hexdec($outletThresholds["$index.$measure_type"]);
-    $limits = array(
-      'limit_low' => $outletThresholds[$index . '.' . $measure_type]['outletSensorEnabledThresholds'] & 128
-        ? $outlet_lower_crit_threshold[$index . '.' . $measure_type]['outletSensorLowerCriticalThreshold'] * $measure_data['scale'] : null,
-      'limit_low_warn' => $outletThresholds[$index . '.' . $measure_type]['outletSensorEnabledThresholds'] & 64
-        ? $outlet_lower_warn_threshold[$index . '.' . $measure_type]['outletSensorLowerWarningThreshold'] * $measure_data['scale'] : null,
-      'limit_high_warn' => $outletThresholds[$index . '.' . $measure_type]['outletSensorEnabledThresholds'] & 32
-        ? $outlet_upper_warn_threshold[$index .'.' . $measure_type]['outletSensorUpperWarningThreshold'] * $measure_data['scale'] : null,
-      'limit_high' => $outletThresholds[$index . '.' . $measure_type]['outletSensorEnabledThresholds'] & 16
-        ? $outlet_upper_crit_threshold [$index . '.' . $measure_type]['outletSensorUpperCriticalThreshold'] * $measure_data['scale'] : null
-    );
+    // CLEANME. Compatibility, remove in r9500, but not before CE 17.8
+    rename_rrd_entity($device, 'sensor', array('descr' => $descr, 'class' => $unit['type'], 'index' => "inlet.$index_id.$sensorType", 'type' => 'raritan'), // old
+                                         array('descr' => $descr, 'class' => $unit['type'], 'index' => $index,                        'type' => $type));    // new
 
-    if ($value !== false)
-    {
-      discover_sensor(
-        $valid['sensor'], $measure_data['class'], $device, $oid, "outlet.$index.$measure_type",
-        'raritan', $descr, $measure_data['scale'], $value, $limits
-      );
-    }
+    discover_sensor($valid['sensor'], $unit['type'], $device, $oid_num, $index, $type, $descr, $scale, $value, $options);
   }
 }
 
-// Inlets
-$inlet_names                = snmpwalk_cache_oid($device, "PDU2-MIB::inletName.1",                         array(), "PDU2-MIB");
-$inlet_thresholds           = snmpwalk_cache_oid($device, "PDU2-MIB::inletSensorEnabledThresholds.1",      array(), "PDU2-MIB");
-$measurements               = snmpwalk_cache_oid($device, "PDU2-MIB::measurementsInletSensorValue.1",      array(), "PDU2-MIB");
-$inlet_lower_crit_threshold = snmpwalk_cache_oid($device, "PDU2-MIB::inletSensorLowerCriticalThreshold.1", array(), "PDU2-MIB");
-$inlet_lower_warn_threshold = snmpwalk_cache_oid($device, "PDU2-MIB::inletSensorLowerWarningThreshold.1",  array(), "PDU2-MIB");
-$inlet_upper_warn_threshold = snmpwalk_cache_oid($device, "PDU2-MIB::inletSensorUpperWarningThreshold.1",  array(), "PDU2-MIB");
-$inlet_upper_crit_threshold = snmpwalk_cache_oid($device, "PDU2-MIB::inletSensorUpperCriticalThreshold.1", array(), "PDU2-MIB");
+// Outlets
+$names = snmpwalk_cache_oid($device, "outletName.$pduId",                         array(), $mib);
+$oids  = snmpwalk_cache_oid($device, "outletSensorUnits.$pduId",                  array(), $mib);
+$oids  = snmpwalk_cache_oid($device, "outletSensorDecimalDigits.$pduId",            $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "outletSensorEnabledThresholds.$pduId",        $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "outletSensorLowerCriticalThreshold.$pduId",   $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "outletSensorLowerWarningThreshold.$pduId",    $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "outletSensorUpperWarningThreshold.$pduId",    $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "outletSensorUpperCriticalThreshold.$pduId",   $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "measurementsOutletSensorIsAvailable.$pduId",  $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "measurementsOutletSensorState.$pduId",        $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "measurementsOutletSensorValue.$pduId",        $oids, $mib);
+print_debug_vars($names);
+print_debug_vars($oids);
 
-foreach($measures as $measure_type => $measure_data)
+foreach ($oids as $index => $entry)
 {
-  foreach ($inlet_names as $index => $entry)
+  //list($pduId, $id, $sensorType) = explode('.', $index);
+  list(, $id, $sensorType) = explode('.', $index);
+  $index_id = $pduId . '.' . $id;
+  $index        = $index_id . '.' . $oid_types[$sensorType]['index']; // Convert to numeric index
+
+  if (!isset($oid_types[$sensorType]) || $entry['measurementsOutletSensorIsAvailable'] == 'false')
   {
-    $oid = ".1.3.6.1.4.1.13742.6.5.2.3.1.4.$index." . $measure_data['oid_suffix'];
-    $value = $measurements["$index.$measure_type"]['measurementsInletSensorValue'];
-    if ($entry['inletName'] != '')
+    continue;
+  }
+
+  if ($names[$index_id]['outletName'] != '')
+  {
+    $descr = "Outlet $index_id: " . $names[$index_id]['outletName'];
+  } else {
+    $descr = "Outlet $index_id";
+  }
+
+  $scale    = si_to_scale($entry['outletSensorDecimalDigits'] * -1);
+  $oid_name = 'measurementsOutletSensorValue';
+  $oid_num  = '.1.3.6.1.4.1.13742.6.5.4.3.1.4.' . $index;
+  $type     = $mib . '-' . $oid_name;
+  $value    = $entry[$oid_name];
+
+  // Limits (based on enabled thresholds)
+  //  SYNTAX BITS {
+  //    lowerCritical(0),
+  //    lowerWarning(1),
+  //    upperWarning(2),
+  //    upperCritical(3),
+  // }
+  $options      = array();
+  $limits_flags = base_convert($entry['outletSensorEnabledThresholds'], 16, 10);
+  if (is_flag_set(bindec(10000000), $limits_flags)) // 0b 1000 0000
+  {
+    $options['limit_low']       = $entry['outletSensorLowerCriticalThreshold'] * $scale;
+  }
+  if (is_flag_set(bindec(1000000),  $limits_flags)) // 0b 0100 0000
+  {
+    $options['limit_low_warn']  = $entry['outletSensorLowerWarningThreshold']  * $scale;
+  }
+  if (is_flag_set(bindec(100000),   $limits_flags)) // 0b 0010 0000
+  {
+    $options['limit_high_warn'] = $entry['outletSensorUpperWarningThreshold']  * $scale;
+  }
+  if (is_flag_set(bindec(10000),    $limits_flags)) // 0b 0001 0000
+  {
+    $options['limit_high']      = $entry['outletSensorUpperCriticalThreshold'] * $scale;
+  }
+
+  // Detect type & unit
+  $unit = array();
+  if (isset($oid_units[$entry['outletSensorUnits']]))
+  {
+    $unit = $oid_units[$entry['outletSensorUnits']];
+  }
+  else if (!empty($oid_types[$sensorType]['type']))
+  {
+    // Other sensors based on SensorTypeEnumeration
+    $unit = $oid_types[$sensorType];
+  } else {
+    $oid_name = 'measurementsOutletSensorState';
+    $oid_num  = '.1.3.6.1.4.1.13742.6.5.4.3.1.3.'.$index;
+    $type     = 'pdu2-sensorstate';
+    $value    = $entry[$oid_name];
+
+    discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr, $value, array('entPhysicalClass' => 'other'));
+    continue;
+  }
+
+  if (isset($unit['type']))
+  {
+    if (isset($unit['unit']))
     {
-      $descr = "Inlet $index: " . $entry['inletName'];
-    } else {
-      $descr = "Inlet $index";
+      $options['sensor_unit'] = $unit['unit'];
     }
 
-    $rmsCurrentThreshold = hexdec($inlet_thresholds["$index.$measure_type"]);
-    $limits = array(
-      'limit_low' => $inlet_thresholds[$index . '.' . $measure_type]['inletSensorEnabledThresholds'] & 128
-        ? $inlet_lower_crit_threshold[$index . '.' . $measure_type]['inletSensorLowerCriticalThreshold'] * $measure_data['scale'] : null,
-      'limit_low_warn' => $inlet_thresholds[$index . '.' . $measure_type]['inletSensorEnabledThresholds'] & 64
-        ? $inlet_lower_warn_threshold[$index . '.' . $measure_type]['inletSensorLowerWarningThreshold'] * $measure_data['scale'] : null,
-      'limit_high_warn' => $inlet_thresholds[$index . '.' . $measure_type]['inletSensorEnabledThresholds'] & 32
-        ? $inlet_upper_warn_threshold[$index .'.' . $measure_type]['inletSensorUpperWarningThreshold'] * $measure_data['scale'] : null,
-      'limit_high' => $inlet_thresholds[$index . '.' . $measure_type]['inletSensorEnabledThresholds'] & 16
-        ? $inlet_upper_crit_threshold[$index . '.' . $measure_type]['inletSensorUpperCriticalThreshold'] * $measure_data['scale'] : null
-    );
+    // CLEANME. Compatibility, remove in r9500, but not before CE 17.8
+    rename_rrd_entity($device, 'sensor', array('descr' => $descr, 'class' => $unit['type'], 'index' => "outlet.$index_id.$sensorType", 'type' => 'raritan'), // old
+                                         array('descr' => $descr, 'class' => $unit['type'], 'index' => $index,                         'type' => $type));    // new
 
-    if ($value !== false)
-    {
-      discover_sensor(
-        $valid['sensor'], $measure_data['class'], $device, $oid, "inlet.$index.$measure_type",
-        'raritan', $descr, $measure_data['scale'], $value, $limits
-      );
-    }
+    discover_sensor($valid['sensor'], $unit['type'], $device, $oid_num, $index, $type, $descr, $scale, $value, $options);
   }
 }
 
 // Over Current Protectors
-$over_current_protector_names                = snmpwalk_cache_oid($device, "PDU2-MIB::overCurrentProtectorName.1",                         array(), "PDU2-MIB");
-$protector_thresholds                        = snmpwalk_cache_oid($device, "PDU2-MIB::overCurrentProtectorSensorEnabledThresholds.1", array(), "PDU2-MIB");
-$measurements                                = snmpwalk_cache_oid($device, "PDU2-MIB::measurementsOverCurrentProtectorSensorValue.1",      array(), "PDU2-MIB");
-$over_current_protector_lower_crit_threshold = snmpwalk_cache_oid($device, "PDU2-MIB::overCurrentProtectorSensorLowerCriticalThreshold.1", array(), "PDU2-MIB");
-$over_current_protector_lower_warn_threshold = snmpwalk_cache_oid($device, "PDU2-MIB::overCurrentProtectorSensorLowerWarningThreshold.1",  array(), "PDU2-MIB");
-$over_current_protector_upper_warn_threshold = snmpwalk_cache_oid($device, "PDU2-MIB::overCurrentProtectorSensorUpperWarningThreshold.1",  array(), "PDU2-MIB");
-$over_current_protector_upper_crit_threshold = snmpwalk_cache_oid($device, "PDU2-MIB::overCurrentProtectorSensorUpperCriticalThreshold.1", array(), "PDU2-MIB");
+$names = snmpwalk_cache_oid($device, "overCurrentProtectorName.$pduId",                         array(), $mib);
+$oids  = snmpwalk_cache_oid($device, "overCurrentProtectorSensorUnits.$pduId",                  array(), $mib);
+$oids  = snmpwalk_cache_oid($device, "overCurrentProtectorSensorDecimalDigits.$pduId",            $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "overCurrentProtectorSensorEnabledThresholds.$pduId",        $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "overCurrentProtectorSensorLowerCriticalThreshold.$pduId",   $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "overCurrentProtectorSensorLowerWarningThreshold.$pduId",    $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "overCurrentProtectorSensorUpperWarningThreshold.$pduId",    $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "overCurrentProtectorSensorUpperCriticalThreshold.$pduId",   $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "measurementsOverCurrentProtectorSensorIsAvailable.$pduId",  $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "measurementsOverCurrentProtectorSensorState.$pduId",        $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "measurementsOverCurrentProtectorSensorValue.$pduId",        $oids, $mib);
+print_debug_vars($names);
+print_debug_vars($oids);
 
-foreach ($over_current_protector_names as $index => $entry) {
-  $limits = array(
-    'limit_low' => $protector_thresholds[$index . '.rmsCurrent']['overCurrentProtectorSensorEnabledThresholds'] & 128
-      ? $over_current_protector_lower_crit_threshold[$index . '.rmsCurrent']['overCurrentProtectorSensorLowerCriticalThreshold'] * 0.1 : null,
-    'limit_low_warn' => $protector_thresholds[$index . '.rmsCurrent']['overCurrentProtectorSensorEnabledThresholds'] & 64
-      ? $over_current_protector_lower_warn_threshold[$index . '.rmsCurrent']['overCurrentProtectorSensorLowerWarningThreshold'] * 0.1 : null,
-    'limit_high_warn' => $protector_thresholds[$index . '.rmsCurrent']['overCurrentProtectorSensorEnabledThresholds'] & 32
-      ? $over_current_protector_upper_warn_threshold[$index .'.rmsCurrent']['overCurrentProtectorSensorUpperWarningThreshold'] * 0.1 : null,
-    'limit_high' => $protector_thresholds[$index . '.rmsCurrent']['overCurrentProtectorSensorEnabledThresholds'] & 16
-      ? $over_current_protector_upper_crit_threshold[$index . '.rmsCurrent']['overCurrentProtectorSensorUpperCriticalThreshold'] * 0.1 : null
-  );
+foreach ($oids as $index => $entry)
+{
+  //list($pduId, $id, $sensorType) = explode('.', $index);
+  list(, $id, $sensorType) = explode('.', $index);
+  $index_id = $pduId . '.' . $id;
+  $index        = $index_id . '.' . $oid_types[$sensorType]['index']; // Convert to numeric index
 
-  $value = $measurements["$index.rmsCurrent"]['measurementsOverCurrentProtectorSensorValue'];
-  $oid = ".1.3.6.1.4.1.13742.6.5.3.3.1.4.$index.1";
-  discover_sensor($valid['sensor'], 'current', $device, $oid, "tripsensorvalue.$index", 'raritan', "Over Current Protector $index", 0.1, $value, $limits);
+  if (!isset($oid_types[$sensorType]) || $entry['measurementsOverCurrentProtectorSensorIsAvailable'] == 'false')
+  {
+    continue;
+  }
 
-  $value = $measurements["$index.trip"]['measurementsOverCurrentProtectorSensorValue'];
-  $oid = ".1.3.6.1.4.1.13742.6.5.3.3.1.4.$index.15";
-  // discover_sensor($valid['sensor'], 'state', $device, $oid, "tripsensor.$index", 'raritan', "Over Current Protector $index", NULL, $value, array('entPhysicalClass' => 'power'));
-  discover_status($device, $oid, "measurementsOverCurrentProtectorSensorValue".$index, "pdu2-sensorstate", "Over Current Protector $index", $value, array('entPhysicalClass' => 'status'));
+  if ($names[$index_id]['overCurrentProtectorName'] != '')
+  {
+    $descr = "Over Current Protector $index_id: " . $names[$index_id]['overCurrentProtectorName'];
+  } else {
+    $descr = "Over Current Protector $index_id";
+  }
 
+  $scale    = si_to_scale($entry['overCurrentProtectorSensorDecimalDigits'] * -1);
+  $oid_name = 'measurementsOverCurrentProtectorSensorValue';
+  $oid_num  = '.1.3.6.1.4.1.13742.6.5.3.3.1.4.' . $index;
+  $type     = $mib . '-' . $oid_name;
+  $value    = $entry[$oid_name];
+
+  // Limits (based on enabled thresholds)
+  //  SYNTAX BITS {
+  //    lowerCritical(0),
+  //    lowerWarning(1),
+  //    upperWarning(2),
+  //    upperCritical(3),
+  // }
+  $options      = array();
+  $limits_flags = base_convert($entry['overCurrentProtectorSensorEnabledThresholds'], 16, 10);
+  if (is_flag_set(bindec(10000000), $limits_flags)) // 0b 1000 0000
+  {
+    $options['limit_low']       = $entry['overCurrentProtectorSensorLowerCriticalThreshold'] * $scale;
+  }
+  if (is_flag_set(bindec(1000000),  $limits_flags)) // 0b 0100 0000
+  {
+    $options['limit_low_warn']  = $entry['overCurrentProtectorSensorLowerWarningThreshold']  * $scale;
+  }
+  if (is_flag_set(bindec(100000),   $limits_flags)) // 0b 0010 0000
+  {
+    $options['limit_high_warn'] = $entry['overCurrentProtectorSensorUpperWarningThreshold']  * $scale;
+  }
+  if (is_flag_set(bindec(10000),    $limits_flags)) // 0b 0001 0000
+  {
+    $options['limit_high']      = $entry['overCurrentProtectorSensorUpperCriticalThreshold'] * $scale;
+  }
+
+  // Detect type & unit
+  $unit = array();
+  if (isset($oid_units[$entry['overCurrentProtectorSensorUnits']]))
+  {
+    $unit = $oid_units[$entry['overCurrentProtectorSensorUnits']];
+  }
+  else if (!empty($oid_types[$sensorType]['type']))
+  {
+    // Other sensors based on SensorTypeEnumeration
+    $unit = $oid_types[$sensorType];
+  } else {
+    $oid_name = 'measurementsOverCurrentProtectorSensorState';
+    $oid_num  = '.1.3.6.1.4.1.13742.6.5.3.3.1.3.'.$index;
+    $type     = 'pdu2-sensorstate';
+    $value    = $entry[$oid_name];
+
+    // CLEANME. Compatibility, remove in r9500, but not before CE 17.8
+    rename_rrd_entity($device, 'status', array('descr' => $descr, 'index' => "measurementsOverCurrentProtectorSensorValue".$index_id, 'type' => $type),  // old
+                                         array('descr' => $descr, 'index' => $oid_name.'.'.$index,                                    'type' => $type)); // new
+
+    discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr, $value, array('entPhysicalClass' => 'other'));
+    continue;
+  }
+
+  if (isset($unit['type']))
+  {
+    if (isset($unit['unit']))
+    {
+      $options['sensor_unit'] = $unit['unit'];
+    }
+
+    // CLEANME. Compatibility, remove in r9500, but not before CE 17.8
+    rename_rrd_entity($device, 'sensor', array('descr' => $descr, 'class' => $unit['type'], 'index' => "tripsensorvalue.$index_id", 'type' => 'raritan'), // old
+                                         array('descr' => $descr, 'class' => $unit['type'], 'index' => $index,                      'type' => $type));    // new
+
+    discover_sensor($valid['sensor'], $unit['type'], $device, $oid_num, $index, $type, $descr, $scale, $value, $options);
+  }
+}
+
+// External Sensors
+$oids  = snmpwalk_cache_oid($device, "externalSensorName.$pduId",                   array(), $mib);
+$oids  = snmpwalk_cache_oid($device, "externalSensorDescription.$pduId",              $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "externalSensorType.$pduId",                     $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "externalSensorUnits.$pduId",                    $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "externalSensorDecimalDigits.$pduId",            $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "externalSensorEnabledThresholds.$pduId",        $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "externalSensorLowerCriticalThreshold.$pduId",   $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "externalSensorLowerWarningThreshold.$pduId",    $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "externalSensorUpperWarningThreshold.$pduId",    $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "externalSensorUpperCriticalThreshold.$pduId",   $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "measurementsExternalSensorIsAvailable.$pduId",  $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "measurementsExternalSensorState.$pduId",        $oids, $mib);
+$oids  = snmpwalk_cache_oid($device, "measurementsExternalSensorValue.$pduId",        $oids, $mib);
+print_debug_vars($oids);
+
+foreach ($oids as $index => $entry)
+{
+  $sensorType = $entry['externalSensorType'];
+
+  if (!isset($oid_types[$sensorType]) || $entry['measurementsExternalSensorIsAvailable'] == 'false')
+  {
+    continue;
+  }
+
+  $descr = "Sensor $index";
+  if ($entry['externalSensorName'] != '')
+  {
+    $descr .= ": " . $entry['externalSensorName'];
+  }
+  else if ($entry['externalSensorDescription'] != '')
+  {
+    $descr .= ": " . $entry['externalSensorDescription'];
+  }
+
+  $scale    = si_to_scale($entry['externalSensorDecimalDigits'] * -1);
+  $oid_name = 'measurementsExternalSensorValue';
+  $oid_num  = '.1.3.6.1.4.1.13742.6.5.5.3.1.4.' . $index;
+  $type     = $mib . '-' . $oid_name;
+  $value    = $entry[$oid_name];
+
+  // Limits (based on enabled thresholds)
+  //  SYNTAX BITS {
+  //    lowerCritical(0),
+  //    lowerWarning(1),
+  //    upperWarning(2),
+  //    upperCritical(3),
+  // }
+  $options      = array();
+  $limits_flags = base_convert($entry['externalSensorEnabledThresholds'], 16, 10);
+  if (is_flag_set(bindec(10000000), $limits_flags)) // 0b 1000 0000
+  {
+    $options['limit_low']       = $entry['externalSensorLowerCriticalThreshold'] * $scale;
+  }
+  if (is_flag_set(bindec(1000000),  $limits_flags)) // 0b 0100 0000
+  {
+    $options['limit_low_warn']  = $entry['externalSensorLowerWarningThreshold']  * $scale;
+  }
+  if (is_flag_set(bindec(100000),   $limits_flags)) // 0b 0010 0000
+  {
+    $options['limit_high_warn'] = $entry['externalSensorUpperWarningThreshold']  * $scale;
+  }
+  if (is_flag_set(bindec(10000),    $limits_flags)) // 0b 0001 0000
+  {
+    $options['limit_high']      = $entry['externalSensorUpperCriticalThreshold'] * $scale;
+  }
+
+  // Detect type & unit
+  $unit = array();
+  if (isset($oid_units[$entry['externalSensorUnits']]))
+  {
+    $unit = $oid_units[$entry['externalSensorUnits']];
+  }
+  else if (!empty($oid_types[$sensorType]['type']))
+  {
+    // Other sensors based on SensorTypeEnumeration
+    $unit = $oid_types[$sensorType];
+  } else {
+    $oid_name = 'measurementsExternalSensorState';
+    $oid_num  = '.1.3.6.1.4.1.13742.6.5.5.3.1.3.'.$index;
+    $type     = 'pdu2-sensorstate';
+    $value    = $entry[$oid_name];
+
+    discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr, $value, array('entPhysicalClass' => 'other'));
+    continue;
+  }
+
+  if (isset($unit['type']))
+  {
+    if (isset($unit['unit']))
+    {
+      $options['sensor_unit'] = $unit['unit'];
+    }
+
+    discover_sensor($valid['sensor'], $unit['type'], $device, $oid_num, $index, $type, $descr, $scale, $value, $options);
+  }
 }
 
 // EOF

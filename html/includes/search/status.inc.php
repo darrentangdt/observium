@@ -29,7 +29,7 @@ if (count($results))
 
     $status_search_results[] = array('url' => 'graphs/type=status_graph/id=' . $result['status_id'] . '/',
       'name' => $name, 'colour' => $tab_colour,
-      'icon' => '<i class="oicon-traffic-light"></i>',
+      'icon' => '<i class="'.$config['icon']['status'].'"></i>',
       'data' => array(
         escape_html($result['hostname']),
         highlight_search(escape_html($result['location'])) . ' | ' . nicecase($result['status_class']).' sensor'),

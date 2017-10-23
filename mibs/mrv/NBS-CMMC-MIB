@@ -20,7 +20,7 @@ IMPORTS
     ;
 
 nbsCmmcMib  MODULE-IDENTITY
-    LAST-UPDATED  "201505050000Z"  -- May 5, 2015
+    LAST-UPDATED  "201601250000Z"  -- January 25, 2016
     ORGANIZATION  "NBS"
     CONTACT-INFO
       "For technical support, please contact your service channel"
@@ -369,7 +369,7 @@ nbsCmmcSysLoginIdleTimeout  OBJECT-TYPE
         DEFVAL { 15 }
         ::= { nbsCmmcSystemGrp 13 }
 
-nbsCmmcSysDiscovery OBJECT-TYPE
+nbsCmmcSysDiscoveryAdmin OBJECT-TYPE
         SYNTAX      INTEGER {
                 notSupported (1),
                 disabled     (2),
@@ -383,6 +383,19 @@ nbsCmmcSysDiscovery OBJECT-TYPE
              segment. By default it is enabled."
         DEFVAL { enabled }
         ::= { nbsCmmcSystemGrp 14 }
+
+nbsCmmcSysDiscoveryOper OBJECT-TYPE
+        SYNTAX      INTEGER {
+                notSupported (1),
+                disabled     (2),
+                enabled      (3)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The current operational status of the Discovery
+             protocol."
+        ::= { nbsCmmcSystemGrp 50 }
 
 --
 -- the Discovery host table
@@ -776,7 +789,7 @@ nbsCmmcSysSnmpV3  OBJECT-TYPE
         DEFVAL { enabled }
         ::= { nbsCmmcSystemGrp 23 }
 
-nbsCmmcSysStp  OBJECT-TYPE
+nbsCmmcSysStpAdmin  OBJECT-TYPE
         SYNTAX      INTEGER  {
                 notSupported(1),
                 disabled(2),  -- STP is disabled
@@ -788,6 +801,19 @@ nbsCmmcSysStp  OBJECT-TYPE
                 "This object enables or disables STP protocol handling."
         DEFVAL { enabled }
         ::= { nbsCmmcSystemGrp 24 }
+
+nbsCmmcSysStpOper  OBJECT-TYPE
+        SYNTAX      INTEGER  {
+                notSupported(1),
+                disabled(2),
+                enabled (3)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+                "The current operational status of the STP protocol."
+        DEFVAL { enabled }
+        ::= { nbsCmmcSystemGrp 60 }
 
 nbsCmmcSysLockTypes OBJECT-TYPE
         SYNTAX      INTEGER {
@@ -838,17 +864,19 @@ nbsCmmcSysCrossConnect OBJECT-TYPE
 
           If there are currently no cross-connect chassis or slots in
           this system, the Agent must report notSupported(1).
+
+          If the cross-connect mappings can not be cleared via this
+          object, and/or can only be cleared via the Chassis, Slot, or
+          PortCrossConnect, the Agent must also report notSupported(1).
+
           Additionally, if this object reports notSupported(1), any
           SNMP SET to this object should return SNMP Error 3 (bad
           value).
 
-          The Agent should report operating(2) under normal
-          circumstances.
-
-          If this object reports operating(2), SNMP Managers are allowed to
-          set this object to clearing (3), which instructs the Agent
-          to erase the cross-connect maps of all subordinate chassis and
-          slots, so no circuits exist in the system."
+          If this object reports operating(2), SNMP Managers are
+          allowed to set this object to clearing (3), which instructs
+          the Agent to erase the cross-connect maps of all subordinate
+          chassis and slots, so no circuits exist in the system."
 
         DEFVAL { operating }
         ::= { nbsCmmcSystemGrp 27 }
@@ -913,9 +941,23 @@ nbsCmmcSysSerialBaudRateOper     OBJECT-TYPE
         DEFVAL { b38400 }
         ::= { nbsCmmcSystemGrp 32 }
 
+--
+-- Out of order objects:
+--
+
+-- Addons to Time Serv (see above)
+-- nbsCmmcSysTimeServAddressType ::= { nbsCmmcSystemGrp 33 }
+-- nbsCmmcSysTimeServAddress     ::= { nbsCmmcSystemGrp 34 }
+
+-- Addons to Discovery (see above)
+-- nbsCmmcSysDiscoveryOper       ::= { nbsCmmcSystemGrp 50 }
+
+-- Addons to Stp (see above)
+-- nbsCmmcSysStpOper             ::= { nbsCmmcSystemGrp 60 }
+
 
 --
--- the Proto table (SystemGrp 1001-1002)
+-- The Proto table (SystemGrp 1001-1002)
 --
 
 nbsCmmcSysProtoTableSize OBJECT-TYPE
@@ -2096,7 +2138,7 @@ nbsCmmcSysWebServer OBJECT-TYPE
             "The web server ships enabled by default on the NM2.
              Not supported means that the web server status cannot
              be changed from SNMP."
-        DEFVAL { enabled }
+        DEFVAL { disabled }
         ::= { nbsCmmcIpCfg 26 }
 
 nbsCmmcSysWebPort    OBJECT-TYPE
@@ -2153,6 +2195,33 @@ nbsCmmcSysScpServer OBJECT-TYPE
              be changed from SNMP."
         DEFVAL { disabled }
         ::= { nbsCmmcIpCfg 30 }
+
+nbsCmmcSysNetconfServer OBJECT-TYPE
+        SYNTAX      INTEGER {
+                notSupported (1),
+                disabled     (2),
+                enabled      (3)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The Netconf server ships disabled by default.
+             Not supported means that the Netconf server status cannot
+             be changed from SNMP."
+        DEFVAL { disabled }
+        ::= { nbsCmmcIpCfg 31 }
+
+nbsCmmcSysNetconfPort    OBJECT-TYPE
+        SYNTAX      INTEGER (1..65535)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The TCP/UDP/IP port the Agent will listen on for Netconf 
+            traffic if nbsCmmcSysNetconfServer is enabled(3).
+
+             Not supported value: -1"
+        DEFVAL { 830 }
+        ::= { nbsCmmcIpCfg 32 }
 
 
 --
@@ -4092,7 +4161,8 @@ nbsCmmcSlotModuleStatus     OBJECT-TYPE
                 notSupported  (1),
                 empty         (2),
                 notReady      (3),
-                ready         (4)
+                ready         (4),
+                standby       (5)
         }
         MAX-ACCESS  read-only
         STATUS      current
@@ -4102,8 +4172,12 @@ nbsCmmcSlotModuleStatus     OBJECT-TYPE
 
             Slots where a card has been physically inserted should be
             reported as notReady(3) while the card is loading or
-            warming up, and installed(4) once the card is fully
+            warming up, and ready(4) once the card is fully
             operational.
+
+            Slots that support redundant action may report standby(5)
+            if they are not yet ready but waiting to go to ready(4) in
+            case of failover.
 
             When this object is unavailable the Agent will report
             the status notSupported (1)."
@@ -4445,7 +4519,9 @@ nbsCmmcPortType OBJECT-TYPE
                    xfp    197,
                    qsfp   219,
                    cxp    220,
-                   cfp    221"
+                   cfp    221,
+                   qspf28 223,
+                   cfp2   224"
         ::= { nbsCmmcPortEntry 4 }
 
 nbsCmmcPortObjectId  OBJECT-TYPE

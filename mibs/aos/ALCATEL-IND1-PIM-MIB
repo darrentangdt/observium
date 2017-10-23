@@ -39,8 +39,8 @@ alcatelIND1PIMMIB MODULE-IDENTITY
         "This module describes an authoritative enterprise-specific Simple
          Network Management Protocol (SNMP) Management Information Base (MIB):
 
-             This proprietary MIB contains management information for
-             the configuration of PIM-SM and PIM-DM global configuration
+             This proprietary MIB contains management information for 
+             the configuration of PIM-SM and PIM-DM global configuration 
              parameters.
 
          The right to make changes in specification and other information
@@ -68,6 +68,7 @@ alcatelIND1PIMMIBObjects OBJECT IDENTIFIER ::= { alcatelIND1PIMMIB 1 }
 alaPimsmGlobalConfig OBJECT IDENTIFIER ::= { alcatelIND1PIMMIBObjects 1 }
 alaPimsmDebugConfig  OBJECT IDENTIFIER ::= { alcatelIND1PIMMIBObjects 2 }
 alaPimdmGlobalConfig OBJECT IDENTIFIER ::= { alcatelIND1PIMMIBObjects 3 }
+-- alaPimGlobalConfig   OBJECT IDENTIFIER ::= { alcatelIND1PIMMIBObjects 4 }
 
 -- ************************************************************************
 --  PIM-SM Global Configuration
@@ -90,7 +91,7 @@ alaPimsmAdminStatus     OBJECT-TYPE
 alaPimsmAdminBSRAddress    OBJECT-TYPE
     SYNTAX      IpAddress
     MAX-ACCESS  read-only
-    STATUS      obsolete
+    STATUS      obsolete 
     DESCRIPTION
                "The IP address used to source the bootstrap message when
                 the router is configured to be a candidate bootstrap
@@ -101,12 +102,12 @@ alaPimsmAdminBSRAddress    OBJECT-TYPE
 alaPimsmAdminBSRHashmasklen   OBJECT-TYPE
     SYNTAX     Integer32 (1..32)
     MAX-ACCESS read-write
-    STATUS     obsolete
+    STATUS     obsolete 
     DESCRIPTION
-               "The length (in bits) of the mask to use in the hash
+               "The length (in bits) of the mask to use in the hash 
                 function when computing the rendezvous point (RP) for a
                 multicast group.  This value may be changed to facilitate
-                vendor inter-operability.  For IPV4 we recommend a value
+                vendor inter-operability.  For IPV4 we recommend a value 
                 of 30."
     DEFVAL     { 30 }
     ::= {alaPimsmGlobalConfig 3 }
@@ -114,7 +115,7 @@ alaPimsmAdminBSRHashmasklen   OBJECT-TYPE
 alaPimsmAdminBSRPriority   OBJECT-TYPE
     SYNTAX     Integer32 (0..255)
     MAX-ACCESS read-only
-    STATUS     obsolete
+    STATUS     obsolete 
     DESCRIPTION
                "The candidate bootstrap router's (C-BSR) priority.  The
                 C-BSR with the biggest priority value will be elected
@@ -126,9 +127,9 @@ alaPimsmCRPExpiryTime   OBJECT-TYPE
     SYNTAX     Integer32 (1..300)
     UNITS      "seconds"
     MAX-ACCESS read-write
-    STATUS     obsolete
+    STATUS     obsolete 
     DESCRIPTION
-               "The maximum time a PIM-SM router considers the current
+               "The maximum time a PIM-SM router considers the current 
 		        candidate rendezvous point (C-RP) active."
     DEFVAL     { 300 }
     ::= {alaPimsmGlobalConfig 5 }
@@ -136,7 +137,7 @@ alaPimsmCRPExpiryTime   OBJECT-TYPE
 alaPimsmCRPInterval    OBJECT-TYPE
     SYNTAX     Integer32 (1..300)
     MAX-ACCESS read-write
-    STATUS     obsolete
+    STATUS     obsolete 
     DESCRIPTION
                "This is the interval at which the candidate rendezvous
                 point router's advertisements (C-RP-Adv) are sent
@@ -147,7 +148,7 @@ alaPimsmCRPInterval    OBJECT-TYPE
 alaPimsmAdminCRPAddress   OBJECT-TYPE
     SYNTAX     IpAddress
     MAX-ACCESS read-write
-    STATUS     obsolete
+    STATUS     obsolete 
     DESCRIPTION
                "The IP Address of the C-RP when this router is configured
                 to be a Candidate RP.  This IP address should belong to
@@ -159,7 +160,7 @@ alaPimsmAdminCRPAddress   OBJECT-TYPE
 alaPimsmAdminCRPPriority   OBJECT-TYPE
     SYNTAX     Integer32 (0..128)
     MAX-ACCESS read-write
-    STATUS     obsolete
+    STATUS     obsolete 
     DESCRIPTION
                "The candidate rendezvous point (C-RP) router's
                 priority.  A lower numeric value denotes a higher
@@ -171,7 +172,7 @@ alaPimsmDataTimeout    OBJECT-TYPE
     SYNTAX     Integer32 (1..300)
     UNITS      "seconds"
     MAX-ACCESS read-write
-    STATUS     obsolete
+    STATUS     obsolete 
     DESCRIPTION
                "This is the time after which (S,G) state for a
                 silent source will be deleted."
@@ -226,7 +227,7 @@ alaPimsmRegisterSuppressionTimeout OBJECT-TYPE
     SYNTAX     Integer32 (1..300)
     UNITS      "seconds"
     MAX-ACCESS read-write
-    STATUS     obsolete
+    STATUS     obsolete 
     DESCRIPTION
                "This is the amount of time a Designated Router (DR) will
                 stop sending Registers on behalf of sources to the RP
@@ -240,7 +241,7 @@ alaPimsmAdminStaticRPConfig     OBJECT-TYPE
                    disable(2)
                }
     MAX-ACCESS read-write
-    STATUS     obsolete
+    STATUS     obsolete 
     DESCRIPTION
                "Administratively enables/disables Static RP
                 Configuration on this router."
@@ -252,9 +253,9 @@ alaPimsmAdminStaticRPConfig     OBJECT-TYPE
 alaPimsmStaticRPTable OBJECT-TYPE
     SYNTAX     SEQUENCE OF AlaPimsmStaticRPEntry
     MAX-ACCESS not-accessible
-    STATUS     obsolete
+    STATUS     obsolete 
     DESCRIPTION
-            "The (conceptual) table listing the IP multicast groups
+            "The (conceptual) table listing the IP multicast groups 
             to be used in the group-to-RP mapping when
             the value of alaPimsmAdminStaticRPConfig is enabled."
     ::= { alaPimsmGlobalConfig 15 }
@@ -262,7 +263,7 @@ alaPimsmStaticRPTable OBJECT-TYPE
 alaPimsmStaticRPEntry OBJECT-TYPE
     SYNTAX     AlaPimsmStaticRPEntry
     MAX-ACCESS not-accessible
-    STATUS     obsolete
+    STATUS     obsolete 
     DESCRIPTION
             "An entry (conceptual row) in the alaPimsmStaticRPTable."
     INDEX      { alaPimsmStaticRPGroupAddress,
@@ -279,7 +280,7 @@ AlaPimsmStaticRPEntry ::= SEQUENCE {
 alaPimsmStaticRPGroupAddress OBJECT-TYPE
     SYNTAX     IpAddress
     MAX-ACCESS not-accessible
-    STATUS     obsolete
+    STATUS     obsolete 
     DESCRIPTION
             "The IP multicast group address which, when combined with
             alaPimsmStaticRPGroupMask, identifies a group prefix to be
@@ -289,7 +290,7 @@ alaPimsmStaticRPGroupAddress OBJECT-TYPE
 alaPimsmStaticRPGroupMask OBJECT-TYPE
     SYNTAX     IpAddress
     MAX-ACCESS not-accessible
-    STATUS     obsolete
+    STATUS     obsolete 
     DESCRIPTION
             "The multicast group address mask which, when combined with
             alaPimsmStaticRPGroupMask, identifies a group prefix to be
@@ -299,7 +300,7 @@ alaPimsmStaticRPGroupMask OBJECT-TYPE
 alaPimsmStaticRPAddress OBJECT-TYPE
     SYNTAX     IpAddress
     MAX-ACCESS not-accessible
-    STATUS     obsolete
+    STATUS     obsolete 
     DESCRIPTION
             "The (unicast) address of the interface which will be
             an RP."
@@ -308,7 +309,7 @@ alaPimsmStaticRPAddress OBJECT-TYPE
 alaPimsmStaticRPRowStatus OBJECT-TYPE
     SYNTAX     RowStatus
     MAX-ACCESS read-create
-    STATUS     obsolete
+    STATUS     obsolete 
     DESCRIPTION
             "The status of this row, by which new entries may be
             created, or old entries deleted from this table."
@@ -380,8 +381,103 @@ alaPimsmV6RPSwitchover     OBJECT-TYPE
     DEFVAL     { enable }
     ::= {alaPimsmGlobalConfig 20 }
 
+alaPimsmBfdStatus           OBJECT-TYPE
+    SYNTAX     INTEGER {
+                   enable(1),
+                   disable(2)
+               }
+    MAX-ACCESS read-write
+    STATUS     current
+    DESCRIPTION
+              "Register / De-Register PIM SM with BFD protocol."
+    DEFVAL     { disable }
+    ::= {alaPimsmGlobalConfig 21 }
+alaPimsmBidirStatus     OBJECT-TYPE
+    SYNTAX     INTEGER {
+                   enable(1),
+                   disable(2)
+               }
+    MAX-ACCESS read-write
+    STATUS     current
+    DESCRIPTION
+               "Administratively enables/disables the
+                PIM BIDIR protocol on this router."
+    DEFVAL     { disable }
+    ::= {alaPimsmGlobalConfig 22}
+alaPimsmBidirPeriodicInterval    OBJECT-TYPE
+    SYNTAX     Integer32 (0..2000)
+    UNITS      "seconds"
+    MAX-ACCESS read-write
+    STATUS     current
+    DESCRIPTION
+               "This is the interval at which the DF for each RPA
+                will periodically announce its status in a
+                Winner message.
+                A value of 0 indicates that periodic messages will
+                not be sent."
+    DEFVAL     { 60 }
+    ::= { alaPimsmGlobalConfig 23 }
+alaPimsmV6BidirStatus     OBJECT-TYPE
+    SYNTAX     INTEGER {
+                   enable(1),
+                   disable(2)
+               }
+    MAX-ACCESS read-write
+    STATUS     current
+    DESCRIPTION
+               "Administratively enables/disables the
+                PIM V6 BIDIR protocol on this router."
+    DEFVAL     { disable }
+    ::= {alaPimsmGlobalConfig 24}
 
--- ************************************************************************
+-- ************************************************************************************
+-- Expansion of pimInterfaceEntry, As of now alaPimGlobalConfig is not supported in 664 
+-- ************************************************************************************
+--        alaPimIfConfAugTable OBJECT-TYPE   
+--                SYNTAX SEQUENCE OF AlaPimIfConfAugEntry    
+--                MAX-ACCESS not-accessible   
+--                STATUS current   
+--                DESCRIPTION   
+--                        "Expansion for pimInterfaceEntry"   
+--        ::= { alaPimGlobalConfig 1 }   
+   
+--        alaPimStartupDelay OBJECT-TYPE
+--            SYNTAX     Integer32
+--            MAX-ACCESS read-write
+--            STATUS     current
+--            DESCRIPTION
+--                       "The duration, in seconds, after which the first hello
+--                       packet will be sent to establish PIM neighborship."
+--            DEFVAL     { 0 }
+--            ::= { alaPimGlobalConfig 2 }
+
+--        alaPimIfConfAugEntry OBJECT-TYPE   
+--        SYNTAX   AlaPimIfConfAugEntry    
+--        MAX-ACCESS   not-accessible   
+--        STATUS   current   
+--        DESCRIPTION   
+--            "An entry of alaPimIfConfAugTable"   
+--        AUGMENTS { pimInterfaceEntry }    
+--        ::= { alaPimIfConfAugTable 1 }   
+   
+--    AlaPimIfConfAugEntry ::=   
+--        SEQUENCE {   
+--               alaPimInterfaceBfdStatus INTEGER    
+--        }   
+   
+--    alaPimInterfaceBfdStatus OBJECT-TYPE      
+--    SYNTAX     INTEGER {
+--                   enable(1),
+--                   disable(2)
+--               }
+--    MAX-ACCESS read-write
+--    STATUS     current      
+--    DESCRIPTION      
+--            "Enables/Disables BFD for particular interfaces of PIM."   
+--    DEFVAL { disable }      
+--    ::= { alaPimIfConfAugEntry 1 }  
+
+-- ************************************************************************ 
 --  PIM-SM Debug Configuration
 -- ************************************************************************
 
@@ -390,7 +486,7 @@ alaPimsmDebugLevel     OBJECT-TYPE
     MAX-ACCESS read-write
     STATUS     deprecated
     DESCRIPTION
-               "This Object is deprecated in favor of alaDrcTmPimsmDebug
+               "This Object is deprecated in favor of alaDrcTmPimsmDebug 
                 Configuration"
     DEFVAL     { 0 }
     ::= {alaPimsmDebugConfig 1}
@@ -442,8 +538,8 @@ alaPimsmDebugBootstrap     OBJECT-TYPE
     MAX-ACCESS read-write
     STATUS     deprecated
     DESCRIPTION
-               "This Object is deprecated in favor of
-                alaDrcTmPimsmDebugBootstrap MIB Object of alaDrcTmPimsmDebug
+               "This Object is deprecated in favor of 
+                alaDrcTmPimsmDebugBootstrap MIB Object of alaDrcTmPimsmDebug 
                 Configuration"
     DEFVAL     { disable }
     ::= {alaPimsmDebugConfig 5}
@@ -482,8 +578,8 @@ alaPimsmDebugJoinPrune     OBJECT-TYPE
     MAX-ACCESS read-write
     STATUS     deprecated
     DESCRIPTION
-               "This Object is deprecated in favor of
-                alaDrcTmPimsmDebugJoinPrune MIB Object of alaDrcTmPimsmDebug
+               "This Object is deprecated in favor of 
+                alaDrcTmPimsmDebugJoinPrune MIB Object of alaDrcTmPimsmDebug 
                 Configuration"
     DEFVAL     { disable }
     ::= {alaPimsmDebugConfig 8}
@@ -667,13 +763,35 @@ alaPimdmV6AdminStatus     OBJECT-TYPE
     DEFVAL     { disable }
     ::= {alaPimdmGlobalConfig 4}
 
+alaPimdmBfdStatus     OBJECT-TYPE   
+    SYNTAX     INTEGER {   
+                   enable(1),   
+                   disable(2)   
+               }   
+    MAX-ACCESS read-write   
+    STATUS     current   
+    DESCRIPTION   
+                "Register / De-Register PIM DM with BFD protocol."   
+    DEFVAL     { disable }   
+    ::= {alaPimdmGlobalConfig 5}   
+alaPimdmRedundantStatus     OBJECT-TYPE   
+    SYNTAX     INTEGER {   
+                   enable(1),   
+                   disable(2)   
+               }   
+    MAX-ACCESS read-write   
+    STATUS     current   
+    DESCRIPTION   
+                "Register/De-Register PIM DM for the redundant path."
+    DEFVAL     { disable }   
+    ::= {alaPimdmGlobalConfig 6}
 
 -- conformance information
 
 alcatelIND1PIMMIBConformance OBJECT IDENTIFIER ::= { alcatelIND1PIMMIB 2 }
-alcatelIND1PIMMIBCompliances OBJECT IDENTIFIER ::=
+alcatelIND1PIMMIBCompliances OBJECT IDENTIFIER ::= 
                                           { alcatelIND1PIMMIBConformance 1 }
-alcatelIND1PIMMIBGroups      OBJECT IDENTIFIER ::=
+alcatelIND1PIMMIBGroups      OBJECT IDENTIFIER ::= 
                                           { alcatelIND1PIMMIBConformance 2 }
 
 
@@ -695,7 +813,7 @@ alaPimdmCompliance MODULE-COMPLIANCE
             "The compliance statement for routers running PIM Dense
             Mode and implementing the ALCATEL-IND1-PIM MIB."
     MODULE  -- this module
-        MANDATORY-GROUPS { alaPimdmConfigMIBGroup }
+        MANDATORY-GROUPS { alaPimdmConfigMIBGroup}
 
     ::= { alcatelIND1PIMMIBCompliances 2 }
 
@@ -709,10 +827,12 @@ alaPimsmConfigMIBGroup OBJECT-GROUP
               alaPimsmDataTimeout, alaPimsmMaxRPs,
               alaPimsmProbeTime, alaPimsmOldRegisterMessageSupport,
               alaPimsmRegisterSuppressionTimeout,
-              alaPimsmAdminStaticRPConfig, alaPimsmStaticRPRowStatus,
+              alaPimsmAdminStaticRPConfig, alaPimsmStaticRPRowStatus, 
 			  alaPimsmAdminSPTConfig, alaPimsmRPThreshold,
               alaPimsmV6AdminStatus, alaPimsmV6SPTConfig,
-              alaPimsmV6RPSwitchover
+              alaPimsmV6RPSwitchover,alaPimsmBfdStatus,
+              alaPimsmBidirStatus, alaPimsmBidirPeriodicInterval,
+              alaPimsmV6BidirStatus
             }
     STATUS  current
     DESCRIPTION
@@ -740,7 +860,8 @@ alaPimsmDebugMIBGroup OBJECT-GROUP
 alaPimdmConfigMIBGroup OBJECT-GROUP
     OBJECTS { alaPimdmAdminStatus, alaPimdmStateRefreshTimeToLive,
               alaPimdmStateRefreshLimitInterval,
-              alaPimdmV6AdminStatus
+              alaPimdmV6AdminStatus,alaPimdmBfdStatus,
+              alaPimdmRedundantStatus
             }
     STATUS  current
     DESCRIPTION
@@ -748,4 +869,20 @@ alaPimdmConfigMIBGroup OBJECT-GROUP
             configuration parameters of PIM Dense Mode routers."
     ::= { alcatelIND1PIMMIBGroups 3 }
 
+-- alaPimIfConfAugMIBGroup OBJECT-GROUP   
+--     OBJECTS { alaPimInterfaceBfdStatus }   
+--     STATUS  current   
+--     DESCRIPTION   
+--             "A collection of objects to support management of global   
+--             configuration parameters of PIM Mode routers."   
+--     ::= { alcatelIND1PIMMIBGroups 4 } 
+
+
+-- alaPimGlobalConfigMIBGroup OBJECT-GROUP
+--     OBJECTS { alaPimStartupDelay }
+--     STATUS  current
+--     DESCRIPTION
+--             "A collection of objects to support management of PIM
+--             global configuration parameters."
+--     ::= { alcatelIND1PIMMIBGroups 5 }
 END

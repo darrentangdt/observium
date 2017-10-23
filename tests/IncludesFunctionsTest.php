@@ -6,7 +6,10 @@ include(dirname(__FILE__) . '/data/test_definitions.inc.php'); // Fake definitio
 include(dirname(__FILE__) . '/../includes/definitions.inc.php');
 include(dirname(__FILE__) . '/../includes/functions.inc.php');
 
-class IncludesFunctionsTest extends PHPUnit_Framework_TestCase
+/**
+ * @backupGlobals disabled
+ */
+class IncludesFunctionsTest extends \PHPUnit\Framework\TestCase
 {
   /**
   * @dataProvider providerEmail
@@ -221,6 +224,7 @@ class IncludesFunctionsTest extends PHPUnit_Framework_TestCase
     $results = array(
       array('49 6E 70 75 74 20 31 00 ', TRUE),
       array('49 6E 70 75 74 20 31 00',  TRUE),
+      array('496E707574203100',         FALSE), // SNMP HEX string only with spaces!
       array('49 6E 70 75 74 20 31 0',   FALSE),
       array('Simple String',            FALSE),
       array('49 6E 70 75 74 20 31 0R ', FALSE)
@@ -245,10 +249,12 @@ class IncludesFunctionsTest extends PHPUnit_Framework_TestCase
       array('49 6E 70 75 74 20 31',     'Input 1'),
       array('4A 7D 34 3D',              'J}4='),
       array('73 70 62 2D    6F 66 66 2D 67 77', 'spb-off-gw'),
+      array('32 35 00 ',                '25'),
       //Incorrect HEX strings
+      array('496E707574203100',         '496E707574203100'), // SNMP HEX string only with spaces!
       array('49 6E 70 75 74 20 31 0',   '49 6E 70 75 74 20 31 0'),
       array('Simple String',            'Simple String'),
-      array('49 6E 70 75 74 20 31 0R ', '49 6E 70 75 74 20 31 0R ')
+      array('49 6E 70 75 74 20 31 0R ', '49 6E 70 75 74 20 31 0R '),
     );
     return $results;
   }
@@ -296,7 +302,8 @@ class IncludesFunctionsTest extends PHPUnit_Framework_TestCase
       array('
 ^KL=', '94.75.76.61'),
       // with first space char (possible for OBS_SNMP_CONCAT)
-      array(' ^KL=', '94.75.76.61'),
+      array(' ^KL=',        '94.75.76.61'),
+      array('  KL=',        '32.75.76.61'),
       array('    ',         '32.32.32.32'),
       // IPv6
       array('20 01 07 F8 00 12 00 01 00 00 00 00 00 05 02 72',  '2001:07f8:0012:0001:0000:0000:0005:0272'),
@@ -369,6 +376,7 @@ class IncludesFunctionsTest extends PHPUnit_Framework_TestCase
       array('::1',                                      6),
       array('::',                                       6),
       array('::ffff:192.0.2.128',                       6), // IPv4 mapped to IPv6
+      array('2002:c000:0204::',                         6), // 6to4 address 192.0.2.4
       // Wrong data
       array('4a7d343dd',              FALSE),
       array('my.domain.name',         FALSE),
@@ -376,6 +384,7 @@ class IncludesFunctionsTest extends PHPUnit_Framework_TestCase
       array('1.1.1.1.1',              FALSE),
       array('2001:7f8:12:1::5:0272f', FALSE),
       array('gggg:7f8:12:1::5:272f',  FALSE),
+      //array('2002::',                 FALSE), // 6to4 address, must be full
       array('',                       FALSE),
       array(FALSE,                    FALSE),
       // IP with mask also wrong!
@@ -611,11 +620,121 @@ class IncludesFunctionsTest extends PHPUnit_Framework_TestCase
   }
 
   /**
+  * @dataProvider providerStringTransform
+  * @group string
+  */
+  public function testStringTransform($result, $string, $transformations)
+  {
+    $this->assertSame($result, string_transform($string, $transformations));
+  }
+
+  public function providerStringTransform()
+  {
+    $results = array(
+      // Append
+      array('Bananarama',     'Banana',          array(
+                                                   array('action' => 'append', 'string' => 'rama')
+                                                 )),
+      array('Bananarama',     'Banana',          array(
+                                                   array('action' => 'append', 'string' => 'ra'),
+                                                   array('action' => 'append', 'string' => 'ma')
+                                                 )),
+      // Prepend
+      array('Benga boys',     'boys',            array(
+                                                   array('action' => 'prepend', 'string' => 'Benga ')
+                                                 )),
+      // Replace
+      array('Observium',      'ObserverNMS',     array(
+                                                   array('action' => 'replace', 'from' => 'erNMS', 'to' => 'ium')
+                                                 )),
+      array('ObserverNMS',    'ObserverNMS',     array(
+                                                   array('action' => 'replace', 'from' => 'ernms', 'to' => 'ium')
+                                                 )),
+      // Case Insensitive Replace
+      array('Observium',      'ObserverNMS',     array(
+                                                   array('action' => 'ireplace', 'from' => 'erNMS', 'to' => 'ium')
+                                                 )),
+      array('Observium',      'ObserverNMS',     array(
+                                                   array('action' => 'ireplace', 'from' => 'ernms', 'to' => 'ium')
+                                                 )),
+      // Regex Replace
+      array('1.46.82', 'CS141-SNMP V1.46.82 161207', array(
+                                                   array('action' => 'regex_replace', 'from' => '/CS1\d1\-SNMP V(\d\S+).*/', 'to' => '$1')
+                                                 )),
+      // Regex Replace
+      array('1.46.82', 'CS141-SNMP V1.46.82 161207', array(
+                                                   array('action' => 'preg_replace', 'from' => '/CS1\d1\-SNMP V(\d\S+).*/', 'to' => '$1')
+                                                 )),
+      // Regex Replace (not match)
+      array('CS141-SNMP', 'CS141-SNMP',          array(
+                                                   array('action' => 'preg_replace', 'from' => '/CS1\d1\-SNMP V(\d\S+).*/', 'to' => '$1')
+                                                 )),
+      // Trim
+      array('OOObservium',    'oooOOObserviumo', array(
+                                                   array('action' => 'trim', 'characters' => 'o')
+                                                 )),
+      // LTrim
+      array('OOObserviumo',   'oooOOObserviumo', array(
+                                                   array('action' => 'ltrim', 'characters' => 'o')
+                                                 )),
+      // RTrim
+      array('oooOOObservium', 'oooOOObserviumo', array(
+                                                   array('action' => 'rtrim', 'characters' => 'o')
+                                                 )),
+      // Timeticks
+      array(15462419, '178:23:06:59.03', array(
+                                                   array('action' => 'timeticks')
+                                                 )),
+
+      // Explode (defaults - delimiter: " ", index: first)
+      array('1.6', '1.6 Build 13120415', array(
+                                                   array('action' => 'explode')
+                                                 )),
+      array('1.6', '1.6 Build 13120415', array(
+                                                   array('action' => 'explode', 'delimiter' => ' ', 'index' => 'first')
+                                                 )),
+      array('1.6', '1.6 Build 13120415', array(
+                                                   array('action' => 'explode', 'delimiter' => ' ', 'index' => 0)
+                                                 )),
+      array('13120415', '1.6 Build 13120415', array(
+                                                   array('action' => 'explode', 'delimiter' => ' ', 'index' => 'end')
+                                                 )),
+      array('Build', '1.6 Build 13120415', array(
+                                                   array('action' => 'explode', 'delimiter' => ' ', 'index' => 1)
+                                                 )),
+      array('6 Build 13120415', '1.6 Build 13120415', array(
+                                                   array('action' => 'explode', 'delimiter' => '.', 'index' => 1)
+                                                 )),
+      // (unknown index)
+      array('1.6 Build 13120415', '1.6 Build 13120415', array(
+                                                   array('action' => 'explode', 'delimiter' => '.', 'index' => 10)
+                                                 )),
+
+
+      // Combinations, to be done in exact order, including no-ops
+      array('Observium',      'oooOOOKikkero',   array(
+                                                   array('action' => 'trim', 'characters' => 'o'),
+                                                   array('action' => 'ltrim', 'characters' => 'O'),
+                                                   array('action' => 'rtrim', 'characters' => 'F'),
+                                                   array('action' => 'replace', 'from' => 'Kikker', 'to' => 'ObserverNMS'),
+                                                   array('action' => 'replace', 'from' => 'erNMS', 'to' => 'ium')
+                                                 )),
+    );
+    return $results;
+  }
+
+  /**
   * @dataProvider providerIsPingable
   * @group network
   */
   public function testIsPingable($result, $hostname, $try_a = TRUE)
   {
+    if (!is_executable($GLOBALS['config']['fping']))
+    {
+      // CentOS 6.8
+      $GLOBALS['config']['fping']  = '/usr/sbin/fping';
+      $GLOBALS['config']['fping6'] = '/usr/sbin/fping6';
+    }
     $flags = OBS_DNS_ALL;
     if (!$try_a) { $flags = $flags ^ OBS_DNS_A; }
     $ping = isPingable($hostname, $flags);
@@ -636,46 +755,92 @@ class IncludesFunctionsTest extends PHPUnit_Framework_TestCase
     if ($return === 0)
     {
       // IPv6 only
-      $array[] = array(TRUE,  'localhost', FALSE);
+      //$array[] = array(TRUE,  'localhost', FALSE);
       $array[] = array(TRUE,  '::1',       FALSE);
       $array[] = array(FALSE, '::ffff',    FALSE);
+      foreach (array('localhost', 'ip6-localhost') as $hostname)
+      {
+        // Debian used ip6-localhost instead localhost.. lol
+        $ip = gethostbyname6($hostname, OBS_DNS_AAAA);
+        if ($ip)
+        {
+          $array[] = array(TRUE,  $hostname, FALSE);
+          //var_dump($hostname);
+          break;
+        }
+      }
     }
     return $array;
   }
 
   /**
-  * @dataProvider providerGetDeviceOS
-  * @group snmp
+  * @dataProvider providerCalculateMempoolProperties
+  * @group numbers
   */
-  public function testGetDeviceOS($result, $old_os, $sysObjectID, $sysDescr)
+  public function testCalculateMempoolProperties($scale, $used, $total, $free, $perc, $result)
   {
-    $device = array('device_id'      => 0,
-                    'disabled'       => 0,
-                    'ignore'         => 0,
-                    'status'         => 1,
-                    'snmp_version'   => 'v2c',
-                    'snmp_community' => 'test',
-                    'snmp_port'      => 161,
-                    'snmp_timeout'   => 1,
-                    'snmp_retries'   => 0,
-                    'hostname'       => 'example.test',
-                    'os'             => $old_os,
-                    );
-    $fake_data  = 'sysDescr.0 = '.$sysDescr.PHP_EOL;
-    $fake_data .= 'sysObjectID.0 = '.$sysObjectID;
-    $GLOBALS['config']['snmpget'] = dirname(__FILE__) . '/data/snmpfake.sh fakedata '.escapeshellarg($fake_data); //.' -d';
-    $os = get_device_os($device);
-    $this->assertSame($result, $os);
+    $this->assertSame($result, calculate_mempool_properties($scale, $used, $total, $free, $perc));
   }
 
-  public function providerGetDeviceOS()
+  public function providerCalculateMempoolProperties()
   {
-    $array = array(
-      array('procurve', '', '.1.3.6.1.4.1.11.2.3.7.11.104',       'HP ProCurve 1810G - 24 GE, P.2.2, eCos-2.0, CFE-2.1'),
-      array('hpvc',     '', '.1.3.6.1.4.1.11.2.3.7.11.33.4.1.1',  'GbE2c L2/L3 Ethernet Blade Switch for HP c-Class BladeSystem'),
-      array('hpvc',     '', '.1.3.6.1.4.1.11.5.7.5.1',            'HP VC Flex-10 Enet Module Virtual Connect 3.18 '),
+    $results = array(
+      array(  1, 123456789, 234567890, NULL, NULL, array('used' => 123456789,  'total' => 234567890,   'free' => 111111101,  'perc' => 52.63)), // Used + Total known
+      array( 10, 123456789, 234567890, NULL, NULL, array('used' => 1234567890, 'total' => 2345678900,  'free' => 1111111010, 'perc' => 52.63)), // Used + Total known, scale factor 10
+      array(0.5, 123456789, 234567890, NULL, NULL, array('used' => 61728394.5, 'total' => 117283945.0, 'free' => 55555550.5, 'perc' => 52.63)), // Used + Total known, scale factor 0.5
+
+      array(  1, NULL, 1234567890, 1597590, NULL, array('used' => 1232970300,   'total' => 1234567890,   'free' => 1597590,   'perc' => 99.87)), // Total + Free known
+      array(100, NULL, 1234567890, 1597590, NULL, array('used' => 123297030000, 'total' => 123456789000, 'free' => 159759000, 'perc' => 99.87)), // Total + Free known, scale factor 10
+      array(0.5, NULL, 1234567890, 1597590, NULL, array('used' => 616485150.0,  'total' => 617283945.0,  'free' => 798795.0,  'perc' => 99.87)), // Total + Free known, scale factor 0.5
+
+      array(  1, 13333337, 23333337, 10000000, NULL, array('used' => 13333337,  'total' => 23333337,   'free' => 10000000,    'perc' => 57.14)), // All known
+      array( 10, 13333337, 23333337, 10000000, NULL, array('used' => 133333370, 'total' => 233333370,  'free' => 100000000,   'perc' => 57.14)), // All known, scale factor 10
+      array(0.5, 13333337, 23333337, 10000000, NULL, array('used' => 6666668.5, 'total' => 11666668.5, 'free' => 5000000.0,   'perc' => 57.14)), // All known, scale factor 0.5
+
+      array(  1, 123456789, NULL, 163840, NULL, array('used' => 123456789,   'total' => 123620629,   'free' => 163840,        'perc' => 99.87)), // Used + Free known
+      array(100, 123456789, NULL, 163840, NULL, array('used' => 12345678900, 'total' => 12362062900, 'free' => 16384000,      'perc' => 99.87)), // Used + Free known, scale factor 100
+      array(0.5, 123456789, NULL, 163840, NULL, array('used' => 61728394.5,  'total' => 61810314.5,  'free' => 81920.0,       'perc' => 99.87)), // Used + Free known, scale factor 0.5
+
+      array(   1, NULL, 600000000, NULL, 30, array('used' => 180000000,    'total' => 600000000,    'free' => 420000000,      'perc' => 30)),    // Total + Percentage known
+      array(1000, NULL, 600000000, NULL, 30, array('used' => 180000000000, 'total' => 600000000000, 'free' => 420000000000,   'perc' => 30)),    // Total + Percentage known, scale factor 1000
+      array( 0.5, NULL, 600000000, NULL, 30, array('used' => 90000000.0,   'total' => 300000000.0,  'free' => 210000000.0,    'perc' => 30)),    // Total + Percentage known, scale factor 0.5
+
+      array(  1, 1597590, 1234567890, NULL, NULL, array('used' => 1597590,  'total' => 1234567890,  'free' => 1232970300,     'perc' => 0.13)),  // Used + Total known
+      array( 10, 1597590, 1234567890, NULL, NULL, array('used' => 15975900, 'total' => 12345678900, 'free' => 12329703000,    'perc' => 0.13)),  // Used + Total known, scale factor 10
+      array(0.5, 1597590, 1234567890, NULL, NULL, array('used' => 798795.0, 'total' => 617283945.0, 'free' => 616485150.0,    'perc' => 0.13)),  // Used + Total known, scale factor 0.5
+
+      array(  1, NULL, NULL, NULL, 57, array('used' => 57, 'total' => 100, 'free' => 43, 'perc' => 57)),  // Only percentage known
+      array( 40, NULL, NULL, NULL, 23, array('used' => 23, 'total' => 100, 'free' => 77, 'perc' => 23)),  // Only percentage known, scale factor 40
+      array(0.1, NULL, NULL, NULL, 16, array('used' => 16, 'total' => 100, 'free' => 84, 'perc' => 16)),  // Only percentage known, scale factor 0.1
     );
-    return $array;
+    return $results;
+  }
+
+  /**
+  * @dataProvider providerCalculateMempoolPropertiesScale
+  * @group numbers
+  */
+  public function testCalculateMempoolPropertiesScale($scale, $used, $total, $free, $perc, $options, $result)
+  {
+    $this->assertSame($result, calculate_mempool_properties($scale, $used, $total, $free, $perc, $options));
+  }
+
+  public function providerCalculateMempoolPropertiesScale()
+  {
+    $scale1 = array('scale_total' => 1024);
+    $scale2 = array('scale_used'  => 2048);
+    $scale3 = array('scale_free'  => 4096);
+
+    $results = array(
+      array(  1, 123456789, 234567890, NULL, NULL, $scale1, array('used' => 123456789,    'total' => 240197519360,  'free' => 240074062571,  'perc' =>     0.05)), // Used + Total known
+      array( 10, 123456789, 234567890, NULL, NULL, $scale2, array('used' => 252839503872, 'total' => 2345678900,    'free' => -250493824972, 'perc' => 10778.95)), // Used + Total known, scale factor 10
+      array(0.5, 123456789, 234567890, NULL, NULL, $scale3, array('used' => 61728394.5,   'total' => 117283945.0,   'free' => 55555550.5,    'perc' =>    52.63)), // Used + Total known, scale factor 0.5
+
+      array(  1, NULL, 1234567890, 1597590, NULL, $scale1, array('used' => 1264195921770, 'total' => 1264197519360, 'free' => 1597590,       'perc' =>    100.0)), // Total + Free known
+      array(100, NULL, 1234567890, 1597590, NULL, $scale2, array('used' => 123297030000,  'total' => 123456789000,  'free' => 159759000,     'perc' =>    99.87)), // Total + Free known, scale factor 10
+      array(0.5, NULL, 1234567890, 1597590, NULL, $scale3, array('used' => -5926444695.0, 'total' => 617283945.0,   'free' => 6543728640,    'perc' =>  -960.08)), // Total + Free known, scale factor 0.5
+    );
+    return $results;
   }
 }
 

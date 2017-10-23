@@ -16,11 +16,8 @@
 //ACD-DESC-MIB::acdDescIdentifier.0 = STRING: G080-0157
 //ACD-DESC-MIB::acdDescFirmwareVersion.0 = STRING: AMO_10GE_5.3.1.1_23046
 //ACD-DESC-MIB::acdDescHardwareVersion.0 = STRING: 500-018-03:9:16
-//ACD-DESC-MIB::acdDescSerialNumber.0 = STRING: G080-0157
 
-$data = snmpget_cache_multi($device, 'acdDescCommercialName.0 acdDescFirmwareVersion.0 acdDescSerialNumber.0', array(), 'ACD-DESC-MIB');
-$hardware   = $data[0]['acdDescCommercialName'];
-$serial     = $data[0]['acdDescSerialNumber'];
+$data = snmp_get_multi_oid($device, 'acdDescFirmwareVersion.0', array(), 'ACD-DESC-MIB');
 $version    = $data[0]['acdDescFirmwareVersion'];
 if (preg_match('/^(\w[^_\W]+_)*(?<version>[\d\.\-]+)/', $version, $matches))
 {

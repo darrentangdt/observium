@@ -71,7 +71,6 @@ include($config['html_dir']."/includes/alerting-navbar.inc.php");
   $form = array('type'      => 'horizontal',
                 'id'        => 'logalert_rule',
                 'title'     => 'New Syslog Rule Details',
-                'icon'      => 'oicon-gear',
                 //'url'       => generate_url(array('page' => 'add_alertlog_rule')),
                 );
 

@@ -6,7 +6,7 @@ include(dirname(__FILE__) . '/../includes/definitions.inc.php');
 include(dirname(__FILE__) . '/../includes/functions.inc.php');
 include(dirname(__FILE__) . '/../html/includes/functions.inc.php');
 
-class HtmlIncludesPrintTest extends PHPUnit_Framework_TestCase
+class HtmlIncludesPrintTest extends \PHPUnit\Framework\TestCase
 {
   /**
    * @dataProvider providerGetTableHeader

@@ -14,8 +14,7 @@
 $sql = "SELECT * FROM `processors` WHERE `processor_type` != 'hr-average' AND `device_id` = ?";
 if (isset($vars['id']))
 {
-  if (!is_array($vars['id'])) { $vars['id'] = array($vars['id']); }
-  $sql .= ' AND `processor_id` IN ('.implode(',', $vars['id']).')';
+  $sql .=  generate_query_values($vars['id'], 'processor_id');
 }
 $procs = dbFetchRows($sql, array($device['device_id']));
 

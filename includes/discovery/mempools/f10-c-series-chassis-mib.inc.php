@@ -14,7 +14,7 @@
 // Force10 C-Series
 
 // FIXME. Need snmpwalk for total size: F10-C-SERIES-CHASSIS-MIB::chSysProcessorMemSize
-#F10-C-SERIES-CHASSIS-MIB::chRpmMemUsageUtil.1 = 5
+// F10-C-SERIES-CHASSIS-MIB::chRpmMemUsageUtil.1 = 5
 
 $mempool_array = snmpwalk_cache_oid($device, 'chRpmMemUsageUtil', array(), $mib);
 if (is_array($mempool_array))
@@ -32,7 +32,7 @@ if (is_array($mempool_array))
         //$total    *= $precision;
       } else {
         $precision = 1;
-        $total     = 1090519040; // Hardcoded total. See FIXME above.
+        $total     = 1090519040; // Hardcoded total.
       }
       $percent = $entry['chRpmMemUsageUtil'];
       $used    = $total * $percent / 100;

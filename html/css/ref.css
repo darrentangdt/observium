@@ -1,14 +1,14 @@
-
 .ref{
-  font: normal normal 12px/18px Consolas, Monaco, Andale Mono, Courier New, monospace;
+  font: normal normal 12px/18px Consolas, "Liberation Mono", Menlo, "Courier New", Courier, monospace;
   color: #333;
 }
 
 /* reset default styles for these elements */
 .ref i,
 .ref span,
+.ref r,
 .ref a{
-  font-style: inherit;
+  font-style: inherit;  
   font-weight: inherit;
   margin: 0;
   padding: 0;
@@ -20,17 +20,20 @@
 }
 
 /* meta content (used to generate tooltips) */
-.ref > div{
-  display: none;
+.ref > div,
+.ref > t{
+  display: none;  
 }
 
 /* show help cursor when mouse is over an entity with a tooltip */
-.ref [data-tip]{
+.ref [data-tip],
+.ref [h]{
   cursor: help;
 }
 
 /* pointer if inside a link */
-.ref a > [data-tip]{
+.ref a > [data-tip],
+.ref a > [h]{
   cursor: pointer;
 }
 
@@ -43,29 +46,27 @@
 
 /* tooltip; note that the js overrides top/left properties, this is why we use margin  */
 #rTip{
-  display: none;
+  display: none;  
   position: absolute;
-  z-index: 99999;
+  z-index: 99999;  
   font-size: 12px;
-  white-space: pre;
-  text-align: left;
-  text-shadow: 0 -1px 0 #191919;
+  white-space: pre;  
+  text-align: left;  
+  text-shadow: 0 -1px 0 #191919;  
   line-height: 16px;
   background: #222;
-  color: #888;
-  border: 0;
+  color: #888;         
+  border: 0;  
   border-radius: 4px;
   opacity: 0.90;
-  box-shadow:0 0 4px rgba(0,0,0, 0.25);
-  -webkit-transition: opacity .25s, margin .25s;
-     -moz-transition: opacity .25s, margin .25s;
-      -ms-transition: opacity .25s, margin .25s;
+  box-shadow:0 0 4px rgba(0,0,0, 0.25);  
+  -webkit-transition: opacity .25s, margin .25s;     
           transition: opacity .25s, margin .25s;
 }
 
 #rTip.visible{
   display: table;
-  margin: 10px 0 0 15px;
+  margin: 10px 0 0 15px;  
 }
 
 #rTip.visible.fadingOut{
@@ -73,7 +74,8 @@
   margin: 20px 0 0 25px;
 }
 
-#rTip [data-cell]{
+#rTip [data-cell],
+#rTip [c]{
   padding: 2px 7px;
 }
 
@@ -84,34 +86,38 @@
 }
 
 #rTip [data-desc]{
-  padding-top: 0px;
-  color: #777;
+  padding-top: 0px;  
+  color: #777;  
 }
 
-#rTip [data-cell][data-varType]{
+#rTip [data-cell][data-varType],
+#rTip [c][data-varType]{
   padding: 10px;
   background: #333;
-  box-shadow: inset -1px 0 0 #444;
+  box-shadow: inset -1px 0 0 #444;    
   border-right:1px solid #111;
   border-top-left-radius: 4px;
-  border-bottom-left-radius: 4px;
+  border-bottom-left-radius: 4px;  
 }
 
-#rTip [data-cell][data-sub]{
+#rTip [data-cell][data-sub],
+#rTip [c][data-sub]{
   padding: 8px 10px 10px 10px;
   background: #333;
-  box-shadow: inset 0 1px 0 #444;
+  box-shadow: inset 0 1px 0 #444;    
   border-top:1px solid #111;
   border-bottom-right-radius: 4px;
   border-bottom-left-radius: 4px;
 }
 
-#rTip [data-table] [data-cell]:first-child{
-  font: bold 11px Helvetica, Arial;
+#rTip [data-table] [data-cell]:first-child,
+#rTip [t] [c]:first-child{
+  font: bold 11px Helvetica, Arial;   
   color: #888;
 }
 
-#rTip [data-table] [data-cell]:nth-child(2){
+#rTip [data-table] [data-cell]:nth-child(2),
+#rTip [t] [c]:nth-child(2){
   color: #edd078;
 }
 
@@ -119,14 +125,14 @@
 
 
 /* base entity - can be nested */
-.ref span{
+.ref span, .ref r{
   white-space: pre;
   display: inline;
 }
 
 /* key-value dividers, property & method modifiers etc. */
 .ref i{
-  white-space: pre;
+  white-space: pre;  
   color: #aaa;
 }
 
@@ -137,12 +143,10 @@
   display: block;
   color: #ccc;
   background-color: #333;
-  background-image: -webkit-linear-gradient(top, #444, #333);
-  background-image: -moz-linear-gradient(top, #444, #333);
-  background-image: -ms-linear-gradient(top, #444, #333);
-  background-image: linear-gradient(top, #444, #333);
+  background-image: -webkit-linear-gradient(top, #444, #333);    
+  background-image: linear-gradient(top, #444, #333);  
   border-radius: 4px 4px 0 0;
-  border-bottom: 1px solid #fff;
+  border-bottom: 1px solid #fff;  
 }
 
 .ref [data-backtrace]{
@@ -150,12 +154,12 @@
 }
 
 .ref [data-output]{
-  background: #f9f9f9;
+  background: #f9f9f9;        
   border: 1px solid #eee;
   border-top: 0;
   border-radius: 0 0 4px 4px;
   box-shadow: inset 0px 4px 4px #f3f3f3, inset 0px -8px 8px #fff;
-  padding: 2px 5px;
+  padding: 2px 5px;  
   margin: 0 0 4px;
   text-shadow: 0 1px 0 #fff;
   display: block;
@@ -172,30 +176,30 @@
   border-width: 7px 0 7px 10px;
   border-color: transparent transparent transparent #CC0033;
   cursor: pointer;
-  -webkit-transition: all ease-in .15s;
-     -moz-transition: all ease-in .15s;
-      -ms-transition: all ease-in .15s;
-          transition: all ease-in .15s;
+  -webkit-transition: all ease-in .15s;       
+          transition: all ease-in .15s;    
 }
 
 /* collapse graphic */
 .ref [data-toggle][data-exp]{
   -webkit-transform: rotate(90deg);
-     -moz-transform: rotate(90deg);
       -ms-transform: rotate(90deg);
-          transform: rotate(90deg);
+          transform: rotate(90deg);  
 }
 
-.ref [data-group]{
+.ref [data-group],
+.ref [g]{
   display: none;
 }
 
-.ref [data-toggle][data-exp] ~ [data-group]{
+.ref [data-toggle][data-exp] ~ [data-group],
+.ref [data-toggle][data-exp] ~ [g]{
   display: block;
 }
 
 /* group sections */
-.ref [data-table]{
+.ref [data-table],
+.ref [t]{
   display: table;
 }
 
@@ -210,16 +214,20 @@
 
 /* emulate a table for displaying array & object members */
 /* section row */
-.ref [data-row]{
-  display: table-row;
+.ref [data-row],
+.ref [r]{
+  display: table-row; 
 }
 
 /* zebra-like rows */
 .ref [data-output] [data-row]:nth-child(odd){background: #f4f4f4;}
 .ref [data-output] [data-row]:nth-child(even){background: #f9f9f9;}
+.ref [data-output] [r]:nth-child(odd){background: #f4f4f4;}
+.ref [data-output] [r]:nth-child(even){background: #f9f9f9;}
 
 /* section cells */
-.ref [data-cell]{
+.ref [data-cell],
+.ref [c]{
   display: table-cell;
   width: auto;
   vertical-align: top;
@@ -228,7 +236,9 @@
 
 /* last cell of a row (forces table to adjust width like we want to) */
 .ref [data-output] [data-table],
-.ref [data-output] [data-cell]:last-child{
+.ref [data-output] [t],
+.ref [data-output] [data-cell]:last-child,
+.ref [data-output] [c]:last-child{
   width: 100%;
 }
 
@@ -240,23 +250,23 @@
 .ref [data-null],
 .ref [data-unknown],
 .ref [data-resource],
-.ref [data-match]{
-  font: bold 11px Helvetica, Arial;
-  color: #fff;
+.ref [data-match],
+.ref [m]{
+  font: bold 11px Helvetica, Arial; 
+  color: #fff;        
   padding: 1px 3px;
   text-transform: lowercase;
   text-shadow: none;
-  border-radius: 2px;
+  border-radius: 2px;        
   margin-right: 5px;
-  background-color: #eee;
-  background-image: -webkit-linear-gradient(top, rgba(255,255,255,0.1) 40%,rgba(0,0,0,0.1) 100%);
-  background-image: -moz-linear-gradient(top, rgba(255,255,255,0.1) 40%, rgba(0,0,0,0.1) 100%);
-  background-image: -ms-linear-gradient(top, rgba(255,255,255,0.1) 40%,rgba(0,0,0,0.1) 100%);
+  background-color: #eee;  
+  background-image: -webkit-linear-gradient(top, rgba(255,255,255,0.1) 40%,rgba(0,0,0,0.1) 100%);  
   background-image: linear-gradient(to bottom, rgba(255,255,255,0.1) 40%,rgba(0,0,0,0.1) 100%);
 }
 
 /* string matches */
-.ref [data-match]{
+.ref [data-match],
+.ref [m]{
   background-color: #d78035;
 }
 
@@ -269,7 +279,7 @@
 .ref [data-false]{
   background-color: #CC0033;
   color: #fff;
-}
+}   
 
 /* null value */
 .ref [data-null],
@@ -285,7 +295,7 @@
 }
 
 .ref [data-resourceProp]{
-  font: bold 11px Helvetica, Arial;
+  font: bold 11px Helvetica, Arial;   
   color: #999;
 }
 
@@ -293,14 +303,23 @@
 .ref [data-integer],
 .ref [data-double]{
   color: #0099CC;
-}
+}   
 
 /* string values */
 .ref [data-string]{
-  white-space: pre-wrap;
   background: #e8f0e1;
-  color: #669933;
+  color: #669933;  
   padding: 3px 1px;
+  
+  /* prevent long strings from breaking the page layout */
+	white-space: -moz-pre-wrap; /* Mozilla */
+	white-space: -hp-pre-wrap; /* HP printers */
+	white-space: -o-pre-wrap; /* Opera 7 */
+	white-space: -pre-wrap; /* Opera 4-6 */
+	white-space: pre-wrap; /* CSS 2.1 */
+	white-space: pre-line; /* CSS 3 (and 2.1 as well, actually) */
+	word-wrap: break-word; /* IE */
+	word-break: break-all;
 }
 
 .ref [data-string][data-special]{
@@ -345,48 +364,54 @@
 
 /* method arguments */
 .ref [data-param]{
-  font-weight: normal;
+  font-weight: normal;  
   color: #333;
 }
 
 /* optional method arguments */
 .ref [data-param][data-optional]{
   font-style: italic;
-  font-weight: normal;
+  font-weight: normal;    
   color: #aaa;
 }
 
 /* group info prefix */
-.ref [data-gLabel]{
-  font: bold 11px Helvetica, Arial;
+.ref [data-gLabel],
+.ref [gl]{
+  font: bold 11px Helvetica, Arial;  
   padding: 0 3px;
   color: #333;
 }
 
 /* tiny bubbles that indicate visibility info or class features */
 .ref [data-mod]{
-  font: bold 11px Helvetica, Arial;
+  font: bold 11px Helvetica, Arial;      
   text-shadow: none;
-  color: #fff;
+  color: #fff;            
 }
 
 .ref [data-input] [data-mod]{
   color: #444;
 }
 
-.ref [data-mod] span{
-  display: inline-block;
-  margin: 0 2px;
+.ref [data-mod] span,
+.ref [data-mod] r{
+  display: inline-block;  
+  margin: 0 2px;  
   width: 14px;
   height: 14px;
-  text-align: center;
-  border-radius: 30px;
-  line-height: 15px;
+  text-align: center;  
+  border-radius: 30px;   
+  line-height: 15px;    
 }
 
 .ref [data-mod-interface],
 .ref [data-mod-abstract]{
   background: #baed78;
+}
+
+.ref [data-mod-anonymous]{
+  background: #444;
 }
 
 .ref [data-mod-protected]{
@@ -406,7 +431,7 @@
 }
 
 .ref [data-mod-final]{
-  background: #78bded;
+  background: #78bded;  
 }
 
 /* regular expression (colors partially match RegexBuddy and RegexPal) */
@@ -414,7 +439,7 @@
   font-weight: bold;
   text-shadow: none;
   padding: 1px 0;
-  background: #e6e6e6;
+  background: #e6e6e6;  
   word-wrap: break-word;
 }
 
@@ -431,7 +456,7 @@
 .ref [data-regex-meta]{
   background: #80c0ff;
   color: #105f8c;
-}
+} 
 
 /* group: depth 1 */
 .ref [data-regex-g1]{
@@ -461,4 +486,13 @@
 .ref [data-regex-g5]{
   background: #00ff00;
   color: #2c8e24;
+}
+
+.ref [data-error]{
+  background: #CC0033;
+  color: #fff;
+  border-radius: 0 0 4px 4px;
+  padding: 2px 5px;  
+  margin: 0 0 4px;
+  display: block;
 }

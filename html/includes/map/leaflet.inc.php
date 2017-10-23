@@ -65,17 +65,27 @@
 
     var map = L.map('map').setView(<?php echo $leaflet_init; ?>);
 
+    /* disable scroll wheel by default, toggle by click on map */
+    map.scrollWheelZoom.disable();
+    map.on('click', function() {
+      if (map.scrollWheelZoom.enabled()) {
+        map.scrollWheelZoom.disable();
+      } else {
+        map.scrollWheelZoom.enable();
+      }
+    });
+
     var icons = {
       ok: L.icon({
         iconUrl: 'images/svg/ok.svg',
         popupAnchor:  [0, 16],
-        iconSize: [24, 24] // size of the icon
+        iconSize: [<?php echo $config['frontpage']['map']['okmarkersize']; ?>, <?php echo $config['frontpage']['map']['okmarkersize']; ?>] // size of the icon
         }),
 
       alert: L.icon({
         iconUrl: 'images/svg/high_priority.svg',
         popupAnchor:  [0, 12],
-        iconSize: [32, 32] // size of the icon
+        iconSize: [<?php echo $config['frontpage']['map']['alertmarkersize']; ?>, <?php echo $config['frontpage']['map']['alertmarkersize']; ?>] // size of the icon
         }),
     };
 

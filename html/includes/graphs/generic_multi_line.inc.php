@@ -13,8 +13,6 @@
 
 include($config['html_dir']."/includes/graphs/common.inc.php");
 
-$graph_return['valid_options'][] = "previous";
-$graph_return['valid_options'][] = "total";
 $graph_return['valid_options'][] = "trend";
 
 // Here we scale the number of numerical columns shown to make sure we keep the text.
@@ -116,6 +114,13 @@ foreach ($rrd_list as $i => $rrd)
   } else {
     $rrd_optionsb .= " LINE1.25:".$id."#".$colour.":'$descr'";
     if (!empty($rrd['areacolour'])) { $rrd_optionsb .= " AREA:".$id."#" . $rrd['areacolour']; }
+  }
+
+  if ($vars['trend'])
+  {
+    $rrd_options .= " CDEF:".$id."smooth=".$id.",1800,TREND";
+    $rrd_options .= " CDEF:".$id."predict=586400,-7,1800,".$id.",PREDICT";
+    $rrd_options .= " LINE1:".$id."predict#".$colour."::dashes=3";
   }
 
   if (in_array("lst", $data_show)) { $rrd_optionsb .= " GPRINT:".$id.":LAST:%6.1lf%s"; }

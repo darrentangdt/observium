@@ -17,12 +17,22 @@ $datas = array(
   'Flows' => 'nfsen_flows'
 );
 
-foreach ($datas as $name=>$type)
+foreach ($datas as $name => $type)
 {
-  $graph_title = $name;
+  $graph_title = nicecase($name);
   $graph_array['type'] = "device_".$type;
+  $graph_array['device'] = $device['device_id'];
+  #$graph_array['legend'] = no;
 
-  include("includes/print-device-graph.php");
+  $box_args = array('title' => $graph_title,
+                    'header-border' => TRUE,
+                    );
+
+  echo generate_box_open($box_args);
+
+  print_graph_row($graph_array);
+  
+  echo generate_box_close();
 }
 
 register_html_title("Netflow");

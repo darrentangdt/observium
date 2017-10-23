@@ -40,48 +40,97 @@ echo '  <tbody>';
 // {
 // }
 
-foreach (dbFetchRows("SELECT * FROM `packages` WHERE 1 $where GROUP BY `name`", $param) as $entry)
+foreach (dbFetchRows("SELECT * FROM `packages` WHERE 1 $where GROUP BY `name`", $param) as $package)
 {
-  echo("    <tr>\n");
-  echo("      <td><a href=\"". generate_url($vars, array('name' => $entry['name']))."\">".$entry['name']."</a></td>\n");
-  echo("      <td>");
+  echo '    <tr>'.PHP_EOL;
+  echo '      <td><a href="'. generate_url($vars, array('name' => $package['name'])).'" class="entity">'.$package['name'].'</a></td>'.PHP_EOL;
+  echo '      <td>';
 
-  foreach (dbFetchRows("SELECT * FROM `packages` WHERE `name` = ? ORDER BY version, build", array($entry['name'])) as $entry_v)
+  foreach (dbFetchRows("SELECT * FROM `packages` WHERE `name` = ? ORDER BY version, build", array($package['name'])) as $v)
   {
-    $entry['blah'][$entry_v['version']][$entry_v['build']][$entry_v['device_id']] = 1;
+    $package['versions'][$v['version']][$v['build']][] = $v;
   }
 
-  $first = true;
-  foreach ($entry['blah'] as $version => $bleu)
+  //r($package);
+
+  if (!empty($vars['name']))
+  {
+    echo '<table class="'.OBS_CLASS_TABLE_STRIPED.'">';
+    echo '<tbody>';
+  }
+
+  foreach ($package['versions'] as $version => $builds)
   {
 
-    //$content = '<div style="width: 800px;">';
     $content = "";
-    foreach ($bleu as $build => $bloo)
+    foreach ($builds as $build => $device_ids)
     {
       if ($build) { $dbuild = '-' . $build; } else { $dbuild = ''; }
-      //$content .= '<div style="background-color: #eeeeee; margin: 5px;"><span style="font-weight: bold; ">'.$version.$dbuild.'</span>';
       $content .= $version.$dbuild;
-      foreach ($bloo as $device_id => $no)
+
+      foreach ($device_ids as $entry)
       {
-        $this_device = device_by_id_cache($device_id);
-        //$content .= '<span style="background-color: #f5f5f5; margin: 5px;">'.$this_device['hostname'].'</span> ';
+        $this_device = device_by_id_cache($entry['device_id']);
+
+  switch($entry['arch'])
+  {
+    case "amd64":
+      $entry['arch_class'] = 'label-success';
+      break;
+    case "i386":
+      $entry['arch_class'] = 'label-info';
+      break;
+    default:
+      $entry['arch_class'] = '';
+  }
+
+  switch($entry['manager'])
+  {
+    case "deb":
+      $entry['manager_class'] = 'label-warning';
+      break;
+    case "rpm":
+      $entry['manager_class'] = 'label-important';
+      break;
+    default:
+      $entry['manager_class'] = '';
+  }
+
+        if ($build != '') { $dbuild = '-'.$entry['build']; } else { $dbuild = ''; }
+
         if (!empty($this_device['hostname'])) {
-          $content .= " - ".$this_device['hostname'];
+          if (!empty($vars['name']))
+          {
+            echo '<tr>';
+            echo '<td>'.$entry['version'].$dbuild.'</td><td><span class="label '.$entry['arch_class'].'">'.$entry['arch'].'</span></td>
+                  <td><span class="label '.$entry['manager_class'].'">'.$entry['manager'].'</span></td>
+                  <td class="entity">'.generate_device_link($this_device).'</td><td></td><td>'.format_si($entry['size']).'</td>';
+            echo '</tr>';
+          } else {
+            $hosts[] = '<span class="entity">' . $this_device['hostname'].'</span>';
+          }
         }
+
       }
-      //$content .= "</div>";
     }
-    //$content .= "</div>";
+
     if (empty($vars['name']))
     {
-      if ($first) { $first = false; $middot = ""; } else { $middot = "&nbsp;&nbsp;&middot;&nbsp;&nbsp;"; }
-      //echo("<span style='margin:5px;'>".overlib_link("", $version, $content,  NULL)."</span>");
-      echo($middot . generate_tooltip_link('', $version . $dbuild, $content));
-    } else {
-      echo("$version $content <br />");
+      #if ($first) { $first = false; $middot = ""; } else { $middot = "&nbsp;&nbsp;&middot;&nbsp;&nbsp;"; }
+      $vers[] = generate_tooltip_link('', $version . $dbuild, implode($hosts, '<br />'));
     }
+    unset($hosts);
   }
+
+  if (!empty($vars['name']))
+  {
+    echo '</tbody>';
+    echo '</table>';
+  } else {
+    echo implode($vers, ' - ');
+  }
+
+  unset($vers);
 
   echo '      </td>'.PHP_EOL;
   echo '    </tr>'.PHP_EOL;

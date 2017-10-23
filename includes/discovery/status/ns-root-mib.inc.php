@@ -13,8 +13,8 @@
 
 // Collect HAMode & HAState
 
-$sysHighAvailabilityMode = snmp_get($device, 'sysHighAvailabilityMode.0', '-Ovq', 'NS-ROOT-MIB');
-$haCurState              = snmp_get($device, 'haCurState.0',              '-Ovq', 'NS-ROOT-MIB');
+$sysHighAvailabilityMode = snmp_get($device, 'sysHighAvailabilityMode.0', '-Ovq', $mib);
+$haCurState              = snmp_get($device, 'haCurState.0',              '-Ovq', $mib);
 
 if ($sysHighAvailabilityMode !== '' && $haCurState !== '')
 {

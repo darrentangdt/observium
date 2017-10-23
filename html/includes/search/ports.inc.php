@@ -34,7 +34,7 @@ if (count($results))
       'url'  => generate_port_url($result),
       'name' => $name,
       'colour' => $result['table_tab_colour'],
-      'icon' => '<img src="images/icons/'.$result['icon'].'.png" />',
+      'icon' => '<i class="'.$config['icon']['port'].'"></i>',
       'data' => array(
         escape_html($result['hostname']),
         $type . highlight_search(escape_html($description))),

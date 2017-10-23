@@ -6,10 +6,10 @@ then
   echo '<<<app-asterisk>>>'
 
   astcmd () {
-      asterisk -rx "$1" | sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g'
+      asterisk -rx "$1" | grep -v "Asterisk ending" | sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g'
   }
 
-  CORECHANNELS=`asterisk -rx 'core show channels' | tail -3`
+  CORECHANNELS=$(astcmd 'core show channels' | tail -3)
   ACTIVECHAN=$(echo $CORECHANNELS | grep -o '[0-9]* active channel' | cut -d' ' -f1)
   ACTIVECALL=$(echo $CORECHANNELS | grep -o '[0-9]* active call' | cut -d' ' -f1)
   IAXCHANNELS=$(astcmd 'iax2 show channels' | tail -1 | cut -d' ' -f1)

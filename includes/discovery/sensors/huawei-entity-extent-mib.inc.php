@@ -11,22 +11,9 @@
  *
  */
 
-$huawei['sensors_names'] = snmpwalk_cache_oid($device, 'hwEntityBomEnDesc', array(), 'HUAWEI-ENTITY-EXTENT-MIB');
-$huawei['temp'] = snmpwalk_cache_oid($device, 'hwEntityTemperature', array(), 'HUAWEI-ENTITY-EXTENT-MIB');
-$huawei['fan']  = snmpwalk_cache_oid($device, 'HwFanStatusEntry', array(), 'HUAWEI-ENTITY-EXTENT-MIB');
-$opticalarray   = snmpwalk_cache_oid($device, 'HwOpticalModuleInfoEntry', $opticalarray, 'HUAWEI-ENTITY-EXTENT-MIB');
-
-//If we got entity-mib, merge it with optical modules
-if (is_array($GLOBALS['cache']['entity-mib']))
-{
-  foreach ($GLOBALS['cache']['entity-mib'] as $index => $entry)
-  {
-    if (isset($opticalarray[$index]))
-    {
-      $opticalarray[$index] = array_merge($opticalarray[$index], $entry);
-    }
-  }
-}
+$huawei['sensors_names'] = snmpwalk_cache_oid($device, 'hwEntityBomEnDesc',   array(), 'HUAWEI-ENTITY-EXTENT-MIB');
+$huawei['temp']          = snmpwalk_cache_oid($device, 'hwEntityTemperature', array(), 'HUAWEI-ENTITY-EXTENT-MIB');
+$huawei['fan']           = snmpwalk_cache_oid($device, 'HwFanStatusEntry',    array(), 'HUAWEI-ENTITY-EXTENT-MIB');
 
 foreach ($huawei['temp'] as $index => $entry)
 {
@@ -54,52 +41,54 @@ foreach ($huawei['fan'] as $index => $entry)
   }
 }
 
-foreach ($opticalarray as $index => $entry)
+// Optical sensors
+$entity_array   = snmpwalk_cache_oid($device, 'HwOpticalModuleInfoEntry', array(), 'HUAWEI-ENTITY-EXTENT-MIB');
+
+if (OBS_DEBUG > 1 && count($entity_array))
 {
-  if ($entry['entPhysicalClass'] === 'port')
+  print_vars($entity_array);
+}
+
+foreach ($entity_array as $index => $entry)
+{
+  $port    = get_port_by_ent_index($device, $index);
+  $options = array('entPhysicalIndex' => $index);
+  if (is_array($port))
   {
-    // Port found, get mapped ifIndex
-    $sensor_port = $opticalarray[$index];
-    if (isset($sensor_port['0']['entAliasMappingIdentifier']) && strpos($sensor_port['0']['entAliasMappingIdentifier'], 'fIndex'))
+    $entry['ifDescr']            = $port['ifDescr'];
+    $options['measured_class']   = 'port';
+    $options['measured_entity']  = $port['port_id'];
+    $options['entPhysicalIndex_measured'] = $port['ifIndex'];
+  } else {
+    // Skip?
+    continue;
+  }
+
+  $temperatureoid = '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.5.'.$index;
+  $voltageoid     = '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.6.'.$index;
+  $biascurrentoid = '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.7.'.$index;
+  $rxpoweroid     = '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.8.'.$index;
+  $txpoweroid     = '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.9.'.$index;
+
+  //Ignore optical sensors with temperature of zero or negative
+  if ($entry['hwEntityOpticalTemperature'] > 1)
+  {
+    discover_sensor($valid['sensor'], 'temperature', $device, $temperatureoid, $index, 'huawei', $entry['ifDescr'] . ' Temperature',          1, $entry['hwEntityOpticalTemperature'], $options);
+    discover_sensor($valid['sensor'], 'voltage',     $device, $voltageoid,     $index, 'huawei', $entry['ifDescr'] . ' Voltage',          0.001, $entry['hwEntityOpticalVoltage'],     $options);
+    discover_sensor($valid['sensor'], 'current',     $device, $biascurrentoid, $index, 'huawei', $entry['ifDescr'] . ' Bias Current ', 0.000001, $entry['hwEntityOpticalBiasCurrent'], $options);
+    // Huawei does not follow their own MIB for some devices and instead reports Rx/Tx Power as dBm converted to mW then multiplied by 1000
+    if ($entry['hwEntityOpticalRxPower'] >= 0)
     {
-      list(, $ifIndex) = explode('.', $sensor_port['0']['entAliasMappingIdentifier']);
-      $port = get_port_by_index_cache($device['device_id'], $ifIndex);
-      $temperatureoid = '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.5.'.$index;
-      $voltageoid = '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.6.'.$index;
-      $biascurrentoid = '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.7.'.$index;
-      $rxpoweroid = '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.8.'.$index;
-      $txpoweroid = '.1.3.6.1.4.1.2011.5.25.31.1.1.3.1.9.'.$index;
-      //Optical module name
-      $descr = $entry['hwEntityOpticalVenderPn'];
-      //If no part name found use serial number for description
-      if (empty($entry['hwEntityOpticalVenderPn']))
-      {
-        $descr = $entry['hwEntityOpticalVenderSn'];
-      }
-
-      $options['entPhysicalClass'] = $entry['entPhysicalClass'];
-      $options['entPhysicalIndex_measured'] = $ifIndex;
-      $options['measured_class']  = 'port';
-      $options['measured_entity'] = $port['port_id'];
-
-      //Ignore optical sensors with temperature of zero or negative
-      if ($entry['hwEntityOpticalTemperature'] > 1)
-      {
-        discover_sensor($valid['sensor'], 'temperature', $device, $temperatureoid, $index, 'huawei', 'Module Temperature', 1, $entry['hwEntityOpticalTemperature'], $options);
-        discover_sensor($valid['sensor'], 'voltage', $device, $voltageoid, $index, 'huawei', 'Module Voltage', 0.001, $entry['hwEntityOpticalVoltage'], $options);
-        discover_sensor($valid['sensor'], 'current', $device, $biascurrentoid, $index, 'huawei', 'Bias Current ', 0.000001, $entry['hwEntityOpticalBiasCurrent'], $options);
-        //Huawei does not follow their own MIB for some devices and instead reports Rx/Tx Power as dBm converted to mW then multiplied by 1000
-        if ($entry['hwEntityOpticalRxPower'] >= 0)
-        {
-          discover_sensor($valid['sensor'], 'power', $device, $rxpoweroid, 'hwEntityOpticalRxPower.' . $index, 'huawei', 'Rx Power', 0.000001, $entry['hwEntityOpticalRxPower'], $options);
-          discover_sensor($valid['sensor'], 'power', $device, $txpoweroid, 'hwEntityOpticalTxPower.' . $index, 'huawei', 'Tx Power', 0.000001, $entry['hwEntityOpticalTxPower'], $options);
-        } else {
-          discover_sensor($valid['sensor'], 'dbm', $device, $rxpoweroid, 'hwEntityOpticalRxPower.' . $index, 'huawei', 'Rx Power', 0.01, $entry['hwEntityOpticalRxPower'], $options);
-          discover_sensor($valid['sensor'], 'dbm', $device, $txpoweroid, 'hwEntityOpticalTxPower.' . $index, 'huawei', 'Tx Power', 0.01, $entry['hwEntityOpticalTxPower'], $options);
-        }
-      }
+      discover_sensor($valid['sensor'], 'power', $device, $rxpoweroid, 'hwEntityOpticalRxPower.' . $index, 'huawei', $entry['ifDescr'] . ' Rx Power', 0.000001, $entry['hwEntityOpticalRxPower'], $options);
+      discover_sensor($valid['sensor'], 'power', $device, $txpoweroid, 'hwEntityOpticalTxPower.' . $index, 'huawei', $entry['ifDescr'] . ' Tx Power', 0.000001, $entry['hwEntityOpticalTxPower'], $options);
+    } else {
+      discover_sensor($valid['sensor'], 'dbm',   $device, $rxpoweroid, 'hwEntityOpticalRxPower.' . $index, 'huawei', $entry['ifDescr'] . ' Rx Power',     0.01, $entry['hwEntityOpticalRxPower'], $options);
+      discover_sensor($valid['sensor'], 'dbm',   $device, $txpoweroid, 'hwEntityOpticalTxPower.' . $index, 'huawei', $entry['ifDescr'] . ' Tx Power',     0.01, $entry['hwEntityOpticalTxPower'], $options);
     }
   }
+
 }
+
+unset($entity_array, $huawei);
 
 // EOF

@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- FC management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -72,7 +72,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsFcObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -1319,7 +1319,9 @@ CucsFcPIoEntry ::= SEQUENCE {
     cucsFcPIoLc                                                      CucsFsmLifecycle,
     cucsFcPIoUnifiedPort                                             TruthValue,
     cucsFcPIoMaxSpeed                                                CucsPortSpeed,
-    cucsFcPIoIsPortChannelMember                                     TruthValue
+    cucsFcPIoIsPortChannelMember                                     TruthValue,
+    cucsFcPIoAggrPortId                                              Gauge32,
+    cucsFcPIoPeerAggrPortId                                          Gauge32
 }
 
 cucsFcPIoInstanceId OBJECT-TYPE
@@ -1721,6 +1723,22 @@ cucsFcPIoIsPortChannelMember OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS fc:PIo:isPortChannelMember managed object property"
     ::= { cucsFcPIoEntry 50 }
+
+cucsFcPIoAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS fc:PIo:aggrPortId managed object property"
+    ::= { cucsFcPIoEntry 51 }
+
+cucsFcPIoPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS fc:PIo:peerAggrPortId managed object property"
+    ::= { cucsFcPIoEntry 52 }
 
 cucsFcPIoFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsFcPIoFsmEntry

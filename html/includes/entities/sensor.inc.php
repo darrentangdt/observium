@@ -7,7 +7,7 @@
  *
  * @package    observium
  * @subpackage web
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -25,6 +25,8 @@
 // TESTME needs unit testing
 function humanize_sensor(&$sensor)
 {
+  global $config;
+
   // Exit if already humanized
   if ($sensor['humanized']) { return; }
 
@@ -60,13 +62,12 @@ function humanize_sensor(&$sensor)
   {
     $sensor_warn_high = format_value($sensor['sensor_limit_warn'], $sensor['sensor_format']) . $sensor['sensor_symbol'];
   } else {
-    $sensor_wanr_high = "&infin;";
+    $sensor_warn_high = "&infin;";
   }
 
   if ($sensor_warn_high) { $sensor_threshold_high = "(".$sensor_warn_high.") " . $sensor_threshold_high; }
 
   $sensor['sensor_thresholds'] = $sensor_threshold_low . ' - ' . $sensor_threshold_high;
-
 
   // generate pretty value
   if (!is_numeric($sensor['sensor_value']))
@@ -77,28 +78,17 @@ function humanize_sensor(&$sensor)
     $sensor['human_value'] = format_value($sensor['sensor_value'], $sensor['sensor_format']);
   }
 
-  switch ($sensor['sensor_event'])
+  if (isset($config['entity_events'][$sensor['sensor_event']]))
   {
-    case 'up':
-    case 'ok':
-      $sensor['state_class'] = 'label label-success';
-      $sensor['row_class']   = 'up';
-      break;
-    case 'warning':
-      $sensor['state_class'] = 'label label-warning';
-      $sensor['row_class']   = 'warning';
-      break;
-    case 'alert':
-      $sensor['state_class'] = 'label label-important';
-      $sensor['row_class']   = 'error';
-      break;
-    case 'ignore':
-      $sensor['state_class'] = 'label';
-      $sensor['row_class']   = 'ignored';
-      break;
-    default:
-      $sensor['state_class'] = 'label label-primary';
-      // $sensor['row_class']   = NULL;
+    $sensor = array_merge($sensor, $config['entity_events'][$sensor['sensor_event']]);
+  } else {
+    $sensor['event_class'] = 'label label-primary';
+    $sensor['row_class']   = '';
+  }
+  //r($sensor);
+  if ($sensor['sensor_deleted'])
+  {
+    $sensor['row_class']   = 'disabled';
   }
 
   $device = &$GLOBALS['cache']['devices']['id'][$sensor['device_id']];
@@ -113,8 +103,12 @@ function humanize_sensor(&$sensor)
 
 function build_sensor_query($vars)
 {
+
   $sql  = "SELECT * FROM `sensors`";
-  $sql .= " LEFT JOIN `sensors-state` USING (`sensor_id`)";
+  if($vars['sort'] == 'hostname' || $vars['sort'] == 'device' || $vars['sort'] == 'device_id')
+  {
+    $sql .= ' LEFT JOIN `devices` USING(`device_id`)';
+  }
   $sql .= " WHERE `sensor_deleted` = 0";
 
   // Build query
@@ -140,6 +134,12 @@ function build_sensor_query($vars)
       case "entity_type":
         $sql .= generate_query_values($value, 'sensors.measured_class');
         break;
+      case "sensor_descr":
+        $sql .= generate_query_values($value, 'sensors.sensor_descr', '%LIKE%');
+        break;
+      case "sensor_type":
+        $sql .= generate_query_values($value, 'sensors.sensor_type', '%LIKE%');
+        break;
       case "id":
         $sql .= generate_query_values($value, 'sensors.sensor_id');
         break;
@@ -152,12 +152,55 @@ function build_sensor_query($vars)
 
   $sql .= generate_query_permitted(array('device', 'sensor'));
 
+  switch ($vars['sort_order'])
+  {
+    case 'desc':
+      $sort_order = 'DESC';
+      $sort_neg   = 'ASC';
+      break;
+    case 'reset':
+      unset($vars['sort'], $vars['sort_order']);
+      // no break here
+    default:
+      $sort_order = 'ASC';
+      $sort_neg   = 'DESC';
+  }
+
+
+  switch($vars['sort'])
+  {
+    case 'device':
+      $sql .= ' ORDER BY `hostname` '.$sort_order;
+      break;
+    case 'descr':
+    case 'event':
+      $sql .= ' ORDER BY `sensor_'.$vars['sort'].'` '.$sort_order;
+      break;
+    case 'value':
+    case 'last_change':
+      $sql .= ' ORDER BY `sensor_'.$vars['sort'].'` '.$sort_order;
+      break;
+    default:
+      // $sql .= ' ORDER BY `hostname` '.$sort_order.', `sensor_descr` '.$sort_order;
+  }
+
+  if(isset($vars['pageno']))
+  {
+    $start = $vars['pagesize'] * ($vars['pageno'] - 1);
+    $sql .= ' LIMIT '.$start.','.$vars['pagesize'];
+  }
+
   return $sql;
 }
 
 function print_sensor_table($vars)
 {
+
   $sql = build_sensor_query($vars);
+
+//r($vars);
+//r($sql);
+
 
   $sensors = array();
   foreach(dbFetchRows($sql) as $sensor)
@@ -169,55 +212,11 @@ function print_sensor_table($vars)
     //}
   }
 
-  // Sorting
-  // FIXME. Sorting can be as function, but in must before print_table_header and after get table from db
-  switch ($vars['sort_order'])
-  {
-    case 'desc':
-      $sort_order = SORT_DESC;
-      $sort_neg   = SORT_ASC;
-      break;
-    case 'reset':
-      unset($vars['sort'], $vars['sort_order']);
-      // no break here
-    default:
-      $sort_order = SORT_ASC;
-      $sort_neg   = SORT_DESC;
-  }
-
-  switch ($vars['sort'])
-  {
-    case 'device':
-      $sensors = array_sort_by($sensors, 'hostname', $sort_order, SORT_STRING);
-      break;
-    case 'descr':
-      $sensors = array_sort_by($sensors, 'sensor_descr', $sort_order, SORT_STRING);
-      break;
-    case 'event':
-      $sensors = array_sort_by($sensors, 'sensor_event', $sort_order, SORT_STRING);
-      break;
-    case 'value':
-      $sensors = array_sort_by($sensors, 'sensor_value', $sort_order, SORT_STRING);
-      break;
-    case 'last_change':
-      $sensors = array_sort_by($sensors, 'sensor_last_change', $sort_neg, SORT_NUMERIC);
-      break;
-    default:
-      $sensors = array_sort_by($sensors, 'hostname', $sort_order, SORT_STRING, 'sensor_descr', $sort_order, SORT_STRING);
-  }
-
   $sensors_count = count($sensors);
 
   // Pagination
   $pagination_html = pagination($vars, $sensors_count);
   echo $pagination_html;
-
-  if ($vars['pageno'])
-  {
-    $sensors = array_chunk($sensors, $vars['pagesize']);
-    $sensors = $sensors[$vars['pageno']-1];
-  }
-  // End Pagination
 
   echo generate_box_open();
 
@@ -328,10 +327,10 @@ function generate_sensor_row($sensor, $vars)
   {
     $row .= '        <td style="white-space: nowrap">' . generate_tooltip_link(NULL, formatUptime(($config['time']['now'] - $sensor['sensor_last_change']), 'short-2') . ' ago', format_unixtime($sensor['sensor_last_change'])) . '</td>';
     $table_cols++;
-    $row .= '        <td style="text-align: right;"><strong><span class="' . $sensor['state_class'] . '">' . $sensor['sensor_event'] . '</span></strong></td>';
+    $row .= '        <td style="text-align: right;"><strong>' . generate_tooltip_link('', $sensor['sensor_event'], $sensor['event_descr'], $sensor['event_class']) . '</strong></td>';
     $table_cols++;
   }
-  $row .= '        <td style="width: 80px; text-align: right;"><strong><span class="' . $sensor['state_class'] . '">' . $sensor['human_value'] . $sensor['sensor_symbol'] . '</span></strong>
+  $row .= '        <td style="width: 80px; text-align: right;"><strong>' . generate_tooltip_link('', $sensor['human_value'] . $sensor['sensor_symbol'], $sensor['event_descr'], $sensor['event_class']) . '</strong>
         </tr>' . PHP_EOL;
 
   if ($vars['view'] == "graphs" || $vars['id'] == $sensor['sensor_id']) { $vars['graph'] = "graph"; }

@@ -76,7 +76,9 @@ foreach ($config_variable as $varname => $variable)
   $config_subsections[$variable['section']][$variable['subsection']][$varname] = $variable;
 }
 
-if ($vars['submit'] == 'save')
+// Change/save config actions.
+
+if (($vars['submit'] == 'save' || $vars['action'] == 'save') && request_token_valid($vars))
 {
   //r($vars);
   $updates = 0;

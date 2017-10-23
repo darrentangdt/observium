@@ -95,6 +95,8 @@ function generate_p2pradio_row($radio, $vars)
 {
   global $config;
 
+  $device = device_by_id_cache($radio['device_id']);
+
   $table_cols = 12;
   if ($vars['page'] != "device" && $vars['popup'] != TRUE) { $table_cols++; } // Add a column for device.
 
@@ -102,7 +104,7 @@ function generate_p2pradio_row($radio, $vars)
          <td class="state-marker"></td>
          <td></td>';
 
-  if ($vars['page'] != "device"  && $vars['popup'] != TRUE) { $row .=('<td class="entity">' . generate_device_link($radio) . '</td>'); }
+  if ($vars['page'] != "device"  && $vars['popup'] != TRUE) { $row .=('<td class="entity">' . generate_device_link($device, short_hostname($device['hostname'])) . '</td>'); }
 
   $row .= '
          <td class="entity">' . generate_entity_link('p2pradio', $radio) . '</td>

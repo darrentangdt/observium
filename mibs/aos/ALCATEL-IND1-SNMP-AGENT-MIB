@@ -5,6 +5,7 @@ IMPORTS
 	OBJECT-TYPE,
 	OBJECT-IDENTITY,
 	MODULE-IDENTITY,
+
 	IpAddress		FROM SNMPv2-SMI
 	TEXTUAL-CONVENTION 	FROM SNMPv2-TC
         OBJECT-GROUP,
@@ -18,7 +19,7 @@ alcatelIND1SNMPAgentMIB  MODULE-IDENTITY
 	CONTACT-INFO
 	    "Please consult with Customer Service to ensure the most appropriate
 	     version of this document is used with the products in question:
-
+ 
 			Alcatel-Lucent, Enterprise Solutions Division
 		       (Formerly Alcatel Internetworking, Incorporated)
 			       26801 West Agoura Road
@@ -37,21 +38,21 @@ alcatelIND1SNMPAgentMIB  MODULE-IDENTITY
 	DESCRIPTION
 	    "This module describes an authoritative enterprise-specific Simple
              Network Management Protocol (SNMP) Management Information Base (MIB):
-
+         
                  For the Birds Of Prey Product Line
                  SNMP Agent Subsystem.
-
+         
              The right to make changes in specification and other information
              contained in this document without prior notice is reserved.
-
+         
              No liability shall be assumed for any incidental, indirect, special, or
              consequential damages whatsoever arising from or related to this
              document or the information contained herein.
-
+         
              Vendors, end-users, and other interested parties are granted
              non-exclusive license to use this specification in connection with
              management of the products for which it is intended to be used.
-
+         
                          Copyright (C) 1995-2007 Alcatel-Lucent
                              ALL RIGHTS RESERVED WORLDWIDE"
 
@@ -105,7 +106,7 @@ SnmpAgtSecurityLevel ::= TEXTUAL-CONVENTION
 		privSet(4),
 		privAll(5),
 		trapOnly(6)
-	}
+	}  
 	
 snmpAgtSecurityLevel OBJECT-TYPE
 	SYNTAX     SnmpAgtSecurityLevel
@@ -135,19 +136,19 @@ snmpAgtCommunityMode OBJECT-TYPE
 	STATUS  current
 	DESCRIPTION
 		"If the community mode is enabled,
-		 the SNMPv1/v2 packets must use
+		 the SNMPv1/v2 packets must use 
 		 the community names."
 	DEFVAL { enabled }
 	::= { snmpAgtConfig 2 }
 
 
---
+-- 
 -- SNMP Agent Epilogue Control Files anchoring
 --
 
       snmpAgtCtlFiles OBJECT-IDENTITY
 	STATUS current
-	DESCRIPTION
+	DESCRIPTION 
 	"MIB entity on which to attach the MODULE-IDENTITY for the
 	Epilogue(R) control files."
 	::= { alcatelIND1SNMPAgentMIBObjects 3}
@@ -155,7 +156,7 @@ snmpAgtCommunityMode OBJECT-TYPE
 --
 -- SNMP Source Ip Preferred Configuration
 --
-
+ 
       snmpAgtSourceIpConfig  OBJECT-TYPE
         SYNTAX INTEGER {
              default (1),
@@ -163,25 +164,21 @@ snmpAgtCommunityMode OBJECT-TYPE
              ipInterface (3)
        }
        MAX-ACCESS read-write
-       STATUS        obsolete
+       STATUS        current
        DESCRIPTION
               "The SNMP Agent Configuration
               1 -- Default(Loopback0 or closest IP)
               2 -- No Loopback0
-              3 -- Interface IP Specified by User
-	      This object has been obsoleted. Use the alaIpManagedIntfEntry objects
-	      in AlcatelIND1Ip.mib"
+              3 -- Interface IP Specified by User"
        DEFVAL        { default }
        ::= {  alcatelIND1SNMPAgentMIBObjects 4 }
-
+ 
       snmpAgtSourceIp  OBJECT-TYPE
 	SYNTAX     IpAddress
         MAX-ACCESS read-write
-        STATUS       obsolete
+        STATUS        current
         DESCRIPTION
-               "The Source IP of SNMP Packets.
-	        This object has been obsoleted. Use the alaIpManagedIntfEntry objects
-		in AlcatelIND1Ip.mib"
+               "The Source IP of SNMP Packets"
         ::= {  alcatelIND1SNMPAgentMIBObjects 5 }
 
 --
@@ -218,8 +215,7 @@ snmpAgtCommunityMode OBJECT-TYPE
             "Collection of objects for SNMP Agent configuration."
         ::= { alcatelIND1SNMPAgentMIBGroups 1 }
 
-
-     snmpAgtCtlFilesGroup OBJECT-GROUP
+snmpAgtCtlFilesGroup OBJECT-GROUP
         OBJECTS
         {
             snmpAgtSourceIpConfig,
@@ -229,5 +225,4 @@ snmpAgtCommunityMode OBJECT-TYPE
         DESCRIPTION
             "Collection of objects for SNMP Agent Contorl Files configuration."
         ::= { alcatelIND1SNMPAgentMIBGroups 2 }
-
 END

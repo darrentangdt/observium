@@ -12,7 +12,7 @@
  */
 
 // User level 7-9 only can see config
-$readonly = $_SESSION['userlevel'] < 10;
+$readonly = $_SESSION['userlevel'] < 8;
 
 if ($entry = get_alert_entry_by_id($vars['alert_entry']))
 {
@@ -22,7 +22,7 @@ if ($entry = get_alert_entry_by_id($vars['alert_entry']))
   } else {
 
   // Run actions
-  if ($vars['submit'] == 'update-alert-entry' && $_SESSION['userlevel'] >= 10)
+  if ($vars['submit'] == 'update-alert-entry' && !$readonly)
   {
 
     if (isset($vars['ignore_until_ok']) && ($vars['ignore_until_ok'] == '1' || $entry['ignore_until_ok'] == '1'))
@@ -69,7 +69,7 @@ if ($entry = get_alert_entry_by_id($vars['alert_entry']))
   <div class="col-md-3">
     <div class="box box-solid">
       <div class="box-header with-border">
-        <!-- <i class="oicon-bell"></i> --><h3 class="box-title">Alert Details</h3>
+        <h3 class="box-title">Alert Details</h3>
       </div>
       <div class="box-body no-padding">
         <table class="table table-condensed  table-striped ">
@@ -87,16 +87,53 @@ if ($entry = get_alert_entry_by_id($vars['alert_entry']))
   <div class="col-md-4">
     <div class="box box-solid">
       <div class="box-header with-border">
-        <!-- <i class="oicon-time"></i> --><h3 class="box-title">Status</h3>
+        <h3 class="box-title">Status</h3>
       </div>
       <div class="box-body no-padding">
 
-        <table class="table table-condensed  table-striped ">
+        <table class="table table-condensed">
           <tr><th>Status</th><td><span class="<?php echo $entry['class']; ?>"><?php echo $entry['last_message']; ?></span></td></tr>
-          <tr><th>Last Checked</th><td><?php echo $entry['checked']; ?></td></tr>
+          <tr><th>Last Changed</th><td><?php echo $entry['changed']; ?></td></tr>
+          <tr><td colspan=2>
+<?php
+
+    $state = json_decode($entry['state'], true);
+
+    $alert['state_popup'] = '';
+
+    // FIXME - rewrite this, it's shit
+
+    if ($alert['alert_status'] != '1' && count($state['failed']))
+    {
+      $alert['state_popup'] .= '<table class="table table-striped table-condensed">';
+      $alert['state_popup'] .= '<thead><tr><th>Metric</th><th>Cond</th><th>Value</th><th>Measured</th></tr></thead>';
+
+      foreach($state['failed'] as $test)
+      {
+        $alert['state_popup'] .= '<tr><td><strong>'.$test['metric'].'</strong></td><td>'.$test['condition'].'</td><td>'.$test['value'].'</td><td><i class="red">'.$state['metrics'][$test['metric']].'</i></td></tr>';
+      }
+      $alert['state_popup'] .= '</table>';
+
+    } elseif(count($state['metrics'])) {
+      $alert['state_popup'] .= '<table class="table table-striped table-condensed">';
+      $alert['state_popup'] .= '<thead><tr><th>Metric</th><th>Value</th></tr></thead>';
+      foreach($state['metrics'] as $metric => $value)
+      {
+        $alert['state_popup'] .= '<tr><td><strong>'.$metric.'</strong></td><td>'.$value.'</td></tr>';
+      }
+      $alert['state_popup'] .= '</table>';
+
+    }
+
+  echo $alert['state_popup'];
+
+?>
+          </td></tr>
+
+<!--          <tr><th>Last Checked</th><td><?php echo $entry['checked']; ?></td></tr>
           <tr><th>Last Changed</th><td><?php echo $entry['changed']; ?></td></tr>
           <tr><th>Last Alerted</th><td><?php echo $entry['alerted']; ?></td></tr>
-          <tr><th>Last Recovered</th><td><?php echo $entry['recovered']; ?></td></tr>
+          <tr><th>Last Recovered</th><td><?php echo $entry['recovered']; ?></td></tr> -->
         </table>
       </div>
     </div>
@@ -178,6 +215,12 @@ if ($entry = get_alert_entry_by_id($vars['alert_entry']))
   echo generate_box_close();
   echo("</div></div>"); // end row
   }
+
+  $vars['entity_type'] = $entry['entity_type'];
+  $vars['entity_id']   = $entry['entity_id'];
+
+  print_alert_log($vars);
+
 
 } else {
   print_error("Unfortunately, this alert entry id does not seem to exist in the database!");

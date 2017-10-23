@@ -1,6 +1,6 @@
 RADLAN-rlMacMulticast-MIB DEFINITIONS ::= BEGIN
 
--- Title:      RADLAN MAC Multicast Configuration
+-- Title:      RADLAN Multicast Bridge Configuration
 -- Version:    7.46
 -- Date:       15-Jan-2007
 --

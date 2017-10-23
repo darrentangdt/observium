@@ -10,7 +10,7 @@
  *
  */
 
-$atto_fc_ports = snmpwalk_cache_oid($device, 'fcPortPortNumber', array(), 'ATTO6500N-MIB');
+$atto_fc_ports = snmpwalk_cache_oid($device, 'fcPortPortNumber', array(), $mib);
 
 foreach ($atto_fc_ports as $port)
 {
@@ -22,7 +22,7 @@ foreach ($atto_fc_ports as $port)
   discover_status($device, $index, "fcPortOperationalState.$index", 'atto6500n-mib-fcPort', $sensorName, NULL, array('entPhysicalClass' => 'port'));
 }
 
-$atto_sas_ports = snmpwalk_cache_oid($device, 'sasPortPortNumber', array(), 'ATTO6500N-MIB');
+$atto_sas_ports = snmpwalk_cache_oid($device, 'sasPortPortNumber', array(), $mib);
 
 foreach ($atto_sas_ports as $port)
 {

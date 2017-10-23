@@ -24,11 +24,14 @@
 // sysDescr.0 = STRING: Microsoft Windows CE Version 5.0 (Build 1400)
 // sysDescr.0 = STRING: Microsoft Windows CE Version 6.0 (Build 0)
 
-if (strstr($poll_device['sysDescr'], 'x86'))     { $hardware = 'Generic x86'; }
-if (strstr($poll_device['sysDescr'], 'ia64'))    { $hardware = 'Intel Itanium IA64'; }
-if (strstr($poll_device['sysDescr'], 'EM64'))    { $hardware = 'Intel x64'; }
-if (strstr($poll_device['sysDescr'], 'AMD64'))   { $hardware = 'AMD x64'; }
-if (strstr($poll_device['sysDescr'], 'Intel64')) { $hardware = 'Intel x64'; }
+if (!$hardware)
+{
+  if (strstr($poll_device['sysDescr'], 'x86'))     { $hardware = 'Generic x86'; }
+  if (strstr($poll_device['sysDescr'], 'ia64'))    { $hardware = 'Intel Itanium IA64'; }
+  if (strstr($poll_device['sysDescr'], 'EM64'))    { $hardware = 'Intel x64'; }
+  if (strstr($poll_device['sysDescr'], 'AMD64'))   { $hardware = 'AMD x64'; }
+  if (strstr($poll_device['sysDescr'], 'Intel64')) { $hardware = 'Intel x64'; }
+}
 
 if (preg_match('/Version ([\d\.]+) +\(Build (?:Number: )?(\d+)/', $poll_device['sysDescr'], $matches))
 {
@@ -146,27 +149,6 @@ if (strstr($poll_device['sysDescr'], 'Multiprocessor')) { $features = 'Multiproc
 
 // Detect processor type? : I.E.  x86 Family 15 Model 2 Stepping 7
 
-// This is duplicate code also used in the unix poller :-(
-// Detect Dell hardware via OpenManage SNMP
-$hw = snmp_get($device, 'chassisModelName.1', '-Oqv', 'MIB-Dell-10892');
-
-if ($hw)
-{
-  $hardware  = 'Dell ' . $hw;
-  $serial    = snmp_get($device, 'chassisServiceTagName.1', '-Oqv', 'MIB-Dell-10892');
-  $asset_tag = snmp_get($device, 'chassisAssetTagName.1', '-Oqv', 'MIB-Dell-10892');
-} else {
-  // Detect HP hardware via hp-snmp-agents
-  $hw = snmp_get($device, 'cpqSiProductName.0', '-Oqv', 'CPQSINFO-MIB');
-
-  if ($hw)
-  {
-    $hardware  = 'HP ' . $hw;
-    $serial    = snmp_get($device, 'cpqSiSysSerialNum.0', '-Oqv', 'CPQSINFO-MIB');
-    $asset_tag = snmp_get($device, 'cpqSiAssetTag.0', '-Oqv', 'CPQSINFO-MIB');
-  }
-}
-
-unset($windows, $hw);
+unset($windows);
 
 // EOF

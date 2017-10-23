@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- ADAPTOR management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -53,7 +53,9 @@ IMPORTS
     CucsAdaptorCapDefFwVersionOpr,
     CucsAdaptorCapDefType,
     CucsAdaptorCapSpecType,
+    CucsAdaptorComparisonOper,
     CucsAdaptorDefaultAction,
+    CucsAdaptorDynamicConfigParams,
     CucsAdaptorEthArfsProfileAccelaratedRFS,
     CucsAdaptorEthInterruptProfileCoalescingType,
     CucsAdaptorEthNVGREProfileAdminState,
@@ -170,6 +172,7 @@ IMPORTS
     CucsAdaptorProtocolProfileLunBusyRetryCount,
     CucsAdaptorPurpose,
     CucsAdaptorReachability,
+    CucsAdaptorRnicCapSpecType,
     CucsAdaptorRssProfileReceiveSideScaling,
     CucsAdaptorSanCapHostNvram,
     CucsAdaptorUnitExtnId,
@@ -220,7 +223,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsAdaptorObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -505,6 +508,93 @@ cucsAdaptorDiagCapEnableLldpTransmit OBJECT-TYPE
         "Cisco UCS adaptor:DiagCap:enableLldpTransmit managed
         object property"
     ::= { cucsAdaptorDiagCapEntry 4 }
+
+cucsAdaptorDynamicConfigCapTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsAdaptorDynamicConfigCapEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS adaptor:DynamicConfigCap managed object table"
+    ::= { cucsAdaptorObjects 122 }
+
+cucsAdaptorDynamicConfigCapEntry OBJECT-TYPE
+    SYNTAX           CucsAdaptorDynamicConfigCapEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsAdaptorDynamicConfigCapTable table."
+    INDEX { cucsAdaptorDynamicConfigCapInstanceId }
+    ::= { cucsAdaptorDynamicConfigCapTable 1 }
+
+CucsAdaptorDynamicConfigCapEntry ::= SEQUENCE {
+    cucsAdaptorDynamicConfigCapInstanceId                            CucsManagedObjectId,
+    cucsAdaptorDynamicConfigCapDn                                    CucsManagedObjectDn,
+    cucsAdaptorDynamicConfigCapRn                                    SnmpAdminString,
+    cucsAdaptorDynamicConfigCapDynamicParams                         CucsAdaptorDynamicConfigParams,
+    cucsAdaptorDynamicConfigCapFwVersionHi                           SnmpAdminString,
+    cucsAdaptorDynamicConfigCapFwVersionLo                           SnmpAdminString,
+    cucsAdaptorDynamicConfigCapFwVersionOper                         CucsAdaptorComparisonOper
+}
+
+cucsAdaptorDynamicConfigCapInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsAdaptorDynamicConfigCapEntry 1 }
+
+cucsAdaptorDynamicConfigCapDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:DynamicConfigCap:dn managed object property"
+    ::= { cucsAdaptorDynamicConfigCapEntry 2 }
+
+cucsAdaptorDynamicConfigCapRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:DynamicConfigCap:rn managed object property"
+    ::= { cucsAdaptorDynamicConfigCapEntry 3 }
+
+cucsAdaptorDynamicConfigCapDynamicParams OBJECT-TYPE
+    SYNTAX       CucsAdaptorDynamicConfigParams
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:DynamicConfigCap:dynamicParams
+        managed object property"
+    ::= { cucsAdaptorDynamicConfigCapEntry 4 }
+
+cucsAdaptorDynamicConfigCapFwVersionHi OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:DynamicConfigCap:fwVersionHi
+        managed object property"
+    ::= { cucsAdaptorDynamicConfigCapEntry 5 }
+
+cucsAdaptorDynamicConfigCapFwVersionLo OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:DynamicConfigCap:fwVersionLo
+        managed object property"
+    ::= { cucsAdaptorDynamicConfigCapEntry 6 }
+
+cucsAdaptorDynamicConfigCapFwVersionOper OBJECT-TYPE
+    SYNTAX       CucsAdaptorComparisonOper
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:DynamicConfigCap:fwVersionOper
+        managed object property"
+    ::= { cucsAdaptorDynamicConfigCapEntry 7 }
 
 cucsAdaptorEthArfsProfileTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsAdaptorEthArfsProfileEntry
@@ -6470,7 +6560,9 @@ CucsAdaptorExtEthIfEntry ::= SEQUENCE {
     cucsAdaptorExtEthIfType                                          CucsNetworkConnectionType,
     cucsAdaptorExtEthIfPeerChassisId                                 Gauge32,
     cucsAdaptorExtEthIfMacAddrType                                   CucsAddressType,
-    cucsAdaptorExtEthIfLldpMac                                       MacAddress
+    cucsAdaptorExtEthIfLldpMac                                       MacAddress,
+    cucsAdaptorExtEthIfAggrPortId                                    Gauge32,
+    cucsAdaptorExtEthIfPeerAggrPortId                                Gauge32
 }
 
 cucsAdaptorExtEthIfInstanceId OBJECT-TYPE
@@ -6802,6 +6894,23 @@ cucsAdaptorExtEthIfLldpMac OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS adaptor:ExtEthIf:lldpMac managed object property"
     ::= { cucsAdaptorExtEthIfEntry 41 }
+
+cucsAdaptorExtEthIfAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:ExtEthIf:aggrPortId managed object property"
+    ::= { cucsAdaptorExtEthIfEntry 42 }
+
+cucsAdaptorExtEthIfPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:ExtEthIf:peerAggrPortId managed
+        object property"
+    ::= { cucsAdaptorExtEthIfEntry 43 }
 
 cucsAdaptorExtEthIfFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsAdaptorExtEthIfFsmEntry
@@ -7329,7 +7438,9 @@ CucsAdaptorExtEthIfPcEpEntry ::= SEQUENCE {
     cucsAdaptorExtEthIfPcEpSlotId                                    CucsAdaptorExtEthIfPcEpSlotId,
     cucsAdaptorExtEthIfPcEpSwitchId                                  CucsNetworkSwitchId,
     cucsAdaptorExtEthIfPcEpTransport                                 CucsNetworkTransport,
-    cucsAdaptorExtEthIfPcEpType                                      CucsAdaptorExtIfEpType
+    cucsAdaptorExtEthIfPcEpType                                      CucsAdaptorExtIfEpType,
+    cucsAdaptorExtEthIfPcEpAggrPortId                                Gauge32,
+    cucsAdaptorExtEthIfPcEpPeerAggrPortId                            Gauge32
 }
 
 cucsAdaptorExtEthIfPcEpInstanceId OBJECT-TYPE
@@ -7488,6 +7599,24 @@ cucsAdaptorExtEthIfPcEpType OBJECT-TYPE
         "Cisco UCS adaptor:ExtEthIfPcEp:type managed object property"
     ::= { cucsAdaptorExtEthIfPcEpEntry 19 }
 
+cucsAdaptorExtEthIfPcEpAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:ExtEthIfPcEp:aggrPortId managed
+        object property"
+    ::= { cucsAdaptorExtEthIfPcEpEntry 20 }
+
+cucsAdaptorExtEthIfPcEpPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:ExtEthIfPcEp:peerAggrPortId
+        managed object property"
+    ::= { cucsAdaptorExtEthIfPcEpEntry 21 }
+
 cucsAdaptorExtIpV6RssHashProfileTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsAdaptorExtIpV6RssHashProfileEntry
     MAX-ACCESS       not-accessible
@@ -7581,7 +7710,9 @@ CucsAdaptorFamilyTypeDefEntry ::= SEQUENCE {
     cucsAdaptorFamilyTypeDefIsPassthrough                            TruthValue,
     cucsAdaptorFamilyTypeDefNumDcePorts                              Gauge32,
     cucsAdaptorFamilyTypeDefPortFamily                               SnmpAdminString,
-    cucsAdaptorFamilyTypeDefType                                     SnmpAdminString
+    cucsAdaptorFamilyTypeDefType                                     SnmpAdminString,
+    cucsAdaptorFamilyTypeDefIsMultiPort                              TruthValue,
+    cucsAdaptorFamilyTypeDefIsRetimerRequired                        TruthValue
 }
 
 cucsAdaptorFamilyTypeDefInstanceId OBJECT-TYPE
@@ -7642,6 +7773,24 @@ cucsAdaptorFamilyTypeDefType OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS adaptor:FamilyTypeDef:type managed object property"
     ::= { cucsAdaptorFamilyTypeDefEntry 7 }
+
+cucsAdaptorFamilyTypeDefIsMultiPort OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:FamilyTypeDef:isMultiPort managed
+        object property"
+    ::= { cucsAdaptorFamilyTypeDefEntry 8 }
+
+cucsAdaptorFamilyTypeDefIsRetimerRequired OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:FamilyTypeDef:isRetimerRequired
+        managed object property"
+    ::= { cucsAdaptorFamilyTypeDefEntry 9 }
 
 cucsAdaptorFcCdbWorkQueueProfileTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsAdaptorFcCdbWorkQueueProfileEntry
@@ -11740,7 +11889,8 @@ CucsAdaptorHostEthIfEntry ::= SEQUENCE {
     cucsAdaptorHostEthIfOperQualifierReason                          SnmpAdminString,
     cucsAdaptorHostEthIfPfDn                                         SnmpAdminString,
     cucsAdaptorHostEthIfVirtualizationPreference                     CucsVnicVirtualizationPreferenceType,
-    cucsAdaptorHostEthIfHostPort                                     CucsAdaptorHostEthIfHostPort
+    cucsAdaptorHostEthIfHostPort                                     CucsAdaptorHostEthIfHostPort,
+    cucsAdaptorHostEthIfCdnName                                      SnmpAdminString
 }
 
 cucsAdaptorHostEthIfInstanceId OBJECT-TYPE
@@ -12230,6 +12380,14 @@ cucsAdaptorHostEthIfHostPort OBJECT-TYPE
         "Cisco UCS adaptor:HostEthIf:hostPort managed object property"
     ::= { cucsAdaptorHostEthIfEntry 60 }
 
+cucsAdaptorHostEthIfCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:HostEthIf:cdnName managed object property"
+    ::= { cucsAdaptorHostEthIfEntry 61 }
+
 cucsAdaptorHostEthIfFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsAdaptorHostEthIfFsmEntry
     MAX-ACCESS       not-accessible
@@ -12715,7 +12873,8 @@ CucsAdaptorHostFcIfEntry ::= SEQUENCE {
     cucsAdaptorHostFcIfPciFunc                                       Gauge32,
     cucsAdaptorHostFcIfPciSlot                                       Gauge32,
     cucsAdaptorHostFcIfOperQualifierReason                           SnmpAdminString,
-    cucsAdaptorHostFcIfHostPort                                      CucsAdaptorHostFcIfHostPort
+    cucsAdaptorHostFcIfHostPort                                      CucsAdaptorHostFcIfHostPort,
+    cucsAdaptorHostFcIfCdnName                                       SnmpAdminString
 }
 
 cucsAdaptorHostFcIfInstanceId OBJECT-TYPE
@@ -13211,6 +13370,14 @@ cucsAdaptorHostFcIfHostPort OBJECT-TYPE
         "Cisco UCS adaptor:HostFcIf:hostPort managed object property"
     ::= { cucsAdaptorHostFcIfEntry 61 }
 
+cucsAdaptorHostFcIfCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:HostFcIf:cdnName managed object property"
+    ::= { cucsAdaptorHostFcIfEntry 62 }
+
 cucsAdaptorHostFcIfFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsAdaptorHostFcIfFsmEntry
     MAX-ACCESS       not-accessible
@@ -13680,7 +13847,8 @@ CucsAdaptorHostIscsiIfEntry ::= SEQUENCE {
     cucsAdaptorHostIscsiIfVnicDn                                     SnmpAdminString,
     cucsAdaptorHostIscsiIfVnicName                                   SnmpAdminString,
     cucsAdaptorHostIscsiIfVoltage                                    CucsEquipmentSensorThresholdStatus,
-    cucsAdaptorHostIscsiIfOperQualifierReason                        SnmpAdminString
+    cucsAdaptorHostIscsiIfOperQualifierReason                        SnmpAdminString,
+    cucsAdaptorHostIscsiIfCdnName                                    SnmpAdminString
 }
 
 cucsAdaptorHostIscsiIfInstanceId OBJECT-TYPE
@@ -14088,6 +14256,14 @@ cucsAdaptorHostIscsiIfOperQualifierReason OBJECT-TYPE
         "Cisco UCS adaptor:HostIscsiIf:operQualifierReason
         managed object property"
     ::= { cucsAdaptorHostIscsiIfEntry 50 }
+
+cucsAdaptorHostIscsiIfCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:HostIscsiIf:cdnName managed object property"
+    ::= { cucsAdaptorHostIscsiIfEntry 51 }
 
 cucsAdaptorHostIscsiIfProfileTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsAdaptorHostIscsiIfProfileEntry
@@ -14580,7 +14756,8 @@ CucsAdaptorHostScsiIfEntry ::= SEQUENCE {
     cucsAdaptorHostScsiIfType                                        CucsNetworkConnectionType,
     cucsAdaptorHostScsiIfVendor                                      SnmpAdminString,
     cucsAdaptorHostScsiIfVnicDn                                      SnmpAdminString,
-    cucsAdaptorHostScsiIfVoltage                                     CucsEquipmentSensorThresholdStatus
+    cucsAdaptorHostScsiIfVoltage                                     CucsEquipmentSensorThresholdStatus,
+    cucsAdaptorHostScsiIfCdnName                                     SnmpAdminString
 }
 
 cucsAdaptorHostScsiIfInstanceId OBJECT-TYPE
@@ -14937,6 +15114,14 @@ cucsAdaptorHostScsiIfVoltage OBJECT-TYPE
         "Cisco UCS adaptor:HostScsiIf:voltage managed object property"
     ::= { cucsAdaptorHostScsiIfEntry 44 }
 
+cucsAdaptorHostScsiIfCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:HostScsiIf:cdnName managed object property"
+    ::= { cucsAdaptorHostScsiIfEntry 45 }
+
 cucsAdaptorHostScsiLunRefTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsAdaptorHostScsiLunRefEntry
     MAX-ACCESS       not-accessible
@@ -15123,7 +15308,8 @@ CucsAdaptorHostServiceEthIfEntry ::= SEQUENCE {
     cucsAdaptorHostServiceEthIfType                                  CucsNetworkConnectionType,
     cucsAdaptorHostServiceEthIfVendor                                SnmpAdminString,
     cucsAdaptorHostServiceEthIfVnicDn                                SnmpAdminString,
-    cucsAdaptorHostServiceEthIfVoltage                               CucsEquipmentSensorThresholdStatus
+    cucsAdaptorHostServiceEthIfVoltage                               CucsEquipmentSensorThresholdStatus,
+    cucsAdaptorHostServiceEthIfCdnName                               SnmpAdminString
 }
 
 cucsAdaptorHostServiceEthIfInstanceId OBJECT-TYPE
@@ -15534,6 +15720,102 @@ cucsAdaptorHostServiceEthIfVoltage OBJECT-TYPE
         object property"
     ::= { cucsAdaptorHostServiceEthIfEntry 47 }
 
+cucsAdaptorHostServiceEthIfCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:HostServiceEthIf:cdnName managed
+        object property"
+    ::= { cucsAdaptorHostServiceEthIfEntry 48 }
+
+cucsAdaptorHostVnicHwAddrCapTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsAdaptorHostVnicHwAddrCapEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS adaptor:HostVnicHwAddrCap managed object table"
+    ::= { cucsAdaptorObjects 123 }
+
+cucsAdaptorHostVnicHwAddrCapEntry OBJECT-TYPE
+    SYNTAX           CucsAdaptorHostVnicHwAddrCapEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsAdaptorHostVnicHwAddrCapTable table."
+    INDEX { cucsAdaptorHostVnicHwAddrCapInstanceId }
+    ::= { cucsAdaptorHostVnicHwAddrCapTable 1 }
+
+CucsAdaptorHostVnicHwAddrCapEntry ::= SEQUENCE {
+    cucsAdaptorHostVnicHwAddrCapInstanceId                           CucsManagedObjectId,
+    cucsAdaptorHostVnicHwAddrCapDn                                   CucsManagedObjectDn,
+    cucsAdaptorHostVnicHwAddrCapRn                                   SnmpAdminString,
+    cucsAdaptorHostVnicHwAddrCapMacOffset1                           Gauge32,
+    cucsAdaptorHostVnicHwAddrCapMacOffset2                           Gauge32,
+    cucsAdaptorHostVnicHwAddrCapMacOffsetVnicFrom                    Gauge32,
+    cucsAdaptorHostVnicHwAddrCapMacOffsetVnicTo                      Gauge32
+}
+
+cucsAdaptorHostVnicHwAddrCapInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsAdaptorHostVnicHwAddrCapEntry 1 }
+
+cucsAdaptorHostVnicHwAddrCapDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:HostVnicHwAddrCap:dn managed object property"
+    ::= { cucsAdaptorHostVnicHwAddrCapEntry 2 }
+
+cucsAdaptorHostVnicHwAddrCapRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:HostVnicHwAddrCap:rn managed object property"
+    ::= { cucsAdaptorHostVnicHwAddrCapEntry 3 }
+
+cucsAdaptorHostVnicHwAddrCapMacOffset1 OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:HostVnicHwAddrCap:macOffset1
+        managed object property"
+    ::= { cucsAdaptorHostVnicHwAddrCapEntry 4 }
+
+cucsAdaptorHostVnicHwAddrCapMacOffset2 OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:HostVnicHwAddrCap:macOffset2
+        managed object property"
+    ::= { cucsAdaptorHostVnicHwAddrCapEntry 5 }
+
+cucsAdaptorHostVnicHwAddrCapMacOffsetVnicFrom OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:HostVnicHwAddrCap:macOffsetVnicFrom
+        managed object property"
+    ::= { cucsAdaptorHostVnicHwAddrCapEntry 6 }
+
+cucsAdaptorHostVnicHwAddrCapMacOffsetVnicTo OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:HostVnicHwAddrCap:macOffsetVnicTo
+        managed object property"
+    ::= { cucsAdaptorHostVnicHwAddrCapEntry 7 }
+
 cucsAdaptorHostethHwAddrCapTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsAdaptorHostethHwAddrCapEntry
     MAX-ACCESS       not-accessible
@@ -15556,7 +15838,9 @@ CucsAdaptorHostethHwAddrCapEntry ::= SEQUENCE {
     cucsAdaptorHostethHwAddrCapDn                                    CucsManagedObjectDn,
     cucsAdaptorHostethHwAddrCapRn                                    SnmpAdminString,
     cucsAdaptorHostethHwAddrCapMacOffset1                            Gauge32,
-    cucsAdaptorHostethHwAddrCapMacOffset2                            Gauge32
+    cucsAdaptorHostethHwAddrCapMacOffset2                            Gauge32,
+    cucsAdaptorHostethHwAddrCapLegacyMacOffset1                      Gauge32,
+    cucsAdaptorHostethHwAddrCapLegacyMacOffset2                      Gauge32
 }
 
 cucsAdaptorHostethHwAddrCapInstanceId OBJECT-TYPE
@@ -15600,6 +15884,24 @@ cucsAdaptorHostethHwAddrCapMacOffset2 OBJECT-TYPE
         "Cisco UCS adaptor:HostethHwAddrCap:macOffset2
         managed object property"
     ::= { cucsAdaptorHostethHwAddrCapEntry 5 }
+
+cucsAdaptorHostethHwAddrCapLegacyMacOffset1 OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:HostethHwAddrCap:legacyMacOffset1
+        managed object property"
+    ::= { cucsAdaptorHostethHwAddrCapEntry 6 }
+
+cucsAdaptorHostethHwAddrCapLegacyMacOffset2 OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:HostethHwAddrCap:legacyMacOffset2
+        managed object property"
+    ::= { cucsAdaptorHostethHwAddrCapEntry 7 }
 
 cucsAdaptorHostfcHwAddrCapTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsAdaptorHostfcHwAddrCapEntry
@@ -24092,6 +24394,83 @@ cucsAdaptorMenloQStatsHistTruncateOverrunN1DeltaMin OBJECT-TYPE
         managed object property"
     ::= { cucsAdaptorMenloQStatsHistEntry 28 }
 
+cucsAdaptorMgmtVnicEthConfigTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsAdaptorMgmtVnicEthConfigEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS adaptor:MgmtVnicEthConfig managed object table"
+    ::= { cucsAdaptorObjects 128 }
+
+cucsAdaptorMgmtVnicEthConfigEntry OBJECT-TYPE
+    SYNTAX           CucsAdaptorMgmtVnicEthConfigEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsAdaptorMgmtVnicEthConfigTable table."
+    INDEX { cucsAdaptorMgmtVnicEthConfigInstanceId }
+    ::= { cucsAdaptorMgmtVnicEthConfigTable 1 }
+
+CucsAdaptorMgmtVnicEthConfigEntry ::= SEQUENCE {
+    cucsAdaptorMgmtVnicEthConfigInstanceId                           CucsManagedObjectId,
+    cucsAdaptorMgmtVnicEthConfigDn                                   CucsManagedObjectDn,
+    cucsAdaptorMgmtVnicEthConfigRn                                   SnmpAdminString,
+    cucsAdaptorMgmtVnicEthConfigHostPortId                           Gauge32,
+    cucsAdaptorMgmtVnicEthConfigMacOffset                            Gauge32,
+    cucsAdaptorMgmtVnicEthConfigPciSlot                              Gauge32
+}
+
+cucsAdaptorMgmtVnicEthConfigInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsAdaptorMgmtVnicEthConfigEntry 1 }
+
+cucsAdaptorMgmtVnicEthConfigDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:MgmtVnicEthConfig:dn managed object property"
+    ::= { cucsAdaptorMgmtVnicEthConfigEntry 2 }
+
+cucsAdaptorMgmtVnicEthConfigRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:MgmtVnicEthConfig:rn managed object property"
+    ::= { cucsAdaptorMgmtVnicEthConfigEntry 3 }
+
+cucsAdaptorMgmtVnicEthConfigHostPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:MgmtVnicEthConfig:hostPortId
+        managed object property"
+    ::= { cucsAdaptorMgmtVnicEthConfigEntry 4 }
+
+cucsAdaptorMgmtVnicEthConfigMacOffset OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:MgmtVnicEthConfig:macOffset
+        managed object property"
+    ::= { cucsAdaptorMgmtVnicEthConfigEntry 5 }
+
+cucsAdaptorMgmtVnicEthConfigPciSlot OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:MgmtVnicEthConfig:pciSlot managed
+        object property"
+    ::= { cucsAdaptorMgmtVnicEthConfigEntry 6 }
+
 cucsAdaptorNwMgmtCapTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsAdaptorNwMgmtCapEntry
     MAX-ACCESS       not-accessible
@@ -24186,6 +24565,92 @@ cucsAdaptorNwMgmtCapRebootActionOnDestructive OBJECT-TYPE
         "Cisco UCS adaptor:NwMgmtCap:rebootActionOnDestructive
         managed object property"
     ::= { cucsAdaptorNwMgmtCapEntry 8 }
+
+cucsAdaptorNwStatsMgmtCapTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsAdaptorNwStatsMgmtCapEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS adaptor:NwStatsMgmtCap managed object table"
+    ::= { cucsAdaptorObjects 124 }
+
+cucsAdaptorNwStatsMgmtCapEntry OBJECT-TYPE
+    SYNTAX           CucsAdaptorNwStatsMgmtCapEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsAdaptorNwStatsMgmtCapTable table."
+    INDEX { cucsAdaptorNwStatsMgmtCapInstanceId }
+    ::= { cucsAdaptorNwStatsMgmtCapTable 1 }
+
+CucsAdaptorNwStatsMgmtCapEntry ::= SEQUENCE {
+    cucsAdaptorNwStatsMgmtCapInstanceId                              CucsManagedObjectId,
+    cucsAdaptorNwStatsMgmtCapDn                                      CucsManagedObjectDn,
+    cucsAdaptorNwStatsMgmtCapRn                                      SnmpAdminString,
+    cucsAdaptorNwStatsMgmtCapEnableNwStatsCollection                 TruthValue,
+    cucsAdaptorNwStatsMgmtCapMode                                    CucsAdaptorMgmtCapMode,
+    cucsAdaptorNwStatsMgmtCapOperPowerRequirement                    CucsAdaptorMgmtCapOperPowerRequirement,
+    cucsAdaptorNwStatsMgmtCapRebootActionOnDestructive               CucsAdaptorMgmtCapRebootActionOnDestructive
+}
+
+cucsAdaptorNwStatsMgmtCapInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsAdaptorNwStatsMgmtCapEntry 1 }
+
+cucsAdaptorNwStatsMgmtCapDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:NwStatsMgmtCap:dn managed object property"
+    ::= { cucsAdaptorNwStatsMgmtCapEntry 2 }
+
+cucsAdaptorNwStatsMgmtCapRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:NwStatsMgmtCap:rn managed object property"
+    ::= { cucsAdaptorNwStatsMgmtCapEntry 3 }
+
+cucsAdaptorNwStatsMgmtCapEnableNwStatsCollection OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:NwStatsMgmtCap:enableNwStatsCollection
+        managed object property"
+    ::= { cucsAdaptorNwStatsMgmtCapEntry 4 }
+
+cucsAdaptorNwStatsMgmtCapMode OBJECT-TYPE
+    SYNTAX       CucsAdaptorMgmtCapMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:NwStatsMgmtCap:mode managed object property"
+    ::= { cucsAdaptorNwStatsMgmtCapEntry 5 }
+
+cucsAdaptorNwStatsMgmtCapOperPowerRequirement OBJECT-TYPE
+    SYNTAX       CucsAdaptorMgmtCapOperPowerRequirement
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:NwStatsMgmtCap:operPowerRequirement
+        managed object property"
+    ::= { cucsAdaptorNwStatsMgmtCapEntry 6 }
+
+cucsAdaptorNwStatsMgmtCapRebootActionOnDestructive OBJECT-TYPE
+    SYNTAX       CucsAdaptorMgmtCapRebootActionOnDestructive
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:NwStatsMgmtCap:rebootActionOnDestructive
+        managed object property"
+    ::= { cucsAdaptorNwStatsMgmtCapEntry 7 }
 
 cucsAdaptorProtocolProfileTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsAdaptorProtocolProfileEntry
@@ -24340,6 +24805,129 @@ cucsAdaptorQualRn OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS adaptor:Qual:rn managed object property"
     ::= { cucsAdaptorQualEntry 3 }
+
+cucsAdaptorRnicCapSpecTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsAdaptorRnicCapSpecEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS adaptor:RnicCapSpec managed object table"
+    ::= { cucsAdaptorObjects 129 }
+
+cucsAdaptorRnicCapSpecEntry OBJECT-TYPE
+    SYNTAX           CucsAdaptorRnicCapSpecEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsAdaptorRnicCapSpecTable table."
+    INDEX { cucsAdaptorRnicCapSpecInstanceId }
+    ::= { cucsAdaptorRnicCapSpecTable 1 }
+
+CucsAdaptorRnicCapSpecEntry ::= SEQUENCE {
+    cucsAdaptorRnicCapSpecInstanceId                                 CucsManagedObjectId,
+    cucsAdaptorRnicCapSpecDn                                         CucsManagedObjectDn,
+    cucsAdaptorRnicCapSpecRn                                         SnmpAdminString,
+    cucsAdaptorRnicCapSpecFwVersionHi                                SnmpAdminString,
+    cucsAdaptorRnicCapSpecFwVersionLo                                SnmpAdminString,
+    cucsAdaptorRnicCapSpecFwVersionOpr                               CucsAdaptorCapDefFwVersionOpr,
+    cucsAdaptorRnicCapSpecMaximum                                    Gauge32,
+    cucsAdaptorRnicCapSpecMaximumMR                                  Gauge32,
+    cucsAdaptorRnicCapSpecMaximumQP                                  Gauge32,
+    cucsAdaptorRnicCapSpecNfVersionLo                                SnmpAdminString,
+    cucsAdaptorRnicCapSpecType                                       CucsAdaptorRnicCapSpecType
+}
+
+cucsAdaptorRnicCapSpecInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsAdaptorRnicCapSpecEntry 1 }
+
+cucsAdaptorRnicCapSpecDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:RnicCapSpec:dn managed object property"
+    ::= { cucsAdaptorRnicCapSpecEntry 2 }
+
+cucsAdaptorRnicCapSpecRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:RnicCapSpec:rn managed object property"
+    ::= { cucsAdaptorRnicCapSpecEntry 3 }
+
+cucsAdaptorRnicCapSpecFwVersionHi OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:RnicCapSpec:fwVersionHi managed
+        object property"
+    ::= { cucsAdaptorRnicCapSpecEntry 4 }
+
+cucsAdaptorRnicCapSpecFwVersionLo OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:RnicCapSpec:fwVersionLo managed
+        object property"
+    ::= { cucsAdaptorRnicCapSpecEntry 5 }
+
+cucsAdaptorRnicCapSpecFwVersionOpr OBJECT-TYPE
+    SYNTAX       CucsAdaptorCapDefFwVersionOpr
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:RnicCapSpec:fwVersionOpr managed
+        object property"
+    ::= { cucsAdaptorRnicCapSpecEntry 6 }
+
+cucsAdaptorRnicCapSpecMaximum OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:RnicCapSpec:maximum managed object property"
+    ::= { cucsAdaptorRnicCapSpecEntry 7 }
+
+cucsAdaptorRnicCapSpecMaximumMR OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:RnicCapSpec:maximumMR managed object property"
+    ::= { cucsAdaptorRnicCapSpecEntry 8 }
+
+cucsAdaptorRnicCapSpecMaximumQP OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:RnicCapSpec:maximumQP managed object property"
+    ::= { cucsAdaptorRnicCapSpecEntry 9 }
+
+cucsAdaptorRnicCapSpecNfVersionLo OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:RnicCapSpec:nfVersionLo managed
+        object property"
+    ::= { cucsAdaptorRnicCapSpecEntry 10 }
+
+cucsAdaptorRnicCapSpecType OBJECT-TYPE
+    SYNTAX       CucsAdaptorRnicCapSpecType
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS adaptor:RnicCapSpec:type managed object property"
+    ::= { cucsAdaptorRnicCapSpecEntry 11 }
 
 cucsAdaptorRssProfileTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsAdaptorRssProfileEntry

@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- LS management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -48,6 +48,7 @@ IMPORTS
     CucsManagedObjectDn
         FROM CISCO-UNIFIED-COMPUTING-MIB
     CucsConditionRemoteInvRslt,
+    CucsFabricHostPortId,
     CucsFabricVConMappingScheme,
     CucsFabricVConTransportPref,
     CucsFsmCompletion,
@@ -72,6 +73,7 @@ IMPORTS
     CucsLsServerFsmTaskFlags,
     CucsLsServerFsmTaskItem,
     CucsLsType,
+    CucsLsUUIDIdentityState,
     CucsNetworkConfigIssues,
     CucsNetworkSwitchId,
     CucsPolicyPolicyOwner,
@@ -87,7 +89,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsLsObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -242,7 +244,8 @@ CucsLsBindingEntry ::= SEQUENCE {
     cucsLsBindingRestrictMigration                                   TruthValue,
     cucsLsBindingAssignedToDn                                        SnmpAdminString,
     cucsLsBindingIssues                                              CucsLsConfigIssues,
-    cucsLsBindingOperState                                           CucsLsComputeBindingOperState
+    cucsLsBindingOperState                                           CucsLsComputeBindingOperState,
+    cucsLsBindingPropAcl                                             Unsigned64
 }
 
 cucsLsBindingInstanceId OBJECT-TYPE
@@ -324,6 +327,14 @@ cucsLsBindingOperState OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS ls:Binding:operState managed object property"
     ::= { cucsLsBindingEntry 10 }
+
+cucsLsBindingPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ls:Binding:propAcl managed object property"
+    ::= { cucsLsBindingEntry 11 }
 
 cucsLsFcLocaleTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsLsFcLocaleEntry
@@ -601,6 +612,63 @@ cucsLsFcZoneGroupSwitchId OBJECT-TYPE
         "Cisco UCS ls:FcZoneGroup:switchId managed object property"
     ::= { cucsLsFcZoneGroupEntry 6 }
 
+cucsLsIdentityInfoTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsLsIdentityInfoEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS ls:IdentityInfo managed object table"
+    ::= { cucsLsObjects 21 }
+
+cucsLsIdentityInfoEntry OBJECT-TYPE
+    SYNTAX           CucsLsIdentityInfoEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsLsIdentityInfoTable table."
+    INDEX { cucsLsIdentityInfoInstanceId }
+    ::= { cucsLsIdentityInfoTable 1 }
+
+CucsLsIdentityInfoEntry ::= SEQUENCE {
+    cucsLsIdentityInfoInstanceId                                     CucsManagedObjectId,
+    cucsLsIdentityInfoDn                                             CucsManagedObjectDn,
+    cucsLsIdentityInfoRn                                             SnmpAdminString,
+    cucsLsIdentityInfoUuidIdentityState                              CucsLsUUIDIdentityState
+}
+
+cucsLsIdentityInfoInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsLsIdentityInfoEntry 1 }
+
+cucsLsIdentityInfoDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ls:IdentityInfo:dn managed object property"
+    ::= { cucsLsIdentityInfoEntry 2 }
+
+cucsLsIdentityInfoRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ls:IdentityInfo:rn managed object property"
+    ::= { cucsLsIdentityInfoEntry 3 }
+
+cucsLsIdentityInfoUuidIdentityState OBJECT-TYPE
+    SYNTAX       CucsLsUUIDIdentityState
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ls:IdentityInfo:uuidIdentityState managed
+        object property"
+    ::= { cucsLsIdentityInfoEntry 4 }
+
 cucsLsIssuesTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsLsIssuesEntry
     MAX-ACCESS       not-accessible
@@ -627,7 +695,8 @@ CucsLsIssuesEntry ::= SEQUENCE {
     cucsLsIssuesServerConfigIssues                                   CucsServerConfigIssues,
     cucsLsIssuesStorageConfigIssues                                  CucsStorageConfigIssues,
     cucsLsIssuesVnicConfigIssues                                     CucsVnicConfigIssues,
-    cucsLsIssuesConfigWarnings                                       CucsLsConfigWarnings
+    cucsLsIssuesConfigWarnings                                       CucsLsConfigWarnings,
+    cucsLsIssuesPropAcl                                              Unsigned64
 }
 
 cucsLsIssuesInstanceId OBJECT-TYPE
@@ -702,6 +771,14 @@ cucsLsIssuesConfigWarnings OBJECT-TYPE
         "Cisco UCS ls:Issues:configWarnings managed object property"
     ::= { cucsLsIssuesEntry 9 }
 
+cucsLsIssuesPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ls:Issues:propAcl managed object property"
+    ::= { cucsLsIssuesEntry 10 }
+
 cucsLsPowerTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsLsPowerEntry
     MAX-ACCESS       not-accessible
@@ -723,7 +800,8 @@ CucsLsPowerEntry ::= SEQUENCE {
     cucsLsPowerInstanceId                                            CucsManagedObjectId,
     cucsLsPowerDn                                                    CucsManagedObjectDn,
     cucsLsPowerRn                                                    SnmpAdminString,
-    cucsLsPowerState                                                 CucsLsPowerState
+    cucsLsPowerState                                                 CucsLsPowerState,
+    cucsLsPowerPropAcl                                               Unsigned64
 }
 
 cucsLsPowerInstanceId OBJECT-TYPE
@@ -757,6 +835,14 @@ cucsLsPowerState OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS ls:Power:state managed object property"
     ::= { cucsLsPowerEntry 4 }
+
+cucsLsPowerPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ls:Power:propAcl managed object property"
+    ::= { cucsLsPowerEntry 5 }
 
 cucsLsRequirementTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsLsRequirementEntry
@@ -984,7 +1070,8 @@ CucsLsServerEntry ::= SEQUENCE {
     cucsLsServerOperKvmMgmtPolicyName                                SnmpAdminString,
     cucsLsServerOperVmediaPolicyName                                 SnmpAdminString,
     cucsLsServerSvnicConfig                                          TruthValue,
-    cucsLsServerVmediaPolicyName                                     SnmpAdminString
+    cucsLsServerVmediaPolicyName                                     SnmpAdminString,
+    cucsLsServerPropAcl                                              Unsigned64
 }
 
 cucsLsServerInstanceId OBJECT-TYPE
@@ -1559,6 +1646,14 @@ cucsLsServerVmediaPolicyName OBJECT-TYPE
         "Cisco UCS ls:Server:vmediaPolicyName managed object property"
     ::= { cucsLsServerEntry 71 }
 
+cucsLsServerPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ls:Server:propAcl managed object property"
+    ::= { cucsLsServerEntry 72 }
+
 cucsLsServerAssocCtxTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsLsServerAssocCtxEntry
     MAX-ACCESS       not-accessible
@@ -1579,7 +1674,8 @@ cucsLsServerAssocCtxEntry OBJECT-TYPE
 CucsLsServerAssocCtxEntry ::= SEQUENCE {
     cucsLsServerAssocCtxInstanceId                                   CucsManagedObjectId,
     cucsLsServerAssocCtxDn                                           CucsManagedObjectDn,
-    cucsLsServerAssocCtxRn                                           SnmpAdminString
+    cucsLsServerAssocCtxRn                                           SnmpAdminString,
+    cucsLsServerAssocCtxPropAcl                                      Unsigned64
 }
 
 cucsLsServerAssocCtxInstanceId OBJECT-TYPE
@@ -1606,6 +1702,14 @@ cucsLsServerAssocCtxRn OBJECT-TYPE
         "Cisco UCS ls:ServerAssocCtx:rn managed object property"
     ::= { cucsLsServerAssocCtxEntry 3 }
 
+cucsLsServerAssocCtxPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ls:ServerAssocCtx:propAcl managed object property"
+    ::= { cucsLsServerAssocCtxEntry 4 }
+
 cucsLsServerExtensionTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsLsServerExtensionEntry
     MAX-ACCESS       not-accessible
@@ -1628,7 +1732,9 @@ CucsLsServerExtensionEntry ::= SEQUENCE {
     cucsLsServerExtensionDn                                          CucsManagedObjectDn,
     cucsLsServerExtensionRn                                          SnmpAdminString,
     cucsLsServerExtensionGuid                                        SnmpAdminString,
-    cucsLsServerExtensionVersion                                     Gauge32
+    cucsLsServerExtensionVersion                                     Gauge32,
+    cucsLsServerExtensionPropAcl                                     Unsigned64,
+    cucsLsServerExtensionVlanGrpRequestComputeTime                   DateAndTime
 }
 
 cucsLsServerExtensionInstanceId OBJECT-TYPE
@@ -1670,6 +1776,23 @@ cucsLsServerExtensionVersion OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS ls:ServerExtension:version managed object property"
     ::= { cucsLsServerExtensionEntry 5 }
+
+cucsLsServerExtensionPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ls:ServerExtension:propAcl managed object property"
+    ::= { cucsLsServerExtensionEntry 6 }
+
+cucsLsServerExtensionVlanGrpRequestComputeTime OBJECT-TYPE
+    SYNTAX       DateAndTime
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ls:ServerExtension:vlanGrpRequestComputeTime
+        managed object property"
+    ::= { cucsLsServerExtensionEntry 7 }
 
 cucsLsServerFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsLsServerFsmEntry
@@ -2165,7 +2288,9 @@ CucsLsVConAssignEntry ::= SEQUENCE {
     cucsLsVConAssignAdminVcon                                        SnmpAdminString,
     cucsLsVConAssignOrder                                            Gauge32,
     cucsLsVConAssignTransport                                        CucsFabricVConTransportPref,
-    cucsLsVConAssignVnicName                                         SnmpAdminString
+    cucsLsVConAssignVnicName                                         SnmpAdminString,
+    cucsLsVConAssignPropAcl                                          Unsigned64,
+    cucsLsVConAssignAdminHostPort                                    CucsFabricHostPortId
 }
 
 cucsLsVConAssignInstanceId OBJECT-TYPE
@@ -2224,6 +2349,22 @@ cucsLsVConAssignVnicName OBJECT-TYPE
         "Cisco UCS ls:VConAssign:vnicName managed object property"
     ::= { cucsLsVConAssignEntry 7 }
 
+cucsLsVConAssignPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ls:VConAssign:propAcl managed object property"
+    ::= { cucsLsVConAssignEntry 8 }
+
+cucsLsVConAssignAdminHostPort OBJECT-TYPE
+    SYNTAX       CucsFabricHostPortId
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ls:VConAssign:adminHostPort managed object property"
+    ::= { cucsLsVConAssignEntry 9 }
+
 cucsLsVersionBehTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsLsVersionBehEntry
     MAX-ACCESS       not-accessible
@@ -2248,7 +2389,8 @@ CucsLsVersionBehEntry ::= SEQUENCE {
     cucsLsVersionBehPciEnum                                          CucsVnicOrderScheme,
     cucsLsVersionBehVnicOrder                                        CucsVnicPlacement,
     cucsLsVersionBehVconMap                                          CucsFabricVConMappingScheme,
-    cucsLsVersionBehVnicMap                                          CucsVnicMezzMappingScheme
+    cucsLsVersionBehVnicMap                                          CucsVnicMezzMappingScheme,
+    cucsLsVersionBehPropAcl                                          Unsigned64
 }
 
 cucsLsVersionBehInstanceId OBJECT-TYPE
@@ -2306,6 +2448,14 @@ cucsLsVersionBehVnicMap OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS ls:VersionBeh:vnicMap managed object property"
     ::= { cucsLsVersionBehEntry 7 }
+
+cucsLsVersionBehPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ls:VersionBeh:propAcl managed object property"
+    ::= { cucsLsVersionBehEntry 8 }
 
 cucsLsZoneInitiatorMemberTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsLsZoneInitiatorMemberEntry

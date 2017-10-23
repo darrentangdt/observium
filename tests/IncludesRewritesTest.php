@@ -43,7 +43,7 @@ fclose($csv);
 exit;
 */
 
-class IncludesRewritesTest extends PHPUnit_Framework_TestCase
+class IncludesRewritesTest extends \PHPUnit\Framework\TestCase
 {
   /**
   * @dataProvider providerRewriteEntityNameCsv

@@ -24,6 +24,13 @@ if (is_numeric($vars['id']))
 
     $title  = generate_device_link($device);
     $title .= " :: Netscaler VServer :: " . escape_html($vsvr['vsvr_name']);
+
+    $title_array   = array();
+    $title_array[] = array('text' => $device['hostname'], 'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'])));
+    $title_array[] = array('text' => 'Netscaler vServer', 'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'loadbalancer', 'type' => 'netscaler_vsvr')));
+    $title_array[] = array('text' => $vsvr['vsvr_name']   , 'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'loadbalancer', 'type' => 'netscaler_vsvr', 'vsvr' => $vsvr['vsvr_id'])));
+
+
     $auth = TRUE;
   }
 }

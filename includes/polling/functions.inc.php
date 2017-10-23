@@ -46,38 +46,54 @@ function poll_sensor($device, $class, $unit, &$oid_cache)
   global $config, $agent_sensors, $ipmi_sensors, $graphs, $table_rows;
 
   $sql  = "SELECT * FROM `sensors`";
-  $sql .= " LEFT JOIN `sensors-state` USING(`sensor_id`)";
-  $sql .= " WHERE `sensor_class` = ? AND `device_id` = ?";
+  //$sql .= " LEFT JOIN `sensors-state` USING(`sensor_id`)";
+  $sql .= " WHERE `sensor_class` = ? AND `device_id` = ? AND `sensor_deleted` = ?";
+  $sql .= ' ORDER BY `sensor_oid`'; // This fix polling some OIDs (when not ordered)
 
-  foreach (dbFetchRows($sql, array($class, $device['device_id'])) as $sensor_db)
+  //print_vars($GLOBALS['cache']['entity_attribs']);
+  foreach (dbFetchRows($sql, array($class, $device['device_id'], '0')) as $sensor_db)
   {
     $sensor_poll = array();
 
     //print_cli_heading("Sensor: ".$sensor_db['sensor_descr'], 3);
 
+    // Sensor attribs, by first must be cached
+    if (isset($GLOBALS['cache']['entity_attribs']['sensor'][$sensor_db['sensor_id']]))
+    {
+      $attribs = $GLOBALS['cache']['entity_attribs']['sensor'][$sensor_db['sensor_id']];
+      //print_vars($attribs);
+    } else {
+      $attribs = array();
+    }
+
     if (OBS_DEBUG)
     {
       echo("Checking (" . $sensor_db['poller_type'] . ") $class " . $sensor_db['sensor_descr'] . " ");
-      print_r($sensor_db);
+      print_debug_vars($sensor_db, 1);
     }
 
     if ($sensor_db['poller_type'] == "snmp")
     {
-      # if ($class == "temperature" && $device['os'] == "papouch")
+      $sensor_db['sensor_oid'] = '.' . ltrim($sensor_db['sensor_oid'], '.'); // Fix first dot in oid for caching
+
       // Why all temperature?
       if ($class == "temperature")
       {
         for ($i = 0; $i < 5; $i++) // Try 5 times to get a valid temp reading
         {
           // Take value from $oid_cache if we have it, else snmp_get it
+          if (isset($oid_cache[$sensor_db['sensor_oid']]))
+          {
+            $oid_cache[$sensor_db['sensor_oid']] = snmp_fix_numeric($oid_cache[$sensor_db['sensor_oid']]);
+          }
           if (is_numeric($oid_cache[$sensor_db['sensor_oid']]))
           {
             print_debug("value taken from oid_cache");
             $sensor_poll['sensor_value'] = $oid_cache[$sensor_db['sensor_oid']];
           } else {
-            $sensor_poll['sensor_value'] = snmp_get($device, $sensor_db['sensor_oid'], "-OUqnv", "SNMPv2-MIB");
+            $sensor_poll['sensor_value'] = snmp_get_oid($device, $sensor_db['sensor_oid'], 'SNMPv2-MIB');
+            $sensor_poll['sensor_value'] = snmp_fix_numeric($sensor_poll['sensor_value']);
           }
-          $sensor_poll['sensor_value'] = snmp_fix_numeric($sensor_poll['sensor_value']);
 
           if (is_numeric($sensor_poll['sensor_value']) && $sensor_poll['sensor_value'] != 9999)
           {
@@ -98,7 +114,7 @@ function poll_sensor($device, $class, $unit, &$oid_cache)
           print_debug("value taken from oid_cache");
           $sensor_poll['sensor_value'] = $oid_cache[$sensor_db['sensor_oid']];
         } else {
-          $sensor_poll['sensor_value'] = snmp_get($device, $sensor_db['sensor_oid'], "-OUqnv", "SNMPv2-MIB");
+          $sensor_poll['sensor_value'] = snmp_get_oid($device, $sensor_db['sensor_oid'], 'SNMPv2-MIB');
         }
         if (strpos($sensor_poll['sensor_value'], ':') !== FALSE)
         {
@@ -107,14 +123,18 @@ function poll_sensor($device, $class, $unit, &$oid_cache)
         }
       } else {
         // Take value from $oid_cache if we have it, else snmp_get it
+        if (isset($oid_cache[$sensor_db['sensor_oid']]))
+        {
+          $oid_cache[$sensor_db['sensor_oid']] = snmp_fix_numeric($oid_cache[$sensor_db['sensor_oid']]);
+        }
         if (is_numeric($oid_cache[$sensor_db['sensor_oid']]))
         {
           print_debug("value taken from oid_cache");
           $sensor_poll['sensor_value'] = $oid_cache[$sensor_db['sensor_oid']];
         } else {
-          $sensor_poll['sensor_value'] = snmp_get($device, $sensor_db['sensor_oid'], "-OUqnv", "SNMPv2-MIB");
+          $sensor_poll['sensor_value'] = snmp_get_oid($device, $sensor_db['sensor_oid'], 'SNMPv2-MIB');
+          $sensor_poll['sensor_value'] = snmp_fix_numeric($sensor_poll['sensor_value']);
         }
-        $sensor_poll['sensor_value'] = snmp_fix_numeric($sensor_poll['sensor_value']);
       }
     }
     else if ($sensor_db['poller_type'] == "agent")
@@ -131,7 +151,7 @@ function poll_sensor($device, $class, $unit, &$oid_cache)
     {
       if (isset($ipmi_sensors))
       {
-        $sensor_poll['sensor_value'] = $ipmi_sensors[$class][$sensor_db['sensor_type']][$sensor_db['sensor_index']]['current'];
+        $sensor_poll['sensor_value'] = snmp_fix_numeric($ipmi_sensors[$class][$sensor_db['sensor_type']][$sensor_db['sensor_index']]['current']);
         $unit = $ipmi_sensors[$class][$sensor_db['sensor_type']][$sensor_db['sensor_index']]['unit'];
       } else {
         print_warning("No IPMI sensor data available.");
@@ -144,10 +164,7 @@ function poll_sensor($device, $class, $unit, &$oid_cache)
 
     $sensor_polled_time = time(); // Store polled time for current sensor
 
-    if (OBS_DEBUG)
-    {
-      print_r($sensor_poll);
-    }
+    print_debug_vars($sensor_poll, 1);
 
     if ($sensor_poll['sensor_value'] == -32768)
     {
@@ -155,10 +172,16 @@ function poll_sensor($device, $class, $unit, &$oid_cache)
       $sensor_poll['sensor_value'] = 0;
     }
 
-    // Scale
+    // Addition & Scale
+    if (isset($attribs['sensor_addition']) && is_numeric($attribs['sensor_addition']))
+    {
+      $sensor_poll['sensor_value'] += $attribs['sensor_addition'];
+    }
+
     if (isset($sensor_db['sensor_multiplier']) && $sensor_db['sensor_multiplier'] != 0)
     {
-      $sensor_poll['sensor_value'] *= $sensor_db['sensor_multiplier'];
+      //$sensor_poll['sensor_value'] *= $sensor_db['sensor_multiplier'];
+      $sensor_poll['sensor_value'] = scale_value($sensor_poll['sensor_value'], $sensor_db['sensor_multiplier']);
     }
 
     // Unit conversion to SI (if required)
@@ -263,23 +286,12 @@ function poll_sensor($device, $class, $unit, &$oid_cache)
     check_entity('sensor', $sensor_db, $metrics);
 
     // Update SQL State
-    if (is_numeric($sensor_db['sensor_polled']))
-    {
-      dbUpdate(array('sensor_value'  => $sensor_poll['sensor_value'],
-                     'sensor_event'  => $sensor_poll['sensor_event'],
-                     'sensor_status' => $sensor_poll['sensor_status'],
-                     'sensor_last_change' => $sensor_poll['sensor_last_change'],
-                     'sensor_polled' => $sensor_polled_time),
-               'sensors-state', '`sensor_id` = ?', array($sensor_db['sensor_id']));
-    } else {
-      dbInsert(array('sensor_id'     => $sensor_db['sensor_id'],
-                     'sensor_value'  => $sensor_poll['sensor_value'],
-                     'sensor_event'  => $sensor_poll['sensor_event'],
-                     'sensor_status' => $sensor_poll['sensor_status'],
-                     'sensor_last_change' => $sensor_poll['sensor_last_change'],
-                     'sensor_polled' => $sensor_polled_time),
-               'sensors-state');
-    }
+    dbUpdate(array('sensor_value'  => $sensor_poll['sensor_value'],
+                   'sensor_event'  => $sensor_poll['sensor_event'],
+                   'sensor_status' => $sensor_poll['sensor_status'],
+                   'sensor_last_change' => $sensor_poll['sensor_last_change'],
+                   'sensor_polled' => $sensor_polled_time),
+             'sensors', '`sensor_id` = ?', array($sensor_db['sensor_id']));
   }
 }
 
@@ -288,10 +300,11 @@ function poll_status($device)
   global $config, $agent_sensors, $ipmi_sensors, $graphs, $oid_cache;
 
   $sql  = "SELECT * FROM `status`";
-  $sql .= " LEFT JOIN `status-state` USING(`status_id`)";
-  $sql .= " WHERE `device_id` = ?";
+  //$sql .= " LEFT JOIN `status-state` USING(`status_id`)";
+  $sql .= " WHERE `device_id` = ? AND `status_deleted` = ?";
+  $sql .= ' ORDER BY `status_oid`'; // This fix polling some OIDs (when not ordered)
 
-  foreach (dbFetchRows($sql, array($device['device_id'])) as $status_db)
+  foreach (dbFetchRows($sql, array($device['device_id'], '0')) as $status_db)
   {
     //print_cli_heading("Status: ".$status_db['status_descr']. "(".$status_db['poller_type'].")", 3);
 
@@ -301,6 +314,8 @@ function poll_status($device)
 
     if ($status_db['poller_type'] == "snmp")
     {
+      $status_db['status_oid'] = '.' . ltrim($status_db['status_oid'], '.'); // Fix first dot in oid for caching
+
       // Check if a specific poller file exists for this status, else collect via SNMP.
       $file = $config['install_dir']."/includes/polling/status/".$status_db['status_type'].".inc.php";
 
@@ -309,12 +324,12 @@ function poll_status($device)
         include($file);
       } else {
         // Take value from $oid_cache if we have it, else snmp_get it
-        if (is_numeric($oid_cache[$status_db['status_oid']]))
+        if (isset($oid_cache[$status_db['status_oid']]))
         {
           print_debug("value taken from oid_cache");
           $status_value = $oid_cache[$status_db['status_oid']];
         } else {
-          $status_value = snmp_get($device, $status_db['status_oid'], "-OUqnv", "SNMPv2-MIB");
+          $status_value = snmp_get_oid($device, $status_db['status_oid'], 'SNMPv2-MIB');
         }
         $status_value = snmp_fix_numeric($status_value);
       }
@@ -347,6 +362,7 @@ function poll_status($device)
 
     // Write new value and humanize (for alert checks)
     $state_array = get_state_array($status_db['status_type'], $status_value, $status_db['poller_type']);
+    $status_value                = $state_array['value']; // Override status_value by numeric for "pseudo" (string) statuses
     $status_poll['status_value'] = $state_array['value'];
     $status_poll['status_name']  = $state_array['name'];
     if ($status_db['status_ignore'] || $status_db['status_disable'])
@@ -374,35 +390,25 @@ function poll_status($device)
       else if ($status_db['status_event'] != '')
       {
         // If old state not empty and new state not equals to new state
-        $msg = 'Status ';
-        switch ($status_poll['status_event'])
+        $msg = 'Status ' . ucfirst($status_poll['status_event']) . ': ' . $device['hostname'] . ' ' . $status_db['status_descr'] .
+               ' entered ' . strtoupper($status_poll['status_event']) . ' state: ' . $status_poll['status_name'] .
+               ' (previous: ' . $status_db['status_name'] . ')';
+
+        if (isset($config['entity_events'][$status_poll['status_event']]))
         {
-          case 'alert':
-            // New state alerted
-            $msg .= "Alert: " . $device['hostname'] . " " . $status_db['status_descr'] . " entered ALERT state: " . $status_poll['status_name'] . " (previous: " . $status_db['status_name'] . ")";
-            log_event($msg, $device, 'status', $status_db['status_id'], 'warning');
-            break;
-          case 'warning':
-            // New state warned
-            $msg .= "Warning: " . $device['hostname'] . " " . $status_db['status_descr'] . " entered WARNING state: " . $status_poll['status_name'] . " (previous: " . $status_db['status_name'] . ")";
-            log_event($msg, $device, 'status', $status_db['status_id']);
-            break;
-          case 'ok':
-            // New state ok
-            $msg .= "Ok: " . $device['hostname'] . " " . $status_db['status_descr'] . " entered OK state: " . $status_poll['status_name'] . " (previous: " . $status_db['status_name'] . ")";
-            log_event($msg, $device, 'status', $status_db['status_id'], 'warning');
-            break;
+          $severity = $config['entity_events'][$status_poll['status_event']]['severity'];
+        } else {
+          $severity = 'informational';
         }
+        log_event($msg, $device, 'status', $status_db['status_id'], $severity);
+
       }
     } else {
       // If status not changed, leave old last_change
       $status_poll['status_last_change'] = $status_db['status_last_change'];
     }
 
-    if (OBS_DEBUG > 1)
-    {
-      print_vars($status_poll);
-    }
+    print_debug_vars($status_poll);
 
     // Send statistics array via AMQP/JSON if AMQP is enabled globally and for the ports module
     if ($config['amqp']['enable'] == TRUE && $config['amqp']['modules']['status'])
@@ -442,23 +448,12 @@ function poll_status($device)
     check_entity('status', $status_db, $metrics);
 
     // Update SQL State
-    if (is_numeric($status_db['status_polled']))
-    {
-      dbUpdate(array('status_value'  => $status_value,
-                     'status_name'   => $status_poll['status_name'],
-                     'status_event'  => $status_poll['status_event'],
-                     'status_last_change' => $status_poll['status_last_change'],
-                     'status_polled' => $status_polled_time),
-      'status-state', '`status_id` = ?', array($status_db['status_id']));
-    } else {
-      dbInsert(array('status_id'     => $status_db['status_id'],
-                     'status_value'  => $status_value,
-                     'status_name'   => $status_poll['status_name'],
-                     'status_event'  => $status_poll['status_event'],
-                     'status_last_change' => $status_poll['status_last_change'],
-                     'status_polled' => $status_polled_time),
-      'status-state');
-    }
+    dbUpdate(array('status_value'  => $status_value,
+                   'status_name'   => $status_poll['status_name'],
+                   'status_event'  => $status_poll['status_event'],
+                   'status_last_change' => $status_poll['status_last_change'],
+                   'status_polled' => $status_polled_time),
+                   'status', '`status_id` = ?', array($status_db['status_id']));
   }
 }
 
@@ -471,17 +466,17 @@ function poll_device($device, $options)
   $old_device_state = unserialize($device['device_state']);
   $attribs = get_entity_attribs('device', $device['device_id']);
 
+  print_debug_vars($device);
+  print_debug_vars($attribs);
+
   $pid_info = check_process_run($device); // This just clear stalled DB entries
   add_process_info($device); // Store process info
 
   $alert_rules = cache_alert_rules();
   $alert_table = cache_device_alert_table($device['device_id']);
 
-  if (OBS_DEBUG > 1 && (count($alert_rules) || count($alert_table))) // Fuck you, dirty outputs.
-  {
-    print_vars($alert_rules);
-    print_vars($alert_table);
-  }
+  print_debug_vars($alert_rules);
+  print_debug_vars($alert_table);
 
   $status = 0;
 
@@ -678,6 +673,11 @@ function poll_device($device, $options)
       $device_state['poller_mod_perf'][$module] = $m_run;
       print_cli_data("Module time", number_format($m_run, 4)."s");
 
+      if (!isset($options['m']))
+      {
+        rrdtool_update_ng($device, 'perf-pollermodule', array('val' => $m_run), $module);
+      }
+
       echo(PHP_EOL);
 
     }
@@ -864,6 +864,8 @@ function collect_table($device, $oids_def, &$graphs)
     case 'snmp_get_multi':
       $use_walk = FALSE;
       break;
+    case 'snmpwalk_cache_bare_oid':
+      break;
     case 'snmpwalk_cache_oid':
     default:
       $call_function = 'snmpwalk_cache_oid';
@@ -974,6 +976,9 @@ function collect_table($device, $oids_def, &$graphs)
     case 'snmpwalk_cache_oid':
       $data = snmpwalk_cache_oid($device, $oids_def['table'], array(), $mib, $mib_dirs);
       break;
+    case 'snmpwalk_cache_bare_oid':
+      $data = snmpwalk_cache_bare_oid($device, $oids_def['table'], array(), $mib, $mib_dirs);
+      break;
     case 'snmp_get_multi':
       $data = snmp_get_multi($device, $oids, "-OQUs", $mib, $mib_dirs);
       break;
@@ -986,10 +991,18 @@ function collect_table($device, $oids_def, &$graphs)
     return FALSE;
   }
 
-  if (isset($oids_def['no_index']) && $oids_def['no_index'] == TRUE)
+  //print_debug_vars($data);
+
+  if (isset($oids_def['no_index']) && $oids_def['no_index'] == TRUE || $call_function == 'snmpwalk_cache_double_oid')
   {
     $data[0] = $data[''];
   }
+  elseif ( $call_function == 'snmpwalk_cache_bare_oid')
+  {
+    $data[0] = $data;
+  }
+
+  print_debug_vars($data);
 
   foreach ($oids_index as $entry)
   {

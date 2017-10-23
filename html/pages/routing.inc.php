@@ -20,7 +20,7 @@ if ($_GET['optb'] == "graphs" || $_GET['optc'] == "graphs") { $graphs = "graphs"
 $navbar['brand'] = "Routing";
 $navbar['class'] = "navbar-narrow";
 
-foreach ($routing as $type => $value)
+foreach ($cache['routing'] as $type => $value)
 {
   if ($value['count'] > 0)
   {

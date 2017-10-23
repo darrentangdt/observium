@@ -46,7 +46,7 @@ if (isset($vars['style']) && $vars['style'])
 // Autoscale
 if (!isset($scale_min) && !isset($scale_max))
 {
-  if ($graph_style == 'mrtg')
+  if ($graph_style == 'mrtg' && !isset($log_y)) // Don't use this if we're doing logarithmic scale, else it breaks.
   {
     $rrd_options .= ' --lower-limit 0 --alt-autoscale-max';
   } else {

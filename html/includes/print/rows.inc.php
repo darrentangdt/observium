@@ -27,8 +27,10 @@ function generate_box_open($args = array())
     $return .= '  <div class="box-header' . ($args['header-border'] ? ' with-border' : '') . '">'.PHP_EOL;
     if(isset($args['url'])) {  $return .= '<a href="'.$args['url'].'">'; }
     if(isset($args['icon'])) {  $return .= '<i class="'.$args['icon'].'"></i>'; }
-    $return .= '<h3 class="box-title">';
-    $return .= $args['title'].'</h3>'.PHP_EOL;
+    $return .= '<' . (isset($args['title-element']) ? $args['title-element'] : 'h3').' class="box-title"';
+    $return .= (isset($args['title-style']) ? ' style="'.$args['title-style'].'"' : '');
+    $return .= '>';
+    $return .= $args['title'].'</' . (isset($args['title-element']) ? $args['title-element'] : 'h3').'>'.PHP_EOL;
     if(isset($args['url'])) {  $return .= '</a>'; }
 
     if (isset($args['header-controls']) && is_array($args['header-controls']['controls']))
@@ -252,6 +254,7 @@ function generate_graph_row($graph_array, $state_marker = FALSE)
     $graph_array_zoom           = $graph_array;
     $graph_array_zoom['height'] = "175";
     $graph_array_zoom['width']  = "600";
+    unset($graph_array_zoom['legend']);
 
     $link_array = $graph_array;
     $link_array['page'] = "graphs";

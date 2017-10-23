@@ -102,6 +102,34 @@ function dbShowVariables($scope = 'SESSION', $where = '')
   return $rows;
 }
 
+/**
+ * Provides table index list
+ *
+ * @param string $table Table name
+ * @param string $index_name Index name (if empty get all indexes)
+ * @return array Array with table indexes: array()->$key_name->$column_name
+ */
+function dbShowIndexes($table, $index_name = NULL)
+{
+  $table  = dbEscape($table);
+  $params = array();
+  if ($index_name)
+  {
+    $sql = 'SHOW INDEX FROM `'.$table.'` WHERE `Key_name` = ?;';
+    $params[] = $index_name;
+  } else {
+    $sql = 'SHOW INDEX FROM `'.$table.'`;';
+  }
+
+  $rows = array();
+  foreach (dbFetchRows($sql, $params) as $row)
+  {
+    $rows[$row['Key_name']][$row['Column_name']] = $row;
+  }
+
+  return $rows;
+}
+
 /*
  * Performs a query using the given string.
  * Used by the other _query functions.
@@ -523,7 +551,14 @@ function generate_query_values($value, $column, $condition = NULL)
         }
       }
       $values = array_unique($values); // Removes duplicate values
-      $where = ' AND (' . implode($implode, $values) . ')';
+      if (count($values))
+      {
+        $where = ' AND (' . implode($implode, $values) . ')';
+      } else {
+        // Empty values
+        $where  = ' AND ';
+        $where .= $negative ? '1' : '0';
+      }
       break;
     // Use IN condition
     default:
@@ -547,6 +582,9 @@ function generate_query_values($value, $column, $condition = NULL)
       {
         $values = array_unique($values); // Removes duplicate values
         $where .= $column . ($negative ? ' NOT IN (' : ' IN (') . implode(',', $values) . ')';
+      } else {
+        // Empty values
+        $where = $negative ? '1' : '0';
       }
       if ($add_null)
       {

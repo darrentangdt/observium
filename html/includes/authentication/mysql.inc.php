@@ -21,6 +21,8 @@
  */
 function mysql_authenticate($username, $password)
 {
+  global $config;
+
   $encrypted_old = md5($password);
   $row = dbFetchRow("SELECT `username`, `password` FROM `users` WHERE `username`= ?", array($username));
   if ($row['username'] && $row['username'] == $username)

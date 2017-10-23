@@ -39,7 +39,7 @@ function print_refresh($vars)
     {
       $refresh_time = (int)$vars['refresh'];
       // Store for SESSION
-      $_SESSION['page_refresh'] = $refresh_time;
+      session_set_var('page_refresh', $refresh_time);
     }
     // Unset refresh var after
     unset($GLOBALS['vars']['refresh']);
@@ -104,7 +104,13 @@ function get_table_header($cols, &$vars = array())
   }
   unset($vars['sort'], $vars['sort_order']);
 
-  $string  = '  <thead>' . PHP_EOL;
+  if (isset($vars['show_header']) && !$vars['show_header'])
+  {
+    // Do not show any table header if show_header == FALSE
+    $string  = '  <thead style="line-height: 0; visibility: collapse;">' . PHP_EOL;
+  } else {
+    $string  = '  <thead>' . PHP_EOL;
+  }
   $string .= '    <tr>' . PHP_EOL;
   foreach ($cols as $id => $col)
   {
@@ -125,7 +131,7 @@ function get_table_header($cols, &$vars = array())
     {
       $string .= $name;      // Column without Sort
     }
-    else if ($vars || $sort)
+    else if (isset($vars) || $sort)
     {
       // Sort order cycle: asc -> desc -> reset
       if ($sort == $id)

@@ -14,7 +14,7 @@
 $graph_type = "device_processor";
 
 $sql  = "SELECT * FROM `processors`";
-$sql .= " LEFT JOIN `processors-state` USING(`processor_id`)";
+//$sql .= " LEFT JOIN `processors-state` USING(`processor_id`)";
 $sql .= " WHERE `processor_type` != 'hr-average' AND `device_id` = ?";
 
 $processors_db = dbFetchRows($sql, array($device['device_id']));
@@ -33,12 +33,12 @@ if (count($processors_db))
     $processors[$text_descr]['count']++;
   }
 
-  $box_args = array('title' => 'Processors', 
-                    'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => 'processor')), 
-                    'icon' => 'oicon-processor',
-                    ); 
+  $box_args = array('title' => 'Processors',
+                    'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => 'processor')),
+                    'icon' => $config['icon']['processor'],
+                    );
   echo generate_box_open($box_args);
-  
+
   echo('<table class="table table-condensed table-striped">');
 
   foreach ($processors as $text_descr => $proc)

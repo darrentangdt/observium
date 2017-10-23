@@ -11,11 +11,9 @@
  *
  */
 
-$version = preg_replace("/(.+)\ version\ (.+)\ \(SN:\ (.+)\,\ (.+)\)/", "\\1||\\2||\\3||\\4", $poll_device['sysDescr']);
-list($hardware,$version,$serial,$features) = explode('||', $version);
-
 $hardware = rewrite_junos_hardware($poll_device['sysObjectID']);
 
+// FIXME move to graph definitions
 $snmpdata = snmp_get_multi($device, 'nsResSessAllocate.0 nsResSessMaxium.0 nsResSessFailed.0', '-OQUs', 'NETSCREEN-RESOURCE-MIB');
 
 rrdtool_update_ng($device, 'screenos-sessions', array(

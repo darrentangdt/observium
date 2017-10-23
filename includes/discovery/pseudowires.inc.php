@@ -14,8 +14,6 @@
 // FIXME. Migrate later to discover_pseudowire() & check_valid_pseudowire()
 if (!$config['enable_pseudowires']) { return; }
 
-  print_cli_data_field("Discovering MIBs", 3);
-
   $valid['pseudowires'] = array();
 
   // Pre-cache the existing state of pseudowires for this device from the database

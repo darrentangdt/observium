@@ -15,7 +15,7 @@
 
 if (!is_array($cache_storage['ISILON-MIB']))
 {
-  $cache_storage['ISILON-MIB'] = snmpget_cache_multi($device, 'ifsTotalBytes.0 ifsUsedBytes.0', array(), 'ISILON-MIB');
+  $cache_storage['ISILON-MIB'] = snmp_get_multi_oid($device, 'ifsTotalBytes.0 ifsUsedBytes.0', array(), 'ISILON-MIB');
 }
 
 $entry = $cache_storage['ISILON-MIB'][$storage['storage_index']];

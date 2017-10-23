@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- POLICY management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -75,7 +75,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsPolicyObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -1795,6 +1795,62 @@ cucsPolicyElementPolicyDn OBJECT-TYPE
         "Cisco UCS policy:Element:policyDn managed object property"
     ::= { cucsPolicyElementEntry 7 }
 
+cucsPolicyEquipmentTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsPolicyEquipmentEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS policy:Equipment managed object table"
+    ::= { cucsPolicyObjects 41 }
+
+cucsPolicyEquipmentEntry OBJECT-TYPE
+    SYNTAX           CucsPolicyEquipmentEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsPolicyEquipmentTable table."
+    INDEX { cucsPolicyEquipmentInstanceId }
+    ::= { cucsPolicyEquipmentTable 1 }
+
+CucsPolicyEquipmentEntry ::= SEQUENCE {
+    cucsPolicyEquipmentInstanceId                                    CucsManagedObjectId,
+    cucsPolicyEquipmentDn                                            CucsManagedObjectDn,
+    cucsPolicyEquipmentRn                                            SnmpAdminString,
+    cucsPolicyEquipmentSource                                        CucsPolicyControlSource
+}
+
+cucsPolicyEquipmentInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsPolicyEquipmentEntry 1 }
+
+cucsPolicyEquipmentDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS policy:Equipment:dn managed object property"
+    ::= { cucsPolicyEquipmentEntry 2 }
+
+cucsPolicyEquipmentRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS policy:Equipment:rn managed object property"
+    ::= { cucsPolicyEquipmentEntry 3 }
+
+cucsPolicyEquipmentSource OBJECT-TYPE
+    SYNTAX       CucsPolicyControlSource
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS policy:Equipment:source managed object property"
+    ::= { cucsPolicyEquipmentEntry 4 }
+
 cucsPolicyFaultTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsPolicyFaultEntry
     MAX-ACCESS       not-accessible
@@ -2928,6 +2984,62 @@ cucsPolicyPolicyScopeFsmTaskSeqId OBJECT-TYPE
         object property"
     ::= { cucsPolicyPolicyScopeFsmTaskEntry 7 }
 
+cucsPolicyPortConfigTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsPolicyPortConfigEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS policy:PortConfig managed object table"
+    ::= { cucsPolicyObjects 44 }
+
+cucsPolicyPortConfigEntry OBJECT-TYPE
+    SYNTAX           CucsPolicyPortConfigEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsPolicyPortConfigTable table."
+    INDEX { cucsPolicyPortConfigInstanceId }
+    ::= { cucsPolicyPortConfigTable 1 }
+
+CucsPolicyPortConfigEntry ::= SEQUENCE {
+    cucsPolicyPortConfigInstanceId                                   CucsManagedObjectId,
+    cucsPolicyPortConfigDn                                           CucsManagedObjectDn,
+    cucsPolicyPortConfigRn                                           SnmpAdminString,
+    cucsPolicyPortConfigSource                                       CucsPolicyControlSource
+}
+
+cucsPolicyPortConfigInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsPolicyPortConfigEntry 1 }
+
+cucsPolicyPortConfigDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS policy:PortConfig:dn managed object property"
+    ::= { cucsPolicyPortConfigEntry 2 }
+
+cucsPolicyPortConfigRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS policy:PortConfig:rn managed object property"
+    ::= { cucsPolicyPortConfigEntry 3 }
+
+cucsPolicyPortConfigSource OBJECT-TYPE
+    SYNTAX       CucsPolicyControlSource
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS policy:PortConfig:source managed object property"
+    ::= { cucsPolicyPortConfigEntry 4 }
+
 cucsPolicyPowerMgmtTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsPolicyPowerMgmtEntry
     MAX-ACCESS       not-accessible
@@ -3169,5 +3281,118 @@ cucsPolicySecuritySource OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS policy:Security:source managed object property"
     ::= { cucsPolicySecurityEntry 4 }
+
+cucsPolicyStorageAutoConfigTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsPolicyStorageAutoConfigEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS policy:StorageAutoConfig managed object table"
+    ::= { cucsPolicyObjects 36 }
+
+cucsPolicyStorageAutoConfigEntry OBJECT-TYPE
+    SYNTAX           CucsPolicyStorageAutoConfigEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsPolicyStorageAutoConfigTable table."
+    INDEX { cucsPolicyStorageAutoConfigInstanceId }
+    ::= { cucsPolicyStorageAutoConfigTable 1 }
+
+CucsPolicyStorageAutoConfigEntry ::= SEQUENCE {
+    cucsPolicyStorageAutoConfigInstanceId                            CucsManagedObjectId,
+    cucsPolicyStorageAutoConfigDn                                    CucsManagedObjectDn,
+    cucsPolicyStorageAutoConfigRn                                    SnmpAdminString,
+    cucsPolicyStorageAutoConfigSource                                CucsPolicyControlSource
+}
+
+cucsPolicyStorageAutoConfigInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsPolicyStorageAutoConfigEntry 1 }
+
+cucsPolicyStorageAutoConfigDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS policy:StorageAutoConfig:dn managed object property"
+    ::= { cucsPolicyStorageAutoConfigEntry 2 }
+
+cucsPolicyStorageAutoConfigRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS policy:StorageAutoConfig:rn managed object property"
+    ::= { cucsPolicyStorageAutoConfigEntry 3 }
+
+cucsPolicyStorageAutoConfigSource OBJECT-TYPE
+    SYNTAX       CucsPolicyControlSource
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS policy:StorageAutoConfig:source managed
+        object property"
+    ::= { cucsPolicyStorageAutoConfigEntry 4 }
+
+cucsPolicySystemEpTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsPolicySystemEpEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS policy:SystemEp managed object table"
+    ::= { cucsPolicyObjects 37 }
+
+cucsPolicySystemEpEntry OBJECT-TYPE
+    SYNTAX           CucsPolicySystemEpEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsPolicySystemEpTable table."
+    INDEX { cucsPolicySystemEpInstanceId }
+    ::= { cucsPolicySystemEpTable 1 }
+
+CucsPolicySystemEpEntry ::= SEQUENCE {
+    cucsPolicySystemEpInstanceId                                     CucsManagedObjectId,
+    cucsPolicySystemEpDn                                             CucsManagedObjectDn,
+    cucsPolicySystemEpRn                                             SnmpAdminString,
+    cucsPolicySystemEpPropAcl                                        Unsigned64
+}
+
+cucsPolicySystemEpInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsPolicySystemEpEntry 1 }
+
+cucsPolicySystemEpDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS policy:SystemEp:dn managed object property"
+    ::= { cucsPolicySystemEpEntry 2 }
+
+cucsPolicySystemEpRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS policy:SystemEp:rn managed object property"
+    ::= { cucsPolicySystemEpEntry 3 }
+
+cucsPolicySystemEpPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS policy:SystemEp:propAcl managed object property"
+    ::= { cucsPolicySystemEpEntry 4 }
 
 END

@@ -30,7 +30,7 @@ if (is_array($mempool_array))
         //$total    *= $precision;
       } else {
         $precision = 1;
-        $total     = 1090519040; // Hardcoded total. See FIXME above.
+        $total     = 1090519040; // Hardcoded total.
       }
       $percent = $entry['chStackUnitMemUsageUtil'];
       $used    = $total * $percent / 100;

@@ -10,6 +10,45 @@
  *
  */
 
+// F5 TEMP STUFF
+
+function print_f5_lb_virtual_table_header($vars)
+{
+  if ($vars['view'] == "graphs")
+  {
+    $table_class = OBS_CLASS_TABLE_STRIPED_TWO;
+  } else {
+    $table_class = OBS_CLASS_TABLE_STRIPED;
+  }
+
+  echo('<table class="' . $table_class . '">' . PHP_EOL);
+  $cols = array(
+                   array(NULL, 'class="state-marker"'),
+    'device'    => array('Device', 'style="width: 200px;"'),
+    'virt_name'      => array('Virtual'),
+                   array('', 'style="width: 100px;"'),
+    'virt_ip'     => array('Address', 'style="width: 250px;"'),
+    'virt_type'        => array('Type', 'style="width: 250px;"'),
+    'virt_state'      => array('Status', 'style="width: 250px;"'),
+  );
+
+  if ($vars['page'] == "device")
+  {
+    unset($cols['device']);
+  }
+
+  echo(get_table_header($cols, $vars));
+  echo('<tbody>' . PHP_EOL);
+}
+
+
+
+
+
+
+
+
+
 function get_customoid_by_id($oid_id)
 {
 

@@ -2,6 +2,9 @@
 
 ## Check http://www.observium.org/docs/config_options/ for documentation of possible settings
 
+## It's recommended that settings are edited in the web interface at /settings/ on your observium installation.
+## Authentication and Database settings must be hardcoded here because they need to work before you can reach the web-based configuration interface
+
 // Database config ---  This MUST be configured
 $config['db_extension'] = 'mysqli';
 $config['db_host']      = 'localhost';

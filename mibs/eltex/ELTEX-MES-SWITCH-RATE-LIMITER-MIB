@@ -1,81 +1,178 @@
 ELTEX-MES-SWITCH-RATE-LIMITER-MIB DEFINITIONS ::= BEGIN
 
 -- Title:      ELTEX MES Switch Rate Limiter Private
--- Version:    1.0
--- Date:       18 Oct 2012
+-- Version:    2.0
+-- Date:       27 May 2016
 
 IMPORTS
-    eltMesSwitchRateLimiterMIB                              FROM ELTEX-MES-MNG-MIB
+    MODULE-IDENTITY,
+    OBJECT-TYPE,
     Integer32,
-    MODULE-IDENTITY, OBJECT-TYPE                            FROM SNMPv2-SMI
-    DisplayString                                           FROM SNMPv2-TC;
+    Gauge32,
+    Counter32
+        FROM SNMPv2-SMI
+    eltMesSwitchRateLimiterMIB
+        FROM ELTEX-MES-MNG-MIB;
 
-eltMesCPURateLimiterMIB OBJECT IDENTIFIER       ::= { eltMesSwitchRateLimiterMIB 1  }
+eltMesSwitchRateLimiterObjects OBJECT IDENTIFIER
+    ::= { eltMesSwitchRateLimiterMIB 1 }
 
-eltCPURateLimiterTable OBJECT-TYPE
-    SYNTAX          SEQUENCE OF EltCPURateLimiterEntry
-    MAX-ACCESS      not-accessible
-    STATUS          current
-    DESCRIPTION        "A list of CPU rate limiters."
-    ::= { eltMesCPURateLimiterMIB 1 }
+eltMesSwitchRateLimiterConfig OBJECT IDENTIFIER
+    ::= { eltMesSwitchRateLimiterObjects 1 }
 
-eltCPURateLimiterEntry OBJECT-TYPE
-    SYNTAX          EltCPURateLimiterEntry
-    MAX-ACCESS      not-accessible
-    STATUS          current
-    DESCRIPTION        "An entry containing the custom CPU
-                        rate limiter information for specific
-                        traffic type."
-    INDEX           { eltCPURateLimiterIndex }
-    ::= { eltCPURateLimiterTable 1 }
+eltMesSwitchRateLimiterStatistics OBJECT IDENTIFIER
+    ::= { eltMesSwitchRateLimiterObjects 2 }
 
-EltCPURateLimiterTrafficType ::= TEXTUAL-CONVENTION
+------------------------
+-- Textual Convetions --
+------------------------
+
+EltCpuRateLimiterTrafficType ::= TEXTUAL-CONVENTION
     STATUS current
     DESCRIPTION    "Traffic types for rate limiting on CPU."
     SYNTAX INTEGER {
-        eltCPURLTypeHttp(1),
-        eltCPURLTypeTelnet(2),
-        eltCPURLTypeSsh(3),
-        eltCPURLTypeSnmp(4),
-        eltCPURLTypeIp(5),
-        eltCPURLTypeLinkLocal(6),
-        eltCPURLTypeArpRouter(7),
-        eltCPURLTypeArpSwitch(8),
-        eltCPURLTypeArpInspec(9),
-        eltCPURLTypeStpBpdu(10),
-        eltCPURLTypeOtherBpdu(11),
-        eltCPURLTypeIpRouting(12),
-        eltCPURLTypeIpOptions(13),
-        eltCPURLTypeDhcpSnoop(14),
-        eltCPURLTypeWebAuth(15),
-        eltCPURLTypeIgmpSnoop(16),
-        eltCPURLTypeMldSnoop(17),
-        eltCPURLTypeSflow(18),
-        eltCPURLTypeLogDenyAces(19),
-        eltCPURLTypeIpErrors(20),
-        eltCPURLTypePtp(21),
-        eltCPURLTypeOther(22),
-        eltCPURLTypeDhcpv6Snoop(23),
-        eltCPURLTypeVRRP(24)
+        http                  (1),
+        telnet                (2),
+        ssh                   (3),
+        snmp                  (4),
+        ip                    (5),
+        linkLocal             (6),
+        arp                   (7),
+        arpInspec             (8),
+        stpBpdu               (9),
+        otherBpdu            (10),
+        ipRouting            (11),
+        ipOptions            (12),
+        dhcpSnoop            (13),
+        igmpSnoop            (14),
+        mldSnoop             (15),
+        sflow                (16),
+        ace                  (17),
+        ipErrors             (18),
+        other                (19),
+        dhcpv6Snoop          (20),
+        vrrp                 (21)
 }
 
-EltCPURateLimiterEntry ::= SEQUENCE {
-        eltCPURateLimiterIndex       EltCPURateLimiterTrafficType,
-        eltCPURateLimiterValue       Integer32
+EltCpuRateStatisticsTrafficType ::= TEXTUAL-CONVENTION
+    STATUS current
+    DESCRIPTION    "Traffic types for input rates on CPU."
+    SYNTAX INTEGER {
+        stack                 (1),
+        http                  (2),
+        telnet                (3),
+        ssh                   (4),
+        snmp                  (5),
+        ip                    (6),
+        arp                   (7),
+        arpInspec             (8),
+        stp                   (9),
+        ieee                 (10),
+        routeUnknown         (11),
+        ipHopByHop           (12),
+        mtuExceeded          (13),
+        ipv4Multicast        (14),
+        ipv6Multicast        (15),
+        dhcpSnooping         (16),
+        igmpSnooping         (17),
+        mldSnooping          (18),
+        ttlExceeded          (19),
+        ipv4IllegalAddress   (20),
+        ipv4HeaderError      (21),
+        ipDaMismatch         (22),
+        sflow                (23),
+        logDenyAces          (24),
+        dhcpv6Snooping       (25),
+        vrrp                 (26),
+        logPermitAces        (27),
+        ipv6HeaderError      (28)
 }
 
-eltCPURateLimiterIndex OBJECT-TYPE
-    SYNTAX          EltCPURateLimiterTrafficType
+----------------------------
+-- CPU Rate Limiter Table --
+----------------------------
+
+eltCpuRateLimiterTable OBJECT-TYPE
+    SYNTAX          SEQUENCE OF EltCpuRateLimiterEntry
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION     "A list of CPU rate limiters."
+    ::= { eltMesSwitchRateLimiterConfig 1 }
+
+eltCpuRateLimiterEntry OBJECT-TYPE
+    SYNTAX          EltCpuRateLimiterEntry
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION     "An entry containing the custom CPU
+                    rate limiter information for specific
+                    traffic type."
+    INDEX           { eltCpuRateLimiterIndex }
+    ::= { eltCpuRateLimiterTable 1 }
+
+EltCpuRateLimiterEntry ::= SEQUENCE {
+        eltCpuRateLimiterIndex       EltCpuRateLimiterTrafficType,
+        eltCpuRateLimiterValue       Integer32
+}
+
+eltCpuRateLimiterIndex OBJECT-TYPE
+    SYNTAX          EltCpuRateLimiterTrafficType
     MAX-ACCESS      read-only
     STATUS          current
-    DESCRIPTION        "Traffic type"
-    ::= { eltCPURateLimiterEntry 1 }
+    DESCRIPTION     "Traffic type"
+    ::= { eltCpuRateLimiterEntry 1 }
 
-eltCPURateLimiterValue OBJECT-TYPE
+eltCpuRateLimiterValue OBJECT-TYPE
     SYNTAX          Integer32 (0..65535)
     MAX-ACCESS      read-write
     STATUS          current
-    DESCRIPTION        "Value of rate-limiter"
-    ::= { eltCPURateLimiterEntry 2 }
+    DESCRIPTION     "Value of rate-limiter"
+    ::= { eltCpuRateLimiterEntry 2 }
+
+-------------------------------
+-- CPU Rate Statistics Table --
+-------------------------------
+
+eltCpuRateStatisticsTable OBJECT-TYPE
+    SYNTAX          SEQUENCE OF EltCpuRateStatisticsEntry
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION     "A list of CPU input rates per traffic type."
+    ::= { eltMesSwitchRateLimiterStatistics 1 }
+
+eltCpuRateStatisticsEntry OBJECT-TYPE
+    SYNTAX          EltCpuRateStatisticsEntry
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION     "An entry containing the CPU input rates
+                    for specific traffic type."
+    INDEX           { eltCpuRateStatisticsIndex }
+    ::= { eltCpuRateStatisticsTable 1 }
+
+EltCpuRateStatisticsEntry ::= SEQUENCE {
+        eltCpuRateStatisticsIndex       EltCpuRateStatisticsTrafficType,
+        eltCpuRateStatisticsRate        Gauge32,
+        eltCpuRateStatisticsCounter     Counter32
+}
+
+eltCpuRateStatisticsIndex OBJECT-TYPE
+    SYNTAX          EltCpuRateStatisticsTrafficType
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION     "Traffic type"
+    ::= { eltCpuRateStatisticsEntry 1 }
+
+eltCpuRateStatisticsRate OBJECT-TYPE
+    SYNTAX          Gauge32
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION     "Input rate int packets per second."
+    ::= { eltCpuRateStatisticsEntry 2 }
+
+eltCpuRateStatisticsCounter OBJECT-TYPE
+    SYNTAX          Counter32
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION     "Total counter of packets."
+    ::= { eltCpuRateStatisticsEntry 3 }
 
 END

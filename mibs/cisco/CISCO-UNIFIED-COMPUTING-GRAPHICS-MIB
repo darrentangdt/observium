@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- GRAPHICS management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -55,7 +55,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsGraphicsObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -115,7 +115,11 @@ CucsGraphicsCardEntry ::= SEQUENCE {
     cucsGraphicsCardVendor                                           SnmpAdminString,
     cucsGraphicsCardVendorId                                         Gauge32,
     cucsGraphicsCardVoltage                                          CucsEquipmentSensorThresholdStatus,
-    cucsGraphicsCardLocationDn                                       SnmpAdminString
+    cucsGraphicsCardLocationDn                                       SnmpAdminString,
+    cucsGraphicsCardStepping                                         SnmpAdminString,
+    cucsGraphicsCardExpanderSlot                                     SnmpAdminString,
+    cucsGraphicsCardFirmwareVersion                                  SnmpAdminString,
+    cucsGraphicsCardPciAddrList                                      SnmpAdminString
 }
 
 cucsGraphicsCardInstanceId OBJECT-TYPE
@@ -318,6 +322,38 @@ cucsGraphicsCardLocationDn OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS graphics:Card:locationDn managed object property"
     ::= { cucsGraphicsCardEntry 25 }
+
+cucsGraphicsCardStepping OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS graphics:Card:stepping managed object property"
+    ::= { cucsGraphicsCardEntry 26 }
+
+cucsGraphicsCardExpanderSlot OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS graphics:Card:expanderSlot managed object property"
+    ::= { cucsGraphicsCardEntry 27 }
+
+cucsGraphicsCardFirmwareVersion OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS graphics:Card:firmwareVersion managed object property"
+    ::= { cucsGraphicsCardEntry 28 }
+
+cucsGraphicsCardPciAddrList OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS graphics:Card:pciAddrList managed object property"
+    ::= { cucsGraphicsCardEntry 29 }
 
 cucsGraphicsControllerTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsGraphicsControllerEntry

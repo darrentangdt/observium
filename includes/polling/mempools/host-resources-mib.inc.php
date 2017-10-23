@@ -21,8 +21,8 @@ if (!is_array($cache_storage['host-resources-mib']))
 $index = $mempool['mempool_index'];
 $entry = $cache_storage['host-resources-mib'][$index];
 
-$mempool['mempool_precision'] = $entry['hrStorageAllocationUnits'];
-$mempool['used']              = intval(snmp_dewrap32bit($entry['hrStorageUsed'])); // if hrStorageUsed not set, use 0
-$mempool['total']             = snmp_dewrap32bit($entry['hrStorageSize']);
+$mempool['mempool_multiplier'] = $entry['hrStorageAllocationUnits'];
+$mempool['used']               = intval(snmp_dewrap32bit($entry['hrStorageUsed'])); // if hrStorageUsed not set, use 0
+$mempool['total']              = snmp_dewrap32bit($entry['hrStorageSize']);
 
 // EOF

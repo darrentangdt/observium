@@ -3,8 +3,9 @@
 ZXTM-MIB-SMIv2 DEFINITIONS ::= BEGIN
 
 --======================================================================
--- MIB for Stingray Traffic Manager 9.8r2
--- For more information, please see http://www.zeus.com/
+-- MIB for Brocade Virtual Traffic Manager 17.1
+-- For more information, please see
+-- http://www.brocade.com/en/products-services/application-delivery-controllers.html
 --======================================================================
 
 IMPORTS
@@ -20,26 +21,70 @@ IMPORTS
 -- This MUST immediately follow the imports, so cannot be moved down and
 -- cannot make forward references to "zeus" etc.
 zxtm MODULE-IDENTITY
-   LAST-UPDATED "201409211000Z"
-   ORGANIZATION "Riverbed Technology (Stingray Team)"
-   CONTACT-INFO "http://www.riverbed.com/us/support/"
-   DESCRIPTION "New EC2 trap"
+   LAST-UPDATED "201612051100Z"
+   ORGANIZATION "Brocade Communications (vTM Team)"
+   CONTACT-INFO "http://www.brocade.com/forms/jsp/support/tech_sc_locator.jsp"
+   DESCRIPTION "MIB for Virtual Traffic Manager"
+-- change history: most recent revision matches last-updated
+   REVISION "201612051100Z"
+   DESCRIPTION "Brocade vTM 17.1 features"
+
+   REVISION "201609290100Z"
+   DESCRIPTION "Brocade vTM 11.1 features"
+
+   REVISION "201605091900Z"
+   DESCRIPTION "Brocade vTM 11.0 features"
+
+   REVISION "201511180900Z"
+   DESCRIPTION "Brocade vTM 10.4 features"
+
+   REVISION "201511161703Z"
+   DESCRIPTION "Renamed Aptimizer to Web Accelerator in descriptions"
+
+   REVISION "201511090900Z"
+   DESCRIPTION "Brocade vTM 10.3 features"
+
+   REVISION "201509231400Z"
+   DESCRIPTION "Stingray 10.2 features"
+
+   REVISION "201507071500Z"
+   DESCRIPTION "Node drain to delete traps"
+
+   REVISION "201506161400Z"
+   DESCRIPTION "Brocade Rebranding"
+
+   REVISION "201501231400Z"
+   DESCRIPTION "Stingray 10.0 features"
+
+   REVISION "201412041100Z"
+   DESCRIPTION "Web cache URL store counters"
+
+   REVISION "201410291100Z"
+   DESCRIPTION "DNS Server traps"
+
    REVISION "201409211000Z"
-   DESCRIPTION "Stingray 9.8 features"
+   DESCRIPTION "New EC2 trap"
+
    REVISION "201408191200Z"
-   DESCRIPTION "MIB for Stingray Traffic Manager"
+   DESCRIPTION "Stingray 9.8 features"
+
    REVISION "201407011400Z"
    DESCRIPTION "Stingray 9.7 features"
+
    REVISION "201402241700Z"
    DESCRIPTION "New OCSP stapling traps"
+
    REVISION "201402031600Z"
    DESCRIPTION "New autoscaling trap"
+
    REVISION "201402031100Z"
    DESCRIPTION "New virtual server counter and fault tolerance trap"
+
    REVISION "201311111100Z"
    DESCRIPTION "Various SMIv2 compliance issues and OCSP stapling"
+
    REVISION "201111221100Z"
-   DESCRIPTION "Latest revision"
+   DESCRIPTION "Initial revision"
    ::= { enterprises 7146 1 2 }
 
 zeus                    OBJECT IDENTIFIER ::= { enterprises 7146 }
@@ -84,6 +129,7 @@ conformanceGroups       OBJECT IDENTIFIER ::= { zxtm 29 }
 complianceStatements    OBJECT IDENTIFIER ::= { zxtm 30 }
 steelheads              OBJECT IDENTIFIER ::= { zxtm 31 }
 sslocspstapling         OBJECT IDENTIFIER ::= { zxtm 32 }
+dpaCoreUtilization      OBJECT IDENTIFIER ::= { zxtm 33 }
 
 mainGroup OBJECT-GROUP
    OBJECTS {
@@ -118,7 +164,6 @@ sslCipherAESDecrypts,
 sslCipherRSAEncrypts,
 sslCipherRSADecrypts,
 sslCipherRSADecryptsExternal,
-sslHandshakeSSLv2,
 sslHandshakeSSLv3,
 sslHandshakeTLSv1,
 sslClientCertNotSent,
@@ -157,7 +202,6 @@ virtualserverBytesIn,
 virtualserverBytesOut,
 virtualserverCurrentConn,
 virtualserverMaxConn,
-virtualserverTotalConn,
 virtualserverDiscard,
 virtualserverDirectReplies,
 virtualserverConnectTimedOut,
@@ -180,6 +224,16 @@ virtualserverConnectionFailures,
 virtualserverCertStatusRequests,
 virtualserverCertStatusResponses,
 virtualserverProcessingTimedOut,
+virtualserverTotalRequests,
+virtualserverTotalHTTPRequests,
+virtualserverTotalHTTP1Requests,
+virtualserverTotalHTTP2Requests,
+virtualserverPktsIn,
+virtualserverPktsOut,
+virtualserverL4TCPConnectResets,
+virtualserverL4UDPUnreachables,
+virtualserverBwLimitPktsDrop,
+virtualserverBwLimitBytesDrop,
 poolNumber,
 poolName,
 poolAlgorithm,
@@ -198,6 +252,8 @@ poolQueueTimeouts,
 poolMinQueueTime,
 poolMaxQueueTime,
 poolMeanQueueTime,
+poolBwLimitPktsDrop,
+poolBwLimitBytesDrop,
 nodeNumberInet46,
 nodeInet46AddressType,
 nodeInet46Address,
@@ -226,6 +282,9 @@ perPoolNodeNodeHostName,
 perPoolNodeState,
 perPoolNodeBytesToNode,
 perPoolNodeBytesFromNode,
+perPoolNodePktsToNode,
+perPoolNodePktsFromNode,
+perPoolNodeL4StatelessBuckets,
 perPoolNodeCurrentRequests,
 perPoolNodeTotalConn,
 perPoolNodePooledConn,
@@ -284,6 +343,8 @@ bandwidthClassName,
 bandwidthClassMaximum,
 bandwidthClassGuarantee,
 bandwidthClassBytesOut,
+bandwidthClassPktsDrop,
+bandwidthClassBytesDrop,
 rateClassNumber,
 rateClassName,
 rateClassMaxRatePerMin,
@@ -316,6 +377,12 @@ webCacheHitRate,
 webCacheEntries,
 webCacheMaxEntries,
 webCacheOldest,
+webCacheURLStoreAllocated,
+webCacheURLStoreFree,
+webCacheURLStoreSize,
+webCacheURLStoreTotalAllocations,
+webCacheURLStoreTotalFailures,
+webCacheURLStoreTotalFrees,
 sslCacheHits,
 sslCacheMisses,
 sslCacheLookups,
@@ -405,12 +472,13 @@ cloudcredentialsName,
 cloudcredentialsStatusRequests,
 cloudcredentialsNodeCreations,
 cloudcredentialsNodeDeletions,
+domainName,
 listenIPAddressType,
 listenIPAddress,
 listenIPBytesIn,
 listenIPBytesOut,
 listenIPCurrentConn,
-listenIPTotalConn,
+listenIPTotalRequests,
 listenIPMaxConn,
 hourlyPeakBytesInPerSecond,
 hourlyPeakBytesOutPerSecond,
@@ -439,7 +507,16 @@ sslCipherDSASigns,
 sslCipherDSAVerifies,
 sslHandshakeTLSv12,
 sslCipherDHGenerates,
-sslCipherDHAgreements
+sslCipherDHAgreements,
+sslCipherAESGCMEncrypts,
+sslCipherAESGCMDecrypts,
+sslCipherECDHGenerates,
+sslCipherECDHAgreements,
+sslCipherECDSASigns,
+sslCipherECDSAVerifies,
+dataPlaneAccelCoreNumber,
+coreId,
+coreUtilizationPercent
    }
    STATUS current
    DESCRIPTION "Main conformance group"
@@ -496,12 +573,33 @@ virtualserverBytesInLo,
 virtualserverBytesInHi,
 virtualserverBytesOutLo,
 virtualserverBytesOutHi,
+virtualserverPktsInLo,
+virtualserverPktsInHi,
+virtualserverPktsOutLo,
+virtualserverPktsOutHi,
 virtualserverGzipBytesSavedLo,
 virtualserverGzipBytesSavedHi,
+virtualserverTotalConn,
+virtualserverTotalRequestsLo,
+virtualserverTotalRequestsHi,
+virtualserverTotalHTTPRequestsLo,
+virtualserverTotalHTTPRequestsHi,
+virtualserverTotalHTTP1RequestsLo,
+virtualserverTotalHTTP1RequestsHi,
+virtualserverTotalHTTP2RequestsLo,
+virtualserverTotalHTTP2RequestsHi,
+virtualserverBwLimitPktsDropLo,
+virtualserverBwLimitPktsDropHi,
+virtualserverBwLimitBytesDropLo,
+virtualserverBwLimitBytesDropHi,
 poolBytesInLo,
 poolBytesInHi,
 poolBytesOutLo,
 poolBytesOutHi,
+poolBwLimitPktsDropLo,
+poolBwLimitPktsDropHi,
+poolBwLimitBytesDropLo,
+poolBwLimitBytesDropHi,
 nodeInet46BytesToNodeLo,
 nodeInet46BytesToNodeHi,
 nodeInet46BytesFromNodeLo,
@@ -510,8 +608,16 @@ perPoolNodeBytesToNodeLo,
 perPoolNodeBytesToNodeHi,
 perPoolNodeBytesFromNodeLo,
 perPoolNodeBytesFromNodeHi,
+perPoolNodePktsToNodeLo,
+perPoolNodePktsToNodeHi,
+perPoolNodePktsFromNodeLo,
+perPoolNodePktsFromNodeHi,
 bandwidthClassBytesOutLo,
 bandwidthClassBytesOutHi,
+bandwidthClassPktsDropLo,
+bandwidthClassPktsDropHi,
+bandwidthClassBytesDropLo,
+bandwidthClassBytesDropHi,
 interfaceRxBytesLo,
 interfaceRxBytesHi,
 interfaceTxBytesLo,
@@ -525,7 +631,11 @@ webCacheLookupsHi,
 listenIPBytesInLo,
 listenIPBytesInHi,
 listenIPBytesOutLo,
-listenIPBytesOutHi
+listenIPBytesOutHi,
+listenIPTotalConn,
+listenIPTotalRequestsLo,
+listenIPTotalRequestsHi,
+sslHandshakeSSLv2
    }
    STATUS obsolete
    DESCRIPTION "Deprecated objects"
@@ -537,6 +647,10 @@ testaction,
 running,
 fewfreefds,
 restartrequired,
+upgradereboot,
+sysctlreboot,
+upgraderestart,
+unspecifiedreboot,
 timemovedback,
 sslfail,
 appliance,
@@ -572,6 +686,10 @@ dropec2ipwarn,
 ec2nopublicip,
 ec2nosecondaryprivateip,
 ec2dataretrievalfailed,
+ec2dataretrievalsuccessful,
+ec2initialized,
+gcedataretrievalfailed,
+gcedataretrievalsuccessful,
 multihostload,
 sslhwfail,
 sslhwrestart,
@@ -724,10 +842,11 @@ locempty,
 glbtoomanylocations,
 dnszonevalidate,
 dnszonecreaterecord,
-dnszoneparsechild,
 dnserroraddzone,
 dnsaddzone,
 dnszoneparse,
+dnszonedelete,
+dnserrordeletezone,
 maxclientbufferdrop,
 respcompfail,
 responsetoolarge,
@@ -764,6 +883,10 @@ ocspstaplingrevoked,
 ocspstaplingunknown,
 ocspstaplingunrevoked,
 flipperraiseremotedropped,
+autofailbacktimerstarted,
+autofailbacktimerstopped,
+autofailbackafterdelay,
+autofailbacktimercancelled,
 autoscalingresuscitatepool,
 license-rejected-unauthorized-ts,
 license-authorized-ts,
@@ -792,7 +915,24 @@ appfirewallcontroltimeout,
 appfirewallcontrolerror,
 ospfneighborsok,
 ospfneighborsdegraded,
-ospfneighborsfailed
+ospfneighborsfailed,
+bgpneighborsok,
+bgpneighborsdegraded,
+bgpneighborsfailed,
+bgpnoneighbors,
+dnssecexpired,
+dnssecexpires,
+glbactivedcmismatch,
+locationdraining,
+locationnotdraining,
+locationdisabled,
+locationenabled,
+locationunavailable,
+locationavailable,
+glbmanualfailback,
+nodedrainingtodelete,
+nodedrainingtodeletetimeout,
+zxtmcpustarvation
    }
    STATUS current
    DESCRIPTION "Notification group"
@@ -802,7 +942,8 @@ obsoleteNotificationGroup NOTIFICATION-GROUP
    NOTIFICATIONS {
 ec2vpceipassocerr,
 ec2vpciderr,
-rebootrequired
+rebootrequired,
+dnszoneparsechild
    }
    STATUS obsolete
    DESCRIPTION "Obsolete notification group"
@@ -858,7 +999,7 @@ version OBJECT-TYPE
    MAX-ACCESS read-only
    STATUS current
    DESCRIPTION
-      "The Stingray Traffic Manager version."
+      "The Brocade Virtual Traffic Manager version."
    ::= { globals 1 }
 
 numberChildProcesses OBJECT-TYPE
@@ -874,7 +1015,7 @@ upTime OBJECT-TYPE
    MAX-ACCESS read-only
    STATUS current
    DESCRIPTION
-      "The time (in hundredths of a second) that Stingray software has been
+      "The time (in hundredths of a second) that vTM software has been
        operational for (this value will wrap if it has been running for more
        than 497 days)."
    ::= { globals 3 }
@@ -956,13 +1097,12 @@ totalConn OBJECT-TYPE
       "Total number of TCP connections received."
    ::= { globals 10 }
 
-
 totalRequests OBJECT-TYPE
    SYNTAX Counter32
    MAX-ACCESS read-only
    STATUS current
    DESCRIPTION
-      "Total number of TCP requests recieved."
+      "Total number of TCP requests received."
    ::= { globals 127 }
 
 totalTransactions OBJECT-TYPE
@@ -1199,9 +1339,9 @@ sslCipherRSADecryptsExternal OBJECT-TYPE
 sslHandshakeSSLv2 OBJECT-TYPE
    SYNTAX Counter32
    MAX-ACCESS read-only
-   STATUS current
+   STATUS obsolete
    DESCRIPTION
-      "Number of SSLv2 handshakes."
+      "Formerly provided the number of SSLv2 handshakes, now deprecated."
    ::= { globals 32 }
 
 sslHandshakeSSLv3 OBJECT-TYPE
@@ -1354,6 +1494,54 @@ sslCipherDHAgreements OBJECT-TYPE
       "Number of Diffie Hellman key agreements."
    ::= { globals 71 }
 
+
+sslCipherAESGCMEncrypts OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Bytes encrypted with AES-GCM."
+   ::= { globals 72 }
+
+sslCipherAESGCMDecrypts OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Bytes decrypted with AES-GCM."
+   ::= { globals 73 }
+
+sslCipherECDHGenerates OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Number of Elliptic Curve Diffie Hellman keys generated."
+   ::= { globals 74 }
+
+sslCipherECDHAgreements OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Number of Elliptic Curve Diffie Hellman key agreements."
+   ::= { globals 75 }
+
+sslCipherECDSASigns OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Number of ECDSA signing operations."
+   ::= { globals 76 }
+
+sslCipherECDSAVerifies OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Number of ECDSA verifications."
+   ::= { globals 77 }
 
 --=============================================================================
 -- System counters
@@ -1581,7 +1769,33 @@ VirtualserverEntry ::= SEQUENCE {
       virtualserverCertStatusRequests Counter32,
       virtualserverCertStatusResponses Counter32,
       virtualserverMaxDurationTimedOut Counter32,
-      virtualserverProcessingTimedOut Counter32
+      virtualserverProcessingTimedOut Counter32,
+      virtualserverTotalRequestsLo     Counter32,
+      virtualserverTotalRequestsHi     Counter32,
+      virtualserverTotalRequests       Counter64,
+      virtualserverTotalHTTPRequestsLo Counter32,
+      virtualserverTotalHTTPRequestsHi Counter32,
+      virtualserverTotalHTTPRequests   Counter64,
+      virtualserverTotalHTTP1RequestsLo Counter32,
+      virtualserverTotalHTTP1RequestsHi Counter32,
+      virtualserverTotalHTTP1Requests   Counter64,
+      virtualserverTotalHTTP2RequestsLo Counter32,
+      virtualserverTotalHTTP2RequestsHi Counter32,
+      virtualserverTotalHTTP2Requests   Counter64,
+      virtualserverPktsInLo        Counter32,
+      virtualserverPktsInHi        Counter32,
+      virtualserverPktsOutLo       Counter32,
+      virtualserverPktsOutHi       Counter32,
+      virtualserverPktsIn          Counter64,
+      virtualserverPktsOut         Counter64,
+      virtualserverL4TCPConnectResets  Counter32,
+      virtualserverL4UDPUnreachables  Counter32,
+      virtualserverBwLimitPktsDrop    Counter64,
+      virtualserverBwLimitPktsDropLo  Counter32,
+      virtualserverBwLimitPktsDropHi   Counter32,
+      virtualserverBwLimitBytesDrop   Counter64,
+      virtualserverBwLimitBytesDropLo  Counter32,
+      virtualserverBwLimitBytesDropHi  Counter32
 }
 
 virtualserverName OBJECT-TYPE
@@ -1623,7 +1837,12 @@ virtualserverProtocol OBJECT-TYPE
                     dnstcp(20),
                     sipudp(21),
                     siptcp(22),
-                    rtsp(23) }
+                    rtsp(23),
+                    stream(24),
+                    l4acceltcp(25),
+                    l4acceludp(26),
+                    l4accelgeneric(27),
+                    l4accelstateless(28) }
    MAX-ACCESS read-only
    STATUS current
    DESCRIPTION
@@ -1690,9 +1909,9 @@ virtualserverMaxConn OBJECT-TYPE
 virtualserverTotalConn OBJECT-TYPE
    SYNTAX Counter32
    MAX-ACCESS read-only
-   STATUS current
+   STATUS obsolete
    DESCRIPTION
-      "Requests received by this virtual server."
+      "Formerly provided the number of requests received by this virtual server, now deprecated."
    ::= { virtualserverEntry 11 }
 
 virtualserverDiscard OBJECT-TYPE
@@ -1910,6 +2129,229 @@ virtualserverProcessingTimedOut OBJECT-TYPE
       interval was exceeded while waiting for rules or external processing."
    ::= { virtualserverEntry 37 }
 
+virtualserverTotalRequestsLo OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Requests received by this virtual server."
+   ::= { virtualserverEntry 38 }
+
+virtualserverTotalRequestsHi OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Requests received by this virtual server."
+   ::= { virtualserverEntry 39 }
+
+virtualserverTotalRequests OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Requests received by this virtual server."
+   ::= { virtualserverEntry 40 }
+
+--=============================================================================
+-- HTTP counters for all HTTP versions
+--=============================================================================
+
+virtualserverTotalHTTPRequestsLo OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "HTTP Requests received by this virtual server."
+   ::= { virtualserverEntry 41 }
+
+virtualserverTotalHTTPRequestsHi OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "HTTP Requests received by this virtual server."
+   ::= { virtualserverEntry 42 }
+
+virtualserverTotalHTTPRequests OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "HTTP Requests received by this virtual server."
+   ::= { virtualserverEntry 43 }
+
+
+--=============================================================================
+-- HTTP/1.x counters
+--=============================================================================
+
+virtualserverTotalHTTP1RequestsLo OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "HTTP/1.x Requests received by this virtual server."
+   ::= { virtualserverEntry 44 }
+
+virtualserverTotalHTTP1RequestsHi OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "HTTP/1.x Requests received by this virtual server."
+   ::= { virtualserverEntry 45 }
+
+virtualserverTotalHTTP1Requests OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "HTTP/1.x Requests received by this virtual server."
+   ::= { virtualserverEntry 46 }
+
+--=============================================================================
+-- HTTP/2 counters
+--=============================================================================
+
+virtualserverTotalHTTP2RequestsLo OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "HTTP/2 Requests received by this virtual server."
+   ::= { virtualserverEntry 47 }
+
+virtualserverTotalHTTP2RequestsHi OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "HTTP/2 Requests received by this virtual server."
+   ::= { virtualserverEntry 48 }
+
+virtualserverTotalHTTP2Requests OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "HTTP/2 Requests received by this virtual server."
+   ::= { virtualserverEntry 49 }
+
+virtualserverPktsInLo OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Packets received by this virtual server from clients ( low 32bits )."
+   ::= { virtualserverEntry 50 }
+
+virtualserverPktsInHi OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Packets received by this virtual server from clients ( high 32bits )."
+   ::= { virtualserverEntry 51 }
+
+virtualserverPktsOutLo OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Packets sent by this virtual server to clients ( low 32bits )."
+   ::= { virtualserverEntry 52 }
+
+virtualserverPktsOutHi OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Packets sent by this virtual server to clients ( high 32bits )."
+   ::= { virtualserverEntry 53 }
+
+virtualserverPktsIn OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Packets received by this virtual server from clients."
+   ::= { virtualserverEntry 54 }
+
+virtualserverPktsOut OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Packets sent by this virtual server to clients."
+   ::= { virtualserverEntry 55 }
+
+virtualserverL4TCPConnectResets OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Connections is reset by this virtual server because the forward traffic
+      cannot be processed."
+   ::= { virtualserverEntry 56 }
+
+virtualserverL4UDPUnreachables OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "ICMP error response is sent to client by this virtual server because the
+      forward traffic cannot be processed."
+   ::= { virtualserverEntry 57 }
+
+virtualserverBwLimitPktsDrop OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Number of Packets dropped by this virtual server due to BW Limits."
+   ::= { virtualserverEntry 58 }
+
+virtualserverBwLimitPktsDropLo OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Number of Packets dropped by this virtual server due to BW Limits ( low 32bits )."
+   ::= { virtualserverEntry 59 }
+
+virtualserverBwLimitPktsDropHi OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Number of Packets dropped by this virtual server due to BW Limits ( high 32bits )."
+   ::= { virtualserverEntry 60 }
+
+virtualserverBwLimitBytesDrop OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Number of Bytes dropped by this virtual server due to BW Limits."
+   ::= { virtualserverEntry 61 }
+
+virtualserverBwLimitBytesDropLo OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Number of Bytes dropped by this virtual server due to BW Limits ( low 32bits )."
+   ::= { virtualserverEntry 62 }
+
+virtualserverBwLimitBytesDropHi OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Number of Bytes dropped by this virtual server due to BW Limits ( high 32bits )."
+   ::= { virtualserverEntry 63 }
+
 --=============================================================================
 -- Pools
 --=============================================================================
@@ -1962,7 +2404,13 @@ PoolEntry ::=
       poolMaxQueueTime    Gauge32,
       poolMeanQueueTime   Gauge32,
       poolBytesIn         Counter64,
-      poolBytesOut        Counter64
+      poolBytesOut        Counter64,
+      poolBwLimitPktsDrop   Counter64,
+      poolBwLimitPktsDropLo  Counter32,
+      poolBwLimitPktsDropHi  Counter32,
+      poolBwLimitBytesDrop   Counter64,
+      poolBwLimitBytesDropLo  Counter32,
+      poolBwLimitBytesDropHi  Counter32
    }
 
 poolName OBJECT-TYPE
@@ -2150,6 +2598,53 @@ poolBytesOut OBJECT-TYPE
       "Bytes sent by this pool to nodes."
    ::= { poolEntry 23 }
 
+poolBwLimitPktsDrop OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Number of packets dropped by this pool due to BW Limits."
+   ::= { poolEntry 24 }
+   
+poolBwLimitPktsDropLo OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Number of packets dropped by this pool due to BW Limits ( low 32bits )."
+   ::= { poolEntry 25 }
+
+poolBwLimitPktsDropHi OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Number of packets dropped by this pool due to BW Limits ( high 32bits )."
+   ::= { poolEntry 26 }
+   
+poolBwLimitBytesDrop OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Bytes dropped by this pool due to BW Limits."
+   ::= { poolEntry 27 }
+   
+poolBwLimitBytesDropLo OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Bytes dropped by this pool due to BW Limits ( low 32bits )."
+   ::= { poolEntry 28 }
+   
+poolBwLimitBytesDropHi OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Bytes dropped by this pool due to BW Limits ( high 32bits )."
+   ::= { poolEntry 29 }
 
 --=============================================================================
 -- Nodes
@@ -2646,8 +3141,15 @@ PerPoolNodeEntry ::=
       perPoolNodeResponseMean     Gauge32,
       perPoolNodeIdleConns        Gauge32,
       perPoolNodeCurrentConn      Gauge32,
+      perPoolNodePktsToNodeLo     Counter32,
+      perPoolNodePktsToNodeHi     Counter32,
+      perPoolNodePktsFromNodeLo   Counter32,
+      perPoolNodePktsFromNodeHi   Counter32,
+      perPoolNodeL4StatelessBuckets Gauge32,
       perPoolNodeBytesToNode      Counter64,
-      perPoolNodeBytesFromNode    Counter64
+      perPoolNodeBytesFromNode    Counter64,
+      perPoolNodePktsToNode       Counter64,
+      perPoolNodePktsFromNode     Counter64
    }
 
 perPoolNodePoolName OBJECT-TYPE
@@ -2694,7 +3196,8 @@ perPoolNodeState OBJECT-TYPE
    SYNTAX INTEGER { alive(1),
                     dead(2),
                     unknown(3),
-                    draining(4) }
+                    draining(4),
+                    drainingtodelete(5) }
    MAX-ACCESS read-only
    STATUS current
    DESCRIPTION
@@ -2822,13 +3325,53 @@ perPoolNodeCurrentConn OBJECT-TYPE
       "Current connections established to a node, includes idle connections."
    ::= { perPoolNodeEntry 21 }
 
+perPoolNodePktsToNodeLo OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Packets sent to this node ( low 32bits )."
+   ::= { perPoolNodeEntry 22 }
+
+perPoolNodePktsToNodeHi OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Packets sent to this node ( high 32bits )."
+   ::= { perPoolNodeEntry 23 }
+
+perPoolNodePktsFromNodeLo OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Pkts received from this node ( low 32bits )."
+   ::= { perPoolNodeEntry 24 }
+
+perPoolNodePktsFromNodeHi OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Pkts received from this node ( high 32bits )."
+   ::= { perPoolNodeEntry 25 }
+
+perPoolNodeL4StatelessBuckets OBJECT-TYPE
+   SYNTAX Gauge32
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Number of hash buckets occupied for this node for L4 stateless processing."
+   ::= { perPoolNodeEntry 26 }
+
 perPoolNodeBytesToNode OBJECT-TYPE
    SYNTAX Counter64
    MAX-ACCESS read-only
    STATUS current
    DESCRIPTION
       "Bytes sent to this node."
-   ::= { perPoolNodeEntry 22 }
+   ::= { perPoolNodeEntry 27 }
 
 perPoolNodeBytesFromNode OBJECT-TYPE
    SYNTAX Counter64
@@ -2836,7 +3379,23 @@ perPoolNodeBytesFromNode OBJECT-TYPE
    STATUS current
    DESCRIPTION
       "Bytes received from this node."
-   ::= { perPoolNodeEntry 23 }
+   ::= { perPoolNodeEntry 28 }
+
+perPoolNodePktsToNode OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Packets sent to this node."
+   ::= { perPoolNodeEntry 29 }
+
+perPoolNodePktsFromNode OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Packets received from this node."
+   ::= { perPoolNodeEntry 30 }
 
 
 --=============================================================================
@@ -3550,7 +4109,13 @@ BandwidthClassEntry ::=
       bandwidthClassGuarantee     Integer32,
       bandwidthClassBytesOutLo    Counter32,
       bandwidthClassBytesOutHi    Counter32,
-      bandwidthClassBytesOut      Counter64
+      bandwidthClassBytesOut      Counter64,
+      bandwidthClassPktsDrop      Counter64,
+      bandwidthClassPktsDropLo    Counter32,
+      bandwidthClassPktsDropHi    Counter32,
+      bandwidthClassBytesDrop     Counter64,
+      bandwidthClassBytesDropLo   Counter32,
+      bandwidthClassBytesDropHi   Counter32
    }
 
 bandwidthClassName OBJECT-TYPE
@@ -3601,6 +4166,53 @@ bandwidthClassBytesOut OBJECT-TYPE
       "Bytes output by connections assigned to this bandwidth class."
    ::= { bandwidthClassEntry 6 }
 
+bandwidthClassPktsDrop OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Number of packets dropped by this bandwidth class."
+   ::= { bandwidthClassEntry 7 }
+   
+bandwidthClassPktsDropLo OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Number of packets dropped by this bandwidth class ( low 32bits )."
+   ::= { bandwidthClassEntry 8 }
+
+bandwidthClassPktsDropHi OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Number of packets dropped by this bandwidth class ( high 32bits )."
+   ::= { bandwidthClassEntry 9 }
+
+bandwidthClassBytesDrop OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      " Bytes dropped by this bandwidth class."
+   ::= { bandwidthClassEntry 10 }
+   
+bandwidthClassBytesDropLo OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Bytes dropped by this bandwidth class ( low 32bits )."
+   ::= { bandwidthClassEntry 11 }
+
+bandwidthClassBytesDropHi OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Bytes dropped by this bandwidth class ( high 32bits )."
+   ::= { bandwidthClassEntry 12 }
 
 --=============================================================================
 -- Request Rate Shaping
@@ -4085,7 +4697,53 @@ webCacheLookups OBJECT-TYPE
       "Number of times a page has been looked up in the web cache."
    ::= { webcache 15 }
 
+webCacheURLStoreAllocated OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Amount of allocated space in the web cache URL store."
+   ::= { webcache 16 }
 
+webCacheURLStoreFree OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Amount of free space in the web cache URL store."
+   ::= { webcache 17 }
+
+webCacheURLStoreSize OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Total amount of space in the web cache URL store."
+   ::= { webcache 18 }
+
+webCacheURLStoreTotalAllocations OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Total number of allocations for the web cache URL store."
+   ::= { webcache 19 }
+
+webCacheURLStoreTotalFailures OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Total number of allocation failures for the web cache URL store."
+   ::= { webcache 20 }
+
+webCacheURLStoreTotalFrees OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Total number of blocks freed in the web cache URL store."
+   ::= { webcache 21 }
 
 --=============================================================================
 -- SSL Cache counters
@@ -5144,6 +5802,13 @@ customEventName OBJECT-TYPE
       "The name of the Custom Event (for traps)."
    ::= { trapobjects 3 }
 
+domainName OBJECT-TYPE
+   SYNTAX DisplayString (SIZE (0..255))
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "The DNS domain name (for traps)."
+   ::= { trapobjects 4 }
 
 --=============================================================================
 -- Test Action
@@ -5181,6 +5846,34 @@ restartrequired NOTIFICATION-TYPE
       "Software must be restarted to apply configuration changes"
    ::= { trapsZero 4 }
 
+upgradereboot NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "Virtual Traffic Manager Appliance reboot required"
+   ::= { trapsZero 288 }
+
+sysctlreboot NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "Virtual Traffic Manager Appliance reboot required"
+   ::= { trapsZero 289 }
+
+upgraderestart NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "Virtual Traffic Manager software restart required"
+   ::= { trapsZero 290 }
+
+unspecifiedreboot NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "Virtual Traffic Manager restart/reboot required"
+   ::= { trapsZero 291 }
+
 timemovedback NOTIFICATION-TYPE
    OBJECTS { fullLogLine }
    STATUS current
@@ -5206,7 +5899,7 @@ zxtmswerror NOTIFICATION-TYPE
    OBJECTS { fullLogLine }
    STATUS current
    DESCRIPTION
-      "Stingray Traffic Manager software problem"
+      "Internal software error"
    ::= { trapsZero 8 }
 
 customevent NOTIFICATION-TYPE
@@ -5406,21 +6099,21 @@ ec2flipperraiselocalworking NOTIFICATION-TYPE
    OBJECTS { fullLogLine }
    STATUS current
    DESCRIPTION
-      "Moving EC2 Elastic IP Address; local machine is working"
+      "Moving EC2 IP Address; local machine is working"
    ::= { trapsZero 112 }
 
 ec2flipperraiseothersdead NOTIFICATION-TYPE
    OBJECTS { fullLogLine }
    STATUS current
    DESCRIPTION
-      "Moving EC2 Elastic IP Address; other machines have failed"
+      "Moving EC2 IP Address; other machines have failed"
    ::= { trapsZero 113 }
 
 ec2iperr NOTIFICATION-TYPE
    OBJECTS { fullLogLine }
    STATUS current
    DESCRIPTION
-      "Problem occurred when managing an Elastic IP address"
+      "Problem occurred when managing an EC2 IP address"
    ::= { trapsZero 130 }
 
 ec2vpceipassocerr NOTIFICATION-TYPE
@@ -5441,7 +6134,7 @@ dropec2ipwarn NOTIFICATION-TYPE
    OBJECTS { fullLogLine }
    STATUS current
    DESCRIPTION
-      "Removing EC2 Elastic IP Address from all machines; it is no longer a part of any Traffic IP Groups"
+      "Removing EC2 IP Address from all machines; it is no longer a part of any Traffic IP Groups"
    ::= { trapsZero 131 }
 
 ec2nopublicip NOTIFICATION-TYPE
@@ -5457,14 +6150,42 @@ ec2nosecondaryprivateip NOTIFICATION-TYPE
    STATUS current
    DESCRIPTION
       "Cannot raise Elastic IP on this machine as no suitable secondary IP is available on the allowed network card(s)"
-   ::= { trapsZero 206 }   
+   ::= { trapsZero 206 }
 
 ec2dataretrievalfailed NOTIFICATION-TYPE
    OBJECTS { fullLogLine }
    STATUS current
    DESCRIPTION
       "Traffic manager failed to get the required data from Amazon servers"
-   ::= { trapsZero 266 }   
+   ::= { trapsZero 266 }
+
+ec2dataretrievalsuccessful NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "Traffic manager has now successfully retrieved the required data from Amazon servers"
+   ::= { trapsZero 267 }
+
+ec2initialized NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "The EC2 instance is now initialized"
+   ::= { trapsZero 287 }
+
+gcedataretrievalfailed NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "Traffic manager failed to get the required data from GCE instance"
+   ::= { trapsZero 292 }
+
+gcedataretrievalsuccessful NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "Traffic manager has now successfully retrieved the required data from GCE instance"
+   ::= { trapsZero 293 }
 
 multihostload NOTIFICATION-TYPE
    OBJECTS { fullLogLine }
@@ -5479,6 +6200,34 @@ flipperraiseremotedropped NOTIFICATION-TYPE
    DESCRIPTION
       "This Traffic Manager has re-raised traffic IP addresses as the remote machine which was hosting them has dropped them"
    ::= { trapsZero 198 }
+
+autofailbacktimerstarted NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "Auto-failback wait period started"
+   ::= { trapsZero 294 }
+
+autofailbacktimerstopped NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "Auto-failback delay timer stopped due to system failure"
+   ::= { trapsZero 295 }
+
+autofailbackafterdelay NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "Automatic failback after delay"
+   ::= { trapsZero 296 }
+
+autofailbacktimercancelled NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "Auto-failback delay timer cancelled"
+   ::= { trapsZero 297 }
 
 --=============================================================================
 -- SSL hardware
@@ -5793,21 +6542,21 @@ aptimizeuseunknownprofile NOTIFICATION-TYPE
    OBJECTS { fullLogLine, ruleName }
    STATUS current
    DESCRIPTION
-      "Rule selected an unknown Aptimizer profile"
+      "Rule selected an unknown Web Accelerator profile"
    ::= { trapsZero 222 }
 
 aptimizedisabled NOTIFICATION-TYPE
    OBJECTS { fullLogLine, ruleName }
    STATUS current
    DESCRIPTION
-      "Rule attempted to use Aptimizer but it is not enabled"
+      "Rule attempted to use Web Accelerator but it is not enabled"
    ::= { trapsZero 223 }
 
 aptimizeuseunknownscope NOTIFICATION-TYPE
    OBJECTS { fullLogLine, ruleName }
    STATUS current
    DESCRIPTION
-      "Rule selected an unknown Aptimizer scope"
+      "Rule selected an unknown Web Accelerator scope"
    ::= { trapsZero 224 }
 
 datalocalstorefull NOTIFICATION-TYPE
@@ -6046,6 +6795,20 @@ nodefail NOTIFICATION-TYPE
    DESCRIPTION
       "Node has failed"
    ::= { trapsZero 71 }
+
+nodedrainingtodelete NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION 
+       "Removed node is in use and will be drained"
+   ::= { trapsZero 280 }
+
+nodedrainingtodeletetimeout NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION 
+       "Draining to delete period for node has expired"
+   ::= { trapsZero 281 }
 
 starttlsinvalid NOTIFICATION-TYPE
    OBJECTS { fullLogLine, perPoolNodePoolName, perPoolNodeNodeAddressType, perPoolNodeNodeAddress, perPoolNodeNodePort }
@@ -6566,6 +7329,13 @@ glbnolocations NOTIFICATION-TYPE
       "No valid location could be chosen for Global Load Balancing"
    ::= { trapsZero 151 }
 
+glbactivedcmismatch NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "Active datacentre mismatches among cluster members"
+   ::= { trapsZero 272 }
+
 locationmonitorok NOTIFICATION-TYPE
    OBJECTS { fullLogLine, locationName, glbServiceName }
    STATUS current
@@ -6584,7 +7354,7 @@ locationok NOTIFICATION-TYPE
    OBJECTS { fullLogLine, locationName, glbServiceName }
    STATUS current
    DESCRIPTION
-       "Location is now working for GLB Service"
+       "Location is now healthy for GLB Service"
    ::= { trapsZero 154 }
 
 locationfail NOTIFICATION-TYPE
@@ -6607,6 +7377,55 @@ locationsoapfail NOTIFICATION-TYPE
    DESCRIPTION
        "An external SOAP agent has detected a failure in this location"
    ::= { trapsZero 157 }
+
+locationdraining NOTIFICATION-TYPE
+   OBJECTS { fullLogLine, locationName, glbServiceName }
+   STATUS current
+   DESCRIPTION
+       "Location is being drained for GLB Service"
+   ::= { trapsZero 273 }
+
+locationnotdraining NOTIFICATION-TYPE
+   OBJECTS { fullLogLine, locationName, glbServiceName }
+   STATUS current
+   DESCRIPTION
+       "Location is not being drained for GLB Service"
+   ::= { trapsZero 274 }
+
+locationdisabled NOTIFICATION-TYPE
+   OBJECTS { fullLogLine, locationName, glbServiceName }
+   STATUS current
+   DESCRIPTION
+       "Location has been disabled for GLB Service"
+   ::= { trapsZero 275 }
+
+locationenabled NOTIFICATION-TYPE
+   OBJECTS { fullLogLine, locationName, glbServiceName }
+   STATUS current
+   DESCRIPTION 
+       "Location has just been enabled for GLB Service"
+   ::= { trapsZero 276 }
+
+locationunavailable NOTIFICATION-TYPE
+   OBJECTS { fullLogLine, locationName, glbServiceName }
+   STATUS current
+   DESCRIPTION 
+       "Location has become unavailable for GLB Service"
+   ::= { trapsZero 277 }
+   
+locationavailable NOTIFICATION-TYPE
+   OBJECTS { fullLogLine, locationName, glbServiceName }
+   STATUS current
+   DESCRIPTION 
+       "Location is now available for GLB Service"
+   ::= { trapsZero 278 }
+
+glbmanualfailback NOTIFICATION-TYPE
+   OBJECTS { fullLogLine, glbServiceName }
+   STATUS current
+   DESCRIPTION 
+       "Manual failback triggered"
+   ::= { trapsZero 279 }
 
 glbnewmaster NOTIFICATION-TYPE
    OBJECTS { fullLogLine, locationName, glbServiceName }
@@ -6633,7 +7452,7 @@ glbservicedied NOTIFICATION-TYPE
    OBJECTS { fullLogLine, glbServiceName }
    STATUS current
    DESCRIPTION
-       "GLB Service has no working locations"
+       "GLB Service has failed"
    ::= { trapsZero 190 }
 
 glbserviceok NOTIFICATION-TYPE
@@ -6665,46 +7484,74 @@ glbtoomanylocations NOTIFICATION-TYPE
    ::= { trapsZero 259 }
 
 dnszonevalidate NOTIFICATION-TYPE
-   OBJECTS { fullLogLine, locationName }
+   OBJECTS { fullLogLine }
    STATUS current
    DESCRIPTION
       "The built-in DNS server has failed to validate a DNS zone file"
    ::= { trapsZero 260 }
 
 dnszonecreaterecord NOTIFICATION-TYPE
-   OBJECTS { fullLogLine, locationName }
+   OBJECTS { fullLogLine }
    STATUS current
    DESCRIPTION
       "The built-in DNS server has failed to create a DNS record"
    ::= { trapsZero 261 }
 
 dnszoneparsechild NOTIFICATION-TYPE
-   OBJECTS { fullLogLine, locationName, zxtmName }
-   STATUS current
+   OBJECTS { fullLogLine }
+   STATUS obsolete
    DESCRIPTION
-      "The built-in DNS server has failed to parse a DNS zone file in a child process"
+      "The built-in DNS server has failed to parse a DNS zone file"
    ::= { trapsZero 262 }
 
 dnserroraddzone NOTIFICATION-TYPE
-   OBJECTS { fullLogLine, locationName }
+   OBJECTS { fullLogLine, confName, domainName }
    STATUS current
    DESCRIPTION
       "The built-in DNS server has failed to add a DNS zone"
    ::= { trapsZero 263 }
 
 dnsaddzone NOTIFICATION-TYPE
-   OBJECTS { fullLogLine, locationName }
+   OBJECTS { fullLogLine, confName, domainName }
    STATUS current
    DESCRIPTION
       "The built-in DNS server has successfully added a DNS zone"
    ::= { trapsZero 264 }
 
 dnszoneparse NOTIFICATION-TYPE
-   OBJECTS { fullLogLine, locationName }
+   OBJECTS { fullLogLine }
    STATUS current
    DESCRIPTION
       "The built-in DNS server has failed to parse a DNS zone file"
    ::= { trapsZero 265 }
+
+dnszonedelete NOTIFICATION-TYPE
+   OBJECTS { fullLogLine, confName, domainName }
+   STATUS current
+   DESCRIPTION
+     "DNS zone has been deleted"
+   ::= { trapsZero 268 }
+
+dnserrordeletezone NOTIFICATION-TYPE
+   OBJECTS { fullLogLine, confName, domainName }
+   STATUS current
+   DESCRIPTION
+      "The built-in DNS server has failed to delete a DNS zone"
+   ::= { trapsZero 269 }
+
+dnssecexpired NOTIFICATION-TYPE
+   OBJECTS { fullLogLine, confName, domainName }
+   STATUS current
+   DESCRIPTION
+      "DNSSEC zone contains expired signatures"
+   ::= { trapsZero 270 }
+
+dnssecexpires NOTIFICATION-TYPE
+   OBJECTS { fullLogLine, confName, domainName }
+   STATUS current
+   DESCRIPTION
+      "DNSSEC zone contains signatures that are about to expire"
+   ::= { trapsZero 271 }
 
 --=============================================================================
 -- FIPS
@@ -6816,6 +7663,34 @@ ospfneighborsfailed NOTIFICATION-TYPE
       "None of the monitored OSPF neighbors are peered"
    ::= { trapsZero 255 }
 
+bgpneighborsok NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "There are established sessions with all BGP neighbors"
+   ::= { trapsZero 282 }
+
+bgpneighborsdegraded NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "Some of the BGP neighbors do not have established sessions"
+   ::= { trapsZero 283 }
+
+bgpneighborsfailed NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "None of the BGP neighbors have an established session"
+   ::= { trapsZero 284 }
+
+bgpnoneighbors NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "There are no valid BGP neighbors defined"
+   ::= { trapsZero 285 }
+
 
 --=============================================================================
 -- Other
@@ -6895,7 +7770,7 @@ logfiledeleted NOTIFICATION-TYPE
    OBJECTS { fullLogLine, virtualserverName }
    STATUS current
    DESCRIPTION
-      "A virtual server request log file was deleted (Stingray Appliances only)"
+      "A virtual server request log file was deleted (appliances only)"
    ::= { trapsZero 115 }
 
 license-graceperiodexpired NOTIFICATION-TYPE
@@ -7087,6 +7962,13 @@ clockjump NOTIFICATION-TYPE
       "The system clock jumped forwards or backwards by more than one second"
    ::= { trapsZero 232 }
 
+zxtmcpustarvation NOTIFICATION-TYPE
+   OBJECTS { fullLogLine }
+   STATUS current
+   DESCRIPTION
+      "The number of simultaneously active connections has reached a level that the software cannot process in due time because of CPU starvation; there is a high risk of connections timing out"
+   ::= { trapsZero 286 }
+
 --==================================================================
 -- Application Firewall
 --==================================================================
@@ -7233,7 +8115,10 @@ ListenIPEntry ::=
       listenIPTotalConn        Counter32,
       listenIPMaxConn          Gauge32,
       listenIPBytesIn          Counter64,
-      listenIPBytesOut         Counter64
+      listenIPBytesOut         Counter64,
+      listenIPTotalRequestsLo  Counter32,
+      listenIPTotalRequestsHi  Counter32,
+      listenIPTotalRequests    Counter64
    }
 
 listenIPAddressType OBJECT-TYPE
@@ -7295,9 +8180,9 @@ listenIPCurrentConn OBJECT-TYPE
 listenIPTotalConn OBJECT-TYPE
    SYNTAX Counter32
    MAX-ACCESS read-only
-   STATUS current
+   STATUS obsolete
    DESCRIPTION
-      "Requests sent to this listening IP."
+      "Formerly provided the number of requests sent to this listening IP, now deprecated."
    ::= { listenIPEntry 8 }
 
 listenIPMaxConn OBJECT-TYPE
@@ -7324,6 +8209,30 @@ listenIPBytesOut OBJECT-TYPE
    DESCRIPTION
       "Bytes sent from this listening IP."
    ::= { listenIPEntry 11 }
+
+listenIPTotalRequestsLo OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Requests sent to this listening IP."
+   ::= { listenIPEntry 12 }
+
+listenIPTotalRequestsHi OBJECT-TYPE
+   SYNTAX Counter32
+   MAX-ACCESS read-only
+   STATUS obsolete
+   DESCRIPTION
+      "Requests sent to this listening IP."
+   ::= { listenIPEntry 13 }
+
+listenIPTotalRequests OBJECT-TYPE
+   SYNTAX Counter64
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "Requests sent to this listening IP."
+   ::= { listenIPEntry 14 }
 
 --============================
 -- Authenticators
@@ -7459,5 +8368,59 @@ steelheadOptimized OBJECT-TYPE
    DESCRIPTION
       "The current number of connections being forwarded to the Cloud Steelhead for optimization."
    ::= { steelheadEntry 2 }
+
+--=============================================================================
+-- Data Plane Acceleration assist core utilization
+--=============================================================================
+
+dataPlaneAccelCoreNumber OBJECT-TYPE
+   SYNTAX Integer32
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "The number of data plane acceleration cores."
+   ::= { dpaCoreUtilization 1 }
+
+--======================
+-- Data Plane Acceleration assist core utilization Table
+--======================
+dpaCoreUtilizationTable OBJECT-TYPE
+   SYNTAX SEQUENCE OF DpaCoreUtilizationEntry
+   MAX-ACCESS not-accessible
+   STATUS current
+   DESCRIPTION
+      "This table gives cpu utilization for the io processors."
+   ::= { dpaCoreUtilization 2 }
+
+dpaCoreUtilizationEntry OBJECT-TYPE
+   SYNTAX DpaCoreUtilizationEntry
+   MAX-ACCESS not-accessible
+   STATUS current
+   DESCRIPTION
+      "This defines a row in the cpu utilization for the data plane acceleration 
+      core utilization table."
+   INDEX { coreId }
+   ::= { dpaCoreUtilizationTable 1 }
+
+DpaCoreUtilizationEntry ::= SEQUENCE {
+      coreId    DisplayString,
+      coreUtilizationPercent    Gauge32
+}
+
+coreId OBJECT-TYPE
+   SYNTAX DisplayString (SIZE (0..255))
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "The name of data plane acceleration core."
+   ::= { dpaCoreUtilizationEntry 1 }
+
+coreUtilizationPercent OBJECT-TYPE
+   SYNTAX Gauge32
+   MAX-ACCESS read-only
+   STATUS current
+   DESCRIPTION
+      "The cpu utilization of the data plane acceleration core."
+   ::= { dpaCoreUtilizationEntry 2 }
 
 END

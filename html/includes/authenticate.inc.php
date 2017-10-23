@@ -1,5 +1,7 @@
 <?php
 
+//print_r($_SERVER);
+
 /**
  * Observium
  *
@@ -11,7 +13,15 @@
  *
  */
 
-// FIXME. Need rewrite: do not save unencrypted passwords (in $_SESSION) <- fixed, or not?
+// FIXME. Need rewrite: do not save unencrypted passwords (in $_SESSION) <- fixed, or not? (@mike ans: partially)
+
+// All simple, OBS_API set to TRUE only in API index.php
+if (!defined('OBS_API'))
+{
+  define('OBS_API', FALSE);
+}
+
+$debug_auth = FALSE; // Do not use this debug unless you Observium Developer ;)
 
 @ini_set('session.hash_function', '1');    // Use sha1 to generate the session ID
 @ini_set('session.referer_check', '');     // This config was causing so much trouble with Chrome
@@ -22,7 +32,6 @@
 
 $currenttime     = time();
 $lifetime        = 0;                          // Session lifetime (default until browser restart)
-$lifetime_id     = 300;                        // Session ID lifetime (time before regenerate id, 300 sec)
 $cookie_expire   = $currenttime + 60*60*24*14; // Cookies expire time (14 days)
 $cookie_path     = '/';                        // Cookie path
 $cookie_domain   = '';                         // RFC 6265, to have a "host-only" cookie is to NOT set the domain attribute.
@@ -38,17 +47,22 @@ if (is_numeric($GLOBALS['config']['web_session_lifetime']) && $GLOBALS['config']
 
 @ini_set('session.gc_maxlifetime',  $lifetime); // Session lifetime
 session_set_cookie_params($lifetime, $cookie_path, $cookie_domain, $cookie_https, $cookie_httponly);
+//session_cache_limiter('private');
 
-register_shutdown_function('session_write_close'); //session_write_close();
+//register_shutdown_function('session_commit'); // This already done at end of script run
 if (!session_is_active())
 {
-  session_write_close(); // Prevent session auto start
-  session_start();
+  //logfile('debug_auth.log', 'session_start() called at '.$currenttime);
+  session_commit(); // Write and close current session
 
+  //session_start(); // session starts in session_regenerate too!
+  session_regenerate(); // Note, use this function after session_start() and before next session_commit()!
+  /*
   if (isset($_SESSION['starttime']))
   {
     if ($currenttime - $_SESSION['starttime'] >= $lifetime_id && !is_graph())
     {
+      logfile('debug_auth.log', 'session_regenerate_id() called at '.$currenttime);
       // ID Lifetime expired, regenerate
       session_regenerate_id(TRUE);
       // Clean cache from _SESSION first, this cache used in ajax calls
@@ -58,6 +72,7 @@ if (!session_is_active())
   } else {
     $_SESSION['starttime']   = $currenttime;
   }
+  */
 
   //if (!is_graph())
   //{
@@ -74,7 +89,7 @@ if (!isset($config['auth_mechanism']))
 // Trust Apache authenticated user, if configured to do so and username is available
 if ($config['auth']['remote_user'] && $_SERVER['REMOTE_USER'] != '')
 {
-  $_SESSION['username'] = $_SERVER['REMOTE_USER'];
+  session_set_var('username', $_SERVER['REMOTE_USER']);
 }
 
 $auth_file = $config['html_dir'].'/includes/authentication/' . $config['auth_mechanism'] . '.inc.php';
@@ -83,12 +98,12 @@ if (is_file($auth_file))
   if (isset($_SESSION['auth_mechanism']) && $_SESSION['auth_mechanism'] != $config['auth_mechanism'])
   {
     // Logout if AUTH mechanism changed
-    $_SESSION['auth_message'] = 'Authentication mechanism changed, please log in again!';
+    session_set_var('auth_message', 'Authentication mechanism changed, please log in again!');
     session_logout();
     header('Location: '.$config['base_url']);
     exit();
   } else {
-    $_SESSION['auth_mechanism'] = $config['auth_mechanism'];
+    session_set_var('auth_mechanism', $config['auth_mechanism']);
   }
 
   // Always load mysql as backup
@@ -100,7 +115,7 @@ if (is_file($auth_file))
   // Include base auth functions calls
   include($config['html_dir'].'/includes/authenticate-functions.inc.php');
 } else {
-  $_SESSION['auth_message'] = 'Invalid auth_mechanism defined, please correct your configuration!';
+  session_set_var('auth_message', 'Invalid auth_mechanism defined, please correct your configuration!');
   session_logout();
   header('Location: '.$config['base_url']);
   exit();
@@ -132,23 +147,37 @@ if (isset($config['web_session_cidr']) && count($config['web_session_cidr']))
 
 if (!$_SESSION['authenticated'] && isset($_GET['username']) && isset($_GET['password']))
 {
-  $_SESSION['username'] = $_GET['username'];
+  session_set_var('username', $_GET['username']);
   $auth_password        = $_GET['password'];
 }
 else if (!$_SESSION['authenticated'] && isset($_POST['username']) && isset($_POST['password']))
 {
-  $_SESSION['username'] = $_POST['username'];
+  session_set_var('username', $_POST['username']);
   $auth_password        = $_POST['password'];
+}
+else if (!$_SESSION['authenticated'] && isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW']))
+{
+  session_set_var('username', $_SERVER['PHP_AUTH_USER']);
+  $auth_password        = $_SERVER['PHP_AUTH_PW'];
 }
 else if ($mcrypt_exists && !$_SESSION['authenticated'] && isset($_COOKIE['ckey']))
 {
+    ///DEBUG
+    if ($debug_auth)
+    {
+      $debug_log = $GLOBALS['config']['log_dir'].'/debug_cookie_'.date("Y-m-d_H:i:s").'.log';
+      file_put_contents($debug_log, var_export($_SERVER,  TRUE), FILE_APPEND);
+      file_put_contents($debug_log, var_export($_SESSION, TRUE), FILE_APPEND);
+      file_put_contents($debug_log, var_export($_COOKIE,  TRUE), FILE_APPEND);
+    }
+
   $ckey = dbFetchRow("SELECT * FROM `users_ckeys` WHERE `user_uniq` = ? AND `user_ckey` = ? LIMIT 1",
                           array($user_unique_id, $_COOKIE['ckey']));
   if (is_array($ckey))
   {
     if ($ckey['expire'] > $currenttime && $auth_allow_cidr)
     {
-      $_SESSION['username']     = $ckey['username'];
+      session_set_var('username', $ckey['username']);
       $auth_password            = decrypt($ckey['user_encpass'], $_COOKIE['dkey']);
 
       // Store encrypted password
@@ -157,18 +186,19 @@ else if ($mcrypt_exists && !$_SESSION['authenticated'] && isset($_COOKIE['ckey']
       // If userlevel == 0 - user disabled an can not be logon
       if (auth_user_level($ckey['username']) < 1)
       {
-        $_SESSION['auth_message'] = 'User login disabled';
+        session_set_var('auth_message', 'User login disabled');
         session_logout(FALSE, 'User disabled');
         header('Location: '.$config['base_url']);
         exit();
       }
 
-      $_SESSION['user_ckey_id'] = $ckey['user_ckey_id'];
-      $_SESSION['cookie_auth']  = TRUE;
+      session_set_var('user_ckey_id', $ckey['user_ckey_id']);
+      session_set_var('cookie_auth', TRUE);
       dbInsert(array('user'       => $_SESSION['username'],
                      'address'    => $_SERVER['REMOTE_ADDR'],
                      'user_agent' => $_SERVER['HTTP_USER_AGENT'],
                      'result'     => 'Logged In (cookie)'), 'authlog');
+
     }
   }
 }
@@ -184,7 +214,7 @@ if (isset($_SESSION['username']))
   // Check for allowed by CIDR range
   if (!$auth_allow_cidr)
   {
-    $_SESSION['auth_message'] = 'Remote IP not allowed in CIDR ranges';
+    session_set_var('auth_message', 'Remote IP not allowed in CIDR ranges');
     session_logout(FALSE, 'Remote IP not allowed in CIDR ranges');
     header('Location: '.$config['base_url']);
     exit();
@@ -193,10 +223,12 @@ if (isset($_SESSION['username']))
   // Auth from COOKIEs
   if ($_SESSION['cookie_auth'])
   {
+    @session_start();
     $_SESSION['authenticated'] = TRUE;
     $auth_success              = TRUE;
     dbUpdate(array('expire' => $cookie_expire), 'users_ckeys', '`user_ckey_id` = ?', array($_SESSION['user_ckey_id']));
     unset($_SESSION['user_ckey_id'], $_SESSION['cookie_auth']);
+    session_commit();
   }
 
   // Auth from ...
@@ -204,26 +236,25 @@ if (isset($_SESSION['username']))
                                      (auth_usermanagement() && auth_user_level($_SESSION['origusername']) >= 10))) // FIXME?
   {
     // If we get here, it means the password for the user was correct (authenticate() called)
-
     // Store encrypted password
     session_encrypt_password($auth_password, $user_unique_id);
+
 
     // If userlevel == 0 - user disabled and can not log in
     if (auth_user_level($_SESSION['username']) < 1)
     {
-      $_SESSION['auth_message'] = 'User login disabled';
+      session_set_var('auth_message', 'User login disabled');
       session_logout(FALSE, 'User disabled');
       header('Location: '.$config['base_url']);
       exit();
     }
-    
-    $_SESSION['authenticated'] = TRUE;
+
+    session_set_var('authenticated', TRUE);
     $auth_success              = TRUE;
     dbInsert(array('user'       => $_SESSION['username'],
                    'address'    => $_SERVER['REMOTE_ADDR'],
                    'user_agent' => $_SERVER['HTTP_USER_AGENT'],
                    'result'     => 'Logged In'), 'authlog');
-
     // Generate keys for cookie auth
     if (isset($_POST['remember']) && $mcrypt_exists)
     {
@@ -238,19 +269,20 @@ if (isset($_SESSION['username']))
                      'user_ckey'    => $ckey), 'users_ckeys');
       setcookie("ckey", $ckey, $cookie_expire, $cookie_path, $cookie_domain, $cookie_https, $cookie_httponly);
       setcookie("dkey", $dkey, $cookie_expire, $cookie_path, $cookie_domain, $cookie_https, $cookie_httponly);
-      unset($_SESSION['user_ckey_id']);
+      session_unset_var('user_ckey_id');
     }
   }
   else if (!$_SESSION['authenticated'])
   {
     // Not authenticated
-    $_SESSION['auth_message'] = "Authentication Failed";
+    session_set_var('auth_message', 'Authentication Failed');
     session_logout(function_exists('auth_require_login'));
   }
 
   // Retrieve user ID and permissions
   if ($_SESSION['authenticated'])
   {
+    @session_start();
     if (!is_numeric($_SESSION['userlevel']) || !is_numeric($_SESSION['user_id']))
     {
       $_SESSION['userlevel'] = auth_user_level($_SESSION['username']);
@@ -271,20 +303,33 @@ if (isset($_SESSION['username']))
       // Store user limited flag, required for quick permissions list generate
       $_SESSION['user_limited'] = $level_permissions['limited'];
     }
+    session_commit();
 
-    // Now we can enable debug if required
-    if (defined('OBS_DEBUG_WUI')) // OBS_DEBUG_WUI defined in definitions
+    // Generate a CSRF Token
+    // https://stackoverflow.com/questions/6287903/how-to-properly-add-csrf-token-using-php
+    // For validate use: request_token_valid($vars['requesttoken'])
+    if (empty($_SESSION['requesttoken']))
     {
-      if ($_SESSION['userlevel'] < 7 && !$config['permit_user_debug'])
+      session_set_var('requesttoken', bin2hex(random_bytes(32)));
+    }
+
+    // Now we can enable debug if user is privileged (Global Secure Read and greater)
+    if (!defined('OBS_DEBUG')) // OBS_DEBUG not defined by default for unprivileged users in definitions
+    {
+      if ($_SESSION['userlevel'] < 7 || !$debug_web_requested) // && !$config['permit_user_debug']) // Note, use $config['web_debug_unprivileged'] = TRUE;
       {
-        // DO NOT ALLOW show debug output for users with privilege level less than "global secure read"
+        // DO NOT ALLOW show debug output for users with privilege level less than "Global Secure Read"
         define('OBS_DEBUG', 0);
         ini_set('display_errors', 0);
         ini_set('display_startup_errors', 0);
-        ini_set('log_errors', 1);
-        //ini_set('error_reporting', 0); // Default
+        //ini_set('error_reporting', 0); // Use default php config
       } else {
         define('OBS_DEBUG', 1);
+
+        ini_set('display_errors', 1);
+        ini_set('display_startup_errors', 1);
+        //ini_set('error_reporting', E_ALL ^ E_NOTICE);
+        ini_set('error_reporting', E_ALL ^ E_NOTICE ^ E_WARNING);
       }
     }
 
@@ -303,9 +348,10 @@ if (isset($_SESSION['username']))
     }
   }
 
-  if ($auth_success)
+  if ($auth_success && !OBS_API)
   {
-    // If just logged in go to request uri, unless we're debugging, in which case we want to see authentication module output first.
+    // If just logged in go to request uri, unless we're debugging or in API,
+    // in which case we want to see authentication module output first.
     if (!OBS_DEBUG)
     {
       header("Location: ".$_SERVER['REQUEST_URI']);
@@ -319,6 +365,11 @@ if (isset($_SESSION['username']))
 ///r($_SESSION);
 ///r($_COOKIE);
 ///r($permissions);
+
+//logfile('debug_auth.log', 'auth session_commit() called at '.time());
+//session_commit(); // Write and unblock current session (use session_set_var() and session_unset_var() for write to session variables!)
+
+/* Session manager specific functions */
 
 // DOCME needs phpdoc block
 function session_is_active()
@@ -342,6 +393,8 @@ function session_is_active()
  */
 function session_unique_id()
 {
+  global $debug_auth;
+
   $id  = $_SERVER['HTTP_USER_AGENT']; // User agent
   //$id .= $_SERVER['HTTP_ACCEPT'];     // Browser accept headers // WTF, this header different for main and js/ajax queries
   // Less entropy than HTTP_ACCEPT, but stable!
@@ -363,13 +416,20 @@ function session_unique_id()
               $_SESSION['user_encpass'], $_SESSION['password'],
               $_SESSION['userlevel']);
       }
-      $_SESSION['PREV_REMOTE_ADDR'] = $_SERVER['REMOTE_ADDR']; // Store current remote IP
+      session_set_var('PREV_REMOTE_ADDR', $_SERVER['REMOTE_ADDR']); // Store current remote IP
     }
   }
 
   // Next required JS cals:
   // resolution = screen.width+"x"+screen.height+"x"+screen.colorDepth;
   // timezone   = new Date().getTimezoneOffset();
+  if ($debug_auth)
+  {
+    $debug_log_array = array(md5($id), $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'],
+                             $_SERVER['HTTP_ACCEPT_ENCODING'], $_SERVER['HTTP_ACCEPT_LANGUAGE'],
+                             $_COOKIE['OBSID']);
+    logfile('debug_auth.log', json_encode($debug_log_array));
+  }
 
   return md5($id);
 }
@@ -390,10 +450,10 @@ function session_encrypt_password($auth_password, $key)
     if (check_extension_exists('mcrypt'))
     {
       // For some admin LDAP functions required store encrypted password in session (userslist)
-      $_SESSION['user_encpass'] = encrypt($auth_password, $key . get_unique_id());
+      session_set_var('user_encpass', encrypt($auth_password, $key . get_unique_id()));
     } else {
-      $_SESSION['user_encpass'] = base64_encode($auth_password);
-      $_SESSION['mcrypt_required'] = 1;
+      //session_set_var('user_encpass', base64_encode($auth_password));
+      session_set_var('mcrypt_required', 1);
     }
   }
 
@@ -403,6 +463,8 @@ function session_encrypt_password($auth_password, $key)
 // DOCME needs phpdoc block
 function session_logout($relogin = FALSE, $message = NULL)
 {
+  global $debug_auth;
+
   // Save auth failure message for later re-use
   $auth_message = $_SESSION['auth_message'];
 
@@ -415,11 +477,15 @@ function session_logout($relogin = FALSE, $message = NULL)
   if ($message)
   {
     $auth_log .= ' (' . $message . ')';
-    $debug_log = $GLOBALS['config']['log_dir'].'/'.date("Y-m-d_H:i:s").'.log';
-    //file_put_contents($debug_log, var_export($_SERVER,  TRUE), FILE_APPEND);
-    //file_put_contents($debug_log, var_export($_SESSION, TRUE), FILE_APPEND);
-    //file_put_contents($debug_log, var_export($_COOKIE,  TRUE), FILE_APPEND);
   }
+  if ($debug_auth)
+  {
+    $debug_log = $GLOBALS['config']['log_dir'].'/'.date("Y-m-d_H:i:s").'.log';
+    file_put_contents($debug_log, var_export($_SERVER,  TRUE), FILE_APPEND);
+    file_put_contents($debug_log, var_export($_SESSION, TRUE), FILE_APPEND);
+    file_put_contents($debug_log, var_export($_COOKIE,  TRUE), FILE_APPEND);
+  }
+
   dbInsert(array('user'       => $_SESSION['username'],
                  'address'    => $_SERVER['REMOTE_ADDR'],
                  'user_agent' => $_SERVER['HTTP_USER_AGENT'],
@@ -439,7 +505,16 @@ function session_logout($relogin = FALSE, $message = NULL)
   }
   unset($_COOKIE);
 
+  // Clean cache if possible
+  $cache_tags = array('__anonymous');
+  if ($_SESSION['authenticated'])
+  {
+    $cache_tags = array('__username='.$_SESSION['username']);
+  }
+  del_cache_items($cache_tags);
+
   // Unset session
+  @session_start();
   if ($relogin)
   {
     // Reset session and relogin (for example: HTTP auth)
@@ -449,15 +524,86 @@ function session_logout($relogin = FALSE, $message = NULL)
           $_SESSION['username'],
           $_SESSION['user_encpass'], $_SESSION['password'],
           $_SESSION['userlevel']);
+    session_commit();
+    session_regenerate_id(TRUE);
   } else {
     // Kill current session, as authentication failed
+    unset($_SESSION);
     session_unset();
     session_destroy();
-    unset($_SESSION);
+    session_commit();
+    //setcookie(session_name(),'',0,'/');
+    session_regenerate_id(TRUE);
     // Re-set auth failure message for use on login page
-    session_start();
+    //session_start();
     $_SESSION['auth_message'] = $message;
   }
+}
+
+/**
+ * Regenerate session ID for prevent attacks session hijacking and session fixation.
+ * Note, use this function after session_start() and before next session_commit()!
+ *
+ * @param int $lifetime_id Time in seconds for next regenerate session ID (default 30 min)
+ */
+function session_regenerate($lifetime_id = 1800)
+{
+  session_start();
+
+  $currenttime   = time();
+  if ($lifetime_id != 1800 && is_numeric($lifetime_id) && $lifetime_id >= 300)
+  {
+    $lifetime_id = intval($lifetime_id);
+  } else {
+    $lifetime_id = 1800;
+  }
+
+  if (isset($_SESSION['starttime']))
+  {
+    if ($currenttime - $_SESSION['starttime'] >= $lifetime_id && !is_graph())
+    {
+      //logfile('debug_auth.log', 'session_regenerate_id() called at '.$currenttime);
+      // ID Lifetime expired, regenerate
+      session_regenerate_id(TRUE);
+      // Clean cache from _SESSION first, this cache used in ajax calls
+      if (isset($_SESSION['cache'])) { unset($_SESSION['cache']); }
+      $_SESSION['starttime'] = $currenttime;
+    }
+  } else {
+    $_SESSION['starttime']   = $currenttime;
+  }
+
+  session_commit();
+}
+
+/**
+ * Use this function for write to $_SESSION global var.
+ * And prevent session blocking.
+ * If value is NULL, this session variable will unset
+ *
+ * @param string $var
+ * @param mixed $value
+ */
+function session_set_var($var, $value)
+{
+  //logfile('debug_auth.log', 'session_set_var() called at '.time());
+  if (isset($_SESSION[$var]) && $_SESSION[$var] === $value) { return; } // Just return if session var unchanged
+
+  @session_start(); // Unblock session again
+
+  if (is_null($value))
+  {
+    unset($_SESSION[$var]);
+  } else {
+    $_SESSION[$var] = $value;
+  }
+
+  session_commit(); // Write and block session
+}
+
+function session_unset_var($var)
+{
+  session_set_var($var, NULL);
 }
 
 // EOF

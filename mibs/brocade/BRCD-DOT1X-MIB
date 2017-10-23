@@ -67,18 +67,18 @@ brcdDot1xAuthMacSession		OBJECT IDENTIFIER  ::=  { brcdDot1xAuth 5 }
 brcdDot1xAuthGlobalAdminGroup	OBJECT IDENTIFIER  ::=  { brcdDot1xAuth 6 }
 
 brcdDot1xAuthGlobalConfigQuietperiod	OBJECT-TYPE
-	SYNTAX			Unsigned32 (1..4294967294)
+	SYNTAX			Unsigned32 (0..4294967295)
 	UNITS       		"seconds"
 	MAX-ACCESS		read-write
 	STATUS			current
 	DESCRIPTION		"When the Brocade device is unable to authenticate a Client,
 					the	amount of time the Brocade device waits before trying
-					again.. The allowed range is from 1 to 4294967294"
+					again.. The allowed range is from 0 to 4294967295"
 	DEFVAL			{ 60 }
 	::= { brcdDot1xAuthGlobalConfigGroup 1 }
 
 brcdDot1xAuthGlobalConfigTxPeriod	OBJECT-TYPE
-	SYNTAX			Unsigned32 (1..4294967294)
+	SYNTAX			Unsigned32 (1..4294967295)
 	UNITS       		"seconds"
 	MAX-ACCESS		read-write
 	STATUS			current
@@ -86,32 +86,32 @@ brcdDot1xAuthGlobalConfigTxPeriod	OBJECT-TYPE
 					Authentication Protocol)-response/identity
 					frame, the amount of time the Brocade device waits before
 					retransmitting the EAP-request/identity frame to a Client
-					The allowed range is from 1 to 4294967294"
+					The allowed range is from 1 to 4294967295"
 	DEFVAL			{ 30 }
 	::= { brcdDot1xAuthGlobalConfigGroup 2 }
 
 brcdDot1xAuthGlobalConfigSuppTimeOut	OBJECT-TYPE
-	SYNTAX			Unsigned32 (1..4294967294)
+	SYNTAX			Unsigned32 (1..4294967295)
 	UNITS       		"seconds"
 	MAX-ACCESS		read-write
 	STATUS			current
 	DESCRIPTION		"When a supplicant (Client) does not respond to an
 					EAP-request frame, the amount of time before the Brocade
 					device retransmits the frame
-					The allowed range is from 1 to 4294967294"
+					The allowed range is from 1 to 4294967295"
 	DEFVAL			{ 30 }
 	::= { brcdDot1xAuthGlobalConfigGroup 3 }
 
 brcdDot1xAuthGlobalConfigAuthServerTimeOut	OBJECT-TYPE
-	SYNTAX			Unsigned32 (1..4294967294)
+	SYNTAX			Unsigned32 (1..4294967295)
 	UNITS       		"seconds"
 	MAX-ACCESS		read-write
 	STATUS			current
 	DESCRIPTION		"When the Authentication Server (RADIUS) does not respond
 					to a message sent from the Client, the amount of time before
 					the Brocade device retransmits the message.
-					The allowed range is from 1 to 4294967294"
-	DEFVAL			{ 2 }
+					The allowed range is from 1 to 4294967295"
+	DEFVAL			{ 30 }
 	::= { brcdDot1xAuthGlobalConfigGroup 4 }
 
 brcdDot1xAuthGlobalConfigMaxReq		OBJECT-TYPE
@@ -134,13 +134,13 @@ brcdDot1xAuthGlobalConfigReAuthMax		OBJECT-TYPE
 	::= { brcdDot1xAuthGlobalConfigGroup 6 }
 
 brcdDot1xAuthGlobalConfigReAuthPeriod	OBJECT-TYPE
-	SYNTAX			Unsigned32 (1..4294967294)
+	SYNTAX			Unsigned32 (1..4294967295)
 	UNITS       		"seconds"
 	MAX-ACCESS		read-write
 	STATUS			current
 	DESCRIPTION		"How often the device automatically re-authenticates
 					clients when periodic re-authentication is enabled
-				 The allowed range is from 1 to 4294967294"
+				 The allowed range is from 1 to 4294967295"
 	DEFVAL			{ 3600 }
 	::= { brcdDot1xAuthGlobalConfigGroup 7 }
 
@@ -171,7 +171,7 @@ brcdDot1xAuthGlobalConfigMacSessionMaxAge		OBJECT-TYPE
 	MAX-ACCESS		read-write
 	STATUS			current
 	DESCRIPTION		"The Max-Age of the 802.1x mac session-
-					A value between 0 and 65535"
+					A value between 1 and 65535"
 	::= {brcdDot1xAuthGlobalConfigGroup 11 }
 
 brcdDot1xAuthGlobalConfigNoAgingDeniedSessions	OBJECT-TYPE
@@ -412,14 +412,15 @@ brcdDot1xAuthPortStateRestrictPVID	OBJECT-TYPE
 	SYNTAX			Unsigned32
 	MAX-ACCESS		read-only
 	STATUS			current
-	DESCRIPTION		"Restrict  PVID"
+	DESCRIPTION		"The number of MAC sessions on the port that failed authentication and are now in the restricted VLAN 
+                    (which should be the port's current PVID)"
 	::= { brcdDot1xAuthPortStateEntry 8 }
 
 brcdDot1xAuthPortStateRadiusAssignPVID		OBJECT-TYPE
 	SYNTAX			Unsigned32
 	MAX-ACCESS		read-only
 	STATUS			current
-	DESCRIPTION		"RADIUS assign PVID"
+	DESCRIPTION		"The number of times the port has changed PVIDs due to Radius VLAN assignment"
 	::= { brcdDot1xAuthPortStateEntry 9 }
 
 --- A table of port configuration parameters for 802.1x authentication
@@ -465,7 +466,7 @@ brcdDot1xAuthPortConfigFilterStrictSec	OBJECT-TYPE
 	MAX-ACCESS 	read-write
 	STATUS			current
 	DESCRIPTION		"To configure  filter strict security
-					on the interface - enable(1) or disable(0)"
+					on the interface - enable(1) or disable(2)"
 	::= { brcdDot1xAuthPortConfigEntry 2 }
 
 brcdDot1xAuthPortConfigDot1xOnPort			OBJECT-TYPE

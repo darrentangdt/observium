@@ -96,4 +96,42 @@ foreach ($oids as $index => $entry)
   }
 }
 
+// Memory Modules
+
+// CPQHLTH-MIB::cpqHeResMem2ModuleHwLocation.0 = STRING: "PROC  1 DIMM  1 "
+// CPQHLTH-MIB::cpqHeResMem2ModuleStatus.0 = INTEGER: good(4)
+// CPQHLTH-MIB::cpqHeResMem2ModuleStatus.1 = INTEGER: notPresent(2)
+// .1.3.6.1.4.1.232.6.2.14.13.1.19.0 = INTEGER: good(4)
+// CPQHLTH-MIB::cpqHeResMem2ModuleCondition.1 = INTEGER: ok(2)
+
+$oids = snmpwalk_cache_oid($device, 'cpqHeResMem2ModuleHwLocation', array(), 'CPQHLTH-MIB');
+$oids = snmpwalk_cache_oid($device, 'cpqHeResMem2ModuleStatus', $oids, 'CPQHLTH-MIB');
+$oids = snmpwalk_cache_oid($device, 'cpqHeResMem2ModuleCondition', $oids, 'CPQHLTH-MIB');
+
+foreach ($oids as $index => $entry)
+{
+  if (isset($entry['cpqHeResMem2ModuleStatus']) && $entry['cpqHeResMem2ModuleStatus'] != 'notPresent')
+  {
+    if (empty($entry['cpqHeResMem2ModuleHwLocation']))
+    {
+       $descr = 'DIMM '.$index.' ECC';
+    }
+    else
+    {
+       $descr = $entry['cpqHeResMem2ModuleHwLocation'];
+    }
+
+    $oid        = ".1.3.6.1.4.1.232.6.2.14.13.1.19.".$index;
+    $status     = $entry['cpqHeResMem2ModuleStatus'];
+
+    discover_sensor($valid['sensor'], 'state', $device, $oid, 'cpqHeResMem2ModuleStatus.'.$index, 'cpqHeResMem2ModuleStatus', $descr.' Status', NULL, $status, array('entPhysicalClass' => 'other'));
+
+    $oid        = ".1.3.6.1.4.1.232.6.2.14.13.1.20.".$index;
+    $status     = $entry['cpqHeResMem2ModuleCondition'];
+    discover_sensor($valid['sensor'], 'state', $device, $oid, 'cpqHeResMem2ModuleCondition.'.$index, 'cpqHeResMem2ModuleCondition', $descr.' Condition', NULL, $status, array('entPhysicalClass' => 'other'));
+  }
+}
+
+unset($oids);
+
 // EOF

@@ -42,7 +42,7 @@ if ($config['enable_libvirt'] == '1' && $device['os'] == "linux" )
     {
       // Check if we are using SSH if we can log in without password - without blocking the discovery
       // Also automatically add the host key so discovery doesn't block on the yes/no question, and run echo so we don't get stuck in a remote shell ;-)
-      exec('ssh -p '.$device['ssh_port'].' -o "StrictHostKeyChecking no" -o "PreferredAuthentications publickey" -o "IdentitiesOnly yes" ' . $device['hostname'] . ' echo -e', $out, $ret);
+      external_exec('ssh -p '.$device['ssh_port'].' -o "StrictHostKeyChecking no" -o "PreferredAuthentications publickey" -o "IdentitiesOnly yes" ' . $device['hostname'] . ' echo -e', $out, $ret);
       if ($ret != 255) { $ssh_ok = 1; }
     }
 
@@ -50,7 +50,7 @@ if ($config['enable_libvirt'] == '1' && $device['os'] == "linux" )
     {
       // Fetch virtual machine list
       unset($domlist);
-      exec($config['virsh'] . ' -c '.$uri.' list --all',$domlist);
+      $domlist = explode("\n", external_exec($config['virsh'] . ' -c '.$uri.' list --all'));
 
       foreach ($domlist as $dom)
       {
@@ -64,7 +64,7 @@ if ($config['enable_libvirt'] == '1' && $device['os'] == "linux" )
         {
           // Fetch the Virtual Machine information.
           unset($vm_info_array);
-          exec($config['virsh'] . ' -c '.$uri.' dumpxml ' . $vm_DisplayName, $vm_info_array);
+          $vm_info_xml = external_exec($config['virsh'] . ' -c '.$uri.' dumpxml ' . $vm_DisplayName);
 
           // <domain type='kvm' id='3'>
           //   <name>moo.example.com</name>
@@ -80,16 +80,13 @@ if ($config['enable_libvirt'] == '1' && $device['os'] == "linux" )
           //     <acpi/>
           //   (...)
 
-          // Convert array to string
-          $vm_info_xml = implode('', $vm_info_array);
-
           // Parse XML, add xml header in front as this is required by the parser but not supplied by libvirt
           $xml = simplexml_load_string('<?xml version="1.0"?> ' . $vm_info_xml);
           if (OBS_DEBUG && $xml) { print_vars($xml); }
 
           // Call VM discovery
           discover_virtual_machine($valid, $device, array('id' => $xml->uuid, 'name' => $vm_DisplayName, 'cpucount' => $xml->vcpu,
-                'memory' => $xml->currentMemory * 1024, 'status' => $vm_State, 'type' => 'libvirt', 'source' => 'libvirt'));
+                'memory' => $xml->currentMemory * 1024, 'status' => $vm_State, 'type' => 'libvirt', 'source' => 'libvirt', 'protocol' => $method));
 
           // Save the discovered Virtual Machine.
           $libvirt_vmlist[] = $vm_DisplayName;

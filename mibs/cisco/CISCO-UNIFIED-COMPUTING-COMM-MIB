@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- COMM management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -88,7 +88,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsCommObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -1141,6 +1141,71 @@ cucsCommHttpsPolicyOwner OBJECT-TYPE
         "Cisco UCS comm:Https:policyOwner managed object property"
     ::= { cucsCommHttpsEntry 16 }
 
+cucsCommLocaleTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsCommLocaleEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS comm:Locale managed object table"
+    ::= { cucsCommObjects 31 }
+
+cucsCommLocaleEntry OBJECT-TYPE
+    SYNTAX           CucsCommLocaleEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsCommLocaleTable table."
+    INDEX { cucsCommLocaleInstanceId }
+    ::= { cucsCommLocaleTable 1 }
+
+CucsCommLocaleEntry ::= SEQUENCE {
+    cucsCommLocaleInstanceId                                         CucsManagedObjectId,
+    cucsCommLocaleDn                                                 CucsManagedObjectDn,
+    cucsCommLocaleRn                                                 SnmpAdminString,
+    cucsCommLocaleDescr                                              SnmpAdminString,
+    cucsCommLocaleName                                               SnmpAdminString
+}
+
+cucsCommLocaleInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsCommLocaleEntry 1 }
+
+cucsCommLocaleDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS comm:Locale:dn managed object property"
+    ::= { cucsCommLocaleEntry 2 }
+
+cucsCommLocaleRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS comm:Locale:rn managed object property"
+    ::= { cucsCommLocaleEntry 3 }
+
+cucsCommLocaleDescr OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS comm:Locale:descr managed object property"
+    ::= { cucsCommLocaleEntry 4 }
+
+cucsCommLocaleName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS comm:Locale:name managed object property"
+    ::= { cucsCommLocaleEntry 5 }
+
 cucsCommNtpProviderTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsCommNtpProviderEntry
     MAX-ACCESS       not-accessible
@@ -1500,7 +1565,8 @@ CucsCommSnmpEntry ::= SEQUENCE {
     cucsCommSnmpOperPort                                             Gauge32,
     cucsCommSnmpPolicyLevel                                          Gauge32,
     cucsCommSnmpPolicyOwner                                          CucsPolicyPolicyOwner,
-    cucsCommSnmpIsSetSnmpSecure                                      TruthValue
+    cucsCommSnmpIsSetSnmpSecure                                      TruthValue,
+    cucsCommSnmpSnmpOperState                                        CucsCommAdminState
 }
 
 cucsCommSnmpInstanceId OBJECT-TYPE
@@ -1638,6 +1704,14 @@ cucsCommSnmpIsSetSnmpSecure OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS comm:Snmp:isSetSnmpSecure managed object property"
     ::= { cucsCommSnmpEntry 17 }
+
+cucsCommSnmpSnmpOperState OBJECT-TYPE
+    SYNTAX       CucsCommAdminState
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS comm:Snmp:snmpOperState managed object property"
+    ::= { cucsCommSnmpEntry 18 }
 
 cucsCommSnmpTrapTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsCommSnmpTrapEntry
@@ -2518,6 +2592,98 @@ cucsCommSvcEpFsmTaskSeqId OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS comm:SvcEpFsmTask:seqId managed object property"
     ::= { cucsCommSvcEpFsmTaskEntry 7 }
+
+cucsCommSvcPolicyTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsCommSvcPolicyEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS comm:SvcPolicy managed object table"
+    ::= { cucsCommObjects 32 }
+
+cucsCommSvcPolicyEntry OBJECT-TYPE
+    SYNTAX           CucsCommSvcPolicyEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsCommSvcPolicyTable table."
+    INDEX { cucsCommSvcPolicyInstanceId }
+    ::= { cucsCommSvcPolicyTable 1 }
+
+CucsCommSvcPolicyEntry ::= SEQUENCE {
+    cucsCommSvcPolicyInstanceId                                      CucsManagedObjectId,
+    cucsCommSvcPolicyDn                                              CucsManagedObjectDn,
+    cucsCommSvcPolicyRn                                              SnmpAdminString,
+    cucsCommSvcPolicyDescr                                           SnmpAdminString,
+    cucsCommSvcPolicyIntId                                           SnmpAdminString,
+    cucsCommSvcPolicyName                                            SnmpAdminString,
+    cucsCommSvcPolicyPolicyLevel                                     Gauge32,
+    cucsCommSvcPolicyPolicyOwner                                     CucsPolicyPolicyOwner
+}
+
+cucsCommSvcPolicyInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsCommSvcPolicyEntry 1 }
+
+cucsCommSvcPolicyDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS comm:SvcPolicy:dn managed object property"
+    ::= { cucsCommSvcPolicyEntry 2 }
+
+cucsCommSvcPolicyRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS comm:SvcPolicy:rn managed object property"
+    ::= { cucsCommSvcPolicyEntry 3 }
+
+cucsCommSvcPolicyDescr OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS comm:SvcPolicy:descr managed object property"
+    ::= { cucsCommSvcPolicyEntry 4 }
+
+cucsCommSvcPolicyIntId OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS comm:SvcPolicy:intId managed object property"
+    ::= { cucsCommSvcPolicyEntry 5 }
+
+cucsCommSvcPolicyName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS comm:SvcPolicy:name managed object property"
+    ::= { cucsCommSvcPolicyEntry 6 }
+
+cucsCommSvcPolicyPolicyLevel OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS comm:SvcPolicy:policyLevel managed object property"
+    ::= { cucsCommSvcPolicyEntry 7 }
+
+cucsCommSvcPolicyPolicyOwner OBJECT-TYPE
+    SYNTAX       CucsPolicyPolicyOwner
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS comm:SvcPolicy:policyOwner managed object property"
+    ::= { cucsCommSvcPolicyEntry 8 }
 
 cucsCommSyslogTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsCommSyslogEntry

@@ -15,7 +15,8 @@ $datas = array('processor' => array('icon' => $config['entities']['processor']['
                'mempool'   => array('icon' => $config['entities']['mempool']['icon']),
                'storage'   => array('icon' => $config['entities']['storage']['icon']),
                'status'    => array('icon' => $config['entities']['status']['icon']));
-if (isset($health_items['printersupplies'])) { $datas['printersupplies'] = array('icon' => 'oicon-contrast'); }
+
+if (isset($health_items['printersupplies'])) { $datas['printersupplies'] = array('icon' => $config['entities']['printersupply']['icon']); }
 
 foreach (array_keys($config['sensor_types']) as $type)
 {
@@ -71,7 +72,7 @@ if ($vars['metric'] == 'status')
 
 $groups = get_type_groups($vars['metric']);
 
-$navbar['options']['group'] = array('text' => 'Groups', 'right' => TRUE, 'community' => FALSE);
+$navbar['options']['group'] = array('text' => '', 'icon' => $config['icon']['group'], 'right' => TRUE, 'community' => FALSE);
 foreach ($groups as $group)
 {
   if ($group['group_id'] == $vars['group'] || in_array($group['group_id'], $vars['group']) )
@@ -86,8 +87,8 @@ foreach ($groups as $group)
   $navbar['options']['group']['suboptions'][$group['group_id']]['text'] = escape_html($group['group_name']);
 }
 
-$navbar['options']['graphs']['text']  = 'Graphs';
-$navbar['options']['graphs']['icon']  = 'oicon-chart-up';
+//$navbar['options']['graphs']['text']  = 'Graphs';
+$navbar['options']['graphs']['icon']  = $config['icon']['graphs'];
 $navbar['options']['graphs']['right'] = TRUE;
 
 if ($vars['view'] == "graphs")

@@ -7,7 +7,7 @@
  * @package    observium
  * @subpackage webui
  * @author     Adam Armstrong <adama@observium.org>
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -109,7 +109,7 @@ if (isset($cache['devices']['id'][$vars['device']]) || count($permit_tabs))
   // If the device's OS type has a group, set the device's os_group
   if ($config['os'][$device['os']]['group']) { $device['os_group'] = $config['os'][$device['os']]['group']; }
 
-//// DEV
+  //// DEV
 
   // Start to cache panel
   // NOTE. Also this panel content can be moved to html/includes/panels/device.inc.php (instead ob_cache() here)
@@ -131,12 +131,13 @@ if (isset($cache['devices']['id'][$vars['device']]) || count($permit_tabs))
     {
       $graphs = $config['os'][$device['os_group']]['graphs'];
     } else {
-      $graphs = $config['os']['default']['graphs'];
+      // Default group
+      $graphs = $config['os_group']['default']['graphs'];
     }
 
     $graph_array = array();
     $graph_array['height'] = "100";
-    $graph_array['width']  = "218";
+    $graph_array['width']  = "213";
     $graph_array['to']     = $config['time']['now'];
     $graph_array['device'] = $device['device_id'];
     $graph_array['type']   = "device_bits";
@@ -196,14 +197,15 @@ if (isset($cache['devices']['id'][$vars['device']]) || count($permit_tabs))
   echo '</div>';
 
   // Show tabs if the user has access to this device
+
   if (device_permitted($device['device_id']))
   {
     if ($config['show_overview_tab'])
     {
-      $navbar['options']['overview'] = array('text' => 'Overview', 'icon' => 'oicon-server');
+      $navbar['options']['overview'] = array('text' => 'Overview', 'icon' => $config['icon']['overview']);
     }
 
-    $navbar['options']['graphs'] = array('text' => 'Graphs', 'icon' => 'oicon-chart-up');
+    $navbar['options']['graphs'] = array('text' => 'Graphs', 'icon' => $config['icon']['graphs']);
 
     $health =  dbFetchCell('SELECT COUNT(*) FROM `storage` WHERE device_id = ?', array($device['device_id'])) +
                dbFetchCell('SELECT COUNT(*) FROM `sensors` WHERE device_id = ?', array($device['device_id'])) +
@@ -212,60 +214,60 @@ if (isset($cache['devices']['id'][$vars['device']]) || count($permit_tabs))
 
     if ($health)
     {
-      $navbar['options']['health'] = array('text' => 'Health', 'icon' => 'oicon-system-monitor');
+      $navbar['options']['health'] = array('text' => 'Health', 'icon' => $config['icon']['health']);
     }
 
     // Print applications tab if there are matching entries in `applications` table
     if (dbFetchCell('SELECT COUNT(app_id) FROM applications WHERE device_id = ?', array($device['device_id'])) > '0')
     {
-      $navbar['options']['apps'] = array('text' => 'Apps', 'icon' => 'oicon-application-icon-large');
+      $navbar['options']['apps'] = array('text' => 'Apps', 'icon' => $config['icon']['apps']);
     }
 
     // Print the collectd tab if there is a matching directory
     if (isset($config['collectd_dir']) && is_dir($config['collectd_dir'] . "/" . $device['hostname'] ."/"))
     {
-      $navbar['options']['collectd'] = array('text' => 'Collectd', 'icon' => 'oicon-chart-up-color');
+      $navbar['options']['collectd'] = array('text' => 'Collectd', 'icon' => $config['icon']['collectd']);
     }
 
     // Print the munin tab if there are matchng entries in the munin_plugins table
     if (dbFetchCell('SELECT COUNT(mplug_id) FROM munin_plugins WHERE device_id = ?', array($device['device_id'])) > '0')
     {
-      $navbar['options']['munin'] = array('text' => 'Munin', 'icon' => 'oicon-chart-up');
+      $navbar['options']['munin'] = array('text' => 'Munin', 'icon' => $config['icon']['munin']);
     }
 
     // Print the port tab if there are matching entries in the ports table
     if (dbFetchCell('SELECT COUNT(port_id) FROM ports WHERE device_id = ?', array($device['device_id'])) > '0')
     {
-      $navbar['options']['ports'] = array('text' => 'Ports', 'icon' => 'oicon-network-ethernet');
+      $navbar['options']['ports'] = array('text' => 'Ports', 'icon' => $config['icon']['port']);
     }
 
     // Print the SLAs tab if there are matching entries in the slas table
     if (dbFetchCell('SELECT COUNT(*) FROM `slas` WHERE `device_id` = ? AND `deleted` = 0', array($device['device_id'])) > '0')
     {
-      $navbar['options']['slas'] = array('text' => 'SLAs', 'icon' => 'oicon-chart-up');
+      $navbar['options']['slas'] = array('text' => 'SLAs', 'icon' => $config['icon']['sla']);
     }
 
-    // Print the access points tab if there are matching entries in the accesspoints table (Aruba Legacy)
+    // Print the p2p radios tab if there are matching entries in the p2p radios
     if (dbFetchCell('SELECT COUNT(radio_id) FROM p2p_radios WHERE device_id = ?', array($device['device_id'])) > '0')
     {
-      $navbar['options']['p2pradios'] = array('text' => 'Radios', 'icon' => 'oicon-transmitter');
+      $navbar['options']['p2pradios'] = array('text' => 'Radios', 'icon' => $config['icon']['p2pradio']);
     }
 
     // Print the access points tab if there are matching entries in the accesspoints table (Aruba Legacy)
     if (dbFetchCell('SELECT COUNT(accesspoint_id) FROM accesspoints WHERE device_id = ?', array($device['device_id'])) > '0')
     {
-      $navbar['options']['accesspoints'] = array('text' => 'Access Points', 'icon' => 'oicon-wi-fi-zone');
+      $navbar['options']['accesspoints'] = array('text' => 'APs (Legacy)', 'icon' => $config['icon']['wifi']);
     }
 
     // Print the wifi tab if wifi things exist
 
-    $device_ap_count    = dbFetchCell('SELECT COUNT(wifi_accesspoint_id) FROM `wifi_accesspoints` WHERE `device_id` = ?', array($device['device_id']));
+    $device_ap_count    = dbFetchCell('SELECT COUNT(wifi_ap_id)          FROM `wifi_aps`          WHERE `device_id` = ?', array($device['device_id']));
     $device_radio_count = dbFetchCell('SELECT COUNT(wifi_radio_id)       FROM `wifi_radios`       WHERE `device_id` = ?', array($device['device_id']));
     $device_wlan_count  = dbFetchCell('SELECT COUNT(wlan_id)             FROM `wifi_wlans`        WHERE `device_id` = ?', array($device['device_id']));
 
     if ($device_ap_count > 0 || $device_radio_count > 0)
     {
-      $navbar['options']['wifi'] = array('text' => 'WiFi', 'icon' => 'oicon-wi-fi-zone');
+      $navbar['options']['wifi'] = array('text' => 'WiFi', 'icon' => $config['icon']['wifi']);
     }
 
     // Build array of smokeping files for use in tab building and smokeping page.
@@ -277,19 +279,19 @@ if (isset($cache['devices']['id'][$vars['device']]) || count($permit_tabs))
     // Print latency tab if there are smokeping files with source or destination matching this hostname
     if (count($smokeping_files['incoming'][$device['hostname']]) || count($smokeping_files['outgoing'][$device['hostname']]))
     {
-      $navbar['options']['latency'] = array('text' => 'Ping', 'icon' => 'oicon-paper-plane');
+      $navbar['options']['latency'] = array('text' => 'Ping', 'icon' => $config['icon']['smokeping']);
     }
 
     // Print vlans tab if there are matching entries in the vlans table
     if (dbFetchCell('SELECT COUNT(vlan_id) FROM vlans WHERE device_id = ?', array($device['device_id'])) > '0')
     {
-      $navbar['options']['vlans'] = array('text' => 'VLANs', 'icon' => 'oicon-arrow-branch-bgr');
+      $navbar['options']['vlans'] = array('text' => 'VLANs', 'icon' => $config['icon']['vlan']);
     }
 
     // Pring Virtual Machines tab if there are matching entries in the vminfo table
     if (dbFetchCell('SELECT COUNT(vm_id) FROM vminfo WHERE device_id = ?', array($device['device_id'])) > '0')
     {
-      $navbar['options']['vm'] = array('text' => 'VMs', 'icon' => 'oicon-network-cloud');
+      $navbar['options']['vm'] = array('text' => 'VMs', 'icon' => $config['icon']['virtual-machine']);
     }
 
     // $loadbalancer_tabs is used in device/loadbalancer/ to build the submenu. we do it here to save queries
@@ -307,8 +309,17 @@ if (isset($cache['devices']['id'][$vars['device']]) || count($permit_tabs))
       if ($device_loadbalancer_count['netscaler_servicegroupmembers']) { $loadbalancer_tabs[] = 'netscaler_servicegroupmembers'; }
     }
 
-    $device_loadbalancer_count['lb_virtuals'] = dbFetchCell("SELECT COUNT(*) FROM `lb_virtuals` WHERE `device_id` = ?", array($device['device_id']));
-    if ($device_loadbalancer_count['lb_virtuals']) { $loadbalancer_tabs[] = 'lb_virtuals'; }
+    if ($device['os'] == "f5")  // F5
+    {
+      $device_loadbalancer_count['lb_virtuals'] = dbFetchCell("SELECT COUNT(*) FROM `lb_virtuals` WHERE `device_id` = ?", array($device['device_id']));
+      if ($device_loadbalancer_count['lb_virtuals']) { $loadbalancer_tabs[] = 'lb_virtuals'; }
+
+      $device_loadbalancer_count['lb_pools'] = dbFetchCell("SELECT COUNT(*) FROM `lb_pools` WHERE `device_id` = ?", array($device['device_id']));
+      if ($device_loadbalancer_count['lb_pools']) { $loadbalancer_tabs[] = 'lb_pools'; }
+
+      $device_loadbalancer_count['lb_snatpools'] = dbFetchCell("SELECT COUNT(*) FROM `lb_snatpools` WHERE `device_id` = ?", array($device['device_id']));
+      if ($device_loadbalancer_count['lb_snatpools']) { $loadbalancer_tabs[] = 'lb_snatpools'; }
+    }
 
     // Check for Cisco ACE vservers
     if ($device['os'] == "acsw")  // Cisco ACE
@@ -323,7 +334,7 @@ if (isset($cache['devices']['id'][$vars['device']]) || count($permit_tabs))
     // Print the load balancer tab if the loadbalancer_tabs array has entries.
     if (is_array($loadbalancer_tabs))
     {
-      $navbar['options']['loadbalancer'] = array('text' => 'Load Balancer', 'icon' => 'oicon-arrow-split', 'community' => FALSE);
+      $navbar['options']['loadbalancer'] = array('text' => 'Load Balancer', 'icon' => $config['icon']['loadbalancer'], 'community' => FALSE);
     }
 
     // $routing_tabs is used in device/routing/ to build the tabs menu. we build it here to save some queries
@@ -350,42 +361,47 @@ if (isset($cache['devices']['id'][$vars['device']]) || count($permit_tabs))
     // Print routing tab if any of the routing tables contain matching entries
     if (is_array($routing_tabs))
     {
-      $navbar['options']['routing'] = array('text' => 'Routing', 'icon' => 'oicon-arrow-branch-000-left');
+      $navbar['options']['routing'] = array('text' => 'Routing', 'icon' => $config['icon']['routing']);
     }
 
     // Print the pseudowire tab if any of the routing tables contain matching entries
     if (dbFetchCell("SELECT COUNT(*) FROM `pseudowires` WHERE `device_id` = ?", array($device['device_id'])))
     {
-      $navbar['options']['pseudowires'] = array('text' => 'Pseudowires', 'icon' => 'oicon-layer-shape-curve');
+      $navbar['options']['pseudowires'] = array('text' => 'Pseudowires', 'icon' => $config['icon']['pseudowire']);
     }
 
     // Print the packages tab if there are matching entries in the packages table
     if (dbFetchCell('SELECT COUNT(*) FROM `packages` WHERE `device_id` = ?', array($device['device_id'])) > 0)
     {
-      $navbar['options']['packages'] = array('text' => 'Pkgs', 'icon' => 'oicon-box-zipper');
+      $navbar['options']['packages'] = array('text' => 'Pkgs', 'icon' => $config['icon']['packages']);
     }
 
     // Print the inventory tab if inventory is enabled and either entphysical or hrdevice tables have entries
     if (dbFetchCell('SELECT COUNT(*) FROM `entPhysical` WHERE `device_id` = ?', array($device['device_id'])) > 0)
     {
-      $navbar['options']['entphysical'] = array('text' => 'Inventory', 'icon' => 'oicon-wooden-box');
+      $navbar['options']['entphysical'] = array('text' => 'Inventory', 'icon' => $config['icon']['inventory']);
     }
     elseif (dbFetchCell('SELECT COUNT(*) FROM `hrDevice` WHERE `device_id` = ?', array($device['device_id'])) > 0)
     {
-      $navbar['options']['hrdevice'] = array('text' => 'Inventory', 'icon' => 'oicon-wooden-box');
+      $navbar['options']['hrdevice'] = array('text' => 'Inventory', 'icon' => $config['icon']['inventory']);
+    }
+
+    if (isset($attribs['ps_list']))
+    {
+      $navbar['options']['processes'] = array('text' => 'Processes', 'icon' => $config['icon']['processes']);
     }
 
     // Print service tab if show_services enabled and there are entries in the services table
     ## DEPRECATED
     if ($config['show_services'] && dbFetchCell('SELECT COUNT(*) FROM services WHERE device_id = ?', array($device['device_id'])) > 0)
     {
-      $navbar['options']['services'] = array('text' => 'Services', 'icon' => 'oicon-target');
+      $navbar['options']['services'] = array('text' => 'Services', 'icon' => $config['icon']['service']);
     }
 
     // Print printing tab if there are entries in the printersupplies table
     if (dbFetchCell('SELECT COUNT(*) FROM `printersupplies` WHERE device_id = ?', array($device['device_id'])) > 0)
     {
-      $navbar['options']['printing'] = array('text' => 'Printing', 'icon' => 'oicon-printer-color');
+      $navbar['options']['printing'] = array('text' => 'Printing', 'icon' => $config['icon']['printersupply']);
 
       // $printing_tabs is used in device/printing/ to build the tabs menu. we build it here to save some queries
       /// FIXME. sid3windr, I not see what this query "save" here, must be moved to device/printing.inc.php
@@ -393,10 +409,10 @@ if (isset($cache['devices']['id'][$vars['device']]) || count($permit_tabs))
     }
 
     // Always print logs tab
-    $navbar['options']['logs'] = array('text' => 'Logs', 'icon' => 'oicon-clipboard-audit');
+    $navbar['options']['logs'] = array('text' => 'Logs', 'icon' => $config['icon']['logs']);
 
     // Print alerts tab
-    $navbar['options']['alerts'] = array('text' => 'Alerts', 'icon' => 'oicon-bell');
+    $navbar['options']['alerts'] = array('text' => 'Alerts', 'icon' => $config['icon']['alert']);
 
     // If the user has secure global read privileges, check for a device config.
     if ($_SESSION['userlevel'] >= 7)
@@ -406,18 +422,18 @@ if (isset($cache['devices']['id'][$vars['device']]) || count($permit_tabs))
       // Print the config tab if we have a device config
       if ($device_config_file)
       {
-        $navbar['options']['showconfig'] = array('text' => 'Config', 'icon' => 'oicon-application-terminal');
+        $navbar['options']['showconfig'] = array('text' => 'Config', 'icon' => $config['icon']['config']);
       }
     }
 
-/*
+    /*
     // If the user has global read privileges, check for device notes.
     if ($_SESSION['userlevel'] >= 5)
     {
       // Promoted to real tab when notes is filled in, otherwise demoted to icon on the right
-      $navbar['options']['notes'] = array('text' => ($attribs['notes'] ? 'Notes' : NULL), 'icon' => 'oicon-notebook', 'right' => ($attribs['notes'] == ''));
+      $navbar['options']['notes'] = array('text' => ($attribs['notes'] ? 'Notes' : NULL), 'icon' => 'sprite-notes', 'right' => ($attribs['notes'] == ''));
     }
-*/
+    */
 
     // If nfsen is enabled, check for an nfsen file
     if ($config['nfsen_enable'])
@@ -428,16 +444,16 @@ if (isset($cache['devices']['id'][$vars['device']]) || count($permit_tabs))
     // Print the netflow tab if we have an nfsen file
     if ($nfsen_rrd_file)
     {
-      $navbar['options']['nfsen'] = array('text' => 'Netflow', 'icon' => 'oicon-funnel');
+      $navbar['options']['nfsen'] = array('text' => 'Netflow', 'icon' => $config['icon']['nfsen']);
     }
 
     // If the user has global write permissions, show them the edit tab
     if ($_SESSION['userlevel'] >= "10")
     {
-      $navbar['options']['tools']                             = array('text' => '', 'icon' => 'oicon-gear', 'url' => '#', 'right' => TRUE, 'class' => "dropdown-toggle");
-      $navbar['options']['tools']['suboptions']['data']       = array('text' => 'Device Data', 'icon' => 'oicon-application-list');
-      $navbar['options']['tools']['suboptions']['perf']       = array('text' => 'Performance Data', 'icon' => 'oicon-time');
-      if($config['web_enable_showtech']) { $navbar['options']['tools']['suboptions']['showtech']       = array('text' => 'Show Tech-Support', 'icon' => 'oicon-exclamation'); }
+      $navbar['options']['tools']                             = array('text' => '', 'icon' => $config['icon']['tools'], 'url' => '#', 'right' => TRUE, 'class' => "dropdown-toggle");
+      $navbar['options']['tools']['suboptions']['data']       = array('text' => 'Device Data', 'icon' => $config['icon']['device-data']);
+      $navbar['options']['tools']['suboptions']['perf']       = array('text' => 'Performance Data', 'icon' => $config['icon']['device-poller']);
+      if($config['web_enable_showtech']) { $navbar['options']['tools']['suboptions']['showtech']       = array('text' => 'Show Tech-Support', 'icon' => $config['icon']['techsupport']); }
       $navbar['options']['tools']['suboptions']['divider_1']  = array('divider' => TRUE);
 
       if (is_array($config['os'][$device['os']]['remote_access']))
@@ -462,14 +478,14 @@ if (isset($cache['devices']['id'][$vars['device']]) || count($permit_tabs))
         $navbar['options']['tools']['suboptions']['divider_2']  = array('divider' => TRUE);
       }
 
-      $navbar['options']['tools']['suboptions']['delete']['url']  = "#delete_device_modal";
+      $navbar['options']['tools']['suboptions']['delete']['url']  = "#modal-delete_device";
       $navbar['options']['tools']['suboptions']['delete']['text'] = 'Delete Device';
       $navbar['options']['tools']['suboptions']['delete']['link_opts'] = 'data-toggle="modal"';
-      $navbar['options']['tools']['suboptions']['delete']['icon'] = 'oicon-server--minus';
+      $navbar['options']['tools']['suboptions']['delete']['icon'] = $config['icon']['minus'];
 
       $navbar['options']['tools']['suboptions']['divider_3']  = array('divider' => TRUE);
 
-      $navbar['options']['tools']['suboptions']['edit']       = array('text' => 'Properties', 'icon' => 'oicon-gear');
+      $navbar['options']['tools']['suboptions']['edit']       = array('text' => 'Properties', 'icon' => $config['icon']['tools']);
 
     }
 ?>
@@ -518,6 +534,8 @@ if (isset($cache['devices']['id'][$vars['device']]) || count($permit_tabs))
 <?php
 
     $navbar['class'] = 'navbar-narrow subnav';
+    $navbar['brand'] = $device['hostname'];
+    $navbar['brand-class'] = 'fixed-only';
 
     foreach ($navbar['options'] as $option => $array)
     {
@@ -544,59 +562,64 @@ if (isset($cache['devices']['id'][$vars['device']]) || count($permit_tabs))
 
   // Delete device modal
 
-?>
-
-<div id="delete_device_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="delete_device" aria-hidden="true">
-
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-    <h3 id="myModalLabel"><i class="oicon-minus-circle"></i> Delete Device '<?php echo $device['hostname']; ?>'</h3>
-  </div>
-  <div class="modal-body">
-
-<?php
       $form = array('type'      => 'horizontal',
-                    'id'        => 'delete_host',
+                    'id'        => 'delete_device',
+                    'title'      => 'Delete Device "' . $device['hostname'] . '"',
                     //'space'     => '20px',
                     //'title'     => 'Delete device',
-                    'icon'      => 'oicon-server--minus',
+                    'icon'      => $config['icon']['device-delete'],
                     //'class'     => '',
                     'url'       => 'delhost/'
                     );
 
-      $form['row'][0]['id']   = array(
+      $form['row'][0]['id'] = array(
                                       'type'        => 'hidden',
+                                      'fieldset'    => 'body',
                                       'value'       => $device['device_id']);
-      //$form['row'][4]['deleterrd'] = array(
-      //                                'type'        => 'checkbox',
-      //                                'name'        => 'Delete RRDs',
-      //                                'onchange'    => "javascript: showDiv(this.checked);",
-      //                                'value'       => 'confirm');
-      $form['row'][5]['confirm'] = array(
+      $form['row'][4]['confirm'] = array(
                                       'type'        => 'checkbox',
+                                      'fieldset'    => 'body',
                                       'name'        => 'Confirm Deletion',
                                       'onchange'    => "javascript: toggleAttrib('disabled', 'delete_modal');",
                                       'value'       => 'confirm');
-      $form['row'][6]['delete_modal'] = array(
+      /*
+      $form['row'][5]['deleterrd'] = array(
+                                      'type'        => 'checkbox',
+                                      'fieldset'    => 'body',
+                                      'name'        => 'Delete RRDs',
+                                      'onchange'    => "javascript: showDiv(this.checked, 'warning_".$device['device_id']."_div');",
+                                      'value'       => 'confirm');
+      $form['row'][7]['warning_'.$device['device_id']] = array(
+                                      'type'        => 'html',
+                                      'fieldset'    => 'body',
+                                      'html'        => '<h4 class="alert-heading"><i class="icon-warning-sign"></i> Warning!</h4>' .
+                                                       ' This will delete this device from Observium including all logging entries, but will not delete the RRDs.',
+                                      //'div_style'   => 'display: none', // hide initially
+                                      'div_class'   => 'alert alert-warning');
+      */
+
+      $form['row'][9]['close'] = array(
                                       'type'        => 'submit',
+                                      'fieldset'    => 'footer',
+                                      'div_class'   => '', // Clean default form-action class!
+                                      'name'        => 'Close',
+                                      'icon'        => '',
+                                      'attribs'     => array('data-dismiss' => 'modal',  // dismiss modal
+                                                             'aria-hidden'  => 'true')); // do not sent any value
+      $form['row'][9]['delete_modal'] = array(
+                                      'type'        => 'submit',
+                                      'fieldset'    => 'footer',
+                                      'div_class'   => '', // Clean default form-action class!
                                       'name'        => 'Delete device',
                                       'icon'        => 'icon-remove icon-white',
                                       //'right'       => TRUE,
                                       'class'       => 'btn-danger',
                                       'disabled'    => TRUE);
 
-  print_warning("<h4>Warning!</h4>
-      This will delete this device from Observium including all logging entries, but will not delete the RRDs.");
-
-      print_form($form);
+      echo generate_form_modal($form);
       unset($form);
 
-?>
 
- </div>
-</div>
-
-<?php
 
   // Check that the user can view the device, or is viewing a permitted port on the device
   if (isset($cache['devices']['id'][$device['device_id']]) || $permit_tabs[$tab])

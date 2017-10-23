@@ -1,3 +1,19 @@
+--**MOD+***********************************************************************
+-- * Module:    hpicfJobScheduler.mib
+-- *
+-- * Copyright (C) 2013, 2015 Hewlett Packard Enterprise Development LP
+-- * All Rights Reserved.
+-- * 
+-- * The contents of this software are proprietary and confidential
+-- * to the Hewlett Packard Enterprise Development LP. No part of this
+-- * program may be photocopied, reproduced, or translated into another
+-- * programming language without prior written consent of the
+-- * Hewlett Packard Enterprise Development LP.
+-- *
+-- * Purpose: Contains the mib objects for Job Scheduler. 
+-- *
+-- **MOD-***********************************************************************/
+
 HP-ICF-JOB-SCHEDULER-MIB DEFINITIONS ::= BEGIN
 
     IMPORTS
@@ -14,7 +30,7 @@ HP-ICF-JOB-SCHEDULER-MIB DEFINITIONS ::= BEGIN
         ;
 
     hpicfJobSchedulerMIB MODULE-IDENTITY
-        LAST-UPDATED "201310050000Z"  -- October 5, 2013
+        LAST-UPDATED "201508270000Z"  -- Aug 27, 2015
 
         ORGANIZATION "HP Networking"
         CONTACT-INFO "Hewlett-Packard Company
@@ -22,6 +38,14 @@ HP-ICF-JOB-SCHEDULER-MIB DEFINITIONS ::= BEGIN
                       Roseville, CA 95747"
         DESCRIPTION  "This MIB module contains HP proprietary objects used to
                       configure Job Scheduling."
+
+        REVISION     "201508270000Z"  -- Aug 27, 2015
+        DESCRIPTION  "Changed description for the object hpicfJobSchedulerStatus "
+
+        REVISION     "201505130000Z"  -- May 13, 2015
+        DESCRIPTION  "Added objects hpicfJobSchedulerDelay,
+                      hpicfJobSchedulerCount,
+                      hpicfJobSchedulerStatus"
 
         REVISION     "201310050000Z"  -- October 5, 2013
         DESCRIPTION  "Initial version."
@@ -67,7 +91,10 @@ HP-ICF-JOB-SCHEDULER-MIB DEFINITIONS ::= BEGIN
             hpicfJobSchedulerCalendarDayOfMonth BITS,
             hpicfJobSchedulerCalendarDayOfWeek  BITS,
             hpicfJobSchedulerCalendarHour       BITS,
-            hpicfJobSchedulerCalendarMinute     BITS
+            hpicfJobSchedulerCalendarMinute     BITS,
+            hpicfJobSchedulerDelay              Unsigned32,
+            hpicfJobSchedulerCount              Unsigned32,
+            hpicfJobSchedulerStatus             TruthValue
         }
 
     hpicfJobSchedulerName OBJECT-TYPE
@@ -266,16 +293,42 @@ HP-ICF-JOB-SCHEDULER-MIB DEFINITIONS ::= BEGIN
                      minute to be specified in the bitmap."
         ::= { hpicfJobSchedulerEntry 13 }
 
+    hpicfJobSchedulerDelay OBJECT-TYPE
+        SYNTAX      Unsigned32 (1..527039)
+        UNITS       "minutes" 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "The delay in minutes before running the job. For recurring
+                     jobs, this value is the delay before running 
+                     the job again." 
+        ::= { hpicfJobSchedulerEntry 14 }
+
+    hpicfJobSchedulerCount OBJECT-TYPE
+        SYNTAX      Unsigned32 (0..1000)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "The object is set to determine the number of times this job would run.
+                     The object value is set 0 if the job has no expiration count. "
+        ::= { hpicfJobSchedulerEntry 15 }
+
+    hpicfJobSchedulerStatus OBJECT-TYPE
+        SYNTAX      TruthValue
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Indicates whether the job is enabled or disabled.
+                     The object has value true(1) if job status is enabled;
+                     otherwise the object has value false(2) if job is disabled. "
+        ::= { hpicfJobSchedulerEntry 16 }
 
 
 -- ****************************************************************************
--- Conformance Information
+-- Conformance Information  
 -- ****************************************************************************
 
 -- units of conformance
 
     hpicfJobSchedulerGroup OBJECT-GROUP
-        OBJECTS {
+       OBJECTS {
             hpicfJobSchedulerRowStatus,
             hpicfJobSchedulerCommand,
             hpicfJobSchedulerConfigSave,
@@ -289,10 +342,33 @@ HP-ICF-JOB-SCHEDULER-MIB DEFINITIONS ::= BEGIN
             hpicfJobSchedulerCalendarHour,
             hpicfJobSchedulerCalendarMinute
         }
-        STATUS      current
+        STATUS      deprecated
         DESCRIPTION "A collection of objects providing configuration
                      of scheduled jobs."
         ::= { hpicfJobSchedulerMIBGroups 1 }
+
+    hpicfJobSchedulerGroup1 OBJECT-GROUP
+       OBJECTS {
+            hpicfJobSchedulerRowStatus,
+            hpicfJobSchedulerCommand,
+            hpicfJobSchedulerConfigSave,
+            hpicfJobSchedulerRunCount,
+            hpicfJobSchedulerErrorCount,
+            hpicfJobSchedulerLastOutput,
+            hpicfJobSchedulerEvent,
+            hpicfJobSchedulerCalendarMonth,
+            hpicfJobSchedulerCalendarDayOfMonth,
+            hpicfJobSchedulerCalendarDayOfWeek,
+            hpicfJobSchedulerCalendarHour,
+            hpicfJobSchedulerCalendarMinute,
+            hpicfJobSchedulerDelay,
+            hpicfJobSchedulerCount,
+            hpicfJobSchedulerStatus
+        }
+        STATUS      current
+        DESCRIPTION "A collection of objects providing configuration
+                     of scheduled jobs."
+        ::= { hpicfJobSchedulerMIBGroups 2 }
  
     hpicfJobSchedulerMIBCompliances OBJECT IDENTIFIER ::= { hpicfJobSchedulerConformance 1 }
     hpicfJobSchedulerMIBGroups      OBJECT IDENTIFIER ::= { hpicfJobSchedulerConformance 2 }
@@ -300,7 +376,7 @@ HP-ICF-JOB-SCHEDULER-MIB DEFINITIONS ::= BEGIN
 -- compliance statements
 
     hpicfJobSchedulerMIBCompliance MODULE-COMPLIANCE
-        STATUS      current
+        STATUS      deprecated
         DESCRIPTION "The compliance statement for device support of
                      HP-ICF-JOB-SCHEDULER-MIB."
         MODULE -- This Module
@@ -308,5 +384,15 @@ HP-ICF-JOB-SCHEDULER-MIB DEFINITIONS ::= BEGIN
             hpicfJobSchedulerGroup
         }
         ::= { hpicfJobSchedulerMIBCompliances 1 }
+
+    hpicfJobSchedulerMIBCompliance1 MODULE-COMPLIANCE
+        STATUS      current
+        DESCRIPTION "The compliance statement for device support of
+                     HP-ICF-JOB-SCHEDULER-MIB."
+        MODULE -- This Module
+        MANDATORY-GROUPS {
+            hpicfJobSchedulerGroup1
+        }
+        ::= { hpicfJobSchedulerMIBCompliances 2 }
 
 END

@@ -11,12 +11,12 @@
  *
  */
 
-$datas = array('overview' => array('icon' => 'oicon-application-list'));
+$datas = array('overview' => array('icon' => $config['icon']['overview']));
 
 if (dbFetchCell("SELECT COUNT(*) FROM `processors` WHERE `device_id` = ?", array($device['device_id']))) { $datas['processor'] = array('icon' => $config['entities']['processor']['icon']); }
 if (dbFetchCell("SELECT COUNT(*) FROM `mempools` WHERE `device_id` = ?", array($device['device_id']))) { $datas['mempool'] = array('icon' => $config['entities']['mempool']['icon']); }
 if (dbFetchCell("SELECT COUNT(*) FROM `storage` WHERE `device_id` = ?", array($device['device_id']))) { $datas['storage'] = array('icon' => $config['entities']['storage']['icon']); }
-if (dbFetchCell("SELECT COUNT(*) FROM `ucd_diskio` WHERE `device_id` = ?", array($device['device_id']))) { $datas['diskio'] = array('icon' => 'oicon-drive--arrow'); }
+if (dbFetchCell("SELECT COUNT(*) FROM `ucd_diskio` WHERE `device_id` = ?", array($device['device_id']))) { $datas['diskio'] = array('icon' => $config['icon']['diskio']); }
 if (dbFetchCell("SELECT COUNT(*) FROM `status` WHERE `device_id` = ?", array($device['device_id']))) { $datas['status'] = array('icon' => $config['entities']['status']['icon']); }
 
 $sensors_device = dbFetchRows("SELECT `sensor_class` FROM `sensors` WHERE device_id = ? GROUP BY `sensor_class`", array($device['device_id']));
@@ -45,8 +45,8 @@ foreach ($datas as $type => $options)
   $navbar['options'][$type]['text'] = nicecase($type);
 }
 
-$navbar['options']['graphs']['text']  = 'Graphs';
-$navbar['options']['graphs']['icon']  = 'oicon-chart-up';
+//$navbar['options']['graphs']['text']  = 'Graphs';
+$navbar['options']['graphs']['icon']  = $config['icon']['graphs'];
 $navbar['options']['graphs']['right'] = TRUE;
 
 if ($vars['view'] == "graphs")

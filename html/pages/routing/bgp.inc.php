@@ -19,6 +19,7 @@ if ($_SESSION['userlevel'] < '5')
 }
 
 $form_items = array();
+$form_limit = 250; // Limit count for multiselect (use input instead)
 
 $form_devices = dbFetchColumn('SELECT DISTINCT `device_id` FROM `bgpPeers`;');
 $form_items['devices'] = generate_form_values('device', $form_devices);
@@ -26,12 +27,21 @@ $form_items['devices'] = generate_form_values('device', $form_devices);
 
 $param  = 'peer_as';
 $column = 'bgpPeerRemoteAs';
-foreach (dbFetchRows('SELECT DISTINCT `' . $column . '`, `astext` FROM `bgpPeers` WHERE 1 ' . $cache['where']['devices_permitted'] . ' ORDER BY `' . $column . '`') as $entry)
+// fast query 0.0015, 0.0020, 0.0017
+$query = 'SELECT COUNT(DISTINCT `' . $column . '`) FROM `bgpPeers` WHERE 1 ' . $cache['where']['devices_permitted'];
+$count = dbFetchCell($query);
+if ($count < $form_limit)
 {
-  if (empty($entry[$column])) { continue; }
+  $form_items[$param] = array(); // Set
+  // slow query: 0.0093, 0.0125, 0.0063
+  $query = 'SELECT DISTINCT `' . $column . '`, `astext` FROM `bgpPeers` WHERE 1 ' . $cache['where']['devices_permitted'] . ' ORDER BY `' . $column . '`';
+  foreach (dbFetchRows($query) as $entry)
+  {
+    if (empty($entry[$column])) { continue; }
 
-  $form_items[$param][$entry[$column]]['name']    = 'AS'.$entry[$column];
-  $form_items[$param][$entry[$column]]['subtext'] = $entry['astext'];
+    $form_items[$param][$entry[$column]]['name']    = 'AS'.$entry[$column];
+    $form_items[$param][$entry[$column]]['subtext'] = $entry['astext'];
+  }
 }
 
 $form_params = array('local_ip' => 'bgpPeerLocalAddr',
@@ -40,17 +50,23 @@ $form_params = array('local_ip' => 'bgpPeerLocalAddr',
                     );
 foreach ($form_params as $param => $column)
 {
-  foreach (dbFetchColumn('SELECT DISTINCT `' . $column . '` FROM `bgpPeers` WHERE 1 ' . $cache['where']['devices_permitted'] . ' ORDER BY `' . $column . '`') as $entry)
+  $query = 'SELECT COUNT(DISTINCT `' . $column . '`) FROM `bgpPeers` WHERE 1 ' . $cache['where']['devices_permitted'];
+  $count = dbFetchCell($query);
+  if ($count < $form_limit)
   {
-    if (empty($entry)) { continue; }
-
-    if (strpos($entry, ':') !== FALSE)
+    $query = 'SELECT DISTINCT `' . $column . '` FROM `bgpPeers` WHERE 1 ' . $cache['where']['devices_permitted'] . ' ORDER BY `' . $column . '`';
+    foreach (dbFetchColumn($query) as $entry)
     {
-      $form_items[$param][$entry]['group'] = 'IPv6';
-      $form_items[$param][$entry]['name']  = Net_IPv6::compress($entry);
-    } else {
-      $form_items[$param][$entry]['group'] = 'IPv4';
-      $form_items[$param][$entry]['name']  = escape_html($entry);
+      if (empty($entry)) { continue; }
+
+      if (strpos($entry, ':') !== FALSE)
+      {
+        $form_items[$param][$entry]['group'] = 'IPv6';
+        $form_items[$param][$entry]['name']  = Net_IPv6::compress($entry);
+      } else {
+        $form_items[$param][$entry]['group'] = 'IPv4';
+        $form_items[$param][$entry]['name']  = escape_html($entry);
+      }
     }
   }
 }
@@ -65,24 +81,32 @@ $form['row'][0]['device']   = array(
                                 'width'       => '100%',
                                 'value'       => $vars['device'],
                                 'values'      => $form_items['devices']);
-$form['row'][0]['local_ip'] = array(
+$param  = 'local_ip'; $param_name = 'Local address';
+foreach (array('local_ip' => 'Local address',
+               'peer_ip'  => 'Peer address',
+               'peer_as'  => 'Remote AS') as $param => $param_name)
+{
+  if (isset($form_items[$param]))
+  {
+    // If not so much item values, use multiselect
+    $form['row'][0][$param] = array(
                                 'type'        => 'multiselect',
-                                'name'        => 'Local address',
+                                'name'        => $param_name,
                                 'width'       => '100%',
-                                'value'       => $vars['local_ip'],
-                                'values'      => $form_items['local_ip']);
-$form['row'][0]['peer_ip']  = array(
-                                'type'        => 'multiselect',
-                                'name'        => 'Peer address',
+                                'value'       => escape_html($vars[$param]),
+                                'values'      => $form_items[$param]);
+  } else {
+    // Instead use input with autocomplete
+    $form['row'][0][$param] = array(
+                                'type'        => 'text',
+                                'name'        => $param_name,
                                 'width'       => '100%',
-                                'value'       => $vars['peer_ip'],
-                                'values'      => $form_items['peer_ip']);
-$form['row'][0]['peer_as']  = array(
-                                'type'        => 'multiselect',
-                                'name'        => 'Remote AS',
-                                'width'       => '100%',
-                                'value'       => $vars['peer_as'],
-                                'values'      => $form_items['peer_as']);
+                                'placeholder' => TRUE,
+                                'ajax'        => TRUE,
+                                'ajax_vars'   => array('field' => 'bgp_'.$param),
+                                'value'       => escape_html($vars[$param]));
+  }
+}
 $form['row'][0]['type']     = array(
                                 'type'        => 'select',
                                 'name'        => 'Type',

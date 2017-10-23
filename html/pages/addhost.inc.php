@@ -21,53 +21,18 @@ if ($_SESSION['userlevel'] < 10)
 
 if ($vars['hostname'])
 {
-  if ($_SESSION['userlevel'] >= '10')
+  if ($_SESSION['userlevel'] >= '10' && request_token_valid($vars))
   {
-    $hostname = strip_tags($vars['hostname']);
-    $snmp_community = strip_tags($vars['snmp_community']);
 
-    if ($vars['snmp_port'] && is_numeric($vars['snmp_port'])) { $snmp_port = (int)$vars['snmp_port']; } else { $snmp_port = 161; }
+    $result = add_device_vars($vars);
 
-    if ($vars['snmp_version'] === "v2c" || $vars['snmp_version'] === "v1")
-    {
-      if ($vars['snmp_community'])
-      {
-        $config['snmp']['community'] = array($snmp_community);
-      }
-
-      $snmp_version = $vars['snmp_version'];
-      print_message("Adding host $hostname communit" . (count($config['snmp']['community']) == 1 ? "y" : "ies") . " "  . implode(', ',$config['snmp']['community']) . " port $snmp_port");
-    }
-    else if ($vars['snmp_version'] === "v3")
-    {
-      $snmp_v3 = array (
-        'authlevel'  => $vars['snmp_authlevel'],
-        'authname'   => $vars['snmp_authname'],
-        'authpass'   => $vars['snmp_authpass'],
-        'authalgo'   => $vars['snmp_authalgo'],
-        'cryptopass' => $vars['snmp_cryptopass'],
-        'cryptoalgo' => $vars['snmp_cryptoalgo'],
-      );
-
-      array_unshift($config['snmp']['v3'], $snmp_v3);
-
-      $snmp_version = "v3";
-
-      print_message("Adding SNMPv3 host $hostname port $snmp_port");
-    } else {
-      print_error("Unsupported SNMP Version. There was a dropdown menu, how did you reach this error?"); // We have a hacker!
-    }
-
-    if ($vars['ignorerrd'] == 'confirm' || $vars['ignorerrd'] == '1' || $vars['ignorerrd'] == 'on') { $config['rrd_override'] = TRUE; }
-
-    $snmp_options = array();
-    if ($vars['ping_skip'] == '1' || $vars['ping_skip'] == 'on') { $snmp_options['ping_skip'] = TRUE; }
-
-    $result = add_device($hostname, $snmp_version, $snmp_port, strip_tags($vars['snmp_transport']), $snmp_options);
     if ($result)
     {
-      print_success("Device added (id = $result)");
+      $device_url  = generate_device_url(array('device_id' => $result));
+      $device_link = '<a href="' . $device_url . '" class="entity-popup" data-eid="' . $result . '" data-etype="device">' . $hostname . '</a>';
+      print_success("Device added (id = $result): $device_link");
     }
+
   } else {
     print_error("You don't have the necessary privileges to add hosts.");
   }
@@ -109,16 +74,16 @@ foreach ($config['snmp']['transports'] as $transport)
       // top row div
       $form['fieldset']['edit']    = array('div'   => 'top',
                                            'title' => 'Basic Configuration',
-                                           'icon'  => 'oicon-gear',
+                                           'icon'  => $config['icon']['settings'],
                                            'class' => 'col-md-6');
       $form['fieldset']['snmpv2']  = array('div'   => 'top',
                                            'title' => 'Authentication Configuration',
-                                           'icon'  => 'oicon-lock-warning',
+                                           'icon'  => $config['icon']['lock'],
                                            //'right' => TRUE,
                                            'class' => 'col-md-6 col-md-pull-0');
       $form['fieldset']['snmpv3']  = array('div'   => 'top',
                                            'title' => 'Authentication Configuration',
-                                           'icon'  => 'oicon-lock-warning',
+                                           'icon'  => $config['icon']['lock'],
                                            //'right' => TRUE,
                                            'class' => 'col-md-6 col-md-pull-0');
       // bottom row div
@@ -139,8 +104,8 @@ foreach ($config['snmp']['transports'] as $transport)
       $form['row'][2]['ping_skip'] = array(
                                       'type'        => 'checkbox',
                                       'fieldset'    => 'edit',
-                                      'name'        => 'Skip ping',
-                                      'placeholder' => 'Skip ICMP echo checks, only SNMP availability',
+                                      'name'        => 'Skip PING',
+                                      'placeholder' => 'Skip ICMP echo checks',
                                       'value'       => '');
       $form['row'][3]['snmp_version'] = array(
                                       'type'        => 'select',
@@ -180,8 +145,8 @@ foreach ($config['snmp']['transports'] as $transport)
       $form['row'][8]['ignorerrd'] = array(
                                       'type'        => 'checkbox',
                                       'fieldset'    => 'edit',
-                                      'name'        => 'Ignore RRD exist',
-                                      'placeholder' => 'Add device anyway if directory with RRDs already exists',
+                                      'name'        => 'Ignore existing RRDs',
+                                      'placeholder' => 'Ignore pre-existing RRD directory and files',
                                       'disabled'    => $config['rrd_override'],
                                       'value'       => $config['rrd_override']);
 

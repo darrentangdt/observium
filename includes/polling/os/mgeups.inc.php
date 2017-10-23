@@ -19,17 +19,13 @@
 
 // MG-SNMP-UPS-MIB::upsmgIdentModelName.0 = STRING: "5000_60"
 
-$version = trim(snmp_get($device, 'upsmgIdentFirmwareVersion.0', '-OQv', 'MG-SNMP-UPS-MIB'),'" ');
-
-$model = trim(snmp_get($device,'upsmgIdentModelName.0','-OQv','MG-SNMP-UPS-MIB'),'" ');
+$model = snmp_get($device,'upsmgIdentModelName.0','-OQv','MG-SNMP-UPS-MIB');
 
 // "5000_60" -> "5000 (60 kVA)"
 if (strstr($model,'_')) { $model = join(' (',explode('_',$model)) . ' kVA)'; }
 
-$hardware = trim(snmp_get($device,'upsmgIdentFamilyName.0','-OQv','MG-SNMP-UPS-MIB'),'" ') . ' ' . $model;
+$hardware = snmp_get($device,'upsmgIdentFamilyName.0','-OQv','MG-SNMP-UPS-MIB') . ' ' . $model;
 
-$serial = trim(snmp_get($device,'upsmgIdentSerialNumber.0','-OQv','MG-SNMP-UPS-MIB'),'" ');
-
-$features = 'Firmware: ' . trim(snmp_get($device,'upsmgAgentFirmwareVersion.0','-OQv','MG-SNMP-UPS-MIB'),'" ');
+$features = 'Firmware: ' . snmp_get($device,'upsmgAgentFirmwareVersion.0','-OQv','MG-SNMP-UPS-MIB');
 
 // EOF

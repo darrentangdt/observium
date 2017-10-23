@@ -414,9 +414,9 @@ class CollectdColor {
 			if ($value == 'random') {
 				$this->randomize();
 			} else if (preg_match('/([0-9A-Fa-f][0-9A-Fa-f])([0-9A-Fa-f][0-9A-Fa-f])([0-9A-Fa-f][0-9A-Fa-f])/', $value, $matches)) {
-				$this->r = ('0x'.$matches[1]) / 255.0;
-				$this->g = ('0x'.$matches[2]) / 255.0;
-				$this->b = ('0x'.$matches[3]) / 255.0;
+				$this->r = hexdec($matches[1]) / 255.0;
+				$this->g = hexdec($matches[2]) / 255.0;
+				$this->b = hexdec($matches[3]) / 255.0;
 			}
 		} else if (is_a($value, 'CollectdColor')) {
 			$this->r = $value->r;
@@ -750,11 +750,10 @@ function collectd_draw_meta_stack(&$opts, &$sources) {
 		}
 	}
 
-	$rrdcmd = RRDTOOL;
-        $rrdcmd = "";
+	$rrdargs = "";
 	for ($i = 1; $i < count($cmd); $i++)
-		$rrdcmd .= ' '.escapeshellarg($cmd[$i]);
-	return $rrdcmd;
+		$rrdargs .= ' '.escapeshellarg($cmd[$i]);
+	return $rrdargs;
 }
 
 /**
@@ -784,8 +783,8 @@ function collectd_draw_meta_line(&$opts, &$sources) {
 #	$cmd = array(RRDTOOL, 'graph', '-', '-E', '-a', 'PNG', '-w', $config['rrd_width'], '-h', $config['rrd_height'], '-t', $opts['title']);
 #	$cmd = array_merge($cmd, $config['rrd_opts_array'], $opts['rrd_opts']);
 
-        $cmd = array(RRDTOOL, 'graph', '-', '-E', '-a', 'PNG', '-w', $config['rrd_width'], '-h', $config['rrd_height']);
         $cmd = array('-', '-E', '-a', 'PNG', '-w', $config['rrd_width'], '-h', $config['rrd_height']);
+
 
         if($config['rrd_width'] <= "300") {
           $small_opts = array ('--font', 'LEGEND:7:mono', '--font', 'AXIS:6:mono', '--font-render-mode', 'normal');
@@ -793,7 +792,7 @@ function collectd_draw_meta_line(&$opts, &$sources) {
         }
 
 
-
+	$cmd = array_merge($cmd, $config['rrd_opts_array'], $opts['rrd_opts']);
 	$max_inst_name = 0;
 
 	foreach ($sources as &$inst_data) {
@@ -833,10 +832,10 @@ function collectd_draw_meta_line(&$opts, &$sources) {
 		}
 	}
 
-	$rrdcmd = RRDTOOL;
+	$rrdargs = "";
 	for ($i = 1; $i < count($cmd); $i++)
-		$rrdcmd .= ' '.escapeshellarg($cmd[$i]);
-	return $rrdcmd;
+		$rrdargs .= ' '.escapeshellarg($cmd[$i]);
+	return $rrdargs;
 }
 
 ?>

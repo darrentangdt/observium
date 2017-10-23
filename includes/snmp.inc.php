@@ -17,6 +17,23 @@
 ##
 ## TRUE STORY. THAT SHIT IS WHACK. -- adama.
 
+//CLEANME:
+// snmpwalk_cache_oid_num()   - (deprecated) not used anymore
+// snmpget_entity_oids()      - (deprecated) not used anymore
+// snmp_cache_slotport_oid()  - (deprecated) not used anymore
+// snmp_walk_parser()         - (deprecated) used in poller module netscaler-vsvr, need rewrite
+// snmp_walk_parser2()        - (deprecated) not used anymore
+// parse_oid()                - (deprecated) not used anymore, use snmp_parse_line()
+// parse_oid2()               - (deprecated) used in poller/discovery module mac-accounting, need rewrite
+
+// `egrep -r 'snmpwalk_cache_oid *\( *\$' .       | grep -v snmp.inc.php | wc -l` => 519
+// `egrep -r 'snmpwalk_cache_multi_oid *\( *\$' . | grep -v snmp.inc.php | wc -l` => 387
+// snmpwalk_cache_multi_oid() - (duplicate) call to snmpwalk_cache_oid()
+
+/**
+ * MIB dirs generate functions
+ */
+
 /**
  * Generates a list of mibdirs in the correct format for net-snmp
  *
@@ -46,6 +63,45 @@ function mib_dirs()
 
   return implode(':', array_unique($dirs));
 }
+
+
+/**
+ * Finds directories for requested MIBs as defined by the MIB definitions.
+ *
+ * @param string $mib One or more MIBs (separated by ':') to return the MIB dir for
+ *
+ * @return string Directories for requested MIBs, separated by ':' (for net-snmp)
+ */
+// TESTME needs unit testing
+function snmp_mib2mibdirs($mib)
+{
+  global $config;
+
+  $def_mibdirs = array();
+
+  // As we accept multiple MIBs separated by :, process them all for definition entries
+  foreach (explode(':', $mib) as $xmib)
+  {
+    if (!empty($config['mibs'][$xmib]['mib_dir'])) // Array or non-empty string
+    {
+      // Add definition based MIB dir. Don't worry about deduplication, mib_dirs() sorts that out for us
+      $def_mibdirs = array_merge($def_mibdirs, (array)$config['mibs'][$xmib]['mib_dir']);
+    }
+  }
+
+  if (count($def_mibdirs))
+  {
+    // Use MIB dirs found via foreach above
+    return mib_dirs($def_mibdirs);
+  } else {
+    // No specific MIB dirs found, set default Observium MIB dir
+    return $config['mib_dir'];
+  }
+}
+
+/**
+ * Convert/parse/validate oids & values
+ */
 
 /**
  * De-wrap 32bit counters
@@ -101,6 +157,11 @@ function snmp_fix_numeric($value)
   {
     // If cleaned data is numeric return number
     return $numeric + 0;
+  }
+  else if (preg_match('/^(\d+(?:\.\d+)?)[a-z]+$/i', $numeric, $matches))
+  {
+    // Number with unit, ie "8232W"
+    return $matches[1] + 0;
   } else {
     // Else return original value
     return $value;
@@ -108,7 +169,8 @@ function snmp_fix_numeric($value)
 }
 
 /**
- * Fixed ascii coded chars in snmp string as correct UTF-8 chars
+ * Fixed ascii coded chars in snmp string as correct UTF-8 chars.
+ * Convert all Mac/Windows newline chars (\r\n, \r) to Unix char (\n)
  *
  * NOTE, currently support only one-byte unicode
  *
@@ -127,6 +189,10 @@ function snmp_fix_string($string)
     $string = preg_replace_callback('/[^[:print:]\x00-\x1F\x80-\x9F]/m', 'convert_ord_char', $string);
     print_debug($debug_msg . PHP_EOL . '>>> Converted to:' . PHP_EOL . $string . PHP_EOL);
   }
+
+  // Convert all Mac/Windows newline chars (\r\n, \r) to Unix char (\n)
+  $string = nl2nl($string);
+
   return $string;
 }
 
@@ -147,17 +213,70 @@ function snmp_hexstring($string)
 }
 
 /**
- * Convert an SNMP index string (without len!) to regular string
+ * Clean SNMP value, ie: trim quotes, spaces, remove "wrong type", fix incorrect UTF8 strings, etc
+ * @param	string	$value	Value
+ * @param	integer	$flags	OBS_SNMP_* flags
+ * @return	string			Cleaned value
+ */
+function snmp_value_clean($value, $flags = OBS_SNMP_ALL)
+{
+  // For null just return NULL
+  if (NULL === $value)
+  {
+    return $value;
+  }
+
+  // Clean quotes and trim
+  $value = trim_quotes($value, $flags);
+
+  // Remove Wrong Type string
+  if (strpos($value, 'Wrong Type') === 0)
+  {
+    $value = preg_replace('/Wrong Type .*?: (.*)/s', '\1', $value);
+  }
+
+  // Fix incorrect UTF8 strings
+  if (is_flag_set(OBS_DECODE_UTF8, $flags))
+  {
+    $value = snmp_fix_string($value);
+  }
+
+  /* Need use case
+  // Convert incorrect HEX strings back to string
+  if (!is_flag_set(OBS_SNMP_HEX, $flags))
+  {
+    $value = snmp_hexstring($value);
+  }
+  */
+
+  return $value;
+}
+
+/**
+ * Convert an SNMP index string (with len!) to regular string
+ * Opposite function for snmp_string_to_oid()
+ * Example:
+ *  9.79.98.115.101.114.118.105.117.109 -> Observium
  *
  * @param string $index
  * @return string
  */
-function snmp_indexstring($index)
+function snmp_oid_to_string($index)
 {
-  if (preg_match('/^[\d\.]+$/', $index))
+  $index = (string)$index;
+  if ($index === '0') { return ''; } // This is just empty string!
+
+  if (preg_match('/^\.?(\d+(?:\.\d+)+)$/', $index, $matches))
   {
+    $str_parts = explode('.', $matches[1]);
+    $str_len   = array_shift($str_parts);
+    if ($str_len != count($str_parts))
+    {
+      // break, incorrect index string (str len not match)
+      return $index;
+    }
     $string = '';
-    foreach (explode('.', $index) as $char)
+    foreach ($str_parts as $char)
     {
       if ($char > 255)
       {
@@ -173,6 +292,34 @@ function snmp_indexstring($index)
 }
 
 /**
+ * Convert ASCII string to an SNMP index (with len!)
+ * Opposite function for snmp_oid_to_string()
+ * Example:
+ *  Observium -> 9.79.98.115.101.114.118.105.117.109
+ *
+ * @param string $string
+ * @return string
+ */
+function snmp_string_to_oid($string)
+{
+  // uses the first octet of index as length
+  $index = strlen((string)$string);
+  if ($index === 0)
+  {
+    // Empty string
+    return (string)$index;
+  }
+
+  // converts the index as string to decimal ascii codes
+  foreach (str_split($string) as $char)
+  {
+    $index .= '.' . ord($char);
+  }
+
+  return $index;
+}
+
+/**
  * Check if returned snmp value is valid
  *
  * @param string $value
@@ -182,43 +329,107 @@ function is_valid_snmp_value($value)
 {
   $valid = strpos($value, 'at this OID') === FALSE &&
            strpos($value, 'No more variables left') === FALSE &&
-           $value != 'NULL' && $value != 'null';
+           $value != 'NULL' && $value != 'null' && $value !== NULL;
 
   return $valid;
 }
 
 /**
- * Finds directories for requested MIBs as defined by the MIB definitions.
+ * Parse each line in output from snmpwalk into:
+ *   oid (raw), oid_name, index, index_parts, index_count, value
  *
- * @param string $mib One or more MIBs (separated by ':') to return the MIB dir for
+ * This parser always used snmpwalk with base options: -OQUs
+ * and allowed to use additional options: bnexX
  *
- * @return string Directories for requested MIBs, separated by ':' (for net-snmp)
+ * Value always cleaned from unnecessary data by snmp_value_clean()
+ *
+ * @param string $line   snmpwalk output line
+ * @param integer $flags Common snmp flags
+ * @return array Array with parsed values
  */
-// TESTME needs unit testing
-function snmp_mib2mibdirs($mib)
+function snmp_parse_line($line, $flags = OBS_SNMP_ALL)
 {
-  global $config;
+  /**
+   * Note, this is parse line only for -OQUs (and additionally: bnexX)
+   *  Q - Removes the type information when displaying varbind values: SNMPv2-MIB::sysUpTime.0 = 1:15:09:27.63
+   *  U - Do not print the UNITS suffix at the end of the value
+   *  s - Do not display the name of the MIB
+   *  b - Display table indexes numerically: SNMP-VIEW-BASED-ACM-MIB::vacmSecurityModel.0.3.119.101.115 = xxx
+   *  n - Displays the OID numerically: .1.3.6.1.2.1.1.3.0 = Timeticks: (14096763) 1 day, 15:09:27.63
+   *  e - Removes the symbolic labels from enumeration values: forwarding(1) -> 1
+   *  x - Force display string values as Hex strings
+   *  X - Display table indexes in a more "program like" output: IPv6-MIB::ipv6RouteIfIndex[3ffe:100:ff00:0:0:0:0:0][64][1] = 2
+   */
 
-  $def_mibdirs = array();
+  list($r_oid, $value) = explode('=', $line, 2);
+  $r_oid = trim($r_oid);
+  $value = snmp_value_clean($value, $flags);
 
-  // As we accept multiple MIBs separated by :, process them all for definition entries
-  foreach (explode(':', $mib) as $xmib)
+  $array = array('oid'   => $r_oid,
+                 'value' => $value);
+
+  if (is_flag_set(OBS_SNMP_NUMERIC, $flags))
   {
-    if (!empty($config['mibs'][$xmib]['mib_dir'])) // Array or non-empty string
+    // For numeric, just return raw oid and value
+    // Example: .1.3.6.1.2.1.1.3.0 = 15:09:27.63
+    if (isset($r_oid[0]))
     {
-      // Add definition based MIB dir. Don't worry about deduplication, mib_dirs() sorts that out for us
-      $def_mibdirs = array_merge($def_mibdirs, (array)$config['mibs'][$xmib]['mib_dir']);
+      // I think not possible, but I leave this here, just in case --mike
+      //if ($r_oid[0] !== '.')
+      //{
+      //  $array['index'] = '.' . $array['index'];
+      //}
+      $array['index_count'] = 1;
+    } else {
+      $array['index_count'] = 0;
+    }
+    $array['index']       = $r_oid;
+    return $array;
+  }
+
+  if ($is_table = is_flag_set(OBS_SNMP_TABLE, $flags))
+  {
+    // For table use another parse rules
+    // Example: ipv6RouteIfIndex[3ffe:100:ff00:0:0:0:0:0][64][1]
+    $oid_parts = array();
+    foreach (explode('[', $r_oid) as $oid_part)
+    {
+      $oid_parts[] = rtrim($oid_part, ']');
     }
   }
-
-  if (count($def_mibdirs))
+  else if (strpos($r_oid, '"') !== FALSE)
   {
-    // Use MIB dirs found via foreach above
-    return mib_dirs($def_mibdirs);
+    // Example: jnxVpnPwLocalSiteId.l2Circuit."ge-0/1/1.0".621
+    //$oid_part = stripslashes($r_oid);
+    $oid_part = $r_oid;
+    $oid_parts = array();
+    do
+    {
+      if (preg_match('/^"([^"]*)"(?:\.(.+))?/', $oid_part, $matches))
+      {
+        // Part with stripes
+        $oid_parts[] = $matches[1];
+        $oid_part    = $matches[2]; // Next part
+      } else {
+        $matches = explode('.', $oid_part, 2);
+        $oid_parts[] = $matches[0];
+        $oid_part    = $matches[1]; // Next part
+      }
+      // print_vars($matches);
+    } while (strlen($oid_part) > 0);
+    // print_vars($oid_parts);
   } else {
-    // No specific MIB dirs found, set default Observium MIB dir
-    return $config['mib_dir'];
+    // Simple, not always correct
+    // Example: vacmSecurityModel.0.3.119.101.115
+    $oid_parts = explode('.', $r_oid);
   }
+  $array['oid_name']    = array_shift($oid_parts);
+  //$array['oid_name']    = end(explode('::', $array['oid_name'], 2)); // We use -Os
+  $array['index_parts'] = $oid_parts;
+  $array['index_count'] = count($oid_parts);
+  $array['index']       = implode('.', $oid_parts);
+  //var_dump($array);
+  return $array;
 }
 
 // Translate OID string to numeric:
@@ -278,145 +489,10 @@ function snmp_translate($oid, $mib = NULL, $mibdir = NULL)
   }
 }
 
-/**
- * Take -OXqs output and parse it into an array containing OID array and the value
- * Hopefully this is the beginning of more intelligent OID parsing!
- * Thanks to David Farrell <DavidPFarrell@gmail.com> for the parser solution.
- * This function is free for use by all with attribution to David.
- *
- * @return array
- * @param $string
- */
-// TESTME needs unit testing
-function parse_oid2($string)
-{
-  $result = array();
-  $matches = array();
-
-  // Match OID - If wrapped in double-quotes ('"'), must escape '"', else must escape ' ' (space) or '[' - Other escaping is optional
-  $match_count = preg_match('/^(?:((?!")(?:[^\\\\\\[ ]|(?:\\\\.))+)|(?:"((?:[^\\\\\"]|(?:\\\\.))+)"))/', $string, $matches);
-  if (null !== $match_count && $match_count > 0)
-  {
-    // [1] = unquoted, [2] = quoted
-    $value = strlen($matches[1]) > 0 ? $matches[1] : $matches[2];
-    $result[] = stripslashes($value);
-
-    // I do this (vs keeping track of offset) to use ^ in regex
-    $string = substr($string, strlen($matches[0]));
-
-    // Match indexes (optional) - If wrapped in double-quotes ('"'), must escape '"', else must escape ']' - Other escaping is optional
-    while (true)
-    {
-      $match_count = preg_match('/^\\[(?:((?!")(?:[^\\\\\\]]|(?:\\\\.))+)|(?:"((?:[^\\\\\"]|(?:\\\\.))+)"))\\]/', $string, $matches);
-      if (null !== $match_count && $match_count > 0)
-      {
-        // [1] = unquoted, [2] = quoted
-        $value = strlen($matches[1]) > 0 ? $matches[1] : $matches[2];
-        $result[] = stripslashes($value);
-
-        // I do this (vs keeping track of offset) to use ^ in regex
-        $string = substr($string, strlen($matches[0]));
-      }
-      else
-      {
-        break;
-      }
-    } // while
-
-    // Match value - Skips leading ' ' characters - If remainder is wrapped in double-quotes ('"'), must escape '"', other escaping is optional
-    $match_count = preg_match('/^\\s+(?:((?!")(?:[^\\\\]|(?:\\\\.))+)|(?:"((?:[^\\\\\"]|(?:\\\\.))+)"))$/', $string, $matches);
-    if (null !== $match_count && $match_count > 0)
-    {
-      // [1] = unquoted, [2] = quoted
-      $value = strlen($matches[1]) > 0 ? $matches[1] : $matches[2];
-
-      $result[] = stripslashes($value);
-
-      if (strlen($string) != strlen($matches[0])) { echo 'Length error!'; return null; }
-
-      return $result;
-    }
-  }
-
-  // All or nothing
-  return null;
-}
 
 /**
- * Take -Oqs output and parse it into an array containing OID array and the value
- * Hopefully this is the beginning of more intelligent OID parsing!
- * Thanks to David Farrell <DavidPFarrell@gmail.com> for the parser solution.
- * This function is free for use by all with attribution to David.
- *
- * @return array
- * @param $string
+ * Common SNMP functions for generate cmd and log errors
  */
-// TESTME needs unit testing
-function parse_oid($string)
-{
-  $result = array();
-  while (true)
-  {
-    $matches = array();
-    $match_count = preg_match('/^(?:((?:[^\\\\\\. "]|(?:\\\\.))+)|(?:"((?:[^\\\\"]|(?:\\\\.))+)"))((?:[\\. ])|$)/', $string, $matches);
-    if (null !== $match_count && $match_count > 0)
-    {
-      // [1] = unquoted, [2] = quoted
-      $value = strlen($matches[1]) > 0 ? $matches[1] : $matches[2];
-      $result[] = stripslashes($value);
-
-      // Are we expecting any more parts?
-      if (strlen($matches[3]) > 0)
-      {
-        // I do this (vs keeping track of offset) to use ^ in regex
-        $string = substr($string, strlen($matches[0]));
-      }
-      else
-      {
-        $ret['value'] = array_pop($result);
-        $ret['oid']   = $result;
-        return $ret;
-      }
-    }
-    else
-    {
-      // All or nothing
-      return null;
-    }
-  } // while
-}
-
-// DOCME needs phpdoc block
-// TESTME needs unit testing
-function string_to_oid($string)
-{
-  $oid = strlen($string);
-
-  for($i = 0; $i != strlen($string); $i++)
-  {
-     $oid .= '.'.ord($string[$i]);
-  }
-
-  return $oid;
-}
-
-// Dirty attempt to parse snmp stuff. YUCK.
-
-// DOCME needs phpdoc block
-// TESTME needs unit testing
-function snmp_parser_quote($m)
-{
-  return str_replace(array('.',' '),
-    array('PLACEHOLDER-DOT', 'PLACEHOLDER-SPACE'), $m[1]);
-}
-
-// DOCME needs phpdoc block
-// TESTME needs unit testing
-function snmp_parser_unquote($str)
-{
-  return str_replace(array('PLACEHOLDER-DOT', 'PLACEHOLDER-SPACE', 'PLACEHOLDER-ESCAPED-QUOTE'),
-    array('.',' ','"'), $str);
-}
 
 /**
  * Build a commandline string for net-snmp commands.
@@ -461,7 +537,11 @@ function snmp_command($command, $device, $oids, $options, $mib = NULL, &$mibdir 
         $cmd = $config['snmpwalk'];
       } else {
         $cmd = $config['snmpbulkwalk'];
-        if ($config['snmp']['max-rep'] && is_numeric($config['os'][$device['os']]['snmp']['max-rep']))
+        if (is_numeric($device['snmp_maxrep']))
+        {
+          $cmd .= ' -Cr'.$device['snmp_maxrep'];
+        }
+        elseif ($config['snmp']['max-rep'] && is_numeric($config['os'][$device['os']]['snmp']['max-rep']))
         {
           $cmd .= ' -Cr'.$config['os'][$device['os']]['snmp']['max-rep'];
         }
@@ -481,7 +561,11 @@ function snmp_command($command, $device, $oids, $options, $mib = NULL, &$mibdir 
         $cmd = $config['snmpget'];
       } else {
         $cmd = $config['snmpbulkget'];
-        if ($config['snmp']['max-rep'] && is_numeric($config['os'][$device['os']]['snmp']['max-rep']))
+        if (is_numeric($device['snmp_maxrep']))
+        {
+          $cmd .= ' -Cr'.$device['snmp_maxrep'];
+        }
+        elseif ($config['snmp']['max-rep'] && is_numeric($config['os'][$device['os']]['snmp']['max-rep']))
         {
           $cmd .= ' -Cr'.$config['os'][$device['os']]['snmp']['max-rep'];
         }
@@ -544,10 +628,88 @@ function snmp_command($command, $device, $oids, $options, $mib = NULL, &$mibdir 
   $cmd .= ' ' . escapeshellarg($device['snmp_transport']).':'.escapeshellarg($device['hostname']).':'.escapeshellarg($device['snmp_port']);
 
   // Add the OID(s) to the string
-  $cmd .= ' ' . $oids;
+  $oids = trim($oids);
+  if ($oids === '')
+  {
+    print_error("Empty oids passed to snmp_command(). THIS SHOULD NOT HAPPEN. PLEASE REPORT TO DEVELOPERS.");
+    $GLOBALS['snmp_command'] = $cmd;
+    return FALSE;
+  } else {
+    $cmd .= ' ' . addslashes($oids); // Quote slashes for string indexes
+    $GLOBALS['snmp_command'] = $cmd;
+  }
 
   // If we're not debugging, direct errors to /dev/null.
   if (!OBS_DEBUG) { $cmd .= ' 2>/dev/null'; }
+
+  return $cmd;
+}
+
+/**
+ * Build authentication for net-snmp commands using device array
+ *
+ * @return array
+ * @param array $device
+ */
+// TESTME needs unit testing
+function snmp_gen_auth(&$device)
+{
+  $cmd = '';
+  $vlan = FALSE;
+
+  if (isset($device['snmp_context']))
+  {
+    if (is_numeric($device['snmp_context']) && $device['snmp_context'] > 0 && $device['snmp_context'] < 4096 )
+    {
+      $vlan = $device['snmp_context'];
+    }
+  }
+
+  switch ($device['snmp_version'])
+  {
+    case 'v3':
+      $cmd = ' -v3 -l ' . escapeshellarg($device['snmp_authlevel']);
+      /* NOTE.
+       * For proper work of 'vlan-' context on cisco, it is necessary to add 'match prefix' in snmp-server config --mike
+       * example: snmp-server group MONITOR v3 auth match prefix access SNMP-MONITOR
+       */
+      $cmd .= ($vlan) ? ' -n "vlan-' . $vlan . '"' : ' -n ""'; // Some devices, like HP, always require option '-n'
+
+      switch ($device['snmp_authlevel'])
+      {
+        case 'authPriv':
+          $cmd .= ' -x ' . escapeshellarg($device['snmp_cryptoalgo']);
+          $cmd .= ' -X ' . escapeshellarg($device['snmp_cryptopass']);
+          // no break here
+        case 'authNoPriv':
+          $cmd .= ' -a ' . escapeshellarg($device['snmp_authalgo']);
+          $cmd .= ' -A ' . escapeshellarg($device['snmp_authpass']);
+          $cmd .= ' -u ' . escapeshellarg($device['snmp_authname']);
+          break;
+        case 'noAuthNoPriv':
+          // We have to provide a username anyway (see Net-SNMP doc)
+          $cmd .= ' -u observium';
+          break;
+        default:
+          print_error('ERROR: Unsupported SNMPv3 snmp_authlevel (' . $device['snmp_authlevel'] . ')');
+      }
+      break;
+
+    case 'v2c':
+    case 'v1':
+      $cmd  = ' -' . $device['snmp_version'];
+      $cmd .= ' -c ' . escapeshellarg($device['snmp_community']);
+      if ($vlan) { $cmd .= '@' . $vlan; }
+      break;
+    default:
+      print_error('ERROR: ' . $device['snmp_version'] . ' : Unsupported SNMP Version.');
+  }
+
+  if (OBS_DEBUG === 1 && !$GLOBALS['config']['snmp']['hide_auth'])
+  {
+    $debug_auth = "DEBUG: SNMP Auth options = $cmd";
+    print_debug($debug_auth);
+  }
 
   return $cmd;
 }
@@ -605,9 +767,10 @@ function snmp_log_errors($command, $device, $oid, $options, $mib, $mibdir)
       if ($GLOBALS['exec_status']['exitcode'] === 1 || $GLOBALS['exec_status']['exitcode'] === -1)
       {
         $error_code = 1002;
-        if (strpos($GLOBALS['exec_status']['stderr'], '.index are too large') !== FALSE) { $error_code = 997; }
+        if (strpos($GLOBALS['exec_status']['stderr'], '.index are too large') !== FALSE)      { $error_code = 997; }
         else if (strpos($GLOBALS['exec_status']['stderr'], 'Cannot find module') !== FALSE ||
             strpos($GLOBALS['exec_status']['stderr'], 'Unknown Object Identifier') !== FALSE) { $error_code = 996; }
+        else if (strpos($GLOBALS['exec_status']['stderr'], 'Empty command passed') !== FALSE) { $error_code = 995; }
       }
       else if ($GLOBALS['exec_status']['exitcode'] === 2)
       {
@@ -762,7 +925,7 @@ function snmp_log_errors($command, $device, $oid, $options, $mib, $mibdir)
 // TESTME needs unit testing
 function snmp_get_multi($device, $oids, $options = '-OQUs', $mib = NULL, $mibdir = NULL, $flags = OBS_QUOTES_TRIM)
 {
-  global $snmp_stats, $mibs_loaded;
+  global $snmp_stats;
 
   if (is_array($oids))
   {
@@ -797,13 +960,9 @@ function snmp_get_multi($device, $oids, $options = '-OQUs', $mib = NULL, $mibdir
   {
     list($oid,$value) = explode('=', $entry, 2);
     $oid   = trim($oid);
-    $value = trim_quotes($value, $flags);
-    list($oid, $index) = explode('.', $oid);
-    if (strpos($value, 'Wrong Type') === 0)
-    {
-      // Remove Wrong Type string
-      $value = preg_replace('/Wrong Type .*?: (.*)/s', '\1', $value);
-    }
+    $value = snmp_value_clean($value, $flags);
+    list($oid, $index) = explode('.', $oid, 2);
+
     if (isset($oid[0]) && is_valid_snmp_value($value))
     {
       $array[$index][$oid] = $value;
@@ -824,6 +983,10 @@ function snmp_get_multi($device, $oids, $options = '-OQUs', $mib = NULL, $mibdir
 }
 
 /**
+ * Common SNMP get/walk functions
+ */
+
+/**
  * Uses snmpget to fetch a single OID and returns a string.
  *
  * @param  array  $device
@@ -834,10 +997,9 @@ function snmp_get_multi($device, $oids, $options = '-OQUs', $mib = NULL, $mibdir
  * @global debug
  * @return string
  */
-// TESTME needs unit testing
 function snmp_get($device, $oid, $options = NULL, $mib = NULL, $mibdir = NULL, $flags = OBS_QUOTES_TRIM)
 {
-  global $snmp_stats,$mibs_loaded;
+  global $snmp_stats;
 
   if (strpos($oid, ' '))
   {
@@ -846,11 +1008,11 @@ function snmp_get($device, $oid, $options = NULL, $mib = NULL, $mibdir = NULL, $
 
   $cmd = snmp_command('snmpget', $device, $oid, $options, $mib, $mibdir, $flags);
 
-  $start = microtime(TRUE);
-  $data = external_exec($cmd);
+  $start    = microtime(TRUE);
+  $data     = external_exec($cmd);
   $runtime  = microtime(TRUE) - $start;
 
-  $data = trim_quotes($data, $flags);
+  $data = snmp_value_clean($data, $flags);
   $GLOBALS['snmp_status'] = ($GLOBALS['exec_status']['exitcode'] === 0 ? TRUE : FALSE);
 
   $GLOBALS['snmp_stats']['snmpget']['count']++;
@@ -858,11 +1020,6 @@ function snmp_get($device, $oid, $options = NULL, $mib = NULL, $mibdir = NULL, $
 
   if (isset($data[0])) // same as strlen($data) > 0
   {
-    if (strpos($data, 'Wrong Type') === 0)
-    {
-      // Remove Wrong Type string
-      $data = preg_replace('/Wrong Type .*?: (.*)/s', '\1', $data);
-    }
     if (preg_match('/(?:No Such Instance|No Such Object|There is no such variable|No more variables left|Authentication failure)/i', $data) ||
         $data == 'NULL')
     {
@@ -883,70 +1040,8 @@ function snmp_get($device, $oid, $options = NULL, $mib = NULL, $mibdir = NULL, $
 
 // DOCME needs phpdoc block
 // TESTME needs unit testing
-function snmp_walk_parser2($device, $oid, $oid_elements, $mib = NULL, $mibdir = NULL)
-{
-  $data = snmp_walk($device, $oid, '-Oqs', $mib, $mibdir, FALSE);
-  foreach (explode("\n", $data) as $text)
-  {
-    $ret = parse_oid2($text);
-    if (!empty($ret['value']))
-    {
-      // this seems retarded. need a way to just build this automatically.
-      switch ($oid_elements)
-      {
-        case 1:
-          $array[$ret['oid'][0]] = $ret['value'];
-          break;
-        case 2:
-          $array[$ret['oid'][1]][$ret['oid'][0]] = $ret['value'];
-          break;
-        case 3:
-          $array[$ret['oid'][1]][$ret['oid'][2]][$ret['oid'][0]] = $ret['value'];
-          break;
-        case 4:
-          $array[$ret['oid'][1]][$ret['oid'][2]][$ret['oid'][3]][$ret['oid'][0]] = $ret['value'];
-          break;
-      }
-    }
-  }
-  return $array;
-}
-
-// DOCME needs phpdoc block
-// TESTME needs unit testing
-function snmp_walk_parser($device, $oid, $oid_elements, $mib = NULL, $mibdir = NULL)
-{
-  $data = snmp_walk($device, $oid, '-Oqs', $mib, $mibdir, FALSE);
-  foreach (explode("\n", $data) as $text)
-  {
-    $ret = parse_oid($text);
-    if (!empty($ret['value']))
-    {
-      // this seems retarded. need a way to just build this automatically.
-      switch ($oid_elements)
-      {
-        case 1:
-          $array[$ret['oid'][0]] = $ret['value'];
-          break;
-        case 2:
-          $array[$ret['oid'][1]][$ret['oid'][0]] = $ret['value'];
-          break;
-        case 3:
-          $array[$ret['oid'][1]][$ret['oid'][2]][$ret['oid'][0]] = $ret['value'];
-          break;
-        case 4:
-          $array[$ret['oid'][1]][$ret['oid'][2]][$ret['oid'][3]][$ret['oid'][0]] = $ret['value'];
-          break;
-      }
-    }
-  }
-
-  return $array;
-}
-
-// DOCME needs phpdoc block
-// TESTME needs unit testing
-function snmp_walk($device, $oid, $options = NULL, $mib = NULL, $mibdir = NULL, $flags = OBS_QUOTES_STRIP) // FIXME, why strip quotes is default? this removes all quotes also in index
+// FIXME, why strip quotes is default? this removes all quotes also in index
+function snmp_walk($device, $oid, $options = NULL, $mib = NULL, $mibdir = NULL, $flags = OBS_QUOTES_STRIP)
 {
   global $snmp_stats;
 
@@ -958,6 +1053,7 @@ function snmp_walk($device, $oid, $options = NULL, $mib = NULL, $mibdir = NULL, 
 
   $GLOBALS['snmp_status'] = ($GLOBALS['exec_status']['exitcode'] === 0 ? TRUE : FALSE);
 
+  // FIXME, move this to snmp_parse_line() or remove, since snmp_parse_line() and snmp_value_clean() do this at correct way!
   if (is_flag_set(OBS_QUOTES_STRIP, $flags))
   {
     if (OBS_DEBUG > 1)
@@ -1027,35 +1123,6 @@ function snmp_walk($device, $oid, $options = NULL, $mib = NULL, $mibdir = NULL, 
   return $data;
 }
 
-// DOCME needs phpdoc block
-// TESTME needs unit testing
-function snmpwalk_cache_cip($device, $oid, $array, $mib = NULL, $mibdir = NULL)
-{
-  $data = snmp_walk($device, $oid, '-OsnQ', $mib, $mibdir);
-
-  foreach (explode("\n", $data) as $entry)
-  {
-    list ($this_oid, $this_value) = preg_split("/=/", $entry);
-    $this_oid = trim($this_oid);
-    $this_value = trim($this_value);
-    $this_oid = substr($this_oid, 30);
-    list($ifIndex,$dir,$a,$b,$c,$d,$e,$f) = explode('.', $this_oid);
-    $h_a = zeropad(dechex($a));
-    $h_b = zeropad(dechex($b));
-    $h_c = zeropad(dechex($c));
-    $h_d = zeropad(dechex($d));
-    $h_e = zeropad(dechex($e));
-    $h_f = zeropad(dechex($f));
-    $mac = "$h_a$h_b$h_c$h_d$h_e$h_f";
-    if ($dir == 1) { $dir = 'input'; } elseif ($dir == 2) { $dir = 'output'; }
-    if ($mac && $dir)
-    {
-      $array[$ifIndex][$mac][$oid][$dir] = $this_value;
-    }
-  }
-  return $array;
-}
-
 // Cache snmpEngineID
 // DOCME needs phpdoc block
 // TESTME needs unit testing
@@ -1067,10 +1134,17 @@ function snmp_cache_snmpEngineID($device)
 
   if (!isset($cache['snmp'][$device['device_id']]['snmpEngineID']))
   {
-    $snmpEngineID = snmp_get($device, 'snmpEngineID.0', '-Ovqn', 'SNMP-FRAMEWORK-MIB');
+    //$snmpEngineID = snmp_get($device, 'snmpEngineID.0', '-OQv', 'SNMP-FRAMEWORK-MIB');
+    $snmpEngineID = snmp_get_oid($device, 'snmpEngineID.0', 'SNMP-FRAMEWORK-MIB');
     $snmpEngineID = str_replace(array(' ', '"', "'", "\n", "\r"), '', $snmpEngineID);
 
-    $cache['snmp'][$device['device_id']]['snmpEngineID'] = $snmpEngineID;
+    if (isset($device['device_id']) && $device['device_id'] > 0)
+    {
+      $cache['snmp'][$device['device_id']]['snmpEngineID'] = $snmpEngineID;
+    } else {
+      // Correctly use this function, when device_id not set
+      return $snmpEngineID;
+    }
   }
 
   return $cache['snmp'][$device['device_id']]['snmpEngineID'];
@@ -1082,14 +1156,13 @@ function snmp_cache_snmpEngineID($device)
 function snmpwalk_values($device, $oid, $array, $mib = NULL, $mibdir = NULL)
 {
   $data = snmp_walk($device, $oid, '-OQUs', $mib, $mibdir);
-  foreach (explode("\n", $data) as $entry)
+  foreach (explode("\n", $data) as $line)
   {
-    list($oid,$value) = explode('=', $entry, 2);
-    $oid = trim($oid); $value = trim($value);
-    list($oid, $index) = explode('.', $oid, 2);
-    if (isset($oid) && isset($index) && is_valid_snmp_value($value))
+    $entry = snmp_parse_line($line);
+
+    if (isset($entry['oid_name'][0]) && $entry['index_count'] > 0 && is_valid_snmp_value($entry['value']))
     {
-      $array[] = $value;
+      $array[] = $entry['value'];
     }
   }
 
@@ -1101,6 +1174,9 @@ function snmpwalk_values($device, $oid, $array, $mib = NULL, $mibdir = NULL)
 // TESTME needs unit testing
 function snmpwalk_numericoids($device, $oid, $array, $mib = NULL, $mibdir = NULL)
 {
+  return snmpwalk_cache_oid($device, $oid, $array, $mib, $mibdir, OBS_SNMP_ALL_NUMERIC);
+
+  /*
   $data = snmp_walk($device, $oid, '-OQUn', $mib, $mibdir);
   foreach (explode("\n", $data) as $entry)
   {
@@ -1113,6 +1189,67 @@ function snmpwalk_numericoids($device, $oid, $array, $mib = NULL, $mibdir = NULL
   }
 
   return $array;
+  */
+}
+
+/**
+ * Uses snmpget to fetch single OID and return string value.
+ * Differences from snmp_get:
+ *  - not required raw $options, default is -OQv
+ *
+ * snmp_get() in-code (r8636) options:
+ *    -Oqv    : 252
+ *    -OQv    : 149
+ *    -OQUsv  : 37
+ *    -OUnqv  : 21
+ *    -Onqv   : 19
+ *    -Oqsv   : 17
+ *    -OQUnv  : 14
+ *    -OUqv   : 7
+ *    -Onqsv  : 3
+ *    -OQUs   : 2
+ *    -OUqsv  : 1
+ *    -OQnv   : 1
+ *    -OQUnsv : 1
+ * 
+ * snmp_get() cleaned options:
+ *   'U', 's' has no effect with 'v', 'Q' better than 'q' (no more Wrong Type):
+ *    -OQv    : 463
+ *    -OQnv   : 59
+ *    -OQUs   : 2
+ * 
+ *    snmp_get() each option:
+ *    v       : 522
+ *    q       : 320
+ *    Q       : 204
+ *    U       : 83
+ *    s       : 61
+ *    n       : 59
+ *
+ * @param  array  $device
+ * @param  string $oid
+ * @param  string $mib
+ * @param  string $mibdir Optional, correct path should be set in the MIB definition
+ * @global debug
+ * @return string
+ */
+function snmp_get_oid($device, $oid, $mib = NULL, $mibdir = NULL, $flags = OBS_QUOTES_TRIM)
+{
+  global $snmp_stats;
+
+  // Basic options,
+  // NOTE: 'U', 's' has no effect with 'v',
+  //       'Q' better than 'q' (no more Wrong Type):
+  $output = 'Qv';
+  
+  //if (is_flag_set(OBS_SNMP_NUMERIC_INDEX, $flags)) { $output .= 'b'; } // has no effect
+  if (is_flag_set(OBS_SNMP_NUMERIC,       $flags)) { $output .= 'n'; }   // not sure, probably need 't' (timeticks) also
+  if (is_flag_set(OBS_SNMP_ENUM,          $flags)) { $output .= 'e'; }
+  if (is_flag_set(OBS_SNMP_HEX,           $flags)) { $output .= 'x'; }
+  //if (is_flag_set(OBS_SNMP_TABLE,         $flags)) { $output .= 'X'; } // has no effect
+  $options = "-O$output";
+
+  return snmp_get($device, $oid, $options, $mib, $mibdir, $flags);
 }
 
 /**
@@ -1130,9 +1267,9 @@ function snmpwalk_numericoids($device, $oid, $array, $mib = NULL, $mibdir = NULL
  * @return array
  */
 // TESTME needs unit testing
-function snmpget_cache_multi($device, $oids, $array, $mib = NULL, $mibdir = NULL, $flags = OBS_QUOTES_TRIM)
+function snmp_get_multi_oid($device, $oids, $array, $mib = NULL, $mibdir = NULL, $flags = OBS_QUOTES_TRIM)
 {
-  global $snmp_stats, $mibs_loaded;
+  global $snmp_stats;
 
   $output       = 'QUs';
   $numeric_oids = is_flag_set(OBS_SNMP_NUMERIC, $flags); // Numeric oids, do not parse oid part
@@ -1140,6 +1277,7 @@ function snmpget_cache_multi($device, $oids, $array, $mib = NULL, $mibdir = NULL
   if ($numeric_oids)                               { $output .= 'n'; }
   if (is_flag_set(OBS_SNMP_ENUM,          $flags)) { $output .= 'e'; }
   if (is_flag_set(OBS_SNMP_HEX,           $flags)) { $output .= 'x'; }
+  if (is_flag_set(OBS_SNMP_TABLE,         $flags)) { $output .= 'X'; }
   $options = "-O$output";
 
   if (is_array($oids))
@@ -1172,28 +1310,21 @@ function snmpget_cache_multi($device, $oids, $array, $mib = NULL, $mibdir = NULL
     $GLOBALS['snmp_stats']['snmpget']['time'] += $runtime;
   }
 
-  foreach (explode("\n", $data) as $entry)
+  foreach (explode("\n", $data) as $line)
   {
-    list($oid, $value) = explode('=', $entry, 2);
-    $oid   = trim($oid);
-    $value = trim_quotes($value, $flags);
-    if (strpos($value, 'Wrong Type') === 0)
-    {
-      // Remove Wrong Type string
-      $value = preg_replace('/Wrong Type .*?: (.*)/s', '\1', $value);
-    }
+    $entry = snmp_parse_line($line, $flags);
 
     // For numeric oids do not split oid and index part
-    if ($numeric_oids && isset($oid[0]) && is_valid_snmp_value($value))
+    if ($numeric_oids && $entry['index_count'] > 0 && is_valid_snmp_value($entry['value']))
     {
-      $array[$oid] = $value;
+      $array[$entry['index']] = $entry['value'];
       continue;
     }
 
-    list($oid, $index) = explode('.', $oid, 2);
-    if (isset($oid[0]) && isset($index) && is_valid_snmp_value($value))
+    //list($oid, $index) = explode('.', $oid, 2);
+    if (isset($entry['oid_name'][0]) && $entry['index_count'] > 0 && is_valid_snmp_value($entry['value']))
     {
-      $array[$index][$oid] = $value;
+      $array[$entry['index']][$entry['oid_name']] = $entry['value'];
     }
   }
 
@@ -1222,6 +1353,37 @@ function snmpget_cache_multi($device, $oids, $array, $mib = NULL, $mibdir = NULL
  */
 function snmpwalk_cache_oid($device, $oid, $array, $mib = NULL, $mibdir = NULL, $flags = OBS_SNMP_ALL)
 {
+  $numeric_oids = is_flag_set(OBS_SNMP_NUMERIC, $flags); // Numeric oids, do not parse oid part
+
+  $output = 'QUs';
+  if (is_flag_set(OBS_SNMP_NUMERIC_INDEX, $flags)) { $output .= 'b'; }
+  if ($numeric_oids)                               { $output .= 'n'; }
+  if (is_flag_set(OBS_SNMP_ENUM,          $flags)) { $output .= 'e'; }
+  if (is_flag_set(OBS_SNMP_HEX,           $flags)) { $output .= 'x'; }
+  if (is_flag_set(OBS_SNMP_TABLE,         $flags)) { $output .= 'X'; }
+
+  $data = snmp_walk($device, $oid, "-O$output", $mib, $mibdir, $flags);
+  foreach (explode("\n", $data) as $line)
+  {
+    $entry = snmp_parse_line($line, $flags);
+
+    // For numeric oids do not split oid and index part
+    if ($numeric_oids && $entry['index_count'] > 0 && is_valid_snmp_value($entry['value']))
+    {
+      $array[$entry['index']] = $entry['value'];
+      continue;
+    }
+
+    if (isset($entry['oid_name'][0]) && $entry['index_count'] > 0 && is_valid_snmp_value($entry['value']))
+    {
+      $array[$entry['index']][$entry['oid_name']] = $entry['value'];
+    }
+  }
+
+  return $array;
+
+  // CLEANME
+  /*
   $output = 'QUs';
   if (is_flag_set(OBS_SNMP_NUMERIC_INDEX, $flags)) { $output .= 'b'; }
   if (is_flag_set(OBS_SNMP_NUMERIC,       $flags)) { $output .= 'n'; }
@@ -1243,6 +1405,7 @@ function snmpwalk_cache_oid($device, $oid, $array, $mib = NULL, $mibdir = NULL, 
   }
 
   return $array;
+  */
 }
 
 // just like snmpwalk_cache_oid except that it returns the numerical oid as the index
@@ -1251,8 +1414,12 @@ function snmpwalk_cache_oid($device, $oid, $array, $mib = NULL, $mibdir = NULL, 
 // to be the same.
 // DOCME needs phpdoc block
 // TESTME needs unit testing
+// CLEANME (deprecated) not used anymore
 function snmpwalk_cache_oid_num($device, $oid, $array, $mib = NULL, $mibdir = NULL)
 {
+  return snmpwalk_cache_oid($device, $oid, $array, $mib, $mibdir, OBS_SNMP_ALL_NUMERIC);
+
+  /*
   $data = snmp_walk($device, $oid, '-OQUn', $mib, $mibdir);
   foreach (explode("\n", $data) as $entry)
   {
@@ -1266,13 +1433,14 @@ function snmpwalk_cache_oid_num($device, $oid, $array, $mib = NULL, $mibdir = NU
   }
 
   return $array;
+  */
 }
 
 // just like snmpwalk_cache_oid_num (it returns the numerical oid as the index),
 // but use snmptranslate for cut mib part from index
-/// FIXME. maybe override function snmpwalk_cache_oid_num()?
 // DOCME needs phpdoc block
 // TESTME needs unit testing
+// FIXME. maybe override function snmpwalk_cache_oid_num()?
 function snmpwalk_cache_oid_num2($device, $oid, $array, $mib = NULL, $mibdir = NULL, $flags = OBS_SNMP_ALL_NUMERIC)
 {
   $output = 'QUn'; // This function always use OBS_SNMP_NUMERIC
@@ -1290,7 +1458,7 @@ function snmpwalk_cache_oid_num2($device, $oid, $array, $mib = NULL, $mibdir = N
   {
     list($oid_num, $value) = explode('=', $entry, 2);
     $oid_num = trim($oid_num);
-    $value   = trim_quotes($value, $flags);
+    $value   = snmp_value_clean($value, $flags);
     $index   = preg_replace($pattern, '', $oid_num);
 
     if (isset($oid) && isset($index[0]) && is_valid_snmp_value($value))
@@ -1304,55 +1472,70 @@ function snmpwalk_cache_oid_num2($device, $oid, $array, $mib = NULL, $mibdir = N
 
 // DOCME needs phpdoc block
 // TESTME needs unit testing
-function snmpwalk_cache_multi_oid($device, $oid, $array, $mib = NULL, $mibdir = NULL, $flags = OBS_SNMP_ALL)
+// used only in discovery/processors/juniper-system-mib.inc.php
+function snmpwalk_cache_bare_oid($device, $oid, $array, $mib = NULL, $mibdir = NULL, $flags = OBS_SNMP_ALL)
 {
+  // Always use snmpwalk_cache_oid() for numeric
+  if (is_flag_set(OBS_SNMP_NUMERIC,       $flags))
+  {
+    return snmpwalk_cache_oid($device, $oid, $array, $mib, $mibdir, $flags);
+  }
+
   $output = 'QUs';
   if (is_flag_set(OBS_SNMP_NUMERIC_INDEX, $flags)) { $output .= 'b'; }
-  if (is_flag_set(OBS_SNMP_NUMERIC,       $flags)) { $output .= 'n'; }
+  //if (is_flag_set(OBS_SNMP_NUMERIC,       $flags)) { $output .= 'n'; }
   if (is_flag_set(OBS_SNMP_ENUM,          $flags)) { $output .= 'e'; }
   if (is_flag_set(OBS_SNMP_HEX,           $flags)) { $output .= 'x'; }
+  if (is_flag_set(OBS_SNMP_TABLE,         $flags)) { $output .= 'X'; }
 
+  $index_count = 2;
   $data = snmp_walk($device, $oid, "-O$output", $mib, $mibdir, $flags);
-  foreach (explode("\n", $data) as $entry)
+  foreach (explode("\n", $data) as $line)
   {
-    list($r_oid,$value) = explode('=', $entry, 2);
-    $r_oid = trim($r_oid);
-    $oid_parts = explode('.', $r_oid);
-    if (count($oid_parts) < 2) { continue; }
-    $r_oid = $oid_parts['0'];
-    $index = implode('.', array_slice($oid_parts,1));
-    $value = trim_quotes($value, $flags);
-    if (isset($r_oid) && count($index) && is_valid_snmp_value($value))
+    $entry = snmp_parse_line($line, $flags);
+
+    // Not know why, but here removed index part more than 2, here old code:
+    // list($r_oid, $first, $second) = explode('.', $r_oid);
+    if (isset($entry['oid']) && is_valid_snmp_value($entry['value']))
     {
-      $array[$index][$r_oid] = $value;
+      $array[$entry['oid']] = $entry['value'];
     }
   }
 
   return $array;
 }
 
+
 // DOCME needs phpdoc block
 // TESTME needs unit testing
 // used only in discovery/processors/juniper-system-mib.inc.php
 function snmpwalk_cache_double_oid($device, $oid, $array, $mib = NULL, $mibdir = NULL, $flags = OBS_SNMP_ALL)
 {
+  // Always use snmpwalk_cache_oid() for numeric 
+  if (is_flag_set(OBS_SNMP_NUMERIC,       $flags))
+  {
+    return snmpwalk_cache_oid($device, $oid, $array, $mib, $mibdir, $flags);
+  }
+
   $output = 'QUs';
   if (is_flag_set(OBS_SNMP_NUMERIC_INDEX, $flags)) { $output .= 'b'; }
-  if (is_flag_set(OBS_SNMP_NUMERIC,       $flags)) { $output .= 'n'; }
+  //if (is_flag_set(OBS_SNMP_NUMERIC,       $flags)) { $output .= 'n'; }
   if (is_flag_set(OBS_SNMP_ENUM,          $flags)) { $output .= 'e'; }
   if (is_flag_set(OBS_SNMP_HEX,           $flags)) { $output .= 'x'; }
+  if (is_flag_set(OBS_SNMP_TABLE,         $flags)) { $output .= 'X'; }
 
+  $index_count = 2;
   $data = snmp_walk($device, $oid, "-O$output", $mib, $mibdir, $flags);
-
-  foreach (explode("\n", $data) as $entry)
+  foreach (explode("\n", $data) as $line)
   {
-    list($oid,$value) = explode('=', $entry, 2);
-    $oid = trim($oid); $value = trim_quotes($value, $flags);
-    list($oid, $first, $second) = explode('.', $oid);
-    if (isset($oid) && isset($first) && isset($second) && is_valid_snmp_value($value))
+    $entry = snmp_parse_line($line, $flags);
+
+    // Not know why, but here removed index part more than 2, here old code:
+    // list($r_oid, $first, $second) = explode('.', $r_oid);
+    if (isset($entry['oid_name'][0]) && $entry['index_count'] >= $index_count && is_valid_snmp_value($entry['value']))
     {
-      $double = $first.'.'.$second;
-      $array[$double][$oid] = $value;
+      $index = implode('.', array_slice($entry['index_parts'], 0, $index_count));
+      $array[$index][$entry['oid_name']] = $entry['value'];
     }
   }
 
@@ -1363,23 +1546,31 @@ function snmpwalk_cache_double_oid($device, $oid, $array, $mib = NULL, $mibdir =
 // TESTME needs unit testing
 function snmpwalk_cache_triple_oid($device, $oid, $array, $mib = NULL, $mibdir = NULL, $flags = OBS_SNMP_ALL)
 {
+  // Always use snmpwalk_cache_oid() for numeric 
+  if (is_flag_set(OBS_SNMP_NUMERIC,       $flags))
+  {
+    return snmpwalk_cache_oid($device, $oid, $array, $mib, $mibdir, $flags);
+  }
+
   $output = 'QUs';
   if (is_flag_set(OBS_SNMP_NUMERIC_INDEX, $flags)) { $output .= 'b'; }
-  if (is_flag_set(OBS_SNMP_NUMERIC,       $flags)) { $output .= 'n'; }
+  //if (is_flag_set(OBS_SNMP_NUMERIC,       $flags)) { $output .= 'n'; }
   if (is_flag_set(OBS_SNMP_ENUM,          $flags)) { $output .= 'e'; }
   if (is_flag_set(OBS_SNMP_HEX,           $flags)) { $output .= 'x'; }
+  if (is_flag_set(OBS_SNMP_TABLE,         $flags)) { $output .= 'X'; }
 
+  $index_count = 3; // Not know why, but here removed index part more than 3
   $data = snmp_walk($device, $oid, "-O$output", $mib, $mibdir, $flags);
-
-  foreach (explode("\n", $data) as $entry)
+  foreach (explode("\n", $data) as $line)
   {
-    list($oid, $value) = explode('=', $entry, 2);
-    $oid = trim($oid); $value = trim($value);
-    list($oid, $first, $second, $third) = explode('.', $oid);
-    if (isset($oid) && isset($first) && isset($second) && is_valid_snmp_value($value))
+    $entry = snmp_parse_line($line, $flags);
+
+    // Not know why, but here removed index part more than 3, here old code:
+    // list($r_oid, $first, $second, $tried) = explode('.', $r_oid);
+    if (isset($entry['oid_name'][0]) && $entry['index_count'] >= $index_count && is_valid_snmp_value($entry['value']))
     {
-      $index = $first.'.'.$second.'.'.$third;
-      $array[$index][$oid] = $value;
+      $index = implode('.', array_slice($entry['index_parts'], 0, $index_count));
+      $array[$index][$entry['oid_name']] = $entry['value'];
     }
   }
 
@@ -1390,53 +1581,31 @@ function snmpwalk_cache_triple_oid($device, $oid, $array, $mib = NULL, $mibdir =
 // TESTME needs unit testing
 function snmpwalk_cache_twopart_oid($device, $oid, $array, $mib = NULL, $mibdir = NULL, $flags = OBS_SNMP_ALL)
 {
+  // Always use snmpwalk_cache_oid() for numeric 
+  if (is_flag_set(OBS_SNMP_NUMERIC,       $flags))
+  {
+    return snmpwalk_cache_oid($device, $oid, $array, $mib, $mibdir, $flags);
+  }
+
   $output = 'QUs';
   if (is_flag_set(OBS_SNMP_NUMERIC_INDEX, $flags)) { $output .= 'b'; }
-  if (is_flag_set(OBS_SNMP_NUMERIC,       $flags)) { $output .= 'n'; }
+  //if (is_flag_set(OBS_SNMP_NUMERIC,       $flags)) { $output .= 'n'; }
   if (is_flag_set(OBS_SNMP_ENUM,          $flags)) { $output .= 'e'; }
   if (is_flag_set(OBS_SNMP_HEX,           $flags)) { $output .= 'x'; }
+  if (is_flag_set(OBS_SNMP_TABLE,         $flags)) { $output .= 'X'; }
 
+  $index_count = 2;
   $data = snmp_walk($device, $oid, "-O$output", $mib, $mibdir, $flags);
-
-  foreach (explode("\n", $data) as $entry)
+  foreach (explode("\n", $data) as $line)
   {
-    list($oid,$value) = explode('=', $entry, 2);
-    $oid = trim($oid); $value = trim_quotes($value, $flags);
+    $entry = snmp_parse_line($line, $flags);
 
-    if (strpos($oid, '"') !== FALSE)
+    if (isset($entry['oid_name'][0]) && $entry['index_count'] >= $index_count && is_valid_snmp_value($entry['value']))
     {
-      $oid_part = $oid;
-      $oid_parts = array();
-      do
-      {
-        if (preg_match('/^"([^"]*)"(?:\.(.+))?/', $oid_part, $matches))
-        {
-          // Part with stripes
-          $oid_parts[] = $matches[1];
-          $oid_part    = $matches[2]; // Next part
-        } else {
-          $matches = explode('.', $oid_part, 2);
-          $oid_parts[] = $matches[0];
-          $oid_part    = $matches[1]; // Next part
-        }
-        // print_vars($matches);
-      } while (strlen($oid_part) > 0);
-      // print_vars($oid_parts);
-      $oid    = $oid_parts[0];
-      $first  = $oid_parts[1];
-      $second = $oid_parts[2];
-    } else {
-      // Simple, not always correct
-      $oid_parts = explode('.', $oid);
-      $oid       = array_shift($oid_parts);
-      $first     = array_shift($oid_parts);
-      $second    = implode('.', $oid_parts);
-      //list($oid, $first, $second) = explode('.', $oid);
-    }
+      $first     = array_shift($entry['index_parts']);
+      $second    = implode('.', $entry['index_parts']);
 
-    if (isset($oid) && isset($first) && isset($second) && is_valid_snmp_value($value))
-    {
-      $array[$first][$second][$oid] = $value;
+      $array[$first][$second][$entry['oid_name']] = $entry['value'];
     }
   }
 
@@ -1447,65 +1616,213 @@ function snmpwalk_cache_twopart_oid($device, $oid, $array, $mib = NULL, $mibdir 
 // TESTME needs unit testing
 function snmpwalk_cache_threepart_oid($device, $oid, $array, $mib = NULL, $mibdir = NULL, $flags = OBS_SNMP_ALL)
 {
+  // Always use snmpwalk_cache_oid() for numeric
+  if (is_flag_set(OBS_SNMP_NUMERIC,       $flags))
+  {
+    return snmpwalk_cache_oid($device, $oid, $array, $mib, $mibdir, $flags);
+  }
+
   $output = 'QUs';
   if (is_flag_set(OBS_SNMP_NUMERIC_INDEX, $flags)) { $output .= 'b'; }
-  if (is_flag_set(OBS_SNMP_NUMERIC,       $flags)) { $output .= 'n'; }
+  //if (is_flag_set(OBS_SNMP_NUMERIC,       $flags)) { $output .= 'n'; }
   if (is_flag_set(OBS_SNMP_ENUM,          $flags)) { $output .= 'e'; }
   if (is_flag_set(OBS_SNMP_HEX,           $flags)) { $output .= 'x'; }
+  if (is_flag_set(OBS_SNMP_TABLE,         $flags)) { $output .= 'X'; }
 
+  $index_count = 3;
   $data = snmp_walk($device, $oid, "-O$output", $mib, $mibdir, $flags);
-
-  foreach (explode("\n", $data) as $entry)
+  foreach (explode("\n", $data) as $line)
   {
-    list($oid,$value) = explode('=', $entry, 2);
-    $oid = trim($oid); $value = trim_quotes($value, $flags);
+    $entry = snmp_parse_line($line, $flags);
 
-    if (strpos($oid, '"') !== FALSE)
+    if (isset($entry['oid_name'][0]) && $entry['index_count'] >= $index_count && is_valid_snmp_value($entry['value']))
     {
-      // Example: jnxVpnPwLocalSiteId.l2Circuit."ge-0/1/1.0".621
-      $oid_part = $oid;
-      $oid_parts = array();
-      do
-      {
-        if (preg_match('/^"([^"]*)"(?:\.(.+))?/', $oid_part, $matches))
-        {
-          // Part with stripes
-          $oid_parts[] = $matches[1];
-          $oid_part    = $matches[2]; // Next part
-        } else {
-          $matches = explode('.', $oid_part, 2);
-          $oid_parts[] = $matches[0];
-          $oid_part    = $matches[1]; // Next part
-        }
-        // print_vars($matches);
-      } while (strlen($oid_part) > 0);
-      // print_vars($oid_parts);
-      $oid    = $oid_parts[0];
-      $first  = $oid_parts[1];
-      $second = $oid_parts[2];
-      $third  = $oid_parts[3];
-    } else {
-      // Simple, not always correct
-      $oid_parts = explode('.', $oid);
-      $oid       = array_shift($oid_parts);
-      $first     = array_shift($oid_parts);
-      $second    = array_shift($oid_parts);
-      $third     = implode('.', $oid_parts);
-      //list($oid, $first, $second, $third) = explode('.', $oid);
-    }
-    print_debug("$entry || $oid || $first || $second || $third");
-    if (isset($oid) && isset($first) && isset($second) && isset($third) && is_valid_snmp_value($value))
-    {
-      $array[$first][$second][$third][$oid] = $value;
+      $first     = array_shift($entry['index_parts']);
+      $second    = array_shift($entry['index_parts']);
+      $third     = implode('.', $entry['index_parts']);
+      $array[$first][$second][$third][$entry['oid_name']] = $entry['value'];
     }
   }
 
   return $array;
 }
 
+/**
+ * SNMP walk and parse tables with any (not limited) count of index parts into multilevel array.
+ * Array levels same as count index parts. Ie: someOid.1.2.3.4 -> 4 index parts, and result array also will have 4 levels
+ *
+ * @param array   $device Device array
+ * @param string  $oid    Table OID name
+ * @param array   $array  Array from previous snmpwalk for merge (or empty)
+ * @param string  $mib    MIB name
+ * @param mixed   $mibdir Array or string with MIB dirs list, by default used dir from MIB definitions
+ * @param integer $flags  SNMP walk/parse flags
+ *
+ * @return array          Prsed array with content from requested Table
+ */
+function snmp_walk_multipart_oid($device, $oid, $array, $mib = NULL, $mibdir = NULL, $flags = OBS_QUOTES_TRIM)
+{
+  // Always use snmpwalk_cache_oid() for numeric
+  if (is_flag_set(OBS_SNMP_NUMERIC,       $flags))
+  {
+    return snmpwalk_cache_oid($device, $oid, $array, $mib, $mibdir, $flags);
+  }
+
+  $output = 'QUs';
+  if (is_flag_set(OBS_SNMP_NUMERIC_INDEX, $flags)) { $output .= 'b'; }
+  //if (is_flag_set(OBS_SNMP_NUMERIC,       $flags)) { $output .= 'n'; }
+  if (is_flag_set(OBS_SNMP_ENUM,          $flags)) { $output .= 'e'; }
+  if (is_flag_set(OBS_SNMP_HEX,           $flags)) { $output .= 'x'; }
+  if (is_flag_set(OBS_SNMP_TABLE,         $flags)) { $output .= 'X'; }
+
+  $index_count = 1;
+  $data = snmp_walk($device, $oid, "-O$output", $mib, $mibdir, $flags);
+  foreach (explode("\n", $data) as $line)
+  {
+    $entry = snmp_parse_line($line, $flags);
+    //print_vars($entry);
+
+    if (isset($entry['oid_name'][0]) && $entry['index_count'] >= $index_count && is_valid_snmp_value($entry['value']))
+    {
+      $entry_array = array($entry['oid_name'] => $entry['value']);
+      for ($i = $entry['index_count'] - 1; $i >= 0; $i--)
+      {
+        $entry_array = array($entry['index_parts'][$i] => $entry_array);
+      }
+      $array = array_replace_recursive((array)$array, $entry_array);
+
+      /* this seems retarded. need a way to just build this automatically.
+      switch ($entry['index_count'])
+      {
+        case 1:
+          $array[$entry['index_parts'][0]][$entry['oid_name']] = $entry['value'];
+          break;
+        case 2:
+          $array[$entry['index_parts'][0]][$entry['index_parts'][1]][$entry['oid_name']] = $entry['value'];
+          break;
+        case 3:
+          $array[$entry['index_parts'][0]][$entry['index_parts'][1]][$entry['index_parts'][2]][$entry['oid_name']] = $entry['value'];
+          break;
+        case 4:
+          $array[$entry['index_parts'][0]][$entry['index_parts'][1]][$entry['index_parts'][2]][$entry['index_parts'][3]][$entry['oid_name']] = $entry['value'];
+          break;
+        case 5:
+          $array[$entry['index_parts'][0]][$entry['index_parts'][1]][$entry['index_parts'][2]][$entry['index_parts'][3]][$entry['index_parts'][4]][$entry['oid_name']] = $entry['value'];
+          break;
+      }
+      */
+    }
+  }
+
+  return $array;
+}
+
+/**
+ * Initialize (start) snmpsimd daemon, for tests or other purposes.
+ *   Stop daemon not required, because here registered shutdown_function for kill daemon at end of run script(s)
+ *
+ * @param string $snmpsimd_data Data DIR, where *.snmprec placed
+ * @param string $snmpsimd_ip   Local IP which used for daemon (default 127.0.0.1)
+ * @param string $snmpsimd_port Local Port which used for daemon (default 16111)
+ */
+function snmpsimd_init($snmpsimd_data, $snmpsimd_ip = '127.0.0.1', $snmpsimd_port = 16111)
+{
+  global $config;
+
+  if (str_contains($snmpsimd_ip, ':'))
+  {
+    // IPv6
+    $ifconfig_cmd = "ifconfig | grep 'inet6 addr:$snmpsimd_ip' | cut -d: -f2 | awk '{print $1}'";
+    $snmpsimd_end = 'udpv6';
+  } else {
+    $ifconfig_cmd = "ifconfig | grep 'inet addr:$snmpsimd_ip' | cut -d: -f2 | awk '{print $1}'";
+    $snmpsimd_end = 'udpv4';
+  }
+  $snmpsimd_ip  = external_exec($ifconfig_cmd);
+
+  if ($snmpsimd_ip)
+  {
+    //$snmpsimd_port = 16111;
+
+    // Detect snmpsimd command path
+    $snmpsimd_path = external_exec('which snmpsimd.py');
+    if (empty($snmpsimd_path))
+    {
+      foreach (array('/usr/local/bin/', '/usr/bin/', '/usr/sbin/') as $path)
+      {
+        if (is_executable($path . 'snmpsimd.py'))
+        {
+          $snmpsimd_path = $path . 'snmpsimd.py';
+          break;
+        }
+        else if (is_executable($path . 'snmpsimd'))
+        {
+          $snmpsimd_path = $path . 'snmpsimd';
+          break;
+        }
+      }
+    }
+    //var_dump($snmpsimd_path);
+
+    if (empty($snmpsimd_path))
+    {
+      print_warning("snmpsimd not found, please install it first.");
+    } else {
+      //$snmpsimd_data = dirname(__FILE__) . '/data/os';
+
+      $tmp_path = empty($config['temp_dir']) ? '/tmp' : $config['temp_dir']; // GLOBALS empty in php units
+
+      $snmpsimd_pid  = $tmp_path.'/observium_snmpsimd.pid';
+      $snmpsimd_log  = $tmp_path.'/observium_snmpsimd.log';
+
+      if (is_file($snmpsimd_pid))
+      {
+        // Kill stale snmpsimd process
+        $pid  = file_get_contents($snmpsimd_pid);
+        $info = get_pid_info($pid);
+        //var_dump($info);
+        if (str_contains($info['COMMAND'], 'snmpsimd'))
+        {
+          external_exec("kill -9 $pid");
+        }
+        unlink($snmpsimd_pid);
+      }
+
+      $snmpsimd_cmd = "$snmpsimd_path --daemonize --data-dir=$snmpsimd_data --agent-$snmpsimd_end-endpoint=$snmpsimd_ip:$snmpsimd_port --pid-file=$snmpsimd_pid --logging-method=file:$snmpsimd_log";
+      //var_dump($snmpsimd_cmd);
+
+      external_exec($snmpsimd_cmd);
+      $pid = file_get_contents($snmpsimd_pid);
+      if ($pid)
+      {
+        define('OBS_SNMPSIMD', TRUE);
+        register_shutdown_function(function($snmpsimd_pid){
+          $pid = file_get_contents($snmpsimd_pid);
+          //echo "KILL'em all! PID: $pid\n";
+          external_exec("kill -9 $pid");
+          unlink($snmpsimd_pid);
+        }, $snmpsimd_pid);
+      }
+    }
+    //exit;
+  } else {
+    print_warning("Local IP $snmpsimd_ip unavailable. SNMP simulator not started.");
+  }
+  if (!defined('OBS_SNMPSIMD'))
+  {
+    define('OBS_SNMPSIMD', FALSE);
+  }
+}
+
+
+/**
+ * Deprecated, not used functions (can removed later)
+ */
+
 // DOCME needs phpdoc block
 // TESTME needs unit testing
 // FIXME this function is not used, OK to remove?
+// CLEANME (deprecated) not used anymore
 function snmp_cache_slotport_oid($oid, $device, $array, $mib = NULL)
 {
   $data = snmp_walk($device, $oid, '-OQUs', $mib);
@@ -1530,6 +1847,7 @@ function snmp_cache_slotport_oid($oid, $device, $array, $mib = NULL)
 // DOCME needs phpdoc block
 // TESTME needs unit testing
 // FIXME this function is not used, OK to remove?
+// CLEANME (deprecated) not used anymore
 function snmpget_entity_oids($oids, $index, $device, $array, $mib = NULL)
 {
   foreach ($oids as $oid)
@@ -1540,74 +1858,240 @@ function snmpget_entity_oids($oids, $index, $device, $array, $mib = NULL)
   return snmp_get_multi($device, $oids, '-Ovq', $mib);
 }
 
+// DOCME needs phpdoc block
+// TESTME needs unit testing
+// CLEANME (deprecated) not used anymore
+function snmpwalk_cache_cip($device, $oid, $array, $mib = NULL, $mibdir = NULL)
+{
+  $data = snmp_walk($device, $oid, '-OsnQ', $mib, $mibdir);
+
+  foreach (explode("\n", $data) as $entry)
+  {
+    list ($this_oid, $this_value) = preg_split("/=/", $entry);
+    $this_oid = trim($this_oid);
+    $this_value = trim($this_value);
+    $this_oid = substr($this_oid, 30);
+    list($ifIndex,$dir,$a,$b,$c,$d,$e,$f) = explode('.', $this_oid);
+    $h_a = zeropad(dechex($a));
+    $h_b = zeropad(dechex($b));
+    $h_c = zeropad(dechex($c));
+    $h_d = zeropad(dechex($d));
+    $h_e = zeropad(dechex($e));
+    $h_f = zeropad(dechex($f));
+    $mac = "$h_a$h_b$h_c$h_d$h_e$h_f";
+    if ($dir == 1) { $dir = 'input'; } elseif ($dir == 2) { $dir = 'output'; }
+    if ($mac && $dir)
+    {
+      $array[$ifIndex][$mac][$oid][$dir] = $this_value;
+    }
+  }
+  return $array;
+}
+
 /**
- * Build authentication for net-snmp commands using device array
+ * Take -OXqs output and parse it into an array containing OID array and the value
+ * Hopefully this is the beginning of more intelligent OID parsing!
+ * Thanks to David Farrell <DavidPFarrell@gmail.com> for the parser solution.
+ * This function is free for use by all with attribution to David.
  *
  * @return array
- * @param array $device
+ * @param $string
  */
 // TESTME needs unit testing
-function snmp_gen_auth(&$device)
+function parse_oid2($string)
 {
+  $result = array();
+  $matches = array();
 
-  $cmd = '';
-  $vlan = FALSE;
-
-  if (isset($device['snmp_context']))
+  // Match OID - If wrapped in double-quotes ('"'), must escape '"', else must escape ' ' (space) or '[' - Other escaping is optional
+  $match_count = preg_match('/^(?:((?!")(?:[^\\\\\\[ ]|(?:\\\\.))+)|(?:"((?:[^\\\\\"]|(?:\\\\.))+)"))/', $string, $matches);
+  if (null !== $match_count && $match_count > 0)
   {
-    if (is_numeric($device['snmp_context']) && $device['snmp_context'] > 0 && $device['snmp_context'] < 4096 )
+    // [1] = unquoted, [2] = quoted
+    $value = strlen($matches[1]) > 0 ? $matches[1] : $matches[2];
+    $result[] = stripslashes($value);
+
+    // I do this (vs keeping track of offset) to use ^ in regex
+    $string = substr($string, strlen($matches[0]));
+
+    // Match indexes (optional) - If wrapped in double-quotes ('"'), must escape '"', else must escape ']' - Other escaping is optional
+    while (true)
     {
-      $vlan = $device['snmp_context'];
+      $match_count = preg_match('/^\\[(?:((?!")(?:[^\\\\\\]]|(?:\\\\.))+)|(?:"((?:[^\\\\\"]|(?:\\\\.))+)"))\\]/', $string, $matches);
+      if (null !== $match_count && $match_count > 0)
+      {
+        // [1] = unquoted, [2] = quoted
+        $value = strlen($matches[1]) > 0 ? $matches[1] : $matches[2];
+        $result[] = stripslashes($value);
+
+        // I do this (vs keeping track of offset) to use ^ in regex
+        $string = substr($string, strlen($matches[0]));
+      }
+      else
+      {
+        break;
+      }
+    } // while
+
+    // Match value - Skips leading ' ' characters - If remainder is wrapped in double-quotes ('"'), must escape '"', other escaping is optional
+    $match_count = preg_match('/^\\s+(?:((?!")(?:[^\\\\]|(?:\\\\.))+)|(?:"((?:[^\\\\\"]|(?:\\\\.))+)"))$/', $string, $matches);
+    if (null !== $match_count && $match_count > 0)
+    {
+      // [1] = unquoted, [2] = quoted
+      $value = strlen($matches[1]) > 0 ? $matches[1] : $matches[2];
+
+      $result[] = stripslashes($value);
+
+      if (strlen($string) != strlen($matches[0])) { echo 'Length error!'; return null; }
+
+      return $result;
     }
   }
 
-  switch ($device['snmp_version'])
-  {
-    case 'v3':
-      $cmd = ' -v3 -l ' . escapeshellarg($device['snmp_authlevel']);
-      /* NOTE.
-       * For proper work of 'vlan-' context on cisco, it is necessary to add 'match prefix' in snmp-server config --mike
-       * example: snmp-server group MONITOR v3 auth match prefix access SNMP-MONITOR
-       */
-      $cmd .= ($vlan) ? ' -n "vlan-' . $vlan . '"' : ' -n ""'; // Some devices, like HP, always require option '-n'
+  // All or nothing
+  return null;
+}
 
-      switch ($device['snmp_authlevel'])
+/**
+ * Take -Oqs output and parse it into an array containing OID array and the value
+ * Hopefully this is the beginning of more intelligent OID parsing!
+ * Thanks to David Farrell <DavidPFarrell@gmail.com> for the parser solution.
+ * This function is free for use by all with attribution to David.
+ *
+ * @return array
+ * @param $string
+ */
+// TESTME needs unit testing
+// CLEANME (deprecated) not used anymore
+function parse_oid($string)
+{
+  $result = array();
+  while (true)
+  {
+    $matches = array();
+    $match_count = preg_match('/^(?:((?:[^\\\\\\. "]|(?:\\\\.))+)|(?:"((?:[^\\\\"]|(?:\\\\.))+)"))((?:[\\. ])|$)/', $string, $matches);
+    if (null !== $match_count && $match_count > 0)
+    {
+      // [1] = unquoted, [2] = quoted
+      $value = strlen($matches[1]) > 0 ? $matches[1] : $matches[2];
+      $result[] = stripslashes($value);
+
+      // Are we expecting any more parts?
+      if (strlen($matches[3]) > 0)
       {
-        case 'authPriv':
-          $cmd .= ' -x ' . escapeshellarg($device['snmp_cryptoalgo']);
-          $cmd .= ' -X ' . escapeshellarg($device['snmp_cryptopass']);
-          // no break here
-        case 'authNoPriv':
-          $cmd .= ' -a ' . escapeshellarg($device['snmp_authalgo']);
-          $cmd .= ' -A ' . escapeshellarg($device['snmp_authpass']);
-          $cmd .= ' -u ' . escapeshellarg($device['snmp_authname']);
-          break;
-        case 'noAuthNoPriv':
-          // We have to provide a username anyway (see Net-SNMP doc)
-          $cmd .= ' -u observium';
-          break;
-        default:
-          print_error('ERROR: Unsupported SNMPv3 snmp_authlevel (' . $device['snmp_authlevel'] . ')');
+        // I do this (vs keeping track of offset) to use ^ in regex
+        $string = substr($string, strlen($matches[0]));
       }
-      break;
+      else
+      {
+        $ret['value'] = array_pop($result);
+        $ret['oid']   = $result;
+        return $ret;
+      }
+    }
+    else
+    {
+      // All or nothing
+      return null;
+    }
+  } // while
+}
 
-    case 'v2c':
-    case 'v1':
-      $cmd  = ' -' . $device['snmp_version'];
-      $cmd .= ' -c ' . escapeshellarg($device['snmp_community']);
-      if ($vlan) { $cmd .= '@' . $vlan; }
-      break;
-    default:
-      print_error('ERROR: ' . $device['snmp_version'] . ' : Unsupported SNMP Version.');
-  }
-
-  if (OBS_DEBUG === 1 && !$GLOBALS['config']['snmp']['hide_auth'])
+// DOCME needs phpdoc block
+// TESTME needs unit testing
+// CLEANME (deprecated) not used anymore
+function snmp_walk_parser2($device, $oid, $oid_elements, $mib = NULL, $mibdir = NULL)
+{
+  $data = snmp_walk($device, $oid, '-Oqs', $mib, $mibdir, FALSE);
+  foreach (explode("\n", $data) as $text)
   {
-    $debug_auth = "DEBUG: SNMP Auth options = $cmd";
-    print_debug($debug_auth);
+    $ret = parse_oid2($text);
+    if (!empty($ret['value']))
+    {
+      // this seems retarded. need a way to just build this automatically.
+      switch ($oid_elements)
+      {
+        case 1:
+          $array[$ret['oid'][0]] = $ret['value'];
+          break;
+        case 2:
+          $array[$ret['oid'][1]][$ret['oid'][0]] = $ret['value'];
+          break;
+        case 3:
+          $array[$ret['oid'][1]][$ret['oid'][2]][$ret['oid'][0]] = $ret['value'];
+          break;
+        case 4:
+          $array[$ret['oid'][1]][$ret['oid'][2]][$ret['oid'][3]][$ret['oid'][0]] = $ret['value'];
+          break;
+      }
+    }
+  }
+  return $array;
+}
+
+// DOCME needs phpdoc block
+// TESTME needs unit testing
+function snmp_walk_parser($device, $oid, $oid_elements, $mib = NULL, $mibdir = NULL)
+{
+  $data = snmp_walk($device, $oid, '-Oqs', $mib, $mibdir, FALSE);
+  foreach (explode("\n", $data) as $text)
+  {
+    $ret = parse_oid($text);
+    if (!empty($ret['value']))
+    {
+      // this seems retarded. need a way to just build this automatically.
+      switch ($oid_elements)
+      {
+        case 1:
+          $array[$ret['oid'][0]] = $ret['value'];
+          break;
+        case 2:
+          $array[$ret['oid'][1]][$ret['oid'][0]] = $ret['value'];
+          break;
+        case 3:
+          $array[$ret['oid'][1]][$ret['oid'][2]][$ret['oid'][0]] = $ret['value'];
+          break;
+        case 4:
+          $array[$ret['oid'][1]][$ret['oid'][2]][$ret['oid'][3]][$ret['oid'][0]] = $ret['value'];
+          break;
+      }
+    }
   }
 
-  return $cmd;
+  return $array;
+}
+
+
+// CLEANME (deprecated) duplicate for snmpwalk_cache_oid
+function snmpwalk_cache_multi_oid($device, $oid, $array, $mib = NULL, $mibdir = NULL, $flags = OBS_SNMP_ALL)
+{
+  return snmpwalk_cache_oid($device, $oid, $array, $mib, $mibdir, $flags);
+}
+
+// CLEANME (deprecated) not used anymore
+function snmp_parser_quote($m)
+{
+  return str_replace(array('.',' '),
+    array('PLACEHOLDER-DOT', 'PLACEHOLDER-SPACE'), $m[1]);
+}
+
+// CLEANME (deprecated) not used anymore
+function snmp_parser_unquote($str)
+{
+  return str_replace(array('PLACEHOLDER-DOT', 'PLACEHOLDER-SPACE', 'PLACEHOLDER-ESCAPED-QUOTE'),
+    array('.',' ','"'), $str);
+}
+
+// CLEANME (deprecated) not used anymore
+function ascii_to_oid($string)
+{
+  return snmp_string_to_oid($string);
+}
+
+// CLEANME (deprecated) not used anymore
+function string_to_oid($string)
+{
+  return snmp_string_to_oid($string);
 }
 
 // EOF

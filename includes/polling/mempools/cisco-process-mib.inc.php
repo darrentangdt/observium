@@ -17,7 +17,7 @@ $oids = array('used' => 'cpmCPUMemoryUsed',
 
 if (!is_array($cache_storage[$mib]))
 {
-  foreach ($oids as $oid)
+  foreach ($oids as $param => $oid)
   {
     $cache_mempool = snmpwalk_cache_multi_oid($device, $oid, $cache_mempool, $mib);
   }

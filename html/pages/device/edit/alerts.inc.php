@@ -60,7 +60,6 @@ $disable_notify = get_dev_attrib($device,'disable_notify');
                     'id'        => 'edit',
                     //'space'     => '20px',
                     'title'     => 'Alert Settings',
-                    'icon'      => 'oicon-gear',
                     //'class'     => 'box box-solid',
                     'fieldset'  => array('edit' => ''),
                     );

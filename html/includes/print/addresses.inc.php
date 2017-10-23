@@ -112,7 +112,7 @@ function print_addresses($vars)
     $ip_address = ($address_type == 'ipv4') ? $entry['vsvr_ip'] : $entry['vsvr_'.$address_type];
     $ip_network = ($address_type == 'ipv4') ? $entry['vsvr_ip'].'/32' : $entry['vsvr_'.$address_type].'/128';
 
-    $ip_array[] = array('type'        => 'netscaler_vsvr',
+    $ip_array[] = array('type'        => 'netscalervsvr',
                         'device_id'   => $entry['device_id'],
                         'hostname'    => $entry['hostname'],
                         'vsvr_id'     => $entry['vsvr_id'],
@@ -192,7 +192,7 @@ function print_addresses($vars)
 
       if (port_permitted($entry['port_id']) || $entry['type'] == 'netscaler_vsvr')
       {
-        if ($entry['type'] == 'netscaler_vsvr')
+        if ($entry['type'] == 'netscalervsvr')
         {
           $entity_link = generate_entity_link($entry['type'], $entry);
         } else {

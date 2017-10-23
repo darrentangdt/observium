@@ -4,10 +4,12 @@ ELTEX-MES-BRIDGE-EXT-MIB DEFINITIONS ::= BEGIN
 -- Version:    1.0
 -- Date:       17 Oct 2012
 -- 21-Sep-2012 - Added eltBridgeExtMacLearningVlanTable
+-- 01-Feb-2016 - Added eltBridgeStpConfigPortTable
 
 IMPORTS
     eltMesBridgeExtMIB                                      FROM ELTEX-MES-MNG-MIB
     VlanIndex                                               FROM Q-BRIDGE-MIB
+    dot1dBasePort                                           FROM BRIDGE-MIB
     MODULE-IDENTITY, OBJECT-TYPE                            FROM SNMPv2-SMI
     TruthValue                                              FROM SNMPv2-TC
     rldot1sMstpInstanceEntry                                FROM RADLAN-BRIDGEMIBOBJECTS-MIB;
@@ -27,7 +29,17 @@ eltMesdot1dTp  OBJECT IDENTIFIER
     ::= { eltMesBridgeExtMIBObjects 4 }
 
 eltMesBridgeStp OBJECT IDENTIFIER
-	::= { eltMesBridgeExtMIBObjects 5 }
+    ::= { eltMesBridgeExtMIBObjects 5 }
+    
+EltBridgeStpGroupMacAddressType ::= TEXTUAL-CONVENTION
+    STATUS          current
+    DESCRIPTION         "Type of STP BPDU destination MAC address"
+    SYNTAX          INTEGER  {
+                                dot1d   (1),  -- Bridge Group Address (01-80-C2-00-00-00)
+                                dot1ad  (2)   -- Provider Bridge Group Address (01-80-C2-00-00-08)
+                             } 
+
+
 --
 -- eltBridgeExtMacLearningVlanTable
 --
@@ -53,10 +65,10 @@ EltBridgeExtMacLearningVlanEntry ::= SEQUENCE {
 }
 
 eltBridgeExtMacLearningVlanIndex OBJECT-TYPE
-        SYNTAX          VlanIndex
-        MAX-ACCESS      not-accessible
-        STATUS          current
-        DESCRIPTION        "Indicates the VLAN number."
+	SYNTAX          VlanIndex
+	MAX-ACCESS      not-accessible
+	STATUS          current
+	DESCRIPTION        "Indicates the VLAN number."
     ::= { eltBridgeExtMacLearningVlanEntry 1 }
 
 eltBridgeExtMacLearningVlanEnabled OBJECT-TYPE
@@ -64,7 +76,7 @@ eltBridgeExtMacLearningVlanEnabled OBJECT-TYPE
     MAX-ACCESS      read-create
     STATUS          current
     DESCRIPTION        "Indicates whether the MAC addresses learning is enabled
-                                                in this VLAN or not."
+						in this VLAN or not."
     DEFVAL          { true }
     ::= { eltBridgeExtMacLearningVlanEntry 2 }
 
@@ -227,6 +239,46 @@ eltdot1sMstpInstanceLastTopologyChangePort OBJECT-TYPE
             If value is 0 - topology wasn't changed yet."
     ::= { eltdot1sMstpInstanceEntry 1}
 
+--
+-- eltBridgeStpConfigPortTable
+--
+
+eltBridgeStpConfigPortTable OBJECT-TYPE
+    SYNTAX          SEQUENCE OF EltBridgeStpConfigPortEntry
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION        "Port configuration table for Spanning Tree Protocol."
+    ::= { eltMesBridgeStp 1 }
+    
+eltBridgeStpConfigPortEntry OBJECT-TYPE
+    SYNTAX          EltBridgeStpConfigPortEntry
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION        "Port configuration entry for Spanning Tree Protocol."
+    INDEX           { dot1dBasePort }
+    ::= { eltBridgeStpConfigPortTable 1 }
+    
+EltBridgeStpConfigPortEntry ::= SEQUENCE {
+		eltBridgeStpConfigPortGroupMacAddress EltBridgeStpGroupMacAddressType,
+        eltBridgeStpConfigPortRestrictedTcn   TruthValue
+}
+
+eltBridgeStpConfigPortGroupMacAddress OBJECT-TYPE
+    SYNTAX          EltBridgeStpGroupMacAddressType
+    MAX-ACCESS      read-write
+    STATUS          current
+    DESCRIPTION         "Sets destination MAC address for Bridge PDUs. A port sends
+                        and receives BPDUs only with specified group MAC address."
+    DEFVAL          { dot1d }
+    ::= { eltBridgeStpConfigPortEntry 1 } 
+
+eltBridgeStpConfigPortRestrictedTcn OBJECT-TYPE
+    SYNTAX          TruthValue
+    MAX-ACCESS      read-write
+    STATUS          current
+    DESCRIPTION         "Configure filtering of Spanning Tree BPDUs with TC flag set."
+    DEFVAL          { false }
+    ::= { eltBridgeStpConfigPortEntry 2 }  
 
 eltdot1dStpLastTopologyChangePort OBJECT-TYPE
     SYNTAX  INTEGER

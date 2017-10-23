@@ -44,6 +44,7 @@ $navbar['class'] = "navbar-narrow";
 $navbar['brand'] = "Alert Checks";
 
 $types = dbFetchRows("SELECT DISTINCT `entity_type` FROM `alert_table`" . $where);
+$types_count = count($types);
 
 $navbar['options']['all']['url'] = generate_url($vars, array('page' => 'alert_checks', 'entity_type' => NULL));
 $navbar['options']['all']['text'] = escape_html(nicecase('all'));
@@ -59,6 +60,7 @@ foreach ($types as $thing)
     $navbar['options'][$thing['entity_type']]['class'] = "active";
     $navbar['options'][$thing['entity_type']]['url'] = generate_url($vars, array('page' => 'alert_checks', 'entity_type' => NULL));
   } else {
+    if ($types_count > 6)   { $navbar['options'][$thing['entity_type']]['class'] = "icon"; }
     $navbar['options'][$thing['entity_type']]['url'] = generate_url($vars, array('page' => 'alert_checks', 'entity_type' => $thing['entity_type']));
   }
   $navbar['options'][$thing['entity_type']]['icon'] = $config['entities'][$thing['entity_type']]['icon'];
@@ -66,7 +68,7 @@ foreach ($types as $thing)
 }
 
 $navbar['options']['export']['text']  = 'Export';
-$navbar['options']['export']['icon']  = 'icon-save';
+$navbar['options']['export']['icon']  = $config['icon']['export'];
 $navbar['options']['export']['url']   = generate_url($vars, array('page' => 'alert_checks', 'export' => 'yes'));
 $navbar['options']['export']['right'] = TRUE;
 $navbar['options']['export']['userlevel'] = 7;
@@ -138,7 +140,6 @@ if ($templates_export)
   unset($for_export, $templates_xml, $templates_export, $templates_filename, $form);
 }
 
-//foreach (dbFetchRows("SELECT * FROM `alert_table` LEFT JOIN `alert_table-state` ON `alert_table`.`alert_table_id` = `alert_table-state`.`alert_table_id`") as $entry)
 foreach (dbFetchRows("SELECT * FROM `alert_table`" . $where) as $entry)
 {
   $alert_table[$entry['alert_test_id']][$entry['alert_table_id']] = $entry;
@@ -254,5 +255,7 @@ foreach ($alert_check as $check)
 echo '</table>';
 
 echo generate_box_close();
+
+register_html_title('Alert checkers');
 
 // EOF

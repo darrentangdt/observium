@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- VM management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -91,7 +91,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsVmObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -2296,7 +2296,9 @@ CucsVmVifEntry ::= SEQUENCE {
     cucsVmVifAdpVifId                                                Gauge32,
     cucsVmVifLinkState                                               CucsAdaptorLinkState,
     cucsVmVifOperState                                               CucsDcxOperState,
-    cucsVmVifStateQual                                               SnmpAdminString
+    cucsVmVifStateQual                                               SnmpAdminString,
+    cucsVmVifPhsAccessAggrPortId                                     Gauge32,
+    cucsVmVifPhsBorderAggrPortId                                     Gauge32
 }
 
 cucsVmVifInstanceId OBJECT-TYPE
@@ -2434,6 +2436,22 @@ cucsVmVifStateQual OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS vm:Vif:stateQual managed object property"
     ::= { cucsVmVifEntry 17 }
+
+cucsVmVifPhsAccessAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vm:Vif:phsAccessAggrPortId managed object property"
+    ::= { cucsVmVifEntry 18 }
+
+cucsVmVifPhsBorderAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vm:Vif:phsBorderAggrPortId managed object property"
+    ::= { cucsVmVifEntry 19 }
 
 cucsVmVlanTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVmVlanEntry

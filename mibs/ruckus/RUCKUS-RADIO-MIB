@@ -77,16 +77,14 @@ ruckusRadioEntry OBJECT-TYPE
     ::= { ruckusRadioTable 1 }
 
 RuckusRadioEntry ::= SEQUENCE {
-    ruckusRadioIndex		InterfaceIndex,
+	ruckusRadioIndex			InterfaceIndex,
     ruckusRadioMode             INTEGER,
     ruckusRadioCountry          RuckusCountryCode,
     ruckusRadioBSSType          INTEGER,
     ruckusRadioChannel          INTEGER,
     ruckusRadioDataRate         OCTET STRING,
     ruckusRadioTxPower          INTEGER,
-    ruckusRadioProtectionMode   INTEGER,
-    ruckusRadioNoiseFloor   	INTEGER
-}
+    ruckusRadioProtectionMode   INTEGER }
 
 ruckusRadioIndex OBJECT-TYPE
     SYNTAX  InterfaceIndex
@@ -197,14 +195,7 @@ ruckusRadioProtectionMode OBJECT-TYPE
         Require RTS to be sent by sender of 11g frame and responder
         to send CTS prior to any 11g frames being sent."
     ::= { ruckusRadioEntry 7 }  
-
-ruckusRadioNoiseFloor OBJECT-TYPE
-    SYNTAX  INTEGER
-    MAX-ACCESS read-only
-    STATUS current
-    DESCRIPTION
-        "Specifies the noise floor of radio"
-    ::= { ruckusRadioEntry 8 }   
+ 
  
 --
 --                  
@@ -231,33 +222,31 @@ ruckusRadioStatsEntry OBJECT-TYPE
 
 RuckusRadioStatsEntry ::= SEQUENCE {
 
-    ruckusRadioStatsIndex	   	InterfaceIndex,
-    ruckusRadioStatsMaxSta             	Counter32,
-    ruckusRadioStatsNumSta             	Counter32,
-    ruckusRadioStatsNumAuthSta         	Counter32,
-    ruckusRadioStatsNumAuthReq         	Counter32,
-    ruckusRadioStatsNumAuthResp        	Counter32,
-    ruckusRadioStatsNumAuthSuccess     	Counter32,
-    ruckusRadioStatsNumAuthFail        	Counter32,
-    ruckusRadioStatsNumAssocReq        	Counter32,
-    ruckusRadioStatsNumAssocResp       	Counter32,
-    ruckusRadioStatsNumAssocSuccess    	Counter32,
-    ruckusRadioStatsNumAssocFail       	Counter32,
-    ruckusRadioStatsAssocFailRate      	Unsigned32,
-    ruckusRadioStatsAuthFailRate       	Unsigned32,
-    ruckusRadioStatsAssocSuccessRate   	Unsigned32,
-    ruckusRadioStatsResourceUtil       	Unsigned32,
-    ruckusRadioStatsRxBytes            	Counter32,     
-    ruckusRadioStatsRxFrames           	Counter32,
-    ruckusRadioStatsRxWEPFail          	Counter32,
-    ruckusRadioStatsRxDecryptCRCError  	Counter32,
-    ruckusRadioStatsRxMICError         	Counter32,
-    ruckusRadioStatsRxErrors           	Counter32,
-    ruckusRadioStatsTxBytes            	Counter32,
-    ruckusRadioStatsTxFrames           	Counter32,
-    ruckusRadioStatsTotalAssocTime     	TimeTicks,
-    ruckusRadioStatsTotalAirtime	Counter32,
-    ruckusRadioStatsBusyAirtime 	Counter32
+	ruckusRadioStatsIndex			   InterfaceIndex,
+    ruckusRadioStatsMaxSta             Counter32,
+    ruckusRadioStatsNumSta             Counter32,
+    ruckusRadioStatsNumAuthSta         Counter32,
+    ruckusRadioStatsNumAuthReq         Counter32,
+    ruckusRadioStatsNumAuthResp        Counter32,
+    ruckusRadioStatsNumAuthSuccess     Counter32,
+    ruckusRadioStatsNumAuthFail        Counter32,
+    ruckusRadioStatsNumAssocReq        Counter32,
+    ruckusRadioStatsNumAssocResp       Counter32,
+    ruckusRadioStatsNumAssocSuccess    Counter32,
+    ruckusRadioStatsNumAssocFail       Counter32,
+    ruckusRadioStatsAssocFailRate      Unsigned32,
+    ruckusRadioStatsAuthFailRate       Unsigned32,
+    ruckusRadioStatsAssocSuccessRate   Unsigned32,
+    ruckusRadioStatsResourceUtil       Unsigned32,
+    ruckusRadioStatsRxBytes            Counter32,     
+    ruckusRadioStatsRxFrames           Counter32,
+    ruckusRadioStatsRxWEPFail          Counter32,
+    ruckusRadioStatsRxDecryptCRCError  Counter32,
+    ruckusRadioStatsRxMICError         Counter32,
+    ruckusRadioStatsRxErrors           Counter32,
+    ruckusRadioStatsTxBytes            Counter32,
+    ruckusRadioStatsTxFrames           Counter32,
+    ruckusRadioStatsTotalAssocTime     TimeTicks
 }
 
 ruckusRadioStatsIndex OBJECT-TYPE
@@ -476,21 +465,5 @@ ruckusRadioStatsTotalAssocTime OBJECT-TYPE
     DESCRIPTION
         "Client total association time."
     ::= { ruckusRadioStatsEntry 42 }
-
-ruckusRadioStatsTotalAirtime OBJECT-TYPE
-    SYNTAX Counter32
-    MAX-ACCESS read-only
-    STATUS current
-    DESCRIPTION
-        "total airtime."
-    ::= { ruckusRadioStatsEntry 50 }
-
-ruckusRadioStatsBusyAirtime OBJECT-TYPE
-    SYNTAX Counter32
-    MAX-ACCESS read-only
-    STATUS current
-    DESCRIPTION
-        "busy airtime."
-    ::= { ruckusRadioStatsEntry 51 }
 
 END

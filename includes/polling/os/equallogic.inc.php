@@ -49,10 +49,10 @@ if (is_numeric($eqlgrpmemid) && $eqlgrpmemid != $attribs['eqlgrpmemid'])
 // EQLMEMBER-MIB::eqlMemberSerialNumber.1.$eqlgrpmemid = STRING: XXXNNNNNNNXNNNN
 // EQLMEMBER-MIB::eqlMemberServiceTag.1.$eqlgrpmemid = STRING: XXXXXXX
 
-$hardware = 'Dell EqualLogic '.trim(snmp_get($device, 'eqlMemberProductFamily.1.'.$eqlgrpmemid, '-OQv', 'EQLMEMBER-MIB'),'" ');
+$hardware = 'Dell EqualLogic '.snmp_get($device, 'eqlMemberProductFamily.1.'.$eqlgrpmemid, '-OQv', 'EQLMEMBER-MIB');
 
-$serial = trim(snmp_get($device, 'eqlMemberSerialNumber.1.'.$eqlgrpmemid, '-OQv', 'EQLMEMBER-MIB'),'" ');
-$serial .= ' ['.trim(snmp_get($device, 'eqlMemberServiceTag.1.'.$eqlgrpmemid, '-OQv', 'EQLMEMBER-MIB'),'" ').']';
+$serial = snmp_get($device, 'eqlMemberSerialNumber.1.'.$eqlgrpmemid, '-OQv', 'EQLMEMBER-MIB');
+$serial .= ' ['.snmp_get($device, 'eqlMemberServiceTag.1.'.$eqlgrpmemid, '-OQv', 'EQLMEMBER-MIB').']';
 
 $eqlmajor = snmp_get($device, 'eqlMemberControllerMajorVersion.1.'.$eqlgrpmemid, '-OQv', 'EQLMEMBER-MIB');
 $eqlminor = snmp_get($device, 'eqlMemberControllerMinorVersion.1.'.$eqlgrpmemid, '-OQv', 'EQLMEMBER-MIB');

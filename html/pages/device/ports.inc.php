@@ -49,6 +49,11 @@ if (dbFetchCell("SELECT COUNT(*) FROM `vlans_fdb` WHERE `device_id` = ?", array(
   $navbar['options']['fdb']['text'] = 'FDB Table';
 }
 
+if (dbFetchCell("SELECT COUNT(*) FROM `sensors` WHERE `device_id` = ? AND `measured_class` = ?", array($device['device_id'], 'port')))
+{
+  $navbar['options']['sensors']['text'] = 'Sensors';
+}
+
 if (dbFetchCell("SELECT COUNT(*) FROM `neighbours` LEFT JOIN `ports` USING(`port_id`) WHERE `device_id` = ?;", array($device['device_id'])))
 {
   $navbar['options']['neighbours']['text'] = 'Neighbours';

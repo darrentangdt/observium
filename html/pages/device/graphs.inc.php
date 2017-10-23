@@ -33,7 +33,7 @@ foreach ($device['graphs'] as $entry)
 if (OBSERVIUM_EDITION != 'community')
 {
   // Custom OIDs
-  $sql  = "SELECT * FROM `oids_assoc`";
+  $sql  = "SELECT * FROM `oids_entries`";
   $sql .= " LEFT JOIN `oids` USING(`oid_id`)";
   $sql .= " WHERE `device_id` = ?";
 
@@ -72,7 +72,7 @@ if ($vars['group'] == "custom" && $graphs_sections['custom'])
     $graph_array = array();
       $graph_title         = $graph['oid_descr'];
       $graph_array['type'] = "customoid_graph";
-      $graph_array['id']   = $graph['oid_assoc_id'];
+      $graph_array['id']   = $graph['oid_entry_id'];
 
       echo('<tr><td>');
 

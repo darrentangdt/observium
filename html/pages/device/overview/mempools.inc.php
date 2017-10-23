@@ -15,7 +15,7 @@ $graph_type = "mempool_usage";
 
 $sql  = "SELECT *, `mempools`.mempool_id as mempool_id";
 $sql .= " FROM  `mempools`";
-$sql .= " LEFT JOIN  `mempools-state` USING(`mempool_id`)";
+//$sql .= " LEFT JOIN  `mempools-state` USING(`mempool_id`)";
 $sql .= " WHERE `device_id` = ?";
 
 $mempools = dbFetchRows($sql, array($device['device_id']));
@@ -24,7 +24,7 @@ if (count($mempools))
 {
   $box_args = array('title' => 'Memory', 
                     'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => 'mempool')), 
-                    'icon' => 'oicon-memory',
+                    'icon' => $config['icon']['mempool'],
                     ); 
   echo generate_box_open($box_args);
 

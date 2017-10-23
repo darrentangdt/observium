@@ -13,10 +13,22 @@
 
 // ProxyAV devices hide their CPUs/Memory/Interfaces in here
 
-$av_array = snmpwalk_cache_oid($device, 'deviceUsage', array(), 'BLUECOAT-SG-USAGE-MIB');
+$mib = 'BLUECOAT-SG-USAGE-MIB';
 
-$mempool['perc'] = $av_array[$mempool['mempool_index']]['deviceUsagePercent'];;
+$oids = array('deviceUsagePercent');
 
-unset ($av_array);
+if (!is_array($cache_storage[$mib]))
+{
+  foreach ($oids as $oid)
+  {
+    $cache_mempool = snmpwalk_cache_multi_oid($device, $oid, $cache_mempool, $mib);
+  }
+  $cache_storage[$mib] = $cache_mempool;
+} else {
+  print_debug("Cached!");
+  $cache_mempool = $cache_storage[$mib];
+}
+
+$mempool['perc'] = $cache_mempool[$mempool['mempool_index']]['deviceUsagePercent'];
 
 // EOF

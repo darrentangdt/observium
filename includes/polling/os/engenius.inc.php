@@ -14,16 +14,14 @@
 ///////////// Senao Access Points (tested with ECB-9500)
 
 // Yes, that's the Kenel version.
-$kenelversion = trim(snmp_get($device, 'entKenelVersion.0', '-OQv', 'SENAO-ENTERPRISE-INDOOR-AP-CB-MIB'),'" ');
+$kenelversion = snmp_get($device, 'entKenelVersion.0', '-OQv', 'SENAO-ENTERPRISE-INDOOR-AP-CB-MIB');
 
 if ($kenelversion)
 {
   // Only fetch app version when we found a Kenel Version.
-  $appversion = trim(snmp_get($device, 'entAppVersion.0', '-OQv', 'SENAO-ENTERPRISE-INDOOR-AP-CB-MIB'),'" ');
+  $appversion = snmp_get($device, 'entAppVersion.0', '-OQv', 'SENAO-ENTERPRISE-INDOOR-AP-CB-MIB');
   $version = "Kernel $kenelversion / Apps $appversion";
 }
-
-$serial = trim(snmp_get($device, 'entSN.0', '-OQv', 'SENAO-ENTERPRISE-INDOOR-AP-CB-MIB'),'" ');
 
 $hwversion = trim(snmp_get($device, 'entHwVersion.0', '-OQv', 'SENAO-ENTERPRISE-INDOOR-AP-CB-MIB'),'" .');
 
@@ -65,7 +63,5 @@ if ($version == '')
 {
   $version = snmp_get($device, 'modelName.0', '-OQv', 'ENGENIUS-PRIVATE-MIB');
 }
-
-// Unfortunately, no operational mode or even a serial number available in the Engenius MIBs. :(
 
 // EOF

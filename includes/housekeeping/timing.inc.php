@@ -72,7 +72,7 @@ if ($cutoff)
     print_message("No perfomance entries found older than " . format_unixtime($cutoff));
   }
 } else {
-  print_message("Timing housekeeping disabled in configuration or less than 24h.");
+  print_message("Timing housekeeping disabled in configuration or incorrectly configured to less than 24h.");
 }
 
 // EOF

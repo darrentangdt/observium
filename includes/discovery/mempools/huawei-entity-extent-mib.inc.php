@@ -11,7 +11,7 @@
  *
  */
 
-// Huawei VRP  mempools
+// Huawei VRP mempools
 
 $mempool_array = snmpwalk_cache_multi_oid($device, "hwEntityMemUsage", array(), $mib);
 

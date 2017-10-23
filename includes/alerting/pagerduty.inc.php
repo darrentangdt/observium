@@ -22,7 +22,7 @@ $pagerduty_event_type = ($message_tags['ALERT_STATE'] == "RECOVER" ? "resolve" :
 $data_string = json_encode(array(
   "service_key"  => $endpoint['service_key'],
   "event_type"   => $pagerduty_event_type,
-  "description"  => "[".$message_tags['DEVICE_HOSTNAME']."][".$message_tags['ENTITY_TYPE'] . "][" . $message_tags['ENTITY_NAME']."] ".$message_tags['ALERT_MESSAGE'],
+  "description"  => "[".$message_tags['DEVICE_HOSTNAME']."][".$message_tags['ENTITY_TYPE'] . "][" . $message_tags['ENTITY_NAME']."] [" . $message_tags['ENTITY_DESCRIPTION']."] " . $message_tags['ALERT_MESSAGE'],
   "incident_key" => $message_tags['ALERT_ID'],
   "client"       => "Observium Alert Entry",
   "client_url"   => $message_tags['ALERT_URL']));

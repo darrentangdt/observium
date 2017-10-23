@@ -13,7 +13,6 @@
 
 if ($config['enable_sla'])
 {
-  print_cli_data_field("Discovering MIBs", 3);
 
   $valid['slas'] = array();
 
@@ -91,7 +90,6 @@ if ($config['enable_sla'])
         if (!$entry['rttMonCtrlAdminStatus'])
         {
           dbDelete('slas', "`sla_id` = ?", array($entry['sla_id']));
-          dbDelete('slas-state', "`sla_id` = ?", array($entry['sla_id']));
         } else {
           dbUpdate(array('deleted' => 1), 'slas', "`sla_id` = ?", array($entry));
         }

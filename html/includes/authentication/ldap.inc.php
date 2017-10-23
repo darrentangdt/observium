@@ -65,7 +65,7 @@ function ldap_search_user($ldap_group, $userdn, $depth = -1)
 
     print_debug("LDAP[UserSearch][$depth][Comparing: " . $ldap_group . "][".$config['auth_ldap_groupmemberattr']."=$userdn][Filter: $filter]");
 
-    $ldap_search = ldap_search($ds, trim($config['auth_ldap_groupbase'], ', '), $filter, array($config['auth_ldap_attr']['dn']));
+    $ldap_search  = ldap_search($ds, trim($config['auth_ldap_groupbase'], ', '), $filter, array($config['auth_ldap_attr']['dn']));
     $ldap_results = ldap_get_entries($ds, $ldap_search);
 
     array_shift($ldap_results); // Chop off "count" array entry
@@ -99,8 +99,8 @@ function ldap_init()
 
   if (!is_resource($ds))
   {
-    print_debug("LDAP[Connecting to " . implode(",",$config['auth_ldap_server']) . "]");
-    $ds = @ldap_connect(implode(",",$config['auth_ldap_server']), $config['auth_ldap_port']);
+    print_debug('LDAP[Connecting to ' . implode(' ',$config['auth_ldap_server']) . ']');
+    $ds = @ldap_connect(implode(' ',$config['auth_ldap_server']), $config['auth_ldap_port']);
     print_debug("LDAP[Connected]");
 
     if ($config['auth_ldap_starttls'] && ($config['auth_ldap_starttls'] == 'optional' || $config['auth_ldap_starttls'] == 'require'))
@@ -462,6 +462,17 @@ function ldap_auth_user_list($username = NULL)
 {
   global $config, $ds;
 
+  // Use caching for reduce queries to LDAP
+  if (isset($GLOBALS['cache']['ldap']['userlist']))
+  {
+    if (($config['time']['now'] - $GLOBALS['cache']['ldap']['userlist']['unixtime']) <= 300) // Cache valid for 5 min
+    {
+      //print_message('cached');
+      return $GLOBALS['cache']['ldap']['userlist']['entries'];
+    }
+    unset($GLOBALS['cache']['ldap']['userlist']);
+  }
+
   ldap_init();
   ldap_bind_dn();
 
@@ -491,39 +502,120 @@ function ldap_auth_user_list($username = NULL)
     //$filter = '(&'.$filter.'(|'.$group_filter.'))';
   }
   $filter = ldap_filter_combine($filter_params);
+  // Limit fetched attributes, for reduce network transfer size
+  $attributes = array(strtolower($config['auth_ldap_attr']['uid']),
+                      strtolower($config['auth_ldap_attr']['cn']),
+                      strtolower($config['auth_ldap_attr']['uidNumber']),
+                      'description',
+                      'mail',
+                      'dn',
+                     );
 
   print_debug("LDAP[UserList][Filter][$filter][" . trim($config['auth_ldap_suffix'], ', ') . "]");
-  $search = ldap_search($ds, trim($config['auth_ldap_suffix'], ', '), $filter);
-  print_debug(ldap_error($ds));
 
-  $entries = ldap_get_entries($ds, $search);
+  if ($config['auth_ldap_version'] >= 3 && function_exists('ldap_control_paged_result'))
+  {
+    // Use pagination for
+    $page_size = 200;
+
+    $entries = array();
+    $cookie = '';
+    do
+    {
+      // WARNING, do not make any ldap queries betwen ldap_control_paged_result() and ldap_control_paged_result_response()!!
+      //          this produce loop and errors in queries
+      $page_test = ldap_control_paged_result($ds, $page_size, TRUE, $cookie);
+      //print_vars($page_test);
+      print_debug(ldap_error($ds));
+
+      $search = ldap_search($ds, trim($config['auth_ldap_suffix'], ', '), $filter, $attributes);
+      print_debug(ldap_error($ds));
+      $entries = array_merge($entries, ldap_get_entries($ds, $search));
+      //print_vars($filter);
+      //print_vars($search);
+
+      //ldap_internal_user_entries($entries, $userlist);
+
+      ldap_control_paged_result_response($ds, $search, $cookie);
+
+    } while($page_test && $cookie !== NULL && $cookie != '');
+    // Reset LDAP paged result
+    ldap_control_paged_result($ds, 1000);
+  } else {
+    // Old php < 5.4, trouble with limit 1000 entries, see:
+    // http://stackoverflow.com/questions/24990243/ldap-search-not-returning-more-than-1000-user
+
+    $search = ldap_search($ds, trim($config['auth_ldap_suffix'], ', '), $filter, $attributes);
+    print_debug(ldap_error($ds));
+
+    $entries = ldap_get_entries($ds, $search);
+    //print_vars($filter);
+    //print_vars($search);
+
+    //ldap_internal_user_entries($entries, $userlist);
+  }
   //print_vars($entries);
+  ldap_internal_user_entries($entries, $userlist);
+  unset($entries);
+
+  $GLOBALS['cache']['ldap']['userlist'] = array('unixtime'       => $config['time']['now'],
+                                                'entries'        => $userlist
+                                               );
+  return $userlist;
+}
+
+/**
+ * Parse user entries in ldap_auth_user_list()
+ *
+ * @param	array	$entries LDAP entries by ldap_get_entries()
+ * @param	array	$userlist	Users list
+ */
+function ldap_internal_user_entries($entries, &$userlist)
+{
+  global $config, $ds;
+
+  if (!is_array($userlist))
+  {
+    $userlist = array();
+  }
 
   if ($entries['count'])
   {
-    for ($i = 0; $i < $entries['count']; $i++)
-    {
-      $username = $entries[$i][strtolower($config['auth_ldap_attr']['uid'])][0];
-      $realname = $entries[$i][strtolower($config['auth_ldap_attr']['cn'])][0];
-      $user_id  = ldap_internal_auth_user_id($entries[$i]);
-      $email    = $entries[$i]['mail'][0];
+    unset($entries['count']);
+    //print_vars($entries);
 
-      $userdn = ($config['auth_ldap_groupmembertype'] == 'fulldn' ? $entries[$i]['dn'] : $username);
+    foreach ($entries as $i => $entry)
+    {
+      $username    = $entry[strtolower($config['auth_ldap_attr']['uid'])][0];
+      $realname    = $entry[strtolower($config['auth_ldap_attr']['cn'])][0];
+      $user_id     = ldap_internal_auth_user_id($entry);
+      $email       = $entry['mail'][0];
+      $description = $entry['description'][0];
+
+      $userdn = (strtolower($config['auth_ldap_groupmembertype']) == 'fulldn' ? $entry['dn'] : $username);
       print_debug("LDAP[UserList][Compare: " . implode('|',$config['auth_ldap_group']) . "][".$config['auth_ldap_groupmemberattr']."][$userdn]");
+
+      //if (!is_numeric($user_id)) { print_vars($entry); continue; }
 
       foreach ($config['auth_ldap_group'] as $ldap_group)
       {
         $authorized = 0;
 
         $compare = ldap_search_user($ldap_group, $userdn);
+        //print_warning("$username, $realname, ");
+        //print_vars($compare);
 
         if ($compare === -1)
         {
           print_debug("LDAP[UserList][Compare LDAP error: " . ldap_error($ds) . "]");
           continue;
-        } elseif ($compare === FALSE) {
+        }
+        else if ($compare === FALSE)
+        {
           print_debug("LDAP[UserList][Processing group: $ldap_group][Not matched]");
+
         } else {
+
           // $$compare === TRUE
           print_debug("LDAP[UserList][Authorized: $userdn for group $ldap_group]");
           $authorized = 1;
@@ -534,12 +626,11 @@ function ldap_auth_user_list($username = NULL)
       if (!isset($config['auth_ldap_group']) || $authorized)
       {
         $user_level = ldap_auth_user_level($username);
-        $userlist[] = array('username' => $username, 'realname' => $realname, 'user_id' => $user_id, 'level' => $user_level, 'email' => $email);
+        $userlist[] = array('username' => $username, 'realname' => $realname, 'user_id' => $user_id, 'level' => $user_level, 'email' => $email, 'descr' => $description);
       }
     }
+    //print_vars($userlist);
   }
-
-  return $userlist;
 }
 
 /**
@@ -643,7 +734,7 @@ function ldap_bind_dn($username = "", $password = "")
     return FALSE;
   } else {
     $cache['ldap_bind_result'] = 1;
-    print_debug("Error binding to LDAP server: " . implode(',',$config['auth_ldap_server']) . ': ' . ldap_error($ds));
+    print_debug("Error binding to LDAP server: " . implode(' ',$config['auth_ldap_server']) . ': ' . ldap_error($ds));
     session_logout();
     return TRUE;
   }
@@ -665,13 +756,14 @@ function ldap_internal_dn_from_username($username)
   if (!isset($cache['ldap']['dn'][$username]))
   {
     ldap_init();
+    //ldap_bind_dn();
     //$filter = "(" . $config['auth_ldap_attr']['uid'] . '=' . $username . ")";
     $filter_params[] = ldap_filter_create('objectClass', $config['auth_ldap_objectclass']);
     $filter_params[] = ldap_filter_create($config['auth_ldap_attr']['uid'], $username);
     $filter          = ldap_filter_combine($filter_params);
     print_debug("LDAP[Filter][$filter][" . trim($config['auth_ldap_suffix'], ', ') . "]");
 
-    $search = ldap_search($ds, trim($config['auth_ldap_suffix'], ', '), $filter);
+    $search  = ldap_search($ds, trim($config['auth_ldap_suffix'], ', '), $filter);
     $entries = ldap_get_entries($ds, $search);
 
     if ($entries['count'])
@@ -710,6 +802,10 @@ function ldap_internal_auth_user_id($result)
   } else {
     $userid = $result[strtolower($config['auth_ldap_attr']['uidNumber'])][0];
     print_debug("LDAP[UserID][Attribute " . $config['auth_ldap_attr']['uidNumber'] . " yields user ID " . $userid . "]");
+  }
+  if (!is_numeric($userid)) // FIXME, do this configurable? $config['auth_ldap_uid_number_generate'] = TRUE|FALSE;
+  {
+    $userid = string_to_id('ldap|' . $result[strtolower($config['auth_ldap_attr']['uid'])][0]);
   }
 
   return $userid;

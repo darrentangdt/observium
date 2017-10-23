@@ -54,12 +54,16 @@ if ( strstr($type, "cmc") || strstr($type, "CMC") )
         'entPhysicalParentRelPos' => $entry['drsServerSlotNumber'],
         'entPhysicalMfgName'      => 'Dell'
       );
+      $model = $entry['drsServerModel'];
+      if ( $entry['drsServerMonitoringCapable'] === "off") {
+          $model .= ' (OFF)';
+      }
       $inventory[$index+1] = array(
         'entPhysicalName'         => $entry['drsServerSlotName'],
         'entPhysicalDescr'        => $entry['drsServerSlotName'],
         'entPhysicalClass'        => 'module',
         'entPhysicalIsFRU'        => 'true',
-        'entPhysicalModelName'    => $entry['drsServerModel'],
+        'entPhysicalModelName'    => $model,
         'entPhysicalSerialNum'    => $serial,
         'entPhysicalContainedIn'  => $index,
         'entPhysicalParentRelPos' => 1,
@@ -67,7 +71,7 @@ if ( strstr($type, "cmc") || strstr($type, "CMC") )
       );
       discover_inventory($valid['inventory'], $device, $index, $inventory[$index], 'dell-rac-mib');
       discover_inventory($valid['inventory'], $device, $index+1, $inventory[$index+1], 'dell-rac-mib');
-      unset($serial);
+      unset($serial, $model);
 
     } else {
       $i = $index-2;

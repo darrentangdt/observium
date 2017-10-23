@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- EVENT management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -59,7 +59,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsEventObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -436,7 +436,8 @@ CucsEventPolicyEntry ::= SEQUENCE {
     cucsEventPolicyRetentionInterval                                 TimeIntervalSec,
     cucsEventPolicySizeLimit                                         Gauge32,
     cucsEventPolicyPolicyLevel                                       Gauge32,
-    cucsEventPolicyPolicyOwner                                       CucsPolicyPolicyOwner
+    cucsEventPolicyPolicyOwner                                       CucsPolicyPolicyOwner,
+    cucsEventPolicyPinningExpirationInterval                         TimeIntervalSec
 }
 
 cucsEventPolicyInstanceId OBJECT-TYPE
@@ -518,6 +519,15 @@ cucsEventPolicyPolicyOwner OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS event:Policy:policyOwner managed object property"
     ::= { cucsEventPolicyEntry 10 }
+
+cucsEventPolicyPinningExpirationInterval OBJECT-TYPE
+    SYNTAX       TimeIntervalSec
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS event:Policy:pinningExpirationInterval
+        managed object property"
+    ::= { cucsEventPolicyEntry 11 }
 
 cucsEventRecordTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsEventRecordEntry

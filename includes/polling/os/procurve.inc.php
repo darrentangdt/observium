@@ -25,8 +25,9 @@ else if (preg_match('/^(?:HP )?ProCurve (?<hardware>\w+.+?), (?:revision )?(?<ve
   $hardware = $matches['hardware'];
   $version  = $matches['version'];
 }
-else if (preg_match('/^(?:HP|Hewlett-Packard Company) (?<hw>\w+) (?:(?:.*?(?<sw1>(?:Routing )?Switch) (?<hw1>[\w\-\+]+))|(?:(?<hw2>[\w\-\+]+) (?<sw2>(?:Routing )?Switch))), (?:revision|Software Version) (?<version>[\w\.]+)/', $poll_device['sysDescr'], $matches))
+else if (preg_match('/^(?:Aruba|HP|Hewlett-Packard Company) (?<hw>\w+) (?:(?:.*?(?<sw1>(?:Routing )?Switch) (?<hw1>[\w\-\+]+))|(?:(?<hw2>[\w\-\+]+) (?<sw2>(?:Routing )?Switch))), (?:revision|Software Version) (?<version>[\w\.]+)/', $poll_device['sysDescr'], $matches))
 {
+  // Aruba JL075A 3810M-16SFP+-2-slot Switch, revision KB.16.02.0013, ROM KB.16.01.0006 (/ws/swbuildm/rel_spokane_qaoff/code/build/bom(swbuildm_rel_spokane_qaoff_rel_spokane))
   // HP J4121A ProCurve Switch 4000M, revision C.09.22, ROM C.06.01 (/sw/code/build/vgro(c09))
   // HP J9091A Switch E8212zl, revision K.15.06.0008, ROM K.15.19 (/sw/code/build/btm(K_15_06)) (Formerly ProCurve)
   // HP J9138A Switch 2520-24-PoE, revision S.15.09.0022, ROM S.14.03 (/ws/swbuildm/S_rel_hartford_qaoff/code/build/elmo(S_rel_hartford_qaoff)) (Formerly ProCurve)
@@ -41,19 +42,5 @@ else if (preg_match('/^(?:HP|Hewlett-Packard Company) (?<hw>\w+) (?:(?:.*?(?<sw1
   }
   $version  = $matches['version'];
 }
-
-if (!$version)
-{
-  $altversion = snmp_get($device,'hpSwitchOsVersion.0', '-Oqv', 'NETSWITCH-MIB');
-  if ($altversion) { $version = $altversion; }
-}
-
-if (!$version)
-{
-  $altversion = snmp_get($device,'snAgImgVer.0', '-Oqv', 'HP-SN-AGENT-MIB');
-  if ($altversion) { $version = $altversion; }
-}
-
-$serial = snmp_get($device, 'hpHttpMgSerialNumber.0', '-Oqv', 'SEMI-MIB');
 
 // EOF

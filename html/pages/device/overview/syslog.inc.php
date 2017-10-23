@@ -18,7 +18,7 @@ if ($config['enable_syslog'])
 
     print_syslogs(array('device' => $device['device_id'], 'short' => TRUE, 'pagesize' => '20',
                         'header' => array('title' => 'Syslog',
-                                          'icon' => 'oicon-clipboard-eye',
+                                          'icon' => $config['icon']['syslog'],
                                           'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'logs', 'section' => 'syslog'))
                                     )
     ));

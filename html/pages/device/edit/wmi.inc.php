@@ -76,7 +76,7 @@ if ($vars['editing'])
   <div class="col-md-6">
     <div class="box box-solid">
     <div class="box-header with-border">
-      <!-- <i class="oicon-lock-warning"></i> --><h3 class="box-title">WMI Authentication</h3>
+      <h3 class="box-title">WMI Authentication</h3>
     </div>
     <div class="box-body" style="padding-top: 10px;">
       <form id="edit" name="edit" method="post" action="" class="form-horizontal">
@@ -128,7 +128,7 @@ if ($vars['editing'])
   <div class="col-md-6">
     <div class="box box-solid">
     <div class="box-header with-border">
-      <!-- <i class="oicon-gear"></i> --><h3 class="box-title">WMI Poller Modules</h3>
+      <h3 class="box-title">WMI Poller Modules</h3>
     </div>
     <div class="box-body no-padding">
       <table class="table  table-striped table-condensed ">

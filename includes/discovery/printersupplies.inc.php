@@ -12,8 +12,6 @@
  *
  */
 
-echo(" Printer supplies: ");
-
 $valid['printersupplies'] = array();
 
 // Include all discovery modules by MIB

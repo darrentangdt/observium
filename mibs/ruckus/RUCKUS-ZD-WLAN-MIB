@@ -1,6 +1,12 @@
 --
 -- Copyright 2010-2013 Ruckus Wireless, Inc. All rights reserved.
 --
+-- RUCKUS WIRELESS, INC. CONFIDENTIAL - 
+-- This is an unpublished, proprietary work of Ruckus Wireless, Inc., and is 
+-- fully protected under copyright and trade secret laws. You may not view, 
+-- use, disclose, copy, or distribute this file or any information contained 
+-- herein except pursuant to a valid license from Ruckus. 
+--
 
 RUCKUS-ZD-WLAN-MIB DEFINITIONS ::= BEGIN
 
@@ -93,6 +99,7 @@ RuckusZDWLANEntry ::= SEQUENCE {
   ruckusZDWLANRxBytes                   Counter64,
   ruckusZDWLANTxPkts                    Counter64,
   ruckusZDWLANTxBytes                   Counter64,
+  ruckusZDWLANAssocNumSta               Unsigned32,
   ruckusZDWLANAuthTotal                 Counter64, 
   ruckusZDWLANAuthResp                  Counter64, 
   ruckusZDWLANAuthSuccessTotal          Counter64, 
@@ -258,6 +265,14 @@ ruckusZDWLANTxBytes OBJECT-TYPE
     DESCRIPTION
         "Transmitted bytes."
     ::= { ruckusZDWLANEntry 16 }
+
+ruckusZDWLANAssocNumSta OBJECT-TYPE
+	SYNTAX  Unsigned32
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "Number of associate client devices, include authorize and unauthorize."
+    ::= { ruckusZDWLANEntry 20 }
 
 ruckusZDWLANAuthTotal OBJECT-TYPE
     SYNTAX  Counter64 
@@ -507,7 +522,7 @@ ruckusZDWLANAPEntry OBJECT-TYPE
     ::= { ruckusZDWLANAPTable 1 }
 
 RuckusZDWLANAPEntry ::= SEQUENCE {
-  ruckusZDWLANAPMacAddr					MacAddress,
+  ruckusZDWLANAPMacAddr					PhysAddress,
   ruckusZDWLANAPDescription				DisplayString,
   ruckusZDWLANAPStatus					INTEGER,
   ruckusZDWLANAPModel					DisplayString,
@@ -524,12 +539,12 @@ RuckusZDWLANAPEntry ::= SEQUENCE {
   ruckusZDWLANAPMeshEnable				TruthValue,
   ruckusZDWLANAPMeshHops				Unsigned32,
   ruckusZDWLANAPMeshType				INTEGER,
-  ruckusZDWLANAPLANStatsRXByte			Counter32,
-  ruckusZDWLANAPLANStatsRXPkt			Counter32,
-  ruckusZDWLANAPLANStatsRXPktErr		Counter32,
-  ruckusZDWLANAPLANStatsRXPKTSucc		Counter32,
-  ruckusZDWLANAPLANStatsTXByte			Counter32,
-  ruckusZDWLANAPLANStatsTXPkt			Counter32,
+  ruckusZDWLANAPLANStatsRXByte			Counter64,
+  ruckusZDWLANAPLANStatsRXPkt			Counter64,
+  ruckusZDWLANAPLANStatsRXPktErr		Counter64,
+  ruckusZDWLANAPLANStatsRXPKTSucc		Counter64,
+  ruckusZDWLANAPLANStatsTXByte			Counter64,
+  ruckusZDWLANAPLANStatsTXPkt			Counter64,
   ruckusZDWLANAPMemUtil					INTEGER,
   ruckusZDWLANAPMemTotal				Unsigned32,
   ruckusZDWLANAPCPUUtil					INTEGER,
@@ -546,20 +561,20 @@ RuckusZDWLANAPEntry ::= SEQUENCE {
   ruckusZDWLANAPLastBootTime            DisplayString,
   ruckusZDWLANAPLastUpgradeTime         DisplayString,
   ruckusZDWLANAPLastConfSyncTime        DisplayString,
-  ruckusZDWLANAPLANStatsRXPKTBcast      Counter32,
-  ruckusZDWLANAPLANStatsRXPKTMcast      Counter32,
-  ruckusZDWLANAPLANStatsRXPKTUcast      Counter32,
-  ruckusZDWLANAPLANStatsTXPKTBcast      Counter32,
-  ruckusZDWLANAPLANStatsTXPKTMcast      Counter32,
-  ruckusZDWLANAPLANStatsTXPKTUcast      Counter32,
-  ruckusZDWLANAPLANStatsDropped         Counter32,
+  ruckusZDWLANAPLANStatsRXPKTBcast      Counter64,
+  ruckusZDWLANAPLANStatsRXPKTMcast      Counter64,
+  ruckusZDWLANAPLANStatsRXPKTUcast      Counter64,
+  ruckusZDWLANAPLANStatsTXPKTBcast      Counter64,
+  ruckusZDWLANAPLANStatsTXPKTMcast      Counter64,
+  ruckusZDWLANAPLANStatsTXPKTUcast      Counter64,
+  ruckusZDWLANAPLANStatsDropped         Counter64,
   ruckusZDWLANAPMeshUpPortCntUpdown     Counter32,
   ruckusZDWLANAPMeshDownPortCntUpdown   Counter32,
   ruckusZDWLANAPTxFrameDropped			Counter32,
   ruckusZDWLANAPTxFrameError			Counter32,
   ruckusZDWLANAPCoverageTech			INTEGER,
-  ruckusZDWLANAPStaTxBytes				Counter32,
-  ruckusZDWLANAPStaRxBytes				Counter32,
+  ruckusZDWLANAPStaTxBytes				Counter64,
+  ruckusZDWLANAPStaRxBytes				Counter64,
   ruckusZDWLANAPNetmask					IpAddress,
   ruckusZDWLANAPGateway					IpAddress,
   ruckusZDWLANAPDNS1					IpAddress,
@@ -570,7 +585,7 @@ RuckusZDWLANAPEntry ::= SEQUENCE {
 }
 
 ruckusZDWLANAPMacAddr OBJECT-TYPE
-    SYNTAX  MacAddress
+    SYNTAX  PhysAddress
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -706,7 +721,7 @@ ruckusZDWLANAPMeshType OBJECT-TYPE
     ::= { ruckusZDWLANAPEntry 20 }
 
 ruckusZDWLANAPLANStatsRXByte OBJECT-TYPE
-    SYNTAX Counter32
+    SYNTAX Counter64
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -714,7 +729,7 @@ ruckusZDWLANAPLANStatsRXByte OBJECT-TYPE
     ::= { ruckusZDWLANAPEntry 21 }
 
 ruckusZDWLANAPLANStatsRXPkt OBJECT-TYPE
-    SYNTAX Counter32
+    SYNTAX Counter64
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -722,7 +737,7 @@ ruckusZDWLANAPLANStatsRXPkt OBJECT-TYPE
     ::= { ruckusZDWLANAPEntry 22 }
 
 ruckusZDWLANAPLANStatsRXPktErr OBJECT-TYPE
-    SYNTAX Counter32
+    SYNTAX Counter64
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -730,7 +745,7 @@ ruckusZDWLANAPLANStatsRXPktErr OBJECT-TYPE
     ::= { ruckusZDWLANAPEntry 23 }
 
 ruckusZDWLANAPLANStatsRXPKTSucc OBJECT-TYPE
-    SYNTAX Counter32
+    SYNTAX Counter64
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -738,7 +753,7 @@ ruckusZDWLANAPLANStatsRXPKTSucc OBJECT-TYPE
     ::= { ruckusZDWLANAPEntry 24 }
 
 ruckusZDWLANAPLANStatsTXByte OBJECT-TYPE
-    SYNTAX Counter32
+    SYNTAX Counter64
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -746,7 +761,7 @@ ruckusZDWLANAPLANStatsTXByte OBJECT-TYPE
     ::= { ruckusZDWLANAPEntry 25 }
 
 ruckusZDWLANAPLANStatsTXPkt OBJECT-TYPE
-    SYNTAX Counter32
+    SYNTAX Counter64
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -882,7 +897,7 @@ ruckusZDWLANAPLastConfSyncTime OBJECT-TYPE
     ::= { ruckusZDWLANAPEntry 46 }
 
 ruckusZDWLANAPLANStatsRXPKTBcast OBJECT-TYPE
-    SYNTAX Counter32
+    SYNTAX Counter64
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -890,7 +905,7 @@ ruckusZDWLANAPLANStatsRXPKTBcast OBJECT-TYPE
     ::= { ruckusZDWLANAPEntry 47 }
 
 ruckusZDWLANAPLANStatsRXPKTMcast OBJECT-TYPE
-    SYNTAX Counter32
+    SYNTAX Counter64
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -898,7 +913,7 @@ ruckusZDWLANAPLANStatsRXPKTMcast OBJECT-TYPE
     ::= { ruckusZDWLANAPEntry 48 }
 
 ruckusZDWLANAPLANStatsRXPKTUcast OBJECT-TYPE
-    SYNTAX Counter32
+    SYNTAX Counter64
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -906,7 +921,7 @@ ruckusZDWLANAPLANStatsRXPKTUcast OBJECT-TYPE
     ::= { ruckusZDWLANAPEntry 49 }
 
 ruckusZDWLANAPLANStatsTXPKTBcast OBJECT-TYPE
-    SYNTAX Counter32
+    SYNTAX Counter64
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -914,7 +929,7 @@ ruckusZDWLANAPLANStatsTXPKTBcast OBJECT-TYPE
     ::= { ruckusZDWLANAPEntry 50 }
 
 ruckusZDWLANAPLANStatsTXPKTMcast OBJECT-TYPE
-    SYNTAX Counter32
+    SYNTAX Counter64
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -922,7 +937,7 @@ ruckusZDWLANAPLANStatsTXPKTMcast OBJECT-TYPE
     ::= { ruckusZDWLANAPEntry 51 }
 
 ruckusZDWLANAPLANStatsTXPKTUcast OBJECT-TYPE
-    SYNTAX Counter32
+    SYNTAX Counter64
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -930,7 +945,7 @@ ruckusZDWLANAPLANStatsTXPKTUcast OBJECT-TYPE
     ::= { ruckusZDWLANAPEntry 52 }
 
 ruckusZDWLANAPLANStatsDropped OBJECT-TYPE
-    SYNTAX Counter32
+    SYNTAX Counter64
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -978,7 +993,7 @@ ruckusZDWLANAPCoverageTech OBJECT-TYPE
     ::= { ruckusZDWLANAPEntry 59 }
     
 ruckusZDWLANAPStaTxBytes  OBJECT-TYPE
-    SYNTAX Counter32
+    SYNTAX Counter64
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -986,7 +1001,7 @@ ruckusZDWLANAPStaTxBytes  OBJECT-TYPE
     ::= { ruckusZDWLANAPEntry 61 }
     
 ruckusZDWLANAPStaRxBytes  OBJECT-TYPE
-    SYNTAX Counter32
+    SYNTAX Counter64
     MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
@@ -2408,7 +2423,7 @@ ruckusZDWLANAPEthStatusEntry OBJECT-TYPE
     ::= { ruckusZDWLANAPEthStatusTable 1 }
     
 RuckusZDWLANAPEthStatusEntry ::= SEQUENCE {  
-  ruckusZDWLANAPMacAddress                 MacAddress,
+  ruckusZDWLANAPMacAddress                 OCTET STRING,
   ruckusZDWLANAPEthPortId               INTEGER,
   ruckusZDWLANAPEthIfname               OCTET STRING,
   ruckusZDWLANAPEthDot1xStatus          INTEGER,

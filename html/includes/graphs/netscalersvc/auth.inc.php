@@ -22,8 +22,13 @@ if (is_numeric($vars['id']))
 
     $rrd_filename = get_rrd_path($device, "nscaler-svc-".$svc['svc_name'].".rrd");
 
-    $title  = generate_device_link($device);
-    $title .= " :: Netscaler VServer :: " . escape_html($svc['svc_name']);
+    $title_array   = array();
+    $title_array[] = array('text' => $device['hostname'], 'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'])));
+    $title_array[] = array('text' => 'Netscaler Service', 'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'loadbalancer', 'type' => 'netscaler_services')));
+    $title_array[] = array('text' => $svc['svc_label']   , 'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'loadbalancer', 'type' => 'netscaler_services', 'svc' => $svc['svc_id'])));
+
+    //$title  = generate_device_link($device);
+    //$title .= " :: Netscaler VServer :: " . escape_html($svc['svc_name']);
     $auth = TRUE;
   }
 }

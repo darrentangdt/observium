@@ -21,6 +21,8 @@ $navbar['brand'] = "Alert Types";
 
 $types = dbFetchRows("SELECT DISTINCT `entity_type` FROM `alert_table` WHERE 1" . generate_query_permitted(array('alert')));
 
+$types_count = count($types);
+
 $navbar['options']['all']['url'] = generate_url($vars, array('page' => 'alerts', 'entity_type' => 'all'));
 $navbar['options']['all']['text'] = escape_html(nicecase('all'));
 if ($vars['entity_type'] == 'all')
@@ -36,6 +38,7 @@ foreach ($types as $thing)
     $navbar['options'][$thing['entity_type']]['class'] = "active";
     $navbar['options'][$thing['entity_type']]['url'] = generate_url($vars, array('page' => 'alerts', 'entity_type' => NULL));
   } else {
+    if ($types_count > 6)   { $navbar['options'][$thing['entity_type']]['class'] = "icon"; }
     $navbar['options'][$thing['entity_type']]['url'] = generate_url($vars, array('page' => 'alerts', 'entity_type' => $thing['entity_type']));
   }
   $navbar['options'][$thing['entity_type']]['icon'] = $config['entities'][$thing['entity_type']]['icon'];
@@ -44,27 +47,27 @@ foreach ($types as $thing)
 
 $navbar['options_right']['filters']['url']       = '#';
 $navbar['options_right']['filters']['text']      = 'Filter';
-$navbar['options_right']['filters']['icon']      = 'oicon-filter';
+$navbar['options_right']['filters']['icon']      = $config['icon']['filter'];
 //$navbar['options_right']['filters']['link_opts'] = 'data-hover="dropdown" data-toggle="dropdown"';
 
 $filters = array('all'     => array('url'   => generate_url($vars, array('page' => 'alerts', 'status' => 'all')),
                                        'url_o' => generate_url($vars, array('page' => 'alerts', 'status' => 'all')),
-                                       'icon'  => 'oicon-information',
+                                       'icon'  => $config['icon']['info'],
                                        'text'  => 'All'),
 
                  'failed_delayed' => array('url'   => generate_url($vars, array('page' => 'alerts', 'status' => 'failed_delayed')),
                                        'url_o' => generate_url($vars, array('page' => 'alerts', 'status' => 'all')),
-                                       'icon'  => 'oicon-exclamation',
+                                       'icon'  => $config['icon']['error'],
                                        'text'  => 'Failed & Delayed'),
 
                  'failed'     => array('url'   => generate_url($vars, array('page' => 'alerts', 'status' => 'failed')),
                                        'url_o' => generate_url($vars, array('page' => 'alerts', 'status' => 'all')),
-                                       'icon'  => 'oicon-exclamation-red',
+                                       'icon'  => $config['icon']['stop'],
                                        'text'  => 'Failed'),
 
                  'suppressed' => array('url'   => generate_url($vars, array('page' => 'alerts', 'status' => 'suppressed')),
                                        'url_o' => generate_url($vars, array('page' => 'alerts', 'status' => 'all')),
-                                       'icon'  => 'oicon-exclamation-white',
+                                       'icon'  => $config['icon']['exclamation'],
                                        'text'  => 'Suppressed')
 );
 

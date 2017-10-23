@@ -7,7 +7,7 @@ ALCATEL-IND1-RIP-MIB DEFINITIONS ::= BEGIN
 			FROM RIPv2-MIB
         DisplayString, RowStatus, TEXTUAL-CONVENTION
             FROM SNMPv2-TC
-        MODULE-COMPLIANCE,NOTIFICATION-GROUP,OBJECT-GROUP
+        MODULE-COMPLIANCE, OBJECT-GROUP
             FROM SNMPv2-CONF
 	    routingIND1Rip
 		    FROM ALCATEL-IND1-BASE;
@@ -146,7 +146,7 @@ ALCATEL-IND1-RIP-MIB DEFINITIONS ::= BEGIN
         STATUS  obsolete
         DESCRIPTION
             "Enable or disable redistribution of routes into RIP.
-             This object has been obsoleted. Use the alaRouteMapRedistProtoEntry
+             This object has been obsoleted. Use the alaRouteMapRedistProtoEntry 
              objects of AlcatelIND1RouteMap.mib."
         DEFVAL { disable }
     ::= { alaProtocolRip 3 }
@@ -242,7 +242,7 @@ ALCATEL-IND1-RIP-MIB DEFINITIONS ::= BEGIN
 			"Protocol based configuration for route redistribution using RIP.
              This table has been obsoleted. Use alaRouteMapRedistProtoTable
              of AlcatelIND1RouteMap.mib."
-
+            
 		::= { alaProtocolRip 7 }
 
     alaRipRedistProtoEntry OBJECT-TYPE
@@ -253,7 +253,7 @@ ALCATEL-IND1-RIP-MIB DEFINITIONS ::= BEGIN
             "A range of routes from a protocol to be redistributed using RIP.
              This entry has been obsoleted. Use alaRouteMapRedistProtoEntry
              of AlcatelIND1RouteMap.mib."
-
+            
         INDEX   { alaRipRedistProtoId }
     ::= { alaRipRedistProtoTable 1 }
 
@@ -279,14 +279,14 @@ ALCATEL-IND1-RIP-MIB DEFINITIONS ::= BEGIN
         MAX-ACCESS  read-only
         STATUS  obsolete
         DESCRIPTION
-            "The routing mechanism via which the routes, to be redistributed
-             using RIP, are learned. This object has been obsoleted.
+            "The routing mechanism via which the routes, to be redistributed 
+             using RIP, are learned. This object has been obsoleted. 
              Use alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
         ::= { alaRipRedistProtoEntry 1 }
 
     alaRipRedistProtoMetric   OBJECT-TYPE
          SYNTAX   INTEGER (0 .. 15 )
-         MAX-ACCESS   read-write
+         MAX-ACCESS   read-create
          STATUS   obsolete
          DESCRIPTION
              "Default metric to be used for redistributing routes. This object has been
@@ -296,10 +296,10 @@ ALCATEL-IND1-RIP-MIB DEFINITIONS ::= BEGIN
 
     alaRipRedistProtoStatus OBJECT-TYPE
         SYNTAX  RowStatus
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS  obsolete
         DESCRIPTION
-             "Add or Delete entries. This object has been obsoleted. Use
+             "Add or Delete entries. This object has been obsoleted. Use 
               alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
         DEFVAL  { notInService }
         ::= { alaRipRedistProtoEntry 3 }
@@ -650,7 +650,7 @@ ALCATEL-IND1-RIP-MIB DEFINITIONS ::= BEGIN
         MAX-ACCESS   not-accessible
         STATUS   obsolete
         DESCRIPTION
-            "An entry of alaRipRedistRouteTable which specifies a route or
+            "An entry of alaRipRedistRouteTable which specifies a route or 
              set of routes to be redistributed by RIP from another routing protocol.
              This entry has been obsoleted. Use alaRouteMapRedistProtoEntry of
              AlcatelIND1RouteMap.mib."
@@ -696,7 +696,7 @@ ALCATEL-IND1-RIP-MIB DEFINITIONS ::= BEGIN
         STATUS   obsolete
         DESCRIPTION
            "Protocol from which this route is to be imported into RIP. This object
-            has been obsoleted. Use alaRouteMapRedistProtoEntry objects
+            has been obsoleted. Use alaRouteMapRedistProtoEntry objects 
             of AlcatelIND1RouteMap.mib."
         ::= { alaRipRedistRouteEntry 1 }
 
@@ -722,11 +722,11 @@ ALCATEL-IND1-RIP-MIB DEFINITIONS ::= BEGIN
 
     alaRipRedistRouteMetric OBJECT-TYPE
         SYNTAX   INTEGER ( 0 .. 15 )
-        MAX-ACCESS   read-write
+        MAX-ACCESS   read-create
         STATUS   obsolete
         DESCRIPTION
-           "The metric to be used for the redistributed route. A value
-            of 0 means that the metric used should be the value configured
+           "The metric to be used for the redistributed route. A value 
+            of 0 means that the metric used should be the value configured 
             in alaRipRedistProtoMetric for this protocol. This object
             has been obsoleted. Use alaRouteMapRedistProtoEntry objects
             of AlcatelIND1RouteMap.mib."
@@ -740,24 +740,24 @@ ALCATEL-IND1-RIP-MIB DEFINITIONS ::= BEGIN
                      redistributeAsAggregate(2),
                      redistributeExactMatch(3)
                  }
-        MAX-ACCESS   read-write
+        MAX-ACCESS   read-create
         STATUS   obsolete
         DESCRIPTION
-           "Specifies how routes matching this entry are to be redistributed
-            into RIP. The different mechanisms possible are to redistribute all
-            the subnet routes, redistribute an aggregated route if there are
-            one or more actual routes which match this entry or redistribute
-            only an exactly matching route. This object has been obsoleted.
+           "Specifies how routes matching this entry are to be redistributed 
+            into RIP. The different mechanisms possible are to redistribute all 
+            the subnet routes, redistribute an aggregated route if there are 
+            one or more actual routes which match this entry or redistribute 
+            only an exactly matching route. This object has been obsoleted. 
             Use alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
         DEFVAL { redistributeAllSubnets }
         ::= { alaRipRedistRouteEntry 5 }
 
     alaRipRedistRouteTagMatch OBJECT-TYPE
         SYNTAX   INTEGER ( -2147483648 .. 2147483647 )
-        MAX-ACCESS   read-write
+        MAX-ACCESS   read-create
         STATUS   obsolete
         DESCRIPTION
-           "Redistribute the route only when the route tag matches with this
+           "Redistribute the route only when the route tag matches with this 
             value. It defaults to -1 which matches all route tags. This object
             has been obsoleted. Use alaRouteMapRedistProtoEntry objects
             of AlcatelIND1RouteMap.mib."
@@ -770,22 +770,22 @@ ALCATEL-IND1-RIP-MIB DEFINITIONS ::= BEGIN
                     redistribute(1),
                     doNotRedistribute(2)
                 }
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS  obsolete
         DESCRIPTION
-           "Specifies whether the redistribution of routes in this range
-            is allowed or denied. This object has been obsoleted. Use
+           "Specifies whether the redistribution of routes in this range 
+            is allowed or denied. This object has been obsoleted. Use 
             alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
         DEFVAL { redistribute }
         ::= { alaRipRedistRouteEntry 7 }
 
     alaRipRedistRouteStatus OBJECT-TYPE
         SYNTAX    RowStatus
-        MAX-ACCESS    read-write
+        MAX-ACCESS    read-create
         STATUS    obsolete
         DESCRIPTION
-           "The row status variable, used according to row installation and
-            removal conventions. This object has been obsoleted. Use
+           "The row status variable, used according to row installation and 
+            removal conventions. This object has been obsoleted. Use 
             alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
         ::= { alaRipRedistRouteEntry 8 }
 
@@ -1103,7 +1103,6 @@ ALCATEL-IND1-RIP-MIB DEFINITIONS ::= BEGIN
            alaRipInvalidTimer,
            alaRipProtoStatus,
            alaRipUpdateInterval
-             
         }
         STATUS deprecated
         DESCRIPTION
@@ -1146,6 +1145,7 @@ ALCATEL-IND1-RIP-MIB DEFINITIONS ::= BEGIN
         DESCRIPTION
             "Collection of objects for management of Network Route configuration."
         ::= { alcatelIND1RIPMIBGroups 6 }
+
         
 	alaRip2IfConfAugGroup  OBJECT-GROUP
         OBJECTS
@@ -1172,7 +1172,8 @@ ALCATEL-IND1-RIP-MIB DEFINITIONS ::= BEGIN
         DESCRIPTION
            " This notification is generated as RIP database reached supported
              Maximum entries. RIP will discard any new updates."
-        ::= { alcatelIND1RIPMIBGroups 8 }    
+        ::= { alcatelIND1RIPMIBGroups 8 }
+
 --
 -- Trap definitions
 --

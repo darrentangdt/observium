@@ -86,6 +86,13 @@ if ($vars['editing'])
         $update['snmp_retries'] = array('NULL');
       }
 
+      if (is_numeric($vars['snmp_maxrep']) && $vars['snmp_maxrep'] > 0 && $vars['snmp_maxrep'] <= 500)
+      {
+        $update['snmp_maxrep'] = (int)$vars['snmp_maxrep'];
+      } else {
+        $update['snmp_maxrep'] = array('NULL');
+      }
+
       if (dbUpdate($update, 'devices', '`device_id` = ?', array($device['device_id'])))
       {
         print_success("Device SNMP configuration updated");
@@ -111,22 +118,18 @@ $form = array('type'      => 'horizontal',
               'id'        => 'edit',
               //'space'     => '20px',
               //'title'     => 'General',
-              //'icon'      => 'oicon-gear',
               //'class'     => 'box',
               );
 // top row div
 $form['fieldset']['edit']    = array('div'   => 'top',
                                      'title' => 'Basic Configuration',
-                                     'icon'  => 'oicon-gear',
                                      'class' => 'col-md-6');
 $form['fieldset']['snmpv2']  = array('div'   => 'top',
                                      'title' => 'Authentication Configuration',
-                                     'icon'  => 'oicon-lock-warning',
                                      //'right' => TRUE,
                                      'class' => 'col-md-6 col-md-pull-0');
 $form['fieldset']['snmpv3']  = array('div'   => 'top',
                                      'title' => 'Authentication Configuration',
-                                     'icon'  => 'oicon-lock-warning',
                                      //'right' => TRUE,
                                      'class' => 'col-md-6 col-md-pull-0');
 // bottom row div
@@ -175,8 +178,16 @@ $form['row'][5]['snmp_retries'] = array(
                                 'width'       => '250px',
                                 'readonly'    => $readonly,
                                 'value'       => escape_html($device['snmp_retries']));
+
+$form['row'][6]['snmp_maxrep'] = array(
+                                'type'        => 'text',
+                                'fieldset'    => 'edit',
+                                'name'        => 'Max Repetitions',
+                                'width'       => '250px',
+                                'readonly'    => $readonly,
+                                'value'       => escape_html($device['snmp_maxrep']));
 // Snmp v1/2c fieldset
-$form['row'][6]['snmp_community'] = array(
+$form['row'][7]['snmp_community'] = array(
                                 'type'        => 'password',
                                 'fieldset'    => 'snmpv2',
                                 'name'        => 'SNMP Community',
@@ -186,7 +197,7 @@ $form['row'][6]['snmp_community'] = array(
                                 'value'       => escape_html($device['snmp_community'])); // FIXME. For passwords we should use filter instead escape!
 
 // Snmp v3 fieldset
-$form['row'][7]['snmp_authlevel'] = array(
+$form['row'][8]['snmp_authlevel'] = array(
                                 'type'        => 'select',
                                 'fieldset'    => 'snmpv3',
                                 'name'        => 'Auth Level',
@@ -197,7 +208,7 @@ $form['row'][7]['snmp_authlevel'] = array(
                                                        'authPriv'     => 'authPriv'),
                                 'value'       => $device['snmp_authlevel']);
 
-$form['row'][8]['snmp_authname'] = array(
+$form['row'][9]['snmp_authname'] = array(
                                 'type'        => 'password',
                                 'fieldset'    => 'snmpv3',
                                 'name'        => 'Auth Username',
@@ -205,7 +216,7 @@ $form['row'][8]['snmp_authname'] = array(
                                 'readonly'    => $readonly,
                                 'value'       => escape_html($device['snmp_authname']));
 
-$form['row'][9]['snmp_authpass'] = array(
+$form['row'][10]['snmp_authpass'] = array(
                                 'type'        => 'password',
                                 'fieldset'    => 'snmpv3',
                                 'name'        => 'Auth Password',
@@ -214,7 +225,7 @@ $form['row'][9]['snmp_authpass'] = array(
                                 'show_password' => !$readonly,
                                 'value'       => escape_html($device['snmp_authpass'])); // FIXME. For passwords we should use filter instead escape!
 
-$form['row'][10]['snmp_authalgo'] = array(
+$form['row'][11]['snmp_authalgo'] = array(
                                 'type'        => 'select',
                                 'fieldset'    => 'snmpv3',
                                 'name'        => 'Auth Algorithm',
@@ -223,7 +234,7 @@ $form['row'][10]['snmp_authalgo'] = array(
                                 'values'      => array('MD5' => 'MD5', 'SHA' => 'SHA'),
                                 'value'       => $device['snmp_authalgo']);
 
-$form['row'][11]['snmp_cryptopass'] = array(
+$form['row'][12]['snmp_cryptopass'] = array(
                                 'type'        => 'password',
                                 'fieldset'    => 'snmpv3',
                                 'name'        => 'Crypto Password',
@@ -231,7 +242,7 @@ $form['row'][11]['snmp_cryptopass'] = array(
                                 'readonly'    => $readonly,
                                 'show_password' => !$readonly,
                                 'value'       => escape_html($device['snmp_cryptopass'])); // FIXME. For passwords we should use filter instead escape!
-$form['row'][12]['snmp_cryptoalgo'] = array(
+$form['row'][13]['snmp_cryptoalgo'] = array(
                                 'type'        => 'select',
                                 'fieldset'    => 'snmpv3',
                                 'name'        => 'Crypto Algorithm',

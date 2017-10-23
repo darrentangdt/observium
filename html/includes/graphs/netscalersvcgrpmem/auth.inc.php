@@ -22,6 +22,13 @@ if (is_numeric($vars['id']))
 
     $rrd_filename = get_rrd_path($device, "nscaler-svcgrpmem-".$svc['svc_name'].".rrd");
 
+    $title_array   = array();
+    $title_array[] = array('text' => $device['hostname'], 'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'])));
+    $title_array[] = array('text' => 'Netscaler Service Group Members', 'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'loadbalancer', 'type' => 'netscaler_servicegroupmembers')));
+    $title_array[] = array('text' => $svc['svc_label']   , 'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'loadbalancer', 'type' => 'netscaler_servicegroupmembers', 'svc' => $svc['svc_id'])));
+
+
+
     $title  = generate_device_link($device);
     $title .= " :: Netscaler ServiceGroupMember :: " . escape_html($svc['svc_name']);
     $auth = TRUE;

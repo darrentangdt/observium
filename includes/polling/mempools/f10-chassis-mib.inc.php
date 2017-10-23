@@ -13,7 +13,7 @@
 
 if (!is_array($cache_storage['F10-CHASSIS-MIB']))
 {
-  $cache_storage['F10-CHASSIS-MIB'] = snmpwalk_cache_multi_oid($device, 'chRpmMemUsageUtil', array(Ã), 'F10-CHASSIS-MIB');
+  $cache_storage['F10-CHASSIS-MIB'] = snmpwalk_cache_multi_oid($device, 'chRpmMemUsageUtil', array(), 'F10-CHASSIS-MIB');
   $cache_storage['F10-CHASSIS-MIB'] = snmpwalk_cache_multi_oid($device, 'chSysProcessorMemSize', $cache_storage['F10-CHASSIS-MIB'], 'F10-CHASSIS-MIB');
 } else {
   print_debug('Cached!');

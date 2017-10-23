@@ -31,7 +31,7 @@ if ($rrd_filename)
     # set a multiplier which in turn will create a CDEF if this var is set
     if ($dsprefix == "traffic_") { $multiplier = "8"; }
 
-    $colours   = "blues";
+    $colours   = "mixed";
     $nototal   = 0;
     $units="";
     $unit_text = $dsdescr;
@@ -43,4 +43,4 @@ if ($rrd_filename)
 
 include($config['html_dir']."/includes/graphs/generic_multi_simplex_separated.inc.php");
 
-?>
+// EOF

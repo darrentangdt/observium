@@ -1,6 +1,12 @@
 --
 -- Copyright 2010-2013 Ruckus Wireless, Inc. All rights reserved.
 --
+-- RUCKUS WIRELESS, INC. CONFIDENTIAL - 
+-- This is an unpublished, proprietary work of Ruckus Wireless, Inc., and is 
+-- fully protected under copyright and trade secret laws. You may not view, 
+-- use, disclose, copy, or distribute this file or any information contained 
+-- herein except pursuant to a valid license from Ruckus. 
+--
 
 RUCKUS-ZD-WLAN-CONFIG-MIB DEFINITIONS ::= BEGIN
 
@@ -299,22 +305,25 @@ ruckusZDWLANConfigAccountingUpdateInterval OBJECT-TYPE
 
 
 ruckusZDWLANConfigUplinkRate OBJECT-TYPE
-    SYNTAX  OCTET STRING  (SIZE (1..10))
+    SYNTAX  OCTET STRING  (SIZE (1..15))
     MAX-ACCESS read-write
     STATUS current
     DESCRIPTION
-        "Disable or Set the Speed/Rate limiting of uplink. Valid range is 0.10mbps or between 0.25mbps~20.00mbps in 0.25mbps step.
-        Such as: 'disable', '0.10mbps', '0.25mbps', '0.5mbps',...,'19.75mbps','20.00mbps'"
+        "Disable or Set the Speed/Rate limiting of uplink. Valid range is 0.10mbps or between 
+        0.25mbps~200.00mbps in 0.25mbps step.
+        Such as: 'disable', '0.10mbps', '0.25mbps', 
+        '0.5mbps',...,'19.75mbps','20.00mbps','200mbps'"
         DEFVAL{"disable"}
     ::= { ruckusZDWLANConfigEntry 40 }
 
 ruckusZDWLANConfigDownlinkRate OBJECT-TYPE
-    SYNTAX  OCTET STRING  (SIZE (1..10))
+    SYNTAX  OCTET STRING  (SIZE (1..15))
     MAX-ACCESS read-write
     STATUS current
     DESCRIPTION
-        "Disable or Set the Speed/Rate limiting of downlink. Valid range is 0.10mbps or between 0.25mbps~20.00mbps in 0.25mbps step.
-        Such as: 'disable', '0.10mbps', '0.25mbps', '0.5mbps',...,'19.75mbps','20.00mbps'"
+        "Disable or Set the Speed/Rate limiting of downlink. Valid range is 0.10mbps or between 
+        0.25mbps~200.00mbps in 0.25mbps step.
+        Such as: 'disable', '0.10mbps', '0.25mbps', '0.5mbps',...,'19.75mbps','20.00mbps','200mbps'"
         DEFVAL{"disable"}
     ::= { ruckusZDWLANConfigEntry 41 }
 

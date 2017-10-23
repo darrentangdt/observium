@@ -10,7 +10,7 @@ IMPORTS
 -- =============================================================================
 
 liebertGlobalProductsRegistrationModule MODULE-IDENTITY
-  LAST-UPDATED "200808140000Z"
+  LAST-UPDATED "201403270000Z"
   ORGANIZATION "Liebert Corporation"
   CONTACT-INFO
       "Contact:   Technical Support
@@ -32,13 +32,37 @@ liebertGlobalProductsRegistrationModule MODULE-IDENTITY
    DESCRIPTION
       "The MIB module used to register Liebert SNMP OIDs.
 
-      Copyright 2000-2008 Liebert Corporation. All rights reserved.
+      Copyright 2000-2014 Liebert Corporation. All rights reserved.
       Reproduction of this document is authorized on the condition
       that the forgoing copyright notice is included.
 
       This Specification is supplied 'AS IS' and Liebert Corporation
       makes no warranty, either express or implied, as to the use,
       operation, condition, or performance of the Specification."
+
+   REVISION "201502020000Z"
+   DESCRIPTION
+    "Added registration for GXT3 UPS"
+
+   REVISION "201409170000Z"
+   DESCRIPTION
+    "Added registration for new Thermal product variants"
+
+   REVISION "201406240000Z"
+   DESCRIPTION
+    "Added registration for EXM and variants"
+
+   REVISION "201403270000Z"
+   DESCRIPTION
+    "Added registration for NXr variants, EXL, NX variants, Air Handlers and RackPDU2"
+
+   REVISION "201307100000Z"
+   DESCRIPTION
+    "Added registration for GXT4 UPS"
+
+   REVISION "201305140000Z"
+   DESCRIPTION
+    "Added registration for NXL-JD and APS UPS"
 
    REVISION "200904170000Z"
    DESCRIPTION
@@ -446,7 +470,9 @@ lgpNXL OBJECT-IDENTITY
    STATUS               current
    DESCRIPTION "This branch is used to register NXL UPS product
                 information."
-   REFERENCE   "There are currently no objects registered under this branch."
+   REFERENCE   "The registrations for the objects in this branch
+               are defined below in a sub-section titled NXL Family 
+               Liebert NXL UPS product Registrations."
     ::= { lgpUpsProducts 10 }
 
 lgpSuper400 OBJECT-IDENTITY
@@ -491,12 +517,193 @@ lgpSeries610SCC OBJECT-IDENTITY
    REFERENCE   "There are currently no objects registered under this branch."
     ::= { lgpUpsProducts 16 }
 
+lgpGXT3 OBJECT-IDENTITY
+   STATUS       current
+   DESCRIPTION "This branch is used to register Liebert GXT3 
+                product information."
+   REFERENCE   "There are currently no objects registered under this branch."
+    ::= { lgpUpsProducts 17 }
+
+lgpGXT3Dual OBJECT-IDENTITY
+   STATUS       current
+   DESCRIPTION "This branch is used to register Liebert GXT3 Dual Inverter
+                product information."
+   REFERENCE   "There are currently no objects registered under this branch."
+    ::= { lgpUpsProducts 18 }
+
 lgpNXr OBJECT-IDENTITY
    STATUS       current
    DESCRIPTION "This branch is used to register Liebert APM UPS product
                 information."
-   REFERENCE   "There are currently no objects registered under this branch."
     ::= { lgpUpsProducts 19 }
+
+    lgpITA OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "This branch is used to register information for Emerson
+                   Network Power ITA UPS product."
+       REFERENCE   "There are currently no objects registered under this branch."
+        ::= { lgpNXr 1 }
+
+    lgpNXRb OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "This branch is used to register information for Emerson
+                   Network Power NXRb UPS product."
+       REFERENCE   "There are currently no objects registered under this branch."
+        ::= { lgpNXr 2 }
+
+    lgpNXC OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "This branch is used to register information for Emerson
+                   Network Power NXC(ITAb) UPS product."
+       REFERENCE   "There are currently no objects registered under this branch."
+        ::= { lgpNXr 3 }
+
+    lgpNXC30to40k OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "This branch is used to register information for Emerson
+                   Network Power NXC 30/40k UPS product."
+       REFERENCE   "There are currently no objects registered under this branch."
+        ::= { lgpNXr 4 }
+
+    lgpITA30to40k OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "This branch is used to register information for Emerson
+                   Network Power ITA 30/40k UPS product."
+       REFERENCE   "There are currently no objects registered under this branch."
+        ::= { lgpNXr 5 }
+
+lgpAPS OBJECT-IDENTITY
+   STATUS       current
+   DESCRIPTION "This branch is used to register Liebert APS
+                Modular UPS product information."
+   REFERENCE   "There are currently no objects registered under this branch."
+    ::= { lgpUpsProducts 20 }
+
+lgpMUNiMx OBJECT-IDENTITY
+   STATUS       current
+   DESCRIPTION "This branch is used to register Liebert
+                UPS with MUNiMx product information."
+   REFERENCE   "The registrations for the objects in this branch
+               are defined below in a sub-section titled MUNiMx Family 
+               Liebert MUNiMx UPS product Registrations."
+    ::= { lgpUpsProducts 22 }
+
+lgpGXT4 OBJECT-IDENTITY
+   STATUS       current
+   DESCRIPTION "This branch is used to register Liebert GXT4 
+                product information."
+   REFERENCE   "There are currently no objects registered under this branch."
+    ::= { lgpUpsProducts 23 }
+
+lgpGXT4Dual OBJECT-IDENTITY
+   STATUS       current
+   DESCRIPTION "This branch is used to register Liebert GXT4 Dual Inverter
+                product information."
+   REFERENCE   "There are currently no objects registered under this branch."
+    ::= { lgpUpsProducts 24 }
+
+lgpEXL OBJECT-IDENTITY
+   STATUS       current
+   DESCRIPTION "This branch is used to register Liebert eXL UPS
+                product information."
+   REFERENCE   "There are currently no objects registered under this branch."
+    ::= { lgpUpsProducts 25 }
+
+lgpEXM OBJECT-IDENTITY
+   STATUS       current
+   DESCRIPTION "This branch is used to register Emerson Network Power eXM UPS
+                product information."
+    ::= { lgpUpsProducts 26 }
+
+    lgpEXM208v OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "This branch is used to register information for Emerson
+                   Network Power eXM 208v UPS product."
+       REFERENCE   "There are currently no objects registered under this branch."
+        ::= { lgpEXM 1 }
+
+    lgpEXM400v OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "This branch is used to register information for Emerson
+                   Network Power eXM 400v UPS product."
+       REFERENCE   "There are currently no objects registered under this branch."
+        ::= { lgpEXM 2 }
+
+    lgpEXM480v OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "This branch is used to register information for Emerson
+                   Network Power eXM 480v UPS product."
+       REFERENCE   "There are currently no objects registered under this branch."
+        ::= { lgpEXM 3 }
+
+lgpEPM OBJECT-IDENTITY
+   STATUS       current
+   DESCRIPTION "This branch is used to register Emerson Network Power ePM UPS
+                product information."
+    ::= { lgpUpsProducts 27 }
+
+    lgpEPM300k OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "This branch is used to register information for Emerson
+                   Network Power ePM 300k UPS product."
+       REFERENCE   "There are currently no objects registered under this branch."
+        ::= { lgpEPM 1 }
+
+    lgpEPM400k OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "This branch is used to register information for Emerson
+                   Network Power ePM 400k UPS product."
+       REFERENCE   "There are currently no objects registered under this branch."
+        ::= { lgpEPM 2 }
+
+    lgpEPM500k OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "This branch is used to register information for Emerson
+                   Network Power ePM 500k UPS product."
+       REFERENCE   "There are currently no objects registered under this branch."
+        ::= { lgpEPM 3 }
+
+    lgpEPM600k OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "This branch is used to register information for Emerson
+                   Network Power ePM 600k UPS product."
+       REFERENCE   "There are currently no objects registered under this branch."
+        ::= { lgpEPM 4 }
+
+    lgpEPM800k OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "This branch is used to register information for Emerson
+                   Network Power ePM 800k UPS product."
+       REFERENCE   "There are currently no objects registered under this branch."
+        ::= { lgpEPM 5 }
+
+lgpEXMMSR OBJECT-IDENTITY
+   STATUS       current
+   DESCRIPTION "This branch is used to register Emerson Network Power eXM M/S/R UPS
+                product information."
+    ::= { lgpUpsProducts 29 }
+
+-- =============================================================================
+--  NXL Family - Liebert NXL UPS product Registrations
+-- =============================================================================
+
+lgpNXLJD OBJECT-IDENTITY
+   STATUS      current
+   DESCRIPTION "This branch is used to register information for Emerson Network
+               Power Liebert NXL-JD UPS products."
+   REFERENCE   "There are currently no objects registered under this branch."
+    ::= { lgpNXL 1 }
+
+-- =============================================================================
+--  MUNiMx Family - Liebert MUNiMx UPS product Registrations
+-- =============================================================================
+
+lgpNX225to600k OBJECT-IDENTITY
+   STATUS      current
+   DESCRIPTION "This branch is used to register information for Emerson Network
+               Power Liebert NX UPS products."
+   REFERENCE   "There are currently no objects registered under this branch."
+    ::= { lgpMUNiMx 1 }
 
 -- =============================================================================
 --  AcProducts - Liebert Environmental Air Conditioning Registrations
@@ -594,6 +801,36 @@ lgpIcomCR OBJECT-IDENTITY
                Environmental Registrations."
     ::= { lgpAcProducts 11 }
 
+lgpIcomAH OBJECT-IDENTITY
+   STATUS      current
+   DESCRIPTION "This branch is used to register information for the Emerson
+               Network Power Liebert AH (Air Handler) Environmental product
+               family."
+   REFERENCE   "The registrations for the objects in this branch
+               are defined below in a sub-section titled iCOM AH Family
+               Environmental Registrations."
+    ::= { lgpAcProducts 12 }
+
+lgpIcomDCL OBJECT-IDENTITY
+   STATUS      current
+   DESCRIPTION "This branch is used to register information for the Emerson
+               Network Power Liebert DCL Environmental product
+               family."
+   REFERENCE   "The registrations for the objects in this branch
+               are defined below in a sub-section titled iCOM DCL Family
+               Environmental Registrations."
+    ::= { lgpAcProducts 13 }
+
+lgpIcomEEV OBJECT-IDENTITY
+   STATUS      current
+   DESCRIPTION "This branch is used to register information for the Emerson
+               Network Power Liebert EEV Environmental product
+               family."
+   REFERENCE   "The registrations for the objects in this branch
+               are defined below in a sub-section titled iCOM EEV Family
+               Environmental Registrations."
+    ::= { lgpAcProducts 14 }
+
 -- =============================================================================
 --  iCOM PA Family - Liebert PA (Floor mount) Environmental Registrations
 -- =============================================================================
@@ -629,14 +866,27 @@ lgpIcomPAtypePeX OBJECT-IDENTITY
 lgpIcomPAtypeDeluxeSys3 OBJECT-IDENTITY
    STATUS      current
    DESCRIPTION "This branch is used to register information for Emerson Network
-               Power Liebert Deluxe System 3 Environmental products."
-   REFERENCE   "There are currently no objects registered under this branch."
+               Power Liebert Deluxe Environmental products."
     ::= { lgpIcomPA 5 }
+
+	lgpIcomPAtypeDeluxeSystem3 OBJECT-IDENTITY
+	   STATUS      current
+	   DESCRIPTION "This branch is used to register information for Emerson Network
+				   Power Liebert Deluxe System 3 and lower Environmental products."
+	   REFERENCE   "There are currently no objects registered under this branch."
+		::= { lgpIcomPAtypeDeluxeSys3 1 }
+
+	lgpIcomPAtypeCW OBJECT-IDENTITY
+	   STATUS      current
+	   DESCRIPTION "This branch is used to register information for Emerson Network
+				   Power Liebert CW146 and lower Environmental products."
+	   REFERENCE   "There are currently no objects registered under this branch."
+		::= { lgpIcomPAtypeDeluxeSys3 2 }
 
 lgpIcomPAtypeJumboCW OBJECT-IDENTITY
    STATUS      current
    DESCRIPTION "This branch is used to register information for Emerson Network
-               Power Liebert Jumbo CW Environmental products."
+               Power Liebert CW181 and larger Environmental products."
    REFERENCE   "There are currently no objects registered under this branch."
     ::= { lgpIcomPA 6 }
 
@@ -650,16 +900,49 @@ lgpIcomPAtypeDSE OBJECT-IDENTITY
 lgpIcomPAtypePEXS OBJECT-IDENTITY
    STATUS      current
    DESCRIPTION "This branch is used to register information for Emerson Network
-               Power Liebert PEX-S Environmental products."
-   REFERENCE   "There are currently no objects registered under this branch."
+               Power Liebert PDX - PCW Small Environmental products."
     ::= { lgpIcomPA 8 }
+
+	lgpIcomPAtypePDXsmall OBJECT-IDENTITY
+	   STATUS      current
+	   DESCRIPTION "This branch is used to register information for Emerson Network
+				   Power Liebert PDX Small Environmental products."
+	   REFERENCE   "There are currently no objects registered under this branch."
+		::= { lgpIcomPAtypePEXS 1 }
+
+	lgpIcomPAtypePCWsmall OBJECT-IDENTITY
+	   STATUS      current
+	   DESCRIPTION "This branch is used to register information for Emerson Network
+				   Power Liebert PCW Small Environmental products."
+	   REFERENCE   "There are currently no objects registered under this branch."
+		::= { lgpIcomPAtypePEXS 2 }
 
 lgpIcomPAtypePDX OBJECT-IDENTITY
    STATUS      current
    DESCRIPTION "This branch is used to register information for Emerson Network
-               Power Liebert PDX - PCW Environmental products."
-   REFERENCE   "There are currently no objects registered under this branch."
+               Power Liebert PDX - PCW Large Environmental products."
     ::= { lgpIcomPA 9 }
+
+	lgpIcomPAtypePDXlarge OBJECT-IDENTITY
+	   STATUS      current
+	   DESCRIPTION "This branch is used to register information for Emerson Network
+				   Power Liebert PDX Large Environmental products."
+	   REFERENCE   "There are currently no objects registered under this branch."
+		::= { lgpIcomPAtypePDX 1 }
+
+	lgpIcomPAtypePCWlarge OBJECT-IDENTITY
+	   STATUS      current
+	   DESCRIPTION "This branch is used to register information for Emerson Network
+				   Power Liebert PCW Large Environmental products."
+	   REFERENCE   "There are currently no objects registered under this branch."
+		::= { lgpIcomPAtypePDX 2 }
+
+lgpIcomPAtypeHPS OBJECT-IDENTITY
+   STATUS      current
+   DESCRIPTION "This branch is used to register information for Emerson Network
+               Power Liebert HPS Environmental products."
+   REFERENCE   "There are currently no objects registered under this branch."
+    ::= { lgpIcomPA 10 }
 
 -- =============================================================================
 --  iCOM XD Family - Liebert XD Environmental Registrations
@@ -774,6 +1057,17 @@ lgpIcomCRtypeCRV OBJECT-IDENTITY
     ::= { lgpIcomCR 1 }
 
 -- =============================================================================
+--  iCOM AH Family - Liebert AH (Air Handler) Environmental Registrations
+-- =============================================================================
+
+lgpIcomAHStandard OBJECT-IDENTITY
+   STATUS      current
+   DESCRIPTION "This branch is used to register information for Emerson Network
+               Power Liebert AH Standard (Air Handler)."
+   REFERENCE   "There are currently no objects registered under this branch."
+    ::= { lgpIcomAH 1 }
+
+-- =============================================================================
 --  PowerConditioningProducts - Liebert Power Conditioning Registrations
 -- =============================================================================
 
@@ -845,7 +1139,6 @@ lgpRackPDU OBJECT-IDENTITY
    STATUS      current
    DESCRIPTION "This branch is used to register Liebert Power Distribution
                product information for Rack Power Distribution Products (RPDU)."
-   REFERENCE   "There are currently no objects registered under this branch."
     ::= { lgpPowerDistributionProducts 2 }
 
 lgpMPX OBJECT-IDENTITY
@@ -863,6 +1156,28 @@ lgpMPH OBJECT-IDENTITY
                (PDU) product family."
    REFERENCE   "There are currently no objects registered under this branch."
     ::= { lgpRackPDU 2 }
+
+lgpRackPDU2 OBJECT-IDENTITY
+   STATUS      current
+   DESCRIPTION "This branch is used to register Liebert Power Distribution
+               product information for Rack Power Distribution Products (RPDU)."
+    ::= { lgpPowerDistributionProducts 4 }
+
+lgpRPC2kMPX OBJECT-IDENTITY
+   STATUS      current
+   DESCRIPTION "This branch is used to register Liebert Power Distribution
+               product information for the MPX product distribution
+               (PDU) product family."
+   REFERENCE   "There are currently no objects registered under this branch."
+    ::= { lgpRackPDU2 1 }
+
+lgpRPC2kMPH OBJECT-IDENTITY
+   STATUS      current
+   DESCRIPTION "This branch is used to register Liebert Power Distribution
+               product information for the MPH product distribution
+               (PDU) product family."
+   REFERENCE   "There are currently no objects registered under this branch."
+    ::= { lgpRackPDU2 2 }
 
 -- =============================================================================
 --  Combined System Product Registrations

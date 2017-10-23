@@ -1,6 +1,12 @@
 --
 -- Copyright 2010-2013 Ruckus Wireless, Inc. All rights reserved.
 --
+-- RUCKUS WIRELESS, INC. CONFIDENTIAL - 
+-- This is an unpublished, proprietary work of Ruckus Wireless, Inc., and is 
+-- fully protected under copyright and trade secret laws. You may not view, 
+-- use, disclose, copy, or distribute this file or any information contained 
+-- herein except pursuant to a valid license from Ruckus. 
+--
 
 RUCKUS-ZD-EVENT-MIB DEFINITIONS ::= BEGIN
 
@@ -13,8 +19,12 @@ IMPORTS
     OBJECT-GROUP,
     MODULE-COMPLIANCE
         FROM SNMPv2-CONF
+    ifIndex,
+    InterfaceIndex
+        FROM IF-MIB
     MODULE-IDENTITY,
     OBJECT-TYPE,
+    Integer32,
     Unsigned32,
     IpAddress
         FROM SNMPv2-SMI;
@@ -44,6 +54,8 @@ ruckusZDEventMIB MODULE-IDENTITY
 ruckusZDEventTraps OBJECT IDENTIFIER      ::= { ruckusZDEventMIB 1 }
 
 ruckusZDEventObjects OBJECT IDENTIFIER    ::= { ruckusZDEventMIB 2 }
+
+ruckusZDEventTrapSwitchCmd OBJECT IDENTIFIER      ::= { ruckusZDEventMIB 3 }
 
 
 -- Ruckus Traps
@@ -802,6 +814,84 @@ ruckusZDEventSmartRedundancyStandbyDisconnected NOTIFICATION-TYPE
          "[Smart Redundancy] disconnected, system is in standby state"
     ::= { ruckusZDEventTraps 104 }             
                       
+ruckusZDEventLBSAdminEnabled NOTIFICATION-TYPE
+    OBJECTS     { ruckusZDEventSerial,
+                  ruckusZDEventNEID,
+                  ruckusZDEventSeverity,
+                  ruckusZDEventType,
+                  ruckusZDEventTime,
+                  ruckusZDEventStatus,
+                  ruckusZDEventTitle,
+                  ruckusZDEventContent }
+    STATUS      current
+    DESCRIPTION
+         "[LBS] admin enable location database server"
+    ::= { ruckusZDEventTraps 120 }     
+ruckusZDEventLBSAdminDisabled NOTIFICATION-TYPE
+    OBJECTS     { ruckusZDEventSerial,
+                  ruckusZDEventNEID,
+                  ruckusZDEventSeverity,
+                  ruckusZDEventType,
+                  ruckusZDEventTime,
+                  ruckusZDEventStatus,
+                  ruckusZDEventTitle,
+                  ruckusZDEventContent }
+    STATUS      current
+    DESCRIPTION
+         "[LBS] admin disable location database server"
+    ::= { ruckusZDEventTraps 121 }     
+ruckusZDEventLBSZDLSConnectionUp NOTIFICATION-TYPE
+    OBJECTS     { ruckusZDEventSerial,
+                  ruckusZDEventNEID,
+                  ruckusZDEventSeverity,
+                  ruckusZDEventType,
+                  ruckusZDEventTime,
+                  ruckusZDEventStatus,
+                  ruckusZDEventTitle,
+                  ruckusZDEventContent }
+    STATUS      current
+    DESCRIPTION
+         "[LBS] the connection between ZD and LS from down to up"
+    ::= { ruckusZDEventTraps 122 }     
+ruckusZDEventLBSZDLSConnectionDown NOTIFICATION-TYPE
+    OBJECTS     { ruckusZDEventSerial,
+                  ruckusZDEventNEID,
+                  ruckusZDEventSeverity,
+                  ruckusZDEventType,
+                  ruckusZDEventTime,
+                  ruckusZDEventStatus,
+                  ruckusZDEventTitle,
+                  ruckusZDEventContent }
+    STATUS      current
+    DESCRIPTION
+         "[LBS] the connection between ZD and LS from up to down"
+    ::= { ruckusZDEventTraps 123 }     
+ruckusZDEventLBSReceiveCMDFootfall NOTIFICATION-TYPE
+    OBJECTS     { ruckusZDEventSerial,
+                  ruckusZDEventNEID,
+                  ruckusZDEventSeverity,
+                  ruckusZDEventType,
+                  ruckusZDEventTime,
+                  ruckusZDEventStatus,
+                  ruckusZDEventTitle,
+                  ruckusZDEventContent }
+    STATUS      current
+    DESCRIPTION
+         "[LBS] ZD receive passive tracking footfall command from LS"
+    ::= { ruckusZDEventTraps 124 }
+ruckusZDEventLBSReceiveCMDCalibration NOTIFICATION-TYPE
+    OBJECTS     { ruckusZDEventSerial,
+                  ruckusZDEventNEID,
+                  ruckusZDEventSeverity,
+                  ruckusZDEventType,
+                  ruckusZDEventTime,
+                  ruckusZDEventStatus,
+                  ruckusZDEventTitle,
+                  ruckusZDEventContent }
+    STATUS      current
+    DESCRIPTION
+         "[LBS] ZD receive passive tracking calibration command from LS"
+    ::= { ruckusZDEventTraps 125 }   
 --  Trap payload
 --
 
@@ -925,5 +1015,673 @@ ruckusZDEventIpAddr OBJECT-TYPE
     DESCRIPTION
         "IpAddress (ipv4 and ipv6)."
     ::= { ruckusZDEventObjects 30 }   
+
+ruckusZDEventAPJoinTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 1 }
+
+ruckusZDEventSSIDSpoofTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 2 }
+
+ruckusZDEventMACSpoofTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 3 }
+
+ruckusZDEventRogueAPTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 4 }
+
+ruckusZDEventAPLostTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 5 }
+
+ruckusZDEventAPLostHeartbeatTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 6 }
+
+
+ruckusZDEventClientAuthFailBlockTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 7 }
+
+ruckusZDEventAPResetSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 8 }
+
+ruckusZDEventIPChangeSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 9 }
+
+ruckusZDEventSystemColdStartTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 10 }
+
+ruckusZDEventAPChannelChangeTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 11 }
+
+ruckusZDEventRadiusAuthUnavailableTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 12 }
+
+ruckusZDEventRadiusAcctUnavailableTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 13 }
+
+ruckusZDEventClientJoinFailAPBusyTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 14 }
+
+ruckusZDEventInterferenceADHocTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 15 }
+
+ruckusZDEventImageUpgradeFailTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 16 }
+
+ruckusZDEventHeartbeatTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 22 } 
+
+ruckusZDEventAttackedTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 24 }
+
+ruckusZDEventSystemWarmStartTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 25 }
+
+ruckusZDEventInterfereAPTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 26 }
+
+ruckusZDEventAPSystemColdStartTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 31 }
+
+ruckusZDEventAPSystemWarmStartTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 32 }
+
+ruckusZDEventAPSSIDChangedTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 33 }
+
+ruckusZDEventAPClientExceedValveTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 34 }
+
+ruckusZDEventAPAvailableStatusTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 35 }
+
+ruckusZDEventAPWirelessInterfaceFaultTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 36 }
+
+ruckusZDEventSystemCpuUtilExceedValveTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 37 }
+
+ruckusZDEventSystemMemUtilExceedValveTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 38 }
+
+ruckusZDEventSystemBandwidthUtilExceedValveTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 39 }
+
+ruckusZDEventSystemDropPacketRateExceedValveTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 40 }
+
+ruckusZDEventAPSyncTimeFailTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 41 }
+
+ruckusZDEventSystemCpuUtilClrWarnTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 42 }
+
+ruckusZDEventSystemMemUtilClrwarnTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 43 }
+
+ruckusZDEventClientJoinTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 60 }
+
+ruckusZDEventClientJoinFailedTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 61 } 
+
+ruckusZDEventClientJoinFailedAPBusyTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 62 }
+
+ruckusZDEventClientDisconnectTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 63 }
+
+ruckusZDEventClientRoamOutTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 64 }
+
+ruckusZDEventClientRoamInTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 65 }
+
+ruckusZDEventClientAuthFailedTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 66 }
+
+ruckusZDEventClientAuthorizationFailedTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 67 } 
+
+ruckusZDEventAPCPUvalveTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 83 }
+
+ruckusZDEventAPMEMvalveTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 84 }
+
+ruckusZDEventAPCPUvalveClrwarnTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 85 }
+
+ruckusZDEventAPMEMvalveClrwarnTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 86 }
+
+ruckusZDEventAPNumStaExceedValveClrwarnTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 87 }
+
+ruckusZDEventDhcpPoolFullTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 88 }
+
+ruckusZDEventDhcpPoolAbunTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 89 }
+
+ruckusZDEventSmartRedundancyChangetoActiveTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 100 }
+
+ruckusZDEventSmartRedundancyActiveConnectedTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 101 }
+
+ruckusZDEventSmartRedundancyActiveDisconnectedTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 102 }
+
+ruckusZDEventSmartRedundancyStandbyConnectedTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 103 }
+
+ruckusZDEventSmartRedundancyStandbyDisconnectedTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 104 }
+
+ruckusZDEventLBSAdminEnabledTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 120 }
+
+ruckusZDEventLBSAdminDisabledTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 121 }
+
+ruckusZDEventLBSZDLSConnectionUpTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 122 }
+
+ruckusZDEventLBSZDLSConnectionDownTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 123 }
+
+ruckusZDEventLBSReceiveCMDFootfallTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 124 }
+
+ruckusZDEventLBSReceiveCMDCalibrationTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "trap switch command."
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 125 }
+
+
+ruckusZDEventALLEventTrapSwitchCmd OBJECT-TYPE 
+    SYNTAX  INTEGER{ 
+            enable(1),
+            disable(0),
+            hybrid(3)} 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION 
+        "all trap switch command. 'hybrid' is only for read. 
+         for write, when enable, all traps will be enabled, when disable, all 
+         traps will be disabled;
+         for read, when all traps are 'enable', the value is 'enable', when all 
+         traps are 'disable', the value is 'disable', otherwise, the value is 
+         'hybrid'"
+      	 DEFVAL {enable} 
+    ::= { ruckusZDEventTrapSwitchCmd 200 }  
     
 END

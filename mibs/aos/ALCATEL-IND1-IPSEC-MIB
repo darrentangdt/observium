@@ -74,10 +74,10 @@ IPsecName ::= TEXTUAL-CONVENTION
     STATUS	current
     DESCRIPTION
 	"The name of a table entry."
-    SYNTAX	OCTET STRING (SIZE(1..20))
+    SYNTAX	DisplayString (SIZE(1..20))
 
 IPsecDescription ::= TEXTUAL-CONVENTION
-    DISPLAY-HINT "255a"
+    DISPLAY-HINT "200a"
     STATUS	current
     DESCRIPTION
 	"Optional description of a table entry."
@@ -445,7 +445,6 @@ alaIPsecStatisticsInDiscarded OBJECT-TYPE
 	"Number of incoming packets dropped because they matched
         a discard policy."
     ::= { alaIPsecStatisticsEntry 19 }
-
 alaIPsecStatisticsOutDiscarded OBJECT-TYPE
     SYNTAX	Counter32
     MAX-ACCESS	read-only
@@ -514,7 +513,7 @@ alaIPsecSecurityPolicySourceType OBJECT-TYPE
     MAX-ACCESS	read-create
     STATUS	current
     DESCRIPTION
-	"The type of source address specified.  Currently only ipv6(2) is allowed."
+	"The type of source address specified."
     ::= { alaIPsecSecurityPolicyEntry 2 }
 
 alaIPsecSecurityPolicySource OBJECT-TYPE
@@ -557,7 +556,7 @@ alaIPsecSecurityPolicyDestinationType OBJECT-TYPE
     MAX-ACCESS	read-create
     STATUS	current
     DESCRIPTION
-	"The type of destination address specified.  Currently only ipv6(2) is allowed."
+	"The type of destination address specified."
     ::= { alaIPsecSecurityPolicyEntry 6 }
 
 alaIPsecSecurityPolicyDestination OBJECT-TYPE
@@ -651,7 +650,7 @@ alaIPsecSecurityPolicyDescription OBJECT-TYPE
 alaIPsecSecurityPolicyAction OBJECT-TYPE
     SYNTAX	INTEGER {
 			  discard(0),
-                          none(1),
+			-- none(1),
 			  ipsec(2)
 			}
     MAX-ACCESS	read-create
@@ -661,9 +660,6 @@ alaIPsecSecurityPolicyAction OBJECT-TYPE
 
 	discard(0) means that all traffic covered by the policy
 	will be discarded.
-
-        none(1) means that no IPsec processing will be done on
-        the traffic covered by this policy.
 
 	ipsec(2) means that IPsec processing will take place on
 	the traffic. One or more rules should be defined in the
@@ -861,7 +857,7 @@ alaIPsecSAConfigSourceType OBJECT-TYPE
     MAX-ACCESS	read-create
     STATUS	current
     DESCRIPTION
-	"The type of source address specified.  Currently only ipv6(2) is allowed."
+	"The type of source address specified."
     ::= { alaIPsecSAConfigEntry 3 }
 
 alaIPsecSAConfigSource OBJECT-TYPE
@@ -877,7 +873,7 @@ alaIPsecSAConfigDestinationType OBJECT-TYPE
     MAX-ACCESS	read-create
     STATUS	current
     DESCRIPTION
-	"The type of destination address specified.  Currently only ipv6(2) is allowed."
+	"The type of destination address specified."
     ::= { alaIPsecSAConfigEntry 5 }
 
 alaIPsecSAConfigDestination OBJECT-TYPE
@@ -919,7 +915,7 @@ alaIPsecSAConfigEncryptionAlgorithm OBJECT-TYPE
     STATUS	current
     DESCRIPTION
 	"For an ESP SA, defines the encryption algorithm to be used.
-	null(11) should be specified if ESP is being used for integrity
+	none(0) should be specified if ESP is being used for integrity
 	only.  If null(11) is specified, 
 	alaIPsecSAConfigAuthenticationAlgorithm may not be none(0).
 
@@ -1135,8 +1131,8 @@ alaIPsecConfigGroup OBJECT-GROUP
     		  alaIPsecStatisticsOutNoSA,
     		  alaIPsecStatisticsOutBadPacket,
     		  alaIPsecStatisticsOutNoMemory,
-    		  alaIPsecStatisticsInDiscarded,
-    		  alaIPsecStatisticsOutDiscarded
+   		  alaIPsecStatisticsInDiscarded,
+   		  alaIPsecStatisticsOutDiscarded
 		}
     STATUS	current
     DESCRIPTION

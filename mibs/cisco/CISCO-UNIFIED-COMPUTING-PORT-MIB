@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- PORT management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -51,20 +51,24 @@ IMPORTS
     CucsFsmCompletion,
     CucsFsmFlags,
     CucsFsmFsmStageStatus,
+    CucsLicenseState,
     CucsNetworkConnectionType,
     CucsNetworkLocale,
     CucsNetworkPortRole,
     CucsNetworkPortType,
+    CucsNetworkSwitchId,
     CucsNetworkTransport,
     CucsPortGroupType,
     CucsPortPIoFsmCurrentFsm,
     CucsPortPIoFsmStageName,
     CucsPortPIoFsmTaskItem,
+    CucsPortSubGroupConfigState,
+    CucsPortSubGroupSlotId,
     CucsPortTrust
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsPortObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -587,6 +591,143 @@ cucsPortPIoFsmTaskSeqId OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS port:PIoFsmTask:seqId managed object property"
     ::= { cucsPortPIoFsmTaskEntry 7 }
+
+cucsPortSubGroupTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsPortSubGroupEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS port:SubGroup managed object table"
+    ::= { cucsPortObjects 7 }
+
+cucsPortSubGroupEntry OBJECT-TYPE
+    SYNTAX           CucsPortSubGroupEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsPortSubGroupTable table."
+    INDEX { cucsPortSubGroupInstanceId }
+    ::= { cucsPortSubGroupTable 1 }
+
+CucsPortSubGroupEntry ::= SEQUENCE {
+    cucsPortSubGroupInstanceId                                       CucsManagedObjectId,
+    cucsPortSubGroupDn                                               CucsManagedObjectDn,
+    cucsPortSubGroupRn                                               SnmpAdminString,
+    cucsPortSubGroupAggrPortId                                       Gauge32,
+    cucsPortSubGroupConfigState                                      CucsPortSubGroupConfigState,
+    cucsPortSubGroupLicGP                                            Unsigned64,
+    cucsPortSubGroupLicState                                         CucsLicenseState,
+    cucsPortSubGroupLocale                                           CucsNetworkLocale,
+    cucsPortSubGroupName                                             SnmpAdminString,
+    cucsPortSubGroupSlotId                                           CucsPortSubGroupSlotId,
+    cucsPortSubGroupSwitchId                                         CucsNetworkSwitchId,
+    cucsPortSubGroupTransport                                        CucsNetworkTransport,
+    cucsPortSubGroupType                                             CucsNetworkConnectionType
+}
+
+cucsPortSubGroupInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsPortSubGroupEntry 1 }
+
+cucsPortSubGroupDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS port:SubGroup:dn managed object property"
+    ::= { cucsPortSubGroupEntry 2 }
+
+cucsPortSubGroupRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS port:SubGroup:rn managed object property"
+    ::= { cucsPortSubGroupEntry 3 }
+
+cucsPortSubGroupAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS port:SubGroup:aggrPortId managed object property"
+    ::= { cucsPortSubGroupEntry 4 }
+
+cucsPortSubGroupConfigState OBJECT-TYPE
+    SYNTAX       CucsPortSubGroupConfigState
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS port:SubGroup:configState managed object property"
+    ::= { cucsPortSubGroupEntry 5 }
+
+cucsPortSubGroupLicGP OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS port:SubGroup:licGP managed object property"
+    ::= { cucsPortSubGroupEntry 6 }
+
+cucsPortSubGroupLicState OBJECT-TYPE
+    SYNTAX       CucsLicenseState
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS port:SubGroup:licState managed object property"
+    ::= { cucsPortSubGroupEntry 7 }
+
+cucsPortSubGroupLocale OBJECT-TYPE
+    SYNTAX       CucsNetworkLocale
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS port:SubGroup:locale managed object property"
+    ::= { cucsPortSubGroupEntry 8 }
+
+cucsPortSubGroupName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS port:SubGroup:name managed object property"
+    ::= { cucsPortSubGroupEntry 9 }
+
+cucsPortSubGroupSlotId OBJECT-TYPE
+    SYNTAX       CucsPortSubGroupSlotId
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS port:SubGroup:slotId managed object property"
+    ::= { cucsPortSubGroupEntry 10 }
+
+cucsPortSubGroupSwitchId OBJECT-TYPE
+    SYNTAX       CucsNetworkSwitchId
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS port:SubGroup:switchId managed object property"
+    ::= { cucsPortSubGroupEntry 11 }
+
+cucsPortSubGroupTransport OBJECT-TYPE
+    SYNTAX       CucsNetworkTransport
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS port:SubGroup:transport managed object property"
+    ::= { cucsPortSubGroupEntry 12 }
+
+cucsPortSubGroupType OBJECT-TYPE
+    SYNTAX       CucsNetworkConnectionType
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS port:SubGroup:type managed object property"
+    ::= { cucsPortSubGroupEntry 13 }
 
 cucsPortTrustModeTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsPortTrustModeEntry

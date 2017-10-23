@@ -13,7 +13,7 @@ IMPORTS
 
 
 nbsCmmcEnumMib MODULE-IDENTITY
-    LAST-UPDATED "201503120000Z"  -- Mar 12, 2015
+    LAST-UPDATED "201606140000Z"  -- June 14, 2016
     ORGANIZATION "NBS"
     CONTACT-INFO
        "For technical support, please contact your service channel"
@@ -128,7 +128,8 @@ NbsCmmcEnumSlotOperationType  ::= TEXTUAL-CONVENTION
         muxponder          (42),
         addWssDropSplitter (43),
         dropWssAddCombiner (44),
-        dualAddWssDropSplitter(45)
+        dualAddWssDropSplitter(45),
+        opticalServiceChannel(46)
     }
 
 
@@ -859,7 +860,7 @@ NbsCmmcEnumSlotType ::= TEXTUAL-CONVENTION
         ns712           (712),
         ns713           (713),
         ns714           (714),
-        ns715           (715),
+        odnm            (715),
         ns716           (716),
         ns717           (717),
         ns718           (718),
@@ -879,7 +880,7 @@ NbsCmmcEnumSlotType ::= TEXTUAL-CONVENTION
         ns732           (732),
         odugc           (733),
         ns734           (734),
-        ns735           (735),
+        odgenpassive    (735),
         odfiller        (736),
         odtxp100g2cw1   (737),
         od2hwss4dww     (738),
@@ -901,8 +902,25 @@ NbsCmmcEnumSlotType ::= TEXTUAL-CONVENTION
         ns754           (754),
         ns755           (755),
         ns756           (756),
-        odtxp100gf      (757)
-
+        odtxp100gf      (757),
+        ns758           (758),
+        ns759           (759),
+        ns760           (760),
+        odgswxy         (761),
+        ns762           (762),
+        odoscx1addxd    (763),
+        ns764           (764),
+        ns765           (765),
+        ns766           (766),
+        ns767           (767),
+        ns768           (768),
+        ns769           (769),
+        odctq           (780),
+        ns781           (781),
+        odceon226f      (782),
+        ns783           (783),
+        odtxp100gfq     (784),
+        odtxp100gq      (785)
     }
 
 -- *******************************************************************

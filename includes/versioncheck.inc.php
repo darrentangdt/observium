@@ -7,7 +7,7 @@
  *
  * @package    observium
  * @subpackage poller
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -121,7 +121,7 @@ if (!is_numeric($last_checked) || $last_checked < time()-3600 || $options['u'])
 
     $latest = $versions[$train];
 
-    set_obs_attrib('latest_ver',      $latest['version']);
+    set_obs_attrib('latest_ver',      preg_replace('/^0\./', '', $latest['version']));
     set_obs_attrib('latest_rev',      $latest['revision']);
     set_obs_attrib('latest_rev_date', $latest['date']);
   }

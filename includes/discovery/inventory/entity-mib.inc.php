@@ -39,13 +39,13 @@ if ($GLOBALS['snmp_status'])
 {
   $entity_array = snmpwalk_cache_twopart_oid($device, "entAliasMappingIdentifier", $entity_array, 'ENTITY-MIB:IF-MIB');
 
-  $GLOBALS['cache']['entity-mib'] = $entity_array; // Cache this array for sensors discovery (see in cisco-entity-sensor-mib or entity-sensor-mib)
+  $GLOBALS['cache']['snmp']['ENTITY-MIB'][$device['device_id']] = $entity_array; // Cache this array for sensors discovery (see in cisco-entity-sensor-mib or entity-sensor-mib)
 
   foreach ($entity_array as $entPhysicalIndex => $entry)
   {
-    if($device['os'] == "hpuww") // Root-Container does not have ContainedIn = 0, so Inventory can not be shown
+    if ($device['os'] == "hpuww") // Root-Container does not have ContainedIn = 0, so Inventory can not be shown
     {
-      if($entPhysicalIndex == 1)
+      if ($entPhysicalIndex == 1)
       {
         $entry['entPhysicalContainedIn'] = 0;
       }

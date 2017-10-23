@@ -16,7 +16,7 @@ $sla_snmp_count = 0;
 $table_rows     = array();
 
 // WARNING. Discovered all SLAs, but polled only 'active'
-$sql = "SELECT * FROM `slas` LEFT JOIN `slas-state` USING (`sla_id`) WHERE `device_id` = ? AND `deleted` = 0;"; // AND `sla_status` = 'active';";
+$sql = "SELECT * FROM `slas` WHERE `device_id` = ? AND `deleted` = 0;"; // AND `sla_status` = 'active';";
 foreach (dbFetchRows($sql, array($device['device_id'])) as $entry)
 {
   $sla_db_count++; // Fetch all entries for correct counting, but skip inactive/deleted
@@ -159,13 +159,7 @@ foreach (array_keys($sla_db) as $mib_lower)
       }
 
       // Update SQL State
-      if (is_numeric($sla['rtt_unixtime']))
-      {
-        dbUpdate($sla_state, 'slas-state', '`sla_id` = ?', array($sla['sla_id']));
-      } else {
-        $sla_state['sla_id'] = $sla['sla_id'];
-        dbInsert($sla_state, 'slas-state');
-      }
+      dbUpdate($sla_state, 'slas', '`sla_id` = ?', array($sla['sla_id']));
 
       // Check alerts
       $metrics = array();

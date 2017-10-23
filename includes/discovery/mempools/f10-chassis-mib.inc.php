@@ -14,9 +14,9 @@
 // Force10 E-Series
 
 // FIXME. Need snmpwalk for total size: F10-CHASSIS-MIB::chSysProcessorMemSize
-#F10-CHASSIS-MIB::chRpmMemUsageUtil.1 = 5
-#F10-CHASSIS-MIB::chRpmMemUsageUtil.2 = 36
-#F10-CHASSIS-MIB::chRpmMemUsageUtil.3 = 9
+// F10-CHASSIS-MIB::chRpmMemUsageUtil.1 = 5
+// F10-CHASSIS-MIB::chRpmMemUsageUtil.2 = 36
+// F10-CHASSIS-MIB::chRpmMemUsageUtil.3 = 9
 
 $mempool_array = snmpwalk_cache_oid($device, 'chRpmMemUsageUtil', NULL, $mib);
 

@@ -19,7 +19,7 @@
  * @author    Alexander Merz <alexander.merz@web.de>
  * @copyright 2003-2005 The PHP Group
  * @license   BSD License http://www.opensource.org/licenses/bsd-license.php
- * @version   CVS: $Id$
+ * @version   CVS: $Id: IPv6.php 339983 2016-09-04 21:13:31Z alexmerz $
  * @link      http://pear.php.net/package/Net_IPv6
  */
 
@@ -514,14 +514,7 @@ class Net_IPv6
      * Example:  FF01::101  ->  FF01:0:0:0:0:0:0:101
      *           ::1        ->  0:0:0:0:0:0:0:1
      *
-     * Note: You can also pass an invalid IPv6 address (usually as part of the process
-     * of validation by checkIPv6, which will validate the return string).
-     * This function will insert the "0" between "::" even if this results in too many
-     * numbers in total. It is NOT the purpose of this function to validate your input.
-     *
-     * Example of calling with invalid input: 1::2:3:4:5:6:7:8:9 -> 1:0:2:3:4:5:6:7:8:9
-     *
-     * @param String $ip a (possibly) valid IPv6-address (hex format)
+     * @param String $ip a valid IPv6-address (hex format)
      * @param Boolean $leadingZeros if true, leading zeros are added to each
      *                              block of the address
      *                              (FF01::101  ->
@@ -557,7 +550,7 @@ class Net_IPv6
 
         if (false !== strpos($uip, '::') ) {
 
-            list($ip1, $ip2) = explode('::', $uip);
+            list($ip1, $ip2) = explode('::', $uip, 2);
 
             if ("" == $ip1) {
 
@@ -608,17 +601,17 @@ class Net_IPv6
 
             } else if (-1 == $c1) {              // ::xxx
 
-                $fill = str_repeat('0:', 7-$c2);
+                $fill = str_repeat('0:', max(1, 7-$c2));
                 $uip  = str_replace('::', $fill, $uip);
 
             } else if (-1 == $c2) {              // xxx::
 
-                $fill = str_repeat(':0', 7-$c1);
+                $fill = str_repeat(':0', max(1, 7-$c1));
                 $uip  = str_replace('::', $fill, $uip);
 
             } else {                          // xxx::xxx
 
-                $fill = str_repeat(':0:', max(1, 6-$c2-$c1));
+                $fill = str_repeat(':0:', 6-$c2-$c1);
                 $uip  = str_replace('::', $fill, $uip);
                 $uip  = str_replace('::', ':', $uip);
 
@@ -744,12 +737,6 @@ class Net_IPv6
         $cip = preg_replace('/((^:)|(:$))/', '', $cip);
         $cip = preg_replace('/((^:)|(:$))/', '::', $cip);
 
-        if (empty($cip)) {
-
-            $cip = "::";
-
-        }
-
         if ('' != $netmask) {
 
             $cip = $cip.'/'.$netmask;
@@ -796,7 +783,6 @@ class Net_IPv6
      * @param String $ip a valid IPv6 address
      *
      * @return Boolean true, if address can be compressed
-     *
      * @access public
      * @since 1.2.0b
      * @static
@@ -843,6 +829,11 @@ class Net_IPv6
         if (strstr($ip, '.')) {
 
             $pos      = strrpos($ip, ':');
+
+            if(false === $pos) {
+                return array("", $ip);
+            }
+
             $ip{$pos} = '_';
             $ipPart   = explode('_', $ip);
 
@@ -876,7 +867,7 @@ class Net_IPv6
 
         $ip = $elements[0];
 
-        if('' != $elements[1] && ( !is_numeric($elements[1]) || 0 > $elements[1] || 128 < $elements[1])) {
+        if('' != $elements[1] && ( !is_numeric($elements[1]) || 0 > $elements || 128 < $elements[1])) {
 
             return false;
 
@@ -887,6 +878,10 @@ class Net_IPv6
 
         if (!empty($ipPart[0])) {
             $ipv6 = explode(':', $ipPart[0]);
+
+			if(8 < count($ipv6)) {
+				return false;
+			}
 
             foreach($ipv6 as $element) { // made a validate precheck
                 if(!preg_match('/[0-9a-fA-F]*/', $element)) {
@@ -916,7 +911,7 @@ class Net_IPv6
 
             }
 
-            if (8 == $count) {
+            if (8 == $count and empty($ipPart[1])) {
 
                 return true;
 
@@ -1034,7 +1029,7 @@ class Net_IPv6
      *
      * @return String the binary representation
      * @access private
-     @ @since 1.1.0
+     * @since 1.1.0
      */
     protected static function _ip2Bin($ip)
     {
@@ -1065,7 +1060,7 @@ class Net_IPv6
      *
      * @return String the uncompressed Hex representation
      * @access private
-     @ @since 1.1.0
+     * @since 1.1.0
      */
     protected static function _bin2Ip($bin)
     {

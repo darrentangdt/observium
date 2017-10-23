@@ -35,7 +35,7 @@ phpCAS::forceAuthentication();
 
 if (phpCAS::getUser())
 {
-  $_SESSION['username'] = phpCAS::getUser();
+  session_set_var('username', phpCAS::getUser());
 }
 
 /**

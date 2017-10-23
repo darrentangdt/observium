@@ -11,8 +11,6 @@
  *
  */
 
-$version  = snmp_get($device, 'swFirmwareVersion.0', '-Ovq', 'SW-MIB');
-$version  = ltrim($version, 'v');
 $hardware = $entPhysical['entPhysicalDescr'];
 $serial   = $entPhysical['entPhysicalSerialNum'];
 

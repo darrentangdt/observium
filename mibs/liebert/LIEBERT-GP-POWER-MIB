@@ -17,7 +17,7 @@ IMPORTS
 -- =============================================================================
 
 liebertGlobalProductsPowerModule MODULE-IDENTITY
-  LAST-UPDATED "200811170000Z"
+  LAST-UPDATED "201307100000Z"
   ORGANIZATION "Liebert Corporation"
   CONTACT-INFO
       "Contact:   Technical Support
@@ -46,6 +46,10 @@ liebertGlobalProductsPowerModule MODULE-IDENTITY
       This Specification is supplied 'AS IS' and Liebert Corporation
       makes no warranty, either express or implied, as to the use,
       operation, condition, or performance of the Specification."
+
+   REVISION "201307100000Z"
+   DESCRIPTION
+    "Added support for GXT4 economic operation mode and outlet control."
 
    REVISION "200811170000Z"
    DESCRIPTION
@@ -1436,7 +1440,8 @@ lgpPwrLoadCircuitTable OBJECT-TYPE
         lgpPwrLoadCircuitIndex              Unsigned32,
         lgpPwrLoadCircuitId                 OBJECT IDENTIFIER,
         lgpPwrLoadCircuitSubID              Unsigned32,
-        lgpPwrLoadCircuitState              INTEGER
+        lgpPwrLoadCircuitState              INTEGER,
+        lgpPwrLoadCircuitStateAndControl    INTEGER
 
     }
 
@@ -1486,6 +1491,22 @@ lgpPwrLoadCircuitTable OBJECT-TYPE
             When written to, the state of the circuit will transition to
             desired state."
         ::= { lgpPwrLoadCircuitEntry 4 }
+
+    lgpPwrLoadCircuitStateAndControl OBJECT-TYPE
+        SYNTAX      INTEGER 
+        {
+            off(0), 
+            on(1), 
+            reboot(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This identifier indicates the state of the load circuit.
+            When read, only a closed or open response will be returned.
+            When written to, the state of the circuit will transition to
+            desired state."
+        ::= { lgpPwrLoadCircuitEntry 5 }
 
 lgpPwrAlarmSilence OBJECT-TYPE
     SYNTAX      Integer32
@@ -2441,6 +2462,20 @@ lgpPwrStateCircuitBrkrStateGroup OBJECT-IDENTITY
 	    "The states of Source 2 PDU Input Breaker."
         ::= { lgpPwrStateCircuitBrkrStateGroup 8 }
 
+lgpPwrEconomicOperation OBJECT-TYPE
+    SYNTAX      INTEGER
+    {
+        off(0),
+        on(1)
+    }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The present state of ECO mode operation,
+        on(1) if system is on bypass due to ECO mode operation,
+        off(0) any other time."
+    ::= { lgpPwrStatus 58 }
+
 -- =============================================================================
 -- lgpPwrSettings - Liebert Power Settings Group
 -- =============================================================================
@@ -2805,6 +2840,20 @@ lgpPwrNoLoadWarningDelay OBJECT-TYPE
          lgpConditionNoLoadDetectedWarning after the output current load
          falls below the threshold lgpPwrOutputNoLoadWarningLimit."
     ::= { lgpPwrSettings 20 }
+
+lgpPwrEconomicOperationModeControl OBJECT-TYPE
+    SYNTAX      INTEGER 
+    { 
+        disabled(0),
+        mode1(1), 
+        mode2(2)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The configuration of the economic operation mode of the system.
+         Note that this supersedes lgpPwrEconomicOperationMode in newer devices."
+    ::= { lgpPwrSettings 21 }
 
 -- =============================================================================
 -- lgpPwrStatistic - Liebert Power Statistic Group

@@ -7,7 +7,7 @@
  *
  * @package    observium
  * @subpackage web
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -135,7 +135,7 @@ function print_search($data, $title = NULL, $button = 'search', $url = NULL)
       $string .= '        <option value="'.$item.'"';
       if ($sort['value'] == $item)
       {
-        $string .= ' data-icon="oicon-sort-alphabet-column" selected';
+        $string .= ' data-icon="'.$config['icon']['sort'].'" selected';
       }
       $string .= '>'.$name.'</option>';
     }
@@ -183,6 +183,7 @@ function generate_form_box($data)
   return print_form_box($data, TRUE);
 }
 
+
 /**
  * Pretty form generator
  *
@@ -208,8 +209,20 @@ function generate_form_box($data)
  */
 function print_form($data, $return = FALSE)
 {
+  // Just return if safety requirements are not fulfilled
+  if (isset($data['userlevel']) && $data['userlevel'] > $_SESSION['userlevel']) { return; }
+
+  /*
+  // Use modal with form
+  if (isset($data['modal_args']) && !empty($data['modal_args']))
+  {
+    // Print modal form
+    echo(generate_form_modal($data));
+  }
+  */
+
   // Time our form filling.
-  $form_start = microtime(true);
+  $form_start = microtime(TRUE);
 
   $form_id    = (isset($data['id']) ? $data['id'] : 'form-'.strgen());
   $form_class = 'form form-inline'; // default for rows and simple
@@ -341,7 +354,12 @@ function print_form($data, $return = FALSE)
         }
         // Here added padding-block-start for space between rows (also if row elements moved to newline)
         //$string_elements .= '    <div class="'.$element['div_class'].'" style="padding-block-start: '.$base_space.';">' . PHP_EOL;
-        $string_elements .= '    <div class="'.$element['div_class'].'">' . PHP_EOL;
+        $string_elements .= '    <div id="' .$element['id'] . '_div" class="'.$element['div_class'].'"';
+        if (!empty($element['div_style']))
+        {
+          $string_elements .= ' style="'.$element['div_style'].'"';
+        }
+        $string_elements .= '>' . PHP_EOL;
         $string_elements .= generate_form_element($element);
         $string_elements .= '    </div>' . PHP_EOL;
       }
@@ -391,7 +409,8 @@ function print_form($data, $return = FALSE)
 
     foreach ($data['row'] as $k => $row)
     {
-      $row_group = $k;
+      $first_key    = key($row);
+      $row_group    = $k;
       $row_elements = '';
       $row_label    = '';
       $row_control_group = FALSE;
@@ -410,7 +429,6 @@ function print_form($data, $return = FALSE)
         switch ($element['type'])
         {
           case 'hidden':
-            $div_class = '';
             break;
           case 'submit':
             $div_class = 'form-actions';
@@ -423,21 +441,48 @@ function print_form($data, $return = FALSE)
             $row_control_group = TRUE;
             // In horizontal, first element name always placed at left
             if (!isset($element['placeholder'])) { $element['placeholder'] = TRUE; }
+            // offset == FALSE disable label width and align class control-label
+            if (!isset($element['offset']))
+            {
+              if (isset($data['fieldset'][$element['fieldset']]['offset']))
+              {
+                // Copy from fieldset
+                $element['offset'] = $data['fieldset'][$element['fieldset']]['offset'];
+              }
+              else if (($element['type'] == 'raw' || $element['type'] == 'html') &&
+                       !isset($element['name']) && $first_key === $id)
+              {
+                // When raw/html element first, disable offset
+                $element['offset'] = FALSE;
+              } else {
+                // Default
+                $element['offset'] = TRUE;
+              }
+            }
             if ($i < 1)
             {
               // Add laber for first element in row
-              $row_label = '    <label class="control-label" for="'.$element['id'].'">'.$element['name'].'</label>' . PHP_EOL;
+              if ($element['name'])
+              {
+                $row_label = '    <label';
+                if ($element['offset'])
+                {
+                  $row_label .= ' class="control-label"';
+                }
+                $row_label .= ' for="'.$element['id'].'">'.$element['name'].'</label>' . PHP_EOL;
+              }
               $row_control_id = $element['id'] . '_div';
               if ($element['type'] == 'datetime')
               {
                 $element['name'] = '';
               }
             }
-            $div_class = 'controls';
+            // nextrow class element to new line (after label)
+            $div_class = ($element['offset']) ? 'controls' : 'nextrow';
             break;
         }
 
-        if (empty($element['div_class']))
+        if (!isset($element['div_class']))
         {
           $element['div_class'] = $div_class;
         }
@@ -466,7 +511,7 @@ function print_form($data, $return = FALSE)
       if ($element['div_class'])
       {
         // no additional divs if empty div class (hidden element for example)
-        $row_begin = $row_label . PHP_EOL . '    <div class="'.$element['div_class'].'"';
+        $row_begin = $row_label . PHP_EOL . '    <div id="' .$element['id'] . '_div" class="'.$element['div_class'].'"';
         if (strlen($div_style))
         {
           $row_begin .= ' style="' . $div_style . '"';
@@ -487,28 +532,44 @@ function print_form($data, $return = FALSE)
       }
       //$row_style = 'style="margin-top: '.$base_space.';"'; // Add space between rows
     }
-    foreach ($data['fieldset'] as $row_group => $name)
+
+    foreach ($data['fieldset'] as $row_group => $entry)
     {
       if (isset($fieldset[$row_group]))
       {
-        $row_elements = '
+        if (!is_array($entry))
+        {
+          $entry = array('title' => $entry);
+        }
+
+        $fieldset_begin = '';
+        $fieldset_end   = '';
+        // Additional div class if set
+        if (isset($entry['class']))
+        {
+          $fieldset_begin = '<div class="'.$entry['class'].'">' . PHP_EOL . $fieldset_begin;
+          $fieldset_end  .= '</div>' . PHP_EOL;
+        }
+
+        $row_elements = $fieldset_begin . '
           <fieldset> <!-- START fieldset-'.$row_group.' -->';
-        if (!empty($name))
+        if (!empty($entry['title']))
         {
           // fieldset title
           $row_elements .= '
           <div class="control-group">
               <div class="controls">
-                  <h3>'.$name.'</h3>
+                  <h3>'.$entry['title'].'</h3>
               </div>
           </div>';
         }
         $row_elements .= PHP_EOL . $fieldset[$row_group] . '
           </fieldset>  <!-- END fieldset-'.$row_group.' -->
         ' . PHP_EOL;
-        $fieldset[$row_group] = $row_elements;
+        $fieldset[$row_group] = $row_elements . $fieldset_end;
       }
     }
+    // Final combining elements
     $string_elements = implode('', $fieldset);
   } else {
     // Simple form, without any divs, see example in html/pages/edituser.inc.php
@@ -533,6 +594,15 @@ function print_form($data, $return = FALSE)
     }
   }
 
+  // Add CSRF Token
+  if (!in_array('requesttoken', $used_vars) && isset($_SESSION['requesttoken']))
+  {
+    $string_elements .= generate_form_element(array('type'  => 'hidden',
+                                                    'id'    => 'requesttoken',
+                                                    'value' => $_SESSION['requesttoken'])) . PHP_EOL;
+    $used_vars[] = 'requesttoken';
+  }
+
   // Remove old vars from url
   if ($data['url'])
   {
@@ -543,10 +613,15 @@ function print_form($data, $return = FALSE)
   }
 
   // Form header
+  if (isset($data['right']) && $data['right'])
+  {
+    $form_class .= ' pull-right';
+  }
   $string = PHP_EOL . "<!-- START $form_id -->" . PHP_EOL;
   $string .= $div_begin;
   $string .= '<form method="POST" id="'.$form_id.'" name="'.$form_id.'" action="'.$data['url'].'" class="'.$form_class.'"'.$form_style.'>' . PHP_EOL;
   if ($data['brand']) { $string .= '  <a class="brand">' . $data['brand'] . '</a>' . PHP_EOL; }
+  if ($data['help'])  { $string .= '  <span class="help-block">' . $data['help'] . '</span>' . PHP_EOL; }
 
   // Form elements
   $string .= $string_elements;
@@ -572,25 +647,22 @@ function print_form($data, $return = FALSE)
   }
 }
 
-// Box specific form
-function print_form_widget($data)
-{
-  print_form_box($data);
-}
-
 // Box specific form (mostly same as in print_form, but support only box style and fieldset options)
 // FIXME should likely not be in this file? As it's used throughout the software now...
 function print_form_box($data, $return = FALSE)
 {
+  // Just return if safety requirements are not fulfilled
+  if (isset($data['userlevel']) && $data['userlevel'] > $_SESSION['userlevel']) { return; }
+
   $form_id    = (isset($data['id']) ? $data['id'] : 'form-'.strgen());
   $form_class = 'form form-horizontal';
   if (isset($data['style']))
   {
     $form_style = ' style="'.$data['style'].'"';
   } else {
-    $form_style = ' style="margin-bottom:0;"';
+    $form_style = ' style="margin-bottom:0px;"';
   }
-  $base_class = (array_key_exists('class', $data) ? $data['class'] : 'box');
+  $base_class = (array_key_exists('class', $data) ? $data['class'] : OBS_CLASS_BOX);
   $base_space = ($data['space'] ? $data['space'] : '15px');
   $used_vars  = array();
 
@@ -624,7 +696,8 @@ function print_form_box($data, $return = FALSE)
 
     foreach ($data['row'] as $k => $row)
     {
-      $row_group = $k;
+      $first_key    = key($row);
+      $row_group    = $k;
       $row_elements = '';
       $row_label    = '';
       $row_control_group = FALSE;
@@ -639,15 +712,13 @@ function print_form_box($data, $return = FALSE)
         }
 
         // Additional element options for horizontal specific form
+        $div_style = '';
         switch ($element['type'])
         {
           case 'hidden':
-            $div_class = '';
-            $div_style = '';
             break;
           case 'submit':
             $div_class = 'form-actions';
-            $div_style = ' style="margin: 0px;"';
             break;
           case 'text':
           case 'input':
@@ -655,16 +726,45 @@ function print_form_box($data, $return = FALSE)
           case 'textarea':
           default:
             $row_control_group = TRUE;
-            // In horizontal, name always placed at left
+            // In horizontal, first element name always placed at left
             if (!isset($element['placeholder'])) { $element['placeholder'] = TRUE; }
+            // offset == FALSE disable label width and align class control-label
+            if (!isset($element['offset']))
+            {
+              if (isset($data['fieldset'][$element['fieldset']]['offset']))
+              {
+                // Copy from fieldset
+                $element['offset'] = $data['fieldset'][$element['fieldset']]['offset'];
+              }
+              else if (($element['type'] == 'raw' || $element['type'] == 'html') && $first_key === $id)
+              {
+                // When raw/html element first, disable offset
+                $element['offset'] = FALSE;
+              } else {
+                // Default
+                $element['offset'] = TRUE;
+              }
+            }
             if ($i < 1)
             {
               // Add laber for first element in row
-              $row_label = '    <label class="control-label" for="'.$element['id'].'">'.$element['name'].'</label>' . PHP_EOL;
+              if ($element['name'])
+              {
+                $row_label = '    <label';
+                if ($element['offset'])
+                {
+                  $row_label .= ' class="control-label"';
+                }
+                $row_label .= ' for="'.$element['id'].'">'.$element['name'].'</label>' . PHP_EOL;
+              }
               $row_control_id = $element['id'] . '_div';
+              if ($element['type'] == 'datetime')
+              {
+                $element['name'] = '';
+              }
             }
-            $div_class = 'controls';
-            $div_style = '';
+            // nextrow class element to new line (after label)
+            $div_class = ($element['offset']) ? 'controls' : 'nextrow';
             break;
         }
 
@@ -672,10 +772,19 @@ function print_form_box($data, $return = FALSE)
         {
           $element['div_class'] = $div_class;
         }
+        if ($element['div_class'] == 'form-actions')
+        {
+          // Remove margins only for form-actions elements
+          $div_style = 'margin: 0px;';
+        }
         //if ($element['right'])
         //{
         //  $element['div_class'] .= ' pull-right';
         //}
+        if (isset($element['div_style']))
+        {
+          $div_style .= ' ' . $element['div_style'];
+        }
         if ($id == 'search' && $data['url'])
         {
           // Add form_id here, for generate onclick action in submit button
@@ -685,13 +794,16 @@ function print_form_box($data, $return = FALSE)
         $row_elements .= generate_form_element($element);
         $i++;
       }
+
       if ($element['div_class'])
       {
         // no additional divs if empty div class (hidden element for example)
-        $row_elements = $row_label . PHP_EOL .
-                        '    <div class="'.$element['div_class'].'"'.$div_style.'>' . PHP_EOL .
-                        $row_elements .
-                        '    </div>' . PHP_EOL;
+        $row_begin = $row_label . PHP_EOL . '    <div class="'.$element['div_class'].'"';
+        if (strlen($div_style))
+        {
+          $row_begin .= ' style="' . $div_style . '"';
+        }
+        $row_elements = $row_begin . '>' . PHP_EOL . $row_elements . '    </div>' . PHP_EOL;
       } else {
         $row_label = str_replace(' class="control-label"', '', $row_label);
         $row_elements = $row_label . PHP_EOL . $row_elements;
@@ -802,6 +914,15 @@ function print_form_box($data, $return = FALSE)
     $string_elements = implode('', $fieldset);
   }
 
+  // Add CSRF Token
+  if (!in_array('requesttoken', $used_vars) && isset($_SESSION['requesttoken']))
+  {
+    $string_elements .= generate_form_element(array('type'  => 'hidden',
+                                                    'id'    => 'requesttoken',
+                                                    'value' => $_SESSION['requesttoken'])) . PHP_EOL;
+    $used_vars[] = 'requesttoken';
+  }
+
   // Remove old vars from url
   if ($data['url'])
   {
@@ -843,6 +964,10 @@ function print_form_box($data, $return = FALSE)
 /**
  * Generates form elements. The main use for print_search() and print_form(), see examples of this functions.
  *
+ * Common options (can be in any(mostly) element type):
+ *   (string) id      - element identificator
+ *   (array)  attribs - any custom element attrib (where key is attrib name, value - attrib value)
+ *   (bool)   offset  - for horizontal forms enable (default) or disable element offset (shift to the right on 180px)
  * Options tree:
  * textarea -\
  *     (string)id, (string)name, (bool)readonly, (bool)disabled, (string)width, (string)class,
@@ -864,17 +989,19 @@ function print_form_box($data, $return = FALSE)
  *     (string)id, (string)name, (bool)readonly, (bool)disabled,
  *     (string|FALSE)from, (string|FALSE)to, (bool)presets, (string)min, (string)max
  *     (string)value (use it for single input)
- * checkbox, switch -\
+ * checkbox, switch, toggle -\
  *     (string)id, (string)name, (bool)readonly, (bool)disabled, (string)onchange,
- *     (bool)revert, (int)width, (string)size, (string)off-color, (string)on-color, (string)off-text, (string)on-text
+ *     [switch only]: (bool)revert, (int)width, (string)size, (string)off-color, (string)on-color, (string)off-text, (string)on-text
+ *     [toggle only]: (string)view, (string)size, (string)palette, (string)group, (string)label,
+ *                    (string)icon-check, (string)label-check, (string)icon-uncheck, (string)label-uncheck
  *     (string)value, (string)placeholder, (string)title
  * submit -\
  *     (string)id, (string)name, (bool)readonly, (bool)disabled,
  *     (string)class, (bool)right, (string)tooltip,
  *     (string)value, (string)form_id, (string)icon
  * html, raw -\
- *     (string)id,
- *     (string)html
+ *     (string)id, (bool)offset,
+ *     (string)html, (string)value
  * newline -\
  *     (string)id,
  *     (bool)hr
@@ -888,14 +1015,58 @@ function generate_form_element($item, $type = '')
   $value_isset = isset($item['value']);
   if (!$value_isset) { $item['value'] = ''; }
   if (!isset($item['type']))  { $item['type'] = $type; }
-  $string = '';
+  $string          = '';
   $element_tooltip = '';
+  $element_attribs = '';
+  if (isset($item['attribs']) && is_array($item['attribs']))
+  {
+    // Custom html attributes
+    foreach ($item['attribs'] as $attr => $value)
+    {
+      if (preg_match('/^(data\-.+|aria\-.+|role)$/', $attr)) // Filter attributes (data-*, aria-*, role)
+      {
+        $element_data .= ' ' . escape_html($attr) . '="' . escape_html($value) . '"';
+      }
+    }
+    if (isset($item['attribs']['data-toggle']))
+    {
+      // Enable item specific JS/CSS/Script
+      switch ($item['attribs']['data-toggle'])
+      {
+        case 'confirm':
+        case 'confirmation':
+          // popConfirm
+          register_html_resource('js',     'jquery.popconfirm.js');
+          register_html_resource('script', '$("[data-toggle=\'' . $item['attribs']['data-toggle'] . '\']").popConfirm();');
+          break;
+        //case 'switch':
+        //  // bootstrapSwitch
+        //  register_html_resource('js',     'bootstrap-switch.min.js');
+        //  //register_html_resource('css',    'bootstrap-switch.css');
+        //  register_html_resource('script', '$("[data-toggle=\'' . $item['attribs']['data-toggle'] . '\']").bootstrapSwitch();');
+        //  break;
+        case 'toggle':
+          // TinyToggle
+          $script = '';
+          if ($item['onchange'])
+          {
+            // Here toggle specific onchange behavior
+            $script .= 'onChange: function(obj, value) { ' . $item['onchange'] . ' },';
+            unset($item['onchange']);
+          }
+          register_html_resource('js',     'jquery.tinytoggle.min.js');
+          register_html_resource('css',    'tinytoggle.min.css');
+          register_html_resource('script', '$("[data-toggle=\'' . $item['attribs']['data-toggle'] . '\']").tinyToggle({'.$script.'});');
+          break;
+      }
+    }
+  }
   switch ($item['type'])
   {
     case 'hidden':
       if (!$item['readonly'] && !$item['disabled']) // If item readonly or disabled, just skip item
       {
-        $string .= '    <input type="'.$item['type'].'" name="'.$item['id'] . '" id="' .$item['id'] . '" value="'.$item['value'].'" />' . PHP_EOL;
+        $string .= '    <input type="'.$item['type'].'" name="'.$item['id'] . '" id="' .$item['id'] . '" value="'.$item['value'].'"'.$element_data.' />' . PHP_EOL;
       }
       break;
 
@@ -910,7 +1081,12 @@ function generate_form_element($item, $type = '')
         if ($item['type'] == 'password')
         {
           // disable autocomplete for passwords
-          $item_begin .= ' autocomplete="off" ';
+          //$item_begin .= ' autocomplete="off" ';
+          // http://stackoverflow.com/questions/15738259/disabling-chrome-autofill
+          if (!(isset($item['autocomplete']) && $item['autocomplete']))
+          {
+            $item_begin .= ' autocomplete="new-password" ';
+          }
           // mask password field for disabled/readonly by bullet
           if (strlen($item['value']) && ($item['disabled'] || $item['readonly']))
           {
@@ -943,6 +1119,7 @@ function generate_form_element($item, $type = '')
         $item_end   = '>' . $item['value'] . '</textarea>';
         $item_class = 'form-control';
       }
+      $item_begin .= $element_data; // Add custom data- attribs
       if ($item['disabled'])
       {
         $item_end = ' disabled="1"' . $item_end;
@@ -1022,7 +1199,7 @@ function generate_form_element($item, $type = '')
   );
 SCRIPT;
         register_html_resource('script', $script);
-      }
+      } // end ajax
 
       $string .= '" ' . $item_end . PHP_EOL;
       $string .= ($item['placeholder'] ? PHP_EOL : '  </div>' . PHP_EOL);
@@ -1031,21 +1208,58 @@ SCRIPT;
 
     case 'switch':
       // switch specific options
-      if ($item['revert'])
+      if (isset($item['revert']) && $item['revert'])
       {
-        $item_switch = ' data-toggle="switch-revert"';
-      } else {
-        $item_switch = ' data-toggle="switch"';
+        // Fallback for old preconfigured style
+        if (!isset($item['size']))      { $item['size']      = 'mini'; }
+        if (!isset($item['on-color']))  { $item['on-color']  = 'danger'; }
+        if (!isset($item['off-color'])) { $item['off-color'] = 'primary'; }
+        if (!isset($item['on-text']))   { $item['on-text']   = 'No'; }
+        if (!isset($item['off-text']))  { $item['off-text']  = 'Yes'; }
+        unset($item['revert']);
       }
-      if ($item['size'])      { $item_switch .= ' data-size="' . $item['size'] . '"'; }
-      if ($item['on-color'])  { $item_switch .= ' data-on-color="' . $item['on-color'] . '"'; }
-      if ($item['off-color']) { $item_switch .= ' data-off-color="' . $item['off-color'] . '"'; }
-      if ($item['on-text'])   { $item_switch .= ' data-on-text="' . $item['on-text'] . '"'; }
-      if ($item['off-text'])  { $item_switch .= ' data-off-text="' . $item['off-text'] . '"'; }
+      // Convert to data attribs and recursive call to checkbox
+      $item['attribs']['data-toggle'] = 'switch';
+      $item_attribs = array('size', 'on-color', 'on-text', 'off-color', 'off-text');
+      foreach($item_attribs as $attr)
+      {
+        if (isset($item[$attr])) { $item['attribs']['data-'.$attr] = $item[$attr]; }
+      }
       if (is_numeric($item['width']) && $item['width'] > 10)
       {
-        $item_switch .= ' data-handle-width="' . intval($item['width'] / 2) . '"';
+        $item['attribs']['data-handle-width'] = intval($item['width'] / 2);
       }
+      $item['type'] = 'checkbox'; // replace item type
+      return generate_form_element($item);
+      // end switch
+
+    case 'toggle':
+      // toggle specific options
+      // Convert to data attribs and recursive call to checkbox
+      $item['attribs']['data-toggle'] = 'toggle';
+      $item_attribs = array('size', 'palette', 'group', 'label', 'icon-check', 'label-check', 'icon-uncheck', 'label-uncheck');
+      foreach($item_attribs as $attr)
+      {
+        if (isset($item[$attr])) { $item['attribs']['data-tt-'.$attr] = $item[$attr]; }
+      }
+      // Types: http://tinytoggle.simonerighi.net/#types
+      if (in_array($item['view'], array('toggle', 'check', 'circle', 'square', 'square_v', 'power', 'dot', 'like', 'watch', 'star', 'lock', 'heart', 'smile')))
+      {
+        $item['attribs']['data-tt-type'] = $item['view'];
+      } else {
+        $item['attribs']['data-tt-type'] = 'square'; // default type
+      }
+      // Onchange target id
+      if ($item['onchange-id'])
+      {
+        $item['attribs']['data-onchange-id'] = $item['onchange-id'];
+      }
+
+      $item['class'] .= ' tiny-toggle'; // additional class for toggle
+      $item['type'] = 'checkbox'; // replace item type
+      return generate_form_element($item);
+      // end toggle
+
     case 'checkbox':
       $string = '    <input type="checkbox" ';
       $string .= ' name="'.$item['id'] . '" id="' .$item['id'] . '" ' . $item_switch;
@@ -1069,12 +1283,13 @@ SCRIPT;
       {
         $string .= ' onchange="'.$item['onchange'].'"';
       }
+      $string .= $element_data; // Add custom data- attribs
       $string .= ' value="1" />';
       if (is_string($item['placeholder']))
       {
         // add placeholder text at right of the element
-        $string .= '      <span class="help-inline" style="margin-top: 4px;">' .
-                   $item['placeholder'] . '</span>' . PHP_EOL;
+        $string .= '      <label for="' . $item['id'] . '" class="help-inline" style="margin-top: 4px;">' .
+                   $item['placeholder'] . '</label>' . PHP_EOL;
       }
       // End 'switch' & 'checkbox'
       break;
@@ -1146,9 +1361,10 @@ SCRIPT;
         $string .= '  <div id="'.$id_to.'_div" class="input-prepend" style="margin-bottom: 0;">' . PHP_EOL;
         $string .= '    <span class="add-on btn"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i> To</span>' . PHP_EOL;
         //$string .= '    <input type="text" class="input-medium" data-format="yyyy-MM-dd hh:mm:ss" ';
-        $string .= '    <input type="text" data-format="yyyy-MM-dd hh:mm:ss" ';
-        $string .= (isset($item['width'])) ? 'style="width:' . escape_html($item['width']) . '" ' : 'style="width: 140px;" ';
-        $string .= 'name="'.$id_to.'" id="'.$id_to.'" value="'.escape_html($item['to']).'"/>' . PHP_EOL;
+        $string .= '    <input type="text" data-format="yyyy-MM-dd hh:mm:ss"';
+        $string .= (isset($item['width'])) ? ' style="width:' . escape_html($item['width']) . '"' : ' style="width: 140px;"';
+        $string .= $element_data; // Add custom data- attribs
+        $string .= ' name="'.$id_to.'" id="'.$id_to.'" value="'.escape_html($item['to']).'"/>' . PHP_EOL;
         $string .= '  </div>' . PHP_EOL;
       }
       // JS SCRIPT
@@ -1249,7 +1465,7 @@ SCRIPT;
                               );
       //register_html_resource('script', '$("input[data-role=tagsinput], select[multiple][data-role=tagsinput]").tagsinput({trimValue: true, tagClass: function(item) {return "label label-default";} });');
 
-      $string .= '    <select multiple data-toggle="tagsinput" name="'.$item['id'].'[]" ' . $title;
+      $string .= '    <select multiple data-toggle="tagsinput" name="'.$item['id'].'[]" ';
       $string .= 'id="'.$item['id'].'" ';
 
       if      ($item['title'])       { $string .= 'title="' . $item['title'] . '" '; }
@@ -1277,6 +1493,7 @@ SCRIPT;
       {
         $string .= ' onchange="'.$item['onchange'].'"';
       }
+      $string .= $element_data; // Add custom data- attribs
       $string .= '>' . PHP_EOL . '      '; // end <select>
 
       // Process values
@@ -1300,7 +1517,13 @@ SCRIPT;
       $string .= PHP_EOL . '    </select>' . PHP_EOL;
 
       // Generate typeahead from values
-      $suggest = array_merge($suggest, (array)$item['values']);
+      $item['values'] = (array)$item['values'];
+      if (is_array_assoc($item['values']))
+      {
+        // convert associative values to simple
+        $item['values'] = array_keys($item['values']);
+      }
+      $suggest = array_merge($suggest, $item['values']);
       if (count($suggest))
       {
         $option = '[{ hint: false, highlight: true, minLength: 1 },
@@ -1356,7 +1579,7 @@ SCRIPT;
       }
       if ($item['type'] == 'multiselect')
       {
-        $string .= '    <select multiple name="'.$item['id'].'[]" ' . $title;
+        $string .= '    <select multiple name="'.$item['id'].'[]" ';
         // Enable Select/Deselect all (if select values count more than 4)
         if ($count_values > 4)
         {
@@ -1366,7 +1589,6 @@ SCRIPT;
         $string .= '    <select name="'.$item['id'].'" ';
       }
       $string .= 'id="'.$item['id'].'" ';
-
       if      ($item['title'])       { $string .= 'title="' . $item['title'] . '" '; }
       else if (isset($item['name'])) { $string .= 'title="' . $item['name']  . '" '; }
 
@@ -1377,7 +1599,7 @@ SCRIPT;
       $string .= '" data-selected-text-format="count>2"';
       if ($item['data-style']) { $string .= ' data-style="'.$item['data-style'].'"'; }
       // Enable Live search in values list (if select values count more than 12)
-      if ($count_values > 12 && $item['live-search'] !== FALSE) { $string .= ' data-live-search="true"'; }
+      if (($count_values > 12 || $count_values == 0 )&& $item['live-search'] !== FALSE) { $string .= ' data-live-search="true"'; }
 
       if ($item['disabled'])
       {
@@ -1391,6 +1613,7 @@ SCRIPT;
       {
         $string .= ' onchange="'.$item['onchange'].'"';
       }
+      $string .= $element_data; // Add custom data- attribs
 
       $string .= $data_width . $data_size . '>' . PHP_EOL . '      '; // end <select>
       if (!is_array($item['value'])) { $item['value'] = array($item['value']); }
@@ -1525,17 +1748,28 @@ SCRIPT;
     case 'submit':
       $button_type    = 'submit';
       $button_onclick = '';
-      $button_class   = 'btn';
-      if (!empty($item['class']))
+      if (isset($item['icon_only']) && $item['icon_only'] && $item['icon'])
       {
-        if (!preg_match('/btn-(default|primary|success|info|warning|danger)/', $item['class']))
+        // icon only submit button
+        $button_class   = 'btn-icon';
+        if (!empty($item['class']))
         {
-          // Add default class if custom class hot have it
+          $button_class .= ' ' . $item['class'];
+        }
+      } else {
+        // classic submit button
+        $button_class   = 'btn';
+        if (!empty($item['class']))
+        {
+          if (!preg_match('/btn-(default|primary|success|info|warning|danger)/', $item['class']))
+          {
+            // Add default class if custom class hot have it
+            $button_class .= ' btn-default';
+          }
+          $button_class .= ' ' . $item['class'];
+        } else {
           $button_class .= ' btn-default';
         }
-        $button_class .= ' ' . $item['class'];
-      } else {
-        $button_class .= ' btn-default';
       }
       if ($item['right'])
       {
@@ -1575,6 +1809,7 @@ SCRIPT;
       {
         $string .= ' value="' . $item['value'] . '"';
       }
+      $string .= $element_data; // Add custom data- attribs
       $string .= '>';
       switch($item['id'])
       {
@@ -1591,7 +1826,7 @@ SCRIPT;
       if (array_key_exists('icon', $item)) { $button_icon = trim($item['icon']); }
       if (strlen($button_icon))
       {
-        $string .= '<i class="'.$button_icon.'"></i>';
+        $string .= '<i class="'.$button_icon.'" style="margin-right: 0px;"></i>'; // Override margin style, here used "own" margin
         $nbsp++;
       }
 
@@ -1603,7 +1838,7 @@ SCRIPT;
 
       if ($nbsp == 2)
       {
-        $string .= '&nbsp;';
+        $string .= '&nbsp;&nbsp;';
       }
       $string .= $button_name.'</button>' . PHP_EOL;
       // End 'submit'
@@ -1634,7 +1869,7 @@ SCRIPT;
   return($string . $element_tooltip);
 }
 
-function generate_form_values($type, $form_filter = FALSE, $column = NULL)
+function generate_form_values($type, $form_filter = FALSE, $column = NULL, $options = array())
 {
   //global $cache;
 
@@ -1648,11 +1883,204 @@ function generate_form_values($type, $form_filter = FALSE, $column = NULL)
       $form_function = 'generate_' . $type . '_form_values';
       if (function_exists($form_function))
       {
-        return call_user_func_array($form_function, array($form_filter, $column));
+        return call_user_func_array($form_function, array($form_filter, $column, $options));
       }
   }
 
   return $form_items;
+}
+
+/**
+ * Complex function for generate modal window.
+ * Use it when an simple modal used.
+ *
+ * Used args:
+ *  id, title, icon, class, body, footer,
+ *  hide (default TRUE), fade (default TRUE), role (default dialog)
+ *
+ * Note, if used separate functions generate_modal_open(), generate_modal_close()
+ * then required to add body content inside div <div class="modal-body"></div>
+ * and if also used footer, it should be inside <div class="modal-footer"></div>
+ *
+ * @param array $args Array with arguments
+ * @return string
+ */
+function generate_modal($args)
+{
+/*
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+*/
+  //print_vars($args);
+
+  // Begin & Header
+  $string = generate_modal_open($args);
+
+  // Body
+  $string .= '      <div class="modal-body">' . PHP_EOL .
+             $args['body']                    . PHP_EOL .
+             '      </div>'                   . PHP_EOL;
+
+  // Footer
+  if (strlen($args['footer']))
+  {
+    $string .= '      <div class="modal-footer">' . PHP_EOL .
+               $args['footer']                    . PHP_EOL .
+               '      </div>'                     . PHP_EOL;
+  }
+
+  // End
+  $string .= generate_modal_close($args);
+
+  return $string;
+}
+
+/**
+ * Generates begin of modal window
+ * See descriptions for generate_modal()
+ *
+ * @param array $args Array with arguments
+ * @return string
+ */
+function generate_modal_open(&$args)
+{
+  if (!isset($args['id'])) { $args['id'] = 'modal-'.strgen('4'); }
+
+  $string = PHP_EOL . '<!-- START modal ' . $args['id'] . ' -->' . PHP_EOL;
+
+  // Create base class
+  $base_class = 'modal';
+  if (isset($args['hide']) && !$args['hide']) {} else // Hide by default
+  {
+    $base_class .= ' hide';
+  }
+  if (isset($args['fade']) && !$args['fade']) {} else // Fade by default
+  {
+    $base_class .= ' fade';
+  }
+  if (!isset($args['role'])) // Role dialog by default
+  {
+    $args['role'] = 'dialog';
+  }
+  $args['class'] = (isset($args['class'])) ? ' ' . $args['class'] : '';
+
+  $string .= '<div class="' . $base_class . '" id="' . $args['id'] . '" tabindex="-1"';
+
+  if ($args['role'] == 'dialog')
+  {
+    $string .= ' role="dialog" aria-labelledby="' . $args['id'] . '_label">' . PHP_EOL;
+  } else {
+    $string .= ' role="document">' . PHP_EOL;
+  }
+  $string .= '  <div class="modal-dialog'.$args['class'].'" role="document">' . PHP_EOL .
+             '    <div class="modal-content">' . PHP_EOL;
+
+  // Header
+  $string .= '      <div class="modal-header">' . PHP_EOL .
+             '        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>' . PHP_EOL;
+  if (isset($args['title']))
+  {
+    $string .= '        <h3 class="modal-title" id="' . $args['id'] . '_label">';
+    if ($args['icon'])
+    {
+      $string .= '<i class="' . $args['icon'] . '"></i>&nbsp;';
+    }
+    $string .= $args['title'] . '</h3>' . PHP_EOL;
+  }
+  $string .= '      </div>' . PHP_EOL;
+
+  return $string;
+}
+
+/**
+ * Generates end of modal window
+ * See descriptions for generate_modal()
+ *
+ * @param array $args Array with arguments
+ * @return string
+ */
+function generate_modal_close($args)
+{
+  $string  = '    </div>' . PHP_EOL .
+             '  </div>'   . PHP_EOL .
+             '</div>'     . PHP_EOL;
+  $string .= '<!-- END modal ' . $args['id'] . ' -->' . PHP_EOL;
+
+  return $string;
+}
+
+// Modal specific form
+function generate_form_modal($form)
+{
+  // Just return if safety requirements are not fulfilled
+  if (isset($form['userlevel']) && $form['userlevel'] > $_SESSION['userlevel']) { return; }
+
+  // Time our form filling.
+  $form_start = microtime(TRUE);
+
+  // Use modal with form
+  if (isset($form['modal_args']))
+  {
+    $modal_args = $form['modal_args'];
+    unset($form['modal_args']);
+  } else {
+    $modal_args = array();
+  }
+
+  if (!isset($modal_args['id']) && isset($form['id']))
+  {
+    // Generate modal id from form id
+    if (str_starts($form['id'], 'modal-'))
+    {
+      $modal_args['id'] = $form['id'];
+      $form['id']       = substr($form['id'], 6);
+    } else {
+      $modal_args['id'] = 'modal-' . $form['id'];
+    }
+  }
+  if (!isset($modal_args['title']) && isset($form['title']))
+  {
+    // Move form title to modal header
+    $modal_args['title'] = $form['title'];
+    unset($form['title']);
+  }
+
+  $form['class'] = ''; // Clean default box class!
+  $form['fieldset']['body']['class']   = 'modal-body';   // Required this class for modal body!
+  $form['fieldset']['footer']['class'] = 'modal-footer'; // Required this class for modal footer!
+
+  $modal  = generate_modal_open($modal_args);
+
+  // Save generation time for profiling
+  $GLOBALS['form_time'] += utime() - $form_start;
+
+  $modal .= generate_form($form);
+
+  // Time our form filling.
+  $form_start = microtime(TRUE);
+
+  $modal .= generate_modal_close($modal_args);
+
+  // Save generation time for profiling
+  $GLOBALS['form_time'] += utime() - $form_start;
+
+  return $modal;
 }
 
 // EOF

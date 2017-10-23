@@ -20,8 +20,9 @@ if ($_SESSION['userlevel'] < 10)
 }
 
 $userlist = array();
-foreach (dbFetchColumn('SELECT DISTINCT `user` FROM `authlog` WHERE `user` != ?;', array('')) as $user)
+foreach (dbFetchColumn('SELECT DISTINCT `user` FROM `authlog` WHERE `result` NOT LIKE ? AND `user` != ?;', array('%Fail%', '')) as $user)
 {
+  $user = escape_html($user);
   $userlist[$user] = ($user === '' ? '<Anonymous>' : $user);
 }
 

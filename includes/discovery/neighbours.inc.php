@@ -12,8 +12,6 @@
  *
  */
 
-echo(" Neighbours discovery: ");
-
 $valid['neighbours'] = array();
 
 // Include all discovery modules
@@ -39,7 +37,7 @@ foreach ($neighbours_db as $neighbour)
     $GLOBALS['module_stats'][$module]['deleted']++;
   } else {
     $port = get_port_by_id_cache($local_port_id);
-    if (is_numeric($neighbour['remote_port_id']))
+    if (is_numeric($neighbour['remote_port_id']) && $neighbour['remote_port_id'])
     {
       $remote_port_array = get_port_by_id_cache($neighbour['remote_port_id']);
       $remote_port = $remote_port_array['port_label'];

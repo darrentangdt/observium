@@ -11,15 +11,17 @@
  *
  */
 
-$units ='bps';
-$total_units ='B';
-$colours_in ='greens';
-$multiplier = "8";
+$units = '';
+$unit_text = 'Bits/sec';
+$total_units = 'B';
+$colours_in = 'greens';
+$multiplier = "1";
 $colours_out = 'blues';
 
-$nototal = 1;
 $ds_in  = "read";
 $ds_out = "written";
+
+$nototal = 1;
 
 include($config['html_dir']."/includes/graphs/device/diskio_common.inc.php");
 

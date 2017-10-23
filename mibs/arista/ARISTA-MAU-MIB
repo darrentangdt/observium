@@ -8,7 +8,7 @@ ARISTA-MAU-MIB DEFINITIONS ::= BEGIN
        ;
 
      aristaMauMIB MODULE-IDENTITY
-       LAST-UPDATED "201410210000Z"  -- October 21, 2014
+       LAST-UPDATED "201606230000Z"  -- June 23, 2016
        ORGANIZATION "Arista Networks, Inc."
        CONTACT-INFO
           "Arista Networks, Inc.
@@ -23,6 +23,39 @@ ARISTA-MAU-MIB DEFINITIONS ::= BEGIN
          "This MIB module extends dot3MauType OBJECT-IDENTITIES
          defined in the IANA-MAU-MIB, covering all MAU types
          used by Arista Networks."
+       
+       REVISION     "201606230000Z"  -- June 23, 2016
+       DESCRIPTION  "Revised to include aristaDot3MauType100GEDwdm2."
+       
+       REVISION     "201511300000Z"  -- November 30, 2015
+       DESCRIPTION  "Revised to include aristaDot3MauType100GbaseCWDM4."
+
+       REVISION     "201509010000Z"  -- September 01, 2015
+       DESCRIPTION  "Revised to include aristaDot3MauType100GDwdmCoherentE."
+
+       REVISION     "201507080000Z"  -- July 8, 2015
+       DESCRIPTION  "Revised to include aristaDot3MauType100GbasePSM4 and
+                    aristaDot3MauType100GbaseCLR4."
+
+       REVISION     "201505290000Z"  -- May 29, 2015
+       DESCRIPTION  "Revised to include aristaDot3MauType40GbaseSRBD and
+                     aristaDot3MauType40GbaseSR4D."
+
+       REVISION     "201504010000Z"  -- April 01, 2015
+       DESCRIPTION  "Revised to include aristaDot3MauType10GbaseDwdmZT."
+
+       REVISION     "201503010000Z"  -- March 01, 2015
+       DESCRIPTION  "Revised to include aristaDot3MauType100GDwdmCoherent."
+
+       REVISION     "201412090000Z"  -- December 9, 2014
+       DESCRIPTION  "Revised to include aristaDot3MauType100GbaseLRL4."
+
+       REVISION     "201411210000Z"  -- November 21, 2014
+       DESCRIPTION  "Revised to include aristaDot3MauType100GbaseCR4 and
+                    aristaDot3MauType100GbaseAR4."
+
+       REVISION     "201411120000Z"  -- November 12, 2014
+       DESCRIPTION  "Revised to include aristaDot3MauType10GbaseAR."
 
        REVISION     "201410210000Z"  -- October 21, 2014
        DESCRIPTION  "Revised to include aristaDot3MauType40GbaseER4 and
@@ -88,20 +121,29 @@ ARISTA-MAU-MIB DEFINITIONS ::= BEGIN
        ::= { aristaDot3MauType 2 }
 
      aristaDot3MauType40GbaseSR4 OBJECT-IDENTITY
-       STATUS      current
-       DESCRIPTION "Short range over multi-mode fiber"
+       STATUS      deprecated
+       DESCRIPTION "Short range over multi-mode fiber
+		   
+                   This object has been deprecated in favor of
+		   IANA-MAU-MIB::dot3MauType40GbaseSR4."
        REFERENCE   "[IEEE802.3ba], Section 86"
        ::= { aristaDot3MauType 3 }
 
      aristaDot3MauType40GbaseLR4 OBJECT-IDENTITY
-       STATUS      current
-       DESCRIPTION "Long range over WDM single-mode fiber"
+       STATUS      deprecated
+       DESCRIPTION "Long range over WDM single-mode fiber
+       
+                   This object has been deprecated in favor of
+		   IANA-MAU-MIB::dot3MauType40GbaseLR4."
        REFERENCE   "[IEEE802.3ba], Section 87"
        ::= { aristaDot3MauType 4 }
 
      aristaDot3MauType40GbaseCR4 OBJECT-IDENTITY
-       STATUS      current
-       DESCRIPTION "Passive copper cable"
+       STATUS      deprecated
+       DESCRIPTION "Passive copper cable
+       
+                   This object has been deprecated in favor of
+		   IANA-MAU-MIB::dot3MauType40GbaseCR4."
        REFERENCE   "[IEEE802.3ba], Section 85"
        ::= { aristaDot3MauType 5 }
 
@@ -127,20 +169,29 @@ ARISTA-MAU-MIB DEFINITIONS ::= BEGIN
        ::= { aristaDot3MauType 9 }
 
      aristaDot3MauType100GbaseSR10 OBJECT-IDENTITY
-       STATUS      current
-       DESCRIPTION "Short range over multi-mode fiber"
+       STATUS      deprecated
+       DESCRIPTION "Short range over multi-mode fiber
+       
+                   This object has been deprecated in favor of
+		   IANA-MAU-MIB::dot3MauType100GbaseSR10."
        REFERENCE   "[IEEE802.3ba], Section 86"
        ::= { aristaDot3MauType 10 }
 
      aristaDot3MauType100GbaseLR4 OBJECT-IDENTITY
-       STATUS      current
-       DESCRIPTION "Long range over WDM single-mode fiber"
+       STATUS      deprecated
+       DESCRIPTION "Long range over WDM single-mode fiber
+       
+                   This object has been deprecated in favor of
+		   IANA-MAU-MIB::dot3MauType100GbaseLR4."
        REFERENCE   "[IEEE802.3ba], Section 88"
        ::= { aristaDot3MauType 11 }
 
      aristaDot3MauType100GbaseER4 OBJECT-IDENTITY
-       STATUS      current
-       DESCRIPTION "Extended range over WDM single-mode fiber"
+       STATUS      deprecated
+       DESCRIPTION "Extended range over WDM single-mode fiber
+       
+                   This object has been deprecated in favor of
+		   IANA-MAU-MIB::dot3MauType100GbaseER4."
        REFERENCE   "[IEEE802.3ba], Section 88"
        ::= { aristaDot3MauType 12 }
 
@@ -192,6 +243,75 @@ ARISTA-MAU-MIB DEFINITIONS ::= BEGIN
 
      aristaDot3MauType100GbaseXSR10 OBJECT-IDENTITY
        STATUS      current
-       DESCRIPTION "Short range (300m) over multi-mode fiber"
+       DESCRIPTION "Short range over multi-mode fiber, 300m range"
        ::= { aristaDot3MauType 22 }
+
+     aristaDot3MauType10GbaseAR OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "Active cable"
+       ::= { aristaDot3MauType 23 }
+
+     aristaDot3MauType100GbaseAR4 OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "Active cable"
+       ::= { aristaDot3MauType 24 }
+
+     aristaDot3MauType100GbaseCR4 OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "Passive copper cable"
+       ::= { aristaDot3MauType 25 }
+
+     aristaDot3MauType100GbaseLRL4 OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "Long range (1km) over WDM single-mode fiber"
+       ::= { aristaDot3MauType 26 }
+
+     aristaDot3MauType100GDwdmCoherent OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "Very long range analog coherent limiting DWDM over single-mode
+                   fiber"
+       ::= { aristaDot3MauType 27 }
+
+     aristaDot3MauType10GbaseDwdmZT OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "Dense Wavelength Division Multiplexing ZT"
+       REFERENCE "SFF-8690 Rev 1.4"
+       ::= { aristaDot3MauType 28 }
+
+     aristaDot3MauType40GbaseSRBD OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "Short range over WDM multi-mode fiber"
+       ::= { aristaDot3MauType 29 }
+
+     aristaDot3MauType40GbaseSR4D OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "Short range (300m) over WDM multi-mode fiber"
+       ::= { aristaDot3MauType 30 }
+
+     aristaDot3MauType100GbasePSM4 OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "Long range (500m) over parallel single-mode fiber"
+       ::= { aristaDot3MauType 31 }
+
+     aristaDot3MauType100GbaseCLR4 OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "Long range (2km) over CWDM single-mode fiber"
+       ::= { aristaDot3MauType 32 }
+
+     aristaDot3MauType100GDwdmCoherentE OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "Very long range analog coherent linear DWDM over single-mode
+                   fiber"
+       ::= { aristaDot3MauType 33 }
+
+     aristaDot3MauType100GbaseCWDM4 OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "Coarse Wavelength Division Multiplexing over single-mode fiber"
+       ::= { aristaDot3MauType 35 }
+
+     aristaDot3MauType100GEDwdm2 OBJECT-IDENTITY
+       STATUS      current
+       DESCRIPTION "Very long range Dense Wavelength Division Multiplexing"
+       ::= { aristaDot3MauType 36 }
+
 END

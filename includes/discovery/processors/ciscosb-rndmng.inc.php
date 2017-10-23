@@ -14,12 +14,12 @@
 # CISCOSB-rndMng::rlCpuUtilEnable.0 = INTEGER: true(1)
 # CISCOSB-rndMng::rlCpuUtilDuringLast5Minutes.0 = INTEGER: 4
 
-$data  = snmp_get_multi($device, 'rlCpuUtilEnable.0 rlCpuUtilDuringLast5Minutes.0', '-OQUs', $mib);
+$data  = snmp_get_multi_oid($device, 'rlCpuUtilEnable.0 rlCpuUtilDuringLast5Minutes.0', array(), $mib);
 $usage = $data[0]['rlCpuUtilDuringLast5Minutes'];
 
 if ($data[0]['rlCpuUtilEnable'] == 'true')
 {
-  discover_processor($valid['processor'], $device, ".1.3.6.1.4.1.9.6.1.101.1.9.$index", 0, 'ciscosb', 'CPU', 1, $usage);
+  discover_processor($valid['processor'], $device, ".1.3.6.1.4.1.9.6.1.101.1.9.0", 0, 'ciscosb', 'CPU', 1, $usage);
 }
 
 unset($usage, $data);

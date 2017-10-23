@@ -10,7 +10,7 @@ IMPORTS
     RowStatus                                            FROM SNMPv2-TC
     VlanIndex,PortList                                   FROM Q-BRIDGE-MIB
     MODULE-IDENTITY, OBJECT-TYPE                         FROM SNMPv2-SMI
-    rlIgmpMldSnoopVlanEntry                              FROM RADLAN-rlBrgMulticast-MIB
+    rlIgmpMldSnoopVlanEntry                              FROM RADLAN-rlMacMulticast-MIB
     eltMesMacMulticast                                   FROM ELTEX-MES
     InetAddress                                          FROM INET-ADDRESS-MIB;
 

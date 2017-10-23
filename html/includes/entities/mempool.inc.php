@@ -16,7 +16,13 @@ function build_mempool_query($vars)
   global $config, $cache;
 
   $sql = 'SELECT *, `mempools`.`mempool_id` AS `mempool_id` FROM `mempools`';
-  $sql .= ' LEFT JOIN `mempools-state` USING(`mempool_id`)';
+  //$sql .= ' LEFT JOIN `mempools-state` USING(`mempool_id`)';
+
+  if($vars['sort'] == 'hostname' || $vars['sort'] == 'device' || $vars['sort'] == 'device_id')
+  {
+    $sql .= ' LEFT JOIN `devices` USING(`device_id`)';
+  }
+
   $sql .= ' WHERE 1' . generate_query_permitted(array('device'));
 
   // Build query
@@ -33,8 +39,38 @@ function build_mempool_query($vars)
       case "device_id":
         $sql .= generate_query_values($value, 'mempools.device_id');
         break;
-
     }
+  }
+
+  switch ($vars['sort_order'])
+  {
+    case 'desc':
+      $sort_order = 'DESC';
+      $sort_neg   = 'ASC';
+      break;
+    case 'reset':
+      unset($vars['sort'], $vars['sort_order']);
+      // no break here
+    default:
+      $sort_order = 'ASC';
+      $sort_neg   = 'DESC';
+  }
+
+  switch($vars['sort'])
+  {
+    case 'usage':
+      $sql .= ' ORDER BY `mempool_used` '.$sort_neg;
+      break;
+    case 'used':
+      $sql .= ' ORDER BY `mempool_perc` '.$sort_neg;
+      break;
+    case 'hostname':
+      $sql .= ' ORDER BY `hostname` '.$sort_order.', `mempool_descr` '.$sort_order;
+      break;
+    case 'descr':
+    default:
+      $sql .= ' ORDER BY `mempool_descr` '.$sort_order;
+      break;
   }
 
   return $sql;
@@ -57,34 +93,6 @@ function print_mempool_table($vars)
       $mempool['html_row_class'] = $cache['devices']['id'][$mempool['device_id']]['html_row_class'];
       $mempools[] = $mempool;
     }
-  }
-
-  // Sorting
-  // FIXME. Sorting can be as function, but in must before print_table_header and after get table from db
-  switch ($vars['sort_order'])
-  {
-    case 'desc':
-      $sort_order = SORT_DESC;
-      $sort_neg   = SORT_ASC;
-      break;
-    case 'reset':
-      unset($vars['sort'], $vars['sort_order']);
-      // no break here
-    default:
-      $sort_order = SORT_ASC;
-      $sort_neg   = SORT_DESC;
-  }
-  switch($vars['sort'])
-  {
-    case 'usage':
-      $mempools = array_sort_by($mempools, 'mempool_perc', $sort_neg, SORT_NUMERIC);
-      break;
-    case 'used':
-      $mempools = array_sort_by($mempools, 'mempool_'.$vars['sort'], $sort_neg, SORT_NUMERIC);
-      break;
-    default:
-      $mempools = array_sort_by($mempools, 'hostname', $sort_order, SORT_STRING, 'mempool_descr', $sort_order, SORT_STRING);
-      break;
   }
 
   $mempools_count = count($mempools);
@@ -230,7 +238,7 @@ function generate_mempool_row($mempool, $vars)
     $graph_array['id'] = $mempool['mempool_id'];
     $graph_array['type'] = 'mempool_' . $vars['graph'];
 
-    print_graph_row($graph_array, TRUE);
+    $row .= generate_graph_row($graph_array, TRUE);
 
     $row .= '</td></tr>';
   } # endif graphs

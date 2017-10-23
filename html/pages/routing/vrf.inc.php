@@ -28,7 +28,7 @@ $link_array = array('page'    => 'routing',
 
   $options['basic']['text']   = 'Basic';
   // $navbar['options']['details']['text'] = 'Details';
-  $options['graphs']     = array('text' => 'Graphs', 'class' => 'pull-right', 'icon' => 'oicon-system-monitor');
+  $options['graphs']     = array('text' => 'Graphs', 'class' => 'pull-right', 'icon' => $config['icon']['graphs']);
 
   if (!isset($vars['view'])) { $vars['view'] = 'basic'; }
 

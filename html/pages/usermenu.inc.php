@@ -20,18 +20,18 @@ if (auth_usermanagement())
 {
   $navbar['options']['add']['url']  = generate_url(array('page' => 'adduser'));
   $navbar['options']['add']['text'] = 'Add User';
-  $navbar['options']['add']['icon'] = 'oicon-user--plus';
+  $navbar['options']['add']['icon'] = $config['icon']['user-add'];
   if ($vars['page'] == 'adduser') { $navbar['options']['add']['class'] = 'active'; };
 }
 
 $navbar['options']['edit']['url']  = generate_url(array('page' => 'edituser'));
 $navbar['options']['edit']['text'] = 'Edit Users';
-$navbar['options']['edit']['icon'] = 'oicon-user--pencil';
+$navbar['options']['edit']['icon'] = $config['icon']['user-edit'];
 if ($vars['page'] == 'edituser') { $navbar['options']['edit']['class'] = 'active'; };
 
 $navbar['options']['log']['url']  = generate_url(array('page' => 'authlog'));
 $navbar['options']['log']['text'] = 'Authlog';
-$navbar['options']['log']['icon'] = 'oicon-clipboard-eye';
+$navbar['options']['log']['icon'] = $config['icon']['user-log'];
 if ($vars['page'] == 'authlog') { $navbar['options']['log']['class'] = 'active'; };
 
 if ($isUserlist)

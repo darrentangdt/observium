@@ -36,11 +36,6 @@ if (is_numeric($vars['id']))
       $index     .= '-' . $sla['sla_owner'];
     }
     $graph_title  = $device['hostname'] . ' :: ' . $unit_text; // hostname :: SLA XX
-
-    if ($sla['sla_graph'] == 'jitter')
-    {
-      $sla['rtt_stddev'] = dbFetchCell("SELECT `rtt_stddev` FROM `slas-state` WHERE `sla_id` = ?", array($vars['id']));
-    }
   }
 }
 

@@ -1,14 +1,14 @@
 --**MOD+***********************************************************************
 --* Module:    hpicfDhcpv4Server.mib
 --*
---* Copyright (C) 2013 Hewlett-Packard Development Company, L.P.
---* All Rights Reserved.
---*
---* The contents of this software are proprietary and confidential
---* to the Hewlett-Packard Development Company, L.P.  No part of this
---* program may be photocopied, reproduced, or translated into another
---* programming language without prior written consent of the
---* Hewlett-Packard Development Company, L.P.
+-- Copyright (C) 2012,2014-2015 Hewlett Packard Enterprise Development LP
+-- All Rights Reserved.
+--
+-- The contents of this software are proprietary and confidential to
+-- the Hewlett Packard Enterprise Development LP. No part of this
+-- program may be photocopied, reproduced, or translated into another
+-- programming language without prior written consent of the
+-- Hewlett Packard Enterprise Development LP.
 --*
 --* Purpose: This file contains MIB definition of HP-ICF-DHCPV4-SERVER MIB
 --*
@@ -36,7 +36,7 @@ HP-ICF-DHCPV4-SERVER-MIB DEFINITIONS ::= BEGIN
             FROM HP-ICF-OID;
 
     hpicfDhcpv4ServerMIB MODULE-IDENTITY
-        LAST-UPDATED "201403070000Z"      -- Mar 07, 2014
+        LAST-UPDATED "201510150000Z"      -- Oct 15, 2015
         ORGANIZATION "HP Networking"
         CONTACT-INFO "Hewlett-Packard Company
                       8000 Foothills Blvd.
@@ -45,6 +45,13 @@ HP-ICF-DHCPV4-SERVER-MIB DEFINITIONS ::= BEGIN
                       the server side of the Bootstrap Protocol (BOOTP)
                       and the Dynamic Host Configuration protocol (DHCP)
                       for Internet Protocol version 4(IPv4)."
+
+        REVISION     "201510150000Z"     -- Oct 15, 2015
+        DESCRIPTION  "Added hpicfDhcpv4ServerOperStatus"
+
+        REVISION     "201501280000Z"      -- Jan 28, 2015
+        DESCRIPTION  "Added hpicfDhcpv4ServerDBFTPort, hpicfDhcpv4ServerDBSFTPUsername,
+                      hpicfDhcpv4ServerDBSFTPPassword, hpicfDhcpv4ServerDBValidateSFTPServer"
 
         REVISION     "201403070000Z"      -- Mar 07, 2014
         DESCRIPTION  "Added hpicfDhcpv4ServerPoolIsAuthoritative"
@@ -203,6 +210,27 @@ hpicfDhcpv4ServerConform   OBJECT IDENTIFIER ::= { hpicfDhcpv4ServerMIB 2 }
         DESCRIPTION "Specifies the VLANs on which DHCPv4 server is enabled."
         ::= { hpicfDhcpv4ServerObjects 18 }
 
+--
+-- DHCPv4 protocol status
+--
+   hpicfDhcpv4ServerOperStatus OBJECT-TYPE
+        SYNTAX      INTEGER {
+                        disabled(0),
+                        enabled(1),
+                        paused(2),
+                        inprogress(3),
+                        shuttingdown(4)
+                    }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION "Specifies operational status of DHCPv4 protocol."
+        DEFVAL      { disabled }
+        ::= { hpicfDhcpv4ServerObjects 19 }
+
+
+
+--
+
 
 --
 -- DHCPv4 lease database
@@ -304,6 +332,42 @@ hpicfDhcpv4ServerConform   OBJECT IDENTIFIER ::= { hpicfDhcpv4ServerMIB 2 }
                      value of all zeroes if we have not written our
                      lease database since the last reboot."
         ::= { hpicfDhcpv4LeaseDataBase 8 }
+
+    hpicfDhcpv4ServerDBFTPort OBJECT-TYPE
+        SYNTAX      Unsigned32 (0..65535)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "A location to store the port value of the FT Server. The 
+                     default port value will be 69 for TFTP and 22 for SFTP"
+        ::= { hpicfDhcpv4LeaseDataBase 9 }
+
+    hpicfDhcpv4ServerDBSFTPUsername OBJECT-TYPE
+        SYNTAX      SnmpAdminString (SIZE (0..255))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "A location to store the Username of the SFTP Server. 
+                    The default value of username is root."
+        ::= { hpicfDhcpv4LeaseDataBase 10 }
+
+    hpicfDhcpv4ServerDBSFTPPassword OBJECT-TYPE
+        SYNTAX      SnmpAdminString (SIZE (0..255))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "A location to store the Password of the SFTP Server."
+        ::= { hpicfDhcpv4LeaseDataBase 11 }
+
+    hpicfDhcpv4ServerDBValidateSFTPServer OBJECT-TYPE
+        SYNTAX      INTEGER {
+                        enabled(1),
+                        disabled(2)                 
+                     }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "This object sets the validate-sftp-server flag. When enabled, 
+                     the user must login to the SFTP server to verify and accept 
+                     the public key of the server. When disabled, the public key 
+	 	     is accepted automatically."
+        ::= { hpicfDhcpv4LeaseDataBase 12 }
 
 --
 -- Bootp Counters 
@@ -1037,11 +1101,14 @@ hpicfDhcpv4ServerConform   OBJECT IDENTIFIER ::= { hpicfDhcpv4ServerMIB 2 }
     hpicfDhcpv4ServerGroups  OBJECT IDENTIFIER
        ::= { hpicfDhcpv4ServerConform 2 }
 
+   hpicfDhcpv4ServerCompliances1  OBJECT IDENTIFIER
+       ::= { hpicfDhcpv4ServerConform 3 }
+
 --
 -- Compliance Statements
 --
     hpicfDhcpv4ServerCompliance MODULE-COMPLIANCE
-        STATUS      current
+        STATUS      deprecated
         DESCRIPTION "The compliance statement  for HP routing switches
                      that support DHCP server."
         MODULE      -- this module
@@ -1060,6 +1127,45 @@ hpicfDhcpv4ServerConform   OBJECT IDENTIFIER ::= { hpicfDhcpv4ServerMIB 2 }
                          }
         ::= { hpicfDhcpv4ServerCompliances 1 }
 
+    hpicfDhcpv4ServerCompliance1 MODULE-COMPLIANCE
+        STATUS      deprecated
+        DESCRIPTION "The compliance statement  for HP routing switches
+                     that support DHCP server."
+        MODULE      -- this module
+        MANDATORY-GROUPS {
+                             hpicfDhcpv4ServerBaseGroup,
+                             hpicfDhcpv4ServerBootpCountersGroup,
+                             hpicfDhcpv4ServerCounterGroup,
+                             hpicfDhcpv4ServerPoolGroup,
+                             hpicfDhcpv4ServerRangeGroup,
+                             hpicfDhcpv4ServerOptionGroup,
+                             hpicfDhcpv4ServerBindingGroup,
+                             hpicfDhcpv4ServerConflictGroup,
+                             hpicfDhcpv4ServerNotifyObjectsGroup,
+                             hpicfDhcpv4ServerNotificationsGroup,
+                             hpicfDhcpv4ServerLeaseDataBaseGroup1
+                         }
+        ::= { hpicfDhcpv4ServerCompliances 2 }
+
+    hpicfDhcpv4ServerCompliance2 MODULE-COMPLIANCE
+        STATUS      current
+        DESCRIPTION "The compliance statement  for HP routing switches
+                     that support DHCP server."
+        MODULE      -- this module
+        MANDATORY-GROUPS {
+                             hpicfDhcpv4ServerBootpCountersGroup,
+                             hpicfDhcpv4ServerCounterGroup,
+                             hpicfDhcpv4ServerPoolGroup,
+                             hpicfDhcpv4ServerRangeGroup,
+                             hpicfDhcpv4ServerOptionGroup,
+                             hpicfDhcpv4ServerBindingGroup,
+                             hpicfDhcpv4ServerConflictGroup,
+                             hpicfDhcpv4ServerNotifyObjectsGroup,
+                             hpicfDhcpv4ServerNotificationsGroup,
+                             hpicfDhcpv4ServerLeaseDataBaseGroup1,
+                             hpicfDhcpv4ServerBaseGroup1
+                         }
+        ::= { hpicfDhcpv4ServerCompliances 3 }
 --
 -- units of conformance
 --
@@ -1075,7 +1181,7 @@ hpicfDhcpv4ServerConform   OBJECT IDENTIFIER ::= { hpicfDhcpv4ServerMIB 2 }
                            hpicfDhcpv4TrapEnable,
                            hpicfDhcpv4ServerVlanEnable
                         }
-            STATUS      current
+            STATUS      deprecated
             DESCRIPTION "Controls the global configuration of the 
                          DHCPv4 server."
             ::= { hpicfDhcpv4ServerGroups 1 }
@@ -1091,7 +1197,7 @@ hpicfDhcpv4ServerConform   OBJECT IDENTIFIER ::= { hpicfDhcpv4ServerMIB 2 }
                            hpicfDhcpServerDBFileWriteStatus,
                            hpicfDhcpServerDBFileLastWriteTime
                         }
-            STATUS      current
+            STATUS      deprecated
             DESCRIPTION "Group of objects to support lease database parameters."
             ::= { hpicfDhcpv4ServerGroups 2 }
 
@@ -1218,6 +1324,45 @@ hpicfDhcpv4ServerConform   OBJECT IDENTIFIER ::= { hpicfDhcpv4ServerMIB 2 }
             STATUS        current
             DESCRIPTION   "Group of notifications."
             ::= { hpicfDhcpv4ServerGroups 11 }
+
+
+    hpicfDhcpv4ServerLeaseDataBaseGroup1 OBJECT-GROUP
+            OBJECTS     {
+                           hpicfDhcpv4ServerDBFile,
+                           hpicfDhcpv4ServerDBWriteDelay,
+                           hpicfDhcpv4ServerDBWriteTimeout,
+                           hpicfDhcpServerDBFileWriteAttempts,
+                           hpicfDhcpServerDBFileWriteFailures,
+                           hpicfDhcpServerDBFileReadStatus,
+                           hpicfDhcpServerDBFileWriteStatus,
+                           hpicfDhcpServerDBFileLastWriteTime,
+			   hpicfDhcpv4ServerDBFTPort, 
+			   hpicfDhcpv4ServerDBSFTPUsername, 
+ 			   hpicfDhcpv4ServerDBSFTPPassword,
+			   hpicfDhcpv4ServerDBValidateSFTPServer 
+                        }
+            STATUS      current
+            DESCRIPTION "Group of objects to support lease database parameters."
+            ::= { hpicfDhcpv4ServerGroups 12 }
+
+    hpicfDhcpv4ServerBaseGroup1 OBJECT-GROUP
+            OBJECTS     {
+                           hpicfDhcpv4ServerEnable,
+                           hpicfDhcpv4PingPktNumber,
+                           hpicfDhcpv4PingTimeOut,
+                           hpicfDhcpv4ConflictsLog,
+                           hpicfDhcpv4ClearStatistics,
+                           hpicfDhcpv4ClearBindings,
+                           hpicfDhcpv4ClearConflictIP,
+                           hpicfDhcpv4TrapEnable,
+                           hpicfDhcpv4ServerVlanEnable,
+                           hpicfDhcpv4ServerOperStatus
+                        }
+            STATUS      current
+            DESCRIPTION "Controls the global configuration of the
+                         DHCPv4 server."
+            ::= { hpicfDhcpv4ServerGroups 13 }
+
 
 END
 

@@ -255,7 +255,6 @@ CREATE TABLE `applications-state` (
 CREATE TABLE `authlog` (
   `id` int(11) NOT NULL,
   `datetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `mechanism` varchar(16) COLLATE utf8_unicode_ci NOT NULL,
   `user_id` int(10) UNSIGNED NOT NULL,
   `user` text CHARACTER SET utf8 NOT NULL,
   `address` text CHARACTER SET utf8 NOT NULL,

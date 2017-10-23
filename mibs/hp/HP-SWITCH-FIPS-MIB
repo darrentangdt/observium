@@ -95,7 +95,7 @@ hpSwitchFipsFcMapEntry OBJECT-TYPE
 
 HpSwitchFipsFcMapEntry ::= SEQUENCE
 {
-   hpSwitchFipsFcMapIndex   INTEGER,
+   hpSwitchFipsFcMapIndex   Integer32,
    hpSwitchFipsFcMap        OCTET STRING
 }
 

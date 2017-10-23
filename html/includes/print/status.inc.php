@@ -64,7 +64,7 @@ function print_status($status)
       $string .= '    <td class="entity">' . generate_device_link($device, short_hostname($device['hostname'])) . '</td>' . PHP_EOL;
       // $string .= '    <td><span class="badge badge-inverse">Device</span></td>' . PHP_EOL;
       $string .= '    <td><span class="label label-important">Device Down</span></td>' . PHP_EOL;
-      $string .= '    <td class="entity"><i class="oicon-servers"></i> ' . generate_device_link($device, short_hostname($device['hostname'])) . '</td>' . PHP_EOL;
+      $string .= '    <td class="entity"><i class="'.$config['icon']['devices'].'"></i> ' . generate_device_link($device, short_hostname($device['hostname'])) . '</td>' . PHP_EOL;
       // $string .= '    <td style="white-space: nowrap">' . escape_html(truncate($device['location'], 30)) . '</td>' . PHP_EOL;
       $string .= '    <td style="white-space: nowrap">' . deviceUptime($device, 'short') . '</td>' . PHP_EOL;
       $string .= '  </tr>' . PHP_EOL;
@@ -90,7 +90,7 @@ function print_status($status)
         $string .= '    <td class="entity">' . generate_device_link($device, short_hostname($device['hostname'])) . '</td>' . PHP_EOL;
         // $string .= '    <td><span class="badge badge-inverse">Device</span></td>' . PHP_EOL;
         $string .= '    <td><span class="label label-success">Device Rebooted</span></td>' . PHP_EOL;
-        $string .= '    <td class="entity"><i class="oicon-servers"></i> ' . generate_device_link($device, short_hostname($device['hostname'])) . '</td>' . PHP_EOL;
+        $string .= '    <td class="entity"><i class="'.$config['icon']['devices'].'"></i> ' . generate_device_link($device, short_hostname($device['hostname'])) . '</td>' . PHP_EOL;
         // $string .= '    <td style="white-space: nowrap">' . escape_html(truncate($device['location'], 30)) . '</td>' . PHP_EOL;
         $string .= '    <td style="white-space: nowrap">Uptime ' . formatUptime($device['uptime'], 'short') . '</td>' . PHP_EOL;
         $string .= '  </tr>' . PHP_EOL;
@@ -134,7 +134,7 @@ function print_status($status)
       $string .= '    <td class="entity">' . generate_device_link($port, short_hostname($port['hostname'])) . '</td>' . PHP_EOL;
       // $string .= '    <td><span class="badge badge-info">Port</span></td>' . PHP_EOL;
       $string .= '    <td><span class="label label-important">Port Down</span></td>' . PHP_EOL;
-      $string .= '    <td class="entity"><i class="oicon-network-ethernet"></i> ' . generate_port_link($port, short_ifname($port['port_label'])) . '</td>' . PHP_EOL;
+      $string .= '    <td class="entity"><i class="'.$config['icon']['port'].'"></i> ' . generate_port_link($port, short_ifname($port['port_label'])) . '</td>' . PHP_EOL;
       // $string .= '    <td style="white-space: nowrap">' . escape_html(truncate($port['location'], 30)) . '</td>' . PHP_EOL;
       $string .= '    <td style="white-space: nowrap">Down for ' . formatUptime($config['time']['now'] - strtotime($port['ifLastChange']), 'short'); // This is like deviceUptime()
       if ($status['links']) { $string .= ' ('.nicecase($port['protocol']).': ' .$port['remote_hostname'].' / ' .$port['remote_port'] .')'; }
@@ -161,7 +161,7 @@ function print_status($status)
       $string .= '    <td class="entity">' . generate_device_link($port, short_hostname($port['hostname'])) . '</td>' . PHP_EOL;
       // $string .= '    <td><span class="badge badge-info">Port</span></td>' . PHP_EOL;
       $string .= '    <td><span class="label label-important">Port Errors</span></td>' . PHP_EOL;
-      $string .= '    <td class="entity"><i class="oicon-network-ethernet"></i> '.generate_port_link($port, short_ifname($port['port_label']), 'port_errors') . '</td>' . PHP_EOL;
+      $string .= '    <td class="entity"><i class="'.$config['icon']['port'].'"></i> '.generate_port_link($port, short_ifname($port['port_label']), 'port_errors') . '</td>' . PHP_EOL;
       // $string .= '    <td style="white-space: nowrap">' . escape_html(truncate($port['location'], 30)) . '</td>' . PHP_EOL;
       $string .= '    <td>Errors ';
       if ($port['ifInErrors_delta']) { $string .= 'In: ' . $port['ifInErrors_delta']; }
@@ -222,7 +222,7 @@ function print_status($status)
         $string .= '    <td class="entity">' . generate_device_link($peer, short_hostname($peer['hostname']), array('tab' => 'routing', 'proto' => 'bgp')) . '</td>' . PHP_EOL;
         // $string .= '    <td><span class="badge badge-warning">BGP</span></td>' . PHP_EOL;
         $string .= '    <td><span class="label label-warning" title="' . $bgpstates . '">BGP ' . nicecase($peer['bgpPeerState']) . '</span></td>' . PHP_EOL;
-        $string .= '    <td class="entity" style="white-space: nowrap"><i class="oicon-chain"></i> ' . $peer_ip . '</td>' . PHP_EOL;
+        $string .= '    <td class="entity" style="white-space: nowrap"><i class="'.$config['icon']['bgp'].'"></i> ' . $peer_ip . '</td>' . PHP_EOL;
         // $string .= '    <td style="white-space: nowrap">' . escape_html(truncate($peer['location'], 30)) . '</td>' . PHP_EOL;
         $string .= '    <td><strong>AS' . $peer['bgpPeerRemoteAs'] . ' :</strong> ' . $peer['astext'] . '</td>' . PHP_EOL;
         $string .= '  </tr>' . PHP_EOL;
@@ -406,7 +406,7 @@ function get_status_array($status)
     {
       $query = 'SELECT * FROM `bgpPeers` AS B ';
       $query .= 'LEFT JOIN `devices` AS D ON B.`device_id` = D.`device_id` ';
-      $query .= 'LEFT JOIN `bgpPeers-state` AS BS ON B.`bgpPeer_id` = BS.`bgpPeer_id` ';
+      //$query .= 'LEFT JOIN `bgpPeers-state` AS BS ON B.`bgpPeer_id` = BS.`bgpPeer_id` ';
       $query .= "WHERE D.`status` = 1 AND (`bgpPeerAdminStatus` = 'start' OR `bgpPeerAdminStatus` = 'running') AND `bgpPeerState` != 'established' ";
       $query .= $query_device_permitted;
       $query .= 'ORDER BY D.`hostname` ASC';

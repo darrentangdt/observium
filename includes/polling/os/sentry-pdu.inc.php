@@ -21,7 +21,7 @@
 //Sentry4-MIB::st4UnitAssetTag.2 = STRING:
 //Sentry4-MIB::st4UnitType.2 = INTEGER: linkPdu(1)
 
-$data = snmpget_cache_multi($device, 'st4SystemFirmwareVersion.0', array(), 'Sentry4-MIB');
+$data = snmp_get_multi_oid($device, 'st4SystemFirmwareVersion.0', array(), 'Sentry4-MIB');
 if (is_array($data[0]))
 {
   list(, $version) = explode('Version ', $data[0]['st4SystemFirmwareVersion']);

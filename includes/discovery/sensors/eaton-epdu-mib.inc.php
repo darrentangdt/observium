@@ -19,22 +19,22 @@ $inputs_o     = snmpwalk_cache_threepart_oid($device, 'inputVoltageTable', array
 $inputs_o     = snmpwalk_cache_threepart_oid($device, 'inputCurrentTable', $inputs_o, 'EATON-EPDU-MIB');
 $inputs_o     = snmpwalk_cache_threepart_oid($device, 'inputPowerTable', $inputs_o, 'EATON-EPDU-MIB');
 
-foreach($inputs AS $unit_id => $unit_data)
+foreach ($inputs AS $unit_id => $unit_data)
 {
   //echo "Unit $unit_id".PHP_EOL;
 
-  foreach($unit_data AS $input_id => $input_data)
+  foreach ($unit_data AS $input_id => $input_data)
   {
     //echo "  Input $input_id".PHP_EOL;
 
     $input_oid = $unit_id.".".$input_id;
 
-   if(isset($input_data['inputFrequency']))
+   if (isset($input_data['inputFrequency']))
    {
       discover_sensor($valid['sensor'], 'frequency', $device, ".1.3.6.1.4.1.534.6.6.7.3.1.1.3.".$input_oid, "inputFrequency.$input_oid", 'eaton-epdu-mib', "Unit $unit_id Input $input_id Frequency", "0.1", $input_data['inputFrequency']);
    }
 
-   if(isset($input_data['inputFrequencyStatus']))
+   if (isset($input_data['inputFrequencyStatus']))
    {
      discover_status($device, ".1.3.6.1.4.1.534.6.6.7.3.1.1.4.".$input_oid, "inputFrequencyStatus.".$input_oid, 'inputFrequencyStatus', "Unit $unit_id Input $input_id Frequency Status", $input_data['inputFrequencyStatus'], array('entPhysicalClass' => 'input'));
    }
@@ -71,17 +71,15 @@ foreach($inputs AS $unit_id => $unit_data)
      discover_sensor($valid['sensor'], 'rpower', $device, $oid, "inputTotalVAR.$input_oid", 'eaton-epdu-mib', $descr, 1, $value);
    }
 
+   if (is_array($inputs_o[$unit_id][$input_id])) {
 
-
-   if(is_array($inputs_o[$unit_id][$input_id])) {
-
-      foreach($inputs_o[$unit_id][$input_id] AS $id => $entry)
+      foreach ($inputs_o[$unit_id][$input_id] AS $id => $entry)
       {
         //print_r($entry);
 
         $entry_oid = $input_oid . "." . $id;
 
-        if(isset($entry['inputVoltage']) && is_numeric($entry['inputVoltage']))
+        if (isset($entry['inputVoltage']) && is_numeric($entry['inputVoltage']))
         {
           $descr  = "Unit $unit_id Input $input_id ".$entry['inputVoltageMeasType'];
           $oid    = ".1.3.6.1.4.1.534.6.6.7.3.2.1.3.".$entry_oid;
@@ -152,17 +150,15 @@ foreach($inputs AS $unit_id => $unit_data)
 
 // Collect data about outputs
 
-
 $outlets      = snmpwalk_cache_twopart_oid($device, 'outletTable', array(), 'EATON-EPDU-MIB');
 $outlets      = snmpwalk_cache_twopart_oid($device, 'outletCurrentTable', $outlets, 'EATON-EPDU-MIB');
 
 // Power statistics currently not collected.
 //$outlets      = snmpwalk_cache_twopart_oid($device, 'outletCurrentTable', $outlets, 'EATON-EPDU-MIB');
 
-
-foreach($outlets AS $unit_id => $unit_data)
+foreach ($outlets AS $unit_id => $unit_data)
 {
-  foreach($unit_data AS $outlet_id => $outlet)
+  foreach ($unit_data AS $outlet_id => $outlet)
   {
     $outlet_index = $unit_id.".".$outlet_id;
     $outlet_descr = "Unit $unit_id ".$outlet['outletName'] . " (".$outlet['outletType'].")";

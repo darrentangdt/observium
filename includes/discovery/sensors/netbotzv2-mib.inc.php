@@ -7,57 +7,83 @@
  *
  * @package    observium
  * @subpackage discovery
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
-// FIXME needs a rewrite to new scheme, with table walking and MIB use.
+// Temperature Table
 
-$oids = snmp_walk($device, ".1.3.6.1.4.1.5528.100.4.1.1.1.4", "-Osqn", "");
+$data = snmpwalk_cache_multi_oid($device, "tempSensorEntry", array(), "NETBOTZ410-MIB");
 
-$oids = trim($oids);
-if ($oids)
+foreach($data as $index => $entry)
 {
-  foreach (explode("\n", $oids) as $data)
-  {
-    list($oid,$descr) = explode(" ", $data,2);
-    $split_oid = explode('.', $oid);
-    $temperature_id = $split_oid[count($split_oid)-1];
-    $temperature_oid = ".1.3.6.1.4.1.5528.100.4.1.1.1.8.$temperature_id";
-    $temperature = snmp_get($device, $temperature_oid, "-Ovq");
-    $descr = str_replace("\"", "", $descr);
-    $descr = preg_replace('/Temperature  /', "", $descr);
-    $descr = trim($descr);
-    if ($temperature != "0" && $temperature <= "1000")
-    {
-      discover_sensor($valid['sensor'], 'temperature', $device, $temperature_oid, $temperature_id, 'netbotz', $descr, 1, $temperature);
-    }
-  }
+  $oid = '.1.3.6.1.4.1.5528.100.4.1.1.1.2.' . $index;
+  discover_sensor($valid['sensor'], 'temperature', $device, $oid, $index, 'tempSensor', $entry['tempSensorLabel'], 0.1, $entry['tempSensorValue']);
 }
 
-$oids = snmp_walk($device, ".1.3.6.1.4.1.5528.100.4.1.2.1.4", "-Osqn", "");
+unset($data, $index, $entry);
 
-$oids = trim($oids);
-if ($oids)
+// Humidity Table
+
+$data = snmpwalk_cache_multi_oid($device, "humiSensorEntry", array(), "NETBOTZ410-MIB");
+
+foreach($data as $index => $entry)
 {
-  foreach (explode("\n", $oids) as $data)
-  {
-    list($oid,$descr) = explode(" ", $data,2);
-    $split_oid = explode('.',$oid);
-    $humidity_id = $split_oid[count($split_oid)-1];
-    #tempHumidSensorHumidValue
-    $humidity_oid = ".1.3.6.1.4.1.5528.100.4.1.2.1.8.".$humidity_id;
-    $humidity = snmp_get($device,"$humidity_oid", "-Ovq", "");
-    $descr = str_replace("\"", "", $descr);
-    $descr = trim($descr);
-    if ($humidity >= 0)
-    {
-      discover_sensor($valid['sensor'], 'humidity', $device, $humidity_oid, $humidity_id, 'netbotz', $descr, 1, $humidity);
-    }
-  }
-  unset($data);
+  $oid = '.1.3.6.1.4.1.5528.100.4.1.2.1.2.' . $index;
+  discover_sensor($valid['sensor'], 'humidity', $device, $oid, $index, 'humiSensor', $entry['humiSensorLabel'], 0.1, $entry['humiSensorValue']);
 }
 
-unset($oids);
+unset($data, $index, $entry);
+
+// Dew Point Table
+
+$data = snmpwalk_cache_multi_oid($device, "dewPointSensorEntry", array(), "NETBOTZ410-MIB");
+
+foreach($data as $index => $entry)
+{
+  $oid = '.1.3.6.1.4.1.5528.100.4.1.3.1.2.' . $index;
+  discover_sensor($valid['sensor'], 'dewpoint', $device, $oid, $index, 'dewPointSensor', $entry['dewPointSensorLabel'], 0.1, $entry['dewPointSensorValue']);
+}
+
+unset($data, $index, $entry);
+
+/** Currently Disabled because the unit isn't reported
+
+// Audio Sensor Table
+
+$data = snmpwalk_cache_multi_oid($device, "audioSensorEntry", array(), "NETBOTZ410-MIB");
+
+foreach($data as $index => $entry)
+{
+  $oid = '.1.3.6.1.4.1.5528.100.4.1.4.1.2.' . $index;
+  discover_sensor($valid['sensor'], 'sound', $device, $oid, $index, 'audioPointSensor', $entry['audioPointSensorLabel'], 0.1, $entry['audioPointSensorValue']);
+}
+
+unset($data, $index, $entry);
+
+*/
+
+// Airflow Table
+
+$data = snmpwalk_cache_multi_oid($device, "airFlowSensorEntry", array(), "NETBOTZ410-MIB");
+
+foreach($data as $index => $entry)
+{
+  $oid = '.1.3.6.1.4.1.5528.100.4.1.5.1.2.' . $index;
+  discover_sensor($valid['sensor'], 'airflow', $device, $oid, $index, 'airFlowSensor', $entry['dewPointSensorLabel'], 3.531466672, $entry['airFlowSensorValue']);
+}
+unset($data, $index, $entry);
+
+// Amperes Table
+
+$data = snmpwalk_cache_multi_oid($device, "ampDetectSensorEntry", array(), "NETBOTZ410-MIB");
+
+foreach($data as $index => $entry)
+{
+  $oid = '.1.3.6.1.4.1.5528.100.4.1.6.1.2.' . $index;
+  discover_sensor($valid['sensor'], 'current', $device, $oid, $index, 'ampDetectSensor', $entry['ampDetectSensorLabel'], 0.1, $entry['ampDetectSensorValue']);
+}
+unset($data, $index, $entry);
+
 
 // EOF

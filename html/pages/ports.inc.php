@@ -150,7 +150,7 @@ $form['row'][0]['group']    = array(
 // Select sort pull-right
 $form['row'][0]['sort']     = array(
                                 'type'        => 'select',
-                                'icon'        => 'oicon-sort-alphabet-column',
+                                'icon'        => $config['icon']['sort'],
                                 'right'       => TRUE,
                                 'width'       => '100%', //'150px',
                                 'value'       => $vars['sort'],
@@ -271,6 +271,24 @@ foreach (array('graphs') as $type)
   }
 }
 
+if (is_array($config['entities']['port']['agg_graphs']))
+{
+    $navbar['options']['agg_graphs']  = array('text' => 'Aggregate Graphs');
+    foreach ($config['entities']['port']['agg_graphs'] as $option => $data)
+    {
+        if ($vars['agg_graph'] == $option)
+        {
+            $navbar['options']['agg_graphs']['class'] = 'active';
+            $navbar['options']['agg_graphs']['suboptions'][$option]['class'] = 'active';
+            $navbar['options']['agg_graphs']['text'] .= " (" . $data['name'] . ')';
+        }
+        $navbar['options']['agg_graphs']['suboptions'][$option]['text'] = $data['name'];
+        $navbar['options']['agg_graphs']['suboptions'][$option]['url'] = generate_url($vars, array('agg_graph' => $option));
+    }
+}
+
+
+
   if ($vars['searchbar'] == "hide")
   {
     $navbar['options_right']['searchbar']     = array('text' => 'Show Search',  'url' => generate_url($vars, array('searchbar' => NULL)));
@@ -303,6 +321,24 @@ $row = 1;
 $ports = dbFetchRows($sql, $param);
 port_permitted_array($ports);
 $ports_count = count($ports);
+
+$port_ids = array_value_recursive('port_id', $ports);
+
+if($vars['agg_graph'])
+{
+
+    $graph_vars = array('type'   => 'multi-port_'.$vars['agg_graph'],
+                        'legend' => 'no',
+                        'id'     => implode(',', $port_ids));
+
+    if($ports_count < 350) {
+        print generate_box_open();
+        print_graph_row($graph_vars);
+        print generate_box_close();
+    } else {
+      print_error("Search matches too many ports. Aggregate graphs are limited to 349 ports.");
+    }
+}
 
 include($config['html_dir'].'/includes/port-sort.inc.php');
 include($config['html_dir'].'/pages/ports/'.$vars['format'].'.inc.php');

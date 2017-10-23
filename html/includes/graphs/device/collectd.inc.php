@@ -19,6 +19,7 @@
 require('includes/collectd/config.php');
 require_once('includes/collectd/functions.php');
 require_once('includes/collectd/definitions.php');
+include_once($config['html_dir']."/includes/graphs/common.inc.php");
 
 // Process input arguments
 #$host   = read_var('host', $vars, null);
@@ -114,6 +115,6 @@ if ($vars['width'] <= "300") { $rrd_cmd .= " --font LEGEND:7:" . $config['mono_f
 else {                         $rrd_cmd .= " --font LEGEND:8:" . $config['mono_font'] . " --font AXIS:7:" . $config['mono_font'] . " "; }
 
 $rt = 0;
-$rrd_options = $rrd_cmd;
+$rrd_options .= $rrd_cmd;
 
 // EOF

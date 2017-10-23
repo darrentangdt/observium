@@ -14,7 +14,7 @@
 $graph_type = "processor_usage";
 
 $sql  = "SELECT * FROM `processors`";
-$sql .= " LEFT JOIN `processors-state` USING(`processor_id`)";
+//$sql .= " LEFT JOIN `processors-state` USING(`processor_id`)";
 $sql .= " WHERE `processor_type` != 'hr-average' AND `device_id` = ?";
 
 $processors_db = dbFetchRows($sql, array($device['device_id']));
@@ -35,7 +35,7 @@ if (count($processors_db))
 
   $box_args = array('title' => 'Processors',
                     'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => 'processor')),
-                    'icon' => 'oicon-processor',
+                    'icon' => $config['icon']['processor'],
                     );
 
   echo generate_box_open($box_args);

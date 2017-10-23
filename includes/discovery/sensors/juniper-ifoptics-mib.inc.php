@@ -11,13 +11,11 @@
  *
  */
 
-echo("JUNIPER-IFOPTICS-MIB ");
-
 $jnx        = snmpwalk_cache_oid($device, 'jnxOpticsPMCurrentTable', array(), 'JUNIPER-IFOPTICS-MIB');
 if (count($jnx) == 0 ) { return; }
 
 $jnx_config = snmpwalk_cache_oid($device, 'jnxOpticsConfigTable',    array(), 'JUNIPER-IFOPTICS-MIB');
-$jnx_config = snmpwalk_cache_oid($device, 'jnxIfOtnOChCfgTable', $jnx_config, 'JUNIPER-IFOTN-MIB', mib_dirs('juniper'));
+$jnx_config = snmpwalk_cache_oid($device, 'jnxIfOtnOChCfgTable', $jnx_config, 'JUNIPER-IFOTN-MIB');
 
 foreach ($jnx_config as $entry)
 {
@@ -43,11 +41,11 @@ foreach ($jnx as $index => $entry)
     $options['measured_class']  = 'port';
     $options['measured_entity'] = $port['port_id'];
   } else {
-    $entry['ifDescr']           = snmp_get($device, "ifDescr.".$index, "-Oqv", "IF-MIB");
+    $entry['ifDescr']           = snmp_get($device, 'ifDescr.'.$index, '-Oqv', 'IF-MIB');
   }
 
   // jnxPMCurTemperature
-  $descr    = $entry['ifDescr'] . " DOM";
+  $descr    = $entry['ifDescr'] . ' DOM';
   $oid_name = 'jnxPMCurTemperature';
   $oid_num  = ".1.3.6.1.4.1.2636.3.71.1.2.1.1.39.{$index}";
   $type     = $mib . '-' . $oid_name;
@@ -68,7 +66,7 @@ foreach ($jnx as $index => $entry)
   }
 
   // jnxPMCurTxOutputPower
-  $descr    = $entry['ifDescr'] . " TX Power";
+  $descr    = $entry['ifDescr'] . ' TX Power';
   $oid_name = 'jnxPMCurTxOutputPower';
   $oid_num  = ".1.3.6.1.4.1.2636.3.71.1.2.1.1.7.{$index}";
   $type     = $mib . '-' . $oid_name;
@@ -79,7 +77,7 @@ foreach ($jnx as $index => $entry)
   discover_sensor($valid['sensor'], 'dbm',         $device, $oid_num, $index, $type, $descr, $scale, $value, array_merge($options, $limits));
 
   // jnxPMCurRxInputPower
-  $descr    = $entry['ifDescr'] . " RX Power";
+  $descr    = $entry['ifDescr'] . ' RX Power';
   $oid_name = 'jnxPMCurRxInputPower';
   $oid_num  = ".1.3.6.1.4.1.2636.3.71.1.2.1.1.8.{$index}";
   $type     = $mib . '-' . $oid_name;
@@ -90,7 +88,7 @@ foreach ($jnx as $index => $entry)
   discover_sensor($valid['sensor'], 'dbm',         $device, $oid_num, $index, $type, $descr, $scale, $value, array_merge($options, $limits));
 
   // jnxPMCurTxLaserBiasCurrent
-  $descr    = $entry['ifDescr'] . " TX Bias";
+  $descr    = $entry['ifDescr'] . ' TX Bias';
   $oid_name = 'jnxPMCurTxLaserBiasCurrent';
   $oid_num  = ".1.3.6.1.4.1.2636.3.71.1.2.1.1.35.{$index}";
   $type     = $mib . '-' . $oid_name;
@@ -99,7 +97,7 @@ foreach ($jnx as $index => $entry)
   discover_sensor($valid['sensor'], 'current',     $device, $oid_num, $index, $type, $descr, $scale, $value, $options);
 
   // jnxPMCurRxLaserBiasCurrent
-  $descr    = $entry['ifDescr'] . " RX Bias";
+  $descr    = $entry['ifDescr'] . ' RX Bias';
   $oid_name = 'jnxPMCurRxLaserBiasCurrent';
   $oid_num  = ".1.3.6.1.4.1.2636.3.71.1.2.1.1.47.{$index}";
   $type     = $mib . '-' . $oid_name;

@@ -11,8 +11,6 @@
  *
  */
 
-echo("FA-EXT-MIB ");
-
 //FA-EXT-MIB::swSfpTemperature.'...... .........'.1 = STRING: "51     " centigrade
 //FA-EXT-MIB::swSfpTemperature.'...... .........'.2 = STRING: "52     " centigrade
 //FA-EXT-MIB::swSfpVoltage.'...... .........'.1 = STRING: "3319.1 " milli voltage
@@ -26,15 +24,15 @@ echo("FA-EXT-MIB ");
 
 $flags = OBS_SNMP_ALL_NUMERIC_INDEX;
 
-$oids = snmpwalk_cache_oid($device, "swSfpStatTable",                    array(), 'FA-EXT-MIB', NULL, $flags);
+$oids = snmpwalk_cache_oid($device, 'swSfpStatTable',                    array(), 'FA-EXT-MIB', NULL, $flags);
 if (!count($oids))
 {
   return;
 }
-$oids = snmpwalk_cache_oid($device, "connUnitPortIndex",                   $oids, 'FCMGMT-MIB', mib_dirs('brocade'), $flags);
-//$oids = snmpwalk_cache_oid($device, "connUnitPortName",                    $oids, 'FCMGMT-MIB', mib_dirs('brocade'), $flags);
+$oids = snmpwalk_cache_oid($device, 'connUnitPortIndex',                   $oids, 'FCMGMT-MIB', NULL, $flags);
+//$oids = snmpwalk_cache_oid($device, 'connUnitPortName',                    $oids, 'FCMGMT-MIB', NULL, $flags);
 
-$port_sw = snmpwalk_cache_multi_oid($device, "swFCPortSpecifier", array(), "SW-MIB");
+$port_sw = snmpwalk_cache_multi_oid($device, 'swFCPortSpecifier', array(), 'SW-MIB');
 
 //print_vars($oids);
 foreach ($oids as $index => $entry)

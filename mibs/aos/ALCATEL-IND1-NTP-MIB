@@ -1,14 +1,13 @@
 ALCATEL-IND1-NTP-MIB DEFINITIONS ::= BEGIN
 
 IMPORTS
-  OBJECT-IDENTITY, MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE,
+  OBJECT-IDENTITY, MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE, 
   IpAddress, Counter32, Unsigned32, Integer32
 FROM SNMPv2-SMI
   DisplayString, RowStatus
 FROM SNMPv2-TC
   MODULE-COMPLIANCE,
-  OBJECT-GROUP,
-  NOTIFICATION-GROUP
+  OBJECT-GROUP,NOTIFICATION-GROUP
 FROM SNMPv2-CONF
   InetAddress, InetAddressType
 FROM INET-ADDRESS-MIB
@@ -22,7 +21,7 @@ alcatelIND1NTPMIB MODULE-IDENTITY
         "Please consult with Customer Service to ensure the most appropriate
          version of this document is used with the products in question:
 
-        Alcatel-Lucent,Enterprise Solutions Division
+        Alcatel-Lucent, Enterprise Solutions Division
         (Formerly Alcatel Internetworking, Incorporated)
         26801 West Agoura Road
         Agoura Hills, CA  91301-5122
@@ -64,7 +63,7 @@ alcatelIND1NTPMIB MODULE-IDENTITY
 
     ::= { softentIND1Ntp 1 }
 
-    alcatelIND1NTPMIBObjects OBJECT-IDENTITY
+    alcatelIND1NTPMIBObjects OBJECT-IDENTITY 
         STATUS current
         DESCRIPTION
             "Branch For NTP Subsystem Managed Objects."
@@ -219,7 +218,7 @@ alaNtpPeerType OBJECT-TYPE
                       broadcast(5),
                       bclient(8)
                     }
-      MAX-ACCESS    read-write
+      MAX-ACCESS    read-create
       STATUS        current
       DESCRIPTION   "Type of synchronization host that will communicate
                     with this switch.  "
@@ -228,7 +227,7 @@ alaNtpPeerType OBJECT-TYPE
 
 alaNtpPeerAuth OBJECT-TYPE
       SYNTAX        INTEGER ( 0 .. 65535 )
-      MAX-ACCESS    read-write
+      MAX-ACCESS    read-create
       STATUS        current
       DESCRIPTION   "The authorization keyid for the remote host."
       DEFVAL		{ 0 }
@@ -236,7 +235,7 @@ alaNtpPeerAuth OBJECT-TYPE
 
 alaNtpPeerVersion OBJECT-TYPE
       SYNTAX        INTEGER ( 1 .. 255 )
-      MAX-ACCESS    read-write
+      MAX-ACCESS    read-create
       STATUS        current
       DESCRIPTION   "The NTP version to communicate with the remote host."
       DEFVAL		{ 4 }
@@ -244,7 +243,7 @@ alaNtpPeerVersion OBJECT-TYPE
 
 alaNtpPeerMinpoll OBJECT-TYPE
       SYNTAX        INTEGER ( 4 .. 10 )
-      MAX-ACCESS    read-write
+      MAX-ACCESS    read-create
       STATUS        current
       DESCRIPTION   "The minimum poll duration to the remote host.  This
                     value is a power of 2 seconds when the poll will occur.
@@ -258,7 +257,7 @@ alaNtpPeerPrefer OBJECT-TYPE
                       prefer (1),
                       noPrefer(2)
                     }
-      MAX-ACCESS    read-write
+      MAX-ACCESS    read-create
       STATUS        current
       DESCRIPTION   "Marks the host as a preferred connection."
       DEFVAL		{ noPrefer }
@@ -266,7 +265,7 @@ alaNtpPeerPrefer OBJECT-TYPE
 
 alaNtpPeerAdmin OBJECT-TYPE
       SYNTAX        RowStatus
-      MAX-ACCESS    read-write
+      MAX-ACCESS    read-create
       STATUS        current
       DESCRIPTION   "Used in accordance to installation and removal conventions
                     for conceptual rows.  The RowStatus values that are
@@ -286,11 +285,11 @@ alaNtpPeerName OBJECT-TYPE
 
 alaNtpPeerStratum OBJECT-TYPE
       SYNTAX        INTEGER ( 1 .. 16 )
-      MAX-ACCESS    read-write
+      MAX-ACCESS    read-create
       STATUS        current
       DESCRIPTION   "The stratum level of the remote peer. If this
                       number is 16, the remote peer has not been
-                      synchronized.  This parameter can only be set with
+                      synchronized.  This parameter can only be set with 
                       a LOCALCLOCK server."
       DEFVAL		{ 5 }
       ::= { alaNtpPeerEntry 11 }
@@ -317,7 +316,7 @@ alaNtpBroadcastDelay OBJECT-TYPE
     STATUS        current
     DESCRIPTION   "This field sets a specified time interval
                   that is added to timestamps included in
-                  messages from broadcast servers.  Value is
+                  messages from broadcast servers.  Value is 
                   in milli-seconds"
     DEFVAL		{ 4000 }
     ::={ alaNtpConfig 6 }
@@ -394,7 +393,6 @@ alaNtpSysStratum OBJECT-TYPE
                   number"
     DEFVAL		{ 16  }
     ::= { alaNtpConfig 13}
-
 alaNtpMaxAssociation	OBJECT-TYPE
     SYNTAX        Integer32 ( 0 .. 64 )
     MAX-ACCESS    read-write
@@ -405,7 +403,6 @@ alaNtpMaxAssociation	OBJECT-TYPE
                   requests"
     DEFVAL		{ 32  }
     ::= { alaNtpConfig 14}
-
 alaNtpAuthenticate	OBJECT-TYPE
     SYNTAX        INTEGER {
                   enable(1),
@@ -571,7 +568,7 @@ alaNtpPeerListName OBJECT-TYPE
 
 
 
--- alaNtpLocalInfo
+-- alaNtpLocalInfo 
 --     "Used to display information about the local
 --     switch's implementation of NTP."
 
@@ -707,7 +704,7 @@ alaNtpPeerShowEntry OBJECT-TYPE
       MAX-ACCESS    not-accessible
       STATUS        current
       DESCRIPTION   "Each entry corresponds to one association."
-      INDEX       { alaNtpPeerShowRemoteAddressType,
+      INDEX       { alaNtpPeerShowRemoteAddressType, 
                     alaNtpPeerShowRemoteAddress }
       ::= {alaNtpPeerShowTable 1}
 
@@ -1111,16 +1108,15 @@ alaNtpPeerShowStatus OBJECT-TYPE
                       Peer association status:                Bits 9 - 12
                         - Peer association configured:        9
                         - Peer authentication required:       10
-                        - Last peer message authenticated:    11
+                        - Last peer message authenticated:    11 
                         - Peer reachable:                     12"
 
         ::={ alaNtpPeerShowEntry 34 }
 
 
-
 -- NTP statistics
 
--- alaNtpStatsStat
+-- alaNtpStatsStat 
 --     "The local server statistics."
 
 alaNtpStatsStatUptime OBJECT-TYPE
@@ -1370,7 +1366,7 @@ alaNtpStatsPeerReset OBJECT-TYPE
         MAX-ACCESS    read-write
         STATUS        current
         DESCRIPTION   "The number of seconds since the statistics for this
-                      peer were last reset.  Writing any value will reset
+                      peer were last reset.  Writing any value will reset 
                       the peer statistics.  "
         DEFVAL		{ 0 }
         ::= { alaNtpStatsPeerEntry 16 }
@@ -1385,7 +1381,7 @@ alaNtpStatsPeerName OBJECT-TYPE
 
 --
 
--- alaNtpStatsLoop
+-- alaNtpStatsLoop 
 --     "The loop filter is used to control and correct
 --      the phase of timestamps as processed by the local
 --      clock. The loop filter examines timestamps sent to
@@ -1757,7 +1753,7 @@ alaNtpAccessRestrictedMask OBJECT-TYPE
 
 alaNtpAccessRestrictedRestrictions OBJECT-TYPE
         SYNTAX        INTEGER ( 0 .. 1023 )
-        MAX-ACCESS    read-write
+        MAX-ACCESS    read-create
         STATUS        current
         DESCRIPTION   "A mask indicating the restrictions to apply
                       to the entry.
@@ -1797,7 +1793,7 @@ alaNtpAccessRestrictedCount OBJECT-TYPE
 
 alaNtpAccessRestrictedRowStatus OBJECT-TYPE
         SYNTAX        RowStatus
-        MAX-ACCESS    read-write
+        MAX-ACCESS    read-create
         STATUS        current
         DESCRIPTION   "Used in accordance to installation and removal conventions
                       for conceptual rows.  The RowStatus values that are
@@ -1832,31 +1828,29 @@ alaNtpAccessRereadKeyFile OBJECT-TYPE
         DEFVAL		{ successful }
         ::={ alaNtpAccess 3 }
 
--- Ntp Client IP Information (Deprecated)
+-- Ntp Client Ip Information
 
-     ntpClientConfig OBJECT-TYPE
-         SYNTAX      INTEGER { default(1), nonLoopback0(2), userIp(3) }
-         MAX-ACCESS read-write
-         STATUS        deprecated
-         DESCRIPTION
-                 "The Agent Config Information
-                 1 -- Default(Loopback0 or closest IP)
-                 2 -- Non Loopback0
-                  3 -- Interface IP Specified by User"
-         DEFVAL        { default }
-         ::= { alcatelIND1NTPMIBObjects 9 }
+    ntpClientConfig OBJECT-TYPE
+	SYNTAX      INTEGER { default(1), nonLoopback0(2), userIp(3) } 
+	MAX-ACCESS read-write
+	STATUS        current
+	DESCRIPTION
+		"The Agent Config Information
+		1 -- Default(Loopback0 or closest IP)
+		2 -- Non Loopback0
+	 	3 -- Interface IP Specified by User"
+	DEFVAL        { default }
+	::= { alcatelIND1NTPMIBObjects 9 }
 
-     ntpClientIP OBJECT-TYPE
-         SYNTAX     IpAddress
-         MAX-ACCESS read-write
-         STATUS        deprecated
-         DESCRIPTION
-                 "The interface IP Address to be used in NTP Packets
-                 for Source IP field."
-         ::= {  alcatelIND1NTPMIBObjects 10  }
+    ntpClientIP OBJECT-TYPE	
+	SYNTAX     IpAddress
+	MAX-ACCESS read-write
+	STATUS        current
+	DESCRIPTION
+		"The Agent IP Address in Radius Packets"
+	::= {  alcatelIND1NTPMIBObjects 10  }
 
 -- Ntp Source IP Information
-
     alaNtpSrcIpConfig OBJECT-TYPE
 	SYNTAX      INTEGER { default(1), nonLoopback0(2), userIp(3) }
 	MAX-ACCESS read-write
@@ -1870,7 +1864,6 @@ alaNtpAccessRereadKeyFile OBJECT-TYPE
 		in AlcatelIND1Ip.mib"
 	DEFVAL        { default }
 	::= { alcatelIND1NTPMIBObjects 11 }
-
     alaNtpSrcIp OBJECT-TYPE	
 	SYNTAX     IpAddress
 	MAX-ACCESS read-write
@@ -1881,6 +1874,61 @@ alaNtpAccessRereadKeyFile OBJECT-TYPE
 		This object has been obsoleted. Use the alaIpManagedIntfEntry objects
 		in AlcatelIND1Ip.mib"
 	::= {  alcatelIND1NTPMIBObjects 12  }
+
+
+-- --------------------------------------------------------------
+-- NOTIFICATIONS (TRAPS)
+-- These notifications will be sent to the management entity
+-- Whenever the maximum number of NTP associations is reached.
+-- --------------------------------------------------------------
+alaNtpEvents OBJECT IDENTIFIER ::= { alcatelIND1NTPMIB 3 }
+alaNtpEventsRoot OBJECT IDENTIFIER ::= { alaNtpEvents 0}
+alaNtpEventsObj OBJECT IDENTIFIER ::= { alaNtpEvents 1}
+
+
+	alaNtpMaxAssocTrap NOTIFICATION-TYPE
+	   OBJECTS {
+	       	alaNtpMaxAssociation
+		   	}
+	   STATUS   current
+	   DESCRIPTION
+"Notify the management entity on reaching the maximum allowable NTP client and peer associations."
+	    ::= { alaNtpEventsRoot 1 }
+
+	alaNtpActiveServerChangeTrap NOTIFICATION-TYPE
+	   OBJECTS {
+	       	alaNtpSyncPeerIpAddress
+		     }
+	   STATUS   current
+	   DESCRIPTION
+"Notify the management entity when the NTP active server changes."
+	    ::= { alaNtpEventsRoot 2 }
+
+	alaNtpAllPeerUnreachableTrap NOTIFICATION-TYPE
+          OBJECTS {
+                  alaNtpAllServerDown
+          }
+	   STATUS   current
+	   DESCRIPTION
+"Notify the management entity that all the configured NTP servers are unreachable."
+	    ::= { alaNtpEventsRoot 3 }
+
+     alaNtpSyncPeerIpAddress OBJECT-TYPE
+	    SYNTAX  IpAddress
+	    MAX-ACCESS  accessible-for-notify
+	    STATUS  current
+	    DESCRIPTION
+	        "IP address of the currently synchronised NTP server."
+	    ::= { alaNtpEventsObj 1 }
+
+     alaNtpAllServerDown OBJECT-TYPE
+	    SYNTAX  DisplayString
+	    MAX-ACCESS  accessible-for-notify
+	    STATUS  current
+	    DESCRIPTION
+	        "All configured NTP servers are unreachable."
+	    ::= { alaNtpEventsObj 2 }
+
 
 -- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 -- COMPLIANCE
@@ -1901,10 +1949,11 @@ alaNtpAccessRereadKeyFile OBJECT-TYPE
                 alaNtpStatsIoGroup,
                 alaNtpAccessGroup,
                 alaNtpLocalInfoGroup,
-		alaNtpEventsGroup,
+                alaNtpEventsGroup,
 		alaNtpSrcIpGroup,
-		alaNtpStatsMonitorGroup
-            }
+		alaNtpStatsMonitorGroup,
+              alaNtpEventsObjGroup
+           }
 
         ::= { alaIND1NtpMIBCompliances 1 }
 
@@ -1935,10 +1984,10 @@ alaNtpAccessRereadKeyFile OBJECT-TYPE
             alaNtpConfigCtlKeyId,
             alaNtpPrecision,
             alaNtpPeerTests,
-	    alaNtpSysStratum,
+            alaNtpSysStratum,
 	    alaNtpMaxAssociation,
 	    alaNtpAuthenticate,
-	    alaNtpConfigCfgKeyId 
+	    alaNtpConfigCfgKeyId           
         }
         STATUS  current
         DESCRIPTION
@@ -1992,8 +2041,9 @@ alaNtpAccessRereadKeyFile OBJECT-TYPE
             alaNtpPeerShowDispersion,
             alaNtpPeerShowName,
             alaNtpPeerShowStatus,
-	    alaNtpClientListVersion,
+            alaNtpClientListVersion,
 	    alaNtpClientKey
+           
         }
         STATUS  current
         DESCRIPTION
@@ -2114,16 +2164,17 @@ alaNtpAccessRereadKeyFile OBJECT-TYPE
             "Collection of NTP local clock information objects."
         ::= { alaIND1NtpMIBGroups 8 }
 
-  alaNtpEventsGroup NOTIFICATION-GROUP
+ alaNtpEventsGroup NOTIFICATION-GROUP
        NOTIFICATIONS
        {
-           alaNtpMaxAssocTrap
+           alaNtpMaxAssocTrap,
+           alaNtpActiveServerChangeTrap,
+           alaNtpAllPeerUnreachableTrap
        }
         STATUS  current
         DESCRIPTION
-           "Notify the management entity on reaching the maximum allowable NTP client and peer associations."
+           "Collection of traps for NTP related events."
        ::= { alaIND1NtpMIBGroups 9 }
-
   alaNtpSrcIpGroup OBJECT-GROUP
         OBJECTS
         {
@@ -2136,8 +2187,6 @@ alaNtpAccessRereadKeyFile OBJECT-TYPE
         DESCRIPTION
             "Collection of NTP source IP information objects."
         ::= { alaIND1NtpMIBGroups 10 }
-
-
 alaNtpStatsMonitorGroup OBJECT-GROUP
         OBJECTS
         {
@@ -2155,10 +2204,20 @@ alaNtpStatsMonitorGroup OBJECT-GROUP
         STATUS  current
         DESCRIPTION
             "Collection of NTP source IP information objects."
-        ::= { alaIND1NtpMIBGroups 11 }
+        ::= { alaIND1NtpMIBGroups 11 } 
+
+  alaNtpEventsObjGroup OBJECT-GROUP
+        OBJECTS
+        {
+	   alaNtpAllServerDown,
+          alaNtpSyncPeerIpAddress
+	}
+        STATUS  current
+        DESCRIPTION
+            "Collection of NTP Trap objects."
+        ::= { alaIND1NtpMIBGroups 12 }      
 
 -- new MIB objects to display the incoming client information
-
 alaNtpClientListTable OBJECT-TYPE
     SYNTAX        SEQUENCE OF NtpClientListEntry
     MAX-ACCESS    not-accessible
@@ -2166,7 +2225,6 @@ alaNtpClientListTable OBJECT-TYPE
     DESCRIPTION   "Used to display a brief list of all incoming NTP client associations
                   related to this switch."
     ::= {alaNtpInfo 4}
-
 alaNtpClientListEntry OBJECT-TYPE
     SYNTAX        NtpClientListEntry
     MAX-ACCESS    not-accessible
@@ -2174,7 +2232,6 @@ alaNtpClientListEntry OBJECT-TYPE
     DESCRIPTION   "Each entry corresponds to one association."
     INDEX   {  alaNtpClientListAddressType, alaNtpClientListAddress  }
     ::= {alaNtpClientListTable 1}
-
 NtpClientListEntry ::= SEQUENCE {
     alaNtpClientListAddressType
        InetAddressType,
@@ -2193,14 +2250,12 @@ alaNtpClientListAddressType OBJECT-TYPE
                       InetAddressIPv4 (1) is the only type currently
                       supported."
         ::={ alaNtpClientListEntry 1 }
-
 alaNtpClientListAddress OBJECT-TYPE
         SYNTAX        InetAddress
         MAX-ACCESS    not-accessible
         STATUS        current
         DESCRIPTION   "The InetAddress of the client."
         ::={ alaNtpClientListEntry 2 }
-
 alaNtpClientListVersion OBJECT-TYPE
       SYNTAX        Integer32 (3..4)
       MAX-ACCESS    read-only
@@ -2208,7 +2263,6 @@ alaNtpClientListVersion OBJECT-TYPE
       DESCRIPTION   "The NTP version used by the remote host for communication."
       DEFVAL		{ 4 }
       ::= { alaNtpClientListEntry 3 }
-
 alaNtpClientKey OBJECT-TYPE
       SYNTAX        Integer32 (0..65535)
       MAX-ACCESS    read-only
@@ -2216,26 +2270,9 @@ alaNtpClientKey OBJECT-TYPE
       DESCRIPTION   "The authorization keyid for the remote host."
       DEFVAL		{ 0 }
       ::= { alaNtpClientListEntry 4 }
-
 -- /* MIB changes for trap information */
 
--- --------------------------------------------------------------
--- NOTIFICATIONS (TRAPS)
--- These notifications will be sent to the management entity
--- Whenever the maximum number of NTP associations is reached.
--- --------------------------------------------------------------
 
-alaNtpEvents OBJECT IDENTIFIER ::= { alcatelIND1NTPMIB 3 }
-alaNtpEventsRoot OBJECT IDENTIFIER ::= { alaNtpEvents 0}
-
-	alaNtpMaxAssocTrap NOTIFICATION-TYPE
-	   OBJECTS {
-	       	alaNtpMaxAssociation
-		   	}
-	   STATUS   current
-	   DESCRIPTION
-"Notify the management entity on reaching the maximum allowable NTP client and peer associations."
-	    ::= { alaNtpEventsRoot 1 }
 
 END
 

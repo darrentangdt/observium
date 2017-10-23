@@ -49,38 +49,38 @@ if (isset($config['enable_syslog']) && $config['enable_syslog'] && OBSERVIUM_EDI
 
   $navbar['options'][$entity_type]['url'] = generate_url(array('page' => 'device', 'device' => $device['device_id'],
                                                   'tab' => 'alerts', 'entity_type' => $entity_type));
-  $navbar['options'][$entity_type]['icon'] = 'oicon-clipboard--exclamation';
+  $navbar['options'][$entity_type]['icon'] = $config['icon']['syslog-alerts'];
   $navbar['options'][$entity_type]['text'] = 'Syslog';
 }
 
 $navbar['options_right']['update']['url']  = generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'alerts', 'action'=>'update'));
 $navbar['options_right']['update']['text'] = 'Rebuild';
-$navbar['options_right']['update']['icon'] = 'oicon-arrow-circle';
+$navbar['options_right']['update']['icon'] = $config['icon']['rebuild'];
 if ($vars['action'] == 'update') { $navbar['options_right']['update']['class'] = 'active'; }
 
 $navbar['options_right']['filters']['url']       = '#';
 $navbar['options_right']['filters']['text']      = 'Filter';
-$navbar['options_right']['filters']['icon']      = 'oicon-filter';
+$navbar['options_right']['filters']['icon']      = $config['icon']['filter'];
 $navbar['options_right']['filters']['link_opts'] = 'data-hover="dropdown" data-toggle="dropdown"';
 
 $filters = array('all'     => array('url'   => generate_url($vars, array('status' => 'all')),
                                        'url_o' => generate_url($vars, array('status' => 'all')),
-                                       'icon'  => 'oicon-information',
+                                       'icon'  => $config['icon']['info'],
                                        'text'  => 'All'),
 
                  'failed_delayed' => array('url'   => generate_url($vars, array('status' => 'failed_delayed')),
                                        'url_o' => generate_url($vars, array('page' => 'alerts', 'status' => 'all')),
-                                       'icon'  => 'oicon-exclamation',
+                                       'icon'  => $config['icon']['error'],
                                        'text'  => 'Failed & Delayed'),
 
                  'failed'     => array('url'   => generate_url($vars, array('status' => 'failed')),
                                        'url_o' => generate_url($vars, array('status' => 'all')),
-                                       'icon'  => 'oicon-exclamation-red',
+                                       'icon'  => $config['icon']['cancel'],
                                        'text'  => 'Failed'),
 
                  'suppressed' => array('url'   => generate_url($vars, array('status' => 'suppressed')),
                                        'url_o' => generate_url($vars, array('status' => 'all')),
-                                       'icon'  => 'oicon-exclamation-white',
+                                       'icon'  => $config['icon']['exclamation'],
                                        'text'  => 'Suppressed')
 );
 

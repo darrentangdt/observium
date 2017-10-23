@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- COMPUTE management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -57,6 +57,8 @@ IMPORTS
     CucsComputeAssociation,
     CucsComputeAvailability,
     CucsComputeBlackListing,
+    CucsComputeBladeEpId,
+    CucsComputeBladeEpSlotId,
     CucsComputeBladeFsmCurrentFsm,
     CucsComputeBladeFsmStageName,
     CucsComputeBladeFsmTaskFlags,
@@ -66,11 +68,13 @@ IMPORTS
     CucsComputeCartridgeSlotId,
     CucsComputeChassisConnPolicyChassisId,
     CucsComputeChassisDiscAction,
+    CucsComputeChassisDiscPolicyMulticastHwHash,
     CucsComputeChassisQualMaxId,
     CucsComputeChassisQualMinId,
     CucsComputeCheckPoint,
     CucsComputeConnectivityRebalancing,
     CucsComputeDiscovery,
+    CucsComputeEquipmentConstraintType,
     CucsComputeIOHubEnvStatsHistThresholded,
     CucsComputeIOHubEnvStatsThresholded,
     CucsComputeInstanceIdQualMaxId,
@@ -99,6 +103,7 @@ IMPORTS
     CucsComputePooledEnclosureComputeSlotSlotId,
     CucsComputePooledRackUnitId,
     CucsComputePooledSlotSlotId,
+    CucsComputePowerTransitionSrc,
     CucsComputePsuClusterState,
     CucsComputePsuControlRedundancy,
     CucsComputePsuRedundancy,
@@ -118,6 +123,7 @@ IMPORTS
     CucsComputeServerDiscPolicyFsmStageName,
     CucsComputeServerDiscPolicyFsmTaskItem,
     CucsComputeServerMgmtDiscAction,
+    CucsComputeServerTypeCapType,
     CucsComputeServerUnitChassisId,
     CucsComputeServerUnitFsmCurrentFsm,
     CucsComputeServerUnitFsmStageName,
@@ -132,7 +138,7 @@ IMPORTS
     CucsEquipmentBoardAggregationRole,
     CucsEquipmentBoardConnectorType,
     CucsEquipmentConnectionStatus,
-    CucsEquipmentCpuType,
+    CucsEquipmentFanSpeedPolicyFault,
     CucsEquipmentOperability,
     CucsEquipmentPowerState,
     CucsEquipmentPresence,
@@ -150,11 +156,12 @@ IMPORTS
     CucsTrigAckDisr,
     CucsTrigAckOperState,
     CucsTrigAckPrevOperState,
-    CucsTrigAdminState
+    CucsTrigAdminState,
+    CucsTrigTrigState
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsComputeObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -200,7 +207,8 @@ CucsComputeAutoconfigPolicyEntry ::= SEQUENCE {
     cucsComputeAutoconfigPolicyQualifier                             SnmpAdminString,
     cucsComputeAutoconfigPolicySrcTemplName                          SnmpAdminString,
     cucsComputeAutoconfigPolicyPolicyLevel                           Gauge32,
-    cucsComputeAutoconfigPolicyPolicyOwner                           CucsPolicyPolicyOwner
+    cucsComputeAutoconfigPolicyPolicyOwner                           CucsPolicyPolicyOwner,
+    cucsComputeAutoconfigPolicyOperQualifier                         SnmpAdminString
 }
 
 cucsComputeAutoconfigPolicyInstanceId OBJECT-TYPE
@@ -295,6 +303,15 @@ cucsComputeAutoconfigPolicyPolicyOwner OBJECT-TYPE
         managed object property"
     ::= { cucsComputeAutoconfigPolicyEntry 11 }
 
+cucsComputeAutoconfigPolicyOperQualifier OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:AutoconfigPolicy:operQualifier
+        managed object property"
+    ::= { cucsComputeAutoconfigPolicyEntry 12 }
+
 cucsComputeBladeTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsComputeBladeEntry
     MAX-ACCESS       not-accessible
@@ -377,7 +394,10 @@ CucsComputeBladeEntry ::= SEQUENCE {
     cucsComputeBladeLocalId                                          SnmpAdminString,
     cucsComputeBladeScaledMode                                       CucsComputeMode,
     cucsComputeBladeUpgradeScenario                                  CucsComputeUpgradeStatus,
-    cucsComputeBladeDiscoveryStatus                                  CucsEquipmentConnectionStatus
+    cucsComputeBladeOperPwrTransSrc                                  CucsComputePowerTransitionSrc,
+    cucsComputeBladeDiscoveryStatus                                  CucsEquipmentConnectionStatus,
+    cucsComputeBladeNumOf40GAdaptorsWithOldFw                        Gauge32,
+    cucsComputeBladeNumOf40GAdaptorsWithUnknownFw                    Gauge32
 }
 
 cucsComputeBladeInstanceId OBJECT-TYPE
@@ -894,6 +914,14 @@ cucsComputeBladeUpgradeScenario OBJECT-TYPE
         "Cisco UCS compute:Blade:upgradeScenario managed object property"
     ::= { cucsComputeBladeEntry 64 }
 
+cucsComputeBladeOperPwrTransSrc OBJECT-TYPE
+    SYNTAX       CucsComputePowerTransitionSrc
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:Blade:operPwrTransSrc managed object property"
+    ::= { cucsComputeBladeEntry 65 }
+
 cucsComputeBladeDiscoveryStatus OBJECT-TYPE
     SYNTAX       CucsEquipmentConnectionStatus
     MAX-ACCESS   read-only
@@ -901,6 +929,24 @@ cucsComputeBladeDiscoveryStatus OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS compute:Blade:discoveryStatus managed object property"
     ::= { cucsComputeBladeEntry 66 }
+
+cucsComputeBladeNumOf40GAdaptorsWithOldFw OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:Blade:numOf40GAdaptorsWithOldFw
+        managed object property"
+    ::= { cucsComputeBladeEntry 68 }
+
+cucsComputeBladeNumOf40GAdaptorsWithUnknownFw OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:Blade:numOf40GAdaptorsWithUnknownFw
+        managed object property"
+    ::= { cucsComputeBladeEntry 69 }
 
 cucsComputeBladeDiscPolicyTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsComputeBladeDiscPolicyEntry
@@ -1024,6 +1070,135 @@ cucsComputeBladeDiscPolicyPolicyOwner OBJECT-TYPE
         "Cisco UCS compute:BladeDiscPolicy:policyOwner
         managed object property"
     ::= { cucsComputeBladeDiscPolicyEntry 11 }
+
+cucsComputeBladeEpTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsComputeBladeEpEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS compute:BladeEp managed object table"
+    ::= { cucsComputeObjects 66 }
+
+cucsComputeBladeEpEntry OBJECT-TYPE
+    SYNTAX           CucsComputeBladeEpEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsComputeBladeEpTable table."
+    INDEX { cucsComputeBladeEpInstanceId }
+    ::= { cucsComputeBladeEpTable 1 }
+
+CucsComputeBladeEpEntry ::= SEQUENCE {
+    cucsComputeBladeEpInstanceId                                     CucsManagedObjectId,
+    cucsComputeBladeEpDn                                             CucsManagedObjectDn,
+    cucsComputeBladeEpRn                                             SnmpAdminString,
+    cucsComputeBladeEpAdminState                                     CucsComputeAdminState,
+    cucsComputeBladeEpChassisId                                      Gauge32,
+    cucsComputeBladeEpEpDn                                           SnmpAdminString,
+    cucsComputeBladeEpId                                             CucsComputeBladeEpId,
+    cucsComputeBladeEpOperQualifierReason                            SnmpAdminString,
+    cucsComputeBladeEpOperState                                      CucsLsOperState,
+    cucsComputeBladeEpPeerPresence                                   CucsEquipmentSlotStatus,
+    cucsComputeBladeEpPresence                                       CucsEquipmentSlotStatus,
+    cucsComputeBladeEpSlotId                                         CucsComputeBladeEpSlotId
+}
+
+cucsComputeBladeEpInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsComputeBladeEpEntry 1 }
+
+cucsComputeBladeEpDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:BladeEp:dn managed object property"
+    ::= { cucsComputeBladeEpEntry 2 }
+
+cucsComputeBladeEpRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:BladeEp:rn managed object property"
+    ::= { cucsComputeBladeEpEntry 3 }
+
+cucsComputeBladeEpAdminState OBJECT-TYPE
+    SYNTAX       CucsComputeAdminState
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:BladeEp:adminState managed object property"
+    ::= { cucsComputeBladeEpEntry 4 }
+
+cucsComputeBladeEpChassisId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:BladeEp:chassisId managed object property"
+    ::= { cucsComputeBladeEpEntry 5 }
+
+cucsComputeBladeEpEpDn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:BladeEp:epDn managed object property"
+    ::= { cucsComputeBladeEpEntry 6 }
+
+cucsComputeBladeEpId OBJECT-TYPE
+    SYNTAX       CucsComputeBladeEpId
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:BladeEp:id managed object property"
+    ::= { cucsComputeBladeEpEntry 7 }
+
+cucsComputeBladeEpOperQualifierReason OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:BladeEp:operQualifierReason
+        managed object property"
+    ::= { cucsComputeBladeEpEntry 8 }
+
+cucsComputeBladeEpOperState OBJECT-TYPE
+    SYNTAX       CucsLsOperState
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:BladeEp:operState managed object property"
+    ::= { cucsComputeBladeEpEntry 9 }
+
+cucsComputeBladeEpPeerPresence OBJECT-TYPE
+    SYNTAX       CucsEquipmentSlotStatus
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:BladeEp:peerPresence managed object property"
+    ::= { cucsComputeBladeEpEntry 10 }
+
+cucsComputeBladeEpPresence OBJECT-TYPE
+    SYNTAX       CucsEquipmentSlotStatus
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:BladeEp:presence managed object property"
+    ::= { cucsComputeBladeEpEntry 11 }
+
+cucsComputeBladeEpSlotId OBJECT-TYPE
+    SYNTAX       CucsComputeBladeEpSlotId
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:BladeEp:slotId managed object property"
+    ::= { cucsComputeBladeEpEntry 12 }
 
 cucsComputeBladeFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsComputeBladeFsmEntry
@@ -1359,7 +1534,8 @@ CucsComputeBladeInheritPolicyEntry ::= SEQUENCE {
     cucsComputeBladeInheritPolicyName                                SnmpAdminString,
     cucsComputeBladeInheritPolicyQualifier                           SnmpAdminString,
     cucsComputeBladeInheritPolicyPolicyLevel                         Gauge32,
-    cucsComputeBladeInheritPolicyPolicyOwner                         CucsPolicyPolicyOwner
+    cucsComputeBladeInheritPolicyPolicyOwner                         CucsPolicyPolicyOwner,
+    cucsComputeBladeInheritPolicyOperQualifier                       SnmpAdminString
 }
 
 cucsComputeBladeInheritPolicyInstanceId OBJECT-TYPE
@@ -1449,6 +1625,15 @@ cucsComputeBladeInheritPolicyPolicyOwner OBJECT-TYPE
         managed object property"
     ::= { cucsComputeBladeInheritPolicyEntry 10 }
 
+cucsComputeBladeInheritPolicyOperQualifier OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:BladeInheritPolicy:operQualifier
+        managed object property"
+    ::= { cucsComputeBladeInheritPolicyEntry 11 }
+
 cucsComputeBoardTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsComputeBoardEntry
     MAX-ACCESS       not-accessible
@@ -1488,7 +1673,7 @@ CucsComputeBoardEntry ::= SEQUENCE {
     cucsComputeBoardPowerUsage                                       CucsEquipmentSensorThresholdStatus,
     cucsComputeBoardFaultQualifier                                   SnmpAdminString,
     cucsComputeBoardLocationDn                                       SnmpAdminString,
-    cucsComputeBoardCpuType                                          CucsEquipmentCpuType
+    cucsComputeBoardCpuTypeDescription                               SnmpAdminString
 }
 
 cucsComputeBoardInstanceId OBJECT-TYPE
@@ -1660,13 +1845,14 @@ cucsComputeBoardLocationDn OBJECT-TYPE
         "Cisco UCS compute:Board:locationDn managed object property"
     ::= { cucsComputeBoardEntry 21 }
 
-cucsComputeBoardCpuType OBJECT-TYPE
-    SYNTAX       CucsEquipmentCpuType
+cucsComputeBoardCpuTypeDescription OBJECT-TYPE
+    SYNTAX       SnmpAdminString
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
-        "Cisco UCS compute:Board:cpuType managed object property"
-    ::= { cucsComputeBoardEntry 22 }
+        "Cisco UCS compute:Board:cpuTypeDescription managed
+        object property"
+    ::= { cucsComputeBoardEntry 23 }
 
 cucsComputeBoardConnectorTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsComputeBoardConnectorEntry
@@ -2310,7 +2496,8 @@ CucsComputeChassisDiscPolicyEntry ::= SEQUENCE {
     cucsComputeChassisDiscPolicyRebalance                            CucsComputeConnectivityRebalancing,
     cucsComputeChassisDiscPolicyLinkAggregationPref                  CucsComputeLinkAggregation,
     cucsComputeChassisDiscPolicyPolicyLevel                          Gauge32,
-    cucsComputeChassisDiscPolicyPolicyOwner                          CucsPolicyPolicyOwner
+    cucsComputeChassisDiscPolicyPolicyOwner                          CucsPolicyPolicyOwner,
+    cucsComputeChassisDiscPolicyMulticastHwHash                      CucsComputeChassisDiscPolicyMulticastHwHash
 }
 
 cucsComputeChassisDiscPolicyInstanceId OBJECT-TYPE
@@ -2417,6 +2604,15 @@ cucsComputeChassisDiscPolicyPolicyOwner OBJECT-TYPE
         managed object property"
     ::= { cucsComputeChassisDiscPolicyEntry 12 }
 
+cucsComputeChassisDiscPolicyMulticastHwHash OBJECT-TYPE
+    SYNTAX       CucsComputeChassisDiscPolicyMulticastHwHash
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ChassisDiscPolicy:multicastHwHash
+        managed object property"
+    ::= { cucsComputeChassisDiscPolicyEntry 13 }
+
 cucsComputeChassisQualTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsComputeChassisQualEntry
     MAX-ACCESS       not-accessible
@@ -2481,6 +2677,138 @@ cucsComputeChassisQualMinId OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS compute:ChassisQual:minId managed object property"
     ::= { cucsComputeChassisQualEntry 5 }
+
+cucsComputeConstraintDefTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsComputeConstraintDefEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS compute:ConstraintDef managed object table"
+    ::= { cucsComputeObjects 67 }
+
+cucsComputeConstraintDefEntry OBJECT-TYPE
+    SYNTAX           CucsComputeConstraintDefEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsComputeConstraintDefTable table."
+    INDEX { cucsComputeConstraintDefInstanceId }
+    ::= { cucsComputeConstraintDefTable 1 }
+
+CucsComputeConstraintDefEntry ::= SEQUENCE {
+    cucsComputeConstraintDefInstanceId                               CucsManagedObjectId,
+    cucsComputeConstraintDefDn                                       CucsManagedObjectDn,
+    cucsComputeConstraintDefRn                                       SnmpAdminString,
+    cucsComputeConstraintDefConstraintType                           CucsComputeEquipmentConstraintType,
+    cucsComputeConstraintDefDescr                                    SnmpAdminString,
+    cucsComputeConstraintDefHwModel                                  SnmpAdminString,
+    cucsComputeConstraintDefHwRevision                               SnmpAdminString,
+    cucsComputeConstraintDefHwVendor                                 SnmpAdminString,
+    cucsComputeConstraintDefIntId                                    SnmpAdminString,
+    cucsComputeConstraintDefName                                     SnmpAdminString,
+    cucsComputeConstraintDefPolicyLevel                              Gauge32,
+    cucsComputeConstraintDefPolicyOwner                              CucsPolicyPolicyOwner
+}
+
+cucsComputeConstraintDefInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsComputeConstraintDefEntry 1 }
+
+cucsComputeConstraintDefDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ConstraintDef:dn managed object property"
+    ::= { cucsComputeConstraintDefEntry 2 }
+
+cucsComputeConstraintDefRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ConstraintDef:rn managed object property"
+    ::= { cucsComputeConstraintDefEntry 3 }
+
+cucsComputeConstraintDefConstraintType OBJECT-TYPE
+    SYNTAX       CucsComputeEquipmentConstraintType
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ConstraintDef:constraintType
+        managed object property"
+    ::= { cucsComputeConstraintDefEntry 4 }
+
+cucsComputeConstraintDefDescr OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ConstraintDef:descr managed object property"
+    ::= { cucsComputeConstraintDefEntry 5 }
+
+cucsComputeConstraintDefHwModel OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ConstraintDef:hwModel managed object property"
+    ::= { cucsComputeConstraintDefEntry 6 }
+
+cucsComputeConstraintDefHwRevision OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ConstraintDef:hwRevision managed
+        object property"
+    ::= { cucsComputeConstraintDefEntry 7 }
+
+cucsComputeConstraintDefHwVendor OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ConstraintDef:hwVendor managed object property"
+    ::= { cucsComputeConstraintDefEntry 8 }
+
+cucsComputeConstraintDefIntId OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ConstraintDef:intId managed object property"
+    ::= { cucsComputeConstraintDefEntry 9 }
+
+cucsComputeConstraintDefName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ConstraintDef:name managed object property"
+    ::= { cucsComputeConstraintDefEntry 10 }
+
+cucsComputeConstraintDefPolicyLevel OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ConstraintDef:policyLevel managed
+        object property"
+    ::= { cucsComputeConstraintDefEntry 11 }
+
+cucsComputeConstraintDefPolicyOwner OBJECT-TYPE
+    SYNTAX       CucsPolicyPolicyOwner
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ConstraintDef:policyOwner managed
+        object property"
+    ::= { cucsComputeConstraintDefEntry 12 }
 
 cucsComputeDefaultsTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsComputeDefaultsEntry
@@ -2844,7 +3172,8 @@ CucsComputeFwSyncAckEntry ::= SEQUENCE {
     cucsComputeFwSyncAckPolicyLevel                                  Gauge32,
     cucsComputeFwSyncAckPolicyOwner                                  CucsPolicyPolicyOwner,
     cucsComputeFwSyncAckPrevOperState                                CucsTrigAckPrevOperState,
-    cucsComputeFwSyncAckScheduler                                    SnmpAdminString
+    cucsComputeFwSyncAckScheduler                                    SnmpAdminString,
+    cucsComputeFwSyncAckTriggerConfigState                           CucsTrigTrigState
 }
 
 cucsComputeFwSyncAckInstanceId OBJECT-TYPE
@@ -3025,6 +3354,15 @@ cucsComputeFwSyncAckScheduler OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS compute:FwSyncAck:scheduler managed object property"
     ::= { cucsComputeFwSyncAckEntry 22 }
+
+cucsComputeFwSyncAckTriggerConfigState OBJECT-TYPE
+    SYNTAX       CucsTrigTrigState
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:FwSyncAck:triggerConfigState
+        managed object property"
+    ::= { cucsComputeFwSyncAckEntry 23 }
 
 cucsComputeHealthLedSensorAlarmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsComputeHealthLedSensorAlarmEntry
@@ -7366,7 +7704,8 @@ CucsComputePhysicalQualEntry ::= SEQUENCE {
     cucsComputePhysicalQualInstanceId                                CucsManagedObjectId,
     cucsComputePhysicalQualDn                                        CucsManagedObjectDn,
     cucsComputePhysicalQualRn                                        SnmpAdminString,
-    cucsComputePhysicalQualModel                                     SnmpAdminString
+    cucsComputePhysicalQualModel                                     SnmpAdminString,
+    cucsComputePhysicalQualPropAcl                                   Unsigned64
 }
 
 cucsComputePhysicalQualInstanceId OBJECT-TYPE
@@ -7401,6 +7740,14 @@ cucsComputePhysicalQualModel OBJECT-TYPE
         "Cisco UCS compute:PhysicalQual:model managed object property"
     ::= { cucsComputePhysicalQualEntry 4 }
 
+cucsComputePhysicalQualPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:PhysicalQual:propAcl managed object property"
+    ::= { cucsComputePhysicalQualEntry 5 }
+
 cucsComputePlatformTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsComputePlatformEntry
     MAX-ACCESS       not-accessible
@@ -7425,7 +7772,8 @@ CucsComputePlatformEntry ::= SEQUENCE {
     cucsComputePlatformModel                                         SnmpAdminString,
     cucsComputePlatformRevision                                      SnmpAdminString,
     cucsComputePlatformVendor                                        SnmpAdminString,
-    cucsComputePlatformProductName                                   SnmpAdminString
+    cucsComputePlatformProductName                                   SnmpAdminString,
+    cucsComputePlatformPropAcl                                       Unsigned64
 }
 
 cucsComputePlatformInstanceId OBJECT-TYPE
@@ -7483,6 +7831,14 @@ cucsComputePlatformProductName OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS compute:Platform:productName managed object property"
     ::= { cucsComputePlatformEntry 7 }
+
+cucsComputePlatformPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:Platform:propAcl managed object property"
+    ::= { cucsComputePlatformEntry 8 }
 
 cucsComputePnuOSImageTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsComputePnuOSImageEntry
@@ -8746,7 +9102,12 @@ CucsComputeRackUnitEntry ::= SEQUENCE {
     cucsComputeRackUnitPolicyLevel                                   Gauge32,
     cucsComputeRackUnitPolicyOwner                                   CucsPolicyPolicyOwner,
     cucsComputeRackUnitLocalId                                       SnmpAdminString,
-    cucsComputeRackUnitDiscoveryStatus                               CucsEquipmentConnectionStatus
+    cucsComputeRackUnitOperPwrTransSrc                               CucsComputePowerTransitionSrc,
+    cucsComputeRackUnitDiscoveryStatus                               CucsEquipmentConnectionStatus,
+    cucsComputeRackUnitNumOf40GAdaptorsWithOldFw                     Gauge32,
+    cucsComputeRackUnitNumOf40GAdaptorsWithUnknownFw                 Gauge32,
+    cucsComputeRackUnitFanSpeedConfigStatus                          SnmpAdminString,
+    cucsComputeRackUnitFanSpeedPolicyFault                           CucsEquipmentFanSpeedPolicyFault
 }
 
 cucsComputeRackUnitInstanceId OBJECT-TYPE
@@ -9252,6 +9613,15 @@ cucsComputeRackUnitLocalId OBJECT-TYPE
         "Cisco UCS compute:RackUnit:localId managed object property"
     ::= { cucsComputeRackUnitEntry 62 }
 
+cucsComputeRackUnitOperPwrTransSrc OBJECT-TYPE
+    SYNTAX       CucsComputePowerTransitionSrc
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:RackUnit:operPwrTransSrc managed
+        object property"
+    ::= { cucsComputeRackUnitEntry 63 }
+
 cucsComputeRackUnitDiscoveryStatus OBJECT-TYPE
     SYNTAX       CucsEquipmentConnectionStatus
     MAX-ACCESS   read-only
@@ -9260,6 +9630,42 @@ cucsComputeRackUnitDiscoveryStatus OBJECT-TYPE
         "Cisco UCS compute:RackUnit:discoveryStatus managed
         object property"
     ::= { cucsComputeRackUnitEntry 64 }
+
+cucsComputeRackUnitNumOf40GAdaptorsWithOldFw OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:RackUnit:numOf40GAdaptorsWithOldFw
+        managed object property"
+    ::= { cucsComputeRackUnitEntry 66 }
+
+cucsComputeRackUnitNumOf40GAdaptorsWithUnknownFw OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:RackUnit:numOf40GAdaptorsWithUnknownFw
+        managed object property"
+    ::= { cucsComputeRackUnitEntry 67 }
+
+cucsComputeRackUnitFanSpeedConfigStatus OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:RackUnit:fanSpeedConfigStatus
+        managed object property"
+    ::= { cucsComputeRackUnitEntry 68 }
+
+cucsComputeRackUnitFanSpeedPolicyFault OBJECT-TYPE
+    SYNTAX       CucsEquipmentFanSpeedPolicyFault
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:RackUnit:fanSpeedPolicyFault
+        managed object property"
+    ::= { cucsComputeRackUnitEntry 69 }
 
 cucsComputeRackUnitFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsComputeRackUnitFsmEntry
@@ -11125,6 +11531,62 @@ cucsComputeServerMgmtPolicyQualifier OBJECT-TYPE
         object property"
     ::= { cucsComputeServerMgmtPolicyEntry 10 }
 
+cucsComputeServerTypeCapTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsComputeServerTypeCapEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS compute:ServerTypeCap managed object table"
+    ::= { cucsComputeObjects 68 }
+
+cucsComputeServerTypeCapEntry OBJECT-TYPE
+    SYNTAX           CucsComputeServerTypeCapEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsComputeServerTypeCapTable table."
+    INDEX { cucsComputeServerTypeCapInstanceId }
+    ::= { cucsComputeServerTypeCapTable 1 }
+
+CucsComputeServerTypeCapEntry ::= SEQUENCE {
+    cucsComputeServerTypeCapInstanceId                               CucsManagedObjectId,
+    cucsComputeServerTypeCapDn                                       CucsManagedObjectDn,
+    cucsComputeServerTypeCapRn                                       SnmpAdminString,
+    cucsComputeServerTypeCapType                                     CucsComputeServerTypeCapType
+}
+
+cucsComputeServerTypeCapInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsComputeServerTypeCapEntry 1 }
+
+cucsComputeServerTypeCapDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ServerTypeCap:dn managed object property"
+    ::= { cucsComputeServerTypeCapEntry 2 }
+
+cucsComputeServerTypeCapRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ServerTypeCap:rn managed object property"
+    ::= { cucsComputeServerTypeCapEntry 3 }
+
+cucsComputeServerTypeCapType OBJECT-TYPE
+    SYNTAX       CucsComputeServerTypeCapType
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ServerTypeCap:type managed object property"
+    ::= { cucsComputeServerTypeCapEntry 4 }
+
 cucsComputeServerUnitTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsComputeServerUnitEntry
     MAX-ACCESS       not-accessible
@@ -11206,7 +11668,10 @@ CucsComputeServerUnitEntry ::= SEQUENCE {
     cucsComputeServerUnitUsrLbl                                      SnmpAdminString,
     cucsComputeServerUnitUuid                                        SnmpAdminString,
     cucsComputeServerUnitVendor                                      SnmpAdminString,
-    cucsComputeServerUnitVid                                         SnmpAdminString
+    cucsComputeServerUnitVid                                         SnmpAdminString,
+    cucsComputeServerUnitNumOf40GAdaptorsWithOldFw                   Gauge32,
+    cucsComputeServerUnitNumOf40GAdaptorsWithUnknownFw               Gauge32,
+    cucsComputeServerUnitOperPwrTransSrc                             CucsComputePowerTransitionSrc
 }
 
 cucsComputeServerUnitInstanceId OBJECT-TYPE
@@ -11738,6 +12203,33 @@ cucsComputeServerUnitVid OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS compute:ServerUnit:vid managed object property"
     ::= { cucsComputeServerUnitEntry 64 }
+
+cucsComputeServerUnitNumOf40GAdaptorsWithOldFw OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ServerUnit:numOf40GAdaptorsWithOldFw
+        managed object property"
+    ::= { cucsComputeServerUnitEntry 66 }
+
+cucsComputeServerUnitNumOf40GAdaptorsWithUnknownFw OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ServerUnit:numOf40GAdaptorsWithUnknownFw
+        managed object property"
+    ::= { cucsComputeServerUnitEntry 67 }
+
+cucsComputeServerUnitOperPwrTransSrc OBJECT-TYPE
+    SYNTAX       CucsComputePowerTransitionSrc
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS compute:ServerUnit:operPwrTransSrc managed
+        object property"
+    ::= { cucsComputeServerUnitEntry 68 }
 
 cucsComputeServerUnitFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsComputeServerUnitFsmEntry

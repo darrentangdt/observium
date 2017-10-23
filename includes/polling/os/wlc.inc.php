@@ -13,17 +13,15 @@
 
 //AIRESPACE-SWITCHING-MIB::agentInventorySysDescription.0 = STRING: Cisco Controller
 //AIRESPACE-SWITCHING-MIB::agentInventoryMachineModel.0 = STRING: AIR-CT5508-K9
-//AIRESPACE-SWITCHING-MIB::agentInventorySerialNumber.0 = STRING: FCW1546L0D6
 //AIRESPACE-SWITCHING-MIB::agentInventoryProductName.0 = STRING: Cisco Controller
 //AIRESPACE-SWITCHING-MIB::agentInventoryProductVersion.0 = STRING: 7.6.100.0
 
-$data = snmp_get_multi($device, 'agentInventoryMachineModel.0 agentInventoryProductVersion.0 agentInventorySerialNumber.0', '-OQUs', 'AIRESPACE-SWITCHING-MIB');
+$data = snmp_get_multi($device, 'agentInventoryMachineModel.0 agentInventoryProductVersion.0', '-OQUs', 'AIRESPACE-SWITCHING-MIB');
 
 if (is_array($data[0]))
 {
   $hardware = $data[0]['agentInventoryMachineModel'];
   $version  = $data[0]['agentInventoryProductVersion'];
-  $serial   = $data[0]['agentInventorySerialNumber'];
 }
 else if ($entPhysical['entPhysicalModelName'])
 {

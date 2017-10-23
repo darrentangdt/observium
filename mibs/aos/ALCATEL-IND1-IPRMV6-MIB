@@ -6,6 +6,8 @@ IMPORTS
         FROM SNMPv2-SMI
     RowStatus, TruthValue
         FROM SNMPv2-TC
+    SnmpAdminString
+        FROM SNMP-FRAMEWORK-MIB
     MODULE-COMPLIANCE, OBJECT-GROUP
         FROM SNMPv2-CONF
     IANAipRouteProtocol
@@ -210,7 +212,9 @@ AlaIprmV6StaticRouteEntry ::=
         alaIprmV6StaticRouteNextHop   Ipv6Address,
         alaIprmV6StaticRouteIfIndex   Ipv6IfIndex,
         alaIprmV6StaticRouteMetric    Unsigned32,
-        alaIprmV6StaticRouteStatus    RowStatus
+        alaIprmV6StaticRouteStatus    RowStatus,
+	alaIprmV6StaticRouteTag       Unsigned32,
+        alaIprmV6StaticRouteName      SnmpAdminString    
     }
 
 alaIprmV6StaticRouteDest OBJECT-TYPE
@@ -269,6 +273,21 @@ alaIprmV6StaticRouteStatus OBJECT-TYPE
         "Used to control the addition and removal of static 
         routes."
     ::= { alaIprmV6StaticRouteEntry 6 }
+
+alaIprmV6StaticRouteTag OBJECT-TYPE
+    SYNTAX     Unsigned32
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+        "Tag of the static route"
+    ::= { alaIprmV6StaticRouteEntry 7 }
+alaIprmV6StaticRouteName OBJECT-TYPE
+    SYNTAX     SnmpAdminString(SIZE (0..32))
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+        "Name of the static route."
+    ::= { alaIprmV6StaticRouteEntry 8 }
 
 
 -- IPRM's IPV6 Route Preference Configurations
@@ -355,7 +374,8 @@ alaIprmV6ConfigMIBGroup OBJECT-GROUP
                 alaIprmV6StaticRouteMetric, alaIprmV6StaticRouteStatus, 
                 alaIprmV6RtPrefLocal, alaIprmV6RtPrefStatic, 
                 alaIprmV6RtPrefOspf, alaIprmV6RtPrefRip,
-                alaIprmV6RtPrefEbgp, alaIprmV6RtPrefIbgp
+                alaIprmV6RtPrefEbgp, alaIprmV6RtPrefIbgp,
+		alaIprmV6StaticRouteTag, alaIprmV6StaticRouteName
             }
     STATUS  current
     DESCRIPTION

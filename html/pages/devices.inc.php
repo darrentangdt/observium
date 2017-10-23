@@ -62,7 +62,7 @@ foreach (array('os', 'hardware', 'version', 'features', 'type') as $entry)
       {
         $name = array('name' => $types[$item]['text'], 'icon' => $types[$item]['icon']);
       } else {
-        $name = array('name' => nicecase($item),       'icon' => 'oicon-exclamation-white');
+        $name = array('name' => nicecase($item),       'icon' => $config['icon']['exclamation']);
       }
     } else {
       $name = nicecase($item);
@@ -131,7 +131,7 @@ $form['row'][0]['group']    = array(
 // Select sort pull-rigth
 $form['row'][0]['sort']     = array(
                                 'type'        => 'select',
-                                'icon'        => 'oicon-sort-alphabet-column',
+                                'icon'        => $config['icon']['sort'],
                                 'right'       => TRUE,
                                 'width'       => '100%', //'150px',
                                 'value'       => $vars['sort'],

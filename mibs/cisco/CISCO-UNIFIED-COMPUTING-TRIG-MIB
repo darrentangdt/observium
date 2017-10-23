@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- TRIG management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -57,7 +57,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsTrigObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -102,7 +102,8 @@ CucsTrigAbsWindowEntry ::= SEQUENCE {
     cucsTrigAbsWindowName                                            SnmpAdminString,
     cucsTrigAbsWindowProcBreak                                       SnmpAdminString,
     cucsTrigAbsWindowProcCap                                         Gauge32,
-    cucsTrigAbsWindowTimeCap                                         SnmpAdminString
+    cucsTrigAbsWindowTimeCap                                         SnmpAdminString,
+    cucsTrigAbsWindowTimeCapped                                      TruthValue
 }
 
 cucsTrigAbsWindowInstanceId OBJECT-TYPE
@@ -184,6 +185,14 @@ cucsTrigAbsWindowTimeCap OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS trig:AbsWindow:timeCap managed object property"
     ::= { cucsTrigAbsWindowEntry 10 }
+
+cucsTrigAbsWindowTimeCapped OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS trig:AbsWindow:timeCapped managed object property"
+    ::= { cucsTrigAbsWindowEntry 12 }
 
 cucsTrigClientTokenTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsTrigClientTokenEntry
@@ -286,7 +295,8 @@ CucsTrigLocalAbsWindowEntry ::= SEQUENCE {
     cucsTrigLocalAbsWindowName                                       SnmpAdminString,
     cucsTrigLocalAbsWindowProcBreak                                  SnmpAdminString,
     cucsTrigLocalAbsWindowProcCap                                    Gauge32,
-    cucsTrigLocalAbsWindowTimeCap                                    SnmpAdminString
+    cucsTrigLocalAbsWindowTimeCap                                    SnmpAdminString,
+    cucsTrigLocalAbsWindowTimeCapped                                 TruthValue
 }
 
 cucsTrigLocalAbsWindowInstanceId OBJECT-TYPE
@@ -368,6 +378,14 @@ cucsTrigLocalAbsWindowTimeCap OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS trig:LocalAbsWindow:timeCap managed object property"
     ::= { cucsTrigLocalAbsWindowEntry 10 }
+
+cucsTrigLocalAbsWindowTimeCapped OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS trig:LocalAbsWindow:timeCapped managed object property"
+    ::= { cucsTrigLocalAbsWindowEntry 12 }
 
 cucsTrigLocalSchedTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsTrigLocalSchedEntry
@@ -664,7 +682,8 @@ CucsTrigRecurrWindowEntry ::= SEQUENCE {
     cucsTrigRecurrWindowName                                         SnmpAdminString,
     cucsTrigRecurrWindowProcBreak                                    SnmpAdminString,
     cucsTrigRecurrWindowProcCap                                      Gauge32,
-    cucsTrigRecurrWindowTimeCap                                      SnmpAdminString
+    cucsTrigRecurrWindowTimeCap                                      SnmpAdminString,
+    cucsTrigRecurrWindowTimeCapped                                   TruthValue
 }
 
 cucsTrigRecurrWindowInstanceId OBJECT-TYPE
@@ -762,6 +781,14 @@ cucsTrigRecurrWindowTimeCap OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS trig:RecurrWindow:timeCap managed object property"
     ::= { cucsTrigRecurrWindowEntry 12 }
+
+cucsTrigRecurrWindowTimeCapped OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS trig:RecurrWindow:timeCapped managed object property"
+    ::= { cucsTrigRecurrWindowEntry 14 }
 
 cucsTrigSchedTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsTrigSchedEntry

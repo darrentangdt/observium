@@ -14,9 +14,9 @@
 $units = '';
 $unit_text = 'Operations/sec';
 $total_units = 'B';
-$colours_in = 'greens';
+$colours_in = 'reds';
 $multiplier = "1";
-$colours_out = 'blues';
+$colours_out = 'oranges';
 
 $ds_in  = "reads";
 $ds_out = "writes";

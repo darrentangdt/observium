@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- NETWORK management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -47,6 +47,7 @@ IMPORTS
     CucsManagedObjectId,
     CucsManagedObjectDn
         FROM CISCO-UNIFIED-COMPUTING-MIB
+    CucsEquipmentEvacState,
     CucsEquipmentSensorThresholdStatus,
     CucsMgmtAdminState,
     CucsNetworkElementOperability,
@@ -58,7 +59,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsNetworkObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -116,7 +117,13 @@ CucsNetworkElementEntry ::= SEQUENCE {
     cucsNetworkElementInventoryStatus                                CucsNetworkInventoryStatus,
     cucsNetworkElementThermal                                        CucsEquipmentSensorThresholdStatus,
     cucsNetworkElementDiffMemory                                     Gauge32,
-    cucsNetworkElementExpectedMemory                                 Gauge32
+    cucsNetworkElementExpectedMemory                                 Gauge32,
+    cucsNetworkElementAdminEvacState                                 CucsEquipmentEvacState,
+    cucsNetworkElementForceEvac                                      TruthValue,
+    cucsNetworkElementOperEvacState                                  CucsEquipmentEvacState,
+    cucsNetworkElementOobIfMac                                       MacAddress,
+    cucsNetworkElementMinActiveFan                                   Gauge32,
+    cucsNetworkElementShutdownFanRemoveal                            TruthValue
 }
 
 cucsNetworkElementInstanceId OBJECT-TYPE
@@ -305,6 +312,55 @@ cucsNetworkElementExpectedMemory OBJECT-TYPE
         "Cisco UCS network:Element:expectedMemory managed object property"
     ::= { cucsNetworkElementEntry 23 }
 
+cucsNetworkElementAdminEvacState OBJECT-TYPE
+    SYNTAX       CucsEquipmentEvacState
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:Element:adminEvacState managed object property"
+    ::= { cucsNetworkElementEntry 24 }
+
+cucsNetworkElementForceEvac OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:Element:forceEvac managed object property"
+    ::= { cucsNetworkElementEntry 25 }
+
+cucsNetworkElementOperEvacState OBJECT-TYPE
+    SYNTAX       CucsEquipmentEvacState
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:Element:operEvacState managed object property"
+    ::= { cucsNetworkElementEntry 26 }
+
+cucsNetworkElementOobIfMac OBJECT-TYPE
+    SYNTAX       MacAddress
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:Element:oobIfMac managed object property"
+    ::= { cucsNetworkElementEntry 27 }
+
+cucsNetworkElementMinActiveFan OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:Element:minActiveFan managed object property"
+    ::= { cucsNetworkElementEntry 40 }
+
+cucsNetworkElementShutdownFanRemoveal OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:Element:shutdownFanRemoveal
+        managed object property"
+    ::= { cucsNetworkElementEntry 41 }
+
 cucsNetworkIfStatsTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsNetworkIfStatsEntry
     MAX-ACCESS       not-accessible
@@ -326,10 +382,10 @@ CucsNetworkIfStatsEntry ::= SEQUENCE {
     cucsNetworkIfStatsInstanceId                                     CucsManagedObjectId,
     cucsNetworkIfStatsDn                                             CucsManagedObjectDn,
     cucsNetworkIfStatsRn                                             SnmpAdminString,
-    cucsNetworkIfStatsIn                                             Unsigned64,
     cucsNetworkIfStatsOut                                            Unsigned64,
     cucsNetworkIfStatsType                                           CucsNetworkIfStatsType,
-    cucsNetworkIfStatsUnits                                          CucsNetworkIfStatsUnits
+    cucsNetworkIfStatsUnits                                          CucsNetworkIfStatsUnits,
+    cucsNetworkIfStatsRin                                            Unsigned64
 }
 
 cucsNetworkIfStatsInstanceId OBJECT-TYPE
@@ -356,14 +412,6 @@ cucsNetworkIfStatsRn OBJECT-TYPE
         "Cisco UCS network:IfStats:rn managed object property"
     ::= { cucsNetworkIfStatsEntry 3 }
 
-cucsNetworkIfStatsIn OBJECT-TYPE
-    SYNTAX       Unsigned64
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS network:IfStats:in managed object property"
-    ::= { cucsNetworkIfStatsEntry 4 }
-
 cucsNetworkIfStatsOut OBJECT-TYPE
     SYNTAX       Unsigned64
     MAX-ACCESS   read-only
@@ -387,6 +435,14 @@ cucsNetworkIfStatsUnits OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS network:IfStats:units managed object property"
     ::= { cucsNetworkIfStatsEntry 7 }
+
+cucsNetworkIfStatsRin OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:IfStats:rin managed object property"
+    ::= { cucsNetworkIfStatsEntry 8 }
 
 cucsNetworkLanNeighborEntryTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsNetworkLanNeighborEntryEntry
@@ -417,7 +473,9 @@ CucsNetworkLanNeighborEntryEntry ::= SEQUENCE {
     cucsNetworkLanNeighborEntryLocalInterface                        SnmpAdminString,
     cucsNetworkLanNeighborEntryNativeVlan                            Gauge32,
     cucsNetworkLanNeighborEntryPlatform                              SnmpAdminString,
-    cucsNetworkLanNeighborEntryRemoteInterface                       SnmpAdminString
+    cucsNetworkLanNeighborEntryRemoteInterface                       SnmpAdminString,
+    cucsNetworkLanNeighborEntrySerialNumber                          SnmpAdminString,
+    cucsNetworkLanNeighborEntrySystemName                            SnmpAdminString
 }
 
 cucsNetworkLanNeighborEntryInstanceId OBJECT-TYPE
@@ -525,6 +583,24 @@ cucsNetworkLanNeighborEntryRemoteInterface OBJECT-TYPE
         managed object property"
     ::= { cucsNetworkLanNeighborEntryEntry 12 }
 
+cucsNetworkLanNeighborEntrySerialNumber OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:LanNeighborEntry:serialNumber
+        managed object property"
+    ::= { cucsNetworkLanNeighborEntryEntry 13 }
+
+cucsNetworkLanNeighborEntrySystemName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:LanNeighborEntry:systemName
+        managed object property"
+    ::= { cucsNetworkLanNeighborEntryEntry 14 }
+
 cucsNetworkLanNeighborsTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsNetworkLanNeighborsEntry
     MAX-ACCESS       not-accessible
@@ -572,6 +648,210 @@ cucsNetworkLanNeighborsRn OBJECT-TYPE
         "Cisco UCS network:LanNeighbors:rn managed object property"
     ::= { cucsNetworkLanNeighborsEntry 3 }
 
+cucsNetworkLldpNeighborEntryTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsNetworkLldpNeighborEntryEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS network:LldpNeighborEntry managed object table"
+    ::= { cucsNetworkObjects 8 }
+
+cucsNetworkLldpNeighborEntryEntry OBJECT-TYPE
+    SYNTAX           CucsNetworkLldpNeighborEntryEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsNetworkLldpNeighborEntryTable table."
+    INDEX { cucsNetworkLldpNeighborEntryInstanceId }
+    ::= { cucsNetworkLldpNeighborEntryTable 1 }
+
+CucsNetworkLldpNeighborEntryEntry ::= SEQUENCE {
+    cucsNetworkLldpNeighborEntryInstanceId                           CucsManagedObjectId,
+    cucsNetworkLldpNeighborEntryDn                                   CucsManagedObjectDn,
+    cucsNetworkLldpNeighborEntryRn                                   SnmpAdminString,
+    cucsNetworkLldpNeighborEntryCapabilities                         SnmpAdminString,
+    cucsNetworkLldpNeighborEntryChassisId                            SnmpAdminString,
+    cucsNetworkLldpNeighborEntryEnabledCapabilities                  SnmpAdminString,
+    cucsNetworkLldpNeighborEntryFiPortDn                             SnmpAdminString,
+    cucsNetworkLldpNeighborEntryIpV4MgmtAddress                      SnmpAdminString,
+    cucsNetworkLldpNeighborEntryLocalInterface                       SnmpAdminString,
+    cucsNetworkLldpNeighborEntryNativeVlan                           Gauge32,
+    cucsNetworkLldpNeighborEntryRemoteIfDesc                         SnmpAdminString,
+    cucsNetworkLldpNeighborEntryRemoteInterface                      SnmpAdminString,
+    cucsNetworkLldpNeighborEntrySystemDesc                           SnmpAdminString,
+    cucsNetworkLldpNeighborEntrySystemName                           SnmpAdminString
+}
+
+cucsNetworkLldpNeighborEntryInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsNetworkLldpNeighborEntryEntry 1 }
+
+cucsNetworkLldpNeighborEntryDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:LldpNeighborEntry:dn managed object property"
+    ::= { cucsNetworkLldpNeighborEntryEntry 2 }
+
+cucsNetworkLldpNeighborEntryRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:LldpNeighborEntry:rn managed object property"
+    ::= { cucsNetworkLldpNeighborEntryEntry 3 }
+
+cucsNetworkLldpNeighborEntryCapabilities OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:LldpNeighborEntry:capabilities
+        managed object property"
+    ::= { cucsNetworkLldpNeighborEntryEntry 4 }
+
+cucsNetworkLldpNeighborEntryChassisId OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:LldpNeighborEntry:chassisId
+        managed object property"
+    ::= { cucsNetworkLldpNeighborEntryEntry 5 }
+
+cucsNetworkLldpNeighborEntryEnabledCapabilities OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:LldpNeighborEntry:enabledCapabilities
+        managed object property"
+    ::= { cucsNetworkLldpNeighborEntryEntry 6 }
+
+cucsNetworkLldpNeighborEntryFiPortDn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:LldpNeighborEntry:fiPortDn managed
+        object property"
+    ::= { cucsNetworkLldpNeighborEntryEntry 7 }
+
+cucsNetworkLldpNeighborEntryIpV4MgmtAddress OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:LldpNeighborEntry:ipV4MgmtAddress
+        managed object property"
+    ::= { cucsNetworkLldpNeighborEntryEntry 8 }
+
+cucsNetworkLldpNeighborEntryLocalInterface OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:LldpNeighborEntry:localInterface
+        managed object property"
+    ::= { cucsNetworkLldpNeighborEntryEntry 9 }
+
+cucsNetworkLldpNeighborEntryNativeVlan OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:LldpNeighborEntry:nativeVlan
+        managed object property"
+    ::= { cucsNetworkLldpNeighborEntryEntry 10 }
+
+cucsNetworkLldpNeighborEntryRemoteIfDesc OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:LldpNeighborEntry:remoteIfDesc
+        managed object property"
+    ::= { cucsNetworkLldpNeighborEntryEntry 11 }
+
+cucsNetworkLldpNeighborEntryRemoteInterface OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:LldpNeighborEntry:remoteInterface
+        managed object property"
+    ::= { cucsNetworkLldpNeighborEntryEntry 12 }
+
+cucsNetworkLldpNeighborEntrySystemDesc OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:LldpNeighborEntry:systemDesc
+        managed object property"
+    ::= { cucsNetworkLldpNeighborEntryEntry 13 }
+
+cucsNetworkLldpNeighborEntrySystemName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:LldpNeighborEntry:systemName
+        managed object property"
+    ::= { cucsNetworkLldpNeighborEntryEntry 14 }
+
+cucsNetworkLldpNeighborsTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsNetworkLldpNeighborsEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS network:LldpNeighbors managed object table"
+    ::= { cucsNetworkObjects 9 }
+
+cucsNetworkLldpNeighborsEntry OBJECT-TYPE
+    SYNTAX           CucsNetworkLldpNeighborsEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsNetworkLldpNeighborsTable table."
+    INDEX { cucsNetworkLldpNeighborsInstanceId }
+    ::= { cucsNetworkLldpNeighborsTable 1 }
+
+CucsNetworkLldpNeighborsEntry ::= SEQUENCE {
+    cucsNetworkLldpNeighborsInstanceId                               CucsManagedObjectId,
+    cucsNetworkLldpNeighborsDn                                       CucsManagedObjectDn,
+    cucsNetworkLldpNeighborsRn                                       SnmpAdminString
+}
+
+cucsNetworkLldpNeighborsInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsNetworkLldpNeighborsEntry 1 }
+
+cucsNetworkLldpNeighborsDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:LldpNeighbors:dn managed object property"
+    ::= { cucsNetworkLldpNeighborsEntry 2 }
+
+cucsNetworkLldpNeighborsRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:LldpNeighbors:rn managed object property"
+    ::= { cucsNetworkLldpNeighborsEntry 3 }
+
 cucsNetworkOperLevelTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsNetworkOperLevelEntry
     MAX-ACCESS       not-accessible
@@ -600,7 +880,10 @@ CucsNetworkOperLevelEntry ::= SEQUENCE {
     cucsNetworkOperLevelMaxSecVlanPerPrimaryVlanCount                Gauge32,
     cucsNetworkOperLevelMaxSecondaryVlanCount                        Gauge32,
     cucsNetworkOperLevelSecondaryVlanCount                           Gauge32,
-    cucsNetworkOperLevelSecondaryVlanCountStatus                     CucsNetworkVlanCountStatus
+    cucsNetworkOperLevelSecondaryVlanCountStatus                     CucsNetworkVlanCountStatus,
+    cucsNetworkOperLevelMaxVifCount                                  Gauge32,
+    cucsNetworkOperLevelVifCount                                     Gauge32,
+    cucsNetworkOperLevelVifCountStatus                               CucsNetworkVlanCountStatus
 }
 
 cucsNetworkOperLevelInstanceId OBJECT-TYPE
@@ -697,6 +980,31 @@ cucsNetworkOperLevelSecondaryVlanCountStatus OBJECT-TYPE
         "Cisco UCS network:OperLevel:secondaryVlanCountStatus
         managed object property"
     ::= { cucsNetworkOperLevelEntry 14 }
+
+cucsNetworkOperLevelMaxVifCount OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:OperLevel:maxVifCount managed object property"
+    ::= { cucsNetworkOperLevelEntry 15 }
+
+cucsNetworkOperLevelVifCount OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:OperLevel:vifCount managed object property"
+    ::= { cucsNetworkOperLevelEntry 16 }
+
+cucsNetworkOperLevelVifCountStatus OBJECT-TYPE
+    SYNTAX       CucsNetworkVlanCountStatus
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS network:OperLevel:vifCountStatus managed
+        object property"
+    ::= { cucsNetworkOperLevelEntry 17 }
 
 cucsNetworkSanNeighborEntryTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsNetworkSanNeighborEntryEntry

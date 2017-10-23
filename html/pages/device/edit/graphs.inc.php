@@ -52,7 +52,7 @@ if ($vars['submit'])
     <div class="box box-solid">
 
       <div class="box-header with-border">
-        <!-- <i class="oicon-gear"></i> --><h3 class="box-title">Device Graphs</h3>
+        <h3 class="box-title">Device Graphs</h3>
       </div>
       <div class="box-body no-padding">
 

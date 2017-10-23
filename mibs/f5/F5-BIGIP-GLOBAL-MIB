@@ -4,12 +4,12 @@ F5-BIGIP-GLOBAL-MIB DEFINITIONS ::= BEGIN
 -- F5-BIGIP-GLOBAL-MIB 
 --     A private enterprise MIB for F5 global traffic management 
 --     systems.
---     VERSION: 11.5.1
+--     VERSION: 12.1.2
 --================================================================
 
 IMPORTS
     OBJECT-TYPE, NOTIFICATION-TYPE, MODULE-IDENTITY,
-    Integer32, Opaque, enterprises, Counter32, Counter64, TimeTicks
+    Opaque, enterprises, Counter32, Counter64, TimeTicks
         FROM SNMPv2-SMI
 
     Gauge 
@@ -17,9 +17,6 @@ IMPORTS
 
     TEXTUAL-CONVENTION, MacAddress 
         FROM SNMPv2-TC 
-
-    CounterBasedGauge64 
-        FROM HCNUM-TC 
 
     OBJECT-GROUP, MODULE-COMPLIANCE
         FROM SNMPv2-CONF
@@ -32,7 +29,7 @@ IMPORTS
 
 --================================================================
 bigipGlobalTM MODULE-IDENTITY
-    LAST-UPDATED "201310221830Z" -- Tue Oct 22 18:30:35 UTC 2013 
+    LAST-UPDATED "201412151631Z" -- Mon Dec 15 16:31:49 UTC 2014 
     ORGANIZATION "F5 Networks, Inc."
     CONTACT-INFO
          "postal: F5 Networks, Inc. 
@@ -77,6 +74,7 @@ gtmApplication           OBJECT IDENTIFIER ::= { gtmApplications 1 }
 gtmApplicationStatus     OBJECT IDENTIFIER ::= { gtmApplications 2 }
 gtmAppContextStat        OBJECT IDENTIFIER ::= { gtmApplications 3 }
 gtmAppContextDisable     OBJECT IDENTIFIER ::= { gtmApplications 4 }
+gtmApplicationWideip     OBJECT IDENTIFIER ::= { gtmApplications 5 }
 
 --gtmDataCenters
 gtmDataCenter            OBJECT IDENTIFIER ::= { gtmDataCenters 1 }
@@ -324,7 +322,7 @@ gtmAttrDefaultFallback OBJECT-TYPE
 	::= { gtmGlobalAttr 11 } 
 
 gtmAttrPersistMask OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -348,7 +346,7 @@ gtmAttrGtmSetsRecursion OBJECT-TYPE
 	::= { gtmGlobalAttr 13 } 
 
 gtmAttrQosFactorLcs OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -358,7 +356,7 @@ gtmAttrQosFactorLcs OBJECT-TYPE
 	::= { gtmGlobalAttr 14 } 
 
 gtmAttrQosFactorRtt OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -368,7 +366,7 @@ gtmAttrQosFactorRtt OBJECT-TYPE
 	::= { gtmGlobalAttr 15 } 
 
 gtmAttrQosFactorHops OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -378,7 +376,7 @@ gtmAttrQosFactorHops OBJECT-TYPE
 	::= { gtmGlobalAttr 16 } 
 
 gtmAttrQosFactorHitRatio OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -388,7 +386,7 @@ gtmAttrQosFactorHitRatio OBJECT-TYPE
 	::= { gtmGlobalAttr 17 } 
 
 gtmAttrQosFactorPacketRate OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -398,7 +396,7 @@ gtmAttrQosFactorPacketRate OBJECT-TYPE
 	::= { gtmGlobalAttr 18 } 
 
 gtmAttrQosFactorBps OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -408,7 +406,7 @@ gtmAttrQosFactorBps OBJECT-TYPE
 	::= { gtmGlobalAttr 19 } 
 
 gtmAttrQosFactorVsCapacity OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -418,7 +416,7 @@ gtmAttrQosFactorVsCapacity OBJECT-TYPE
 	::= { gtmGlobalAttr 20 } 
 
 gtmAttrQosFactorTopology OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -428,7 +426,7 @@ gtmAttrQosFactorTopology OBJECT-TYPE
 	::= { gtmGlobalAttr 21 } 
 
 gtmAttrQosFactorConnRate OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -440,7 +438,7 @@ gtmAttrQosFactorConnRate OBJECT-TYPE
 	::= { gtmGlobalAttr 22 } 
 
 gtmAttrTimerRetryPathData OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -449,7 +447,7 @@ gtmAttrTimerRetryPathData OBJECT-TYPE
 	::= { gtmGlobalAttr 23 } 
 
 gtmAttrTimerGetAutoconfigData OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -458,7 +456,7 @@ gtmAttrTimerGetAutoconfigData OBJECT-TYPE
 	::= { gtmGlobalAttr 24 } 
 
 gtmAttrTimerPersistCache OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -468,7 +466,7 @@ gtmAttrTimerPersistCache OBJECT-TYPE
 	::= { gtmGlobalAttr 25 } 
 
 gtmAttrDefaultProbeLimit OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -477,7 +475,7 @@ gtmAttrDefaultProbeLimit OBJECT-TYPE
 	::= { gtmGlobalAttr 26 } 
 
 gtmAttrDownThreshold OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -489,7 +487,7 @@ gtmAttrDownThreshold OBJECT-TYPE
 	::= { gtmGlobalAttr 27 } 
 
 gtmAttrDownMultiple OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -501,7 +499,7 @@ gtmAttrDownMultiple OBJECT-TYPE
 	::= { gtmGlobalAttr 28 } 
 
 gtmAttrPathTtl OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -510,7 +508,7 @@ gtmAttrPathTtl OBJECT-TYPE
 	::= { gtmGlobalAttr 29 } 
 
 gtmAttrTraceTtl OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -519,7 +517,7 @@ gtmAttrTraceTtl OBJECT-TYPE
 	::= { gtmGlobalAttr 30 } 
 
 gtmAttrLdnsDuration OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -528,7 +526,7 @@ gtmAttrLdnsDuration OBJECT-TYPE
 	::= { gtmGlobalAttr 31 } 
 
 gtmAttrPathDuration OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -537,7 +535,7 @@ gtmAttrPathDuration OBJECT-TYPE
 	::= { gtmGlobalAttr 32 } 
 
 gtmAttrRttSampleCount OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -547,7 +545,7 @@ gtmAttrRttSampleCount OBJECT-TYPE
 	::= { gtmGlobalAttr 33 } 
 
 gtmAttrRttPacketLength OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -557,7 +555,7 @@ gtmAttrRttPacketLength OBJECT-TYPE
 	::= { gtmGlobalAttr 34 } 
 
 gtmAttrRttTimeout OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -566,7 +564,7 @@ gtmAttrRttTimeout OBJECT-TYPE
 	::= { gtmGlobalAttr 35 } 
 
 gtmAttrMaxMonReqs OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -578,7 +576,7 @@ gtmAttrMaxMonReqs OBJECT-TYPE
 	::= { gtmGlobalAttr 36 } 
 
 gtmAttrTraceroutePort OBJECT-TYPE 
-	SYNTAX InetPortNumber
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -613,7 +611,7 @@ gtmAttrProbeDisabledObjects OBJECT-TYPE
 	::= { gtmGlobalAttr 39 } 
 
 gtmAttrLinkLimitFactor OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -625,7 +623,7 @@ gtmAttrLinkLimitFactor OBJECT-TYPE
 	::= { gtmGlobalAttr 40 } 
 
 gtmAttrOverLimitLinkLimitFactor OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -639,7 +637,7 @@ gtmAttrOverLimitLinkLimitFactor OBJECT-TYPE
 	::= { gtmGlobalAttr 41 } 
 
 gtmAttrLinkPrepaidFactor OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -650,7 +648,7 @@ gtmAttrLinkPrepaidFactor OBJECT-TYPE
 	::= { gtmGlobalAttr 42 } 
 
 gtmAttrLinkCompensateInbound OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -664,7 +662,7 @@ gtmAttrLinkCompensateInbound OBJECT-TYPE
 	::= { gtmGlobalAttr 43 } 
 
 gtmAttrLinkCompensateOutbound OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -678,7 +676,7 @@ gtmAttrLinkCompensateOutbound OBJECT-TYPE
 	::= { gtmGlobalAttr 44 } 
 
 gtmAttrLinkCompensationHistory OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -687,7 +685,7 @@ gtmAttrLinkCompensationHistory OBJECT-TYPE
 	::= { gtmGlobalAttr 45 } 
 
 gtmAttrMaxLinkOverLimitCount OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -698,7 +696,7 @@ gtmAttrMaxLinkOverLimitCount OBJECT-TYPE
 	::= { gtmGlobalAttr 46 } 
 
 gtmAttrLowerBoundPctRow OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -708,7 +706,7 @@ gtmAttrLowerBoundPctRow OBJECT-TYPE
 	::= { gtmGlobalAttr 47 } 
 
 gtmAttrLowerBoundPctCol OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -766,7 +764,7 @@ gtmAttrSyncGroup OBJECT-TYPE
 	::= { gtmGlobalAttr 52 } 
 
 gtmAttrSyncTimeout OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -776,7 +774,7 @@ gtmAttrSyncTimeout OBJECT-TYPE
 	::= { gtmGlobalAttr 53 } 
 
 gtmAttrSyncZonesTimeout OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -786,7 +784,7 @@ gtmAttrSyncZonesTimeout OBJECT-TYPE
 	::= { gtmGlobalAttr 54 } 
 
 gtmAttrTimeTolerance OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -813,7 +811,7 @@ gtmAttrTopologyLongestMatch OBJECT-TYPE
 	::= { gtmGlobalAttr 56 } 
 
 gtmAttrTopologyAclThreshold OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -823,7 +821,7 @@ gtmAttrTopologyAclThreshold OBJECT-TYPE
 	::= { gtmGlobalAttr 57 } 
 
 gtmAttrStaticPersistCidr OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -834,7 +832,7 @@ gtmAttrStaticPersistCidr OBJECT-TYPE
 	::= { gtmGlobalAttr 58 } 
 
 gtmAttrStaticPersistV6Cidr OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -845,7 +843,7 @@ gtmAttrStaticPersistV6Cidr OBJECT-TYPE
 	::= { gtmGlobalAttr 59 } 
 
 gtmAttrQosFactorVsScore OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -855,7 +853,7 @@ gtmAttrQosFactorVsScore OBJECT-TYPE
 	::= { gtmGlobalAttr 60 } 
 
 gtmAttrTimerSendKeepAlive OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -864,7 +862,7 @@ gtmAttrTimerSendKeepAlive OBJECT-TYPE
 	::= { gtmGlobalAttr 61 } 
 
 gtmAttrCertificateDepth OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -874,7 +872,7 @@ gtmAttrCertificateDepth OBJECT-TYPE
 	::= { gtmGlobalAttr 62 } 
 
 gtmAttrMaxMemoryUsage OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -921,7 +919,7 @@ GtmGlobalLdnsProbeProtoEntry ::=
 	}
 
 gtmGlobalLdnsProbeProtoIndex OBJECT-TYPE 
-	SYNTAX INTEGER(1..2147483647)
+	SYNTAX INTEGER(0..2147483647)
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -1082,7 +1080,7 @@ gtmStatBytesDropped OBJECT-TYPE
 	::= { gtmGlobalStat 15 } 
 
 gtmStatLdnses OBJECT-TYPE 
-	SYNTAX CounterBasedGauge64
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -1090,7 +1088,7 @@ gtmStatLdnses OBJECT-TYPE
 	::= { gtmGlobalStat 16 } 
 
 gtmStatPaths OBJECT-TYPE 
-	SYNTAX CounterBasedGauge64
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -1165,7 +1163,7 @@ GtmAppEntry ::=
 	SEQUENCE {
         	gtmAppName                                             LongDisplayString,
         	gtmAppPersist                                          INTEGER,
-        	gtmAppTtlPersist                                       Integer32,
+        	gtmAppTtlPersist                                       Gauge,
         	gtmAppAvailability                                     INTEGER
 	}
 
@@ -1189,7 +1187,7 @@ gtmAppPersist OBJECT-TYPE
 	::= { gtmAppEntry 2 } 
 
 gtmAppTtlPersist OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -1246,7 +1244,7 @@ GtmAppStatusEntry ::=
         	gtmAppStatusName                                       LongDisplayString,
         	gtmAppStatusAvailState                                 INTEGER,
         	gtmAppStatusEnabledState                               INTEGER,
-        	gtmAppStatusParentType                                 Integer32,
+        	gtmAppStatusParentType                                 Gauge,
         	gtmAppStatusDetailReason                               LongDisplayString
 	}
 
@@ -1294,7 +1292,7 @@ gtmAppStatusEnabledState OBJECT-TYPE
 	::= { gtmAppStatusEntry 3 } 
 
 gtmAppStatusParentType OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -1351,7 +1349,7 @@ GtmAppContStatEntry ::=
         	gtmAppContStatNumAvail                                 Counter64,
         	gtmAppContStatAvailState                               INTEGER,
         	gtmAppContStatEnabledState                             INTEGER,
-        	gtmAppContStatParentType                               Integer32,
+        	gtmAppContStatParentType                               Gauge,
         	gtmAppContStatDetailReason                             LongDisplayString
 	}
 
@@ -1428,7 +1426,7 @@ gtmAppContStatEnabledState OBJECT-TYPE
 	::= { gtmAppContStatEntry 6 } 
 
 gtmAppContStatParentType OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -1749,7 +1747,7 @@ GtmDcStatusEntry ::=
         	gtmDcStatusName                                        LongDisplayString,
         	gtmDcStatusAvailState                                  INTEGER,
         	gtmDcStatusEnabledState                                INTEGER,
-        	gtmDcStatusParentType                                  Integer32,
+        	gtmDcStatusParentType                                  Gauge,
         	gtmDcStatusDetailReason                                LongDisplayString
 	}
 
@@ -1797,7 +1795,7 @@ gtmDcStatusEnabledState OBJECT-TYPE
 	::= { gtmDcStatusEntry 3 } 
 
 gtmDcStatusParentType OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -1852,7 +1850,7 @@ GtmIpEntry ::=
         	gtmIpIp                                                InetAddress,
         	gtmIpLinkName                                          LongDisplayString,
         	gtmIpServerName                                        LongDisplayString,
-        	gtmIpUnitId                                            Integer32,
+        	gtmIpUnitId                                            Gauge,
         	gtmIpIpXlatedType                                      InetAddressType,
         	gtmIpIpXlated                                          InetAddress,
         	gtmIpDeviceName                                        LongDisplayString
@@ -1892,7 +1890,7 @@ gtmIpServerName OBJECT-TYPE
 	::= { gtmIpEntry 4 } 
 
 gtmIpUnitId OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -2002,9 +2000,9 @@ GtmLinkEntry ::=
         	gtmLinkMonitorRule                                     LongDisplayString,
         	gtmLinkDuplex                                          INTEGER,
         	gtmLinkEnabled                                         INTEGER,
-        	gtmLinkRatio                                           Integer32,
+        	gtmLinkRatio                                           Gauge,
         	gtmLinkPrepaid                                         Counter64,
-        	gtmLinkPrepaidInDollars                                Integer32,
+        	gtmLinkPrepaidInDollars                                Gauge,
         	gtmLinkWeightingType                                   INTEGER
 	}
 
@@ -2468,7 +2466,7 @@ gtmLinkEnabled OBJECT-TYPE
 	::= { gtmLinkEntry 44 } 
 
 gtmLinkRatio OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -2484,7 +2482,7 @@ gtmLinkPrepaid OBJECT-TYPE
 	::= { gtmLinkEntry 46 } 
 
 gtmLinkPrepaidInDollars OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -2541,7 +2539,7 @@ GtmLinkCostEntry ::=
         	gtmLinkCostName                                        LongDisplayString,
         	gtmLinkCostIndex                                       INTEGER,
         	gtmLinkCostUptoBps                                     Counter64,
-        	gtmLinkCostDollarsPerMbps                              Integer32
+        	gtmLinkCostDollarsPerMbps                              Gauge
 	}
 
 gtmLinkCostName OBJECT-TYPE 
@@ -2553,7 +2551,7 @@ gtmLinkCostName OBJECT-TYPE
 	::= { gtmLinkCostEntry 1 } 
 
 gtmLinkCostIndex OBJECT-TYPE 
-	SYNTAX INTEGER(1..2147483647)
+	SYNTAX INTEGER(0..2147483647)
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -2569,7 +2567,7 @@ gtmLinkCostUptoBps OBJECT-TYPE
 	::= { gtmLinkCostEntry 3 } 
 
 gtmLinkCostDollarsPerMbps OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -2620,15 +2618,15 @@ gtmLinkStatEntry OBJECT-TYPE
 GtmLinkStatEntry ::= 
 	SEQUENCE {
         	gtmLinkStatName                                        LongDisplayString,
-        	gtmLinkStatRate                                        CounterBasedGauge64,
-        	gtmLinkStatRateIn                                      CounterBasedGauge64,
-        	gtmLinkStatRateOut                                     CounterBasedGauge64,
-        	gtmLinkStatRateNode                                    CounterBasedGauge64,
-        	gtmLinkStatRateNodeIn                                  CounterBasedGauge64,
-        	gtmLinkStatRateNodeOut                                 CounterBasedGauge64,
-        	gtmLinkStatRateVses                                    CounterBasedGauge64,
-        	gtmLinkStatRateVsesIn                                  CounterBasedGauge64,
-        	gtmLinkStatRateVsesOut                                 CounterBasedGauge64,
+        	gtmLinkStatRate                                        Gauge,
+        	gtmLinkStatRateIn                                      Gauge,
+        	gtmLinkStatRateOut                                     Gauge,
+        	gtmLinkStatRateNode                                    Gauge,
+        	gtmLinkStatRateNodeIn                                  Gauge,
+        	gtmLinkStatRateNodeOut                                 Gauge,
+        	gtmLinkStatRateVses                                    Gauge,
+        	gtmLinkStatRateVsesIn                                  Gauge,
+        	gtmLinkStatRateVsesOut                                 Gauge,
         	gtmLinkStatLcsIn                                       Counter64,
         	gtmLinkStatLcsOut                                      Counter64,
         	gtmLinkStatPaths                                       Counter64
@@ -2643,7 +2641,7 @@ gtmLinkStatName OBJECT-TYPE
 	::= { gtmLinkStatEntry 1 } 
 
 gtmLinkStatRate OBJECT-TYPE 
-	SYNTAX CounterBasedGauge64
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -2651,7 +2649,7 @@ gtmLinkStatRate OBJECT-TYPE
 	::= { gtmLinkStatEntry 2 } 
 
 gtmLinkStatRateIn OBJECT-TYPE 
-	SYNTAX CounterBasedGauge64
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -2660,7 +2658,7 @@ gtmLinkStatRateIn OBJECT-TYPE
 	::= { gtmLinkStatEntry 3 } 
 
 gtmLinkStatRateOut OBJECT-TYPE 
-	SYNTAX CounterBasedGauge64
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -2669,7 +2667,7 @@ gtmLinkStatRateOut OBJECT-TYPE
 	::= { gtmLinkStatEntry 4 } 
 
 gtmLinkStatRateNode OBJECT-TYPE 
-	SYNTAX CounterBasedGauge64
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -2678,7 +2676,7 @@ gtmLinkStatRateNode OBJECT-TYPE
 	::= { gtmLinkStatEntry 5 } 
 
 gtmLinkStatRateNodeIn OBJECT-TYPE 
-	SYNTAX CounterBasedGauge64
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -2687,7 +2685,7 @@ gtmLinkStatRateNodeIn OBJECT-TYPE
 	::= { gtmLinkStatEntry 6 } 
 
 gtmLinkStatRateNodeOut OBJECT-TYPE 
-	SYNTAX CounterBasedGauge64
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -2696,7 +2694,7 @@ gtmLinkStatRateNodeOut OBJECT-TYPE
 	::= { gtmLinkStatEntry 7 } 
 
 gtmLinkStatRateVses OBJECT-TYPE 
-	SYNTAX CounterBasedGauge64
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -2705,7 +2703,7 @@ gtmLinkStatRateVses OBJECT-TYPE
 	::= { gtmLinkStatEntry 8 } 
 
 gtmLinkStatRateVsesIn OBJECT-TYPE 
-	SYNTAX CounterBasedGauge64
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -2714,7 +2712,7 @@ gtmLinkStatRateVsesIn OBJECT-TYPE
 	::= { gtmLinkStatEntry 9 } 
 
 gtmLinkStatRateVsesOut OBJECT-TYPE 
-	SYNTAX CounterBasedGauge64
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -2784,7 +2782,7 @@ GtmLinkStatusEntry ::=
         	gtmLinkStatusName                                      LongDisplayString,
         	gtmLinkStatusAvailState                                INTEGER,
         	gtmLinkStatusEnabledState                              INTEGER,
-        	gtmLinkStatusParentType                                Integer32,
+        	gtmLinkStatusParentType                                Gauge,
         	gtmLinkStatusDetailReason                              LongDisplayString
 	}
 
@@ -2832,7 +2830,7 @@ gtmLinkStatusEnabledState OBJECT-TYPE
 	::= { gtmLinkStatusEntry 3 } 
 
 gtmLinkStatusParentType OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -2874,6 +2872,7 @@ gtmPoolEntry OBJECT-TYPE
 	DESCRIPTION
 		"Columns in the gtmPool Table"
 	INDEX {
+		gtmPoolPoolType,
 		gtmPoolName
 	}
 	::= { gtmPoolTable 1 } 
@@ -2881,7 +2880,7 @@ gtmPoolEntry OBJECT-TYPE
 GtmPoolEntry ::= 
 	SEQUENCE {
         	gtmPoolName                                            LongDisplayString,
-        	gtmPoolTtl                                             Integer32,
+        	gtmPoolTtl                                             Gauge,
         	gtmPoolEnabled                                         INTEGER,
         	gtmPoolVerifyMember                                    INTEGER,
         	gtmPoolDynamicRatio                                    INTEGER,
@@ -2890,15 +2889,15 @@ GtmPoolEntry ::=
         	gtmPoolAlternate                                       INTEGER,
         	gtmPoolFallback                                        INTEGER,
         	gtmPoolManualResume                                    INTEGER,
-        	gtmPoolQosCoeffRtt                                     Integer32,
-        	gtmPoolQosCoeffHops                                    Integer32,
-        	gtmPoolQosCoeffTopology                                Integer32,
-        	gtmPoolQosCoeffHitRatio                                Integer32,
-        	gtmPoolQosCoeffPacketRate                              Integer32,
-        	gtmPoolQosCoeffVsCapacity                              Integer32,
-        	gtmPoolQosCoeffBps                                     Integer32,
-        	gtmPoolQosCoeffLcs                                     Integer32,
-        	gtmPoolQosCoeffConnRate                                Integer32,
+        	gtmPoolQosCoeffRtt                                     Gauge,
+        	gtmPoolQosCoeffHops                                    Gauge,
+        	gtmPoolQosCoeffTopology                                Gauge,
+        	gtmPoolQosCoeffHitRatio                                Gauge,
+        	gtmPoolQosCoeffPacketRate                              Gauge,
+        	gtmPoolQosCoeffVsCapacity                              Gauge,
+        	gtmPoolQosCoeffBps                                     Gauge,
+        	gtmPoolQosCoeffLcs                                     Gauge,
+        	gtmPoolQosCoeffConnRate                                Gauge,
         	gtmPoolFallbackIpType                                  InetAddressType,
         	gtmPoolFallbackIp                                      InetAddress,
         	gtmPoolCname                                           LongDisplayString,
@@ -2915,9 +2914,10 @@ GtmPoolEntry ::=
         	gtmPoolLimitConn                                       Counter64,
         	gtmPoolLimitConnPerSec                                 Counter64,
         	gtmPoolMonitorRule                                     LongDisplayString,
-        	gtmPoolQosCoeffVsScore                                 Integer32,
+        	gtmPoolQosCoeffVsScore                                 Gauge,
         	gtmPoolFallbackIpv6Type                                InetAddressType,
-        	gtmPoolFallbackIpv6                                    InetAddress
+        	gtmPoolFallbackIpv6                                    InetAddress,
+        	gtmPoolPoolType                                        INTEGER
 	}
 
 gtmPoolName OBJECT-TYPE 
@@ -2929,7 +2929,7 @@ gtmPoolName OBJECT-TYPE
 	::= { gtmPoolEntry 1 } 
 
 gtmPoolTtl OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -2975,8 +2975,8 @@ gtmPoolAnswersToReturn OBJECT-TYPE
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
-		"The number of returns for a request from the specified pool.,
-		It's up to 16 returns for a request."
+		"The number of answers to return for a given request from the
+	        specified pool. A maximum of up to 16 answers is allowed."
 	::= { gtmPoolEntry 6 } 
 
 gtmPoolLbMode OBJECT-TYPE 
@@ -3076,7 +3076,7 @@ gtmPoolManualResume OBJECT-TYPE
 	::= { gtmPoolEntry 10 } 
 
 gtmPoolQosCoeffRtt OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -3084,7 +3084,7 @@ gtmPoolQosCoeffRtt OBJECT-TYPE
 	::= { gtmPoolEntry 11 } 
 
 gtmPoolQosCoeffHops OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -3092,7 +3092,7 @@ gtmPoolQosCoeffHops OBJECT-TYPE
 	::= { gtmPoolEntry 12 } 
 
 gtmPoolQosCoeffTopology OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -3100,7 +3100,7 @@ gtmPoolQosCoeffTopology OBJECT-TYPE
 	::= { gtmPoolEntry 13 } 
 
 gtmPoolQosCoeffHitRatio OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -3108,7 +3108,7 @@ gtmPoolQosCoeffHitRatio OBJECT-TYPE
 	::= { gtmPoolEntry 14 } 
 
 gtmPoolQosCoeffPacketRate OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -3116,7 +3116,7 @@ gtmPoolQosCoeffPacketRate OBJECT-TYPE
 	::= { gtmPoolEntry 15 } 
 
 gtmPoolQosCoeffVsCapacity OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -3124,7 +3124,7 @@ gtmPoolQosCoeffVsCapacity OBJECT-TYPE
 	::= { gtmPoolEntry 16 } 
 
 gtmPoolQosCoeffBps OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -3132,7 +3132,7 @@ gtmPoolQosCoeffBps OBJECT-TYPE
 	::= { gtmPoolEntry 17 } 
 
 gtmPoolQosCoeffLcs OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -3140,7 +3140,7 @@ gtmPoolQosCoeffLcs OBJECT-TYPE
 	::= { gtmPoolEntry 18 } 
 
 gtmPoolQosCoeffConnRate OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -3154,7 +3154,9 @@ gtmPoolFallbackIpType OBJECT-TYPE
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
-		"The IP address type of gtmPoolFallbackIp."
+		"The IP address type of gtmPoolFallbackIp. This field is used
+	        to store the IPv4 fallback IP address type for A type pools and
+	        the IPv6 fallback IP address type for AAAA type pools."
 	::= { gtmPoolEntry 20 } 
 
 gtmPoolFallbackIp OBJECT-TYPE 
@@ -3162,20 +3164,23 @@ gtmPoolFallbackIp OBJECT-TYPE
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
-		"The fallback/emergency failure IP for the specified pool. It is 
-		interpreted within the context of a gtmPoolFallbackIpType value."
+		"The fallback/emergency failure IP for the specified pool. It is
+		interpreted within the context of a gtmPoolFallbackIpType value.
+	        This field is used to store the IPv4 fallback IP address for A type
+	        pools and the IPv6 fallback IP address for AAAA type pools."
 	::= { gtmPoolEntry 21 } 
 
 gtmPoolCname OBJECT-TYPE 
 	SYNTAX LongDisplayString
 	MAX-ACCESS read-only
-	STATUS current
+	STATUS	 deprecated
 	DESCRIPTION
-		"The CNAME (canonical name) for the specified pool.
-		 CNAME is also referred to as a CNAME record, a record 
-		in a DNS database that indicates the true, or canonical, 
-		host name of a computer that its aliases are associated with. 
-		(eg. www.wip.d.com)."
+		"Deprecated! No longer used. To achieve similar behavior please use
+	        a CNAME type pool member with static target setting enabled.
+	        The CNAME (canonical name) for the specified pool. CNAME is also
+	        referred to as a CNAME record, a record in a DNS database that
+	        indicates the true, or canonical, host name of a computer that its
+	        aliases are associated with. (eg. www.wip.d.com)."
 	::= { gtmPoolEntry 22 } 
 
 gtmPoolLimitCpuUsageEnabled OBJECT-TYPE 
@@ -3309,7 +3314,7 @@ gtmPoolMonitorRule OBJECT-TYPE
 	::= { gtmPoolEntry 35 } 
 
 gtmPoolQosCoeffVsScore OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -3320,19 +3325,40 @@ gtmPoolQosCoeffVsScore OBJECT-TYPE
 gtmPoolFallbackIpv6Type OBJECT-TYPE 
 	SYNTAX InetAddressType
 	MAX-ACCESS read-only
-	STATUS current
+	STATUS	 deprecated
 	DESCRIPTION
-		"The IP address type of gtmPoolFallbackIpv6."
+		"Deprecated! No longer used. Please use gtmPoolFallbackIpType as this
+	        field is used to store the IPv4 fallback IP address type for A type
+	        pools and the IPv6 fallback IP address type for AAAA type pools.
+	        The IP address type of gtmPoolFallbackIpv6."
 	::= { gtmPoolEntry 37 } 
 
 gtmPoolFallbackIpv6 OBJECT-TYPE 
 	SYNTAX InetAddress
 	MAX-ACCESS read-only
-	STATUS current
+	STATUS	 deprecated
 	DESCRIPTION
-		"The fallback/emergency failure IPv6 IP address for the specified pool. It is 
+		"Deprecated! No longer used. Please use gtmPoolFallbackIp as this
+	        field is used to store the IPv4 fallback IP address for A type pools
+	        and the IPv6 fallback IP address for AAAA type pools.
+		The fallback/emergency failure IPv6 IP address for the specified pool. It is
 		interpreted within the context of a gtmPoolFallbackIpv6Type value."
 	::= { gtmPoolEntry 38 } 
+
+gtmPoolPoolType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		a(1),
+		cname(5),
+		mx(15),
+		aaaa(28),
+		srv(33),
+		naptr(35)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of a pool."
+	::= { gtmPoolEntry 39 } 
 
 --==================================================================
 -- Gtm_pool_stat
@@ -3370,7 +3396,8 @@ gtmPoolStatEntry OBJECT-TYPE
 	DESCRIPTION
 		"Columns in the gtmPoolStat Table"
 	INDEX {
-		gtmPoolStatName
+		gtmPoolStatName,
+		gtmPoolStatPoolType
 	}
 	::= { gtmPoolStatTable 1 } 
 
@@ -3384,7 +3411,8 @@ GtmPoolStatEntry ::=
         	gtmPoolStatExplicitIp                                  Counter64,
         	gtmPoolStatReturnToDns                                 Counter64,
         	gtmPoolStatReturnFromDns                               Counter64,
-        	gtmPoolStatCnameResolutions                            Counter64
+        	gtmPoolStatCnameResolutions                            Counter64,
+        	gtmPoolStatPoolType                                    INTEGER
 	}
 
 gtmPoolStatName OBJECT-TYPE 
@@ -3460,11 +3488,27 @@ gtmPoolStatReturnFromDns OBJECT-TYPE
 gtmPoolStatCnameResolutions OBJECT-TYPE 
 	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current
+	STATUS	 deprecated
 	DESCRIPTION
-		"The number of times which a query is resolved by the CNAME of the
+		"Deprecated! No longer useful.
+	        The number of times which a query is resolved by the CNAME of the
 	        specified pool."
 	::= { gtmPoolStatEntry 9 } 
+
+gtmPoolStatPoolType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		a(1),
+		cname(5),
+		mx(15),
+		aaaa(28),
+		srv(33),
+		naptr(35)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of a pool."
+	::= { gtmPoolStatEntry 10 } 
 
 --==================================================================
 -- Gtm_pool_member
@@ -3492,6 +3536,7 @@ gtmPoolMbrEntry OBJECT-TYPE
 	DESCRIPTION
 		"Columns in the gtmPoolMbr Table"
 	INDEX {
+		gtmPoolMbrPoolType,
 		gtmPoolMbrPoolName,
 		gtmPoolMbrServerName,
 		gtmPoolMbrVsName
@@ -3521,7 +3566,16 @@ GtmPoolMbrEntry ::=
         	gtmPoolMbrMonitorRule                                  LongDisplayString,
         	gtmPoolMbrEnabled                                      INTEGER,
         	gtmPoolMbrRatio                                        INTEGER,
-        	gtmPoolMbrServerName                                   LongDisplayString
+        	gtmPoolMbrServerName                                   LongDisplayString,
+        	gtmPoolMbrPoolType                                     INTEGER,
+        	gtmPoolMbrStaticTarget                                 INTEGER,
+        	gtmPoolMbrRdataPriority                                INTEGER,
+        	gtmPoolMbrRdataWeight                                  INTEGER,
+        	gtmPoolMbrRdataPort                                    INTEGER,
+        	gtmPoolMbrRdataOrder                                   INTEGER,
+        	gtmPoolMbrRdataPreference                              INTEGER,
+        	gtmPoolMbrRdataFlags                                   LongDisplayString,
+        	gtmPoolMbrRdataService                                 LongDisplayString
 	}
 
 gtmPoolMbrPoolName OBJECT-TYPE 
@@ -3735,6 +3789,98 @@ gtmPoolMbrServerName OBJECT-TYPE
 		"The name of the server with which the specified pool_member is associated."
 	::= { gtmPoolMbrEntry 22 } 
 
+gtmPoolMbrPoolType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		a(1),
+		cname(5),
+		mx(15),
+		aaaa(28),
+		srv(33),
+		naptr(35)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of the pool to which the specified member belongs."
+	::= { gtmPoolMbrEntry 23 } 
+
+gtmPoolMbrStaticTarget OBJECT-TYPE 
+	SYNTAX INTEGER {
+		false(0),
+		true(1)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The state indicating whether or not the pool member is a
+	        static target CNAME. The default is false. This is only used
+	        on CNAME type pool members."
+	::= { gtmPoolMbrEntry 24 } 
+
+gtmPoolMbrRdataPriority OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The pool member RDATA priority. The default is 10. This is
+	        only used on MX or SRV type pool members."
+	::= { gtmPoolMbrEntry 25 } 
+
+gtmPoolMbrRdataWeight OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The pool member RDATA weight. The default is 10. This is
+	        only used on SRV type pool members."
+	::= { gtmPoolMbrEntry 26 } 
+
+gtmPoolMbrRdataPort OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The pool member RDATA port. The default is 0. This is only
+	        used on SRV type pool members."
+	::= { gtmPoolMbrEntry 27 } 
+
+gtmPoolMbrRdataOrder OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The pool member RDATA order. The default is 10. This is only
+	        used on NAPTR type pool members."
+	::= { gtmPoolMbrEntry 28 } 
+
+gtmPoolMbrRdataPreference OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The pool member RDATA preference. The default is 10. This is
+	        only used on NAPTR type pool members."
+	::= { gtmPoolMbrEntry 29 } 
+
+gtmPoolMbrRdataFlags OBJECT-TYPE 
+	SYNTAX LongDisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The pool member RDATA flags. If specified, valid strings are
+	        either 'a' for address type or 's' for service type. This is
+	        only used on NAPTR type pool members."
+	::= { gtmPoolMbrEntry 30 } 
+
+gtmPoolMbrRdataService OBJECT-TYPE 
+	SYNTAX LongDisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The pool member RDATA service. This is only used on
+	        NAPTR type pool members."
+	::= { gtmPoolMbrEntry 31 } 
+
 --==================================================================
 -- Gtm_pool_status
 --==================================================================
@@ -3761,6 +3907,7 @@ gtmPoolStatusEntry OBJECT-TYPE
 	DESCRIPTION
 		"Columns in the gtmPoolStatus Table"
 	INDEX {
+		gtmPoolStatusPoolType,
 		gtmPoolStatusName
 	}
 	::= { gtmPoolStatusTable 1 } 
@@ -3770,8 +3917,9 @@ GtmPoolStatusEntry ::=
         	gtmPoolStatusName                                      LongDisplayString,
         	gtmPoolStatusAvailState                                INTEGER,
         	gtmPoolStatusEnabledState                              INTEGER,
-        	gtmPoolStatusParentType                                Integer32,
-        	gtmPoolStatusDetailReason                              LongDisplayString
+        	gtmPoolStatusParentType                                Gauge,
+        	gtmPoolStatusDetailReason                              LongDisplayString,
+        	gtmPoolStatusPoolType                                  INTEGER
 	}
 
 gtmPoolStatusName OBJECT-TYPE 
@@ -3818,7 +3966,7 @@ gtmPoolStatusEnabledState OBJECT-TYPE
 	::= { gtmPoolStatusEntry 3 } 
 
 gtmPoolStatusParentType OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -3833,6 +3981,21 @@ gtmPoolStatusDetailReason OBJECT-TYPE
 	DESCRIPTION
 		"The detail description of the specified pool's status."
 	::= { gtmPoolStatusEntry 5 } 
+
+gtmPoolStatusPoolType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		a(1),
+		cname(5),
+		mx(15),
+		aaaa(28),
+		srv(33),
+		naptr(35)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of a pool."
+	::= { gtmPoolStatusEntry 6 } 
 
 --==================================================================
 -- Gtm_pool_member_depends
@@ -3863,6 +4026,7 @@ gtmPoolMbrDepsEntry OBJECT-TYPE
 		gtmPoolMbrDepsServerName,
 		gtmPoolMbrDepsVsName,
 		gtmPoolMbrDepsPoolName,
+		gtmPoolMbrDepsPoolType,
 		gtmPoolMbrDepsDependServerName,
 		gtmPoolMbrDepsDependVsName
 	}
@@ -3880,7 +4044,8 @@ GtmPoolMbrDepsEntry ::=
         	gtmPoolMbrDepsServerName                               LongDisplayString,
         	gtmPoolMbrDepsVsName                                   LongDisplayString,
         	gtmPoolMbrDepsDependServerName                         LongDisplayString,
-        	gtmPoolMbrDepsDependVsName                             LongDisplayString
+        	gtmPoolMbrDepsDependVsName                             LongDisplayString,
+        	gtmPoolMbrDepsPoolType                                 INTEGER
 	}
 
 gtmPoolMbrDepsIpType OBJECT-TYPE 
@@ -3979,6 +4144,21 @@ gtmPoolMbrDepsDependVsName OBJECT-TYPE
 		"The virtual server name on which the specified pool member depends."
 	::= { gtmPoolMbrDepsEntry 11 } 
 
+gtmPoolMbrDepsPoolType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		a(1),
+		cname(5),
+		mx(15),
+		aaaa(28),
+		srv(33),
+		naptr(35)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of a pool to which the specified member belongs."
+	::= { gtmPoolMbrDepsEntry 12 } 
+
 --==================================================================
 -- Gtm_pool_member_stat
 --==================================================================
@@ -4015,6 +4195,7 @@ gtmPoolMbrStatEntry OBJECT-TYPE
 	DESCRIPTION
 		"Columns in the gtmPoolMbrStat Table"
 	INDEX {
+		gtmPoolMbrStatPoolType,
 		gtmPoolMbrStatPoolName,
 		gtmPoolMbrStatServerName,
 		gtmPoolMbrStatVsName
@@ -4031,7 +4212,8 @@ GtmPoolMbrStatEntry ::=
         	gtmPoolMbrStatAlternate                                Counter64,
         	gtmPoolMbrStatFallback                                 Counter64,
         	gtmPoolMbrStatServerName                               LongDisplayString,
-        	gtmPoolMbrStatVsName                                   LongDisplayString
+        	gtmPoolMbrStatVsName                                   LongDisplayString,
+        	gtmPoolMbrStatPoolType                                 INTEGER
 	}
 
 gtmPoolMbrStatPoolName OBJECT-TYPE 
@@ -4113,6 +4295,21 @@ gtmPoolMbrStatVsName OBJECT-TYPE
 		"The name of the specified virtual server."
 	::= { gtmPoolMbrStatEntry 9 } 
 
+gtmPoolMbrStatPoolType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		a(1),
+		cname(5),
+		mx(15),
+		aaaa(28),
+		srv(33),
+		naptr(35)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of a pool to which the specified member belongs."
+	::= { gtmPoolMbrStatEntry 10 } 
+
 --==================================================================
 -- Gtm_pool_member_status
 --==================================================================
@@ -4139,6 +4336,7 @@ gtmPoolMbrStatusEntry OBJECT-TYPE
 	DESCRIPTION
 		"Columns in the gtmPoolMbrStatus Table"
 	INDEX {
+		gtmPoolMbrStatusPoolType,
 		gtmPoolMbrStatusPoolName,
 		gtmPoolMbrStatusServerName,
 		gtmPoolMbrStatusVsName
@@ -4153,10 +4351,11 @@ GtmPoolMbrStatusEntry ::=
         	gtmPoolMbrStatusPort                                   InetPortNumber,
         	gtmPoolMbrStatusAvailState                             INTEGER,
         	gtmPoolMbrStatusEnabledState                           INTEGER,
-        	gtmPoolMbrStatusParentType                             Integer32,
+        	gtmPoolMbrStatusParentType                             Gauge,
         	gtmPoolMbrStatusDetailReason                           LongDisplayString,
         	gtmPoolMbrStatusVsName                                 LongDisplayString,
-        	gtmPoolMbrStatusServerName                             LongDisplayString
+        	gtmPoolMbrStatusServerName                             LongDisplayString,
+        	gtmPoolMbrStatusPoolType                               INTEGER
 	}
 
 gtmPoolMbrStatusPoolName OBJECT-TYPE 
@@ -4231,7 +4430,7 @@ gtmPoolMbrStatusEnabledState OBJECT-TYPE
 	::= { gtmPoolMbrStatusEntry 6 } 
 
 gtmPoolMbrStatusParentType OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -4263,6 +4462,21 @@ gtmPoolMbrStatusServerName OBJECT-TYPE
 	DESCRIPTION
 		"The name of the server with which the specified pool_member is associated."
 	::= { gtmPoolMbrStatusEntry 10 } 
+
+gtmPoolMbrStatusPoolType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		a(1),
+		cname(5),
+		mx(15),
+		aaaa(28),
+		srv(33),
+		naptr(35)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of the pool to which the specified member belongs."
+	::= { gtmPoolMbrStatusEntry 11 } 
 
 --==================================================================
 -- Gtm_region_entry
@@ -4393,7 +4607,7 @@ gtmRegItemType OBJECT-TYPE
 		pool(5),
 		datacenter(6),
 		ispregion(7),
-		geoip-isp(8)
+		geoipIsp(8)
 	}
 	MAX-ACCESS read-only
 	STATUS current
@@ -4544,7 +4758,7 @@ gtmRuleEventEventType OBJECT-TYPE
 	::= { gtmRuleEventEntry 2 } 
 
 gtmRuleEventPriority OBJECT-TYPE 
-	SYNTAX INTEGER(1..2147483647)
+	SYNTAX INTEGER(0..32767)
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -4629,7 +4843,7 @@ gtmRuleEventStatEventType OBJECT-TYPE
 	::= { gtmRuleEventStatEntry 2 } 
 
 gtmRuleEventStatPriority OBJECT-TYPE 
-	SYNTAX INTEGER(1..2147483647)
+	SYNTAX INTEGER(0..32767)
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -5180,7 +5394,7 @@ GtmServerStatusEntry ::=
         	gtmServerStatusName                                    LongDisplayString,
         	gtmServerStatusAvailState                              INTEGER,
         	gtmServerStatusEnabledState                            INTEGER,
-        	gtmServerStatusParentType                              Integer32,
+        	gtmServerStatusParentType                              Gauge,
         	gtmServerStatusDetailReason                            LongDisplayString
 	}
 
@@ -5228,7 +5442,7 @@ gtmServerStatusEnabledState OBJECT-TYPE
 	::= { gtmServerStatusEntry 3 } 
 
 gtmServerStatusParentType OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -5287,8 +5501,8 @@ GtmTopItemEntry ::=
         	gtmTopItemServerType                                   INTEGER,
         	gtmTopItemServerNegate                                 INTEGER,
         	gtmTopItemServerEntry                                  LongDisplayString,
-        	gtmTopItemWeight                                       Integer32,
-        	gtmTopItemOrder                                        Integer32
+        	gtmTopItemWeight                                       Gauge,
+        	gtmTopItemOrder                                        Gauge
 	}
 
 gtmTopItemLdnsType OBJECT-TYPE 
@@ -5301,7 +5515,7 @@ gtmTopItemLdnsType OBJECT-TYPE
 		pool(5),
 		datacenter(6),
 		ispregion(7),
-		geoip-isp(8)
+		geoipIsp(8)
 	}
 	MAX-ACCESS read-only
 	STATUS current
@@ -5340,7 +5554,7 @@ gtmTopItemServerType OBJECT-TYPE
 		pool(5),
 		datacenter(6),
 		ispregion(7),
-		geoip-isp(8)
+		geoipIsp(8)
 	}
 	MAX-ACCESS read-only
 	STATUS current
@@ -5370,7 +5584,7 @@ gtmTopItemServerEntry OBJECT-TYPE
 	::= { gtmTopItemEntry 6 } 
 
 gtmTopItemWeight OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -5378,7 +5592,7 @@ gtmTopItemWeight OBJECT-TYPE
 	::= { gtmTopItemEntry 7 } 
 
 gtmTopItemOrder OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -6012,7 +6226,7 @@ GtmVsStatusEntry ::=
         	gtmVsStatusPort                                        InetPortNumber,
         	gtmVsStatusAvailState                                  INTEGER,
         	gtmVsStatusEnabledState                                INTEGER,
-        	gtmVsStatusParentType                                  Integer32,
+        	gtmVsStatusParentType                                  Gauge,
         	gtmVsStatusDetailReason                                LongDisplayString,
         	gtmVsStatusVsName                                      LongDisplayString,
         	gtmVsStatusServerName                                  LongDisplayString
@@ -6082,7 +6296,7 @@ gtmVsStatusEnabledState OBJECT-TYPE
 	::= { gtmVsStatusEntry 5 } 
 
 gtmVsStatusParentType OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -6140,6 +6354,7 @@ gtmWideipEntry OBJECT-TYPE
 	DESCRIPTION
 		"Columns in the gtmWideip Table"
 	INDEX {
+		gtmWideipType,
 		gtmWideipName
 	}
 	::= { gtmWideipTable 1 } 
@@ -6148,13 +6363,19 @@ GtmWideipEntry ::=
 	SEQUENCE {
         	gtmWideipName                                          LongDisplayString,
         	gtmWideipPersist                                       INTEGER,
-        	gtmWideipTtlPersist                                    Integer32,
+        	gtmWideipTtlPersist                                    Gauge,
         	gtmWideipEnabled                                       INTEGER,
         	gtmWideipLbmodePool                                    INTEGER,
         	gtmWideipApplication                                   LongDisplayString,
         	gtmWideipLastResortPool                                LongDisplayString,
-        	gtmWideipIpv6Noerror                                   INTEGER,
-        	gtmWideipLoadBalancingDecisionLogVerbosity             Integer32
+        	gtmWideipIpNoError                                     INTEGER,
+        	gtmWideipLoadBalancingDecisionLogVerbosity             Gauge,
+        	gtmWideipIpNoErrorTtl                                  Gauge,
+        	gtmWideipPersistCidr                                   Gauge,
+        	gtmWideipPersistV6Cidr                                 Gauge,
+        	gtmWideipMinimalResponse                               INTEGER,
+        	gtmWideipType                                          INTEGER,
+        	gtmWideipLastResortPoolType                            INTEGER
 	}
 
 gtmWideipName OBJECT-TYPE 
@@ -6178,7 +6399,7 @@ gtmWideipPersist OBJECT-TYPE
 	::= { gtmWideipEntry 2 } 
 
 gtmWideipTtlPersist OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -6231,9 +6452,10 @@ gtmWideipLbmodePool OBJECT-TYPE
 gtmWideipApplication OBJECT-TYPE 
 	SYNTAX LongDisplayString
 	MAX-ACCESS read-only
-	STATUS current
+	STATUS	 deprecated
 	DESCRIPTION
-		"The application name the specified wide IP is used for."
+		"Deprecated! No longer useful. Please use gtmApplicationWideip.
+	        The application name the specified wide IP is used for."
 	::= { gtmWideipEntry 6 } 
 
 gtmWideipLastResortPool OBJECT-TYPE 
@@ -6244,19 +6466,20 @@ gtmWideipLastResortPool OBJECT-TYPE
 		"The name of the last-resort pool for the specified wide IP."
 	::= { gtmWideipEntry 7 } 
 
-gtmWideipIpv6Noerror OBJECT-TYPE 
+gtmWideipIpNoError OBJECT-TYPE 
 	SYNTAX INTEGER {
-		false(0),
-		true(1)
+		disable(0),
+		enable(1)
 	}
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
-		"When enabled, all IPv6 wide IP requests will be returned with a noerror response."
+		"When enabled on a given wide IP, all requests sent to that
+	        wide IP will be returned with a noerror response."
 	::= { gtmWideipEntry 8 } 
 
 gtmWideipLoadBalancingDecisionLogVerbosity OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -6270,6 +6493,84 @@ gtmWideipLoadBalancingDecisionLogVerbosity OBJECT-TYPE
 	        fourth bit is 1, log will contain details of all pool members
 	        traversed during load-balancing."
 	::= { gtmWideipEntry 9 } 
+
+gtmWideipIpNoErrorTtl OBJECT-TYPE 
+	SYNTAX Gauge
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The negative caching TTL of the SOA record for the NoError
+	        response. The default is 0, which means that no SOA is included
+	        (ie no caching)."
+	::= { gtmWideipEntry 10 } 
+
+gtmWideipPersistCidr OBJECT-TYPE 
+	SYNTAX Gauge
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"A mask used to group IPv4 LDNS addresses. This allows one
+	        persistence record to be shared by IPv4 LDNS addresses that
+	        match within this mask. The default is 32 (no shared
+	        persistence records)."
+	::= { gtmWideipEntry 11 } 
+
+gtmWideipPersistV6Cidr OBJECT-TYPE 
+	SYNTAX Gauge
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"A mask used to group IPv6 LDNS addresses. This allows one
+	        persistence record to be shared by IPv6 LDNS addresses that
+	        match within this mask. The default is 128 (no shared
+	        persistence records)."
+	::= { gtmWideipEntry 12 } 
+
+gtmWideipMinimalResponse OBJECT-TYPE 
+	SYNTAX INTEGER {
+		disable(0),
+		enable(1)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Whether or not GTM will form the smallest allowable DNS
+	        response to a query. The default is enabled. When set to
+	        disabled, GTM will attempt to chase CNAME chains to obtain
+	        the ultimate answer and attempt to add address resource
+	        records to the additional section of the response for each
+	        answer when needed."
+	::= { gtmWideipEntry 13 } 
+
+gtmWideipType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		a(1),
+		cname(5),
+		mx(15),
+		aaaa(28),
+		srv(33),
+		naptr(35)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of a wide IP."
+	::= { gtmWideipEntry 14 } 
+
+gtmWideipLastResortPoolType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		a(1),
+		cname(5),
+		mx(15),
+		aaaa(28),
+		srv(33),
+		naptr(35)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of the last-resort pool for the specified wide IP."
+	::= { gtmWideipEntry 15 } 
 
 --==================================================================
 -- Gtm_wideip_stat
@@ -6307,6 +6608,7 @@ gtmWideipStatEntry OBJECT-TYPE
 	DESCRIPTION
 		"Columns in the gtmWideipStat Table"
 	INDEX {
+		gtmWideipStatWipType,
 		gtmWideipStatName
 	}
 	::= { gtmWideipStatTable 1 } 
@@ -6325,7 +6627,9 @@ GtmWideipStatEntry ::=
         	gtmWideipStatReturnFromDns                             Counter64,
         	gtmWideipStatCnameResolutions                          Counter64,
         	gtmWideipStatARequests                                 Counter64,
-        	gtmWideipStatAaaaRequests                              Counter64
+        	gtmWideipStatAaaaRequests                              Counter64,
+        	gtmWideipStatAlternate                                 Counter64,
+        	gtmWideipStatWipType                                   INTEGER
 	}
 
 gtmWideipStatName OBJECT-TYPE 
@@ -6374,7 +6678,7 @@ gtmWideipStatFallback OBJECT-TYPE
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
-		"The number of times which the alternate load balance method is used
+		"The number of times which the fallback load balance method is used
 	        for the specified wide IP."
 	::= { gtmWideipStatEntry 6 } 
 
@@ -6425,18 +6729,44 @@ gtmWideipStatCnameResolutions OBJECT-TYPE
 gtmWideipStatARequests OBJECT-TYPE 
 	SYNTAX Counter64
 	MAX-ACCESS read-only
-	STATUS current
+	STATUS	 deprecated
 	DESCRIPTION
-		"The number of A requests for the specified wide IP."
+		"Deprecated! No longer used.
+	        The number of A requests for the specified wide IP."
 	::= { gtmWideipStatEntry 12 } 
 
 gtmWideipStatAaaaRequests OBJECT-TYPE 
 	SYNTAX Counter64
 	MAX-ACCESS read-only
+	STATUS	 deprecated
+	DESCRIPTION
+		"Deprecated! No longer used.
+	        The number of AAAA requests for the specified wide IP."
+	::= { gtmWideipStatEntry 13 } 
+
+gtmWideipStatAlternate OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
-		"The number of AAAA requests for the specified wide IP."
-	::= { gtmWideipStatEntry 13 } 
+		"The number of times which the alternate load balance method is used
+	        for the specified wide IP."
+	::= { gtmWideipStatEntry 14 } 
+
+gtmWideipStatWipType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		a(1),
+		cname(5),
+		mx(15),
+		aaaa(28),
+		srv(33),
+		naptr(35)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of the wide IP."
+	::= { gtmWideipStatEntry 15 } 
 
 --==================================================================
 -- Gtm_wideip_status
@@ -6464,6 +6794,7 @@ gtmWideipStatusEntry OBJECT-TYPE
 	DESCRIPTION
 		"Columns in the gtmWideipStatus Table"
 	INDEX {
+		gtmWideipStatusType,
 		gtmWideipStatusName
 	}
 	::= { gtmWideipStatusTable 1 } 
@@ -6473,8 +6804,9 @@ GtmWideipStatusEntry ::=
         	gtmWideipStatusName                                    LongDisplayString,
         	gtmWideipStatusAvailState                              INTEGER,
         	gtmWideipStatusEnabledState                            INTEGER,
-        	gtmWideipStatusParentType                              Integer32,
-        	gtmWideipStatusDetailReason                            LongDisplayString
+        	gtmWideipStatusParentType                              Gauge,
+        	gtmWideipStatusDetailReason                            LongDisplayString,
+        	gtmWideipStatusType                                    INTEGER
 	}
 
 gtmWideipStatusName OBJECT-TYPE 
@@ -6521,7 +6853,7 @@ gtmWideipStatusEnabledState OBJECT-TYPE
 	::= { gtmWideipStatusEntry 3 } 
 
 gtmWideipStatusParentType OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -6536,6 +6868,21 @@ gtmWideipStatusDetailReason OBJECT-TYPE
 	DESCRIPTION
 		"The detail description of the specified wide IP's status."
 	::= { gtmWideipStatusEntry 5 } 
+
+gtmWideipStatusType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		a(1),
+		cname(5),
+		mx(15),
+		aaaa(28),
+		srv(33),
+		naptr(35)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of a wide IP."
+	::= { gtmWideipStatusEntry 6 } 
 
 --==================================================================
 -- Gtm_wideip_alias
@@ -6564,6 +6911,7 @@ gtmWideipAliasEntry OBJECT-TYPE
 	DESCRIPTION
 		"Columns in the gtmWideipAlias Table"
 	INDEX {
+		gtmWideipAliasWipType,
 		gtmWideipAliasWipName,
 		gtmWideipAliasName
 	}
@@ -6572,7 +6920,8 @@ gtmWideipAliasEntry OBJECT-TYPE
 GtmWideipAliasEntry ::= 
 	SEQUENCE {
         	gtmWideipAliasWipName                                  LongDisplayString,
-        	gtmWideipAliasName                                     LongDisplayString
+        	gtmWideipAliasName                                     LongDisplayString,
+        	gtmWideipAliasWipType                                  INTEGER
 	}
 
 gtmWideipAliasWipName OBJECT-TYPE 
@@ -6590,6 +6939,21 @@ gtmWideipAliasName OBJECT-TYPE
 	DESCRIPTION
 		"The alias name of the specified wide IP."
 	::= { gtmWideipAliasEntry 2 } 
+
+gtmWideipAliasWipType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		a(1),
+		cname(5),
+		mx(15),
+		aaaa(28),
+		srv(33),
+		naptr(35)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of the wide IP."
+	::= { gtmWideipAliasEntry 3 } 
 
 --==================================================================
 -- Gtm_wideip_pool
@@ -6618,7 +6982,9 @@ gtmWideipPoolEntry OBJECT-TYPE
 	DESCRIPTION
 		"Columns in the gtmWideipPool Table"
 	INDEX {
+		gtmWideipPoolWipType,
 		gtmWideipPoolWipName,
+		gtmWideipPoolPoolType,
 		gtmWideipPoolPoolName
 	}
 	::= { gtmWideipPoolTable 1 } 
@@ -6628,7 +6994,9 @@ GtmWideipPoolEntry ::=
         	gtmWideipPoolWipName                                   LongDisplayString,
         	gtmWideipPoolPoolName                                  LongDisplayString,
         	gtmWideipPoolOrder                                     INTEGER,
-        	gtmWideipPoolRatio                                     INTEGER
+        	gtmWideipPoolRatio                                     INTEGER,
+        	gtmWideipPoolWipType                                   INTEGER,
+        	gtmWideipPoolPoolType                                  INTEGER
 	}
 
 gtmWideipPoolWipName OBJECT-TYPE 
@@ -6663,6 +7031,36 @@ gtmWideipPoolRatio OBJECT-TYPE
 		"The load balancing ratio given to the specified pool."
 	::= { gtmWideipPoolEntry 4 } 
 
+gtmWideipPoolWipType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		a(1),
+		cname(5),
+		mx(15),
+		aaaa(28),
+		srv(33),
+		naptr(35)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of the wide IP."
+	::= { gtmWideipPoolEntry 5 } 
+
+gtmWideipPoolPoolType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		a(1),
+		cname(5),
+		mx(15),
+		aaaa(28),
+		srv(33),
+		naptr(35)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of the pool."
+	::= { gtmWideipPoolEntry 6 } 
+
 --==================================================================
 -- Gtm_wideip_rule
 --==================================================================
@@ -6690,6 +7088,7 @@ gtmWideipRuleEntry OBJECT-TYPE
 	DESCRIPTION
 		"Columns in the gtmWideipRule Table"
 	INDEX {
+		gtmWideipRuleWipType,
 		gtmWideipRuleWipName,
 		gtmWideipRuleRuleName
 	}
@@ -6699,7 +7098,8 @@ GtmWideipRuleEntry ::=
 	SEQUENCE {
         	gtmWideipRuleWipName                                   LongDisplayString,
         	gtmWideipRuleRuleName                                  LongDisplayString,
-        	gtmWideipRulePriority                                  Integer32
+        	gtmWideipRulePriority                                  Gauge,
+        	gtmWideipRuleWipType                                   INTEGER
 	}
 
 gtmWideipRuleWipName OBJECT-TYPE 
@@ -6719,12 +7119,27 @@ gtmWideipRuleRuleName OBJECT-TYPE
 	::= { gtmWideipRuleEntry 2 } 
 
 gtmWideipRulePriority OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
 		"The execution priority of the rule for the specified wide IP."
 	::= { gtmWideipRuleEntry 3 } 
+
+gtmWideipRuleWipType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		a(1),
+		cname(5),
+		mx(15),
+		aaaa(28),
+		srv(33),
+		naptr(35)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of the wide IP."
+	::= { gtmWideipRuleEntry 4 } 
 
 --==================================================================
 -- Gtm_server_stat2
@@ -7418,58 +7833,58 @@ GtmAttr2Entry ::=
         	gtmAttr2FbRespectAcl                                   INTEGER,
         	gtmAttr2DefaultAlternate                               INTEGER,
         	gtmAttr2DefaultFallback                                INTEGER,
-        	gtmAttr2PersistMask                                    Integer32,
+        	gtmAttr2PersistMask                                    Gauge,
         	gtmAttr2GtmSetsRecursion                               INTEGER,
-        	gtmAttr2QosFactorLcs                                   Integer32,
-        	gtmAttr2QosFactorRtt                                   Integer32,
-        	gtmAttr2QosFactorHops                                  Integer32,
-        	gtmAttr2QosFactorHitRatio                              Integer32,
-        	gtmAttr2QosFactorPacketRate                            Integer32,
-        	gtmAttr2QosFactorBps                                   Integer32,
-        	gtmAttr2QosFactorVsCapacity                            Integer32,
-        	gtmAttr2QosFactorTopology                              Integer32,
-        	gtmAttr2QosFactorConnRate                              Integer32,
-        	gtmAttr2TimerRetryPathData                             Integer32,
-        	gtmAttr2TimerGetAutoconfigData                         Integer32,
-        	gtmAttr2TimerPersistCache                              Integer32,
-        	gtmAttr2DefaultProbeLimit                              Integer32,
-        	gtmAttr2DownThreshold                                  Integer32,
-        	gtmAttr2DownMultiple                                   Integer32,
-        	gtmAttr2PathTtl                                        Integer32,
-        	gtmAttr2TraceTtl                                       Integer32,
-        	gtmAttr2LdnsDuration                                   Integer32,
-        	gtmAttr2PathDuration                                   Integer32,
-        	gtmAttr2RttSampleCount                                 Integer32,
-        	gtmAttr2RttPacketLength                                Integer32,
-        	gtmAttr2RttTimeout                                     Integer32,
-        	gtmAttr2MaxMonReqs                                     Integer32,
-        	gtmAttr2TraceroutePort                                 InetPortNumber,
+        	gtmAttr2QosFactorLcs                                   Gauge,
+        	gtmAttr2QosFactorRtt                                   Gauge,
+        	gtmAttr2QosFactorHops                                  Gauge,
+        	gtmAttr2QosFactorHitRatio                              Gauge,
+        	gtmAttr2QosFactorPacketRate                            Gauge,
+        	gtmAttr2QosFactorBps                                   Gauge,
+        	gtmAttr2QosFactorVsCapacity                            Gauge,
+        	gtmAttr2QosFactorTopology                              Gauge,
+        	gtmAttr2QosFactorConnRate                              Gauge,
+        	gtmAttr2TimerRetryPathData                             Gauge,
+        	gtmAttr2TimerGetAutoconfigData                         Gauge,
+        	gtmAttr2TimerPersistCache                              Gauge,
+        	gtmAttr2DefaultProbeLimit                              Gauge,
+        	gtmAttr2DownThreshold                                  Gauge,
+        	gtmAttr2DownMultiple                                   Gauge,
+        	gtmAttr2PathTtl                                        Gauge,
+        	gtmAttr2TraceTtl                                       Gauge,
+        	gtmAttr2LdnsDuration                                   Gauge,
+        	gtmAttr2PathDuration                                   Gauge,
+        	gtmAttr2RttSampleCount                                 Gauge,
+        	gtmAttr2RttPacketLength                                Gauge,
+        	gtmAttr2RttTimeout                                     Gauge,
+        	gtmAttr2MaxMonReqs                                     Gauge,
+        	gtmAttr2TraceroutePort                                 Gauge,
         	gtmAttr2PathsNeverDie                                  INTEGER,
         	gtmAttr2ProbeDisabledObjects                           INTEGER,
-        	gtmAttr2LinkLimitFactor                                Integer32,
-        	gtmAttr2OverLimitLinkLimitFactor                       Integer32,
-        	gtmAttr2LinkPrepaidFactor                              Integer32,
-        	gtmAttr2LinkCompensateInbound                          Integer32,
-        	gtmAttr2LinkCompensateOutbound                         Integer32,
-        	gtmAttr2LinkCompensationHistory                        Integer32,
-        	gtmAttr2MaxLinkOverLimitCount                          Integer32,
-        	gtmAttr2LowerBoundPctRow                               Integer32,
-        	gtmAttr2LowerBoundPctCol                               Integer32,
+        	gtmAttr2LinkLimitFactor                                Gauge,
+        	gtmAttr2OverLimitLinkLimitFactor                       Gauge,
+        	gtmAttr2LinkPrepaidFactor                              Gauge,
+        	gtmAttr2LinkCompensateInbound                          Gauge,
+        	gtmAttr2LinkCompensateOutbound                         Gauge,
+        	gtmAttr2LinkCompensationHistory                        Gauge,
+        	gtmAttr2MaxLinkOverLimitCount                          Gauge,
+        	gtmAttr2LowerBoundPctRow                               Gauge,
+        	gtmAttr2LowerBoundPctCol                               Gauge,
         	gtmAttr2Autoconf                                       INTEGER,
         	gtmAttr2Autosync                                       INTEGER,
         	gtmAttr2SyncNamedConf                                  INTEGER,
         	gtmAttr2SyncGroup                                      LongDisplayString,
-        	gtmAttr2SyncTimeout                                    Integer32,
-        	gtmAttr2SyncZonesTimeout                               Integer32,
-        	gtmAttr2TimeTolerance                                  Integer32,
+        	gtmAttr2SyncTimeout                                    Gauge,
+        	gtmAttr2SyncZonesTimeout                               Gauge,
+        	gtmAttr2TimeTolerance                                  Gauge,
         	gtmAttr2TopologyLongestMatch                           INTEGER,
-        	gtmAttr2TopologyAclThreshold                           Integer32,
-        	gtmAttr2StaticPersistCidr                              Integer32,
-        	gtmAttr2StaticPersistV6Cidr                            Integer32,
-        	gtmAttr2QosFactorVsScore                               Integer32,
-        	gtmAttr2TimerSendKeepAlive                             Integer32,
-        	gtmAttr2CertificateDepth                               Integer32,
-        	gtmAttr2MaxMemoryUsage                                 Integer32,
+        	gtmAttr2TopologyAclThreshold                           Gauge,
+        	gtmAttr2StaticPersistCidr                              Gauge,
+        	gtmAttr2StaticPersistV6Cidr                            Gauge,
+        	gtmAttr2QosFactorVsScore                               Gauge,
+        	gtmAttr2TimerSendKeepAlive                             Gauge,
+        	gtmAttr2CertificateDepth                               Gauge,
+        	gtmAttr2MaxMemoryUsage                                 Gauge,
         	gtmAttr2Name                                           LongDisplayString,
         	gtmAttr2ForwardStatus                                  INTEGER
 	}
@@ -7638,7 +8053,7 @@ gtmAttr2DefaultFallback OBJECT-TYPE
 	::= { gtmAttr2Entry 11 } 
 
 gtmAttr2PersistMask OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -7660,7 +8075,7 @@ gtmAttr2GtmSetsRecursion OBJECT-TYPE
 	::= { gtmAttr2Entry 13 } 
 
 gtmAttr2QosFactorLcs OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7669,7 +8084,7 @@ gtmAttr2QosFactorLcs OBJECT-TYPE
 	::= { gtmAttr2Entry 14 } 
 
 gtmAttr2QosFactorRtt OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7678,7 +8093,7 @@ gtmAttr2QosFactorRtt OBJECT-TYPE
 	::= { gtmAttr2Entry 15 } 
 
 gtmAttr2QosFactorHops OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7687,7 +8102,7 @@ gtmAttr2QosFactorHops OBJECT-TYPE
 	::= { gtmAttr2Entry 16 } 
 
 gtmAttr2QosFactorHitRatio OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7696,7 +8111,7 @@ gtmAttr2QosFactorHitRatio OBJECT-TYPE
 	::= { gtmAttr2Entry 17 } 
 
 gtmAttr2QosFactorPacketRate OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7705,7 +8120,7 @@ gtmAttr2QosFactorPacketRate OBJECT-TYPE
 	::= { gtmAttr2Entry 18 } 
 
 gtmAttr2QosFactorBps OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7714,7 +8129,7 @@ gtmAttr2QosFactorBps OBJECT-TYPE
 	::= { gtmAttr2Entry 19 } 
 
 gtmAttr2QosFactorVsCapacity OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7723,7 +8138,7 @@ gtmAttr2QosFactorVsCapacity OBJECT-TYPE
 	::= { gtmAttr2Entry 20 } 
 
 gtmAttr2QosFactorTopology OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7732,7 +8147,7 @@ gtmAttr2QosFactorTopology OBJECT-TYPE
 	::= { gtmAttr2Entry 21 } 
 
 gtmAttr2QosFactorConnRate OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -7743,7 +8158,7 @@ gtmAttr2QosFactorConnRate OBJECT-TYPE
 	::= { gtmAttr2Entry 22 } 
 
 gtmAttr2TimerRetryPathData OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7751,7 +8166,7 @@ gtmAttr2TimerRetryPathData OBJECT-TYPE
 	::= { gtmAttr2Entry 23 } 
 
 gtmAttr2TimerGetAutoconfigData OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7759,7 +8174,7 @@ gtmAttr2TimerGetAutoconfigData OBJECT-TYPE
 	::= { gtmAttr2Entry 24 } 
 
 gtmAttr2TimerPersistCache OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7768,7 +8183,7 @@ gtmAttr2TimerPersistCache OBJECT-TYPE
 	::= { gtmAttr2Entry 25 } 
 
 gtmAttr2DefaultProbeLimit OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7776,7 +8191,7 @@ gtmAttr2DefaultProbeLimit OBJECT-TYPE
 	::= { gtmAttr2Entry 26 } 
 
 gtmAttr2DownThreshold OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7787,7 +8202,7 @@ gtmAttr2DownThreshold OBJECT-TYPE
 	::= { gtmAttr2Entry 27 } 
 
 gtmAttr2DownMultiple OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7798,7 +8213,7 @@ gtmAttr2DownMultiple OBJECT-TYPE
 	::= { gtmAttr2Entry 28 } 
 
 gtmAttr2PathTtl OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7806,7 +8221,7 @@ gtmAttr2PathTtl OBJECT-TYPE
 	::= { gtmAttr2Entry 29 } 
 
 gtmAttr2TraceTtl OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7814,7 +8229,7 @@ gtmAttr2TraceTtl OBJECT-TYPE
 	::= { gtmAttr2Entry 30 } 
 
 gtmAttr2LdnsDuration OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7822,7 +8237,7 @@ gtmAttr2LdnsDuration OBJECT-TYPE
 	::= { gtmAttr2Entry 31 } 
 
 gtmAttr2PathDuration OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7830,7 +8245,7 @@ gtmAttr2PathDuration OBJECT-TYPE
 	::= { gtmAttr2Entry 32 } 
 
 gtmAttr2RttSampleCount OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7839,7 +8254,7 @@ gtmAttr2RttSampleCount OBJECT-TYPE
 	::= { gtmAttr2Entry 33 } 
 
 gtmAttr2RttPacketLength OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7848,7 +8263,7 @@ gtmAttr2RttPacketLength OBJECT-TYPE
 	::= { gtmAttr2Entry 34 } 
 
 gtmAttr2RttTimeout OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7856,7 +8271,7 @@ gtmAttr2RttTimeout OBJECT-TYPE
 	::= { gtmAttr2Entry 35 } 
 
 gtmAttr2MaxMonReqs OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7867,7 +8282,7 @@ gtmAttr2MaxMonReqs OBJECT-TYPE
 	::= { gtmAttr2Entry 36 } 
 
 gtmAttr2TraceroutePort OBJECT-TYPE 
-	SYNTAX InetPortNumber
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7899,7 +8314,7 @@ gtmAttr2ProbeDisabledObjects OBJECT-TYPE
 	::= { gtmAttr2Entry 39 } 
 
 gtmAttr2LinkLimitFactor OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7910,7 +8325,7 @@ gtmAttr2LinkLimitFactor OBJECT-TYPE
 	::= { gtmAttr2Entry 40 } 
 
 gtmAttr2OverLimitLinkLimitFactor OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7923,7 +8338,7 @@ gtmAttr2OverLimitLinkLimitFactor OBJECT-TYPE
 	::= { gtmAttr2Entry 41 } 
 
 gtmAttr2LinkPrepaidFactor OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7933,7 +8348,7 @@ gtmAttr2LinkPrepaidFactor OBJECT-TYPE
 	::= { gtmAttr2Entry 42 } 
 
 gtmAttr2LinkCompensateInbound OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7946,7 +8361,7 @@ gtmAttr2LinkCompensateInbound OBJECT-TYPE
 	::= { gtmAttr2Entry 43 } 
 
 gtmAttr2LinkCompensateOutbound OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7959,7 +8374,7 @@ gtmAttr2LinkCompensateOutbound OBJECT-TYPE
 	::= { gtmAttr2Entry 44 } 
 
 gtmAttr2LinkCompensationHistory OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7967,7 +8382,7 @@ gtmAttr2LinkCompensationHistory OBJECT-TYPE
 	::= { gtmAttr2Entry 45 } 
 
 gtmAttr2MaxLinkOverLimitCount OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -7977,7 +8392,7 @@ gtmAttr2MaxLinkOverLimitCount OBJECT-TYPE
 	::= { gtmAttr2Entry 46 } 
 
 gtmAttr2LowerBoundPctRow OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -7986,7 +8401,7 @@ gtmAttr2LowerBoundPctRow OBJECT-TYPE
 	::= { gtmAttr2Entry 47 } 
 
 gtmAttr2LowerBoundPctCol OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -8039,7 +8454,7 @@ gtmAttr2SyncGroup OBJECT-TYPE
 	::= { gtmAttr2Entry 52 } 
 
 gtmAttr2SyncTimeout OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -8048,7 +8463,7 @@ gtmAttr2SyncTimeout OBJECT-TYPE
 	::= { gtmAttr2Entry 53 } 
 
 gtmAttr2SyncZonesTimeout OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -8057,7 +8472,7 @@ gtmAttr2SyncZonesTimeout OBJECT-TYPE
 	::= { gtmAttr2Entry 54 } 
 
 gtmAttr2TimeTolerance OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -8082,7 +8497,7 @@ gtmAttr2TopologyLongestMatch OBJECT-TYPE
 	::= { gtmAttr2Entry 56 } 
 
 gtmAttr2TopologyAclThreshold OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -8091,7 +8506,7 @@ gtmAttr2TopologyAclThreshold OBJECT-TYPE
 	::= { gtmAttr2Entry 57 } 
 
 gtmAttr2StaticPersistCidr OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -8101,7 +8516,7 @@ gtmAttr2StaticPersistCidr OBJECT-TYPE
 	::= { gtmAttr2Entry 58 } 
 
 gtmAttr2StaticPersistV6Cidr OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -8111,7 +8526,7 @@ gtmAttr2StaticPersistV6Cidr OBJECT-TYPE
 	::= { gtmAttr2Entry 59 } 
 
 gtmAttr2QosFactorVsScore OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -8120,7 +8535,7 @@ gtmAttr2QosFactorVsScore OBJECT-TYPE
 	::= { gtmAttr2Entry 60 } 
 
 gtmAttr2TimerSendKeepAlive OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -8128,7 +8543,7 @@ gtmAttr2TimerSendKeepAlive OBJECT-TYPE
 	::= { gtmAttr2Entry 61 } 
 
 gtmAttr2CertificateDepth OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -8137,7 +8552,7 @@ gtmAttr2CertificateDepth OBJECT-TYPE
 	::= { gtmAttr2Entry 62 } 
 
 gtmAttr2MaxMemoryUsage OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS	 deprecated
 	DESCRIPTION
@@ -8637,6 +9052,77 @@ gtmDnssecStatXfrMasterSerial OBJECT-TYPE
 		"The zone serial number of the primary server."
 	::= { gtmGlobalDnssecStat 25 } 
 
+--==================================================================
+-- Gtm_application_wideip
+--==================================================================
+gtmApplicationWideipNumber OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of gtmApplicationWideip entries in the table."
+	::= { gtmApplicationWideip 1 } 
+
+gtmApplicationWideipTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF GtmApplicationWideipEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"A table containing information on wide IPs associated with
+		the specified applications for GTM (Global Traffic Management)."
+	::= { gtmApplicationWideip 2 } 
+
+gtmApplicationWideipEntry OBJECT-TYPE
+	SYNTAX  GtmApplicationWideipEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"Columns in the gtmApplicationWideip Table"
+	INDEX {
+		gtmApplicationWideipApplicationName,
+		gtmApplicationWideipWipName,
+		gtmApplicationWideipWipType
+	}
+	::= { gtmApplicationWideipTable 1 } 
+
+GtmApplicationWideipEntry ::= 
+	SEQUENCE {
+        	gtmApplicationWideipApplicationName                    LongDisplayString,
+        	gtmApplicationWideipWipName                            LongDisplayString,
+        	gtmApplicationWideipWipType                            INTEGER
+	}
+
+gtmApplicationWideipApplicationName OBJECT-TYPE 
+	SYNTAX LongDisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The name of a GTM application."
+	::= { gtmApplicationWideipEntry 1 } 
+
+gtmApplicationWideipWipName OBJECT-TYPE 
+	SYNTAX LongDisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The name of the wide IP associated with the GTM application."
+	::= { gtmApplicationWideipEntry 2 } 
+
+gtmApplicationWideipWipType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		a(1),
+		cname(5),
+		mx(15),
+		aaaa(28),
+		srv(33),
+		naptr(35)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of the wide IP associated with the GTM application."
+	::= { gtmApplicationWideipEntry 3 } 
+
 --================================================================
  -- Compliance and Group
 --================================================================
@@ -9030,7 +9516,8 @@ gtmPoolGroup OBJECT-GROUP
 		gtmPoolMonitorRule,
 		gtmPoolQosCoeffVsScore,
 		gtmPoolFallbackIpv6Type,
-		gtmPoolFallbackIpv6
+		gtmPoolFallbackIpv6,
+		gtmPoolPoolType
 	}
 	STATUS	 current
 	DESCRIPTION
@@ -9049,7 +9536,8 @@ gtmPoolStatGroup OBJECT-GROUP
 		gtmPoolStatExplicitIp,
 		gtmPoolStatReturnToDns,
 		gtmPoolStatReturnFromDns,
-		gtmPoolStatCnameResolutions
+		gtmPoolStatCnameResolutions,
+		gtmPoolStatPoolType
 	}
 	STATUS	 current
 	DESCRIPTION
@@ -9080,7 +9568,16 @@ gtmPoolMbrGroup OBJECT-GROUP
 		gtmPoolMbrMonitorRule,
 		gtmPoolMbrEnabled,
 		gtmPoolMbrRatio,
-		gtmPoolMbrServerName
+		gtmPoolMbrServerName,
+		gtmPoolMbrPoolType,
+		gtmPoolMbrStaticTarget,
+		gtmPoolMbrRdataPriority,
+		gtmPoolMbrRdataWeight,
+		gtmPoolMbrRdataPort,
+		gtmPoolMbrRdataOrder,
+		gtmPoolMbrRdataPreference,
+		gtmPoolMbrRdataFlags,
+		gtmPoolMbrRdataService
 	}
 	STATUS	 current
 	DESCRIPTION
@@ -9094,7 +9591,8 @@ gtmPoolStatusGroup OBJECT-GROUP
 		gtmPoolStatusAvailState,
 		gtmPoolStatusEnabledState,
 		gtmPoolStatusParentType,
-		gtmPoolStatusDetailReason
+		gtmPoolStatusDetailReason,
+		gtmPoolStatusPoolType
 	}
 	STATUS	 current
 	DESCRIPTION
@@ -9114,7 +9612,8 @@ gtmPoolMbrDepsGroup OBJECT-GROUP
 		gtmPoolMbrDepsServerName,
 		gtmPoolMbrDepsVsName,
 		gtmPoolMbrDepsDependServerName,
-		gtmPoolMbrDepsDependVsName
+		gtmPoolMbrDepsDependVsName,
+		gtmPoolMbrDepsPoolType
 	}
 	STATUS	 current
 	DESCRIPTION
@@ -9133,7 +9632,8 @@ gtmPoolMbrStatGroup OBJECT-GROUP
 		gtmPoolMbrStatAlternate,
 		gtmPoolMbrStatFallback,
 		gtmPoolMbrStatServerName,
-		gtmPoolMbrStatVsName
+		gtmPoolMbrStatVsName,
+		gtmPoolMbrStatPoolType
 	}
 	STATUS	 current
 	DESCRIPTION
@@ -9152,7 +9652,8 @@ gtmPoolMbrStatusGroup OBJECT-GROUP
 		gtmPoolMbrStatusParentType,
 		gtmPoolMbrStatusDetailReason,
 		gtmPoolMbrStatusVsName,
-		gtmPoolMbrStatusServerName
+		gtmPoolMbrStatusServerName,
+		gtmPoolMbrStatusPoolType
 	}
 	STATUS	 current
 	DESCRIPTION
@@ -9413,8 +9914,14 @@ gtmWideipGroup OBJECT-GROUP
 		gtmWideipLbmodePool,
 		gtmWideipApplication,
 		gtmWideipLastResortPool,
-		gtmWideipIpv6Noerror,
-		gtmWideipLoadBalancingDecisionLogVerbosity
+		gtmWideipIpNoError,
+		gtmWideipLoadBalancingDecisionLogVerbosity,
+		gtmWideipIpNoErrorTtl,
+		gtmWideipPersistCidr,
+		gtmWideipPersistV6Cidr,
+		gtmWideipMinimalResponse,
+		gtmWideipType,
+		gtmWideipLastResortPoolType
 	}
 	STATUS	 current
 	DESCRIPTION
@@ -9437,7 +9944,9 @@ gtmWideipStatGroup OBJECT-GROUP
 		gtmWideipStatReturnFromDns,
 		gtmWideipStatCnameResolutions,
 		gtmWideipStatARequests,
-		gtmWideipStatAaaaRequests
+		gtmWideipStatAaaaRequests,
+		gtmWideipStatAlternate,
+		gtmWideipStatWipType
 	}
 	STATUS	 current
 	DESCRIPTION
@@ -9451,7 +9960,8 @@ gtmWideipStatusGroup OBJECT-GROUP
 		gtmWideipStatusAvailState,
 		gtmWideipStatusEnabledState,
 		gtmWideipStatusParentType,
-		gtmWideipStatusDetailReason
+		gtmWideipStatusDetailReason,
+		gtmWideipStatusType
 	}
 	STATUS	 current
 	DESCRIPTION
@@ -9462,7 +9972,8 @@ gtmWideipAliasGroup OBJECT-GROUP
 	 OBJECTS {
 		gtmWideipAliasNumber,
 		gtmWideipAliasWipName,
-		gtmWideipAliasName
+		gtmWideipAliasName,
+		gtmWideipAliasWipType
 	}
 	STATUS	 current
 	DESCRIPTION
@@ -9475,7 +9986,9 @@ gtmWideipPoolGroup OBJECT-GROUP
 		gtmWideipPoolWipName,
 		gtmWideipPoolPoolName,
 		gtmWideipPoolOrder,
-		gtmWideipPoolRatio
+		gtmWideipPoolRatio,
+		gtmWideipPoolWipType,
+		gtmWideipPoolPoolType
 	}
 	STATUS	 current
 	DESCRIPTION
@@ -9487,7 +10000,8 @@ gtmWideipRuleGroup OBJECT-GROUP
 		gtmWideipRuleNumber,
 		gtmWideipRuleWipName,
 		gtmWideipRuleRuleName,
-		gtmWideipRulePriority
+		gtmWideipRulePriority,
+		gtmWideipRuleWipType
 	}
 	STATUS	 current
 	DESCRIPTION
@@ -9496,6 +10010,7 @@ gtmWideipRuleGroup OBJECT-GROUP
 
 gtmServerStat2Group OBJECT-GROUP
 	 OBJECTS {
+		gtmServerStat2ResetStats,
 		gtmServerStat2Number,
 		gtmServerStat2Name,
 		gtmServerStat2UnitId,
@@ -9736,4 +10251,16 @@ gtmDnssecStatGroup OBJECT-GROUP
 	DESCRIPTION
 		"A collection of objects of gtmGlobalDnssecStat MIB."
 	::= { bigipGlobalTMGroups 51 }
+
+gtmApplicationWideipGroup OBJECT-GROUP
+	 OBJECTS {
+		gtmApplicationWideipNumber,
+		gtmApplicationWideipApplicationName,
+		gtmApplicationWideipWipName,
+		gtmApplicationWideipWipType
+	}
+	STATUS	 current
+	DESCRIPTION
+		"A collection of objects of gtmApplicationWideip MIB."
+	::= { bigipGlobalTMGroups 52 }
 END

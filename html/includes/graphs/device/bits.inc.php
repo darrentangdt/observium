@@ -18,7 +18,7 @@ $ds_out = "OUTOCTETS";
 
 $graph_return = array('descr' => 'Device total traffic in bits/sec.');
 
-foreach (dbFetchRows("SELECT * FROM `ports` WHERE `device_id` = ? AND `deleted` != ?;", array($device['device_id'], '1')) as $port)
+foreach (dbFetchRows("SELECT * FROM `ports` WHERE `device_id` = ? AND `deleted` != ? ORDER BY (ifInOctets_rate + ifOutOctets_rate) DESC", array($device['device_id'], '1')) as $port)
 {
   $ignore = FALSE;
   $debug_msg = '[Port (id='.$port['port_id'].', ifIndex='.$port['ifIndex'].') ignored by ';
@@ -86,13 +86,6 @@ $colours_out = 'blues';
 
 $ds_in  = "INOCTETS";
 $ds_out = "OUTOCTETS";
-
-$graph_title .= "::bits";
-
-$colour_line_in = "006600";
-$colour_line_out = "000099";
-$colour_area_in = "91B13C";
-$colour_area_out = "8080BD";
 
 include($config['html_dir']."/includes/graphs/generic_multi_separated.inc.php");
 

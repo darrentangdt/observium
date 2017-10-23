@@ -42,6 +42,7 @@
                                       'type'        => 'password',
                                       'fieldset'    => 'logon',
                                       'name'        => 'Password',
+                                      'autocomplete' => TRUE,
                                       'placeholder' => '',
                                       'class'       => 'input-xlarge',
                                       //'width'       => '95%',
@@ -67,7 +68,8 @@ if ($config['login_remember_me'] && check_extension_exists('mcrypt'))
 if (isset($_SESSION['auth_message']))
 {
   echo('<div class="controls" style="text-align: center; font-weight: bold; color: #cc0000; margin-top: 15px;">' . escape_html($_SESSION['auth_message']) . '</div');
-  unset($_SESSION['auth_message']);
+  session_unset_var('auth_message');
+  //unset($_SESSION['auth_message']);
 }
 ?>
         </div>

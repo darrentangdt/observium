@@ -8,7 +8,7 @@
  * @package    observium
  * @subpackage functions
  * @author     Adam Armstrong <adama@observium.org>
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -268,10 +268,16 @@ function get_entity_by_id_cache($entity_type, $entity_id)
 
       default:
         $sql = 'SELECT * FROM `'.$translate['table'].'`';
+
         if (isset($translate['state_table']))
         {
           $sql .= ' LEFT JOIN `'.$translate['state_table'].'` USING (`'.$translate['id_field'].'`)';
         }
+
+          if (isset($translate['parent_table']))
+          {
+              $sql .= ' LEFT JOIN `'.$translate['parent_table'].'` USING (`'.$translate['parent_id_field'].'`)';
+          }
 
         $sql .= ' WHERE `'.$translate['table'].'`.`'.$translate['id_field'].'` = ?';
 
@@ -372,16 +378,16 @@ function entity_descr($type, $entity)
 // TESTME needs unit testing
 function entity_type_translate_array($entity_type)
 {
-  $transtale = $GLOBALS['config']['entities'][$entity_type];
+  $translate = $GLOBALS['config']['entities'][$entity_type];
 
   // Base fields
   // FIXME, not listed here: agg_graphs, metric_graphs
-  $fields = array('table', 'table_fields', 'state_table', 'state_fields', 'humanize_function', 'parent_type', 'where', 'icon', 'graph');
+  $fields = array('table', 'table_fields', 'state_table', 'state_fields', 'humanize_function', 'parent_type', 'parent_table', 'parent_id_field', 'where', 'icon', 'graph');
   foreach ($fields as $field)
   {
-    if (isset($transtale[$field]))
+    if (isset($translate[$field]))
     {
-      $data[$field] = $transtale[$field];
+      $data[$field] = $translate[$field];
     }
     else if (isset($GLOBALS['config']['entities']['default'][$field]))
     {
@@ -391,10 +397,10 @@ function entity_type_translate_array($entity_type)
 
   // Table fields
   $fields_table = array('id', 'device_id', 'index', 'mib', 'name', 'shortname', 'descr', 'ignore', 'disable', 'deleted', 'limit_high', 'limit_low');
-  if (isset($transtale['table_fields']))
+  if (isset($translate['table_fields']))
   {
     // New definition style
-    foreach ($transtale['table_fields'] as $field => $entry)
+    foreach ($translate['table_fields'] as $field => $entry)
     {
       // Add old style name (ie 'id_field') for compatibility
       $data[$field . '_field'] = $entry;
@@ -404,11 +410,11 @@ function entity_type_translate_array($entity_type)
     foreach ($fields_table as $field)
     {
       $field_old = $field . '_field';
-      if (isset($transtale[$field_old]))
+      if (isset($translate[$field_old]))
       {
-        $data[$field_old] = $transtale[$field_old];
+        $data[$field_old] = $translate[$field_old];
         // Additionally convert to new 'table_fields' array
-        $data['table_fields'][$field] = $transtale[$field_old];
+        $data['table_fields'][$field] = $translate[$field_old];
       }
     }
   }
@@ -521,7 +527,19 @@ function entity_rewrite($entity_type, &$entity)
       break;
 
     case "sla":
-      $entity['entity_name']      = "SLA #". $entity['sla_index'] . " (". $entity['sla_tag'] . ")";
+      $entity['entity_name']      = 'SLA #' . $entity['sla_index'];
+      if (!empty($entity['sla_target']) && ($entity['sla_target'] != $entity['sla_tag']))
+      {
+        if (get_ip_version($entity['sla_target']) === 6)
+        {
+          $sla_target = Net_IPv6::compress($entity['sla_target'], TRUE);
+        } else {
+          $sla_target = $entity['sla_target'];
+        }
+        $entity['entity_name']   .= ' (' . $entity['sla_tag'] . ': ' . $sla_target . ')';
+      } else {
+        $entity['entity_name']   .= ' (' . $entity['sla_tag'] . ')';
+      }
       $entity['entity_shortname'] = "#". $entity['sla_index'] . " (". $entity['sla_tag'] . ")";
       break;
 
@@ -559,7 +577,7 @@ function generate_entity_link($entity_type, $entity, $text = NULL, $graph_type =
       $url = generate_url(array('page' => 'device', 'device' => $entity['device_id'], 'tab' => 'health', 'metric' => 'mempool'));
       break;
     case "processor":
-      $url = generate_url(array('page' => 'device', 'device' => $entity['device_id'], 'tab' => 'health', 'metric' => 'processor'));
+      $url = generate_url(array('page' => 'device', 'device' => $entity['device_id'], 'tab' => 'health', 'metric' => 'processor', 'processor_id' => $entity['processor_id']));
       break;
     case "status":
       $url = generate_url(array('page' => 'device', 'device' => $entity['device_id'], 'tab' => 'health', 'metric' => 'status', 'id' => $entity['status_id']));
@@ -587,6 +605,9 @@ function generate_entity_link($entity_type, $entity, $text = NULL, $graph_type =
       break;
     case "netscalersvcgrpmem":
       $url = generate_url(array('page' => 'device', 'device' => $entity['device_id'], 'tab' => 'loadbalancer', 'type' => 'netscaler_servicegroupmembers', 'svc' => $entity['svc_id']));
+      break;
+    case "p2pradio":
+      $url = generate_url(array('page' => 'device', 'device' => $entity['device_id'], 'tab' => 'p2pradios'));
       break;
     case "sla":
       $url = generate_url(array('page' => 'device', 'device' => $entity['device_id'], 'tab' => 'slas', 'id' => $entity['sla_id']));
@@ -706,6 +727,132 @@ function get_port_id_by_ip_cache($device, $ip)
   $cache['port_ip'][$device_id][$ip] = $port['port_id'] ? $port['port_id'] : FALSE;
 
   return $cache['port_ip'][$device_id][$ip];
+
+}
+
+function get_port_by_ent_index($device, $entPhysicalIndex, $allow_snmp = FALSE)
+{
+  $mib = 'ENTITY-MIB';
+  if (!is_numeric($entPhysicalIndex) ||
+      !is_numeric($device['device_id']) ||
+      !is_device_mib($device, $mib))
+  {
+    return FALSE;
+  }
+
+  $allow_snmp = $allow_snmp || is_cli(); // Allow snmpwalk queries in poller/discovery or if in wui passed TRUE!
+
+  if (isset($GLOBALS['cache']['snmp'][$mib][$device['device_id']]))
+  {
+    // Cached
+    $entity_array = $GLOBALS['cache']['snmp'][$mib][$device['device_id']];
+    if (empty($entity_array))
+    {
+      // Force DB queries
+      $allow_snmp = FALSE;
+    }
+  }
+  else if ($allow_snmp)
+  {
+    // Inventory module disabled, this DB empty, try to cache
+    $entity_array = array();
+    $oids = array('entPhysicalDescr', 'entPhysicalName', 'entPhysicalClass', 'entPhysicalContainedIn', 'entPhysicalParentRelPos');
+    if (is_device_mib($device, 'ARISTA-ENTITY-SENSOR-MIB'))
+    {
+      $oids[] = 'entPhysicalAlias';
+    }
+    foreach ($oids as $oid)
+    {
+      $entity_array = snmpwalk_cache_multi_oid($device, $oid, $entity_array, 'ENTITY-MIB:CISCO-ENTITY-VENDORTYPE-OID-MIB');
+      if (!$GLOBALS['snmp_status']) { break; }
+    }
+    $entity_array = snmpwalk_cache_twopart_oid($device, 'entAliasMappingIdentifier', $entity_array, 'ENTITY-MIB:IF-MIB');
+    if (empty($entity_array))
+    {
+      // Force DB queries
+      $allow_snmp = FALSE;
+    }
+    $GLOBALS['cache']['snmp'][$mib][$device['device_id']] = $entity_array;
+  } else {
+    // Or try to use DB
+  }
+
+  //print_vars($entity_array);
+  $sensor_index = $entPhysicalIndex; // Initial ifIndex  
+  do
+  {
+    if ($allow_snmp)
+    {
+      // SNMP (discovery)
+      $sensor_port = $entity_array[$sensor_index];
+    } else {
+      // DB (web)
+      $sensor_port = dbFetchRow('SELECT * FROM `entPhysical` WHERE `device_id` = ? AND `entPhysicalIndex` = ?', array($device['device_id'], $sensor_index));
+    }
+    //print_vars($sensor_index);
+    //print_vars($sensor_port);
+    if ($sensor_port['entPhysicalClass'] === 'port')
+    {
+      // Port found, get mapped ifIndex
+      unset($entAliasMappingIdentifier);
+      foreach (array(0, 1, 2) as $i)
+      {
+        if (isset($sensor_port[$i]['entAliasMappingIdentifier']))
+        {
+          $entAliasMappingIdentifier = $sensor_port[$i]['entAliasMappingIdentifier'];
+          break;
+        }
+      }
+      if (isset($entAliasMappingIdentifier) && str_contains($entAliasMappingIdentifier, 'fIndex'))
+      {
+        list(, $ifIndex) = explode('.', $entAliasMappingIdentifier);
+
+        $port = get_port_by_index_cache($device['device_id'], $ifIndex);
+        if (is_array($port))
+        {
+          // Hola, port really found
+          //$options['entPhysicalIndex_measured'] = $ifIndex;
+          //$options['measured_class']  = 'port';
+          //$options['measured_entity'] = $port['port_id'];
+          print_debug("Port is found: ifIndex = $ifIndex, port_id = " . $port['port_id']);
+          return $port;
+        }
+      }
+      else if (!$allow_snmp && $sensor_port['ifIndex'])
+      {
+        $port = get_port_by_index_cache($device['device_id'], $ifIndex);
+        print_debug("Port is found: ifIndex = $ifIndex, port_id = " . $port['port_id']);
+        return $port;
+      }
+
+      break; // Exit do-while
+    }
+    else if ($device['os'] == 'arista_eos' && $sensor_port['entPhysicalClass'] == 'container' && strlen($sensor_port['entPhysicalAlias']))
+    {
+      // Arista not have entAliasMappingIdentifier, but used entPhysicalAlias as ifDescr
+      $port_id = get_port_id_by_ifDescr($device['device_id'], $sensor_port['entPhysicalAlias']);
+      if (is_numeric($port_id))
+      {
+        // Hola, port really found
+        $port    = get_port_by_id($port_id);
+        $ifIndex = $port['ifIndex'];
+        //$options['entPhysicalIndex_measured'] = $ifIndex;
+        //$options['measured_class']  = 'port';
+        //$options['measured_entity'] = $port_id;
+        print_debug("Port is found: ifIndex = $ifIndex, port_id = " . $port_id);
+        return $port;
+        //break; // Exit do-while
+      }
+      $sensor_index = $sensor_port['entPhysicalContainedIn']; // Next ifIndex
+    }
+    else if ($sensor_index == $sensor_port['entPhysicalContainedIn'])
+    {
+      break; // Break if current index same as next to avoid loop
+    } else {
+      $sensor_index = $sensor_port['entPhysicalContainedIn']; // Next ifIndex
+    }
+    // NOTE for self: entPhysicalParentRelPos >= 0 because on iosxr trouble
+  } while ($sensor_port['entPhysicalClass'] !== 'port' && $sensor_port['entPhysicalContainedIn'] > 0 && ($sensor_port['entPhysicalParentRelPos'] >= 0 || $device['os'] == 'arista_eos'));
 
 }
 

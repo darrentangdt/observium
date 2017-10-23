@@ -3,11 +3,11 @@
 
 	IMPORTS
 		MODULE-IDENTITY, OBJECT-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE,
-                Integer32, Counter32, TimeTicks
+                Integer32,Counter32, TimeTicks
 			FROM SNMPv2-SMI
 		DisplayString, MacAddress, TEXTUAL-CONVENTION, RowStatus
 			FROM SNMPv2-TC
-                MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+		MODULE-COMPLIANCE, OBJECT-GROUP,NOTIFICATION-GROUP
 			FROM SNMPv2-CONF
 		InterfaceIndex
 			FROM IF-MIB
@@ -18,7 +18,7 @@
 
                 lnkaggTraps,
 		softentIND1LnkAgg
-			FROM ALCATEL-IND1-BASE
+			FROM ALCATEL-IND1-BASE 
 
 	;
 	alcatelIND1LAGMIB MODULE-IDENTITY
@@ -47,23 +47,23 @@
 	DESCRIPTION
         "This module describes an authoritative enterprise-specific Simple
          Network Management Protocol (SNMP) Management Information Base (MIB):
-
+         
 			   The Link Aggregation module for managing  ALCATEL FALCON product
-			   This MIB is an image of the  802.3ad standard.
+			   This MIB is an image of the  802.3ad standard. 
      		 The aim of this proprietary MIB is to allow the creation of
          aggregate objects with their size.
-
+         
          The right to make changes in specification and other information
          contained in this document without prior notice is reserved.
-
+         
          No liability shall be assumed for any incidental, indirect, special, or
          consequential damages whatsoever arising from or related to this
          document or the information contained herein.
-
+         
          Vendors, end-users, and other interested parties are granted
          non-exclusive license to use this specification in connection with
          management of the products for which it is intended to be used.
-
+         
                      Copyright (C) 1995-2007 Alcatel-Lucent
                          ALL RIGHTS RESERVED WORLDWIDE"
 
@@ -91,6 +91,14 @@
 			lacpOff(0),
 			lacpOn(1)
 				}
+     McLagType ::= TEXTUAL-CONVENTION
+                STATUS current
+                DESCRIPTION
+                        "The object supports or not the Multi Chassis Link aggregation  ."
+                SYNTAX INTEGER {
+                        mcLagOff(0),
+                        mcLagOn(1)
+                                }
 
 		
 		
@@ -143,7 +151,7 @@
 			Aggregator that is associated with this System.
                         To create specify alclnkaggAggIndex,alclnkaggAggSize
                         and alclnkaggAggLacpType. "
-
+    
 		REFERENCE
 			"IEEE 802.3 Subclause 30.7.1"
 		::= { alclnkaggAgg 1 }
@@ -184,7 +192,7 @@
 			LacpKey,
 --------------------------------
 --   Specific Proprietary Part
-------------------------------
+------------------------------ 
 		alclnkaggAggSize
 			 INTEGER,
 		alclnkaggAggNumber
@@ -210,12 +218,17 @@
                         INTEGER,
 	        alclnkaggAggRowStatus
 			 RowStatus,
-		alclnkaggAggPreemptState
-			INTEGER,   	
-		alclnkaggAggPreemptValue
-			Integer32,
-		alclnkaggAggMinimumSize
-                        INTEGER
+	        alclnkaggAggPreemptState
+                        INTEGER,
+	        alclnkaggAggPreemptValue
+                        Integer32,
+	        alclnkaggAggMinimumSize
+                        INTEGER,
+	        alclnkaggAggMcLagType
+                         McLagType,
+	        alclnkaggAggWTRTimer
+                        Integer32
+
 		}
 	
 	
@@ -291,7 +304,7 @@
 			Aggregator's current protocol Partner. Optional this is
 			a 16-bit read-create value. If the aggregation is manually
 			configured, this Key value will be a value assigned by the
-			local System. The administrative Key value may differ from
+			local System. The administrative Key value may differ from 
                                    the operational "
 		REFERENCE
 			" specific to ALCATEL "
@@ -388,35 +401,35 @@
 		REFERENCE
 			"specific to ALCATEL"
 		::= { alclnkaggAggEntry 11 }
-
+         
 	alclnkaggAggNumber OBJECT-TYPE
 		SYNTAX INTEGER(0..127)
 --		MAX-ACCESS read-create
 		MAX-ACCESS read-only
 		 STATUS  current
 		DESCRIPTION
---			"Aggreagtor number to assign a reference  number at the creation of
+--			"Aggreagtor number to assign a reference  number at the creation of 
 --                       an aggregator mandatory for the Omnichhannel object creation"
-			"Aggreagtor number reference the aggregate dedicated from the
+			"Aggreagtor number reference the aggregate dedicated from the 
                          ifindex at the creation"
 		REFERENCE
 			" specific to ALCATEL"
 		::= { alclnkaggAggEntry 12 }
 
-           -- alclnkaggAggDescr is equivalent to ifDescr in ifTable
+           -- alclnkaggAggDescr is equivalent to ifDescr in ifTable 
 
 	alclnkaggAggDescr OBJECT-TYPE
 		SYNTAX DisplayString (SIZE (0..255))
 		MAX-ACCESS read-only
 		 STATUS  current
 		DESCRIPTION
-			"Description is a human readable string which describes
-             the type of aggregator object OMNICHANNEL / LACP  etc "
+			"Description is a human readable string which describes of 
+             the type of aggregator object OMNICHANNEL / LACP  etc …  "
 		REFERENCE
 			" IEEE 802.3 Subclause 30.7.1.1.2"
 		::= { alclnkaggAggEntry 13 }
 	
-            -- alclnkaggAggDescr is equivalent to ifDescr in ifXTable
+            -- alclnkaggAggDescr is equivalent to ifDescr in ifXTable 
 
 	alclnkaggAggName OBJECT-TYPE
 		SYNTAX DisplayString (SIZE (0..255))
@@ -443,7 +456,7 @@
 		::= { alclnkaggAggEntry 15 }
 
 
-           -- alclnkaggAggAdminState is equivalent to ifAdminStatus in ifTable
+           -- alclnkaggAggAdminState is equivalent to ifAdminStatus in ifTable 
 
 	alclnkaggAggAdminState OBJECT-TYPE
 --		SYNTAX AdminState
@@ -454,13 +467,13 @@
 		MAX-ACCESS read-create
 		STATUS current
 		DESCRIPTION
-			"status assigned by the admnistrator. The activation of the aggregator
+			"status assigned by the admnistrator. The activation of the aggregator 
                                      is managed by this nominator"
 		REFERENCE
 			" IEEE 802.3 Subclause 30.7.1.1.13"
 		::= { alclnkaggAggEntry 16 }
 
-           -- alclnkaggAggOperState is similar  to ifOperStatus in ifTable but the nominator
+           -- alclnkaggAggOperState is similar  to ifOperStatus in ifTable but the nominator  
            -- does not take exactly the same values.
 
 	alclnkaggAggOperState OBJECT-TYPE
@@ -504,7 +517,7 @@
 		MAX-ACCESS read-only
 		STATUS current
 		DESCRIPTION
-			"the ifindex of the primary port in the aggregator used to send
+			"the ifindex of the primary port in the aggregator used to send  
                          BPDUs and flooding frames Zeo indicates no primary port is
                          available ."
 		REFERENCE
@@ -516,12 +529,11 @@
 		MAX-ACCESS read-only
 		STATUS current
 		DESCRIPTION
-			"the port index number in the aggregator used to send
+			"the port index number in the aggregator used to send  
                          BPDUs and flooding frames ."
 		REFERENCE
 			"Specific to ALCATEL"
 		::= { alclnkaggAggEntry 21 }
-
 	
 	alclnkaggAggRowStatus OBJECT-TYPE
                 SYNTAX RowStatus   	
@@ -529,14 +541,14 @@
       		STATUS current
       		DESCRIPTION
          		"This object is the RowStatus (locking flag) for creating or
-  			deleting aggregator objects. alclnkaggAggSize, alclnkaggAggLacpType
-                        and  must be supplied in the request to create a row, it is a
+  			deleting aggregator objects. alclnkaggAggSize, alclnkaggAggLacpType 
+                        and  must be supplied in the request to create a row, it is a 
                         required field."
 		REFERENCE
 			" specific to ALCATEL "
 		::= { alclnkaggAggEntry 22 }
-
-	alclnkaggAggPreemptState OBJECT-TYPE
+	
+	        alclnkaggAggPreemptState OBJECT-TYPE
                 SYNTAX INTEGER {
                     enable(1),
                     disable(2)
@@ -548,7 +560,7 @@
                 REFERENCE
                         "specific to ALCATEL"
                 ::={ alclnkaggAggEntry 23}
-
+ 
           alclnkaggAggPreemptValue OBJECT-TYPE
                 SYNTAX Integer32 (30..300)
                 MAX-ACCESS read-create
@@ -559,20 +571,48 @@
                         "specific to ALCATEL"
                 ::={ alclnkaggAggEntry 24}
 
-           alclnkaggAggMinimumSize OBJECT-TYPE
-		SYNTAX INTEGER (1..16)
-		MAX-ACCESS read-create
-		STATUS  current
-		DESCRIPTION
-			"Minimum number of ports that should be attached to LAG to
+	     alclnkaggAggMinimumSize OBJECT-TYPE
+                SYNTAX INTEGER (1..16)
+                MAX-ACCESS read-create
+                STATUS  current
+                DESCRIPTION
+                        "Minimum number of ports that should be attached to LAG to
                          make LAG operationally UP."
-		REFERENCE
-			"specific to ALCATEL"
+                REFERENCE
+                        "specific to ALCATEL"
                 DEFVAL        { 1 }
-		::= { alclnkaggAggEntry 25 }
+                ::= { alclnkaggAggEntry 25 }
+ 
+        alclnkaggAggMcLagType OBJECT-TYPE
+                SYNTAX McLagType
+                MAX-ACCESS read-create
+                 STATUS current
+                DESCRIPTION
+                        "Aggregator set with MultiChassis  mode or not
+                         mandatory at the creation of the aggregator, cannot be modified
+                         later "
+                REFERENCE
+                        " specific to ALCATEL"
+                ::= { alclnkaggAggEntry 26 }
 
-
-
+	  alclnkaggAggWTRTimer OBJECT-TYPE
+                SYNTAX Integer32 (0..12)
+                MAX-ACCESS read-create
+                STATUS current
+                DESCRIPTION
+                       "This sets the LACP WTR  timer value in minutes for an aggregate. The default value is 0 minute.
+                        The Default means the WTR is Disabled.
+                        When an LACP link comes up, 
+                         If there is no WTR enabled for this linkagg, bring up the link.
+                         If there is a WTR configured for this LACP linkagg,
+                           1.if there are no other links attached to the same linkagg, bypass the WTR and bring up the link immediately.
+                           2. If there are links attached to the same linkagg, start the WTR when the WTR expires,bring up the link."
+                 REFERENCE
+                         "specific to ALCATEL"
+                 DEFVAL        { 0 }
+                ::={ alclnkaggAggEntry 27}
+ 
+	
 	-- -------------------------------------------------------------
 	-- The Aggregation Port List Table
 	-- -------------------------------------------------------------
@@ -717,14 +757,17 @@
                  		INTEGER,
 			alclnkaggAggPortLinkState
                  		INTEGER,
-		        alclnkaggAggPortPrimary
+		        alclnkaggAggPortPrimary 
 		                INTEGER,
 			alclnkaggAggPortLacpType
 				 LacpType,
  	        	alclnkaggAggPortRowStatus
 				 RowStatus,
-			alclnkaggAggPortStandbyState
-				 INTEGER
+			 alclnkaggAggPortStandbyState
+                                 INTEGER,
+                        alclnkaggAggPortMcLagType
+                                 McLagType
+
 		}
 
 
@@ -1074,8 +1117,8 @@
 		MAX-ACCESS read-create
 		 STATUS current
 		DESCRIPTION
-			"Aggreagtor number to attach a  port at its creation
-                         mandatory and only used for the
+			"Aggreagtor number to attach a  port at its creation  
+                         mandatory and only used for the 
                          Omnichhannel not allowed for LACP
                          (-1) value displayed when it is not significant"
 		REFERENCE
@@ -1093,7 +1136,7 @@
 		::= { alclnkaggAggPortEntry 25 }
 
 
-           -- alclnkaggAggPortAdminState is equivalent to ifAdminStatus in ifTable
+           -- alclnkaggAggPortAdminState is equivalent to ifAdminStatus in ifTable 
 
 	alclnkaggAggPortAdminState OBJECT-TYPE
                 SYNTAX  INTEGER {
@@ -1155,7 +1198,7 @@
 			" specific to ALCATEL"
 		::= { alclnkaggAggPortEntry 29 }
 
-	 -- alclnkaggAggPortLinkState is equivalent to ifOperStatus
+	 -- alclnkaggAggPortLinkState is equivalent to ifOperStatus 
 
 	alclnkaggAggPortPrimary OBJECT-TYPE
 		  SYNTAX  INTEGER {
@@ -1192,13 +1235,13 @@
       		DESCRIPTION
          		"This object is the RowStatus (locking flag) for creating or
   			 deleting aggregatable port objects. alclnkaggAggPortActorAdminKey
-                         and alclnkaggAggPortSlotSlice must be supplied
+                         and alclnkaggAggPortSlotSlice must be supplied 
                          in the request to create a row, it is a required field."
 		REFERENCE
 			" specific to ALCATEL "
 		::= { alclnkaggAggPortEntry 32 }
 
-	alclnkaggAggPortStandbyState OBJECT-TYPE
+	        alclnkaggAggPortStandbyState OBJECT-TYPE
                  SYNTAX INTEGER {
                                 enable(1),
                                 disable(2)
@@ -1208,7 +1251,16 @@
                  DESCRIPTION
                          "This sets the standby state for a port. The default value is disable."
                  ::= { alclnkaggAggPortEntry 33 }
-
+ 
+        alclnkaggAggPortMcLagType OBJECT-TYPE
+                SYNTAX McLagType
+                MAX-ACCESS read-only
+                STATUS current
+                DESCRIPTION
+                        "Port set with McLag mode or not  "
+                REFERENCE
+                        " specific to ALCATEL"
+                ::= { alclnkaggAggPortEntry 34 }
 	
 	-- -------------------------------------------------------------
 	-- LACP Statistics Table
@@ -1396,7 +1448,7 @@
 			alclnkaggAggPortDebugRxState
 				INTEGER,
 			alclnkaggAggPortDebugLastRxTime
-				TimeTicks,
+				TimeTicks,   
 			alclnkaggAggPortDebugMuxState
             			INTEGER,
         		alclnkaggAggPortDebugMuxReason
@@ -1533,7 +1585,7 @@
 			"IEEE 802.3 Subclause 30.7.4.1.7"
 		::= { alclnkaggAggPortDebugEntry 6 }
 
-
+ 
 
 	alclnkaggAggPortDebugActorChurnCount OBJECT-TYPE
 		SYNTAX Counter32
@@ -1667,7 +1719,7 @@
 
 	alclnkaggSlotNum OBJECT-TYPE
 		SYNTAX INTEGER (1..16)
-		MAX-ACCESS not-accessible
+		MAX-ACCESS  not-accessible
 		STATUS current
 		DESCRIPTION
 			"The slot number."
@@ -1709,7 +1761,7 @@
 		MAX-ACCESS not-accessible
 		STATUS current
 		DESCRIPTION
-			"Each row in this table represents the link aggregation
+			"Each row in this table represents the link aggregation 
 			aggregate id's corresponding ifIndex. "
 		REFERENCE
 			"specific to Alcatel"
@@ -1797,13 +1849,13 @@
 			alclnkaggAggPartnerSystemID,
 			alclnkaggAggPartnerSystemPriority,
 			alclnkaggAggPartnerOperKey,
-			alclnkaggAggId,
-			alclnkaggAggMinimumSize,
-			alclnkaggAggPartnerAdminKey ,
-			
+		        alclnkaggAggId,
+                        alclnkaggAggMinimumSize,
+                        alclnkaggAggPartnerAdminKey ,
+
 --------------------------------
 --   Specific Proprietary Part
-------------------------------
+------------------------------ 
 		        alclnkaggAggSize,
 		        alclnkaggAggNumber,
 		        alclnkaggAggDescr,
@@ -1813,13 +1865,15 @@
 		        alclnkaggAggOperState,	
                         alclnkaggAggNbrSelectedPorts,
                         alclnkaggAggNbrAttachedPorts,
-                        alclnkaggAggPrimaryPortIndex,
+                        alclnkaggAggPrimaryPortIndex, 
 	                alclnkaggAggPrimaryPortPosition,
 			alclnkaggAggPreemptState,
-			alclnkaggAggPreemptValue,
-			alclnkaggAggEniActivate,
-			alclnkaggAggRowStatus 
-			
+                        alclnkaggAggPreemptValue,
+                        alclnkaggAggEniActivate,
+                        alclnkaggAggRowStatus,
+                        alclnkaggAggMcLagType,
+                        alclnkaggAggWTRTimer
+
 		}
 		STATUS current
 		DESCRIPTION
@@ -1871,8 +1925,10 @@
 			alclnkaggAggPortLinkState,
 			alclnkaggAggPortPrimary,
 		        alclnkaggAggPortLacpType,
-			alclnkaggAggPortStandbyState,
-			alclnkaggAggPortRowStatus
+		        alclnkaggAggPortStandbyState,
+                        alclnkaggAggPortRowStatus,
+                        alclnkaggAggPortMcLagType
+
 			}
 		STATUS current
 		DESCRIPTION
@@ -1911,9 +1967,9 @@
 			alclnkaggAggPortDebugPartnerSyncTransitionCount,
 			alclnkaggAggPortDebugActorChangeCount,
 			alclnkaggAggPortDebugPartnerChangeCount,
-			alclnkaggAggPortDebugMuxReason,
-			alclnkaggAggPortDebugMuxState
-		
+			 alclnkaggAggPortDebugMuxReason,
+                        alclnkaggAggPortDebugMuxState
+
 		}
 		STATUS current
 		DESCRIPTION
@@ -1951,7 +2007,7 @@
 				alclnkaggAggPortGroup,
 				alclnkaggTablesLastChangedGroup,
 				lnkaggNotificationVarsGroup,
-				alclnkaggSlotGroup
+				alclnkaggSlotGroup 
 			}
 
 
@@ -1969,22 +2025,26 @@
 			DESCRIPTION
 				"This group is optional."
 
+			GROUP alclnkaggAggConfigGroup
+			DESCRIPTION
+				"This group is optional."
+
 
 		::= { alcatelIND1LAGMIBCompliances 1 }
 
-
+ 
 
 lnkaggNotificationVarsGroup OBJECT-GROUP
         OBJECTS
         {
                        traplnkaggAggId,
                        traplnkaggPortIfIndex,
-                       traplnkaggLagDownReason
+			traplnkaggLagDownReason
         }
         STATUS  current
         DESCRIPTION
             "Collection of objects which appear only in notifications."
-        ::= {alcatelIND1LAGMIBGroups  7 }
+        ::= {alcatelIND1LAGMIBGroups  7 } 
 
 lnkaggTrapsGroup NOTIFICATION-GROUP
         NOTIFICATIONS {
@@ -1993,27 +2053,26 @@ lnkaggTrapsGroup NOTIFICATION-GROUP
             lnkaggPortJoin,
             lnkaggPortLeave,
             lnkaggPortRemove,
-	    lnkaggPortReserve
-	    
+	    lnkaggPortReserve 
         }
         STATUS  current
         DESCRIPTION
             "Collection of Traps for Link Aggregation ."
         ::= { alcatelIND1LAGMIBGroups 8 }
-		
-		alclnkaggSlotGroup OBJECT-GROUP
+
+
+	alclnkaggSlotGroup OBJECT-GROUP
         OBJECTS
         {
-        	alclnkaggSlotStatus,
-        	alclnkaggMultipleAggPerSlot 
+                alclnkaggSlotStatus,
+                alclnkaggMultipleAggPerSlot
         }
         STATUS  current
         DESCRIPTION
             "Configuration parameters for link aggregation."
         ::= {alcatelIND1LAGMIBGroups  9 }
-        
-        
--- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ 
+-- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 	lnkaggNotificationVars  OBJECT IDENTIFIER ::= { alcatelIND1LAGMIBObjects 4 }
 
@@ -2035,38 +2094,37 @@ lnkaggTrapsGroup NOTIFICATION-GROUP
                         "Port of  Link Aggregate group ."
            ::= {lnkaggNotificationVars   2 }
 
-        traplnkaggLagDownReason OBJECT-TYPE
+  traplnkaggLagDownReason OBJECT-TYPE
                 SYNTAX  INTEGER {
                     adminDown(1),
                     allPortsDown(2),
                     minSize(3)
                 }
-
+ 
                 MAX-ACCESS  accessible-for-notify
                 STATUS  current
                 DESCRIPTION
                         "Reasons for LAG Down
                          adminDown: If user has made LAG admin down
-
+ 
                          allPortsDown: If all the ports in the LAGs are down or none of the port present in LAG,
                             This is applicable only when alclnkaggAggMinimumSize object has value 1.
-
+ 
                          minSize: If LAG minimum size criteria is not met"
            ::= {lnkaggNotificationVars   3 }
-
-
+ 
 -- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 --  NOTIFICATIONS
 -- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 lnkaggAggUp NOTIFICATION-TYPE
         OBJECTS {
                 traplnkaggAggId,
-                traplnkaggPortIfIndex
+                traplnkaggPortIfIndex  
                 }
         STATUS current
         DESCRIPTION
                 "The Link Aggregation  is  active .
-                This trap is sent when any one port of the link aggregation
+                This trap is sent when any one port of the link aggregation 
 		goes to attached state."
         ::= { lnkaggTraps 0 1 }
 
@@ -2076,12 +2134,12 @@ lnkaggAggDown NOTIFICATION-TYPE
         OBJECTS {
                 traplnkaggAggId,
                 traplnkaggPortIfIndex,
-                traplnkaggLagDownReason
+		 traplnkaggLagDownReason  
                 }
         STATUS current
         DESCRIPTION
                 "The Link Aggregation  is  not active .
-                This trap is sent when all  ports of the link aggregation
+                This trap is sent when all  ports of the link aggregation 
 		goes out of attached state."
         ::= { lnkaggTraps 0 2 }
 
@@ -2091,49 +2149,236 @@ lnkaggAggDown NOTIFICATION-TYPE
 lnkaggPortJoin NOTIFICATION-TYPE
         OBJECTS {
                 traplnkaggAggId,
-                traplnkaggPortIfIndex
+                traplnkaggPortIfIndex  
                 }
         STATUS current
         DESCRIPTION
                 "The Link Aggregation port  joins  the aggregate .
-                This trap is sent when given  port of the link aggregation
+                This trap is sent when given  port of the link aggregation 
 		goes to attached state."
         ::= { lnkaggTraps 0 3 }
 
 lnkaggPortLeave NOTIFICATION-TYPE
         OBJECTS {
                 traplnkaggAggId,
-                traplnkaggPortIfIndex
+                traplnkaggPortIfIndex  
                 }
         STATUS current
         DESCRIPTION
                 "The Link Aggregation port  leaves  the aggregate .
-                This trap is sent when given  port of the link aggregation
+                This trap is sent when given  port of the link aggregation 
 		goes out of  attached state."
         ::= { lnkaggTraps 0 4 }
 
 lnkaggPortRemove NOTIFICATION-TYPE
         OBJECTS {
                 traplnkaggAggId,
-                traplnkaggPortIfIndex
+                traplnkaggPortIfIndex  
                 }
         STATUS current
         DESCRIPTION
                 "The Link Aggregation port removed from the aggregate  .
-                This trap is sent when given  port of the link aggregation
+                This trap is sent when given  port of the link aggregation 
 		removed due to invalid configuration ."
         ::= { lnkaggTraps 0 5 }
-
 lnkaggPortReserve NOTIFICATION-TYPE
-	OBJECTS {
-		traplnkaggAggId,
-		traplnkaggPortIfIndex
-		}
-	STATUS current
-	DESCRIPTION
-		"The Link Aggregation port  is reserved for this aggregate .
-		This trap is sent when given  port of the link aggregation
-		goes to reserved state."
-	::= { lnkaggTraps 0 6 }
+        OBJECTS {
+                traplnkaggAggId,
+                traplnkaggPortIfIndex
+                }
+        STATUS current
+        DESCRIPTION
+                "The Link Aggregation port  is reserved for this aggregate .
+                This trap is sent when given  port of the link aggregation
+                goes to reserved state."
+        ::= { lnkaggTraps 0 6 }
+ 
+-- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ 
+        alclnkaggAggConfig  OBJECT IDENTIFIER ::= { alcatelIND1LAGMIBObjects 5 }
+ 
+-- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ 
+--
+--    Link Aggregation configuration group
+--
+  alclnkAggLocalRangeOperMin OBJECT-TYPE
+        SYNTAX        Integer32 ( -1 .. 127 )
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Minimum value of aggregate currently used  for
+             local aggregates. Used only when
+             multi-chassis aggregation enabled and chassis id is known.
+             Valid linkagg range is from 0 to 127. Value -1 indicated none."
+          DEFVAL     { 0 }
+        ::= { alclnkaggAggConfig 1}
+ 
+ 
+    alclnkAggLocalRangeOperMax OBJECT-TYPE
+        SYNTAX        Integer32 ( -1 .. 127 )
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Maximum value of aggregate currently used  for
+             local aggregates. Used only when
+             multi-chassis aggregation enabled and chassis id is known.
+             Valid linkagg range is from 0 to 127. Value -1 indicated none."
+          DEFVAL     { 127 }
+        ::= { alclnkaggAggConfig 2}
+ 
+    alclnkAggLocalRangeConfiguredMin OBJECT-TYPE
+        SYNTAX        Integer32 ( -1 .. 127 )
+        MAX-ACCESS    read-write
+        STATUS        current
+        DESCRIPTION
+            "Minimum value of aggregate configured to be used for
+             local aggregates. Used only when
+             multi-chassis aggregation enabled and chassis id is known.
+             Valid linkagg range is from 0 to 127. Value -1 indicated none."
+          DEFVAL     { 0 }
+        ::= { alclnkaggAggConfig 3}
+ 
+ 
+    alclnkAggLocalRangeConfiguredMax OBJECT-TYPE
+        SYNTAX        Integer32 ( -1 .. 127 )
+        MAX-ACCESS    read-write
+        STATUS        current
+        DESCRIPTION
+            "Maximum value of aggregate configured to be used for
+             local aggregates. Used only when
+             multi-chassis aggregation enabled and chassis id is known.
+             Valid linkagg range is from 0 to 127. Value -1 indicated none."
+          DEFVAL     { 127 }
+        ::= { alclnkaggAggConfig 4}
+ 
+  alclnkAggPeerRangeOperMin OBJECT-TYPE
+        SYNTAX        Integer32 ( -1 .. 127 )
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Minimum value of aggregate currently used  for
+             peer aggregates. Used only when
+             multi-chassis aggregation enabled and chassis id is known.
+             Valid linkagg range is from 0 to 127.
+             Value -1 indicated none or multi-chassis feature is not enabled."
+          DEFVAL     { -1 }
+        ::= { alclnkaggAggConfig 5}
+ 
+ 
+    alclnkAggPeerRangeOperMax OBJECT-TYPE
+        SYNTAX        Integer32 ( -1 .. 127 )
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Maximum value of aggregate currently used  for
+             peer aggregates. Used only when
+             multi-chassis aggregation enabled and chassis id is known.
+             Valid linkagg range is from 0 to 127.
+             Value -1 indicated none or multi-chassis feature is not enabled."
+          DEFVAL     { -1 }
+        ::= { alclnkaggAggConfig 6}
+
+  alclnkAggPeerRangeConfiguredMin OBJECT-TYPE
+        SYNTAX        Integer32 ( -1 .. 127 )
+        MAX-ACCESS    read-write
+        STATUS        current
+        DESCRIPTION
+            "Minimum value of aggregate configured to be used for
+             peer aggregates. Used only when
+             multi-chassis aggregation enabled and chassis id is known.
+             Valid linkagg range is from 0 to 127.
+             Value -1 indicated none or multi-chassis feature is not enabled."
+          DEFVAL     { -1 }
+        ::= { alclnkaggAggConfig 7}
+ 
+ 
+    alclnkAggPeerRangeConfiguredMax OBJECT-TYPE
+        SYNTAX        Integer32 ( -1 .. 127 )
+        MAX-ACCESS    read-write
+        STATUS        current
+        DESCRIPTION
+            "Maximum value of aggregate configured to be used for
+             peer aggregates. Used only when
+             multi-chassis aggregation enabled and chassis id is known.
+             Valid linkagg range is from 0 to 127.
+             Value -1 indicated none or multi-chassis feature is not enabled."
+          DEFVAL     { -1 }
+        ::= { alclnkaggAggConfig 8}
+    alclnkAggMcLagRangeOperMin OBJECT-TYPE
+        SYNTAX        Integer32 ( -1 .. 127 )
+  MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Minimum value of aggregate currently used  for
+             Multi Chassis aggregates. Used only when
+             multi-chassis aggregation enabled and chassis id is known.
+             Valid linkagg range is from 0 to 127.
+             Value -1 indicated none or multi-chassis feature is not enabled."
+          DEFVAL     { -1 }
+        ::= { alclnkaggAggConfig 9}
+ 
+ 
+    alclnkAggMcLagRangeOperMax OBJECT-TYPE
+        SYNTAX        Integer32 ( -1 .. 127 )
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "Maximum value of aggregate currently used  for
+             Multi Chassis aggregates. Used only when
+             multi-chassis aggregation enabled and chassis id is known.
+             Valid linkagg range is from 0 to 127.
+             Value -1 indicated none or multi-chassis feature is not enabled."
+          DEFVAL     { -1 }
+        ::= { alclnkaggAggConfig 10}
+
+ alclnkAggMcLagRangeConfiguredMin OBJECT-TYPE
+        SYNTAX        Integer32 ( -1 .. 127 )
+        MAX-ACCESS    read-write
+        STATUS        current
+        DESCRIPTION
+            "Minimum value of aggregate configured to be used for
+             Multi Chassis aggregates. Used only when
+             multi-chassis aggregation enabled and chassis id is known.
+             Valid linkagg range is from 0 to 127.
+             Value -1 indicated none or multi-chassis feature is not enabled."
+          DEFVAL     { -1 }
+        ::= { alclnkaggAggConfig 11}
+ 
+ 
+    alclnkAggMcLagRangeConfiguredMax OBJECT-TYPE
+        SYNTAX        Integer32 ( -1 .. 127 )
+        MAX-ACCESS    read-write
+        STATUS        current
+        DESCRIPTION
+            "Maximum value of aggregate configured to be used for
+             Multi Chassis aggregates. Used only when
+             multi-chassis aggregation enabled and chassis id is known.
+             Valid linkagg range is from 0 to 127.
+             Value -1 indicated none or multi-chassis feature is not enabled."
+          DEFVAL     { -1 }
+        ::= { alclnkaggAggConfig 12}
+ alclnkaggAggConfigGroup OBJECT-GROUP
+                OBJECTS {
+                        alclnkAggLocalRangeOperMin,
+                        alclnkAggLocalRangeOperMax ,
+                        alclnkAggLocalRangeConfiguredMin,
+                        alclnkAggLocalRangeConfiguredMax,
+                        alclnkAggPeerRangeOperMin,
+                        alclnkAggPeerRangeOperMax ,
+                        alclnkAggPeerRangeConfiguredMin,
+                        alclnkAggPeerRangeConfiguredMax,
+                        alclnkAggMcLagRangeOperMin,
+                        alclnkAggMcLagRangeOperMax,
+                        alclnkAggMcLagRangeConfiguredMin,
+                        alclnkAggMcLagRangeConfiguredMax
+ 
+                }
+                STATUS current
+                DESCRIPTION
+                        "A collection of objects providing information about ranges
+                        allowed aggregate number values."
+                ::= { alcatelIND1LAGMIBGroups 10 }
+ 
 
 	END

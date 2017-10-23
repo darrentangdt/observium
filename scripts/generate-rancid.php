@@ -23,9 +23,11 @@ include_once("includes/sql-config.inc.php");
 if (isset($config['rancid_version']) && strpos($config['rancid_version'], '3') !== FALSE)
 {
   // v3 delimiter
+  $version_base = '3';
   $delimiter = ';';
 } else {
   // v2 delimiter
+  $version_base = '2';
   $delimiter = ':';
 }
 
@@ -35,17 +37,23 @@ if (isset($config['rancid_version']) && strpos($config['rancid_version'], '3') !
 
 <?php
 
-foreach (dbFetchRows("SELECT `hostname`, `os`, `disabled`, `status` FROM `devices` WHERE `ignore` = 0 ORDER BY `hostname`") as $device)
+foreach (dbFetchRows("SELECT `hostname`, `os`, `disabled`, `status` FROM `devices` ORDER BY `hostname`") as $device)
 {
+  if ($device['disabled'] || !$device['status'])
+  {
+    $status = "down";
+  } else {
+    $status = "up";
+  }
+
   if (isset($config['rancid']['os_map'][$device['os']]))
   {
-    $status = "up";
-    if ($device['disabled'] || !$device['status'])
-    {
-      $status = "down";
-    }
-
     echo($device['hostname'] . $delimiter . $config['rancid']['os_map'][$device['os']] . $delimiter . $status . PHP_EOL);
+  }
+  else if (isset($config['rancid']['os_map_'.$version_base][$device['os']]))
+  {
+    // Version specific os maps
+    echo($device['hostname'] . $delimiter . $config['rancid']['os_map_'.$version_base][$device['os']] . $delimiter . $status . PHP_EOL);
   }
 }
 

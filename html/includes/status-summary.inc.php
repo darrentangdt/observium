@@ -13,8 +13,8 @@
 
 // Included in: html/pages/front/default.php, html/includes/panels/default.php
 
-if ($devices['down'])  { $devices['class']  = "error"; } else { $devices['class']  = ""; }
-if ($ports['down'])    { $ports['class']    = "error"; } else { $ports['class']    = ""; }
+if ($cache['devices']['stat']['down'])  { $cache['devices']['stat']['class']  = "error"; } else { $cache['devices']['stat']['class']  = ""; }
+if ($cache['ports']['stat']['down']) { $ports_class = "error"; } else { $ports_class = ""; }
 
 ?>
 
@@ -33,52 +33,52 @@ if ($ports['down'])    { $ports['class']    = "error"; } else { $ports['class'] 
     </tr>
   </thead>
   <tbody>
-    <tr class="<?php echo($devices['class']); ?>">
+    <tr class="<?php echo($cache['devices']['stat']['class']); ?>">
       <td class="state-marker"></td>
       <td><strong><a       href="<?php echo(generate_url(array('page' => 'devices'))); ?>">Devices</a></strong></td>
-      <td><a               href="<?php echo(generate_url(array('page' => 'devices')));                                   ?>"><?php echo($devices['count'])    ?></a></td>
-      <td><a class="green" href="<?php echo(generate_url(array('page' => 'devices', 'status' => '1')));                  ?>"><?php echo($devices['up'])       ?> up</a></td>
-      <td><a class="red"   href="<?php echo(generate_url(array('page' => 'devices', 'status' => '0', 'ignore' => '0'))); ?>"><?php echo($devices['down'])     ?> down</a></td>
-      <td><a class="black" href="<?php echo(generate_url(array('page' => 'devices', 'ignore' => '1')));                  ?>"><?php echo($devices['ignored'])  ?> ignored</a></td>
-      <td><a class="grey"  href="<?php echo(generate_url(array('page' => 'devices', 'disabled' => '1')));                ?>"><?php echo($devices['disabled']) ?> disabled</a></td>
+      <td><a               href="<?php echo(generate_url(array('page' => 'devices')));                                   ?>"><?php echo($cache['devices']['stat']['count'])    ?></a></td>
+      <td><a class="green" href="<?php echo(generate_url(array('page' => 'devices', 'status' => '1')));                  ?>"><?php echo($cache['devices']['stat']['up'])       ?> up</a></td>
+      <td><a class="red"   href="<?php echo(generate_url(array('page' => 'devices', 'status' => '0', 'ignore' => '0'))); ?>"><?php echo($cache['devices']['stat']['down'])     ?> down</a></td>
+      <td><a class="black" href="<?php echo(generate_url(array('page' => 'devices', 'ignore' => '1')));                  ?>"><?php echo($cache['devices']['stat']['ignored'])  ?> ignored</a></td>
+      <td><a class="grey"  href="<?php echo(generate_url(array('page' => 'devices', 'disabled' => '1')));                ?>"><?php echo($cache['devices']['stat']['disabled']) ?> disabled</a></td>
     </tr>
-    <tr class="<?php echo($ports['class']) ?>">
+    <tr class="<?php echo($ports_class) ?>">
       <td class="state-marker"></td>
       <td><strong><a       href="<?php echo(generate_url(array('page' => 'ports'))); ?>">Ports</a></strong></td>
-      <td><a               href="<?php echo(generate_url(array('page' => 'ports')));                                     ?>"><?php echo($ports['count'])      ?></a></td>
-      <td><a class="green" href="<?php echo(generate_url(array('page' => 'ports', 'state' => 'up')));                    ?>"><?php echo($ports['up'])         ?> up</a></td>
-      <td><a class="red"   href="<?php echo(generate_url(array('page' => 'ports', 'state' => 'down', 'ignore' => '0'))); ?>"><?php echo($ports['down'])       ?> down</a></td>
-      <td><a class="black" href="<?php echo(generate_url(array('page' => 'ports', 'ignore' => '1')));                    ?>"><?php echo($ports['ignored']); ?> (<?php echo (count($cache['ports']['device_ignored'])) ?>) ignored</a></td>
-      <td><a class="grey"  href="<?php echo(generate_url(array('page' => 'ports', 'state' => 'admindown')));             ?>"><?php echo($ports['shutdown'])   ?> shutdown</a></td>
+      <td><a               href="<?php echo(generate_url(array('page' => 'ports', 'ignore' => '0')));                                     ?>"><?php echo($cache['ports']['stat']['count'])      ?></a></td>
+      <td><a class="green" href="<?php echo(generate_url(array('page' => 'ports', 'state' => 'up', 'ignore' => '0')));                    ?>"><?php echo($cache['ports']['stat']['up'])         ?> up</a></td>
+      <td><a class="red"   href="<?php echo(generate_url(array('page' => 'ports', 'state' => 'down', 'ignore' => '0')));         ?>"><?php echo($cache['ports']['stat']['down'])       ?> down</a></td>
+      <td><a class="black" href="<?php echo(generate_url(array('page' => 'ports', 'ignore' => '1')));                            ?>"><?php echo($cache['ports']['stat']['ignored']); ?> (<?php echo ($cache['ports']['stat']['device_ignored']) ?>) ignored</a></td>
+      <td><a class="grey"  href="<?php echo(generate_url(array('page' => 'ports', 'state' => 'admindown', 'ignore' => '0')));             ?>"><?php echo($cache['ports']['stat']['shutdown'])   ?> shutdown</a></td>
     </tr>
 <?php
-  if ($sensors['count'])
+  if ($cache['sensors']['stat']['count'])
   {
-    if ($sensors['alert']) { $sensors['class'] = "error"; } else { $sensors['class'] = ""; }
+    if ($cache['sensors']['stat']['alert']) { $cache['sensors']['stat']['class'] = "error"; } elseif ($cache['sensors']['stat']['warning']) { $cache['sensors']['stat']['class'] = "warning"; } else { $cache['sensors']['stat']['class'] = ""; }
 ?>
-    <tr class="<?php echo($sensors['class']) ?>">
+    <tr class="<?php echo($cache['sensors']['stat']['class']) ?>">
       <td class="state-marker"></td>
       <td><strong><a       href="<?php echo(generate_url(array('page' => 'health'))); ?>">Sensors</a></strong></td>
-      <td><a               href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'sensors')));                             ?>"><?php echo($sensors['count'])    ?></a></td>
-      <td><a class="green" href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'sensors', 'event' => 'ok')));            ?>"><?php echo($sensors['ok'])       ?> ok</a></td>
-      <td><a class="red"   href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'sensors', 'event' => 'alert,warning'))); ?>"><?php echo($sensors['alert'])    ?> alert</a></td>
-      <td><a class="black" href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'sensors', 'event' => 'ignore')));        ?>"><?php echo($sensors['ignored'])  ?> ignored</a></td>
-      <td><a class="grey"  href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'sensors')));                             ?>"><?php echo($sensors['disabled']) ?> disabled</a></td>
+      <td><a               href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'sensors')));                             ?>"><?php echo($cache['sensors']['stat']['count'])    ?></a></td>
+      <td><a class="green" href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'sensors', 'event' => 'ok')));            ?>"><?php echo($cache['sensors']['stat']['ok'])       ?> ok</a></td>
+      <td><a class="red"   href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'sensors', 'event' => 'alert,warning'))); ?>"><?php echo($cache['sensors']['stat']['alert'] + $cache['sensors']['stat']['warning']) ?> down</span> </a></td>
+      <td><a class="black" href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'sensors', 'event' => 'ignore')));        ?>"><?php echo($cache['sensors']['stat']['ignored'])  ?> ignored</a></td>
+      <td><a class="grey"  href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'sensors')));                             ?>"><?php echo($cache['sensors']['stat']['disabled']) ?> disabled</a></td>
     </tr>
 <?php
   } # end if sensors
-  if ($statuses['count'])
+  if ($cache['statuses']['stat']['count'])
   {
-    if ($statuses['alert']) { $statuses['class'] = "error"; } else { $statuses['class'] = ""; }
+    if ($cache['statuses']['stat']['alert']) { $cache['statuses']['stat']['class'] = "error"; } else { $cache['statuses']['stat']['class'] = ""; }
 ?>
-    <tr class="<?php echo($statuses['class']) ?>">
+    <tr class="<?php echo($cache['statuses']['stat']['class']) ?>">
       <td class="state-marker"></td>
       <td><strong><a       href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'status'))); ?>">Statuses</a></strong></td>
-      <td><a               href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'status')));                              ?>"><?php echo($statuses['count'])   ?></a></td>
-      <td><a class="green" href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'status', 'event' => 'ok,warning')));     ?>"><?php echo($statuses['ok'])      ?> ok</a></td>
-      <td><a class="red"   href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'status', 'event' => 'alert,')));         ?>"><?php echo($statuses['alert'])   ?> alert</a></td>
-      <td><a class="black" href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'status', 'event' => 'ignore')));         ?>"><?php echo($statuses['ignored']) ?> ignored</a></td>
-      <td><a class="grey"  href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'status')));                              ?>"><?php echo($statuses['disabled'])?> disabled</a></td>
+      <td><a               href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'status')));                              ?>"><?php echo($cache['statuses']['stat']['count'])   ?></a></td>
+      <td><a class="green" href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'status', 'event' => 'ok,warning')));     ?>"><?php echo($cache['statuses']['stat']['ok'])      ?> ok</a></td>
+      <td><a class="red"   href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'status', 'event' => 'alert,')));         ?>"><?php echo($cache['statuses']['stat']['alert'])   ?> alert</a></td>
+      <td><a class="black" href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'status', 'event' => 'ignore')));         ?>"><?php echo($cache['statuses']['stat']['ignored']) ?> ignored</a></td>
+      <td><a class="grey"  href="<?php echo(generate_url(array('page' => 'health', 'metric' => 'status')));                              ?>"><?php echo($cache['statuses']['stat']['disabled'])?> disabled</a></td>
     </tr>
 <?php
   } # end if statuses

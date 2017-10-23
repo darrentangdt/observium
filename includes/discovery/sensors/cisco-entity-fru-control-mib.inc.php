@@ -98,7 +98,7 @@ if (count($entity_array))
 
       discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr, $value, array('entPhysicalClass' => 'powersupply'));
     }
- 
+
     // Fans
     if ($entry['entPhysicalClass'] == 'fan')
     {

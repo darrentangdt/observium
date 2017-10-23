@@ -13,7 +13,11 @@ elt-mes-mib-2               OBJECT IDENTIFIER ::= { eltMesMng   1 }
 eltMesFtp                   OBJECT IDENTIFIER ::= { eltMesMng   2 }
 eltMesAAAStatMIB            OBJECT IDENTIFIER ::= { eltMesMng   3 }
 eltMesSnmpCommExtMIB        OBJECT IDENTIFIER ::= { eltMesMng   4 }
-eltMesCountersMIB           OBJECT IDENTIFIER ::= { eltMesMng   8 }
+--eltMesFlexLinksMIB        OBJECT IDENTIFIER ::= { eltMesMng   5 }
+--eltMesIpSlaMIB            OBJECT IDENTIFIER ::= { eltMesMng   6 }
+--eltMesMacNotificationMIB  OBJECT IDENTIFIER ::= { eltMesMng   7 }
+--eltMesCountersMIB         OBJECT IDENTIFIER ::= { eltMesMng   8 }
+eltMesCpuTasksUtilMIB       OBJECT IDENTIFIER ::= { eltMesMng   9 }
 
 eltMesIfExtensionMIB        OBJECT IDENTIFIER ::= { eltMesMng 276 }
 eltMesBridgeExtMIB          OBJECT IDENTIFIER ::= { eltMesMng 401 }

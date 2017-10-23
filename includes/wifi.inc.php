@@ -66,7 +66,7 @@ function discover_wifi_radio($device_id, $radio)
     foreach ($params as $param)
     {
       $insert[$param] = $radio[$param];
-      if ($radio[$param] == NULL) { $insert[$param] = array('NULL'); }
+      if (is_null($radio[$param])) { $insert[$param] = array('NULL'); }
     }
     $wifi_radio_id = dbInsert($insert, 'wifi_radios');
     echo("+");

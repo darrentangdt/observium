@@ -15,7 +15,14 @@
 
 //$system = snmp_get($device, 'ssCpuSystem.0', '-OvQ', 'UCD-SNMP-MIB');
 //$user = snmp_get($device, 'ssCpuUser.0', '-OvQ', 'UCD-SNMP-MIB');
-$idle = snmp_get($device, 'ssCpuIdle.0', '-OvQ', 'UCD-SNMP-MIB');
+
+// FIXME. move to definitions
+if (isset($oid_cache[$processor['processor_oid']]))
+{
+  $idle = $oid_cache[$processor['processor_oid']];
+} else {
+  $idle = snmp_get_oid($device, 'ssCpuIdle.0', 'UCD-SNMP-MIB');
+}
 
 if ($processor['processor_returns_idle'] == 1)
 {

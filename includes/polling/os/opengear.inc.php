@@ -11,12 +11,9 @@
  *
  */
 
-// SNMPv2-SMI::enterprises.25049.17.1.1 = STRING: "3.12.1 (Fri Sep 26 16:16:16 EST 2014)"
-$tmpver = trim(snmp_get($device, '.1.3.6.1.4.1.25049.17.1.1', '-OQv'),'"');
+// OG-STATUSv2-MIB::ogFirmwareVersion = STRING: "3.12.1 (Fri Sep 26 16:16:16 EST 2014)"
+$tmpver = snmp_get($device, 'ogFirmwareVersion', '-OQv', 'OG-STATUSv2-MIB');
 $verarray = explode(' ', $tmpver);
 $version = $verarray[0];
-
-// SNMPv2-SMI::enterprises.25049.17.1.2 = STRING: "55020456371432"
-$serial = trim(snmp_get($device, '.1.3.6.1.4.1.25049.17.1.2', '-OQv'),'"');
 
 // EOF

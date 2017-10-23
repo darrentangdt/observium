@@ -20,7 +20,9 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
         OBJECT-TYPE, DisplayString
             FROM RFC1213-MIB
         OBJECT-TYPE, NetworkAddress, IpAddress,  Counter, Gauge, TimeTicks
-            FROM RFC1155-SMI;
+            FROM RFC1155-SMI
+        MODULE-IDENTITY, enterprises
+            FROM SNMPv2-SMI;
 
 --  The following may be defined elsewhere. If problems occur when trying
 --  to load this MIB, some of the lines below may need to be commented
@@ -30,12 +32,6 @@ G3-AVAYA-MIB DEFINITIONS ::= BEGIN
 --  the Avaya MIB branch may also need to be commented out (possibly
 --  along with the lines defining the mibs and products sub-branches
 --  underneath avaya).
-    iso             OBJECT IDENTIFIER ::= { 1 }
-    org             OBJECT IDENTIFIER ::= { iso 3 }
-    dod             OBJECT IDENTIFIER ::= { org 6 }
-    internet        OBJECT IDENTIFIER ::= { dod 1 }
-    private         OBJECT IDENTIFIER ::= { internet 4 }
-    enterprises     OBJECT IDENTIFIER ::= { private 1 }
 
     avaya           OBJECT IDENTIFIER ::= { enterprises 6889 }
     mibs            OBJECT IDENTIFIER ::= { avaya 2 }

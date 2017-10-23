@@ -70,7 +70,7 @@ if ($vars['subview'] == "top10")
 else
 {
 
-  $query = "SELECT *, `mac_accounting`.`ma_id` as `ma_id` FROM `mac_accounting` LEFT JOIN `mac_accounting-state` ON  `mac_accounting`.`ma_id` =  `mac_accounting-state`.`ma_id` WHERE port_id = ?";
+  $query = "SELECT *, `mac_accounting`.`ma_id` as `ma_id` FROM `mac_accounting` WHERE port_id = ?";
   $param = array($port['port_id']);
 
  if ($vars['subview'] != minigraphs) {

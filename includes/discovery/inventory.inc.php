@@ -11,8 +11,6 @@
  *
  */
 
-print_cli_data_field("Discovering MIBs", 3);
-
 $valid['inventory'] = array();
 
 $include_dir = "includes/discovery/inventory";

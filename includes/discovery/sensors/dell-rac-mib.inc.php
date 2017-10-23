@@ -12,7 +12,7 @@
  */
 
 // table: CMC power information
-$oids = snmpwalk_cache_oid($device, 'drsCMCPowerTable', array(), 'DELL-RAC-MIB');
+$oids = snmpwalk_cache_oid($device, 'drsCMCPowerTable', array(), $mib);
 
 foreach ($oids as $index => $entry)
 {
@@ -28,7 +28,7 @@ foreach ($oids as $index => $entry)
 unset($oids);
 
 // table: CMC PSU info
-$oids = snmpwalk_cache_oid($device, 'drsCMCPSUTable', array(), 'DELL-RAC-MIB');
+$oids = snmpwalk_cache_oid($device, 'drsCMCPSUTable', array(), $mib);
 
 foreach ($oids as $index => $entry)
 {

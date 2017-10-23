@@ -12,6 +12,8 @@
  *
  */
 
+// FIXME, create api-internal for such
+
 $config['install_dir'] = "../..";
 
 include_once("../../includes/sql-config.inc.php");
@@ -23,7 +25,8 @@ if (!$_SESSION['authenticated']) { echo('<li class="nav-header">Session expired,
 
 $vars = get_vars('GET');
 
-if (strlen($vars['field']) && $vars['cache'] != 'no' && isset($_SESSION['cache']['options_' . $vars['field']]))
+if (strlen($vars['field']) && $vars['cache'] != 'no' && empty($vars['query']) &&
+    isset($_SESSION['cache']['options_' . $vars['field']]))
 {
   // Return cached data (if not set in vars cache = 'no')
   header("Content-type: application/json; charset=utf-8");
@@ -42,18 +45,53 @@ if (strlen($vars['field']) && $vars['cache'] != 'no' && isset($_SESSION['cache']
       $query = 'SELECT `' . $ip_version . '_network` FROM `' . $ip_version . '_networks` WHERE 1 ' . generate_query_values($network_permitted, $ip_version . '_network_id');
       if (strlen($vars['query']))
       {
-        $query .= ' AND `' . $ip_version . '_network` LIKE ?';
-        $params[] = '%' . $vars['query'] . '%';
+        //$query .= ' AND `' . $ip_version . '_network` LIKE ?';
+        //$params[] = '%' . $vars['query'] . '%';
+        $query .= generate_query_values($vars['query'], $vars['field'], '%LIKE%');
       }
       $query .= ' ORDER BY `' . $ip_version . '_network`;';
       //print_vars($query);
       break;
+
     case 'ifspeed':
       $query_permitted   = generate_query_permitted('ports');
       $query = 'SELECT `ifSpeed`, COUNT(ifSpeed) as `count` FROM `ports` WHERE `ifSpeed` > 0 '. $query_permitted .' GROUP BY ifSpeed ORDER BY `count` DESC';
       $call_function = 'formatRates';
       $call_params   = array(4, 4);
       break;
+
+    case 'bgp_peer_as':
+      $column = 'bgpPeerRemoteAs';
+      $query_permitted = generate_query_permitted('devices');
+      // Combinate AS number and AS text into string: ASXXXX: My AS text
+      $query = 'SELECT DISTINCT CONCAT(?, CONCAT_WS(?, `'.$column.'`, `astext`)) AS `'.$vars['field'].'` FROM `bgpPeers` WHERE 1 ' . $query_permitted;
+      $params[] = 'AS';
+      $params[] = ': ';
+      //$query = 'SELECT DISTINCT `' . $column . '`, `astext` FROM `bgpPeers` WHERE 1 ' . $cache['where']['devices_permitted'] . ' ORDER BY `' . $column . '`';
+      if (strlen($vars['query']))
+      {
+        $query .= ' AND (`' . $column . '` LIKE ? OR `astext` LIKE ?)';
+        $params[] = '%' . $vars['query'] . '%';
+        $params[] = '%' . $vars['query'] . '%';
+        //$query .= generate_query_values($vars['query'], $vars['field'], '%LIKE%');
+      }
+      break;
+
+    case 'bgp_local_ip':
+    case 'bgp_peer_ip':
+      $columns = array('local_ip' => 'bgpPeerLocalAddr',
+                       'peer_ip'  => 'bgpPeerRemoteAddr',
+                 );
+      $param  = str_replace('bgp_', '', $vars['field']);
+      $column = $columns[$param];
+      $query_permitted = generate_query_permitted('devices');
+      $query = 'SELECT DISTINCT `' . $column . '` FROM `bgpPeers` WHERE 1 ' . $query_permitted;
+      if (strlen($vars['query']))
+      {
+        $query .= generate_query_values($vars['query'], $column, '%LIKE%');
+      }
+      break;
+
     default:
       json_output('error', 'Search type unknown');
   }
@@ -72,9 +110,11 @@ if (strlen($vars['field']) && $vars['cache'] != 'no' && isset($_SESSION['cache']
         }
         $options = $call_options;
       }
-      if ($vars['cache'] != 'no')
+      if ($vars['cache'] != 'no' && empty($vars['query']))
       {
+        @session_start();
         $_SESSION['cache']['options_' . $vars['field']] = $options; // Cache query data in session for speedup
+        session_commit();
       }
 
       header("Content-type: application/json; charset=utf-8");

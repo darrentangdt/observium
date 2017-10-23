@@ -69,7 +69,7 @@ if (count($results))
       'url'    => generate_port_url($port),
       'name'   => $name,
       'colour' => $tab_colour,
-      'icon'   => '<i class="oicon-magnifier-zoom-actual"></i>',
+      'icon'   => '<i class="'.$config['icon']['ipv4'].'"></i>',
       'data'   => array(
         '',
         escape_html($descr)),

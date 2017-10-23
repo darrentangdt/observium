@@ -28,6 +28,7 @@ include($config['html_dir']."/includes/alerting-navbar.inc.php");
   {
     $result = update_device_alert_table($device);
     print_message($result['message'], $result['class']);
+    del_obs_attrib('alerts_require_rebuild');
   }
 
   echo generate_box_close();

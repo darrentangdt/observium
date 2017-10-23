@@ -7,7 +7,7 @@
  *
  * @package    observium
  * @subpackage webui
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -22,19 +22,19 @@ $menu_start = utime();
     <div class="navbar-inner">
       <div class="container">
         <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target="#main-nav">
-          <span class="oicon-bar"></span>
-          <span class="oicon-bar"></span>
-          <span class="oicon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
         </button>
-        <a class="brand brand-observium" href="/">&nbsp;</a>
+        <a class="brand brand-observium" href="/" <?php if(isset($config['web']['logo'])) { echo 'style="background-image: url(../images/'.$config['web']['logo'].');"'; }  ?> >&nbsp;</a>
         <div class="nav-collapse" id="main-nav">
           <ul class="nav">
 <?php
 
 //////////// Build main "globe" menu
-$navbar['observium'] = array('url' => generate_url(array('page' => 'overview')), 'icon' => 'oicon-globe-model');
+$navbar['observium'] = array('url' => generate_url(array('page' => 'overview')), 'icon' => $config['icon']['globe']);
 
-$navbar['observium']['entries'][] = array('title' => 'Overview', 'url' => generate_url(array('page' => 'overview')), 'icon' => 'oicon-globe-model');
+$navbar['observium']['entries'][] = array('title' => 'Overview', 'url' => generate_url(array('page' => 'overview')), 'icon' => $config['icon']['overview']);
 $navbar['observium']['entries'][] = array('divider' => TRUE);
 
 // Show Groups
@@ -54,47 +54,47 @@ if (OBSERVIUM_EDITION != 'community')
     $entity_group_menu[$group['entity_type']][] = array('url' => generate_url(array('page' => 'group', 'group_id' => $group['group_id'])), 'title' => escape_html($group['group_name']), 'icon' => $config['entities'][$group['entity_type']]['icon'], 'count' => $group['member_count']);
   }
 
-  $navbar['observium']['entries'][] = array('title' => 'Groups', 'url' => generate_url(array('page' => 'groups')), 'icon' => 'oicon-category', 'count' => count($group_menu), 'entries' => $group_menu);
+  $navbar['observium']['entries'][] = array('title' => 'Groups', 'url' => generate_url(array('page' => 'groups')), 'icon' => $config['icon']['group'], 'count' => count($group_menu), 'entries' => $group_menu);
   $navbar['observium']['entries'][] = array('divider' => TRUE);
  }
 }
 
-$navbar['observium']['entries'][] = array('title' => 'Alerts', 'url' => generate_url(array('page' => 'alerts')), 'icon' => 'oicon-bell');
+$navbar['observium']['entries'][] = array('title' => 'Alerts', 'url' => generate_url(array('page' => 'alerts')), 'icon' => $config['icon']['alert']);
 if ($_SESSION['userlevel'] >= 5)
 {
   $counts['alert_checks'] = dbFetchCell("SELECT COUNT(*) FROM `alert_tests`");
-  $navbar['observium']['entries'][] = array('title' => 'Alert Checks', 'url' => generate_url(array('page' => 'alert_checks')), 'count' => $counts['alert_checks'], 'icon' => 'oicon-eye');
+  $navbar['observium']['entries'][] = array('title' => 'Alert Checks', 'url' => generate_url(array('page' => 'alert_checks')), 'count' => $counts['alert_checks'], 'icon' => $config['icon']['alert-rules']);
 }
 
-$navbar['observium']['entries'][] = array('title' => 'Alert Logs', 'url' => generate_url(array('page' => 'alert_log')), 'icon' => 'oicon-bell--exclamation');
+$navbar['observium']['entries'][] = array('title' => 'Alert Logs', 'url' => generate_url(array('page' => 'alert_log')), 'icon' => $config['icon']['alert-log']);
 
 if ($_SESSION['userlevel'] >= 7 && OBSERVIUM_EDITION != 'community')
 {
-  $navbar['observium']['entries'][] = array('title' => 'Scheduled Maintenance', 'url' => generate_url(array('page' => 'alert_maintenance')), 'icon' => 'oicon-clock--exclamation');
+  $navbar['observium']['entries'][] = array('title' => 'Scheduled Maintenance', 'url' => generate_url(array('page' => 'alert_maintenance')), 'icon' => $config['icon']['scheduled-maintenance']);
 }
 
 $navbar['observium']['entries'][] = array('divider' => TRUE);
 
 if (isset($config['enable_syslog']) && $config['enable_syslog'])
 {
-  $navbar['observium']['entries'][] = array('title' => 'Syslog', 'url' => generate_url(array('page' => 'syslog')), 'icon' => 'oicon-clipboard-eye');
+  $navbar['observium']['entries'][] = array('title' => 'Syslog', 'url' => generate_url(array('page' => 'syslog')), 'icon' => $config['icon']['syslog']);
 
   if (OBSERVIUM_EDITION != 'community')
   {
-    $navbar['observium']['entries'][] = array('title' => 'Syslog Alerts', 'url' => generate_url(array('page' => 'syslog_alerts')), 'icon' => 'oicon-clipboard--exclamation');
-    $navbar['observium']['entries'][] = array('title' => 'Syslog Rules',  'url' => generate_url(array('page' => 'syslog_rules')), 'icon' => 'oicon-clipboard--pencil');
+    $navbar['observium']['entries'][] = array('title' => 'Syslog Alerts', 'url' => generate_url(array('page' => 'syslog_alerts')), 'icon' => $config['icon']['syslog-alerts']);
+    $navbar['observium']['entries'][] = array('title' => 'Syslog Rules',  'url' => generate_url(array('page' => 'syslog_rules')), 'icon' => $config['icon']['syslog-rules']);
     $navbar['observium']['entries'][] = array('divider' => TRUE);
   }
 }
 
 if (isset($config['enable_map']) && $config['enable_map'])
 { // FIXME link is wrong. Is this a supported feature?
-  $navbar['observium']['entries'][] = array('title' => 'Network Map', 'url' => generate_url(array('page' => 'map')), 'icon' => 'oicon-map');
+  $navbar['observium']['entries'][] = array('title' => 'Network Map', 'url' => generate_url(array('page' => 'map')), 'icon' => $config['icon']['netmap']);
 }
 
-$navbar['observium']['entries'][] = array('title' => 'Event Log', 'url' => generate_url(array('page' => 'eventlog')), 'icon' => 'oicon-clipboard-audit');
+$navbar['observium']['entries'][] = array('title' => 'Event Log', 'url' => generate_url(array('page' => 'eventlog')), 'icon' => $config['icon']['eventlog']);
 
-$navbar['observium']['entries'][] = array('title' => 'Polling Information', 'url' => generate_url(array('page' => 'pollerlog')), 'icon' => 'oicon-clipboard-report-bar');
+
 $navbar['observium']['entries'][] = array('divider' => TRUE);
 
 if ($_SESSION['userlevel'] >= 7)
@@ -102,25 +102,36 @@ if ($_SESSION['userlevel'] >= 7)
   // Print Contacts
   $counts['contacts'] = dbFetchCell("SELECT COUNT(*) FROM `alert_contacts`");
 
-  $navbar['observium']['entries'][] = array('title' => 'Contacts', 'url' => generate_url(array('page' => 'contacts')), 'count' => $counts['contacts'], 'icon' => 'oicon-users');
+  $navbar['observium']['entries'][] = array('title' => 'Contacts', 'url' => generate_url(array('page' => 'contacts')), 'count' => $counts['contacts'], 'icon' => $config['icon']['contacts']);
   $navbar['observium']['entries'][] = array('divider' => TRUE);
 }
 
 if (OBSERVIUM_EDITION != 'community' && $_SESSION['userlevel'] >= 5)
 {
   // Custom OIDs
-  $navbar['observium']['entries'][] = array('title' => 'Custom OIDs', 'url' => generate_url(array('page' => 'customoids')), 'icon' => 'oicon-target');
-  $navbar['observium']['entries'][] = array('divider' => TRUE);
+
+  $oids = dbFetchRows("SELECT * FROM `oids` ORDER BY `oid_descr`");
+
+  $oid_count = count($oids);
+
+  foreach ($oids AS $oid)
+  {
+      $oids_menu[] = array('title' => $oid['oid_descr'], 'url' => generate_url(array('page' => 'customoid', 'oid_id' => $oid['oid_id'])), 'icon' => $config['icon']['customoid']);
+  }
+
+    $navbar['observium']['entries'][] = array('title' => 'Custom OIDs', 'url' => generate_url(array('page' => 'customoids')), 'count' => $oid_count, 'icon' => $config['icon']['customoid'], 'entries' => $oids_menu);
+    $navbar['observium']['entries'][] = array('divider' => TRUE);
+
 }
 
-$navbar['observium']['entries'][] = array('title' => 'Inventory', 'url' => generate_url(array('page' => 'inventory')), 'icon' => 'oicon-wooden-box');
-$navbar['observium']['entries'][] = array('divider' => TRUE);
+$navbar['observium']['entries'][] = array('title' => 'Hardware Inventory', 'url' => generate_url(array('page' => 'inventory')), 'icon' => $config['icon']['inventory']);
 
 if ($cache['packages']['count'])
 {
-  $navbar['observium']['entries'][] = array('title' => 'Software Packages', 'url' => generate_url(array('page' => 'packages')), 'icon' => 'oicon-box-zipper');
-  $navbar['observium']['entries'][] = array('divider' => TRUE);
+  $navbar['observium']['entries'][] = array('title' => 'Software Packages', 'url' => generate_url(array('page' => 'packages')), 'icon' => $config['icon']['packages']);
 }
+
+$navbar['observium']['entries'][] = array('divider' => TRUE);
 
 // Build search submenu
 $search_sections = array('ipv4' => 'IPv4 Address', 'ipv6' => 'IPv6 Address', 'mac' => 'MAC Address', 'arp' => 'ARP/NDP Tables', 'fdb' => 'FDB Tables');
@@ -131,20 +142,20 @@ if ($cache['wifi_sessions']['count'])
 
 foreach ($search_sections as $search_page => $search_name)
 {
-  $search_menu[] = array('title' => $search_name, 'url' => generate_url(array('page' => 'search', 'search' => $search_page)), 'icon' => 'oicon-magnifier-zoom-actual');
+  $search_menu[] = array('title' => $search_name, 'url' => generate_url(array('page' => 'search', 'search' => $search_page)), 'icon' => $config['icon']['search']);
 }
 
-$navbar['observium']['entries'][] = array('title' => 'Search', 'url' => generate_url(array('page' => 'search')), 'icon' => 'oicon-magnifier-zoom-actual', 'entries' => $search_menu);
+$navbar['observium']['entries'][] = array('title' => 'Search', 'url' => generate_url(array('page' => 'search')), 'icon' => $config['icon']['search'], 'entries' => $search_menu);
 
 //////////// Build devices menu
-$navbar['devices'] = array('url' => generate_url(array('page' => 'devices')), 'icon' => 'oicon-servers', 'title' => 'Devices');
+$navbar['devices'] = array('url' => generate_url(array('page' => 'devices')), 'icon' => $config['icon']['devices'], 'title' => 'Devices');
 
-$navbar['devices']['entries'][] = array('title' => 'All Devices', 'count' => $devices['count'], 'url' => generate_url(array('page' => 'devices')), 'icon' => 'oicon-servers');
+$navbar['devices']['entries'][] = array('title' => 'All Devices', 'count' => $cache['devices']['stat']['count'], 'url' => generate_url(array('page' => 'devices')), 'icon' => $config['icon']['devices']);
 
 if(count($entity_group_menu['device']))
 {
   $navbar['devices']['entries'][] = array('divider' => TRUE);
-  $navbar['devices']['entries'][] = array('title' => 'Groups', 'url' => generate_url(array('page' => 'groups', 'entity_type' => 'device')), 'icon' => 'oicon-category', 'count' => count($entity_group_menu['device']), 'entries' => $entity_group_menu['device']);
+  $navbar['devices']['entries'][] = array('title' => 'Groups', 'url' => generate_url(array('page' => 'groups', 'entity_type' => 'device')), 'icon' => $config['icon']['group'], 'count' => count($entity_group_menu['device']), 'entries' => $entity_group_menu['device']);
 }
 
 $navbar['devices']['entries'][] = array('divider' => TRUE);
@@ -158,7 +169,7 @@ if ($config['show_locations'])
       $navbar['devices']['entries'][] = array('locations' => TRUE); // Pretty complicated recursive function, workaround not having it converted to returning an array
       break;
     case 'nested':
-      $locations = array('title' => 'Locations', 'icon' => 'oicon-building'); // Init empty array
+      $locations = array('title' => 'Locations', 'icon' => $config['icon']['location']); // Init empty array
 
       foreach (get_locations() as $location)
       {
@@ -189,7 +200,7 @@ if ($config['show_locations'])
               'location_text' => str_replace(',', '%1F', trim(implode($config['location']['menu']['nested_split_char'], $location_slice)))));
             // , replaced by %1F (Observium Special), otherwise the value turns into an array (see get_vars() for parsing)
 
-            $ref = array('icon' => 'oicon-building-small', 'title' => $location_part, 'url' => $location_url);
+            $ref = array('icon' => $config['icon']['location'], 'title' => $location_part, 'url' => $location_url);
           }
         }
       }
@@ -204,10 +215,10 @@ if ($config['show_locations'])
         $name = ($location === '' ? OBS_VAR_UNSET : escape_html($location));
 
         // No nested menu, just list all locations one after another
-        $location_menu[] = array('url' => generate_location_url($location), 'icon' => 'oicon-building-small', 'title' => $name);
+        $location_menu[] = array('url' => generate_location_url($location), 'icon' => $config['icon']['location'], 'title' => $name);
       }
-    
-      $navbar['devices']['entries'][] = array('title' => 'Locations', 'url' => generate_url(array('page' => 'locations')), 'icon' => 'oicon-building', 'entries' => $location_menu);
+
+      $navbar['devices']['entries'][] = array('title' => 'Locations', 'url' => generate_url(array('page' => 'locations')), 'icon' => $config['icon']['locations'], 'entries' => $location_menu);
       break;
   }
 
@@ -219,85 +230,91 @@ foreach ($config['device_types'] as $devtype)
 {
   if (in_array($devtype['type'], array_keys($cache['device_types'])))
   {
-    $navbar['devices']['entries'][] = array('title' => $devtype['text'],'icon' => $devtype['icon'], 'count' => $cache['device_types'][$devtype['type']], 'url' => generate_url(array('page' => 'devices', 'type' => $devtype['type'])));
+    $navbar['devices']['entries'][] = array('title' => $devtype['text'], 'icon' => $devtype['icon'], 'count' => $cache['device_types'][$devtype['type']], 'url' => generate_url(array('page' => 'devices', 'type' => $devtype['type'])));
   }
 }
 
-if ($devices['down']+$devices['ignored']+$devices['disabled'])
+if ($cache['devices']['stat']['down']+$cache['devices']['stat']['ignored']+$cache['devices']['stat']['disabled'])
 {
   $navbar['devices']['entries'][] = array('divider' => TRUE);
-  if ($devices['down'])
+  if ($cache['devices']['stat']['down'])
   {
-    $navbar['devices']['entries'][] = array('url' => generate_url(array('page' => 'devices', 'status' => '0')), 'icon' => 'oicon-circle-red', 'title' => 'Down', count => $devices['down']);
+    $navbar['devices']['entries'][] = array('url' => generate_url(array('page' => 'devices', 'status' => '0')), 'icon' => $config['icon']['exclamation'], 'title' => 'Down', count => $cache['devices']['stat']['down']);
   }
-  if ($devices['ignored'])
+  if ($cache['devices']['stat']['ignored'])
   {
-    $navbar['devices']['entries'][] = array('url' => generate_url(array('page' => 'devices', 'ignore' => '1')), 'icon' => 'oicon-circle-yellow', 'title' => 'Ignored', count => $devices['ignored']);
+    $navbar['devices']['entries'][] = array('url' => generate_url(array('page' => 'devices', 'ignore' => '1')), 'icon' => $config['icon']['ignore'], 'title' => 'Ignored', count => $cache['devices']['stat']['ignored']);
   }
-  if ($devices['disabled'])
+  if ($cache['devices']['stat']['disabled'])
   {
-    $navbar['devices']['entries'][] = array('url' => generate_url(array('page' => 'devices', 'disabled' => '1')), 'icon' => 'oicon-circle-metal', 'title' => 'Disabled', count => $devices['disabled']);
+    $navbar['devices']['entries'][] = array('url' => generate_url(array('page' => 'devices', 'disabled' => '1')), 'icon' => $config['icon']['shutdown'], 'title' => 'Disabled', count => $cache['devices']['stat']['disabled']);
   }
 }
 
 if ($_SESSION['userlevel'] >= 10)
 {
   $navbar['devices']['entries'][] = array('divider' => TRUE);
-  $navbar['devices']['entries'][] = array('url' => generate_url(array('page' => 'addhost')), 'icon' => 'oicon-server--plus', 'title' => 'Add Device');
-  $navbar['devices']['entries'][] = array('url' => generate_url(array('page' => 'delhost')), 'icon' => 'oicon-server--minus', 'title' => 'Delete Device');
+  $navbar['devices']['entries'][] = array('url' => generate_url(array('page' => 'addhost')), 'icon' => $config['icon']['plus'], 'title' => 'Add Device');
+  $navbar['devices']['entries'][] = array('url' => generate_url(array('page' => 'delhost')), 'icon' => $config['icon']['minus'], 'title' => 'Delete Device');
 }
 
 if ($cache['vm']['count'])
 {
   $navbar['devices']['entries'][] = array('divider' => TRUE);
-  $navbar['devices']['entries'][] = array('title' => 'Virtual Machines', 'count' => $cache['vm']['count'], 'url' => generate_url(array('page' => 'vms')), 'icon' => 'oicon-network-cloud');
+  $navbar['devices']['entries'][] = array('title' => 'Virtual Machines', 'count' => $cache['vm']['count'], 'url' => generate_url(array('page' => 'vms')), 'icon' => $config['icon']['virtual-machine']);
 }
 
 //////////// Build ports menu
-$navbar['ports'] = array('url' => generate_url(array('page' => 'ports')), 'icon' => 'oicon-network-ethernet', 'title' => 'Ports');
+$navbar['ports'] = array('url' => generate_url(array('page' => 'ports')), 'icon' => $config['entities']['port']['icon'], 'title' => 'Ports');
 
-$navbar['ports']['entries'][] = array('title' => 'All Ports', 'count' => $ports['count'], 'url' => generate_url(array('page' => 'ports')), 'icon' => 'oicon-network-ethernet');
+$navbar['ports']['entries'][] = array('title' => 'All Ports', 'count' => $cache['ports']['stat']['count'], 'url' => generate_url(array('page' => 'ports')), 'icon' => $config['entities']['port']['icon']);
 $navbar['ports']['entries'][] = array('divider' => TRUE);
 
 if(count($entity_group_menu['port']))
 {
-  $navbar['ports']['entries'][] = array('title' => 'Groups', 'url' => generate_url(array('page' => 'groups', 'entity_type' => 'port')), 'icon' => 'oicon-category', 'count' => count($entity_group_menu['port']), 'entries' => $entity_group_menu['port']);
+  $navbar['ports']['entries'][] = array('title' => 'Groups', 'url' => generate_url(array('page' => 'groups', 'entity_type' => 'port')), 'icon' => $config['icon']['group'], 'count' => count($entity_group_menu['port']), 'entries' => $entity_group_menu['port']);
   $navbar['ports']['entries'][] = array('divider' => TRUE);
 }
 
 if ($cache['p2pradios']['count'])
 {
-  $navbar['ports']['entries'][] = array('title' => 'P2P Radios', 'count' => $cache['p2pradios']['count'], 'url' => generate_url(array('page' => 'p2pradios')), 'icon' => 'oicon-transmitter');
+  $navbar['ports']['entries'][] = array('title' => 'P2P Radios', 'count' => $cache['p2pradios']['count'], 'url' => generate_url(array('page' => 'p2pradios')), 'icon' => $config['entities']['p2pradio']['icon']);
   $navbar['ports']['entries'][] = array('divider' => TRUE);
 }
 
 if ($config['enable_billing'])
 {
-  $navbar['ports']['entries'][] = array('title' => 'Traffic Accounting', 'url' => generate_url(array('page' => 'bills')), 'icon' => 'oicon-money-coin');
+  $navbar['ports']['entries'][] = array('title' => 'Traffic Accounting', 'url' => generate_url(array('page' => 'bills')), 'icon' => $config['icon']['billing']);
   $ifbreak = 1;
 }
 
 if ($cache['neighbours']['count'])
 {
-  $navbar['ports']['entries'][] = array('title' => 'Neighbours', 'url' => generate_url(array('page' => 'neighbours')), 'icon' => 'oicon-node', 'count' => $cache['neighbours']['count']);
+  $navbar['ports']['entries'][] = array('title' => 'Neighbours', 'url' => generate_url(array('page' => 'neighbours')), 'icon' => $config['icon']['neighbours'], 'count' => $cache['neighbours']['count']);
   $ifbreak = 1;
 }
 
 if ($config['enable_pseudowires'] && $cache['pseudowires']['count'])
 {
-  $navbar['ports']['entries'][] = array('title' => 'Pseudowires', 'count' => $cache['pseudowires']['count'], 'url' => generate_url(array('page' => 'pseudowires')), 'icon' => 'oicon-layer-shape-curve');
+  $navbar['ports']['entries'][] = array('title' => 'Pseudowires', 'count' => $cache['pseudowires']['count'], 'url' => generate_url(array('page' => 'pseudowires')), 'icon' => $config['icon']['pseudowire']);
+  $ifbreak = 1;
+}
+
+if ($cache['mac_accounting']['count'])
+{
+  $navbar['ports']['entries'][] = array('title' => 'MAC Accounting', 'count' => $cache['mac_accounting']['count'], 'url' => generate_url(array('page' => 'ports', 'mac_accounting' => 'yes')),'icon' => $config['icon']['port']);
   $ifbreak = 1;
 }
 
 if ($cache['cbqos']['count'])
 {
-  $navbar['ports']['entries'][] = array('title' => 'CBQoS', 'count' => $cache['cbqos']['count'], 'url' => generate_url(array('page' => 'ports', 'cbqos' => 'yes')), 'icon' => 'oicon-category-group');
+  $navbar['ports']['entries'][] = array('title' => 'CBQoS', 'count' => $cache['cbqos']['count'], 'url' => generate_url(array('page' => 'ports', 'cbqos' => 'yes')), 'icon' => $config['icon']['cbqos']);
   $ifbreak = 1;
 }
 
 if ($cache['sla']['count'])
 {
-  $navbar['ports']['entries'][] = array('title' => 'IP SLA', 'count' => $cache['sla']['count'], 'url' => generate_url(array('page' => 'slas')), 'icon' => 'oicon-chart-up');
+  $navbar['ports']['entries'][] = array('title' => 'IP SLA', 'count' => $cache['sla']['count'], 'url' => generate_url(array('page' => 'slas')), 'icon' => $config['icon']['sla']);
   $ifbreak = 1;
 }
 
@@ -310,65 +327,65 @@ if ($ifbreak)
 if ($_SESSION['userlevel'] >= '5')
 {
   // FIXME new icons
-  if ($config['int_customers']) { $navbar['ports']['entries'][] = array('url' => generate_url(array('page' => 'customers')), 'icon' => 'oicon-user-business', 'title' => 'Customers'); $ifbreak = 1; }
-  if ($config['int_l2tp'])      { $navbar['ports']['entries'][] = array('url' => generate_url(array('page' => 'iftype', 'type' => 'l2tp')), 'icon' => 'oicon-user-share', 'title' => 'L2TP'); $ifbreak = 1; }
-  if ($config['int_transit'])   { $navbar['ports']['entries'][] = array('url' => generate_url(array('page' => 'iftype', 'type' => 'transit')), 'icon' => 'oicon-network-clouds', 'title' => 'Transit');  $ifbreak = 1; }
-  if ($config['int_peering'])   { $navbar['ports']['entries'][] = array('url' => generate_url(array('page' => 'iftype', 'type' => 'peering')), 'icon' => 'oicon-network-cloud', 'title' => 'Peering'); $ifbreak = 1; }
-  if ($config['int_peering'] && $config['int_transit']) { $navbar['ports']['entries'][] = array('url' => generate_url(array('page' => 'iftype', 'type' => 'peering,transit')), 'icon' => 'oicon-globe-network', 'title' => 'Peering & Transit'); $ifbreak = 1; }
-  if ($config['int_core']) { $navbar['ports']['entries'][] = array('url' => generate_url(array('page' => 'iftype', 'type' => 'core')), 'icon' => 'oicon-globe-network-ethernet', 'title' => 'Core'); $ifbreak = 1; }
+  if ($config['int_customers']) { $navbar['ports']['entries'][] = array('url' => generate_url(array('page' => 'customers')), 'icon' => $config['icon']['port-customer'], 'title' => 'Customers'); $ifbreak = 1; }
+  if ($config['int_l2tp'])      { $navbar['ports']['entries'][] = array('url' => generate_url(array('page' => 'iftype', 'type' => 'l2tp')), 'icon' => $config['icon']['users'], 'title' => 'L2TP'); $ifbreak = 1; }
+  if ($config['int_transit'])   { $navbar['ports']['entries'][] = array('url' => generate_url(array('page' => 'iftype', 'type' => 'transit')), 'icon' => $config['icon']['port-transit'], 'title' => 'Transit');  $ifbreak = 1; }
+  if ($config['int_peering'])   { $navbar['ports']['entries'][] = array('url' => generate_url(array('page' => 'iftype', 'type' => 'peering')), 'icon' => $config['icon']['port-peering'], 'title' => 'Peering'); $ifbreak = 1; }
+  if ($config['int_peering'] && $config['int_transit']) { $navbar['ports']['entries'][] = array('url' => generate_url(array('page' => 'iftype', 'type' => 'peering,transit')), 'icon' => $config['icon']['port-peering-transit'], 'title' => 'Peering & Transit'); $ifbreak = 1; }
+  if ($config['int_core']) { $navbar['ports']['entries'][] = array('url' => generate_url(array('page' => 'iftype', 'type' => 'core')), 'icon' => $config['icon']['port-core'], 'title' => 'Core'); $ifbreak = 1; }
 
   // Custom interface groups can be set - see Interface Description Parsing
   foreach ($config['int_groups'] as $int_type)
   {
-    $navbar['ports']['entries'][] = array('url' => generate_url(array('page' => 'iftype', 'type' => $int_type)), 'icon' => 'oicon-network-ethernet', 'title' => str_replace(',', ' & ', $int_type)); $ifbreak = 1;
+    $navbar['ports']['entries'][] = array('url' => generate_url(array('page' => 'iftype', 'type' => $int_type)), 'icon' => $config['icon']['port'], 'title' => str_replace(',', ' & ', $int_type)); $ifbreak = 1;
   }
 }
 
 if ($ifbreak) { $navbar['ports']['entries'][] = array('divider' => TRUE); }
 
-$navbar['ports']['entries']['statuses'] = array('title' => 'Status Breakdown', 'url' => generate_url(array('page' => '#')), 'icon' => 'oicon-network-ethernet', 'entries' => array());
+$navbar['ports']['entries']['statuses'] = array('title' => 'Status Breakdown', 'url' => generate_url(array('page' => '#')), 'icon' => $config['entities']['port']['icon'], 'entries' => array());
 
-/// FIXME. Make Down/Ignored/Disabled ports as submenu. --mike
-if (isset($ports['alerts']))
+if ($cache['ports']['stat']['errored'])
 {
-  $navbar['ports']['entries']['statuses']['entries'][] = array('url' => generate_url(array('page' => 'ports', 'alerted' => 'yes')), 'icon' => 'oicon-chain--exclamation', 'title' => 'Alerts', 'count' => $ports['alerts']);
+  $navbar['ports']['entries']['statuses']['entries'][] = array('url' => generate_url(array('page' => 'ports', 'errors' => 'yes')), 'icon' => $config['icon']['flag'], 'title' => 'Errored', 'count' => $cache['ports']['stat']['errored']);
 }
 
-if ($ports['errored'])
+if ($cache['ports']['stat']['down'])
 {
-  $navbar['ports']['entries']['statuses']['entries'][] = array('url' => generate_url(array('page' => 'ports', 'errors' => 'yes')), 'icon' => 'oicon-exclamation-button', 'title' => 'Errored', 'count' => $ports['errored']);
+  $navbar['ports']['entries']['statuses']['entries'][] = array('url' => generate_url(array('page' => 'ports', 'state' => 'down')), 'icon' => $config['icon']['down'], 'title' => 'Down', 'count' => $cache['ports']['stat']['down']);
 }
 
-if ($ports['down'])
+if ($cache['ports']['stat']['shutdown'])
 {
-  $navbar['ports']['entries']['statuses']['entries'][] = array('url' => generate_url(array('page' => 'ports', 'state' => 'down')), 'icon' => 'oicon-network-status-busy', 'title' => 'Down', 'count' => $ports['down']);
+  $navbar['ports']['entries']['statuses']['entries'][] = array('url' => generate_url(array('page' => 'ports', 'state' => 'shutdown')), 'icon' => $config['icon']['shutdown'], 'title' => 'Shutdown', 'count' => $cache['ports']['stat']['shutdown']);
 }
 
-if ($ports['ignored'])
+if ($cache['ports']['stat']['ignored'])
 {
-  $navbar['ports']['entries']['statuses']['entries'][] = array('url' => generate_url(array('page' => 'ports', 'ignore' => '1')), 'icon' => 'oicon-network-status-away', 'title' => 'Ignored', 'count' => $ports['ignored']);
+  $navbar['ports']['entries']['statuses']['entries'][] = array('url' => generate_url(array('page' => 'ports', 'ignore' => '1')), 'icon' => $config['icon']['ignore'], 'title' => 'Ignored', 'count' => $cache['ports']['stat']['ignored']);
 }
 
-if ($ports['disabled'])
+if ($cache['ports']['stat']['poll_disabled'])
 {
-  $navbar['ports']['entries']['statuses']['entries'][] = array('url' => generate_url(array('page' => 'ports', 'state' => 'admindown')), 'icon' => 'oicon-network-status-offline', 'title' => 'Disabled', 'count' => $ports['disabled']);
+  $navbar['ports']['entries']['statuses']['entries'][] = array('url' => generate_url(array('page' => 'ports', 'disabled' => '1')), 'icon' => $config['icon']['ignore'], 'title' => 'Poll Disabled', 'count' => $cache['ports']['stat']['poll_disabled']);
 }
 
-if ($ports['deleted'])
+if ($cache['ports']['stat']['deleted'])
 {
-  $navbar['ports']['entries']['statuses']['entries'][] = array('url' => generate_url(array('page' => 'deleted-ports')), 'icon' => 'oicon-badge-square-minus', 'title' => 'Deleted', 'count' => $ports['deleted']);
+  $navbar['ports']['entries']['statuses']['entries'][] = array('url' => generate_url(array('page' => 'deleted-ports')), 'icon' => $config['icon']['stop'], 'title' => 'Deleted', 'count' => $cache['ports']['stat']['deleted']);
 }
 
 //////////// Build health menu
-$navbar['health'] = array('url' => '#', 'icon' => 'oicon-system-monitor', 'title' => 'Health');
+$navbar['health'] = array('url' => '#', 'icon' => $config['icon']['health'], 'title' => 'Health');
 
-$health_items = array('processor' => array('text' => 'Processors', 'icon' => 'oicon-processor'),
-                      'mempool'   => array('text' => 'Memory', 'icon' => 'oicon-memory'),
-                      'storage'   => array('text' => 'Storage', 'icon' => 'oicon-drive'));
+$health_items = array('processor' => array('text' => 'Processors', 'icon' => $config['icon']['processor']),
+                      'mempool'   => array('text' => 'Memory',     'icon' => $config['icon']['mempool']),
+                      'storage'   => array('text' => 'Storage',    'icon' => $config['icon']['storage'])
+                     );
 
 if ($cache['printersupplies']['count'])
 {
-  $health_items['printersupplies'] = array('text' => 'Printer Supplies', 'icon' => 'oicon-contrast');
+  $health_items['printersupplies'] = array('text' => 'Printer Supplies', 'icon' => $config['icon']['printersupply']);
 }
 
 if ($cache['status']['count'])
@@ -396,7 +413,7 @@ foreach ($menu_items as $items)
         $navbar['health']['entries'][] = array('divider' => TRUE);
         $sep = 0;
       }
-      $alert_icon = ($cache['sensor_types'][$item]['alert'] ? '<i class="oicon-exclamation-red"></i>' : '');
+      $alert_icon = ($cache['sensor_types'][$item]['alert'] ? '<i class="'.$config['icon']['flag'].' mini-icon"></i>' : '');
       $navbar['health']['entries'][] = array('url' => generate_url(array('page' => 'health', 'metric' => $item)), 'icon' => $config['sensor_types'][$item]['icon'], 'title' => nicecase($item) . ' ' . $alert_icon);
     }
   }
@@ -406,7 +423,7 @@ foreach ($menu_items as $items)
 //////////// Build applications menu
 if ($_SESSION['userlevel'] >= '5' && ($cache['applications']['count']) > 0)
 {
-  $navbar['apps'] = array('url' => '#', 'icon' => 'oicon-application-icon-large', 'title' => 'Apps');
+  $navbar['apps'] = array('url' => '#', 'icon' => $config['icon']['apps'], 'title' => 'Apps');
 
   $app_list = dbFetchRows("SELECT `app_type` FROM `applications` WHERE 1 ".$cache['where']['devices_permitted']." GROUP BY `app_type`;");
   foreach ($app_list as $app)
@@ -447,19 +464,19 @@ if ($_SESSION['userlevel'] >= '5' && ($cache['applications']['count']) > 0)
 }
 
 //////////// Build routing menu
-if ($_SESSION['userlevel'] >= '5' && ($routing['bgp']['count']+$routing['ospf']['count']+$routing['cef']['count']+$routing['vrf']['count']) > 0)
+if ($_SESSION['userlevel'] >= '5' && ($cache['routing']['bgp']['count']+$cache['routing']['ospf']['count']+$cache['routing']['cef']['count']+$cache['routing']['vrf']['count']) > 0)
 {
-  $navbar['routing'] = array('url' => '#', 'icon' => 'oicon-arrow-branch-000-left', 'title' => 'Routing');
+  $navbar['routing'] = array('url' => '#', 'icon' => $config['icon']['routing'], 'title' => 'Routing');
 
   $separator = 0;
 
-  if ($routing['vrf']['count'])
+  if ($cache['routing']['vrf']['count'])
   {
-    $navbar['routing']['entries'][] = array('url' => generate_url(array('page' => 'routing', 'protocol' => 'vrf')), 'icon' => 'oicon-zones', 'title' => 'VRFs', 'count' => $routing['vrf']['count']);
+    $navbar['routing']['entries'][] = array('url' => generate_url(array('page' => 'routing', 'protocol' => 'vrf')), 'icon' => $config['icon']['vrf'], 'title' => 'VRFs', 'count' => $cache['routing']['vrf']['count']);
     $separator++;
   }
 
-  if ($routing['cef']['count'])
+  if ($cache['routing']['cef']['count'])
   {
     if ($separator)
     {
@@ -467,11 +484,11 @@ if ($_SESSION['userlevel'] >= '5' && ($routing['bgp']['count']+$routing['ospf'][
       $separator = 0;
     }
 
-    $navbar['routing']['entries'][] = array('url' => generate_url(array('page' => 'routing', 'protocol' => 'cef')), 'icon' => 'oicon-arrow-branch-byr', 'title' => 'CEF', 'count' => $routing['cef']['count']);
+    $navbar['routing']['entries'][] = array('url' => generate_url(array('page' => 'routing', 'protocol' => 'cef')), 'icon' => $config['icon']['cef'], 'title' => 'CEF', 'count' => $cache['routing']['cef']['count']);
     $separator++;
   }
 
-  if ($routing['ospf']['up'])
+  if ($cache['routing']['ospf']['count'])
   {
     if ($separator)
     {
@@ -479,12 +496,12 @@ if ($_SESSION['userlevel'] >= '5' && ($routing['bgp']['count']+$routing['ospf'][
       $separator = 0;
     }
 
-    $navbar['routing']['entries'][] = array('url' => generate_url(array('page' => 'routing', 'protocol' => 'ospf')), 'icon' => 'oicon-omega', 'title' => 'OSPF', 'count' => $routing['ospf']['count']);
+    $navbar['routing']['entries'][] = array('url' => generate_url(array('page' => 'routing', 'protocol' => 'ospf')), 'icon' => $config['icon']['ospf'], 'title' => 'OSPF', 'count' => $cache['routing']['ospf']['count']);
     $separator++;
   }
 
   // BGP Sessions
-  if ($routing['bgp']['count'])
+  if ($cache['routing']['bgp']['count'])
   {
     if ($separator)
     {
@@ -492,16 +509,16 @@ if ($_SESSION['userlevel'] >= '5' && ($routing['bgp']['count']+$routing['ospf'][
       $separator = 0;
     }
 
-    $navbar['routing']['entries'][] = array('url' => generate_url(array('page' => 'routing', 'protocol' => 'bgp', 'type' => 'all', 'graph' => 'NULL')), 'icon' => 'oicon-chain', 'title' => 'BGP All Sessions', 'count' => $routing['bgp']['count']);
-    $navbar['routing']['entries'][] = array('url' => generate_url(array('page' => 'routing', 'protocol' => 'bgp', 'type' => 'external', 'graph' => 'NULL')), 'icon' => "oicon-globe-network", 'title' => 'BGP External', count => $routing['bgp']['external']);
-    $navbar['routing']['entries'][] = array('url' => generate_url(array('page' => 'routing', 'protocol' => 'bgp', 'type' => 'internal', 'graph' => 'NULL')), 'icon' => "oicon-network-hub", 'title' => 'BGP Internal', count => $routing['bgp']['internal']);
+    $navbar['routing']['entries'][] = array('url' => generate_url(array('page' => 'routing', 'protocol' => 'bgp', 'type' => 'all', 'graph' => 'NULL')), 'icon' => $config['icon']['bgp'], 'title' => 'BGP All Sessions', 'count' => $cache['routing']['bgp']['count']);
+    $navbar['routing']['entries'][] = array('url' => generate_url(array('page' => 'routing', 'protocol' => 'bgp', 'type' => 'external', 'graph' => 'NULL')), 'icon' => $config['icon']['bgp-external'], 'title' => 'BGP External', count => $cache['routing']['bgp']['external']);
+    $navbar['routing']['entries'][] = array('url' => generate_url(array('page' => 'routing', 'protocol' => 'bgp', 'type' => 'internal', 'graph' => 'NULL')), 'icon' => $config['icon']['bgp-internal'], 'title' => 'BGP Internal', count => $cache['routing']['bgp']['internal']);
   }
 
   // Do Alerts at the bottom
-  if ($routing['bgp']['alerts'])
+  if ($cache['routing']['bgp']['alerts'])
   {
     $navbar['routing']['entries'][] = array('divider' => TRUE);
-    $navbar['routing']['entries'][] = array('url' => generate_url(array('page' => 'routing', 'protocol' => 'bgp', 'adminstatus' => 'start', 'state' => 'down')), 'icon' => 'oicon-chain--exclamation', 'title' => 'BGP Alerts', 'count' => $routing['bgp']['alerts']);
+    $navbar['routing']['entries'][] = array('url' => generate_url(array('page' => 'routing', 'protocol' => 'bgp', 'adminstatus' => 'start', 'state' => 'down')), 'icon' => $config['icon']['bgp-alert'], 'title' => 'BGP Alerts', 'count' => $cache['routing']['bgp']['alerts']);
   }
 }
 
@@ -524,7 +541,7 @@ function navbar_location_menu($array)
   {
     foreach ($array['entries'] as $entry => $entry_data)
     {
-      $image = '<i class="menu-icon oicon-building"></i>';
+      $image = '<i class="'.$config['icon']['location'].'"></i>';
       if ($entry_data['level'] == "location_country")
       {
         $code = $entry;
@@ -534,7 +551,7 @@ function navbar_location_menu($array)
       else if ($entry_data['level'] == "location")
       {
         $name = ($entry === '' ? OBS_VAR_UNSET : escape_html($entry));
-        echo('            <li>' . generate_menu_link(generate_location_url($entry), '<i class="menu-icon oicon-building-small"></i>&nbsp;' . $name, $entry_data['count']) . '</li>');
+        echo('            <li>' . generate_menu_link(generate_location_url($entry), '<i class="'.$config['icon']['location'].'"></i>&nbsp;' . $name, $entry_data['count']) . '</li>');
         continue;
       }
 
@@ -572,7 +589,7 @@ function navbar_location_menu($array)
       elseif ($new_entry_data['level'] == "location")
       {
         $name = ($new_entry === '' ? OBS_VAR_UNSET : escape_html($new_entry));
-        echo('            <li>' . generate_menu_link(generate_location_url($new_entry), '<i class="menu-icon oicon-building-small"></i>&nbsp;' . $name, $new_entry_data['count']) . '</li>');
+        echo('            <li>' . generate_menu_link(generate_location_url($new_entry), '<i class="' . $entry['icon']['location'] . '"></i>&nbsp;' . $name, $new_entry_data['count']) . '</li>');
         continue;
       }
 
@@ -585,11 +602,11 @@ function navbar_location_menu($array)
                               $sub_entry_data['level'] => var_encode($sub_entry));
           if (isset($array['country'])) { $link_array['location_country'] = var_encode($array['country']); }
 
-          echo('<li class="dropdown-submenu">' . generate_menu_link(generate_url($link_array), '<i class="menu-icon oicon-building"></i>&nbsp;' . $sub_entry, $sub_entry_data['count']));
+          echo('<li class="dropdown-submenu">' . generate_menu_link(generate_url($link_array), '<i class="' . $entry['icon']['location'] . '"></i>&nbsp;' . $sub_entry, $sub_entry_data['count']));
           navbar_location_menu($sub_entry_data);
         } else {
           $name = ($sub_entry === '' ? OBS_VAR_UNSET : escape_html($sub_entry));
-          echo('            <li>' . generate_menu_link(generate_location_url($sub_entry), '<i class="menu-icon oicon-building-small"></i>&nbsp;' . $name, $sub_entry_data['count']) . '</li>');
+          echo('            <li>' . generate_menu_link(generate_location_url($sub_entry), '<i class="' . $entry['icon']['location'] . '"></i>&nbsp;' . $name, $sub_entry_data['count']) . '</li>');
         }
       }
     }
@@ -600,7 +617,7 @@ function navbar_location_menu($array)
 // DOCME needs phpdoc block
 function navbar_submenu($entry, $level = 1)
 {
-  echo(str_pad('',($level-1)*2) . '                <li class="dropdown-submenu">' . generate_menu_link($entry['url'], '<i class="menu-icon ' . $entry['icon'] . '"></i>&nbsp;' . $entry['title'], $entry['count']) . PHP_EOL);
+  echo(str_pad('',($level-1)*2) . '                <li class="dropdown-submenu">' . generate_menu_link($entry['url'], '<i class="' . $entry['icon'] . '"></i>&nbsp;' . $entry['title'], $entry['count']) . PHP_EOL);
   echo(str_pad('',($level-1)*2) . '                  <ul role="menu" class="dropdown-menu">' . PHP_EOL);
 
   foreach ($entry['entries'] as $subentry)
@@ -628,7 +645,7 @@ function navbar_entry($entry, $level = 1)
     echo(str_pad('',($level-1)*2) . '                <li class="divider"></li>' . PHP_EOL);
   } elseif ($entry['locations']) { // Workaround until the menu builder returns an array instead of echo()
     echo(str_pad('',($level-1)*2) . '                <li class="dropdown-submenu">' . PHP_EOL);
-    echo(str_pad('',($level-1)*2) . '                  ' . generate_menu_link(generate_url(array('page'=>'locations')), '<i class="menu-icon oicon-building-hedge"></i> Locations') . PHP_EOL);
+    echo(str_pad('',($level-1)*2) . '                  ' . generate_menu_link(generate_url(array('page'=>'locations')), '<i class="'.$GLOBALS['config']['icon']['location'].'"></i> Locations') . PHP_EOL);
     navbar_location_menu($cache['locations']);
     echo(str_pad('',($level-1)*2) . '                </li>' . PHP_EOL);
   } else {
@@ -658,11 +675,14 @@ function navbar_entry($entry, $level = 1)
 foreach ($navbar as $dropdown)
 {
 //  echo('            <li class="divider-vertical" style="margin: 0;"></li>' . PHP_EOL);
+
+  if(strpos($dropdown['icon'], 'sprite') !== FALSE) { $element = 'span'; } else { $element = 'i'; }
+
   echo('            <li class="dropdown">' . PHP_EOL);
-  echo('              <a href="' . $dropdown['url'] . '" class="hidden-sm dropdown-toggle" data-hover="dropdown" data-toggle="dropdown">' . PHP_EOL);
-  echo('                <i class="' . $dropdown['icon'] . '"></i> ' . $dropdown['title'] . ' <b class="caret"></b></a>' . PHP_EOL);
-  echo('              <a href="' . $dropdown['url'] . '" class="visible-sm dropdown-toggle" data-hover="dropdown" data-toggle="dropdown">' . PHP_EOL);
-  echo('                <i class="' . $dropdown['icon'] . '"></i> <b class="caret"></b></a>' . PHP_EOL);
+  echo('              <a href="' . $dropdown['url'] . '" class="visible-lg visible-xl dropdown-toggle" data-hover="dropdown" data-toggle="dropdown">' . PHP_EOL);
+  echo('                <'.$element.' class="' . $dropdown['icon'] . '"></'.$element.'> ' . $dropdown['title'] . ' <b class="caret"></b></a>' . PHP_EOL);
+  echo('              <a href="' . $dropdown['url'] . '" class="visible-xs visible-md dropdown-toggle" data-hover="dropdown" data-toggle="dropdown">' . PHP_EOL);
+  echo('                <'.$element.' class="' . $dropdown['icon'] . '" style="margin-right: 5px;"></i></a>' . PHP_EOL);
   echo('              <ul role="menu" class="dropdown-menu">' . PHP_EOL);
 
   foreach ($dropdown['entries'] as $entry)
@@ -744,12 +764,12 @@ echo('<li>' . generate_tooltip_link($ua['url'], ' <i class="' . $ua['icon'] . '"
 
 ?>
             <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-hover="dropdown" data-toggle="dropdown"><i class="oicon-gear"></i> <b class="caret"></b></a>
+              <a href="#" class="dropdown-toggle" data-hover="dropdown" data-toggle="dropdown"><i class="<?php echo $config['icon']['tools']; ?>"></i> <b class="caret"></b></a>
               <ul class="dropdown-menu">
 <?php
   // Refresh menu
   echo('<li class="dropdown-submenu">');
-  echo('  <a tabindex="-1" href="'.generate_url($vars).'"><i class="oicon-arrow-circle"></i> Refresh <span id="countrefresh"></span></a>');
+  echo('  <a tabindex="-1" href="'.generate_url($vars).'"><i class="'. $config['icon']['refresh'].'"></i> Refresh <span id="countrefresh"></span></a>');
   echo('  <ul class="dropdown-menu">');
   foreach ($page_refresh['list'] as $refresh_time)
   {
@@ -757,86 +777,76 @@ echo('<li>' . generate_tooltip_link($ua['url'], ' <i class="' . $ua['icon'] . '"
     if (!$page_refresh['allowed']) { $refresh_class = 'disabled'; }
     if ($refresh_time == 0)
     {
-      echo('    <li class="'.$refresh_class.'"><a href="'.generate_url($vars, array('refresh' => '0')).'"><i class="icon-ban-circle"></i> Manually</a></li>');
+      echo('    <li class="'.$refresh_class.'"><a href="'.generate_url($vars, array('refresh' => '0')).'"><i class="'. $config['icon']['stop'].'"></i> Manually</a></li>');
     } else {
-      echo('    <li class="'.$refresh_class.'"><a href="'.generate_url($vars, array('refresh' => $refresh_time)).'"><i class="icon-refresh"></i> Every '.formatUptime($refresh_time, 'longest').'</a></li>');
+      echo('    <li class="'.$refresh_class.'"><a href="'.generate_url($vars, array('refresh' => $refresh_time)).'"><i class="'. $config['icon']['refresh'].'"></i> Every '.formatUptime($refresh_time, 'longest').'</a></li>');
     }
   }
   echo('  </ul>');
   echo('</li>');
   echo('<li class="divider"></li>');
 
-if ($_SESSION['widescreen'] == 1)
-{
-  echo('<li><a href="'.generate_url($vars, array('widescreen' => 'no')).'" title="Switch to normal screen width layout"><i class="oicon-arrow-in" style="font-size: 16px; color: #555;"></i> Normal Width</a></li>');
-} else {
-  echo('<li><a href="'.generate_url($vars, array('widescreen' => 'yes')).'" title="Switch to wide screen layout"><i class="oicon-arrow-move" style="font-size: 16px; color: #555;"></i> Widescreen</a></li>');
-}
-
 if ($_SESSION['big_graphs'] == 1)
 {
-  echo('<li><a href="'.generate_url($vars, array('big_graphs' => 'no')).'" title="Switch to normal graphs"><i class="oicon-layout-6" style="font-size: 16px; color: #555;"></i> Normal Graphs</a></li>');
+  echo('<li><a href="'.generate_url($vars, array('big_graphs' => 'no')).'" title="Switch to normal graphs"><i class="'.$config['icon']['graphs-small'].'" style="font-size: 16px; color: #555;"></i> Normal Graphs</a></li>');
 } else {
-  echo('<li><a href="'.generate_url($vars, array('big_graphs' => 'yes')).'" title="Switch to larger graphs"><i class="oicon-layout-4" style="font-size: 16px; color: #555;"></i> Large Graphs</a></li>');
+  echo('<li><a href="'.generate_url($vars, array('big_graphs' => 'yes')).'" title="Switch to larger graphs"><i class="'.$config['icon']['graphs-large'].'" style="font-size: 16px; color: #555;"></i> Large Graphs</a></li>');
 }
-
-/*
-if ($config['api']['enabled'])
-{
-  echo('<li class="divider"></li>');
-  echo('<li class="dropdown-submenu">');
-  echo('  <a tabindex="-1" href="'.generate_url(array('page' => 'simpleapi')).'"><i class="oicon-application-block"></i> Simple API</a>');
-  echo('  <ul class="dropdown-menu">');
-  echo('    <li><a href="'.generate_url(array('page' => 'simpleapi')).'"><i class="oicon-application-block"></i> API Manual</a></li>');
-  echo('    <li><a href="'.generate_url(array('page' => 'simpleapi','api' => 'errorcodes')).'"><i class="oicon-application--exclamation"></i> Error Codes</a></li>');
-  echo('  </ul>');
-  echo('</li>');
-}
-*/
 
 if ($_SESSION['userlevel'] >= 10)
 {
   echo('<li class="divider"></li>');
   echo('<li class="dropdown-submenu">');
-  echo('  <a tabindex="-1" href="'.generate_url(array('page' => 'adduser')).'"><i class="oicon-users"></i> Users</a>');
+  echo('  <a tabindex="-1" href="'.generate_url(array('page' => 'adduser')).'"><i class="'.$config['icon']['users'].'"></i> Users</a>');
   echo('  <ul class="dropdown-menu">');
   if (auth_usermanagement())
   {
-    echo('    <li><a href="'.generate_url(array('page' => 'adduser')).'"><i class="oicon-user--plus"></i> Add User</a></li>');
+    echo('    <li><a href="'.generate_url(array('page' => 'adduser')).'"><i class="'.$config['icon']['user-add'].'"></i> Add User</a></li>');
   }
-  echo('    <li><a href="'.generate_url(array('page' => 'edituser')).'"><i class="oicon-user--pencil"></i> Edit User</a></li>');
+  echo('    <li><a href="'.generate_url(array('page' => 'edituser')).'"><i class="'.$config['icon']['user-edit'].'"></i> Edit User</a></li>');
   if (auth_usermanagement())
   {
-    echo('    <li><a href="'.generate_url(array('page' => 'edituser')).'"><i class="oicon-user--minus"></i> Remove User</a></li>');
+    echo('    <li><a href="'.generate_url(array('page' => 'edituser')).'"><i class="'.$config['icon']['user-delete'].'"></i> Remove User</a></li>');
   }
-  echo('    <li><a href="'.generate_url(array('page' => 'authlog')).'"><i class="oicon-user-detective"></i> Authentication Log</a></li>');
+  echo('    <li><a href="'.generate_url(array('page' => 'authlog')).'"><i class="'.$config['icon']['user-log'].'"></i> Authentication Log</a></li>');
   echo('  </ul>');
   echo('</li>');
 
   echo('<li class="dropdown-submenu">');
-  echo('  <a tabindex="-1" href="'.generate_url(array('page' => 'settings')).'"><i class="oicon-settings"></i> Global Settings</a>');
+  echo('  <a tabindex="-1" href="'.generate_url(array('page' => 'settings')).'"><i class="'.$config['icon']['settings'].'"></i> Global Settings</a>');
   echo('  <ul class="dropdown-menu">');
-  echo('    <li><a href="'.generate_url(array('page' => 'settings')).'"><i class="oicon-settings"></i> Edit</a></li>');
-  echo('    <li><a href="'.generate_url(array('page' => 'settings', 'format' => 'config')).'"><i class="oicon-notebook"></i> Full Dump</a></li>');
-  echo('    <li><a href="'.generate_url(array('page' => 'settings', 'format' => 'changed_config')).'"><i class="oicon-notebook"></i> Changed Dump</a></li>');
+  echo('    <li><a href="'.generate_url(array('page' => 'settings')).'"><i class="'.$config['icon']['settings-change'].'"></i> Edit</a></li>');
+  echo('    <li><a href="'.generate_url(array('page' => 'settings', 'format' => 'config')).'"><i class="'.$config['icon']['config'].'"></i> Full Dump</a></li>');
+  echo('    <li><a href="'.generate_url(array('page' => 'settings', 'format' => 'changed_config')).'"><i class="'.$config['icon']['config'].'"></i> Changed Dump</a></li>');
   echo('  </ul>');
   echo('</li>');
 }
 ?>
                 <li class="divider"></li>
-                <li><a href="<?php echo(generate_url(array('page' => 'preferences'))); ?>" title="My Profile"><i class="oicon-user--pencil"></i> My Profile</a></li>
+                <li><a href="<?php echo(generate_url(array('page' => 'preferences'))); ?>" title="My Profile"><i class="<?php echo $config['icon']['user-self']; ?>"></i> My Profile</a></li>
+                <li class="divider"></li>
+
 <?php
+
+navbar_entry(array('title' => 'Polling Information', 'url' => generate_url(array('page' => 'pollerlog')), 'icon' => $config['icon']['pollerlog']));
+if ($_SESSION['userlevel'] >= 7)
+{
+  navbar_entry(array('title' => 'Process List', 'url' => generate_url(array('page' => 'processes')), 'icon' => $config['icon']['processes']));
+  navbar_entry(array('title' => 'OSes', 'url' => generate_url(array('page' => 'os')), 'icon' => $config['icon']['config']));
+  navbar_entry(array('title' => 'MIBs', 'url' => generate_url(array('page' => 'mibs')), 'icon' => $config['icon']['mibs']));
+}
+
 if (auth_can_logout())
 {
 ?>
                 <li class="divider"></li>
-                <li><a href="<?php echo(generate_url(array('page' => 'logout'))); ?>" title="Logout"><i class="oicon-door-open-out"></i> Logout</a></li>
+                <li><a href="<?php echo(generate_url(array('page' => 'logout'))); ?>" title="Logout"><i class="<?php  echo $config['icon']['logout']; ?>"></i> Logout</a></li>
 <?php
 }
 ?>
                 <li class="divider"></li>
-                <li><a href="<?php echo OBSERVIUM_URL; ?>/docs" title="Help"><i class="oicon-question"></i> Help</a></li>
-                <li><?php echo(generate_link('<i class="oicon-information"></i> About '.OBSERVIUM_PRODUCT, array('page' => 'about'), array(), FALSE)); ?></li>
+                <li><a href="<?php echo OBSERVIUM_URL; ?>/docs" title="Help"><i class="<?php echo $config['icon']['help']; ?>"></i> Help</a></li>
+                <li><?php echo(generate_link('<i class="'. $config['icon']['info'].'"></i> About '.OBSERVIUM_PRODUCT, array('page' => 'about'), array(), FALSE)); ?></li>
               </ul>
             </li>
           </ul>

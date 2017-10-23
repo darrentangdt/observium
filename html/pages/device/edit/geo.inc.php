@@ -109,7 +109,7 @@ if (is_numeric($location['location_lat']) && is_numeric($location['location_lon'
   // http://maps.google.com/maps?q=46.090271,6.657248+description+(name)
   $location['coordinates'] = $location['location_lat'].','.$location['location_lon'];
   $location['coordinates_manual'] = $location['coordinates'];
-  $location['location_link'] = '<a target="_blank" href="http://maps.google.com/maps?q='.urlencode($location['coordinates']).'"><i class="oicon-map"></i> View this location on a map</a>';
+  $location['location_link'] = '<a target="_blank" href="http://maps.google.com/maps?q='.urlencode($location['coordinates']).'"><i class="'.$config['icon']['map'].'"></i> View this location on a map</a>';
   $location['location_geo']  = country_from_code($location['location_country']).' (Country), '.$location['location_state'].' (State), ';
   $location['location_geo'] .= $location['location_county'] .' (County), ' .$location['location_city'] .' (City)';
   switch ($location['location_geoapi'])
@@ -121,7 +121,7 @@ if (is_numeric($location['location_lat']) && is_numeric($location['location_lon'
     default:
       // Generate link to Google maps
       // http://maps.google.com/maps?q=46.090271,6.657248+description+(name)
-      $location['location_link'] = '<a target="_blank" href="http://maps.google.com/maps?q='.urlencode($location['coordinates']).'"><i class="oicon-map"></i> View this location on a map</a>';
+      $location['location_link'] = '<a target="_blank" href="http://maps.google.com/maps?q='.urlencode($location['coordinates']).'"><i class="'.$config['icon']['map'].'"></i> View this location on a map</a>';
   }
 } else {
   $location['coordinates_manual'] = $config['geocoding']['default']['lat'].','.$config['geocoding']['default']['lon'];
@@ -197,7 +197,7 @@ if ($updated && $update_message)
       $form['row'][4]['help_link'] = array(
                                       'type'        => 'raw',
                                       'value'       => '<span class="help-inline"><small><a target="_blank" href="' . OBSERVIUM_URL . '/docs/config_options/#syslocation-configuration">
-      <i class="oicon-question"></i> View available Geolocation APIs and other configuration options</a></small></span>');
+      <i class="'.$config['icon']['question'].'"></i> View available Geolocation APIs and other configuration options</a></small></span>');
       $form['row'][5]['location_updated'] = array(
                                       'type'        => 'text',
                                       //'fieldset'    => 'edit',

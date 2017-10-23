@@ -136,7 +136,7 @@ alaRDPIfStatus       OBJECT-TYPE
  
  alaRDPIfAdvtAddress    OBJECT-TYPE
     SYNTAX      IpAddress
-    MAX-ACCESS  read-write
+    MAX-ACCESS  read-create
     STATUS      current
     DESCRIPTION
                 "Default advertisement Address is 224.0.0.1"
@@ -144,7 +144,7 @@ alaRDPIfStatus       OBJECT-TYPE
 
  alaRDPIfMaxAdvtInterval       OBJECT-TYPE
     SYNTAX     Unsigned32
-    MAX-ACCESS read-write
+    MAX-ACCESS read-create
     STATUS     current
     DESCRIPTION
 		"Maximum advertisement interval is in seconds"
@@ -153,7 +153,7 @@ alaRDPIfStatus       OBJECT-TYPE
    
 alaRDPIfMinAdvtInterval       OBJECT-TYPE
     SYNTAX     Unsigned32
-    MAX-ACCESS read-write
+    MAX-ACCESS read-create
     STATUS     current
     DESCRIPTION
 		"Minimum advertisement interval in seconds: 0.75 * alaRDPIfMaxAdvtInterval"
@@ -161,7 +161,7 @@ alaRDPIfMinAdvtInterval       OBJECT-TYPE
 
 alaRDPIfAdvLifeTime       OBJECT-TYPE
     SYNTAX     Unsigned32
-    MAX-ACCESS read-write
+    MAX-ACCESS read-create
     STATUS     current
     DESCRIPTION
 		"Advertisement Lifetime in seconds: 3 * alaRDPIfMaxAdvtInterval"
@@ -169,7 +169,7 @@ alaRDPIfAdvLifeTime       OBJECT-TYPE
         
 alaRDPIfPrefLevel       OBJECT-TYPE
     SYNTAX     Integer32
-    MAX-ACCESS read-write
+    MAX-ACCESS read-create
     STATUS     current
     DESCRIPTION
 		"Preference level for each IP address advertised on the interface: 0"
@@ -178,7 +178,7 @@ alaRDPIfPrefLevel       OBJECT-TYPE
 
 alaRDPIfRowStatus OBJECT-TYPE
     SYNTAX        RowStatus
-    MAX-ACCESS    read-write
+    MAX-ACCESS    read-create
     STATUS        current
     DESCRIPTION
           "The status of this table entry."

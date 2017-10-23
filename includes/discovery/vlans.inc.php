@@ -12,8 +12,6 @@
  *
  */
 
-echo("VLANs:\n");
-
 // Pre-cache the existing state of VLANs for this device from the database
 unset($vlans_db, $ports_vlans_db, $ports_vlans);
 

@@ -87,7 +87,7 @@ $link_array = array('page'    => 'device',
   }
   $navbar['options_right']['delete']['url']  = generate_url($link_array,array('section'=>'delete'));
   $navbar['options_right']['delete']['text'] = 'Delete';
-  $navbar['options_right']['delete']['icon'] = 'oicon-server--minus';
+  $navbar['options_right']['delete']['icon'] = $config['icon']['device-delete'];
   if ($vars['section'] == 'delete') { $navbar['options_right']['delete']['class'] = 'active'; }
   print_navbar($navbar);
 

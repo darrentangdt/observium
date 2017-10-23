@@ -61,7 +61,7 @@ foreach ($pw_types as $text => $type)
 
 // Graphs
 $navbar['options']['graphs']['text']  = 'Graphs';
-$navbar['options']['graphs']['icon']  = 'oicon-chart-up';
+$navbar['options']['graphs']['icon']  = $config['icon']['graphs'];
 $navbar['options']['graphs']['right'] = TRUE;
 
 if ($vars['view'] == "graphs")

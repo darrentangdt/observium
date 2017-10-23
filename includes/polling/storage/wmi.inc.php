@@ -25,7 +25,7 @@ foreach ($wmi['disk']['logical'] as $disk)
 
   rrdtool_update_ng($device, 'storage', array('used' => $used, 'free' => $disk['FreeSpace']), "host-resources-mib-" . $storage_name);
   dbUpdate(array('storage_polled' => time(), 'storage_used' => $used, 'storage_free' => $disk['FreeSpace'], 'storage_size' => $disk['Size'],
-    'storage_perc' => $percent), 'storage-state', '`storage_id` = ?', array($storage_id));
+    'storage_perc' => $percent), 'storage', '`storage_id` = ?', array($storage_id));
 }
 
 echo(PHP_EOL);

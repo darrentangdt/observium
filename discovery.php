@@ -16,7 +16,7 @@
 chdir(dirname($argv[0]));
 
 // Get options before definitions!
-$options = getopt("h:i:m:n:dquMV");
+$options = getopt("h:i:m:n:dqurMV");
 
 include("includes/sql-config.inc.php");
 include("includes/discovery/functions.inc.php");
@@ -170,19 +170,26 @@ if ($config['version_check'] && ($options['h'] != 'new' || $options['u']))
 
 if (!$where) { exit; }
 
+// For not new devices discovery, skip down devices
+if ($options['h'] != 'new')
+{
+  $where .= ' AND `status` = ?';
+  $params[] = 1;
+}
+
 $discovered_devices = 0;
 
 print_cli_heading("%WStarting discovery run at ".date("Y-m-d H:i:s"), 0);
 
-foreach (dbFetchRows("SELECT * FROM `devices` WHERE `status` = 1 AND `disabled` = 0 $where ORDER BY `last_discovered_timetaken` ASC", $params) as $device)
+foreach (dbFetchRows("SELECT * FROM `devices` WHERE `disabled` = 0 $where ORDER BY `last_discovered_timetaken` ASC", $params) as $device)
 {
   // Additional check if device SNMPable, because during
   // discovery many devices (long time), the some device can be switched off
   if ($options['h'] == 'new' || isSNMPable($device))
   {
     discover_device($device, $options);
-    if (!isset($options['m']) && function_exists('update_device_group_table')) { update_device_group_table($device); } // Not exist in CE
-    if (!isset($options['m']) && function_exists('update_device_alert_table')) { update_device_alert_table($device); }
+    if ((!isset($options['m']) || isset($options['r'])) && function_exists('update_device_group_table')) { update_device_group_table($device); } // Not exist in CE
+    if ((!isset($options['m']) || isset($options['r'])) && function_exists('update_device_alert_table')) { update_device_alert_table($device); }
   } else {
     $string = "Device '" . $device['hostname'] . "' skipped, because switched off during runtime discovery process.";
     print_debug($string);
@@ -207,6 +214,23 @@ else if (!isset($options['q']) && !$options['u'])
 
 $string = $argv[0] . ": $doing - $discovered_devices devices discovered in $discovery_time secs";
 print_debug($string);
+logfile($string);
+
+// Clean stale observium processes
+foreach (dbFetchRows("SELECT * FROM `observium_processes` WHERE `process_start` < ?", array($config['time']['fourhour'])) as $process)
+{
+  // We found processes in DB, check if it exist on system
+  print_debug_vars($processes);
+  $pid_info = get_pid_info($process['process_pid']);
+  if (is_array($pid_info) && strpos($pid_info['COMMAND'], $process_name) !== FALSE)
+  {
+    // Process still running
+  } else {
+    // Remove stalled DB entries
+    dbDelete('observium_processes', '`process_id` = ?', array($process['process_id']));
+    print_debug("Removed stale process entry from DB (cmd: '".$process['process_command']."', PID: '".$process['process_pid']."')");
+  }
+}
 
 if (!isset($options['q']))
 {
@@ -234,7 +258,5 @@ if (!isset($options['q']))
   print_cli_data('RRDTool Usage', implode(" ", $rrd_times), 0);
 
 }
-
-logfile($string);
 
 // EOF

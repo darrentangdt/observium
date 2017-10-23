@@ -17,7 +17,7 @@
 //ISILON-MIB::ifsUsedBytes.0 = Counter64: 38523365810176
 //ISILON-MIB::ifsAvailableBytes.0 = Counter64: 28651530510336
 //ISILON-MIB::ifsFreeBytes.0 = Counter64: 32852894425088
-$cache_discovery['ISILON-MIB'] = snmpget_cache_multi($device, 'ifsTotalBytes.0 ifsUsedBytes.0', array(), 'ISILON-MIB');
+$cache_discovery['ISILON-MIB'] = snmp_get_multi_oid($device, 'ifsTotalBytes.0 ifsUsedBytes.0', array(), 'ISILON-MIB');
 if (is_array($cache_discovery['ISILON-MIB'][0]))
 {
   $hc    = 1;

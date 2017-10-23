@@ -110,7 +110,7 @@ EltexIpSlaOperationStatus ::= TEXTUAL-CONVENTION
 
 -- Responder control
 
-eltexIpSlaApplResponder OBJECT-TYPE
+eltexIpSlaApplResponder OBJECT IDENTIFIER
     ::= { eltexIpSlaAppl 13 }
 
 eltexIpSlaApplResponderUdpJitterPort OBJECT-TYPE

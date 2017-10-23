@@ -51,6 +51,7 @@ if (is_device_mib($device, 'ENTITY-MIB') &&
 
   if (!empty($entPhysical['entPhysicalDescr']))
   {
+    // FIXME this should be in definitions
     $entPhysical['entPhysicalDescr'] = str_replace(array(' Inc.', ' Computer Corporation', ' Corporation'), '', $entPhysical['entPhysicalDescr']);
     $entPhysical['entPhysicalDescr'] = str_replace('IBM IBM', 'IBM', $entPhysical['entPhysicalDescr']);
 
@@ -63,6 +64,79 @@ if (is_device_mib($device, 'ENTITY-MIB') &&
   }
 }
 
+// List of variables/params parsed from sysDescr or snmp for each os
+$os_metatypes = array('serial', 'version', 'hardware', 'features', 'asset_tag', 'ra_url_http');
+$os_values    = array();
+
+// Find OS-specific SNMP data via OID regex: serial number, version number, hardware description, features, asset tag
+foreach ($config['os'][$device['os']]['sysDescr_regex'] as $pattern)
+{
+  if (preg_match($pattern, $poll_device['sysDescr'], $matches))
+  {
+    foreach ($os_metatypes as $metatype)
+    {
+      if (isset($matches[$metatype]) && $matches[$metatype] != '')
+      {
+        $os_values[$metatype] = $matches[$metatype];
+
+        // Additional sub-data (up to 2), ie hardware1, hardware2
+        // See example in timos definition
+        for ($num = 1; $num <= 2; $num++)
+        {
+          if (isset($matches[$metatype.$num]) && $matches[$metatype.$num] != '')
+          {
+            $os_values[$metatype] .= ' ' . $matches[$metatype.$num];
+          } else {
+            break;
+          }
+        }
+
+        $$metatype = $os_values[$metatype]; // Set metatype variable
+        print_debug("Added OS param from sysDescr parse: '$metatype' = '" . $os_values[$metatype] . "'");
+      }
+    }
+
+    break; // Do not match other sysDescr regex, use correct patterns order instead!
+  }
+}
+
+// Find MIB-specific SNMP data via OID fetch: serial number, version number, hardware description, features, asset tag
+foreach ($os_metatypes as $metatype)
+{
+  if (!isset($os_values[$metatype])) // Skip search if already set by sysDescr regex
+  {
+    foreach (get_device_mibs($device, TRUE) as $mib) // Check every MIB supported by the device, in order
+    {
+      if (isset($config['mibs'][$mib][$metatype]))
+      {
+        foreach ($config['mibs'][$mib][$metatype] as $entry)
+        {
+          if (isset($entry['oid_num'])) // Use numeric OID if set, otherwise fetch text based string
+          {
+            $value = trim(snmp_hexstring(snmp_get($device, $entry['oid_num'], '-Oqv')));
+          } else {
+            $value = trim(snmp_hexstring(snmp_get($device, $entry['oid'], '-Oqv', $mib)));
+          }
+
+          if ($GLOBALS['snmp_status'] && $value != '')
+          {
+            // Field found (no SNMP error), perform optional transformations.
+            $os_values[$metatype] = string_transform($value, $entry['transformations']);
+
+            $$metatype = $os_values[$metatype]; // Set metatype variable
+            print_debug("Added OS param from SNMP definition walk: '$metatype' = '$value'");
+
+            // Exit both foreach loops and move on to the next field.
+            break 2;
+          }
+        }
+      }
+    }
+  }
+}
+print_debug_vars($os_values);
+
+// Include OS-specific poller code, if available
 if (is_file($config['install_dir'] . "/includes/polling/os/".$device['os'].".inc.php"))
 {
   print_cli_data("OS Poller", 'OS', 2);
@@ -71,7 +145,7 @@ if (is_file($config['install_dir'] . "/includes/polling/os/".$device['os'].".inc
 }
 else if ($device['os_group'] && is_file($config['install_dir'] . "/includes/polling/os/".$device['os_group'].".inc.php"))
 {
-  // OS Group Specific
+  // OS Group-specific code as fallback, if OS-specific code does not exist
   print_cli_data("OS Poller", 'Group', 2);
 
   include($config['install_dir'] . "/includes/polling/os/".$device['os_group'].".inc.php");
@@ -79,11 +153,35 @@ else if ($device['os_group'] && is_file($config['install_dir'] . "/includes/poll
   print_cli_data("OS Poller", '%rGeneric%w', 2);
 }
 
+// Now recheck and set empty os params from os/group by regex/definitions values
+foreach ($os_values as $metatype => $value)
+{
+  if (!isset($$metatype) || $$metatype == '' || str_istarts($$metatype, 'generic'))
+  {
+    print_debug("Redded OS param from sysDescr parse or SNMP definition walk: '$metatype' = '$value'");
+    $$metatype = $value;
+  }
+}
+
 print_cli_data("Hardware", ($hardware ?: "%b<empty>%n"));
-print_cli_data("Version", ($version ?: "%b<empty>%n"));
+print_cli_data("Version",  ($version ?: "%b<empty>%n"));
 print_cli_data("Features", ($features ?: "%b<empty>%n"));
-print_cli_data("Serial", ($serial ?: "%b<empty>%n"));
-print_cli_data("Asset", ($asset_tag ?: "%b<empty>%n"));
+print_cli_data("Serial",   ($serial ?: "%b<empty>%n"));
+print_cli_data("Asset",    ($asset_tag ?: "%b<empty>%n"));
+
+// Remote access URLs are stored as a device attribute instead of a database field
+foreach (array('ra_url_http') as $ra_url)
+{
+  if (isset($$ra_url))
+  {
+    set_dev_attrib($device, $ra_url, $$ra_url);
+    print_cli_data("Management URL", $ra_url_http);
+  }
+  else if (isset($attribs[$ra_url]))
+  {
+    del_dev_attrib($device, $ra_url);
+  }
+}
 
 echo(PHP_EOL);
 foreach ($os_additional_info as $header => $entries)
@@ -107,20 +205,22 @@ foreach ($update_fields as $field)
   if ((isset($$field) || strlen($device[$field])) && $$field != $device[$field])
   {
     $update_array[$field] = $$field;
-    log_event(nicecase($field)." -> ".$update_array[$field], $device, 'device', $device['device_id']);
+    log_event(nicecase($field)." changed: '".$device[$field]."' -> '".$update_array[$field]."'", $device, 'device', $device['device_id']);
   }
 }
 
 // Here additional fields, change only if not set already
 foreach (array('type', 'icon') as $field)
 {
-  if (isset($$field) && ($device[$field] == "unknown" || $device[$field] == '' || !isset($device[$field]) || !strlen($device[$field])))
+  if (!isset($$field) || isset($attribs['override_'.$field])) { continue; }
+
+  if ($device[$field] == "unknown" || empty($device[$field]) || ($field == 'type' && $$field != $device[$field]))
   {
     $update_array[$field] = $$field;
-    log_event(nicecase($field)." -> ".$update_array[$field], $device, 'device', $device['device_id']);
+    log_event(nicecase($field)." changed: '".$device[$field]."' -> '".$update_array[$field]."'", $device, 'device', $device['device_id']);
   }
 }
 
-unset($entPhysical, $oids, $hw, $os_additional_info);
+unset($entPhysical, $oids, $hw, $os_additional_info, $entry);
 
 // EOF

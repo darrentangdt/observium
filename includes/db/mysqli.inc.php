@@ -201,6 +201,18 @@ function dbErrorNo($connection = NULL)
   return mysqli_errno($connection);
 }
 
+function dbPing($connection = NULL)
+{
+  // Observium uses $observium_link global variable name for db link
+  if      ($connection === (object)$connection) {}
+  else if ($GLOBALS[OBS_DB_LINK] === (object)$GLOBALS[OBS_DB_LINK])
+  {
+    $connection = $GLOBALS[OBS_DB_LINK];
+  }
+
+  return mysqli_ping($connection);
+}
+
 function dbAffectedRows($connection = NULL)
 {
   // Observium uses $observium_link global variable name for db link

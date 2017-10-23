@@ -11,7 +11,6 @@
  *
  */
 
-echo('UCD Disk IO : ');
 $diskio_array = snmpwalk_cache_oid($device, 'diskIOEntry', array(), 'UCD-DISKIO-MIB');
 
 // Build array of entries from the database

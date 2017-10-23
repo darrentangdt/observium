@@ -11,11 +11,11 @@
  *
  */
 
-// 'BGP4-MIB', 'CISCO-BGP4-MIB', 'BGP4-V2-MIB-JUNIPER', 'FORCE10-BGP4-V2-MIB', 'ARISTA-BGP4V2-MIB'
+// 'BGP4-MIB', 'CISCO-BGP4-MIB', 'BGP4-V2-MIB-JUNIPER', 'FORCE10-BGP4-V2-MIB', 'ARISTA-BGP4V2-MIB', 'FOUNDRY-BGP4V2-MIB'
 if ($config['enable_bgp'] && is_device_mib($device, 'BGP4-MIB')) // Note, BGP4-MIB is main MIB, without it, the rest will not be checked
 {
   // Get Local ASN
-  $bgpLocalAs = snmp_get($device, 'bgpLocalAs.0', '-OUQvn', 'BGP4-MIB');
+  $bgpLocalAs = snmp_get_oid($device, 'bgpLocalAs.0', 'BGP4-MIB');
 
   $vendor_oids = array(
     // Juniper BGP4-V2 MIB
@@ -56,6 +56,21 @@ if ($config['enable_bgp'] && is_device_mib($device, 'BGP4-MIB')) // Note, BGP4-M
                                    'vendor_PrefixCountersSafi' => 'aristaBgp4V2PrefixInPrefixes'),
                                    # PrefixCountersSafi is not-accessible in draft-13, but we
                                    # only use the INDEX from it, so use aristaBgp4V2PrefixInPrefixes.
+    // Brocade BGP4-V2 MIB
+    'FOUNDRY-BGP4V2-MIB'  => array('vendor_use_index'    => array('bgp4V2PeerRemoteAddr'      => 1,
+                                                                  'bgp4V2PeerRemoteAddrType'  => 1,
+                                                                  'bgp4V2PeerLocalAddr'       => 1),
+                                   'vendor_PeerTable'          => 'bgp4V2PeerTable',
+                                   'vendor_PeerAdminStatus'    => 'bgp4V2PeerAdminStatus',
+                                   'vendor_PeerRemoteAs'       => 'bgp4V2PeerRemoteAs',
+                                   'vendor_PeerRemoteAddr'     => 'bgp4V2PeerRemoteAddr',
+                                   'vendor_PeerLocalAddr'      => 'bgp4V2PeerLocalAddr',
+                                   'vendor_PeerIdentifier'     => 'bgp4V2PeerRemoteIdentifier',
+                                   'vendor_PeerIndex'          => '',
+                                   'vendor_PeerRemoteAddrType' => 'bgp4V2PeerRemoteAddrType',
+                                   'vendor_PrefixCountersSafi' => 'bgp4V2PrefixInPrefixes'),
+                                   # PrefixCountersSafi is not-accessible in draft-13, but we
+                                   # only use the INDEX from it, so use bgp4V2PrefixInPrefixes.
   );
 
   $vendor_mib = FALSE;
@@ -80,7 +95,7 @@ if ($config['enable_bgp'] && is_device_mib($device, 'BGP4-MIB')) // Note, BGP4-M
   // Some Old IOS-XR (ie 4.3.2) also return BGP4-MIB::bgpLocalAs.0 as '0'.
   if ($vendor_mib === FALSE && $bgpLocalAs === '0' && is_device_mib($device, 'CISCO-BGP4-MIB'))
   {
-    $v_bgpLocalAs = snmp_get($device, 'cbgpLocalAs.0', '-OUQvn', 'CISCO-BGP4-MIB');
+    $v_bgpLocalAs = snmp_get_oid($device, 'cbgpLocalAs.0', 'CISCO-BGP4-MIB');
     if (is_numeric($v_bgpLocalAs))
     {
       $bgpLocalAs = $v_bgpLocalAs;
@@ -180,6 +195,10 @@ if ($config['enable_bgp'] && is_device_mib($device, 'BGP4-MIB')) // Note, BGP4-M
       foreach ($peers_data as $peer_ip => $entry)
       {
         $peer_as  = snmp_dewrap32bit($entry['bgpPeerRemoteAs']); // Dewrap for 32bit ASN
+        if ($peer_as > $entry['bgpPeerRemoteAs'])
+        {
+          $peers_data[$peer_ip]['bgpPeerRemoteAs'] = $peer_as;
+        }
         $local_ip = $entry['bgpPeerLocalAddr'];
         if ($peer_ip  == '0.0.0.0') { $peer_ip  = ''; }
         $peer = array('id'            => $entry['bgpPeerIdentifier'],
@@ -232,6 +251,29 @@ if ($config['enable_bgp'] && is_device_mib($device, 'BGP4-MIB')) // Note, BGP4-M
                         'admin_status'  => $entry[$vendor_PeerAdminStatus]);
           if (!isset($p_list[$peer_ip][$peer_as]) && is_bgp_peer_valid($peer, $device))
           {
+            // Fix possible 32bit ASN for peers from BGP4-MIB
+            // Brocade example:
+            //                                     BGP4-MIB::bgpPeerRemoteAs.27.122.122.4 = 23456
+            //  FOUNDRY-BGPV2-MIB::bgp4V2PeerRemoteAs.1.1.4.27.122.122.5.1.4.27.122.122.4 = 133189
+            if (isset($p_list[$peer_ip]))
+            {
+              unset($p_list[$peer_ip]); // Clean old peer list
+              $bgp4_peer_as = $peers_data[$peer_ip]['bgpPeerRemoteAs'];
+              if ($peer_as > $bgp4_peer_as)
+              {
+                //$peers_data[$peer_ip]['bgpPeerRemoteAs'] = $peer_as;
+                // Yah, need to found and remove duplicate peer from peerlist
+                foreach ($peerlist as $key => $tmp)
+                {
+                  if ($tmp['ip'] == $peer_ip && $tmp['as'] == $bgp4_peer_as)
+                  {
+                    unset($peerlist[$key]);
+                    break;
+                  }
+                }
+              }
+            }
+
             $p_list[$peer_ip][$peer_as] = 1;
             $peerlist[] = $peer;
             print_debug("Found peer IP: $peer_ip (AS$peer_as, LocalIP: $local_ip)");
@@ -451,7 +493,7 @@ if ($config['enable_bgp'] && is_device_mib($device, 'BGP4-MIB')) // Note, BGP4-M
             parse_bgp_peer_index($entry, $idx, $vendor_mib);
           }
           $peer_ip = hex2ip($entry[$vendor_PeerRemoteAddr]);
-          
+
           $afi     = $entry[$vendor_PeerRemoteAddrType];
           $peer_as = $entry[$vendor_PeerRemoteAs];
 
@@ -497,7 +539,7 @@ if ($config['enable_bgp'] && is_device_mib($device, 'BGP4-MIB')) // Note, BGP4-M
         if (!isset($af_list[$peer_ip][$afi][$safi]))
         {
           dbDelete('bgpPeers_cbgp', '`cbgp_id` = ?', array($cbgp_id));
-          dbDelete('bgpPeers_cbgp-state', '`cbgp_id` = ?', array($cbgp_id));
+          //dbDelete('bgpPeers_cbgp-state', '`cbgp_id` = ?', array($cbgp_id));
         }
       } # AF list
     } # os=cisco|some vendors
@@ -515,7 +557,7 @@ if ($config['enable_bgp'] && is_device_mib($device, 'BGP4-MIB')) // Note, BGP4-M
     if (!isset($p_list[$peer_ip][$peer_as]))
     {
       dbDelete('bgpPeers', '`bgpPeer_id` = ?', array($entry['bgpPeer_id']));
-      dbDelete('bgpPeers-state', '`bgpPeer_id` = ?', array($entry['bgpPeer_id']));
+      //dbDelete('bgpPeers-state', '`bgpPeer_id` = ?', array($entry['bgpPeer_id']));
       $GLOBALS['module_stats'][$module]['deleted']++;
     } else {
       // Unset, for exclude duplicate entries in DB

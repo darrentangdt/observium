@@ -13,14 +13,24 @@
 
 $mib = 'JUNIPER-MIB';
 
-$cache_mempool = snmpwalk_cache_multi_oid($device, 'jnxOperatingBuffer', $cache_mempool, $mib);
+$oids = array('jnxOperatingBuffer', 'jnxOperatingDRAMSize', 'jnxOperatingMemory');
 
-if ($mempool['mempool_precision'] == 1)
+if (!is_array($cache_storage[$mib]))
 {
-  $cache_mempool    = snmpwalk_cache_multi_oid($device, 'jnxOperatingDRAMSize', $cache_mempool, $mib);
+  foreach ($oids as $oid)
+  {
+    $cache_mempool = snmpwalk_cache_multi_oid($device, $oid, $cache_mempool, $mib);
+  }
+  $cache_storage[$mib] = $cache_mempool;
+} else {
+  print_debug("Cached!");
+  $cache_mempool = $cache_storage[$mib];
+}
+
+if ($mempool['mempool_multiplier'] == 1)
+{
   $mempool['total'] = $cache_mempool[$index]['jnxOperatingDRAMSize'];
 } else {
-  $cache_mempool    = snmpwalk_cache_multi_oid($device, 'jnxOperatingMemory',   $cache_mempool, $mib);
   $mempool['total'] = $cache_mempool[$index]['jnxOperatingMemory'];
 }
 

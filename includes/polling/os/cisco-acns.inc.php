@@ -11,8 +11,7 @@
  *
  */
 
-$serial = trim(snmp_get($device, 'ceAssetSerialNumber.1', '-OQv', 'CISCO-ENTITY-ASSET-MIB'),'"');
-$version = trim(snmp_get($device, 'ceAssetSoftwareRevision.1', '-OQv', 'CISCO-ENTITY-ASSET-MIB'),'"');
-$hardware = trim(snmp_get($device, 'entPhysicalDescr.1', '-OQv', 'ENTITY-MIB'),'"');
+$version = snmp_get($device, 'ceAssetSoftwareRevision.1', '-OQv', 'CISCO-ENTITY-ASSET-MIB');
+$hardware = snmp_get($device, 'entPhysicalDescr.1', '-OQv', 'ENTITY-MIB');
 
 // EOF

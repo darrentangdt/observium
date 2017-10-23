@@ -7,9 +7,9 @@ ELT-MES-DEV-PARAMS DEFINITIONS ::= BEGIN
 
 IMPORTS
     MODULE-IDENTITY, OBJECT-TYPE    FROM SNMPv2-SMI
-    DisplayString       						FROM SNMPv2-TC
+    DisplayString                   FROM SNMPv2-TC
     eltMes                          FROM ELTEX-MES
-    rndImageInfoEntry							  FROM RADLAN-DEVICEPARAMS-MIB
+    rndImageInfoEntry               FROM RADLAN-DEVICEPARAMS-MIB
     ;
 
 eltMesDevParams MODULE-IDENTITY
@@ -52,8 +52,8 @@ eltImageInfoEntry OBJECT-TYPE
     ::= { eltImageInfoTable 1 }
 
 EltImageInfoEntry ::= SEQUENCE {
-    eltImage1CommitHash			   DisplayString,
-    eltImage2CommitHash			   DisplayString
+    eltImage1CommitHash DisplayString,
+    eltImage2CommitHash DisplayString
 }
 
 eltImage1CommitHash OBJECT-TYPE

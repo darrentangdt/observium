@@ -20,7 +20,7 @@ $navbar = array('brand' => "CEF", 'class' => "navbar-narrow");
 
 $navbar['options']['basic']['text']   = 'Basic';
 // $navbar['options']['details']['text'] = 'Details';
-$navbar['options']['graphs']     = array('text' => 'Graphs', 'class' => 'pull-right', 'icon' => 'oicon-system-monitor');
+$navbar['options']['graphs']     = array('text' => 'Graphs', 'class' => 'pull-right', 'icon' => $config['icon']['graphs']);
 
 foreach ($navbar['options'] as $option => $array)
 {

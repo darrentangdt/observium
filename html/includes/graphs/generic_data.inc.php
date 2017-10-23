@@ -192,6 +192,20 @@ if ($vars['previous'] == "yes")
   $rrd_options .= " AREA:wrongout#FFF2F2";
 }
 
+if ($vars['trend'])
+{
+  $rrd_options .= " VDEF:slope_in=in".$format.",LSLSLOPE ";
+  $rrd_options .= " VDEF:cons_in=in".$format.",LSLINT ";
+  $rrd_options .= " CDEF:lsl2_in=in".$format.",POP,slope_in,COUNT,*,cons_in,+ ";
+  $rrd_options .= ' LINE1.25:lsl2_in#ff0000::dashes=2';
+
+  $rrd_options .= " VDEF:slope_out=out".$format.",LSLSLOPE ";
+  $rrd_options .= " VDEF:cons_out=out".$format.",LSLINT ";
+  $rrd_options .= " CDEF:lsl2_out=out".$format.",POP,slope_out,COUNT,*,cons_out,+ ";
+  $rrd_options .= " CDEF:lsl2_out_rev=lsl2_out,-1,* ";
+  $rrd_options .= ' LINE1.25:lsl2_out_rev#ff0000::dashes=2';
+}
+
 //if ($graph_style == 'mrtg')
 //{
 //  $midnight = strtotime('today midnight');

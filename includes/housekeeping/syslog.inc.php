@@ -52,7 +52,7 @@ if ($cutoff)
     print_message("No syslog entries found older than " . format_unixtime($cutoff));
   }
 } else {
-  print_message("Syslog housekeeping disabled in configuration or wrong.");
+  print_message("Syslog housekeeping disabled in configuration or incorrectly configured to less than 24h.");
 }
 
 // EOF

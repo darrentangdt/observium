@@ -158,7 +158,7 @@ foreach ($oids['PowerSupplyOutput'] as $extremePowerSupplyIndex => $entry1)
 //EXTREME-SYSTEM-MIB::extremeSystemPowerUsageValue.0 = INTEGER: 74800
 //EXTREME-SYSTEM-MIB::extremeSystemPowerUsageUnitMultiplier.0 = INTEGER: milli(-3)
 
-$oids['SystemPowerUsage'] = snmpget_cache_multi($device, 'extremeSystemPowerUsageValue.0 extremeSystemPowerUsageUnitMultiplier.0', array(), $mib);
+$oids['SystemPowerUsage'] = snmp_get_multi_oid($device, 'extremeSystemPowerUsageValue.0 extremeSystemPowerUsageUnitMultiplier.0', array(), $mib);
 //print_vars($oids);
 
 $index = 0;

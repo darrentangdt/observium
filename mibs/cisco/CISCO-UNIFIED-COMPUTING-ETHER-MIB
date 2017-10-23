@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- ETHER management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -94,6 +94,7 @@ IMPORTS
     CucsEtherSwitchIntFIoPcEpIfRole,
     CucsEtherSwitchIntFIoPcEpPortId,
     CucsEtherSwitchIntFIoPcIfRole,
+    CucsEtherSwitchIntFIoPcMulticastHwHash,
     CucsEtherSwitchIntFIoPcPortId,
     CucsEtherSwitchIntFIoPcTransport,
     CucsEtherSwitchIntFIoPcType,
@@ -121,7 +122,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsEtherObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -3920,7 +3921,10 @@ CucsEtherPIoEntry ::= SEQUENCE {
     cucsEtherPIoAdminTransport                                       CucsNetworkTransport,
     cucsEtherPIoLc                                                   CucsFsmLifecycle,
     cucsEtherPIoUnifiedPort                                          TruthValue,
-    cucsEtherPIoIsPortChannelMember                                  TruthValue
+    cucsEtherPIoIsPortChannelMember                                  TruthValue,
+    cucsEtherPIoAggrPortId                                           Gauge32,
+    cucsEtherPIoPeerAggrPortId                                       Gauge32,
+    cucsEtherPIoNonCR4                                               TruthValue
 }
 
 cucsEtherPIoInstanceId OBJECT-TYPE
@@ -4314,6 +4318,30 @@ cucsEtherPIoIsPortChannelMember OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS ether:PIo:isPortChannelMember managed object property"
     ::= { cucsEtherPIoEntry 49 }
+
+cucsEtherPIoAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ether:PIo:aggrPortId managed object property"
+    ::= { cucsEtherPIoEntry 50 }
+
+cucsEtherPIoPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ether:PIo:peerAggrPortId managed object property"
+    ::= { cucsEtherPIoEntry 51 }
+
+cucsEtherPIoNonCR4 OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ether:PIo:nonCR4 managed object property"
+    ::= { cucsEtherPIoEntry 52 }
 
 cucsEtherPIoEndPointTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsEtherPIoEndPointEntry
@@ -5111,7 +5139,9 @@ CucsEtherPortChanIdElemEntry ::= SEQUENCE {
     cucsEtherPortChanIdElemInstanceId                                CucsManagedObjectId,
     cucsEtherPortChanIdElemDn                                        CucsManagedObjectDn,
     cucsEtherPortChanIdElemRn                                        SnmpAdminString,
-    cucsEtherPortChanIdElemId                                        Gauge32
+    cucsEtherPortChanIdElemId                                        Gauge32,
+    cucsEtherPortChanIdElemAssignedToDn                              SnmpAdminString,
+    cucsEtherPortChanIdElemPrevAssignedToDn                          SnmpAdminString
 }
 
 cucsEtherPortChanIdElemInstanceId OBJECT-TYPE
@@ -5145,6 +5175,24 @@ cucsEtherPortChanIdElemId OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS ether:PortChanIdElem:id managed object property"
     ::= { cucsEtherPortChanIdElemEntry 4 }
+
+cucsEtherPortChanIdElemAssignedToDn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ether:PortChanIdElem:assignedToDn managed
+        object property"
+    ::= { cucsEtherPortChanIdElemEntry 5 }
+
+cucsEtherPortChanIdElemPrevAssignedToDn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ether:PortChanIdElem:prevAssignedToDn
+        managed object property"
+    ::= { cucsEtherPortChanIdElemEntry 6 }
 
 cucsEtherPortChanIdUniverseTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsEtherPortChanIdUniverseEntry
@@ -6032,7 +6080,10 @@ CucsEtherServerIntFIoEntry ::= SEQUENCE {
     cucsEtherServerIntFIoFsmTry                                      Gauge32,
     cucsEtherServerIntFIoNsSize                                      Gauge32,
     cucsEtherServerIntFIoPeerEncap                                   Gauge32,
-    cucsEtherServerIntFIoMacAddr                                     MacAddress
+    cucsEtherServerIntFIoAggrPortId                                  Gauge32,
+    cucsEtherServerIntFIoPeerAggrPortId                              Gauge32,
+    cucsEtherServerIntFIoMacAddr                                     MacAddress,
+    cucsEtherServerIntFIoOperBorderAggrPortId                        Gauge32
 }
 
 cucsEtherServerIntFIoInstanceId OBJECT-TYPE
@@ -6410,6 +6461,23 @@ cucsEtherServerIntFIoPeerEncap OBJECT-TYPE
         "Cisco UCS ether:ServerIntFIo:peerEncap managed object property"
     ::= { cucsEtherServerIntFIoEntry 46 }
 
+cucsEtherServerIntFIoAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ether:ServerIntFIo:aggrPortId managed object property"
+    ::= { cucsEtherServerIntFIoEntry 47 }
+
+cucsEtherServerIntFIoPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ether:ServerIntFIo:peerAggrPortId managed
+        object property"
+    ::= { cucsEtherServerIntFIoEntry 48 }
+
 cucsEtherServerIntFIoMacAddr OBJECT-TYPE
     SYNTAX       MacAddress
     MAX-ACCESS   read-only
@@ -6417,6 +6485,15 @@ cucsEtherServerIntFIoMacAddr OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS ether:ServerIntFIo:macAddr managed object property"
     ::= { cucsEtherServerIntFIoEntry 49 }
+
+cucsEtherServerIntFIoOperBorderAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ether:ServerIntFIo:operBorderAggrPortId
+        managed object property"
+    ::= { cucsEtherServerIntFIoEntry 50 }
 
 cucsEtherServerIntFIoFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsEtherServerIntFIoFsmEntry
@@ -6954,7 +7031,9 @@ CucsEtherServerIntFIoPcEpEntry ::= SEQUENCE {
     cucsEtherServerIntFIoPcEpSlotId                                  Gauge32,
     cucsEtherServerIntFIoPcEpSwitchId                                CucsNetworkSwitchId,
     cucsEtherServerIntFIoPcEpTransport                               CucsNetworkTransport,
-    cucsEtherServerIntFIoPcEpType                                    CucsEtherIntFIoEpType
+    cucsEtherServerIntFIoPcEpType                                    CucsEtherIntFIoEpType,
+    cucsEtherServerIntFIoPcEpAggrPortId                              Gauge32,
+    cucsEtherServerIntFIoPcEpPeerAggrPortId                          Gauge32
 }
 
 cucsEtherServerIntFIoPcEpInstanceId OBJECT-TYPE
@@ -7125,6 +7204,24 @@ cucsEtherServerIntFIoPcEpType OBJECT-TYPE
         "Cisco UCS ether:ServerIntFIoPcEp:type managed object property"
     ::= { cucsEtherServerIntFIoPcEpEntry 20 }
 
+cucsEtherServerIntFIoPcEpAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ether:ServerIntFIoPcEp:aggrPortId managed
+        object property"
+    ::= { cucsEtherServerIntFIoPcEpEntry 21 }
+
+cucsEtherServerIntFIoPcEpPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ether:ServerIntFIoPcEp:peerAggrPortId
+        managed object property"
+    ::= { cucsEtherServerIntFIoPcEpEntry 22 }
+
 cucsEtherSwIfConfigTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsEtherSwIfConfigEntry
     MAX-ACCESS       not-accessible
@@ -7224,6 +7321,8 @@ CucsEtherSwitchIntFIoEntry ::= SEQUENCE {
     cucsEtherSwitchIntFIoXcvrType                                    CucsEquipmentXcvrType,
     cucsEtherSwitchIntFIoDelFeTs                                     Unsigned64,
     cucsEtherSwitchIntFIoNewFeTs                                     Unsigned64,
+    cucsEtherSwitchIntFIoAggrPortId                                  Gauge32,
+    cucsEtherSwitchIntFIoPeerAggrPortId                              Gauge32,
     cucsEtherSwitchIntFIoMacAddr                                     MacAddress
 }
 
@@ -7500,6 +7599,23 @@ cucsEtherSwitchIntFIoNewFeTs OBJECT-TYPE
         "Cisco UCS ether:SwitchIntFIo:newFeTs managed object property"
     ::= { cucsEtherSwitchIntFIoEntry 34 }
 
+cucsEtherSwitchIntFIoAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ether:SwitchIntFIo:aggrPortId managed object property"
+    ::= { cucsEtherSwitchIntFIoEntry 35 }
+
+cucsEtherSwitchIntFIoPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ether:SwitchIntFIo:peerAggrPortId managed
+        object property"
+    ::= { cucsEtherSwitchIntFIoEntry 36 }
+
 cucsEtherSwitchIntFIoMacAddr OBJECT-TYPE
     SYNTAX       MacAddress
     MAX-ACCESS   read-only
@@ -7544,7 +7660,8 @@ CucsEtherSwitchIntFIoPcEntry ::= SEQUENCE {
     cucsEtherSwitchIntFIoPcStateQual                                 SnmpAdminString,
     cucsEtherSwitchIntFIoPcSwitchId                                  CucsNetworkSwitchId,
     cucsEtherSwitchIntFIoPcTransport                                 CucsEtherSwitchIntFIoPcTransport,
-    cucsEtherSwitchIntFIoPcType                                      CucsEtherSwitchIntFIoPcType
+    cucsEtherSwitchIntFIoPcType                                      CucsEtherSwitchIntFIoPcType,
+    cucsEtherSwitchIntFIoPcMulticastHwHash                           CucsEtherSwitchIntFIoPcMulticastHwHash
 }
 
 cucsEtherSwitchIntFIoPcInstanceId OBJECT-TYPE
@@ -7700,6 +7817,15 @@ cucsEtherSwitchIntFIoPcType OBJECT-TYPE
         "Cisco UCS ether:SwitchIntFIoPc:type managed object property"
     ::= { cucsEtherSwitchIntFIoPcEntry 19 }
 
+cucsEtherSwitchIntFIoPcMulticastHwHash OBJECT-TYPE
+    SYNTAX       CucsEtherSwitchIntFIoPcMulticastHwHash
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ether:SwitchIntFIoPc:multicastHwHash
+        managed object property"
+    ::= { cucsEtherSwitchIntFIoPcEntry 20 }
+
 cucsEtherSwitchIntFIoPcEpTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsEtherSwitchIntFIoPcEpEntry
     MAX-ACCESS       not-accessible
@@ -7739,7 +7865,9 @@ CucsEtherSwitchIntFIoPcEpEntry ::= SEQUENCE {
     cucsEtherSwitchIntFIoPcEpSwitchId                                CucsNetworkSwitchId,
     cucsEtherSwitchIntFIoPcEpTransport                               CucsNetworkTransport,
     cucsEtherSwitchIntFIoPcEpType                                    CucsEtherIntFIoEpType,
-    cucsEtherSwitchIntFIoPcEpAckState                                CucsEquipmentChassisConfigState
+    cucsEtherSwitchIntFIoPcEpAckState                                CucsEquipmentChassisConfigState,
+    cucsEtherSwitchIntFIoPcEpAggrPortId                              Gauge32,
+    cucsEtherSwitchIntFIoPcEpPeerAggrPortId                          Gauge32
 }
 
 cucsEtherSwitchIntFIoPcEpInstanceId OBJECT-TYPE
@@ -7927,6 +8055,24 @@ cucsEtherSwitchIntFIoPcEpAckState OBJECT-TYPE
         "Cisco UCS ether:SwitchIntFIoPcEp:ackState managed
         object property"
     ::= { cucsEtherSwitchIntFIoPcEpEntry 22 }
+
+cucsEtherSwitchIntFIoPcEpAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ether:SwitchIntFIoPcEp:aggrPortId managed
+        object property"
+    ::= { cucsEtherSwitchIntFIoPcEpEntry 23 }
+
+cucsEtherSwitchIntFIoPcEpPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS ether:SwitchIntFIoPcEp:peerAggrPortId
+        managed object property"
+    ::= { cucsEtherSwitchIntFIoPcEpEntry 24 }
 
 cucsEtherTxStatsTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsEtherTxStatsEntry

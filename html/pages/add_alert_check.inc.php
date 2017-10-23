@@ -11,11 +11,6 @@
  *
  */
 
-//        <span style="clear:none; float: right; margin-right: 10px; border-left: 1px;">
-//          <a href="#delete_alert_modal" data-toggle="modal"><i class="oicon-minus-circle"></i></a>
-//          <a href="#delete_alert_modal" data-toggle="modal"><i class="oicon-minus-circle"></i></a>
-//        </span>
-
 // Global write permissions required.
 if ($_SESSION['userlevel'] < 10)
 {
@@ -41,13 +36,14 @@ include($config['html_dir']."/includes/alerting-navbar.inc.php");
     {
       $check_array = array();
 
-      $conds = array();
+      $conditions = array();
       foreach (explode("\n", trim($vars['check_conditions'])) AS $cond)
       {
-        list($this['metric'], $this['condition'], $this['value']) = explode(" ", trim($cond), 3);
-        $conds[] = $this;
+        $condition = array();
+        list($condition['metric'], $condition['condition'], $condition['value']) = explode(" ", trim($cond), 3);
+        $conditions[] = $condition;
       }
-      $check_array['conditions'] = json_encode($conds);
+      $check_array['conditions'] = json_encode($conditions);
 
       $check_array['entity_type'] = $vars['entity_type'];
       $check_array['alert_name'] = $vars['alert_name'];
@@ -71,16 +67,16 @@ include($config['html_dir']."/includes/alerting-navbar.inc.php");
         $dev_conds = array();
         foreach (explode("\n", trim($vars['assoc_device_conditions'])) AS $cond)
         {
-          list($this['attrib'], $this['condition'], $this['value']) = explode(" ", trim($cond), 3);
-          $dev_conds[] = $this;
+          list($condition['attrib'], $condition['condition'], $condition['value']) = explode(" ", trim($cond), 3);
+          $dev_conds[] = $condition;
         }
         $assoc_array['device_attribs'] = json_encode($dev_conds);
         if ($vars['assoc_device_conditions'] == "*") { $vars['assoc_device_conditions'] = json_encode(array()); }
         $ent_conds = array();
         foreach (explode("\n", trim($vars['assoc_entity_conditions'])) AS $cond)
         {
-          list($this['attrib'], $this['condition'], $this['value']) = explode(" ", trim($cond), 3);
-          $ent_conds[] = $this;
+          list($condition['attrib'], $condition['condition'], $condition['value']) = explode(" ", trim($cond), 3);
+          $ent_conds[] = $condition;
         }
         $assoc_array['entity_attribs'] = json_encode($ent_conds);
         if ($vars['assoc_entity_conditions'] == "*") { $vars['assoc_entity_conditions'] = json_encode(array()); }
@@ -89,6 +85,7 @@ include($config['html_dir']."/includes/alerting-navbar.inc.php");
         if (is_numeric($assoc_id))
         {
           print_success($message . "<p>Association inserted as ".$assoc_id."</p>");
+          set_obs_attrib('alerts_require_rebuild', '1');
           unset($vars); // Clean vars for use with new associations
         } else {
           print_warning($message . "<p>Association creation failed.</p>");
@@ -212,7 +209,7 @@ include($config['html_dir']."/includes/alerting-navbar.inc.php");
                       'width'       => '220px',
                       'value'       => $vars['alert_severity'],
                       'values'      => array('crit' => array('name' => 'Critical',
-                                                             'icon' => 'oicon-exclamation-red'),
+                                                             'icon' => $config['icon']['exclamation']),
                                              //'warn' => array('name' => 'Warning',
                                              //                'icon' => 'oicon-warning'),
                                              //'info' => array('name' => 'Informational',
@@ -239,7 +236,7 @@ include($config['html_dir']."/includes/alerting-navbar.inc.php");
                     );
 
 
-   $box_args['header-controls'] = array('controls' => array('tooltip'   => array('icon'   => 'icon-info text-primary',
+   $box_args['header-controls'] = array('controls' => array('tooltip'   => array('icon'   => $config['icon']['info'],
                                                                                  'anchor' => TRUE,
                                                                                  'class'  => 'tooltip-from-element',
                                                                                  //'url'    => '#',
@@ -257,9 +254,9 @@ include($config['html_dir']."/includes/alerting-navbar.inc.php");
                       'width'       => '220px',
                       'value'       => (isset($vars['alert_and']) ? $vars['alert_and'] : 1), // Set to and by default
                       'values'      => array('0' => array('name' => 'Require any condition',
-                                                          'icon' => 'oicon-or'),
+                                                          'icon' => $config['icon']['or-gate']),
                                              '1' => array('name' => 'Require all conditions',
-                                                          'icon' => 'oicon-and'),
+                                                          'icon' => $config['icon']['and-gate']),
                                              )
                       );
         echo(generate_form_element($item, 'select'));
@@ -282,7 +279,7 @@ include($config['html_dir']."/includes/alerting-navbar.inc.php");
                                 'padding' => TRUE,
                     );
 
-   $box_args['header-controls'] = array('controls' => array('tooltip'   => array('icon'   => 'icon-info text-primary',
+   $box_args['header-controls'] = array('controls' => array('tooltip'   => array('icon'   => $config['icon']['info'],
                                                                                  'anchor' => TRUE,
                                                                                  'class'  => 'tooltip-from-element',
                                                                                  //'url'    => '#',
@@ -326,7 +323,7 @@ include($config['html_dir']."/includes/alerting-navbar.inc.php");
   $item = array('id'          => 'submit',
                 'name'        => 'Add Check',
                 'class'       => 'btn-success',
-                'icon'        => 'icon-plus oicon-white',
+                'icon'        => $config['icon']['checked'],
                 'value'       => 'add_alert_check');
   echo(generate_form_element($item, 'submit'));
   ?>
@@ -366,5 +363,7 @@ ifSpeed ge 100000000</pre>
 </div>
 
 <?php
+
+register_html_title('Add alert checker');
 
 // EOF

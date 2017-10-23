@@ -22,7 +22,5 @@ $data = snmpwalk_cache_multi_oid($device, 'radioInfo', array(), 'ExaltComProduct
 $hardware      = $data[0]['modelName'];
 list($version) = explode(' ', $data[0]['firmwareVersion']);
 $features      = $data[0]['interfaceType'];
-$serial        = $data[0]['serialNumber'];
-$asset_tag     = $data[0]['partNumber'];
 
 // EOF

@@ -62,7 +62,7 @@ foreach ($oids as $index => $entry)
 // .1.3.6.1.4.1.629.1.50.11.1.13.2.0 - nbsDevPhParamDevAmbientTempC.0
 // .1.3.6.1.4.1.629.1.50.11.1.13.3.0 - nbsDevPhParamPackProcTempC.0
 
-$oids = snmpget_cache_multi($device, array('.1.3.6.1.4.1.629.1.50.11.1.13.1.0',
+$oids = snmp_get_multi_oid($device, array('.1.3.6.1.4.1.629.1.50.11.1.13.1.0',
                                            '.1.3.6.1.4.1.629.1.50.11.1.13.2.0',
                                            '.1.3.6.1.4.1.629.1.50.11.1.13.3.0'), array(), 'DEV-CFG-MIB', NULL, OBS_SNMP_ALL_NUMERIC);
 if (OBS_DEBUG > 1 && $oids)

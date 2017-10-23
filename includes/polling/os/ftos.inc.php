@@ -7,7 +7,7 @@
  *
  * @package    observium
  * @subpackage poller
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -63,7 +63,7 @@ if (preg_match('/Application Software Version:\s+(?<version>(?<base>[\d\.]+)\S*)
   $hardware = $matches['hardware'];
   $version  = $matches['version'];
 } else {
-  $hardware = rewrite_ftos_hardware($poll_device['sysObjectID']);
+  $hardware = rewrite_definition_hardware($device, $poll_device['sysObjectID']);
 }
 
 if ($is_dell)
@@ -72,7 +72,7 @@ if ($is_dell)
   // DELL-NETWORKING-CHASSIS-MIB::dellNetStackUnitIndexNext.0 = INTEGER: 1
 
   // YES, this not joke snmpwalk instead snmpget, since some Dell devices return wrong 'No Such Instance currently exists at this OID'
-  //$data     = snmpget_cache_multi($device, 'dellNetStackUnitCodeVersion.1 dellNetStackUnitProductOrder.1 dellNetStackUnitModelId.1 dellNetStackUnitSerialNumber.1 dellNetStackUnitServiceTag.1', array(), 'DELL-NETWORKING-CHASSIS-MIB');
+  //$data     = snmp_get_multi_oid($device, 'dellNetStackUnitCodeVersion.1 dellNetStackUnitProductOrder.1 dellNetStackUnitModelId.1 dellNetStackUnitSerialNumber.1 dellNetStackUnitServiceTag.1', array(), 'DELL-NETWORKING-CHASSIS-MIB');
   $oids = array('dellNetStackUnitSerialNumber', 'dellNetStackUnitServiceTag');
   if (!$hardware)
   {
@@ -113,7 +113,7 @@ if ($is_dell)
 }
 else if (strstr($poll_device['sysObjectID'], '.1.3.6.1.4.1.6027.1.3.'))
 {
-  $data     = snmpget_cache_multi($device, 'chStackUnitCodeVersion.1 chStackUnitProductOrder.1 chStackUnitModelID.1 chStackUnitSerialNumber.1 chStackUnitServiceTag.1', array(), 'F10-S-SERIES-CHASSIS-MIB');
+  $data     = snmp_get_multi_oid($device, 'chStackUnitCodeVersion.1 chStackUnitProductOrder.1 chStackUnitModelID.1 chStackUnitSerialNumber.1 chStackUnitServiceTag.1', array(), 'F10-S-SERIES-CHASSIS-MIB');
   if ($data[1]['chStackUnitProductOrder'] && $data[1]['chStackUnitProductOrder'] != 'NA')
   {
     $hardware = $data[1]['chStackUnitProductOrder'];
@@ -139,7 +139,7 @@ else if (strstr($poll_device['sysObjectID'], '.1.3.6.1.4.1.6027.1.2.'))
 }
 else if (strstr($poll_device['sysObjectID'], '.1.3.6.1.4.1.6027.1.4.'))
 {
-  $data     = snmpget_cache_multi($device, 'chStackUnitCodeVersion.1 chStackUnitProductOrder.1 chStackUnitModelID.1 chStackUnitSerialNumber.1 chStackUnitServiceTag.1', array(), 'F10-M-SERIES-CHASSIS-MIB');
+  $data     = snmp_get_multi_oid($device, 'chStackUnitCodeVersion.1 chStackUnitProductOrder.1 chStackUnitModelID.1 chStackUnitSerialNumber.1 chStackUnitServiceTag.1', array(), 'F10-M-SERIES-CHASSIS-MIB');
   if ($data[1]['chStackUnitProductOrder'] && $data[1]['chStackUnitProductOrder'] != 'NA')
   {
     $hardware = $data[1]['chStackUnitProductOrder'];

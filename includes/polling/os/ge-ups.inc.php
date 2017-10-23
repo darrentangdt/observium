@@ -11,11 +11,7 @@
  *
  */
 
-$version  = snmp_get($device, "upsIdentUPSSoftwareVersion.0", "-OQv", "GEPARALLELUPS-MIB");
-
-$hardware = snmp_get($device, "upsIdentManufacturer.0", "-OQv", "GEPARALLELUPS-MIB");
-$hardware .= ' ' . snmp_get($device, "upsIdentModel.0", "-OQv", "GEPARALLELUPS-MIB");
-
-$serial   = snmp_get($device, "upsIdentUPSSerialNumber.0", "-OQv", "GEPARALLELUPS-MIB");
+$hardware = snmp_get($device, 'upsIdentManufacturer.0', '-OQv', 'GEPARALLELUPS-MIB');
+$hardware .= ' ' . snmp_get($device, 'upsIdentModel.0', '-OQv', 'GEPARALLELUPS-MIB');
 
 // EOF

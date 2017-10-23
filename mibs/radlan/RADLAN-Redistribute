@@ -104,7 +104,8 @@ RlRedistEntry  ::= SEQUENCE {
         rlRedistMetricType              RlRedistMetricType,     -- metric type
         rlRedistSubnets                 TruthValue,             -- if FALSE: When routes are redistributed into OSPF, only routes that are not subnetted are redistributed
         rlRedistOnlyNSSA                TruthValue,             -- Sets the nssa-only attribute for all routes redistributed into OSPF
-        rlRedistRowStatus               RowStatus               -- Row Status
+        rlRedistRowStatus               RowStatus,              -- Row Status
+        rlRedistFilterListName          DisplayString           -- Standard IP Access List name to filter redistributed routes
 --      rlRedistISISProcessId         DisplayString            IS-IS process ID
 --      rlRedistLevel                 RlRedistLevel,           Level (Is-Is only)
 --      rlRedistTagValue              INTEGER,                 Tag Value, 0 means no tag
@@ -242,6 +243,16 @@ rlRedistRowStatus OBJECT-TYPE
     STATUS current
     DESCRIPTION "Row Status"
     ::= { rlRedistEntry 13 }
+
+rlRedistFilterListName  OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Specifies the name of a Standard IP Access List that should be interrogated to filter the importation of routes
+                 from this source routing protocol to the current routing protocol.
+                 If not specified, all routes are redistributed. If the name is specified but,
+                 list with this name is not defined, no routes will be imported."
+    ::= { rlRedistEntry 14 }
 
 END
 -- rlRedistISISProcessId  OBJECT-TYPE

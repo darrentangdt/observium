@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- NWCTRL management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -54,7 +54,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsNwctrlObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -100,7 +100,10 @@ CucsNwctrlDefinitionEntry ::= SEQUENCE {
     cucsNwctrlDefinitionUplinkFailAction                             CucsNwctrlLinkFailAction,
     cucsNwctrlDefinitionMacRegisterMode                              CucsNwctrlRegistrationMode,
     cucsNwctrlDefinitionPolicyLevel                                  Gauge32,
-    cucsNwctrlDefinitionPolicyOwner                                  CucsPolicyPolicyOwner
+    cucsNwctrlDefinitionPolicyOwner                                  CucsPolicyPolicyOwner,
+    cucsNwctrlDefinitionPropAcl                                      Unsigned64,
+    cucsNwctrlDefinitionLldpReceive                                  CucsNwctrlAdminState,
+    cucsNwctrlDefinitionLldpTransmit                                 CucsNwctrlAdminState
 }
 
 cucsNwctrlDefinitionInstanceId OBJECT-TYPE
@@ -192,5 +195,29 @@ cucsNwctrlDefinitionPolicyOwner OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS nwctrl:Definition:policyOwner managed object property"
     ::= { cucsNwctrlDefinitionEntry 11 }
+
+cucsNwctrlDefinitionPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS nwctrl:Definition:propAcl managed object property"
+    ::= { cucsNwctrlDefinitionEntry 12 }
+
+cucsNwctrlDefinitionLldpReceive OBJECT-TYPE
+    SYNTAX       CucsNwctrlAdminState
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS nwctrl:Definition:lldpReceive managed object property"
+    ::= { cucsNwctrlDefinitionEntry 13 }
+
+cucsNwctrlDefinitionLldpTransmit OBJECT-TYPE
+    SYNTAX       CucsNwctrlAdminState
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS nwctrl:Definition:lldpTransmit managed object property"
+    ::= { cucsNwctrlDefinitionEntry 14 }
 
 END

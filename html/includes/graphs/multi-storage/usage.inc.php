@@ -25,10 +25,24 @@ if ($width > 500)
 }
 $descr_len += round(($width - 250) / 8);
 
+if ($width > "1000")
+{
+  $descr_len = 36;
+}
+else if ($width > "500")
+{
+  $descr_len = 24;
+} else {
+  $descr_len = 12;
+  $descr_len += round(($width - 200) / 8);
+}
+
+
+
 $iter = 0;
 $colours = 'mixed';
 
-$rrd_options .= " COMMENT:'".str_pad('Size      Used    %used', $descr_len+31, ' ', STR_PAD_LEFT)."\\\l'";
+$rrd_options .= " COMMENT:'".str_pad('Size      Used    %used', $descr_len+31, ' ', STR_PAD_LEFT)."\\l'";
 
 
 foreach ($vars['id'] as $storage_id)
@@ -54,7 +68,7 @@ foreach ($vars['id'] as $storage_id)
     $rrd_options .= " LINE1.25:".$storage['storage_id']."perc#" . $colour . ":'$descr'";
     $rrd_options .= " GPRINT:".$storage['storage_id']."size:LAST:%6.2lf%sB";
     $rrd_options .= " GPRINT:".$storage['storage_id']."used:LAST:%6.2lf%sB";
-    $rrd_options .= " GPRINT:".$storage['storage_id']."perc:LAST:%5.2lf%%\\\l";
+    $rrd_options .= " GPRINT:".$storage['storage_id']."perc:LAST:%5.2lf%%\\l";
     $iter++;
   } else { echo($rrd_filename); }
 }

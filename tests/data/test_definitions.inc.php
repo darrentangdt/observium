@@ -30,24 +30,24 @@ require("Net/IPv6.php");
 require("Console/Color2.php");
 */
 
-unset($config['os']['default']); // Override default for tests
+unset($config['os_group']['default']); // Override default for tests
 
-$config['os']['default']['graphs'][]                = "device_bits";
-$config['os']['default']['graphs'][]                = "device_uptime";
-$config['os']['default']['graphs'][]                = "device_ping";
-$config['os']['default']['comments']                = "/^\s*#/";
+$config['os_group']['default']['graphs'][]                = "device_bits";
+$config['os_group']['default']['graphs'][]                = "device_uptime";
+$config['os_group']['default']['graphs'][]                = "device_ping";
+$config['os_group']['default']['comments']                = "/^\s*#/";
 // MIBs enabled for any os (except blacklisted mibs)
-$config['os']['default']['mibs'][]                  = "EtherLike-MIB"; // in ports module
-$config['os']['default']['mibs'][]                  = "ENTITY-MIB";
-$config['os']['default']['mibs'][]                  = "ENTITY-SENSOR-MIB";
-$config['os']['default']['mibs'][]                  = "CISCO-ENTITY-VENDORTYPE-OID-MIB"; // Inventory module
-$config['os']['default']['mibs'][]                  = "HOST-RESOURCES-MIB";
-$config['os']['default']['mibs'][]                  = "Q-BRIDGE-MIB";
-$config['os']['default']['mibs'][]                  = "LLDP-MIB";       // Should be before CISCO-CDP-MIB, but I not know why (in neighbours)
-$config['os']['default']['mibs'][]                  = "CISCO-CDP-MIB";
-$config['os']['default']['mibs'][]                  = "PW-STD-MIB";     // Pseudowires. FIXME, possible more os specific?
-$config['os']['default']['mibs'][]                  = "DISMAN-PING-MIB";// RFC4560, SLA
-$config['os']['default']['mibs'][]                  = "BGP4-MIB";
+$config['os_group']['default']['mibs'][]                  = "EtherLike-MIB"; // in ports module
+$config['os_group']['default']['mibs'][]                  = "ENTITY-MIB";
+$config['os_group']['default']['mibs'][]                  = "ENTITY-SENSOR-MIB";
+$config['os_group']['default']['mibs'][]                  = "CISCO-ENTITY-VENDORTYPE-OID-MIB"; // Inventory module
+$config['os_group']['default']['mibs'][]                  = "HOST-RESOURCES-MIB";
+$config['os_group']['default']['mibs'][]                  = "Q-BRIDGE-MIB";
+$config['os_group']['default']['mibs'][]                  = "LLDP-MIB";       // Should be before CISCO-CDP-MIB, but I not know why (in neighbours)
+$config['os_group']['default']['mibs'][]                  = "CISCO-CDP-MIB";
+$config['os_group']['default']['mibs'][]                  = "PW-STD-MIB";     // Pseudowires. FIXME, possible more os specific?
+$config['os_group']['default']['mibs'][]                  = "DISMAN-PING-MIB";// RFC4560, SLA
+$config['os_group']['default']['mibs'][]                  = "BGP4-MIB";
 
 $os_group = "test_unix";
 $config['os_group'][$os_group]['type']              = "server";

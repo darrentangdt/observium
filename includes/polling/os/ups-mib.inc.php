@@ -15,7 +15,6 @@ $manufacturer = snmp_get($device, 'upsIdentManufacturer.0', '-OQv', 'UPS-MIB');
 
 if ($GLOBALS['snmp_status'])
 {
-  $version  = snmp_get($device, 'upsIdentUPSSoftwareVersion.0', '-OQv', 'UPS-MIB');
   $model    = snmp_get($device, 'upsIdentModel.0', '-OQv', 'UPS-MIB');
   $hardware = $manufacturer . ' ' . $model;
 

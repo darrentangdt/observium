@@ -141,7 +141,8 @@ foreach ($sensorTables as $table)
       if ($low  != 0) { $limits['limit_low'] = $low; }
       if ($warn != 0) { $limits['limit_warn_high'] = $warn; }
 
-      if($t == 'status'){
+      if ($t == 'status')
+      {
         $oid = $table['statusOID'].$index;
         discover_status($device, $oid, $index, "rittal-cmc-tc-state", $name, $status, array('entPhysicalClass' => 'status'));
       } else {

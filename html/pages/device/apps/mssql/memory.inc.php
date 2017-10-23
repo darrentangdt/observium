@@ -50,7 +50,7 @@ if (!empty($app_data['memory']))
 
 ?>
       <div class="box box-solid">
-        <div class="title"><i class="oicon-memory"></i> Memory</div>
+        <div class="title"><i class="<?php echo $config['icon']['mempool']; ?>"></i> Memory</div>
         <div class="content">
           <table width="100%" class="table table-striped table-condensed-more ">
             <tr>

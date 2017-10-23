@@ -11,19 +11,18 @@
  *
  */
 
-echo(" HH3C-STACK-MIB ");
+$stack_members = snmpwalk_cache_multi_oid($device, 'hh3cStackBoardConfigTable', array(), $mib);
 
-$stack_members = snmpwalk_cache_multi_oid($device, 'hh3cStackBoardConfigTable', array(), 'HH3C-STACK-MIB', mib_dirs('hh3c'));
+foreach ($stack_members as $index => $entry)
+{
+  // HH3C-STACK-MIB::hh3cStackBoardRole.112 = INTEGER: slave(1)
+  // HH3C-STACK-MIB::hh3cStackBoardBelongtoMember.112 = INTEGER: 1
 
-foreach($stack_members as $index => $entry){
-    //HH3C-STACK-MIB::hh3cStackBoardRole.112 = INTEGER: slave(1)
-    //HH3C-STACK-MIB::hh3cStackBoardBelongtoMember.112 = INTEGER: 1
+  $value = $entry['hh3cStackBoardRole'];
+  $oid   = ".1.3.6.1.4.1.25506.2.91.3.1.1.$index";
+  $descr = 'Board ' . $entry['hh3cStackBoardBelongtoMember'];
 
-    $value = $entry['hh3cStackBoardRole'];
-    $oid = ".1.3.6.1.4.1.25506.2.91.3.1.1.$index";
-    $descr = "Board ".$entry['hh3cStackBoardBelongtoMember'];
-
-    discover_status($device, $oid, "hh3cStackBoardConfigTable.".$index, "hh3c-stack-board-status", $descr, $value, array('entPhysicalIndex' => $index,'entPhysicalClass'=>'module'));
+  discover_status($device, $oid, "hh3cStackBoardConfigTable.$index", 'hh3c-stack-board-status', $descr, $value, array('entPhysicalIndex' => $index,'entPhysicalClass'=>'module'));
 }
 
 // EOF

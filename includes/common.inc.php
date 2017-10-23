@@ -26,11 +26,38 @@ function observium_autoload($class_name)
 
   $class_array = explode('\\', $class_name);
   $class_file  = str_replace('_', '/', implode($class_array, '/')) . '.php';
+  //print_vars($class_array);
   switch ($class_array[0])
   {
     case 'cli':
       include_once($base_dir . 'cli/cli.php'); // Cli classes required base functions
+      $class_file = str_replace('/Table/', '/table/', $class_file);
+      //var_dump($class_file);
       break;
+
+    case 'Psr':
+      // Legacy for phpFastCache
+      if ($class_array[1] == 'Cache')
+      {
+        $class_file = array_pop($class_array) . '.php';
+        $class_file = 'phpFastCache/legacy/' . implode($class_array, '/') . '/src/' . $class_file;
+        // print_vars($class_file);
+      }
+      break;
+
+    case 'Flight':
+      $class_file = array_pop($class_array) . '.php';
+      $class_file = 'flight/flight/' . $class_file;
+      break;
+
+    case 'Ramsey':
+      $class_file = str_replace('Ramsey/', '', $class_file);
+      break;
+    //case 'Uuid':
+    //  //$class_file = array_pop($class_array) . '.php';
+    //  $class_file = 'Uuid/' . $class_file;
+    //  break;
+
     default:
       if (is_file($base_dir . 'pear/' . $class_file))
       {
@@ -140,26 +167,83 @@ function get_obs_attrib($attrib_type)
   }
 }
 
+// FIXME. Function temporary placed here, since cache_* functions currently included in WUI only.
+// MOVEME includes/cache.inc.php
+/**
+ * Add clear cache attrib, this will request for clering cache in next request.
+ *
+ * @param string $target Clear cache target: wui or cli (default if wui)
+ */
+function set_cache_clear($target = 'wui')
+{
+  if (OBS_DEBUG || OBS_CACHE_DEBUG)
+  {
+    print_error('<span class="text-warning">CACHE CLEAR SET.</span> Cache clear set.');
+  }
+  if (!$GLOBALS['config']['cache']['enable'])
+  {
+    // Cache not enabled
+    return;
+  }
+
+  switch (strtolower($target))
+  {
+    case 'cli':
+      // Add clear CLI cache attrib. Currently not used
+      set_obs_attrib('cache_cli_clear', get_request_id());
+      break;
+    default:
+      // Add clear WUI cache attrib
+      set_obs_attrib('cache_wui_clear', get_request_id());
+  }
+}
+
 /**
  * Generate and store Unique ID for current system. Store in DB at first run.
+ *  IDs is RFC 4122 version 4 (without dashes, varchar(32)), i.e. c39b2386c4e8487fad4a87cd367b279d
+ *
  * @return string Unique system ID
  */
 function get_unique_id()
 {
-  if (!isset($GLOBALS['cache']['unique_id']))
+  if (!defined('OBS_UNIQUE_ID'))
   {
     $unique_id = get_obs_attrib('unique_id');
-    //$GLOBALS['cache']['attribs']['unique_id'] = dbFetchCell("SELECT `attrib_value` FROM `observium_attribs` WHERE `attrib_type` = 'unique_id';");
 
     if (!strlen($unique_id))
     {
-      $unique_id = str_replace('.', '', uniqid(NULL, TRUE));
+      // Old, low entropy
+      //$unique_id = str_replace('.', '', uniqid(NULL, TRUE)); // i.e. 55b24d7f1fa57330542020
+      // Generate a version 4 (random) UUID object
+      $uuid4 = Ramsey\Uuid\Uuid::uuid4();
+      //$unique_id = $uuid4->toString(); // i.e. c39b2386-c4e8-487f-ad4a-87cd367b279d
+      $unique_id = $uuid4->getHex();   // i.e. c39b2386c4e8487fad4a87cd367b279d
       dbInsert(array('attrib_type' => 'unique_id', 'attrib_value' => $unique_id), 'observium_attribs');
     }
-    $GLOBALS['cache']['unique_id'] = $unique_id;
+    define('OBS_UNIQUE_ID', $unique_id);
   }
 
-  return $GLOBALS['cache']['unique_id'];
+  return OBS_UNIQUE_ID;
+}
+
+/**
+ * Generate and store Unique Request ID for current script/page.
+ * ID unique between 2 different requests or page loads
+ *  IDs is RFC 4122 version 4, i.e. 25769c6c-d34d-4bfe-ba98-e0ee856f3e7a
+ *
+ * @return string Unique Request ID
+ */
+function get_request_id()
+{
+  if (!defined('OBS_REQUEST_ID'))
+  {
+    // Generate a version 4 (random) UUID object
+    $uuid4 = Ramsey\Uuid\Uuid::uuid4();
+    $request_id = $uuid4->toString(); // i.e. 25769c6c-d34d-4bfe-ba98-e0ee856f3e7a
+    define('OBS_REQUEST_ID', $request_id);
+  }
+
+  return OBS_REQUEST_ID;
 }
 
 /**
@@ -446,12 +530,13 @@ function get_versions()
   // Local system OS version
   if (is_executable($GLOBALS['config']['install_dir'].'/scripts/distro'))
   {
-    $os = explode('|', external_exec($GLOBALS['config']['install_dir'].'/scripts/distro'), 5);
+    $os = explode('|', external_exec($GLOBALS['config']['install_dir'].'/scripts/distro'), 6);
     $versions['os_system']         = $os[0];
     $versions['os_version']        = $os[1];
     $versions['os_arch']           = $os[2];
     $versions['os_distro']         = $os[3];
     $versions['os_distro_version'] = $os[4];
+    $versions['os_virt']           = $os[5];
     $versions['os_text']           = $os[0].' '.$os[1].' ['.$os[2].'] ('.$os[3].' '.$os[4].')';
   }
 
@@ -480,6 +565,17 @@ function get_versions()
     }
   }
   $versions['php_text'] = $php_version;
+  /*
+  // PHP memory_limit
+  $php_memory_limit = ini_get('memory_limit');
+  $versions['php_memory_limit'] = $php_memory_limit;
+  if ($php_memory_limit < 0)
+  {
+    $versions['php_memory_limit_text'] = 'Unlimited';
+  } else {
+    $versions['php_memory_limit_text'] = formatStorage($php_memory_limit);
+  }
+  */
 
   // Python
   $python_version  = str_replace('Python ', '', external_exec('/usr/bin/env python --version 2>&1'));
@@ -534,10 +630,17 @@ function get_versions()
   // Apache (or any http used?)
   if (is_cli())
   {
-    $http_version  = external_exec('/usr/bin/env apache2 -v | awk \'/Server version:/ {print $3}\'');
-    if (!$http_version)
+    foreach (array('apache2', 'httpd') as $http_cmd)
     {
-      $http_version = external_exec('/usr/bin/env httpd -v | awk \'/Server version:/ {print $3}\'');
+      if (is_executable('/usr/sbin/'.$http_cmd))
+      {
+        $http_cmd = '/usr/sbin/'.$http_cmd;
+      } else {
+        $http_cmd = '/usr/bin/env '.$http_cmd;
+      }
+      $http_version = external_exec($http_cmd.' -v | awk \'/Server version:/ {print $3}\'');
+
+      if ($http_version) { break; }
     }
     if (empty($http_version))
     {
@@ -581,6 +684,18 @@ function print_versions()
     $mysql_mode    = dbFetchCell("SELECT @@SESSION.sql_mode;");
     $mysql_charset = dbShowVariables('SESSION', "LIKE 'character_set_connection'");
 
+    // PHP memory_limit
+    //$php_memory_limit      = $GLOBALS['cache']['versions']['php_memory_limit'];
+    //$php_memory_limit_text = $GLOBALS['cache']['versions']['php_memory_limit_text'];
+  
+    $php_memory_limit = ini_get('memory_limit');
+    if ($php_memory_limit < 0)
+    {
+      $php_memory_limit_text = 'Unlimited';
+    } else {
+      $php_memory_limit_text = formatStorage($php_memory_limit);
+    }
+
     echo(PHP_EOL);
     print_cli_heading("Software versions");
     print_cli_data("OS",      $os_version);
@@ -591,7 +706,12 @@ function print_versions()
     print_cli_data("SNMP",    $snmp_version);
     print_cli_data("RRDtool", $rrdtool_version);
 
-    // In CLI always display mode and charset info
+    // Additionally in CLI always display Memory Limit, MySQL Mode and Charset info
+
+    echo(PHP_EOL);
+    print_cli_heading("Memory Limit", 3);
+    print_cli_data("PHP",     ($php_memory_limit >= 0 && $php_memory_limit < 268435456 ? '%r' : '') . $php_memory_limit_text, 3);
+
     echo(PHP_EOL);
     print_cli_heading("MySQL mode", 3);
     print_cli_data("MySQL",   $mysql_mode, 3);
@@ -653,17 +773,20 @@ function print_sql($query)
 // DOCME needs phpdoc block
 // Observium's variable debugging. Choses nice output depending upon web or cli
 // TESTME needs unit testing
-function print_vars($vars)
+function print_vars($vars, $trace = NULL)
 {
   if ($GLOBALS['cli'])
   {
     if (function_exists('rt'))
     {
-      ref::config('shortcutFunc', array('print_vars'));
+      ref::config('shortcutFunc', array('print_vars', 'print_debug_vars'));
       ref::config('showUrls', FALSE);
       if (OBS_DEBUG > 0)
       {
-        $trace = defined('DEBUG_BACKTRACE_IGNORE_ARGS') ? debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) : debug_backtrace();
+        if (is_null($trace))
+        {
+          $trace = defined('DEBUG_BACKTRACE_IGNORE_ARGS') ? debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) : debug_backtrace();
+        }
         ref::config('Backtrace', $trace); // pass original backtrace
         ref::config('showStringMatches',  FALSE);
       } else {
@@ -679,11 +802,14 @@ function print_vars($vars)
   } else {
     if (function_exists('r'))
     {
-      ref::config('shortcutFunc', array('print_vars'));
-      ref::config('showUrls',   FALSE);
+      ref::config('shortcutFunc', array('print_vars', 'print_debug_vars'));
+      ref::config('showUrls',     FALSE);
       if (OBS_DEBUG > 0)
       {
-        $trace = defined('DEBUG_BACKTRACE_IGNORE_ARGS') ? debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) : debug_backtrace();
+        if (is_null($trace))
+        {
+          $trace = defined('DEBUG_BACKTRACE_IGNORE_ARGS') ? debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) : debug_backtrace();
+        }
         ref::config('Backtrace', $trace); // pass original backtrace
       } else {
         ref::config('showBacktrace',      FALSE);
@@ -697,6 +823,23 @@ function print_vars($vars)
     } else {
       print_r($vars);
     }
+  }
+}
+
+/**
+ * Call to print_vars in debug mode only
+ * By default var displayed only for debug level 2
+ *
+ * @param mixed $vars Variable to print
+ * @param integer $debug_level Minimum debug level, default 2
+ */
+function print_debug_vars($vars, $debug_level = 2)
+{
+  // For level 2 display always (also empty), for level 1 only non empty vars
+  if (OBS_DEBUG && OBS_DEBUG >= $debug_level && (OBS_DEBUG > 1 || count($vars)))
+  {
+    $trace = defined('DEBUG_BACKTRACE_IGNORE_ARGS') ? debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) : debug_backtrace();
+    print_vars($vars, $trace);
   }
 }
 
@@ -933,12 +1076,15 @@ function get_timezone()
   {
     $timezone = array();
     $timezone['system'] = external_exec('date "+%:z"');                         // return '+03:00'
-    $timezone['mysql'] = dbFetchCell('SELECT TIMEDIFF(NOW(), UTC_TIMESTAMP);'); // return '03:00:00'
-    if ($timezone['mysql'][0] != '-')
+    if (!OBS_DB_SKIP)
     {
-      $timezone['mysql'] = '+'.$timezone['mysql'];
+      $timezone['mysql']  = dbFetchCell('SELECT TIMEDIFF(NOW(), UTC_TIMESTAMP);'); // return '03:00:00'
+      if ($timezone['mysql'][0] != '-')
+      {
+        $timezone['mysql'] = '+'.$timezone['mysql'];
+      }
+      $timezone['mysql']       = preg_replace('/:00$/', '', $timezone['mysql']);  // convert to '+03:00'
     }
-    $timezone['mysql']       = preg_replace('/:00$/', '', $timezone['mysql']);  // convert to '+03:00'
     $timezone['php']         = date('P');                                       // return '+03:00'
     $timezone['php_abbr']    = date('T');                                       // return 'MSK'
     $timezone['php_name']    = date('e');                                       // return 'Europe/Moscow'
@@ -946,9 +1092,17 @@ function get_timezone()
 
     foreach (array('php', 'mysql') as $entry)
     {
+      if (!isset($timezone[$entry])) { continue; } // skip mysql if OBS_DB_SKIP
+
       $sign = $timezone[$entry][0];
       list($hours, $minutes) = explode(':', $timezone[$entry]);
       $timezone[$entry . '_offset'] = $sign . (abs($hours) * 3600 + $minutes * 60); // Offset from GMT in seconds
+    }
+
+    if (OBS_DB_SKIP)
+    {
+      // If mysql skipped, just return system/php timezones without caching
+      return $timezone;
     }
 
     // Get get the difference in sec between mysql and php timezones
@@ -1009,6 +1163,43 @@ function formatCiscoHardware(&$device, $short = FALSE)
   }
 }
 
+/**
+ * Convert common MAC strings to fixed 12 char string
+ * @param  string $mac MAC string (ie: 66:c:9b:1b:62:7e, 00 02 99 09 E9 84)
+ * @return string      Cleaned MAC string (ie: 00029909e984)
+ */
+function mac_zeropad($mac)
+{
+  $mac = strtolower(trim($mac));
+  if (strpos($mac, ':') !== FALSE)
+  {
+    // STRING: 66:c:9b:1b:62:7e
+    $mac_parts = explode(':', $mac);
+    if (count($mac_parts) == 6)
+    {
+      $mac = '';
+      foreach ($mac_parts as $part)
+      {
+        $mac .= zeropad($part);
+      }
+    }
+  } else {
+    // Hex-STRING: 00 02 99 09 E9 84
+    // Cisco MAC:  1234.5678.9abc
+    // Some other: 0x123456789ABC
+    $mac = str_replace(array(' ', '.', '0x'), '', $mac);
+  }
+
+  if (strlen($mac) == 12 && ctype_xdigit($mac))
+  {
+    $mac_clean = $mac;
+  } else {
+    $mac_clean = NULL;
+  }
+
+  return $mac_clean;
+}
+
 // DOCME needs phpdoc block
 // TESTME needs unit testing
 function format_mac($mac)
@@ -1039,16 +1230,62 @@ function format_number_short($number, $sf)
   // This formats a number so that we only send back three digits plus an optional decimal point.
   // Example: 723.42 -> 723    72.34 -> 72.3    2.23 -> 2.23
 
-  list($whole, $decimal) = explode (".", $number);
+  list($whole, $decimal) = explode('.', $number);
+  $whole_len = strlen($whole);
 
-  if (strlen($whole) >= $sf || !is_numeric($decimal))
+  if ($whole_len >= $sf || !is_numeric($decimal))
   {
     $number = $whole;
-  } elseif(strlen($whole) < $sf) {
-    $diff = $sf - strlen($whole);
-    $number = $whole .".".substr($decimal, 0, $diff);
+  }
+  else if ($whole_len < $sf)
+  {
+    $number  = $whole;
+    $diff    = $sf - $whole_len;
+    $decimal = rtrim(substr($decimal, 0, $diff), '0');
+    if (strlen($decimal))
+    {
+      $number .= '.' . $decimal;
+    }
   }
   return $number;
+}
+
+/**
+ * Detect if required exec functions available
+ *
+ * @return boolean TRUE if proc_open/proc_get_status available and not in safe mode.
+ */
+function is_exec_available()
+{
+  // Detect that function ini_get() not disabled too
+  if (!function_exists('ini_get'))
+  {
+    print_warning('WARNING: Function ini_get() is disabled via the `disable_functions` option in php.ini configuration file. Please clean this function from this list.');
+
+    return TRUE; // NOTE, this is not a critical function for functionally
+  }
+
+  $required_functions = array('proc_open', 'proc_get_status');
+  $disabled_functions = explode(',', ini_get('disable_functions'));
+  foreach ($required_functions as $func)
+  {
+    if (in_array($func, $disabled_functions))
+    {
+      print_error('ERROR: Function ' . $func . '() is disabled via the `disable_functions` option in php.ini configuration file. Please clean this function from this list.');
+      return FALSE;
+    }
+  }
+
+  /*
+  // Detect safe mode
+  $safe_mode = ini_get('safe_mode');
+  if (strtolower($safe_mode) != 'off')
+  {
+    return FALSE;
+  }
+  */
+
+  return TRUE;
 }
 
 // DOCME needs phpdoc block
@@ -1056,8 +1293,53 @@ function external_exec($command, $timeout = NULL)
 {
   global $exec_status;
 
+  $command     = trim($command);
+
+  // Debug the command *before* we run it!
+  if (OBS_DEBUG > 0)
+  {
+    $debug_command = ($command === '' && isset($GLOBALS['snmp_command'])) ? $GLOBALS['snmp_command'] : $command;
+    if (OBS_DEBUG < 2 && $GLOBALS['config']['snmp']['hide_auth'] &&
+        preg_match("/snmp(bulk)?(get|walk)(\s+-(t|r|Cr)['\d\s]+){0,3}(\s+-Cc)?\s+-v[123]c?\s+/", $debug_command))
+    {
+      // Hide snmp auth params from debug cmd out,
+      // for help users who want send debug output to developers
+      $pattern = "/\s+(-[cuxXaA])\s*(?:'.+?')(@\d+)?/";
+      $debug_command = preg_replace($pattern, ' \1 ***\2', $debug_command);
+    }
+    print_message(PHP_EOL . 'CMD[%y' . $debug_command . '%n]' . PHP_EOL, 'console');
+  }
+
   $exec_status = array('command'   => $command,
                        'exitdelay' => 0);
+  if ($command === '')
+  {
+    // Hardcode exec_status if empty command passed
+    if (isset($GLOBALS['snmp_command']))
+    {
+      $exec_status['command'] = $GLOBALS['snmp_command'];
+      unset($GLOBALS['snmp_command']); // Now clean this global var
+    }
+    $exec_status['exitcode'] = -1;
+    $exec_status['endtime']  = microtime(TRUE); // store end unixtime with microseconds
+    $exec_status['runtime']  = 0;
+    $exec_status['stderr']   = 'Empty command passed';
+    $exec_status['stdout']   = '';
+
+    if (OBS_DEBUG > 0)
+    {
+      print_message('CMD EXITCODE['.($exec_status['exitcode'] !== 0 ? '%r' : '%g').$exec_status['exitcode'].'%n]'.PHP_EOL.
+                    'CMD RUNTIME['.($runtime > 7 ? '%r' : '%g').round($runtime, 4).'s%n]', 'console');
+      print_message("STDOUT[\n\n]", 'console', FALSE);
+      if ($exec_status['exitcode'] && $exec_status['stderr'])
+      {
+        // Show stderr if exitcode not 0
+        print_message("STDERR[\n".$exec_status['stderr']."\n]", 'console', FALSE);
+      }
+    }
+    return '';
+  }
+
   if (is_numeric($timeout) && $timeout > 0)
   {
     $timeout_usec = $timeout * 1000000;
@@ -1073,20 +1355,6 @@ function external_exec($command, $timeout = NULL)
     1 => array('pipe', 'w'), // stdout
     2 => array('pipe', 'w')  // stderr
   );
-
-  // Debug the command *before* we run it!
-  if (OBS_DEBUG > 0)
-  {
-    $debug_command = $command;
-    if (OBS_DEBUG < 2 && $GLOBALS['config']['snmp']['hide_auth'] && preg_match("/snmp(bulk)?(get|walk)(\s+-(t|r|Cr)['\d\s]+){0,3}(\s+-Cc)?\s+-v[123]c?\s+/", $command))
-    {
-      // Hide snmp auth params from debug cmd out,
-      // for help users who want send debug output to developers
-      $pattern = "/\s+(-[cuxXaA])\s*(?:'.+?')(@\d+)?/";
-      $debug_command = preg_replace($pattern, ' \1 ***\2', $debug_command);
-    }
-    print_message(PHP_EOL . 'CMD[%y' . $debug_command . '%n]' . PHP_EOL, 'console');
-  }
 
   $process = proc_open($command, $descriptorspec, $pipes);
   //stream_set_blocking($pipes[0], 0); // Make stdin/stdout/stderr non-blocking
@@ -1184,6 +1452,7 @@ function external_exec($command, $timeout = NULL)
   fclose($pipes[1]);
   fclose($pipes[2]);
 
+  $exec_status['endtime'] = $start + $runtime; // store end unixtime with microseconds
   $exec_status['runtime'] = $runtime;
   $exec_status['stdout']  = $stdout;
 
@@ -1436,7 +1705,7 @@ function str_contains($string, $needle, $encoding = FALSE, $case_insensitivity =
     // Case-INsensitive
 
     // NOTE, multibyte compare required mb_* functions and slower than general functions
-    if ($encoding && mb_strlen($string, $encoding) != strlen($string))
+    if ($encoding && check_extension_exists('mbstring') && mb_strlen($string, $encoding) != strlen($string))
     {
       //$encoding = 'UTF-8';
       //return mb_strripos($string, $needle, -mb_strlen($string, $encoding), $encoding) !== FALSE;
@@ -1485,7 +1754,7 @@ function str_starts($string, $needle, $encoding = FALSE, $case_insensitivity = F
     // Case-INsensitive
 
     // NOTE, multibyte compare required mb_* functions and slower than general functions
-    if ($encoding && mb_strlen($string, $encoding) != strlen($string))
+    if ($encoding && check_extension_exists('mbstring') && mb_strlen($string, $encoding) != strlen($string))
     {
       //$encoding = 'UTF-8';
       return mb_strripos($string, $needle, -mb_strlen($string, $encoding), $encoding) !== FALSE;
@@ -1536,7 +1805,7 @@ function str_ends($string, $needle, $encoding = FALSE, $case_insensitivity = FAL
   $compare = $needle !== '';
 
   // NOTE, multibyte compare required mb_* functions and slower than general functions
-  if ($encoding && $compare && mb_strlen($string, $encoding) != strlen($string))
+  if ($encoding && $compare && check_extension_exists('mbstring') && mb_strlen($string, $encoding) != strlen($string))
   {
     //$encoding = 'UTF-8';
     $diff = mb_strlen($string, $encoding) - mb_strlen($needle, $encoding);
@@ -1562,32 +1831,27 @@ function str_iends($string, $needle, $encoding = FALSE)
 // TESTME needs unit testing
 function is_cli()
 {
-  global $cache;
-
-  if (isset($cache['is_cli']))
+  if (defined('__PHPUNIT_PHAR__') && isset($GLOBALS['cache']['is_cli']))
   {
-    return $cache['is_cli'];
+    // Allow override is_cli() in PHPUNIT
+    return $GLOBALS['cache']['is_cli'];
+  }
+  else if (!defined('OBS_CLI'))
+  {
+    define('OBS_CLI', php_sapi_name() == 'cli' && empty($_SERVER['REMOTE_ADDR']));
   }
 
-  if (php_sapi_name() == 'cli' && empty($_SERVER['REMOTE_ADDR']))
-  {
-    $cache['is_cli'] = TRUE;
-  } else {
-    $cache['is_cli'] = FALSE;
-  }
-
-  return $cache['is_cli'];
+  return OBS_CLI;
 }
 
 function cli_is_piped()
 {
-  if (isset($GLOBALS['cache']['cli_is_piped']))
+  if (!defined('OBS_CLI_PIPED'))
   {
-    return $GLOBALS['cache']['cli_is_piped'];
+    define('OBS_CLI_PIPED', check_extension_exists('posix') && !posix_isatty(STDOUT));
   }
 
-  $GLOBALS['cache']['cli_is_piped'] = check_extension_exists('posix') && !posix_isatty(STDOUT);
-  return $GLOBALS['cache']['cli_is_piped'];
+  return OBS_CLI_PIPED;
 }
 
 // Detect if script runned from crontab
@@ -1595,13 +1859,18 @@ function cli_is_piped()
 // TESTME needs unit testing
 function is_cron()
 {
-  $cron = is_cli() && !isset($_SERVER['TERM']);
-  // For more accurate check if STDOUT exist (but this requires posix extension)
-  if ($cron)
+  if (!defined('OBS_CRON'))
   {
-    $cron = $cron && cli_is_piped();
+    $cron = is_cli() && !isset($_SERVER['TERM']);
+    // For more accurate check if STDOUT exist (but this requires posix extension)
+    if ($cron)
+    {
+      $cron = $cron && cli_is_piped();
+    }
+    define('OBS_CRON', $cron);
   }
-  return $cron;
+
+  return OBS_CRON;
 }
 
 // DOCME needs phpdoc block
@@ -1644,7 +1913,7 @@ function print_prompt($text, $default_yes = FALSE)
  */
 function print_debug($text, $strip = FALSE)
 {
-  if (OBS_DEBUG > 0 || (defined('OBS_DEBUG_WUI') && !defined('OBS_DEBUG')))
+  if (defined('OBS_DEBUG') && OBS_DEBUG > 0)
   {
     print_message($text, 'debug', $strip);
   }
@@ -2287,7 +2556,7 @@ function get_device_id_by_app_id($app_id)
 // DOCME needs phpdoc block
 // TESTME needs unit testing
 // MOVEME html/includes/functions.inc.php BUT this used in includes/rewrites.inc.php
-function port_html_class($ifOperStatus, $ifAdminStatus, $encrypted)
+function port_html_class($ifOperStatus, $ifAdminStatus, $encrypted = FALSE)
 {
   $ifclass = "interface-upup";
   if      ($ifAdminStatus == "down")            { $ifclass = "gray"; }
@@ -2296,7 +2565,8 @@ function port_html_class($ifOperStatus, $ifAdminStatus, $encrypted)
     if      ($ifOperStatus == "down")           { $ifclass = "red"; }
     else if ($ifOperStatus == "lowerLayerDown") { $ifclass = "orange"; }
     else if ($ifOperStatus == "monitoring")     { $ifclass = "green"; }
-    else if ($encrypted === '1')                { $ifclass = "olive"; }
+    //else if ($encrypted === '1')                { $ifclass = "olive"; }
+    else if ($encrypted)                        { $ifclass = "olive"; }
     else if ($ifOperStatus == "up")             { $ifclass = ""; }
     else                                        { $ifclass = "purple"; }
   }
@@ -2415,7 +2685,7 @@ function generate_random_string($max = 16, $characters = NULL)
 
   for ($i = 0; $i < $max; $i++)
   {
-    $randstring .= $characters[mt_rand(0, $length)];
+    $randstring .= $characters[random_int(0, $length)]; // Require PHP 7.x or random_compat
   }
 
   return $randstring;
@@ -2599,6 +2869,9 @@ function get_device_mibs($device, $check_sysORID = TRUE, $mibs_order = NULL)
     $mibs_order = array_unique(array_merge($mibs_order, $mibs_order_default));
   }
 
+  // Do not cache MIBs if custom order used, unknown $device_id or in PHPUNIT
+  $use_cache = $device_id && !$mibs_order_custom && !defined('__PHPUNIT_PHAR__');
+
   // Cache main device MIBs list
   if (!isset($cache['devices']['mibs'][$device_id]))
   {
@@ -2628,10 +2901,12 @@ function get_device_mibs($device, $check_sysORID = TRUE, $mibs_order = NULL)
           $mibs = array_merge((array)$mibs, (array)$config['os'][$device['os']]['mibs']);
           break;
         case 'group':
-          $mibs = array_merge((array)$mibs, (array)$config['os_group'][$config['os'][$device['os']]['group']]['mibs']);
+          $os_group = $config['os'][$device['os']]['group'];
+          $mibs = array_merge((array)$mibs, (array)$config['os_group'][$os_group]['mibs']);
           break;
         case 'default':
-          $mibs = array_merge((array)$mibs, (array)$config['os']['default']['mibs']);
+          //var_dump($config['os_group']['default']['mibs']);
+          $mibs = array_merge((array)$mibs, (array)$config['os_group']['default']['mibs']);
           break;
       }
     }
@@ -2639,15 +2914,21 @@ function get_device_mibs($device, $check_sysORID = TRUE, $mibs_order = NULL)
 
     //$mibs = array_unique(array_merge((array)$mibs, (array)$config['os'][$device['os']]['mibs'],
     //                                 (array)$config['os_group'][$config['os'][$device['os']]['group']]['mibs'],
-    //                                 (array)$config['os']['default']['mibs']));
+    //                                 (array)$config['os_group']['default']['mibs']));
 
     // Remove blacklisted MIBs from array
     $mibs = array_diff($mibs, get_device_mibs_blacklist($device));
 
-    $cache['devices']['mibs'][$device_id] = $mibs;
+    if ($use_cache)
+    {
+      $cache['devices']['mibs'][$device_id] = $mibs;
+    }
   } else {
     $mibs = $cache['devices']['mibs'][$device_id];
   }
+  //print_error('$cache[\'devices\'][\'mibs\'][$device_id]');
+  //print_vars($cache['devices']['mibs'][$device_id]);
+  //print_vars($mibs);
 
   // Add and cache sysORID supplied MIBs if any
   if ($check_sysORID)
@@ -2658,19 +2939,24 @@ function get_device_mibs($device, $check_sysORID = TRUE, $mibs_order = NULL)
       if (is_array($sysORID))
       {
         // Leave only not exist in main MIBs and blacklist
-        $sysORID = array_diff($sysORID, get_device_mibs_blacklist($device), (array)$cache['devices']['mibs'][$device_id]);
+        $sysORID = array_diff($sysORID, get_device_mibs_blacklist($device), $mibs);
+        //print_vars($sysORID);
       } else {
         $sysORID = array(); // Leave empty
       }
-      $cache['devices']['mibs_sysORID'][$device_id] = $sysORID;
+      if ($use_cache)
+      {
+        $cache['devices']['mibs_sysORID'][$device_id] = $sysORID;
+      }
+    } else {
+      $sysORID = $cache['devices']['mibs_sysORID'][$device_id];
     }
     // Attach sysORID MIBs
-    $mibs = array_merge((array)$cache['devices']['mibs'][$device_id], (array)$cache['devices']['mibs_sysORID'][$device_id]);
+    $mibs = array_merge($mibs, (array)$sysORID);
   }
 
-  // Do not cache MIBs if custom order used
-  if ($mibs_order_custom) { unset($cache['devices']['mibs'][$device_id]); }
-
+  //print_error('$mibs');
+  //print_vars($mibs);
   return $mibs;
 }
 
@@ -2796,6 +3082,7 @@ function format_number($value, $base = '1000', $round = 2, $sf = 3)
 // TESTME needs unit testing
 function format_value($value, $format = '', $round = 2, $sf = 3)
 {
+
   switch (strtolower($format))
   {
     case 'si':
@@ -2869,19 +3156,25 @@ function is_valid_hostname($hostname)
 // TESTME needs unit testing
 function ipFromEtcHosts($host)
 {
+  $host = strtolower($host);
   try {
     foreach (new SplFileObject('/etc/hosts') as $line)
     {
       $d = preg_split('/\s/', $line, -1, PREG_SPLIT_NO_EMPTY);
       if (empty($d) || substr(reset($d), 0, 1) == '#') { continue; }
+      //print_vars($d);
       $ip = array_shift($d);
       $hosts = array_map('strtolower', $d);
-      if (in_array(strtolower($host), $hosts)) { return $ip; }
+      if (in_array($host, $hosts))
+      {
+        print_debug("Host '$host' found in hosts");
+        return $ip;
+      }
     }
   }
   catch (Exception $e)
   {
-    print_warning("Could not open the file /etc/hosts! This file should be world readable, also check if not enabled SELinux in enforcing mode.");
+    print_warning("Could not open the file /etc/hosts! This file should be world readable, also check that SELinux is not in enforcing mode.");
   }
 
   return FALSE;
@@ -2931,7 +3224,11 @@ function gethostbynamel6($host, $flags = OBS_DNS_ALL)
   $try_a = is_flag_set(OBS_DNS_A, $flags);
   if ($try_a === TRUE)
   {
-    if ($etc && strstr($etc, '.')) { $ip4[] = $etc; }
+    if ($etc)
+    {
+      if      (str_contains($etc, '.')) { $ip4[] = $etc; }
+      else if (str_contains($etc, ':')) { $ip6[] = $etc; }
+    }
     // Separate A and AAAA queries, see: https://www.mail-archive.com/observium@observium.org/msg09239.html
     $dns = dns_get_record($host, DNS_A);
     if (!is_array($dns)) { $dns = array(); }
@@ -2941,7 +3238,7 @@ function gethostbynamel6($host, $flags = OBS_DNS_ALL)
       $dns = array_merge($dns, $dns6);
     }
   } else {
-    if ($etc && strstr($etc, ':')) { $ip6[] = $etc; }
+    if ($etc && str_contains($etc, ':')) { $ip6[] = $etc; }
     $dns = dns_get_record($host, DNS_AAAA);
   }
 
@@ -3074,8 +3371,22 @@ function build_request_url($url, $params = array(), $method = 'GET')
   return $request;
 }
 
-// DOCME needs phpdoc block
-// TESTME needs unit testing
+/**
+ * Request an http(s) url.
+ * Note. If first runtime request exit with timeout,
+ *       than will be set constant OBS_HTTP_REQUEST as FALSE
+ *       and all other requests will skipped with FALSE response!
+ *
+ * @param string   $request Requested URL
+ * @param array    $context Set additional HTTP context options, see http://php.net/manual/en/context.http.php
+ * @param int|boolean $rate_limit Rate limit per day for specified domain (in url). If FALSE no limits
+ * @global array   $config
+ * @global array   $GLOBALS['response_headers'] Response headers with keys:
+ *                                              code (HTTP code status), status (HTTP status description) and all other
+ * @global boolean $GLOBALS['request_status'] TRUE if response code is 2xx or 3xx
+ *
+ * @return string|boolean Return response content or FALSE 
+ */
 function get_http_request($request, $context = array(), $rate_limit = FALSE)
 {
   global $config;
@@ -3085,13 +3396,13 @@ function get_http_request($request, $context = array(), $rate_limit = FALSE)
   {
     print_debug("HTTP requests skipped since previous request exit with timeout");
     $ok = FALSE;
-    $GLOBALS['response_headers'] = array('code' => '408', 'status' => 'Request Timeout');
+    $GLOBALS['response_headers'] = array('code' => 408, 'descr' => 'Request Timeout');
   }
   else if (!ini_get('allow_url_fopen'))
   {
     print_debug('HTTP requests disabled, since PHP config option "allow_url_fopen" set to off. Please enable this option in your PHP config.');
     $ok = FALSE;
-    $GLOBALS['response_headers'] = array('code' => '501', 'status' => 'Not Implemented');
+    $GLOBALS['response_headers'] = array('code' => 400, 'descr' => 'HTTP Method Disabled');
   }
   else if (preg_match('/^https/i', $request) && !check_extension_exists('openssl'))
   {
@@ -3099,7 +3410,7 @@ function get_http_request($request, $context = array(), $rate_limit = FALSE)
     print_debug(__FUNCTION__.'() wants to connect with https but https is not enabled on this server. Please check your PHP settings, the openssl extension must exist and be enabled.');
     logfile(__FUNCTION__.'() wants to connect with https but https is not enabled on this server. Please check your PHP settings, the openssl extension must exist and be enabled.');
     $ok = FALSE;
-    $GLOBALS['response_headers'] = array('code' => '501', 'status' => 'HTTPS Method Not Implemented');
+    $GLOBALS['response_headers'] = array('code' => 400, 'descr' => 'HTTPS Method Disabled');
   }
 
   if ($ok && $rate_limit && is_numeric($rate_limit) && $rate_limit >= 0)
@@ -3122,7 +3433,7 @@ function get_http_request($request, $context = array(), $rate_limit = FALSE)
       if ($rate_count > $rate_limit)
       {
         print_debug("HTTP requests skipped because the rate limit $rate_limit/day for domain '$domain' is exceeded (count: $rate_count)");
-        $GLOBALS['response_headers'] = array('code' => '429', 'status' => 'Too Many Requests');
+        $GLOBALS['response_headers'] = array('code' => 429, 'descr' => 'Too Many Requests');
         $ok = FALSE;
       }
       else if (OBS_DEBUG > 1)
@@ -3146,53 +3457,43 @@ function get_http_request($request, $context = array(), $rate_limit = FALSE)
     if (OBS_DEBUG > 0)
     {
       print_message($debug_msg . PHP_EOL .
-                    'REQUEST STATUS[' . $GLOBALS['response_headers']['code'] . ' ' . $GLOBALS['response_headers']['status'] . ']', 'console');
+                    'REQUEST STATUS[%rFALSE%n]' . PHP_EOL .
+                    'RESPONSE CODE[' . $GLOBALS['response_headers']['code'] . ' ' . $GLOBALS['response_headers']['descr'] . ']', 'console');
     }
+
+    // Set GLOBAL var $request_status for use as validate status of last responce
+    $GLOBALS['request_status'] = FALSE;
     return FALSE;
   }
 
   $response = '';
 
-  if (!is_array($context)) { $context = array(); } // Fix context if not array passed
-  $opts = array('http' => $context);
-  $opts['http']['timeout'] = '15';
+  // Add common http context
+  $opts = array('http' => set_http_context_defaults($context));
 
-  // User agent (required for some type of queries, ie geocoding)
-  if (!isset($opts['http']['header'])) { $opts['http']['header'] = ''; } // Avoid 'undefined index' when concatting below
-  $opts['http']['header'] .= 'User-Agent: ' . OBSERVIUM_PRODUCT . '/' . OBSERVIUM_VERSION . '\r\n';
-
-  if (isset($config['http_proxy']) && $config['http_proxy'])
-  {
-    $opts['http']['proxy'] = 'tcp://' . $config['http_proxy'];
-    $opts['http']['request_fulluri'] = TRUE;
-  }
-
-  // Basic proxy auth
-  if (isset($config['proxy_user']) && $config['proxy_user'] && isset($config['proxy_password']))
-  {
-    $auth = base64_encode($config['proxy_user'].':'.$config['proxy_password']);
-    $opts['http']['header'] .= 'Proxy-Authorization: Basic ' . $auth . '\r\n';
-  }
-
+  // Process http request and calculate runtime
   $start = utime();
   $context = stream_context_create($opts);
   $response = file_get_contents($request, FALSE, $context);
   $runtime = utime() - $start;
 
   // Parse response headers
+  // Note: $http_response_header - see: http://php.net/manual/en/reserved.variables.httpresponseheader.php
   $head = array();
   foreach ($http_response_header as $k => $v)
   {
     $t = explode(':', $v, 2);
     if (isset($t[1]))
     {
+      // Date: Sat, 12 Apr 2008 17:30:38 GMT
       $head[trim($t[0])] = trim($t[1]);
     } else {
+      // HTTP/1.1 200 OK
       if (preg_match("!HTTP/([\d\.]+)\s+(\d+)(.*)!", $v, $matches))
       {
         $head['http']   = $matches[1];
         $head['code']   = intval($matches[2]);
-        $head['status'] = trim($matches[3]);
+        $head['descr']  = trim($matches[3]);
       } else {
         $head[] = $v;
       }
@@ -3200,30 +3501,37 @@ function get_http_request($request, $context = array(), $rate_limit = FALSE)
   }
   $GLOBALS['response_headers'] = $head;
 
-  if (OBS_DEBUG > 0)
+  // Set GLOBAL var $request_status for use as validate status of last responce
+  if (isset($head['code']) && ($head['code'] < 200 || $head['code'] >= 400))
   {
-    if (OBS_DEBUG < 2 && strpos($request, 'update.observium.org')) { $request = preg_replace('/&stats=.+/', '&stats=***', $request); }
-    print_message($debug_msg . PHP_EOL .
-                  'REQUEST STATUS[' . $head['code'] . ' ' . $head['status'] . ']' . PHP_EOL .
-                  'REQUEST RUNTIME['.($runtime > 3 ? '%r' : '%g').round($runtime, 4).'s%n]', 'console');
-    if (OBS_DEBUG > 1)
-    {
-      print_message("RESPONSE[\n".$response."\n]", 'console', FALSE);
-      print_vars($http_response_header);
-      print_vars($opts);
-    }
+    $GLOBALS['request_status'] = FALSE;
+  }
+  else if ($response === FALSE)
+  {
+    // An error in get response
+    $GLOBALS['response_headers'] = array('code' => 408, 'descr' => 'Request Timeout');
+    $GLOBALS['request_status'] = FALSE;
+  } else {
+    // Valid statuses: 2xx Success, 3xx Redirection or head code not set (ie response not correctly parsed)
+    $GLOBALS['request_status'] = TRUE;
   }
 
-  // Set OBS_HTTP_REQUEST for skip all other requests
+  // Set OBS_HTTP_REQUEST for skip all other requests (FALSE for skip all other requests)
   if (!defined('OBS_HTTP_REQUEST'))
   {
     if ($response === FALSE && empty($http_response_header))
     {
-      $GLOBALS['response_headers'] = array('code' => '408', 'status' => 'Request Timeout');
-      // Timeout error, only if not received responce headers
-      define('OBS_HTTP_REQUEST', FALSE);
-      print_debug(__FUNCTION__.'() exit with timeout. Access to outside localnet is blocked by firewall or network problems. Check proxy settings.');
-      logfile(__FUNCTION__.'() exit with timeout. Access to outside localnet is blocked by firewall or network problems. Check proxy settings.');
+      $GLOBALS['response_headers'] = array('code' => 408, 'descr' => 'Request Timeout');
+      $GLOBALS['request_status'] = FALSE;
+
+      // Validate host from url and check if it timeout request
+      if (gethostbyname6(parse_url($url, PHP_URL_HOST)))
+      {
+        // Timeout error, only if not received response headers
+        define('OBS_HTTP_REQUEST', FALSE);
+        print_debug(__FUNCTION__.'() exit with timeout. Access to outside localnet is blocked by firewall or network problems. Check proxy settings.');
+        logfile(__FUNCTION__.'() exit with timeout. Access to outside localnet is blocked by firewall or network problems. Check proxy settings.');
+      }
     } else {
       define('OBS_HTTP_REQUEST', TRUE);
     }
@@ -3234,7 +3542,83 @@ function get_http_request($request, $context = array(), $rate_limit = FALSE)
   //  if (function_exists('runkit_constant_redefine')) { runkit_constant_redefine('OBS_HTTP_REQUEST', FALSE); }
   //}
 
+  if (OBS_DEBUG > 0)
+  {
+    // Hide extended stats in normal debug level = 1
+    if (OBS_DEBUG < 2 && strpos($request, 'update.observium.org')) { $request = preg_replace('/&stats=.+/', '&stats=***', $request); }
+    // Show debug info
+    print_message($debug_msg . PHP_EOL .
+                  'REQUEST STATUS[' . ($GLOBALS['request_status'] ? '%gTRUE' : '%rFALSE') . '%n]' . PHP_EOL .
+                  'REQUEST RUNTIME['.($runtime > 3 ? '%r' : '%g').round($runtime, 4).'s%n]' . PHP_EOL .
+                  'RESPONSE CODE[' . $GLOBALS['response_headers']['code'] . ' ' . $GLOBALS['response_headers']['descr'] . ']', 'console');
+    if (OBS_DEBUG > 1)
+    {
+      print_message("RESPONSE[\n".$response."\n]", 'console', FALSE);
+      print_vars($http_response_header);
+      print_vars($opts);
+    }
+  }
+
   return $response;
+}
+
+/**
+ * Return HTTP return code for last request by get_http_request()
+ *
+ * @return integer HTTP code
+ */
+function get_http_last_code()
+{
+  return $GLOBALS['response_headers']['code'];
+}
+
+/**
+ * Return HTTP return code for last request by get_http_request()
+ *
+ * @return boolean HTTP status TRUE if response code 2xx or 3xx
+ */
+function get_http_last_status()
+{
+  return $GLOBALS['request_status'];
+}
+
+/**
+ * Generate HTTP specific context with some defaults for proxy, timeout, user-agent.
+ * Used in get_http_request().
+ *
+ * @param array $context HTTP specified context, see http://php.net/manual/ru/function.stream-context-create.php
+ * @return array HTTP context array
+ */
+function set_http_context_defaults($context = array())
+{
+  global $config;
+
+  if (!is_array($context)) { $context = array(); } // Fix context if not array passed
+
+  // Defaults
+  $context['timeout'] = '15';
+
+  // User agent (required for some type of queries, ie geocoding)
+  if (!isset($context['header']))
+  {
+    $context['header'] = ''; // Avoid 'undefined index' when concatting below
+  }
+  $context['header'] .= 'User-Agent: ' . OBSERVIUM_PRODUCT . '/' . OBSERVIUM_VERSION . "\r\n";
+
+  if (isset($config['http_proxy']) && $config['http_proxy'])
+  {
+    $context['proxy'] = 'tcp://' . $config['http_proxy'];
+    $context['request_fulluri'] = TRUE;
+  }
+
+  // Basic proxy auth
+  if (isset($config['proxy_user']) && $config['proxy_user'] && isset($config['proxy_password']))
+  {
+    $auth = base64_encode($config['proxy_user'].':'.$config['proxy_password']);
+    $context['header'] .= 'Proxy-Authorization: Basic ' . $auth . "\r\n";
+  }
+
+  return $context;
 }
 
 /**
@@ -3401,6 +3785,10 @@ function var_encode($var, $method = 'json')
       $string = base64_encode(serialize($var));
       break;
     default:
+      //$tmp = json_encode($var, OBS_JSON_ENCODE);
+      //echo PHP_EOL . 'precision = ' . ini_get('precision') . "\n";
+      //echo 'serialize_precision = ' . ini_get('serialize_precision');
+      //echo("\n---\n"); var_dump($var); echo("\n---\n"); var_dump($tmp);
       $string = base64_encode(json_encode($var, OBS_JSON_ENCODE));
       break;
   }
@@ -3422,6 +3810,11 @@ function var_encode($var, $method = 'json')
  */
 function var_decode($string, $method = 'json')
 {
+  if ((strlen($string) % 4) > 0)
+  {
+    // BASE64 length must be multiple by 4
+    return $string;
+  }
   $value = base64_decode($string, TRUE);
   if ($value === FALSE)
   {
@@ -3443,11 +3836,26 @@ function var_decode($string, $method = 'json')
       break;
     default:
       if ($string === 'bnVsbA==') { return NULL; };
-      $decoded = @json_decode($value, TRUE, 512, OBS_JSON_DECODE);
-      if ($decoded !== NULL)
+      if (OBS_JSON_DECODE > 0)
       {
-        // JSON encoded string detected
-        return $decoded;
+        $decoded = @json_decode($value, TRUE, 512, OBS_JSON_DECODE);
+      } else {
+        // Prevent to broke on old php (5.3), where supported only 3 params
+        $decoded = @json_decode($value, TRUE, 512);
+      }
+      switch (json_last_error())
+      {
+        case JSON_ERROR_STATE_MISMATCH:
+        case JSON_ERROR_SYNTAX:
+          // Critical json errors, return original string
+          break;
+        case JSON_ERROR_NONE:
+        default:
+          if ($decoded !== NULL)
+          {
+            // JSON encoded string detected
+            return $decoded;
+          }
       }
       break;
   }
@@ -3654,6 +4062,39 @@ function c2f($celsius)
 {
   if (is_numeric($celsius)) { return $celsius * (9/5) + 32; }
   else                      { return $celsius; }
+}
+
+/**
+ * Replace all newlines in string to space char (except string begin and end)
+ *
+ * @param string $string Input string
+ * @return string Output string without NL characters
+ */
+function nl2space($string)
+{
+  if (!is_string($string) || $string == '')
+  {
+    return $string;
+  }
+
+  $string = trim($string, "\n\r");
+  return preg_replace('/ ?(\r\n|\r|\n) ?/', ' ', $string);
+}
+
+/**
+ * This noob function replace windows/mac newline character to unix newline
+ *
+ * @param string $string Input string
+ * @return string Clean output string
+ */
+function nl2nl($string)
+{
+  if (!is_string($string) || $string == '')
+  {
+    return $string;
+  }
+
+  return preg_replace('/\r\n|\r/', PHP_EOL, $string);
 }
 
 /**

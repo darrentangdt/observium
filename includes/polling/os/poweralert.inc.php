@@ -14,14 +14,12 @@
 // .1.3.6.1.2.1.33.1.1.2.0 = STRING: "TRIPP LITE PDUMH20HVATNET"
 // .1.3.6.1.2.1.33.1.1.4.0 = STRING: "12.04.0052"
 // .1.3.6.1.2.1.33.1.1.5.0 = STRING: "sysname.company.com"
-// .1.3.6.1.4.1.850.100.1.1.4.0 = STRING: "9942AY0AC796000912"
 // .1.3.6.1.4.1.850.10.2.2.1.12.1 = STRING: "This Is My Location"
 
-$data = snmpget_cache_multi($device, 'upsIdentModel.0 upsIdentAgentSoftwareVersion.0', array(), 'UPS-MIB');
+$data = snmp_get_multi_oid($device, 'upsIdentModel.0', array(), 'UPS-MIB');
 if (is_array($data[0]))
 {
   $hardware = trim(str_replace('TRIPP LITE', '', $data[0]['upsIdentModel']));
-  $version  = $data[0]['upsIdentAgentSoftwareVersion'];
 } else {
   //$hardware = $poll_device['sysDescr'];
   $hw = snmp_get($device, '.1.3.6.1.4.1.850.10.2.2.1.9.1', '-Ovq', 'TRIPPLITE-12X');
@@ -31,6 +29,5 @@ if (is_array($data[0]))
   }
   $version  = snmp_get($device, '.1.3.6.1.4.1.850.10.1.2.3.0', '-Ovq', 'TRIPPLITE-12X');
 }
-$serial      = snmp_get($device, 'tlUpsSnmpCardSerialNum.0', '-Ovq', 'TRIPPLITE-12X');
 
 // EOF

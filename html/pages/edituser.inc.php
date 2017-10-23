@@ -7,7 +7,7 @@
  * @package    observium
  * @subpackage webui
  * @author     Adam Armstrong <adama@observium.org>
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -36,11 +36,20 @@ register_html_resource('js', 'observium-entities.js');
 
 <?php
 
-  $user_list_sort = array_sort_by(auth_user_list(), 'level', SORT_DESC, SORT_NUMERIC, 'username', SORT_ASC, SORT_STRING);
+  $user_list_sort = auth_user_list();
+  $user_list_sort = array_sort_by($user_list_sort, 'level', SORT_DESC, SORT_NUMERIC, 'username', SORT_ASC, SORT_STRING);
   $user_list = array();
   foreach ($user_list_sort as $entry)
   {
     humanize_user($entry);
+    /*
+    if (isset($user_list[$entry['user_id']]))
+    {
+      r($user_list[$entry['user_id']]);
+      r($entry);
+      break;
+    }
+    */
     $user_list[$entry['user_id']]            = $entry;
     $user_list[$entry['user_id']]['name']    = escape_html($entry['username']);
     if ($entry['row_class'])
@@ -54,16 +63,21 @@ register_html_resource('js', 'observium-entities.js');
   unset($user_list_sort);
 
   echo('<li>');
-  $item = array('id'       => 'page',
-                'value'    => 'edituser');
-  echo(generate_form_element($item, 'hidden'));
-  $item = array('id'       => 'user_id',
-                'title'    => 'Select User',
-                'width'    => '150px',
-                'onchange' => "location.href='edituser/user_id=' + this.options[this.selectedIndex].value + '/';",
-                'values'   => $user_list,
-                'value'    => $vars['user_id']);
-  echo(generate_form_element($item, 'select'));
+  // FIXME, currently users list more than 1000 have troubles with memory use
+  // Do not generate this unusable dropdown form, need to switch ajax input
+  if (count($user_list) <= 512)
+  {
+    $item = array('id'       => 'page',
+                  'value'    => 'edituser');
+    echo(generate_form_element($item, 'hidden'));
+    $item = array('id'       => 'user_id',
+                  'title'    => 'Select User',
+                  'width'    => '150px',
+                  'onchange' => "location.href='edituser/user_id=' + this.options[this.selectedIndex].value + '/';",
+                  'values'   => $user_list,
+                  'value'    => $vars['user_id']);
+    echo(generate_form_element($item, 'select'));
+  }
   echo('
       </li>
     </ul>');
@@ -89,7 +103,10 @@ register_html_resource('js', 'observium-entities.js');
     if (auth_usermanagement() && $vars['user_id'] !== $_SESSION['user_id'])
     {
       echo('<ul class="nav pull-right">');
-      echo('<li><a href="'.generate_url(array('page' => 'edituser', 'action' => 'deleteuser', 'user_id' => $vars['user_id'])).'"><i class="oicon-cross-button"></i> Delete User</a></li>');
+      echo('<li><a href="'.generate_url(array('page' => 'edituser',
+                                              'action' => 'deleteuser',
+                                              'user_id' => $vars['user_id'],
+                                              'requesttoken' => $_SESSION['requesttoken'])) . '"><i class="'.$config['icon']['cancel'].'"></i> Delete User</a></li>');
       echo('</ul>');
     }
   }
@@ -105,18 +122,18 @@ register_html_resource('js', 'observium-entities.js');
   if ($vars['user_id'])
   {
     // Check if correct auth secret passed
-    $auth_secret_fail = empty($_SESSION['auth_secret']) || empty($vars['auth_secret']) || $_SESSION['auth_secret'] != $vars['auth_secret'];
+    $auth_secret_fail = empty($_SESSION['auth_secret']) || empty($vars['auth_secret']) || !hash_equals($_SESSION['auth_secret'], $vars['auth_secret']);
     //print_vars($auth_secret_fail);
     //$auth_secret_fail = TRUE;
 
-    if ($vars['action'] == "deleteuser")
+    if ($vars['action'] == "deleteuser" && request_token_valid($vars))
     {
       include($config['html_dir']."/pages/edituser/deleteuser.inc.php");
     } else {
 
-    // Perform actions if requested
+      // Perform actions if requested
 
-    if (auth_usermanagement()) // Admins always can change user info & password
+    if (auth_usermanagement() && isset($vars['action']) && request_token_valid($vars)) // Admins always can change user info & password
     {
       switch($vars['action'])
       {
@@ -195,7 +212,7 @@ register_html_resource('js', 'observium-entities.js');
     */
 
     // FIXME -- output messages!
-    if ($vars['submit'] == "user_perm_del" || $vars['action'] == "user_perm_del")
+    if (($vars['submit'] == "user_perm_del" || $vars['action'] == "user_perm_del") && request_token_valid($vars))
     {
       if ($auth_secret_fail)
       {
@@ -215,7 +232,7 @@ register_html_resource('js', 'observium-entities.js');
         }
       }
     }
-    else if ($vars['submit'] == "user_perm_add" || $vars['action'] == "user_perm_add")
+    else if (($vars['submit'] == "user_perm_add" || $vars['action'] == "user_perm_add") && request_token_valid($vars))
     {
       if ($auth_secret_fail)
       {
@@ -243,7 +260,7 @@ register_html_resource('js', 'observium-entities.js');
     }
 
     // Generate new auth secret
-    $_SESSION['auth_secret'] = md5(strgen());
+    session_set_var('auth_secret', md5(strgen()));
 
 ?>
   <div class="row"> <!-- main row begin -->
@@ -287,122 +304,100 @@ register_html_resource('js', 'observium-entities.js');
           </table>
 
           <div class="form-actions" style="margin: 0;">
-<?php       if (auth_usermanagement()) { ?>
-            <button class="btn btn-default pull-right" data-toggle="modal" data-target="#edituser_modal"><i class="oicon-user--pencil"></i>&nbsp;Edit&nbsp;User</button>
-<?php       } ?>
+<?php
+        if (auth_usermanagement())
+        {
+          echo '<button class="btn btn-default pull-right" data-toggle="modal" data-target="#modal-edituser"><i class="'.$config['icon']['user-edit'].'"></i>&nbsp;Edit&nbsp;User</button>';
+        }
+?>
           </div>
         </div>
       </div>
 
       </div> <!-- userinfo end -->
 
-<?php       if (auth_usermanagement()) { // begin user edit modal ?>
-<div id="edituser_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
- <form id="edituser" name="edituser" method="post" class="form" action="">
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-    <h3 id="myModalLabel"><i class="oicon-sql-join-inner"></i> Edit User: <strong><?php echo(escape_html($user_data['username'])); ?></strong></h3>
-  </div>
-  <div class="modal-body" style="overflow-y: visible"> <!-- reset overflow-y for correct display select elements -->
-
-  <fieldset>
 <?php
-    $item = array('id'    => 'action',
-                  'type'  => 'hidden',
-                  'value' => 'change_user');
-    echo(generate_form_element($item));
-    $item = array('id'    => 'user_id',
-                  'type'  => 'hidden',
-                  'value' => $user_data['user_id']);
-    echo(generate_form_element($item));
-    $item = array('id'    => 'auth_secret',
-                  'type'  => 'hidden',
-                  'value' => $_SESSION['auth_secret']);
-    echo(generate_form_element($item));
-?>
+    if (auth_usermanagement())
+    { // begin user edit modal
 
-    <div class="control-group">
-      <label>Real Name</label>
-      <div class="controls">
-<?php
-    $item = array('id'          => 'new_realname',
-                  'type'        => 'text',
-                  'name'        => 'Real Name',
-                  'width'       => '95%',
-                  'placeholder' => TRUE,
-                  'value'       => escape_html($user_data['realname']));
-    echo(generate_form_element($item));
-?>
-      </div>
-    </div>
+      $form = array('type'       => 'horizontal',
+                    //'userlevel'  => 10,          // Minimum user level for display form
+                    'id'         => 'edituser',
+                    'title'      => 'Edit User: <strong>"'   . escape_html($user_data['realname']) . '" ('. escape_html($user_data['username']) . '</strong>)',
+                    //'modal_args' => $modal_args, // modal specific options
+                    //'help'      => 'This will delete the selected contact and any alert assocations.',
+                    //'class'     => '', // Clean default box class (default for modals)
+                    //'url'       => 'delhost/'
+                    );
+      //$form['fieldset']['body']   = array('class' => 'modal-body');   // Required this class for modal body!
+      //$form['fieldset']['footer'] = array('class' => 'modal-footer'); // Required this class for modal footer!
 
-    <div class="control-group">
-      <label>User Level</label>
-      <div class="controls">
-<?php
-    $item = array('id'          => 'new_level',
-                  'type'        => 'select',
-                  'name'        => 'User Level',
-                  'width'       => '95%',
-                  'subtext'     => TRUE,
-                  'values'      => $GLOBALS['config']['user_level'],
-                  'value'       => $user_data['level_real']);
-    echo(generate_form_element($item));
-?>
-      </div>
-    </div>
+      $form['row'][0]['user_id'] = array(
+                                        'type'        => 'hidden',
+                                        'fieldset'    => 'body',
+                                        'value'       => $user_data['user_id']);
+      $form['row'][0]['auth_secret'] = array(
+                                        'type'        => 'hidden',
+                                        'fieldset'    => 'body',
+                                        'value'       => $_SESSION['auth_secret']);
 
-    <div class="control-group">
-      <label>E-mail</label>
-      <div class="controls">
-<?php
-    $item = array('id'          => 'new_email',
-                  'type'        => 'text',
-                  'name'        => 'E-mail',
-                  'width'       => '95%',
-                  'placeholder' => TRUE,
-                  'value'       => escape_html($user_data['email']));
-    echo(generate_form_element($item));
-?>
-      </div>
-    </div>
+      $form['row'][1]['new_realname'] = array(
+                                        'type'        => 'text',
+                                        'fieldset'    => 'body',
+                                        'name'        => 'Real Name',
+                                        'width'       => '80%',
+                                        'placeholder' => TRUE,
+                                        'value'       => escape_html($user_data['realname']));
+      $form['row'][2]['new_level'] = array(
+                                        'type'        => 'select',
+                                        'fieldset'    => 'body',
+                                        'name'        => 'User Level',
+                                        'width'       => '80%',
+                                        'subtext'     => TRUE,
+                                        'values'      => $GLOBALS['config']['user_level'],
+                                        'value'       => $user_data['level_real']);
+      $form['row'][3]['new_email'] = array(
+                                        'type'        => 'text',
+                                        'fieldset'    => 'body',
+                                        'name'        => 'E-mail',
+                                        'width'       => '80%',
+                                        'placeholder' => TRUE,
+                                        'value'       => escape_html($user_data['email']));
+      $form['row'][4]['new_descr'] = array(
+                                        'type'        => 'text',
+                                        'fieldset'    => 'body',
+                                        'name'        => 'Description',
+                                        'width'       => '80%',
+                                        'placeholder' => TRUE,
+                                        'value'       => escape_html($user_data['descr']));
+      $form['row'][5]['new_can_modify_passwd'] = array(
+                                        'type'        => 'checkbox',
+                                        'fieldset'    => 'body',
+                                        'placeholder' => 'Allow the user to change his password',
+                                        'value'       => $user_data['can_modify_passwd']);
 
-    <div class="control-group">
-      <label>Description</label>
-      <div class="controls">
-<?php
-    $item = array('id'          => 'new_descr',
-                  'type'        => 'text',
-                  'name'        => 'Description',
-                  'width'       => '95%',
-                  'placeholder' => TRUE,
-                  'value'       => escape_html($user_data['descr']));
-    echo(generate_form_element($item));
-?>
-      </div>
-    </div>
+      $form['row'][8]['close'] = array(
+                                      'type'        => 'submit',
+                                      'fieldset'    => 'footer',
+                                      'div_class'   => '', // Clean default form-action class!
+                                      'name'        => 'Close',
+                                      'icon'        => '',
+                                      'attribs'     => array('data-dismiss' => 'modal',  // dismiss modal
+                                                             'aria-hidden'  => 'true')); // do not sent any value
+      $form['row'][9]['action'] = array(
+                                      'type'        => 'submit',
+                                      'fieldset'    => 'footer',
+                                      'div_class'   => '', // Clean default form-action class!
+                                      'name'        => 'Save Changes',
+                                      'icon'        => 'icon-ok icon-white',
+                                      //'right'       => TRUE,
+                                      'class'       => 'btn-primary',
+                                      //'disabled'    => TRUE,
+                                      'value'       => 'change_user');
 
-    <div class="control-group">
-      <div class="controls">
-<?php
-    $item = array('id'          => 'new_can_modify_passwd',
-                  'type'        => 'checkbox',
-                  'placeholder' => 'Allow the user to change his password',
-                  'value'       => $user_data['can_modify_passwd']);
-    echo(generate_form_element($item));
-?>
-      </div>
-    </div>
-  </fieldset>
+      echo generate_form_modal($form);
+      unset($form);
 
-  </div>
-  <div class="modal-footer">
-    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-    <button type="submit" class="btn btn-primary" name="submit" value="change_user"><i class="icon-ok icon-white"></i> Save Changes</button>
-  </div>
- </form>
-</div>
-<?php
     } // end edit user modal
 
     if (auth_usermanagement())
@@ -410,7 +405,7 @@ register_html_resource('js', 'observium-entities.js');
       $form = array('type'    => 'horizontal',
                     //'space'   => '10px',
                     'title'   => 'Change Password',
-                    'icon'    => 'oicon-key',
+                    'icon'    => $config['icon']['lock'],
                     //'class'   => 'box box-solid',
                     'fieldset' => array('change_password' => ''));
                     //'fieldset'  => array('change_password' => 'Change Password'));
@@ -435,7 +430,7 @@ register_html_resource('js', 'observium-entities.js');
       $form['row'][10]['submit']    = array(
                                       'type'        => 'submit',
                                       'name'        => 'Update&nbsp;Password',
-                                      'icon'        => 'oicon-lock-warning',
+                                      'icon'        => $config['icon']['lock'],
                                       'right'       => TRUE,
                                       'value'       => 'save');
       echo('  <div class="col-md-6">' . PHP_EOL);
@@ -525,7 +520,7 @@ register_html_resource('js', 'observium-entities.js');
     $permissions_list = array_keys($user_permissions['bill']);
 
     $form = array('type'  => 'simple',
-                  'style' => 'padding: 5px; margin: 0px;',
+                  'style' => 'padding: 7px; margin: 0px;',
                   //'submit_by_key' => TRUE,
                   //'url'   => generate_url($vars)
                   );
@@ -558,7 +553,7 @@ register_html_resource('js', 'observium-entities.js');
     // add button
     $form['row'][0]['Submit']      = array('type'     => 'submit',
                                            'name'     => 'Add',
-                                           'icon'     => 'oicon-plus-circle',
+                                           'icon'     => $config['icon']['plus'],
                                            'right'    => TRUE,
                                            'value'    => 'Add');
     print_form($form); unset($form);
@@ -618,7 +613,7 @@ register_html_resource('js', 'observium-entities.js');
     $permissions_list = array_keys($user_permissions['group']);
 
     $form = array('type'  => 'simple',
-                  'style' => 'padding: 5px; margin: 0px;',
+                  'style' => 'padding: 7px; margin: 0px;',
                   //'submit_by_key' => TRUE,
                   //'url'   => generate_url($vars)
                   );
@@ -651,7 +646,7 @@ register_html_resource('js', 'observium-entities.js');
     // add button
     $form['row'][0]['Submit']      = array('type'     => 'submit',
                                            'name'     => 'Add',
-                                           'icon'     => 'oicon-plus-circle',
+                                           'icon'     => $config['icon']['plus'],
                                            'right'    => TRUE,
                                            'value'    => 'Add');
     print_form($form); unset($form);
@@ -709,7 +704,7 @@ register_html_resource('js', 'observium-entities.js');
   $permissions_list = array_keys($user_permissions['device']);
   // Display devices this user doesn't have Permissions to
   $form = array('type'  => 'simple',
-                'style' => 'padding: 5px; margin: 0px;',
+                'style' => 'padding: 7px; margin: 0px;',
                 //'submit_by_key' => TRUE,
                 //'url'   => generate_url($vars)
                 );
@@ -744,7 +739,7 @@ register_html_resource('js', 'observium-entities.js');
   // add button
   $form['row'][0]['Submit']      = array('type'     => 'submit',
                                          'name'     => 'Add',
-                                         'icon'     => 'oicon-plus-circle',
+                                         'icon'     => $config['icon']['plus'],
                                          'right'    => TRUE,
                                          'value'    => 'Add');
   print_form($form); unset($form);
@@ -782,7 +777,7 @@ register_html_resource('js', 'observium-entities.js');
       $form['row'][0]['entity_type'] = array('type'     => 'hidden',
                                              'value'    => 'port');
       $form['row'][0]['submit']      = array('type'     => 'submit',
-                                             'name'     => ' ',
+                                             'name'     => '',
                                              'class'    => 'btn-danger btn-mini',
                                              'icon'     => 'icon-trash',
                                              'value'    => 'user_perm_del');
@@ -803,7 +798,7 @@ register_html_resource('js', 'observium-entities.js');
 
   // Display devices this user doesn't have Permissions to
   $form = array('type'  => 'simple',
-                'style' => 'padding: 5px; margin: 0px;',
+                'style' => 'padding: 7px; margin: 0px;',
                 //'submit_by_key' => TRUE,
                 //'url'   => generate_url($vars)
                 );
@@ -840,7 +835,7 @@ register_html_resource('js', 'observium-entities.js');
   // add button
   $form['row'][0]['Submit']      = array('type'     => 'submit',
                                          'name'     => 'Add',
-                                         'icon'     => 'oicon-plus-circle',
+                                         'icon'     => $config['icon']['plus'],
                                          'right'    => TRUE,
                                          'value'    => 'Add');
   print_form($form); unset($form);
@@ -897,7 +892,7 @@ register_html_resource('js', 'observium-entities.js');
     $permissions_list = array_keys($user_permissions['sensor']);
     // Display devices this user doesn't have Permissions to
     $form = array('type'  => 'simple',
-                  'style' => 'padding: 5px; margin: 0px;',
+                  'style' => 'padding: 7px; margin: 0px;',
                   //'submit_by_key' => TRUE,
                   //'url'   => generate_url($vars)
                   );
@@ -935,7 +930,7 @@ register_html_resource('js', 'observium-entities.js');
     // add button
     $form['row'][0]['Submit']      = array('type'     => 'submit',
                                            'name'     => 'Add',
-                                           'icon'     => 'oicon-plus-circle',
+                                           'icon'     => $config['icon']['plus'],
                                            'right'    => TRUE,
                                            'value'    => 'Add');
     print_form($form); unset($form);

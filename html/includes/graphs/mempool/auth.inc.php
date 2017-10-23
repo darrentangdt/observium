@@ -19,7 +19,7 @@ if (is_numeric($vars['id']))
   {
     $device = device_by_id_cache($mempool['device_id']);
     if (isset($mempool['mempool_type'])) { $mempool['mempool_mib'] = $mempool['mempool_type']; }
-    $rrd_filename = get_rrd_path($device, "mempool-".$mempool['mempool_mib']."-".$mempool['mempool_index'].".rrd");
+    $rrd_filename = get_rrd_path($device, "mempool-".strtolower($mempool['mempool_mib'])."-".$mempool['mempool_index'].".rrd");
     $title  = generate_device_link($device);
     $title .= " :: Memory Pool :: " . escape_html($mempool['mempool_descr']);
     $auth = TRUE;

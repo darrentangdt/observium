@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- SW management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -103,6 +103,7 @@ IMPORTS
     CucsNetworkVnetEpIfType,
     CucsNwctrlAdminState,
     CucsNwctrlLinkFailAction,
+    CucsPortEthAdminSpeed,
     CucsPortEthSpeed,
     CucsPortSpeed,
     CucsSwAccessDomainFsmCurrentFsm,
@@ -112,9 +113,11 @@ IMPORTS
     CucsSwAccessDomainType,
     CucsSwAccessEpLocale,
     CucsSwAccessEpTransport,
+    CucsSwAutoNegMode,
     CucsSwBorderDomainLocale,
     CucsSwBorderEpLocale,
     CucsSwBorderPcLocale,
+    CucsSwBreakoutType,
     CucsSwCIoEpIfType,
     CucsSwCardEnvStatsHistThresholded,
     CucsSwCardEnvStatsThresholded,
@@ -157,6 +160,9 @@ IMPORTS
     CucsSwEthMonType,
     CucsSwEthTargetEpAdminState,
     CucsSwEthTargetEpTransport,
+    CucsSwExtUtilityFsmCurrentFsm,
+    CucsSwExtUtilityFsmStageName,
+    CucsSwExtUtilityFsmTaskItem,
     CucsSwFabricZoneNsAllocStatus,
     CucsSwFcEstcEpTransport,
     CucsSwFcMonDestEpTransport,
@@ -205,12 +211,16 @@ IMPORTS
     CucsSwPhysFsmCurrentFsm,
     CucsSwPhysFsmStageName,
     CucsSwPhysFsmTaskItem,
+    CucsSwPortBreakoutPortId,
+    CucsSwPortBreakoutSlotId,
     CucsSwSanBorderType,
     CucsSwSanEpIfRole,
     CucsSwSanEpType,
     CucsSwSanMonType,
     CucsSwSanPcIfRole,
     CucsSwSanPcType,
+    CucsSwSubGroupAggrPortId,
+    CucsSwSubGroupSlotId,
     CucsSwSystemStatsHistThresholded,
     CucsSwSystemStatsThresholded,
     CucsSwTargetEpType,
@@ -228,7 +238,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsSwObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -776,7 +786,10 @@ CucsSwAccessEpEntry ::= SEQUENCE {
     cucsSwAccessEpEncap                                              Gauge32,
     cucsSwAccessEpNsSize                                             Gauge32,
     cucsSwAccessEpPeerChassisId                                      Gauge32,
-    cucsSwAccessEpLc                                                 CucsSwPIoEpLc
+    cucsSwAccessEpLc                                                 CucsSwPIoEpLc,
+    cucsSwAccessEpAggrPortId                                         Gauge32,
+    cucsSwAccessEpPeerAggrPortId                                     Gauge32,
+    cucsSwAccessEpAutoNegotiate                                      CucsSwAutoNegMode
 }
 
 cucsSwAccessEpInstanceId OBJECT-TYPE
@@ -954,6 +967,30 @@ cucsSwAccessEpLc OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS sw:AccessEp:lc managed object property"
     ::= { cucsSwAccessEpEntry 22 }
+
+cucsSwAccessEpAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:AccessEp:aggrPortId managed object property"
+    ::= { cucsSwAccessEpEntry 23 }
+
+cucsSwAccessEpPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:AccessEp:peerAggrPortId managed object property"
+    ::= { cucsSwAccessEpEntry 24 }
+
+cucsSwAccessEpAutoNegotiate OBJECT-TYPE
+    SYNTAX       CucsSwAutoNegMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:AccessEp:autoNegotiate managed object property"
+    ::= { cucsSwAccessEpEntry 25 }
 
 cucsSwCardEnvStatsTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwCardEnvStatsEntry
@@ -1563,7 +1600,19 @@ CucsSwEnvStatsEntry ::= SEQUENCE {
     cucsSwEnvStatsSuspect                                            TruthValue,
     cucsSwEnvStatsThresholded                                        CucsSwEnvStatsThresholded,
     cucsSwEnvStatsTimeCollected                                      DateAndTime,
-    cucsSwEnvStatsUpdate                                             Gauge32
+    cucsSwEnvStatsUpdate                                             Gauge32,
+    cucsSwEnvStatsDonner                                             INTEGER,
+    cucsSwEnvStatsDonnerAvg                                          INTEGER,
+    cucsSwEnvStatsDonnerMax                                          INTEGER,
+    cucsSwEnvStatsDonnerMin                                          INTEGER,
+    cucsSwEnvStatsTd2                                                INTEGER,
+    cucsSwEnvStatsTd2Avg                                             INTEGER,
+    cucsSwEnvStatsTd2Max                                             INTEGER,
+    cucsSwEnvStatsTd2Min                                             INTEGER,
+    cucsSwEnvStatsTiburon                                            INTEGER,
+    cucsSwEnvStatsTiburonAvg                                         INTEGER,
+    cucsSwEnvStatsTiburonMax                                         INTEGER,
+    cucsSwEnvStatsTiburonMin                                         INTEGER
 }
 
 cucsSwEnvStatsInstanceId OBJECT-TYPE
@@ -1892,6 +1941,102 @@ cucsSwEnvStatsUpdate OBJECT-TYPE
         "Cisco UCS sw:EnvStats:update managed object property"
     ::= { cucsSwEnvStatsEntry 40 }
 
+cucsSwEnvStatsDonner OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStats:donner managed object property"
+    ::= { cucsSwEnvStatsEntry 43 }
+
+cucsSwEnvStatsDonnerAvg OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStats:donnerAvg managed object property"
+    ::= { cucsSwEnvStatsEntry 44 }
+
+cucsSwEnvStatsDonnerMax OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStats:donnerMax managed object property"
+    ::= { cucsSwEnvStatsEntry 45 }
+
+cucsSwEnvStatsDonnerMin OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStats:donnerMin managed object property"
+    ::= { cucsSwEnvStatsEntry 46 }
+
+cucsSwEnvStatsTd2 OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStats:td2 managed object property"
+    ::= { cucsSwEnvStatsEntry 47 }
+
+cucsSwEnvStatsTd2Avg OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStats:td2Avg managed object property"
+    ::= { cucsSwEnvStatsEntry 48 }
+
+cucsSwEnvStatsTd2Max OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStats:td2Max managed object property"
+    ::= { cucsSwEnvStatsEntry 49 }
+
+cucsSwEnvStatsTd2Min OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStats:td2Min managed object property"
+    ::= { cucsSwEnvStatsEntry 50 }
+
+cucsSwEnvStatsTiburon OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStats:tiburon managed object property"
+    ::= { cucsSwEnvStatsEntry 51 }
+
+cucsSwEnvStatsTiburonAvg OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStats:tiburonAvg managed object property"
+    ::= { cucsSwEnvStatsEntry 52 }
+
+cucsSwEnvStatsTiburonMax OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStats:tiburonMax managed object property"
+    ::= { cucsSwEnvStatsEntry 53 }
+
+cucsSwEnvStatsTiburonMin OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStats:tiburonMin managed object property"
+    ::= { cucsSwEnvStatsEntry 54 }
+
 cucsSwEnvStatsHistTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwEnvStatsHistEntry
     MAX-ACCESS       not-accessible
@@ -1949,7 +2094,19 @@ CucsSwEnvStatsHistEntry ::= SEQUENCE {
     cucsSwEnvStatsHistPsuCtrlrInlet2Min                              INTEGER,
     cucsSwEnvStatsHistSuspect                                        TruthValue,
     cucsSwEnvStatsHistThresholded                                    CucsSwEnvStatsHistThresholded,
-    cucsSwEnvStatsHistTimeCollected                                  DateAndTime
+    cucsSwEnvStatsHistTimeCollected                                  DateAndTime,
+    cucsSwEnvStatsHistDonner                                         INTEGER,
+    cucsSwEnvStatsHistDonnerAvg                                      INTEGER,
+    cucsSwEnvStatsHistDonnerMax                                      INTEGER,
+    cucsSwEnvStatsHistDonnerMin                                      INTEGER,
+    cucsSwEnvStatsHistTd2                                            INTEGER,
+    cucsSwEnvStatsHistTd2Avg                                         INTEGER,
+    cucsSwEnvStatsHistTd2Max                                         INTEGER,
+    cucsSwEnvStatsHistTd2Min                                         INTEGER,
+    cucsSwEnvStatsHistTiburon                                        INTEGER,
+    cucsSwEnvStatsHistTiburonAvg                                     INTEGER,
+    cucsSwEnvStatsHistTiburonMax                                     INTEGER,
+    cucsSwEnvStatsHistTiburonMin                                     INTEGER
 }
 
 cucsSwEnvStatsHistInstanceId OBJECT-TYPE
@@ -2298,6 +2455,102 @@ cucsSwEnvStatsHistTimeCollected OBJECT-TYPE
         "Cisco UCS sw:EnvStatsHist:timeCollected managed object property"
     ::= { cucsSwEnvStatsHistEntry 40 }
 
+cucsSwEnvStatsHistDonner OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStatsHist:donner managed object property"
+    ::= { cucsSwEnvStatsHistEntry 41 }
+
+cucsSwEnvStatsHistDonnerAvg OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStatsHist:donnerAvg managed object property"
+    ::= { cucsSwEnvStatsHistEntry 42 }
+
+cucsSwEnvStatsHistDonnerMax OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStatsHist:donnerMax managed object property"
+    ::= { cucsSwEnvStatsHistEntry 43 }
+
+cucsSwEnvStatsHistDonnerMin OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStatsHist:donnerMin managed object property"
+    ::= { cucsSwEnvStatsHistEntry 44 }
+
+cucsSwEnvStatsHistTd2 OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStatsHist:td2 managed object property"
+    ::= { cucsSwEnvStatsHistEntry 45 }
+
+cucsSwEnvStatsHistTd2Avg OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStatsHist:td2Avg managed object property"
+    ::= { cucsSwEnvStatsHistEntry 46 }
+
+cucsSwEnvStatsHistTd2Max OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStatsHist:td2Max managed object property"
+    ::= { cucsSwEnvStatsHistEntry 47 }
+
+cucsSwEnvStatsHistTd2Min OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStatsHist:td2Min managed object property"
+    ::= { cucsSwEnvStatsHistEntry 48 }
+
+cucsSwEnvStatsHistTiburon OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStatsHist:tiburon managed object property"
+    ::= { cucsSwEnvStatsHistEntry 49 }
+
+cucsSwEnvStatsHistTiburonAvg OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStatsHist:tiburonAvg managed object property"
+    ::= { cucsSwEnvStatsHistEntry 50 }
+
+cucsSwEnvStatsHistTiburonMax OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStatsHist:tiburonMax managed object property"
+    ::= { cucsSwEnvStatsHistEntry 51 }
+
+cucsSwEnvStatsHistTiburonMin OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EnvStatsHist:tiburonMin managed object property"
+    ::= { cucsSwEnvStatsHistEntry 52 }
+
 cucsSwEthEstcEpTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwEthEstcEpEntry
     MAX-ACCESS       not-accessible
@@ -2348,7 +2601,11 @@ CucsSwEthEstcEpEntry ::= SEQUENCE {
     cucsSwEthEstcEpLc                                                CucsSwPIoEpLc,
     cucsSwEthEstcEpPriorityFlowCtrl                                  CucsFlowctrlPriorityPause,
     cucsSwEthEstcEpRecvFlowCtrl                                      CucsFlowctrlFlowControl,
-    cucsSwEthEstcEpSendFlowCtrl                                      CucsFlowctrlFlowControl
+    cucsSwEthEstcEpSendFlowCtrl                                      CucsFlowctrlFlowControl,
+    cucsSwEthEstcEpAggrPortId                                        Gauge32,
+    cucsSwEthEstcEpBorderAggrPortId                                  Gauge32,
+    cucsSwEthEstcEpPeerAggrPortId                                    Gauge32,
+    cucsSwEthEstcEpAutoNegotiate                                     CucsSwAutoNegMode
 }
 
 cucsSwEthEstcEpInstanceId OBJECT-TYPE
@@ -2615,6 +2872,38 @@ cucsSwEthEstcEpSendFlowCtrl OBJECT-TYPE
         "Cisco UCS sw:EthEstcEp:sendFlowCtrl managed object property"
     ::= { cucsSwEthEstcEpEntry 33 }
 
+cucsSwEthEstcEpAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthEstcEp:aggrPortId managed object property"
+    ::= { cucsSwEthEstcEpEntry 34 }
+
+cucsSwEthEstcEpBorderAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthEstcEp:borderAggrPortId managed object property"
+    ::= { cucsSwEthEstcEpEntry 35 }
+
+cucsSwEthEstcEpPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthEstcEp:peerAggrPortId managed object property"
+    ::= { cucsSwEthEstcEpEntry 36 }
+
+cucsSwEthEstcEpAutoNegotiate OBJECT-TYPE
+    SYNTAX       CucsSwAutoNegMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthEstcEp:autoNegotiate managed object property"
+    ::= { cucsSwEthEstcEpEntry 37 }
+
 cucsSwEthEstcPcTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwEthEstcPcEntry
     MAX-ACCESS       not-accessible
@@ -2661,7 +2950,8 @@ CucsSwEthEstcPcEntry ::= SEQUENCE {
     cucsSwEthEstcPcRecvFlowCtrl                                      CucsFlowctrlFlowControl,
     cucsSwEthEstcPcSendFlowCtrl                                      CucsFlowctrlFlowControl,
     cucsSwEthEstcPcLacpFastTimer                                     TruthValue,
-    cucsSwEthEstcPcLacpSuspendIndividual                             TruthValue
+    cucsSwEthEstcPcLacpSuspendIndividual                             TruthValue,
+    cucsSwEthEstcPcBorderAggrPortId                                  Gauge32
 }
 
 cucsSwEthEstcPcInstanceId OBJECT-TYPE
@@ -2897,6 +3187,14 @@ cucsSwEthEstcPcLacpSuspendIndividual OBJECT-TYPE
         object property"
     ::= { cucsSwEthEstcPcEntry 29 }
 
+cucsSwEthEstcPcBorderAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthEstcPc:borderAggrPortId managed object property"
+    ::= { cucsSwEthEstcPcEntry 30 }
+
 cucsSwEthLanBorderTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwEthLanBorderEntry
     MAX-ACCESS       not-accessible
@@ -2936,7 +3234,8 @@ CucsSwEthLanBorderEntry ::= SEQUENCE {
     cucsSwEthLanBorderDeployFlag                                     BITS,
     cucsSwEthLanBorderFsmFlags                                       SnmpAdminString,
     cucsSwEthLanBorderUdldMsgInterval                                Gauge32,
-    cucsSwEthLanBorderUdldRecoveryAction                             CucsFabricRecoveryAction
+    cucsSwEthLanBorderUdldRecoveryAction                             CucsFabricRecoveryAction,
+    cucsSwEthLanBorderLastVlanGrpComputeTime                         DateAndTime
 }
 
 cucsSwEthLanBorderInstanceId OBJECT-TYPE
@@ -3118,6 +3417,15 @@ cucsSwEthLanBorderUdldRecoveryAction OBJECT-TYPE
         "Cisco UCS sw:EthLanBorder:udldRecoveryAction managed
         object property"
     ::= { cucsSwEthLanBorderEntry 22 }
+
+cucsSwEthLanBorderLastVlanGrpComputeTime OBJECT-TYPE
+    SYNTAX       DateAndTime
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthLanBorder:lastVlanGrpComputeTime
+        managed object property"
+    ::= { cucsSwEthLanBorderEntry 23 }
 
 cucsSwEthLanBorderFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwEthLanBorderFsmEntry
@@ -3470,7 +3778,10 @@ CucsSwEthLanEpEntry ::= SEQUENCE {
     cucsSwEthLanEpPeerChassisId                                      Gauge32,
     cucsSwEthLanEpLc                                                 CucsSwPIoEpLc,
     cucsSwEthLanEpUdldAdminState                                     CucsSwEthLanEpUdldAdminState,
-    cucsSwEthLanEpUdldMode                                           CucsSwEthLanEpUdldMode
+    cucsSwEthLanEpUdldMode                                           CucsSwEthLanEpUdldMode,
+    cucsSwEthLanEpAggrPortId                                         Gauge32,
+    cucsSwEthLanEpPeerAggrPortId                                     Gauge32,
+    cucsSwEthLanEpAutoNegotiate                                      CucsSwAutoNegMode
 }
 
 cucsSwEthLanEpInstanceId OBJECT-TYPE
@@ -3688,6 +3999,30 @@ cucsSwEthLanEpUdldMode OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS sw:EthLanEp:udldMode managed object property"
     ::= { cucsSwEthLanEpEntry 28 }
+
+cucsSwEthLanEpAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthLanEp:aggrPortId managed object property"
+    ::= { cucsSwEthLanEpEntry 29 }
+
+cucsSwEthLanEpPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthLanEp:peerAggrPortId managed object property"
+    ::= { cucsSwEthLanEpEntry 30 }
+
+cucsSwEthLanEpAutoNegotiate OBJECT-TYPE
+    SYNTAX       CucsSwAutoNegMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthLanEp:autoNegotiate managed object property"
+    ::= { cucsSwEthLanEpEntry 31 }
 
 cucsSwEthLanFlowMonTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwEthLanFlowMonEntry
@@ -4331,7 +4666,8 @@ CucsSwEthLanPcEntry ::= SEQUENCE {
     cucsSwEthLanPcType                                               CucsSwLanPcType,
     cucsSwEthLanPcMonTrafDir                                         CucsFabricTrafficDirection,
     cucsSwEthLanPcLacpFastTimer                                      TruthValue,
-    cucsSwEthLanPcLacpSuspendIndividual                              TruthValue
+    cucsSwEthLanPcLacpSuspendIndividual                              TruthValue,
+    cucsSwEthLanPcAutoNegotiate                                      CucsSwAutoNegMode
 }
 
 cucsSwEthLanPcInstanceId OBJECT-TYPE
@@ -4502,6 +4838,14 @@ cucsSwEthLanPcLacpSuspendIndividual OBJECT-TYPE
         "Cisco UCS sw:EthLanPc:lacpSuspendIndividual managed
         object property"
     ::= { cucsSwEthLanPcEntry 22 }
+
+cucsSwEthLanPcAutoNegotiate OBJECT-TYPE
+    SYNTAX       CucsSwAutoNegMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthLanPc:autoNegotiate managed object property"
+    ::= { cucsSwEthLanPcEntry 23 }
 
 cucsSwEthMonTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwEthMonEntry
@@ -4759,7 +5103,10 @@ CucsSwEthMonDestEpEntry ::= SEQUENCE {
     cucsSwEthMonDestEpType                                           CucsNetworkConnectionType,
     cucsSwEthMonDestEpPeerChassisId                                  Gauge32,
     cucsSwEthMonDestEpLc                                             CucsSwPIoEpLc,
-    cucsSwEthMonDestEpAdminSpeed                                     CucsPortEthSpeed
+    cucsSwEthMonDestEpAdminSpeed                                     CucsPortEthSpeed,
+    cucsSwEthMonDestEpAggrPortId                                     Gauge32,
+    cucsSwEthMonDestEpPeerAggrPortId                                 Gauge32,
+    cucsSwEthMonDestEpAutoNegotiate                                  CucsSwAutoNegMode
 }
 
 cucsSwEthMonDestEpInstanceId OBJECT-TYPE
@@ -4929,6 +5276,30 @@ cucsSwEthMonDestEpAdminSpeed OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS sw:EthMonDestEp:adminSpeed managed object property"
     ::= { cucsSwEthMonDestEpEntry 21 }
+
+cucsSwEthMonDestEpAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthMonDestEp:aggrPortId managed object property"
+    ::= { cucsSwEthMonDestEpEntry 22 }
+
+cucsSwEthMonDestEpPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthMonDestEp:peerAggrPortId managed object property"
+    ::= { cucsSwEthMonDestEpEntry 23 }
+
+cucsSwEthMonDestEpAutoNegotiate OBJECT-TYPE
+    SYNTAX       CucsSwAutoNegMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthMonDestEp:autoNegotiate managed object property"
+    ::= { cucsSwEthMonDestEpEntry 24 }
 
 cucsSwEthMonFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwEthMonFsmEntry
@@ -5272,7 +5643,10 @@ CucsSwEthMonSrcEpEntry ::= SEQUENCE {
     cucsSwEthMonSrcEpTransport                                       CucsSwEthMonSrcEpTransport,
     cucsSwEthMonSrcEpType                                            CucsNetworkConnectionType,
     cucsSwEthMonSrcEpPeerChassisId                                   Gauge32,
-    cucsSwEthMonSrcEpLc                                              CucsSwPIoEpLc
+    cucsSwEthMonSrcEpLc                                              CucsSwPIoEpLc,
+    cucsSwEthMonSrcEpAggrPortId                                      Gauge32,
+    cucsSwEthMonSrcEpPeerAggrPortId                                  Gauge32,
+    cucsSwEthMonSrcEpAutoNegotiate                                   CucsSwAutoNegMode
 }
 
 cucsSwEthMonSrcEpInstanceId OBJECT-TYPE
@@ -5443,6 +5817,30 @@ cucsSwEthMonSrcEpLc OBJECT-TYPE
         "Cisco UCS sw:EthMonSrcEp:lc managed object property"
     ::= { cucsSwEthMonSrcEpEntry 21 }
 
+cucsSwEthMonSrcEpAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthMonSrcEp:aggrPortId managed object property"
+    ::= { cucsSwEthMonSrcEpEntry 22 }
+
+cucsSwEthMonSrcEpPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthMonSrcEp:peerAggrPortId managed object property"
+    ::= { cucsSwEthMonSrcEpEntry 23 }
+
+cucsSwEthMonSrcEpAutoNegotiate OBJECT-TYPE
+    SYNTAX       CucsSwAutoNegMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthMonSrcEp:autoNegotiate managed object property"
+    ::= { cucsSwEthMonSrcEpEntry 24 }
+
 cucsSwEthTargetEpTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwEthTargetEpEntry
     MAX-ACCESS       not-accessible
@@ -5486,7 +5884,10 @@ CucsSwEthTargetEpEntry ::= SEQUENCE {
     cucsSwEthTargetEpFltAggr                                         Unsigned64,
     cucsSwEthTargetEpOperState                                       CucsFabricPIoEpOperState,
     cucsSwEthTargetEpOperStateReason                                 SnmpAdminString,
-    cucsSwEthTargetEpWarnings                                        CucsFabricWarnings
+    cucsSwEthTargetEpWarnings                                        CucsFabricWarnings,
+    cucsSwEthTargetEpAggrPortId                                      Gauge32,
+    cucsSwEthTargetEpPeerAggrPortId                                  Gauge32,
+    cucsSwEthTargetEpAutoNegotiate                                   TruthValue
 }
 
 cucsSwEthTargetEpInstanceId OBJECT-TYPE
@@ -5697,6 +6098,493 @@ cucsSwEthTargetEpWarnings OBJECT-TYPE
         "Cisco UCS sw:EthTargetEp:warnings managed object property"
     ::= { cucsSwEthTargetEpEntry 26 }
 
+cucsSwEthTargetEpAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthTargetEp:aggrPortId managed object property"
+    ::= { cucsSwEthTargetEpEntry 27 }
+
+cucsSwEthTargetEpPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthTargetEp:peerAggrPortId managed object property"
+    ::= { cucsSwEthTargetEpEntry 28 }
+
+cucsSwEthTargetEpAutoNegotiate OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:EthTargetEp:autoNegotiate managed object property"
+    ::= { cucsSwEthTargetEpEntry 29 }
+
+cucsSwExtUtilityTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsSwExtUtilityEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtility managed object table"
+    ::= { cucsSwObjects 83 }
+
+cucsSwExtUtilityEntry OBJECT-TYPE
+    SYNTAX           CucsSwExtUtilityEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsSwExtUtilityTable table."
+    INDEX { cucsSwExtUtilityInstanceId }
+    ::= { cucsSwExtUtilityTable 1 }
+
+CucsSwExtUtilityEntry ::= SEQUENCE {
+    cucsSwExtUtilityInstanceId                                       CucsManagedObjectId,
+    cucsSwExtUtilityDn                                               CucsManagedObjectDn,
+    cucsSwExtUtilityRn                                               SnmpAdminString,
+    cucsSwExtUtilityConfMode                                         CucsSwConfMode,
+    cucsSwExtUtilityFsmDescr                                         SnmpAdminString,
+    cucsSwExtUtilityFsmPrev                                          SnmpAdminString,
+    cucsSwExtUtilityFsmProgr                                         Gauge32,
+    cucsSwExtUtilityFsmRmtInvErrCode                                 Gauge32,
+    cucsSwExtUtilityFsmRmtInvErrDescr                                SnmpAdminString,
+    cucsSwExtUtilityFsmRmtInvRslt                                    CucsConditionRemoteInvRslt,
+    cucsSwExtUtilityFsmStageDescr                                    SnmpAdminString,
+    cucsSwExtUtilityFsmStamp                                         DateAndTime,
+    cucsSwExtUtilityFsmStatus                                        SnmpAdminString,
+    cucsSwExtUtilityFsmTry                                           Gauge32,
+    cucsSwExtUtilitySwitchId                                         CucsNetworkSwitchId
+}
+
+cucsSwExtUtilityInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsSwExtUtilityEntry 1 }
+
+cucsSwExtUtilityDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtility:dn managed object property"
+    ::= { cucsSwExtUtilityEntry 2 }
+
+cucsSwExtUtilityRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtility:rn managed object property"
+    ::= { cucsSwExtUtilityEntry 3 }
+
+cucsSwExtUtilityConfMode OBJECT-TYPE
+    SYNTAX       CucsSwConfMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtility:confMode managed object property"
+    ::= { cucsSwExtUtilityEntry 4 }
+
+cucsSwExtUtilityFsmDescr OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtility:fsmDescr managed object property"
+    ::= { cucsSwExtUtilityEntry 5 }
+
+cucsSwExtUtilityFsmPrev OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtility:fsmPrev managed object property"
+    ::= { cucsSwExtUtilityEntry 6 }
+
+cucsSwExtUtilityFsmProgr OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtility:fsmProgr managed object property"
+    ::= { cucsSwExtUtilityEntry 7 }
+
+cucsSwExtUtilityFsmRmtInvErrCode OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtility:fsmRmtInvErrCode managed object property"
+    ::= { cucsSwExtUtilityEntry 8 }
+
+cucsSwExtUtilityFsmRmtInvErrDescr OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtility:fsmRmtInvErrDescr managed
+        object property"
+    ::= { cucsSwExtUtilityEntry 9 }
+
+cucsSwExtUtilityFsmRmtInvRslt OBJECT-TYPE
+    SYNTAX       CucsConditionRemoteInvRslt
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtility:fsmRmtInvRslt managed object property"
+    ::= { cucsSwExtUtilityEntry 10 }
+
+cucsSwExtUtilityFsmStageDescr OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtility:fsmStageDescr managed object property"
+    ::= { cucsSwExtUtilityEntry 11 }
+
+cucsSwExtUtilityFsmStamp OBJECT-TYPE
+    SYNTAX       DateAndTime
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtility:fsmStamp managed object property"
+    ::= { cucsSwExtUtilityEntry 12 }
+
+cucsSwExtUtilityFsmStatus OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtility:fsmStatus managed object property"
+    ::= { cucsSwExtUtilityEntry 13 }
+
+cucsSwExtUtilityFsmTry OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtility:fsmTry managed object property"
+    ::= { cucsSwExtUtilityEntry 14 }
+
+cucsSwExtUtilitySwitchId OBJECT-TYPE
+    SYNTAX       CucsNetworkSwitchId
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtility:switchId managed object property"
+    ::= { cucsSwExtUtilityEntry 15 }
+
+cucsSwExtUtilityFsmTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsSwExtUtilityFsmEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsm managed object table"
+    ::= { cucsSwObjects 84 }
+
+cucsSwExtUtilityFsmEntry OBJECT-TYPE
+    SYNTAX           CucsSwExtUtilityFsmEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsSwExtUtilityFsmTable table."
+    INDEX { cucsSwExtUtilityFsmInstanceId }
+    ::= { cucsSwExtUtilityFsmTable 1 }
+
+CucsSwExtUtilityFsmEntry ::= SEQUENCE {
+    cucsSwExtUtilityFsmInstanceId                                    CucsManagedObjectId,
+    cucsSwExtUtilityFsmDn                                            CucsManagedObjectDn,
+    cucsSwExtUtilityFsmRn                                            SnmpAdminString,
+    cucsSwExtUtilityFsmCompletionTime                                DateAndTime,
+    cucsSwExtUtilityFsmCurrentFsm                                    CucsSwExtUtilityFsmCurrentFsm,
+    cucsSwExtUtilityFsmDescrData                                     SnmpAdminString,
+    cucsSwExtUtilityFsmFsmStatus                                     CucsFsmFsmStageStatus,
+    cucsSwExtUtilityFsmProgress                                      Gauge32,
+    cucsSwExtUtilityFsmRmtErrCode                                    Gauge32,
+    cucsSwExtUtilityFsmRmtErrDescr                                   SnmpAdminString,
+    cucsSwExtUtilityFsmRmtRslt                                       CucsConditionRemoteInvRslt
+}
+
+cucsSwExtUtilityFsmInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsSwExtUtilityFsmEntry 1 }
+
+cucsSwExtUtilityFsmDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsm:dn managed object property"
+    ::= { cucsSwExtUtilityFsmEntry 2 }
+
+cucsSwExtUtilityFsmRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsm:rn managed object property"
+    ::= { cucsSwExtUtilityFsmEntry 3 }
+
+cucsSwExtUtilityFsmCompletionTime OBJECT-TYPE
+    SYNTAX       DateAndTime
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsm:completionTime managed
+        object property"
+    ::= { cucsSwExtUtilityFsmEntry 4 }
+
+cucsSwExtUtilityFsmCurrentFsm OBJECT-TYPE
+    SYNTAX       CucsSwExtUtilityFsmCurrentFsm
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsm:currentFsm managed object property"
+    ::= { cucsSwExtUtilityFsmEntry 5 }
+
+cucsSwExtUtilityFsmDescrData OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsm:descr managed object property"
+    ::= { cucsSwExtUtilityFsmEntry 6 }
+
+cucsSwExtUtilityFsmFsmStatus OBJECT-TYPE
+    SYNTAX       CucsFsmFsmStageStatus
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsm:fsmStatus managed object property"
+    ::= { cucsSwExtUtilityFsmEntry 7 }
+
+cucsSwExtUtilityFsmProgress OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsm:progress managed object property"
+    ::= { cucsSwExtUtilityFsmEntry 8 }
+
+cucsSwExtUtilityFsmRmtErrCode OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsm:rmtErrCode managed object property"
+    ::= { cucsSwExtUtilityFsmEntry 9 }
+
+cucsSwExtUtilityFsmRmtErrDescr OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsm:rmtErrDescr managed object property"
+    ::= { cucsSwExtUtilityFsmEntry 10 }
+
+cucsSwExtUtilityFsmRmtRslt OBJECT-TYPE
+    SYNTAX       CucsConditionRemoteInvRslt
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsm:rmtRslt managed object property"
+    ::= { cucsSwExtUtilityFsmEntry 11 }
+
+cucsSwExtUtilityFsmStageTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsSwExtUtilityFsmStageEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsmStage managed object table"
+    ::= { cucsSwObjects 85 }
+
+cucsSwExtUtilityFsmStageEntry OBJECT-TYPE
+    SYNTAX           CucsSwExtUtilityFsmStageEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsSwExtUtilityFsmStageTable table."
+    INDEX { cucsSwExtUtilityFsmStageInstanceId }
+    ::= { cucsSwExtUtilityFsmStageTable 1 }
+
+CucsSwExtUtilityFsmStageEntry ::= SEQUENCE {
+    cucsSwExtUtilityFsmStageInstanceId                               CucsManagedObjectId,
+    cucsSwExtUtilityFsmStageDn                                       CucsManagedObjectDn,
+    cucsSwExtUtilityFsmStageRn                                       SnmpAdminString,
+    cucsSwExtUtilityFsmStageDescrData                                SnmpAdminString,
+    cucsSwExtUtilityFsmStageLastUpdateTime                           DateAndTime,
+    cucsSwExtUtilityFsmStageName                                     CucsSwExtUtilityFsmStageName,
+    cucsSwExtUtilityFsmStageOrder                                    Gauge32,
+    cucsSwExtUtilityFsmStageRetry                                    Gauge32,
+    cucsSwExtUtilityFsmStageStageStatus                              CucsFsmFsmStageStatus
+}
+
+cucsSwExtUtilityFsmStageInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsSwExtUtilityFsmStageEntry 1 }
+
+cucsSwExtUtilityFsmStageDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsmStage:dn managed object property"
+    ::= { cucsSwExtUtilityFsmStageEntry 2 }
+
+cucsSwExtUtilityFsmStageRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsmStage:rn managed object property"
+    ::= { cucsSwExtUtilityFsmStageEntry 3 }
+
+cucsSwExtUtilityFsmStageDescrData OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsmStage:descr managed object property"
+    ::= { cucsSwExtUtilityFsmStageEntry 4 }
+
+cucsSwExtUtilityFsmStageLastUpdateTime OBJECT-TYPE
+    SYNTAX       DateAndTime
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsmStage:lastUpdateTime
+        managed object property"
+    ::= { cucsSwExtUtilityFsmStageEntry 5 }
+
+cucsSwExtUtilityFsmStageName OBJECT-TYPE
+    SYNTAX       CucsSwExtUtilityFsmStageName
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsmStage:name managed object property"
+    ::= { cucsSwExtUtilityFsmStageEntry 6 }
+
+cucsSwExtUtilityFsmStageOrder OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsmStage:order managed object property"
+    ::= { cucsSwExtUtilityFsmStageEntry 7 }
+
+cucsSwExtUtilityFsmStageRetry OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsmStage:retry managed object property"
+    ::= { cucsSwExtUtilityFsmStageEntry 8 }
+
+cucsSwExtUtilityFsmStageStageStatus OBJECT-TYPE
+    SYNTAX       CucsFsmFsmStageStatus
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsmStage:stageStatus managed
+        object property"
+    ::= { cucsSwExtUtilityFsmStageEntry 9 }
+
+cucsSwExtUtilityFsmTaskTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsSwExtUtilityFsmTaskEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsmTask managed object table"
+    ::= { cucsSwObjects 86 }
+
+cucsSwExtUtilityFsmTaskEntry OBJECT-TYPE
+    SYNTAX           CucsSwExtUtilityFsmTaskEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsSwExtUtilityFsmTaskTable table."
+    INDEX { cucsSwExtUtilityFsmTaskInstanceId }
+    ::= { cucsSwExtUtilityFsmTaskTable 1 }
+
+CucsSwExtUtilityFsmTaskEntry ::= SEQUENCE {
+    cucsSwExtUtilityFsmTaskInstanceId                                CucsManagedObjectId,
+    cucsSwExtUtilityFsmTaskDn                                        CucsManagedObjectDn,
+    cucsSwExtUtilityFsmTaskRn                                        SnmpAdminString,
+    cucsSwExtUtilityFsmTaskCompletion                                CucsFsmCompletion,
+    cucsSwExtUtilityFsmTaskFlags                                     CucsFsmFlags,
+    cucsSwExtUtilityFsmTaskItem                                      CucsSwExtUtilityFsmTaskItem,
+    cucsSwExtUtilityFsmTaskSeqId                                     Gauge32
+}
+
+cucsSwExtUtilityFsmTaskInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsSwExtUtilityFsmTaskEntry 1 }
+
+cucsSwExtUtilityFsmTaskDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsmTask:dn managed object property"
+    ::= { cucsSwExtUtilityFsmTaskEntry 2 }
+
+cucsSwExtUtilityFsmTaskRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsmTask:rn managed object property"
+    ::= { cucsSwExtUtilityFsmTaskEntry 3 }
+
+cucsSwExtUtilityFsmTaskCompletion OBJECT-TYPE
+    SYNTAX       CucsFsmCompletion
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsmTask:completion managed
+        object property"
+    ::= { cucsSwExtUtilityFsmTaskEntry 4 }
+
+cucsSwExtUtilityFsmTaskFlags OBJECT-TYPE
+    SYNTAX       CucsFsmFlags
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsmTask:flags managed object property"
+    ::= { cucsSwExtUtilityFsmTaskEntry 5 }
+
+cucsSwExtUtilityFsmTaskItem OBJECT-TYPE
+    SYNTAX       CucsSwExtUtilityFsmTaskItem
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsmTask:item managed object property"
+    ::= { cucsSwExtUtilityFsmTaskEntry 6 }
+
+cucsSwExtUtilityFsmTaskSeqId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:ExtUtilityFsmTask:seqId managed object property"
+    ::= { cucsSwExtUtilityFsmTaskEntry 7 }
+
 cucsSwFabricZoneNsTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwFabricZoneNsEntry
     MAX-ACCESS       not-accessible
@@ -5875,7 +6763,10 @@ CucsSwFcEstcEpEntry ::= SEQUENCE {
     cucsSwFcEstcEpType                                               CucsNetworkConnectionType,
     cucsSwFcEstcEpPeerChassisId                                      Gauge32,
     cucsSwFcEstcEpLc                                                 CucsSwPIoEpLc,
-    cucsSwFcEstcEpFillPattern                                        CucsFabricFillPattern
+    cucsSwFcEstcEpFillPattern                                        CucsFabricFillPattern,
+    cucsSwFcEstcEpAggrPortId                                         Gauge32,
+    cucsSwFcEstcEpPeerAggrPortId                                     Gauge32,
+    cucsSwFcEstcEpAutoNegotiate                                      CucsSwAutoNegMode
 }
 
 cucsSwFcEstcEpInstanceId OBJECT-TYPE
@@ -6053,6 +6944,30 @@ cucsSwFcEstcEpFillPattern OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS sw:FcEstcEp:fillPattern managed object property"
     ::= { cucsSwFcEstcEpEntry 22 }
+
+cucsSwFcEstcEpAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcEstcEp:aggrPortId managed object property"
+    ::= { cucsSwFcEstcEpEntry 23 }
+
+cucsSwFcEstcEpPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcEstcEp:peerAggrPortId managed object property"
+    ::= { cucsSwFcEstcEpEntry 24 }
+
+cucsSwFcEstcEpAutoNegotiate OBJECT-TYPE
+    SYNTAX       CucsSwAutoNegMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcEstcEp:autoNegotiate managed object property"
+    ::= { cucsSwFcEstcEpEntry 25 }
 
 cucsSwFcMonTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwFcMonEntry
@@ -6310,7 +7225,10 @@ CucsSwFcMonDestEpEntry ::= SEQUENCE {
     cucsSwFcMonDestEpType                                            CucsNetworkConnectionType,
     cucsSwFcMonDestEpPeerChassisId                                   Gauge32,
     cucsSwFcMonDestEpLc                                              CucsSwPIoEpLc,
-    cucsSwFcMonDestEpAdminSpeed                                      CucsPortSpeed
+    cucsSwFcMonDestEpAdminSpeed                                      CucsPortSpeed,
+    cucsSwFcMonDestEpAggrPortId                                      Gauge32,
+    cucsSwFcMonDestEpPeerAggrPortId                                  Gauge32,
+    cucsSwFcMonDestEpAutoNegotiate                                   CucsSwAutoNegMode
 }
 
 cucsSwFcMonDestEpInstanceId OBJECT-TYPE
@@ -6480,6 +7398,30 @@ cucsSwFcMonDestEpAdminSpeed OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS sw:FcMonDestEp:adminSpeed managed object property"
     ::= { cucsSwFcMonDestEpEntry 21 }
+
+cucsSwFcMonDestEpAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcMonDestEp:aggrPortId managed object property"
+    ::= { cucsSwFcMonDestEpEntry 22 }
+
+cucsSwFcMonDestEpPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcMonDestEp:peerAggrPortId managed object property"
+    ::= { cucsSwFcMonDestEpEntry 23 }
+
+cucsSwFcMonDestEpAutoNegotiate OBJECT-TYPE
+    SYNTAX       CucsSwAutoNegMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcMonDestEp:autoNegotiate managed object property"
+    ::= { cucsSwFcMonDestEpEntry 24 }
 
 cucsSwFcMonFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwFcMonFsmEntry
@@ -6823,7 +7765,10 @@ CucsSwFcMonSrcEpEntry ::= SEQUENCE {
     cucsSwFcMonSrcEpTransport                                        CucsSwFcMonSrcEpTransport,
     cucsSwFcMonSrcEpType                                             CucsNetworkConnectionType,
     cucsSwFcMonSrcEpPeerChassisId                                    Gauge32,
-    cucsSwFcMonSrcEpLc                                               CucsSwPIoEpLc
+    cucsSwFcMonSrcEpLc                                               CucsSwPIoEpLc,
+    cucsSwFcMonSrcEpAggrPortId                                       Gauge32,
+    cucsSwFcMonSrcEpPeerAggrPortId                                   Gauge32,
+    cucsSwFcMonSrcEpAutoNegotiate                                    CucsSwAutoNegMode
 }
 
 cucsSwFcMonSrcEpInstanceId OBJECT-TYPE
@@ -6993,6 +7938,30 @@ cucsSwFcMonSrcEpLc OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS sw:FcMonSrcEp:lc managed object property"
     ::= { cucsSwFcMonSrcEpEntry 21 }
+
+cucsSwFcMonSrcEpAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcMonSrcEp:aggrPortId managed object property"
+    ::= { cucsSwFcMonSrcEpEntry 22 }
+
+cucsSwFcMonSrcEpPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcMonSrcEp:peerAggrPortId managed object property"
+    ::= { cucsSwFcMonSrcEpEntry 23 }
+
+cucsSwFcMonSrcEpAutoNegotiate OBJECT-TYPE
+    SYNTAX       CucsSwAutoNegMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcMonSrcEp:autoNegotiate managed object property"
+    ::= { cucsSwFcMonSrcEpEntry 24 }
 
 cucsSwFcSanBorderTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwFcSanBorderEntry
@@ -7535,7 +8504,10 @@ CucsSwFcSanEpEntry ::= SEQUENCE {
     cucsSwFcSanEpAdminSpeed                                          CucsPortSpeed,
     cucsSwFcSanEpPeerChassisId                                       Gauge32,
     cucsSwFcSanEpLc                                                  CucsSwPIoEpLc,
-    cucsSwFcSanEpFillPattern                                         CucsFabricFillPattern
+    cucsSwFcSanEpFillPattern                                         CucsFabricFillPattern,
+    cucsSwFcSanEpAggrPortId                                          Gauge32,
+    cucsSwFcSanEpPeerAggrPortId                                      Gauge32,
+    cucsSwFcSanEpAutoNegotiate                                       CucsSwAutoNegMode
 }
 
 cucsSwFcSanEpInstanceId OBJECT-TYPE
@@ -7729,6 +8701,30 @@ cucsSwFcSanEpFillPattern OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS sw:FcSanEp:fillPattern managed object property"
     ::= { cucsSwFcSanEpEntry 24 }
+
+cucsSwFcSanEpAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcSanEp:aggrPortId managed object property"
+    ::= { cucsSwFcSanEpEntry 25 }
+
+cucsSwFcSanEpPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcSanEp:peerAggrPortId managed object property"
+    ::= { cucsSwFcSanEpEntry 26 }
+
+cucsSwFcSanEpAutoNegotiate OBJECT-TYPE
+    SYNTAX       CucsSwAutoNegMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcSanEp:autoNegotiate managed object property"
+    ::= { cucsSwFcSanEpEntry 27 }
 
 cucsSwFcSanMonTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwFcSanMonEntry
@@ -8327,7 +9323,10 @@ CucsSwFcoeEstcEpEntry ::= SEQUENCE {
     cucsSwFcoeEstcEpType                                             CucsNetworkConnectionType,
     cucsSwFcoeEstcEpPeerChassisId                                    Gauge32,
     cucsSwFcoeEstcEpLc                                               CucsSwPIoEpLc,
-    cucsSwFcoeEstcEpPeerState                                        CucsSwPeerStatus
+    cucsSwFcoeEstcEpPeerState                                        CucsSwPeerStatus,
+    cucsSwFcoeEstcEpAggrPortId                                       Gauge32,
+    cucsSwFcoeEstcEpPeerAggrPortId                                   Gauge32,
+    cucsSwFcoeEstcEpAutoNegotiate                                    CucsSwAutoNegMode
 }
 
 cucsSwFcoeEstcEpInstanceId OBJECT-TYPE
@@ -8498,6 +9497,30 @@ cucsSwFcoeEstcEpPeerState OBJECT-TYPE
         "Cisco UCS sw:FcoeEstcEp:peerState managed object property"
     ::= { cucsSwFcoeEstcEpEntry 21 }
 
+cucsSwFcoeEstcEpAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcoeEstcEp:aggrPortId managed object property"
+    ::= { cucsSwFcoeEstcEpEntry 22 }
+
+cucsSwFcoeEstcEpPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcoeEstcEp:peerAggrPortId managed object property"
+    ::= { cucsSwFcoeEstcEpEntry 23 }
+
+cucsSwFcoeEstcEpAutoNegotiate OBJECT-TYPE
+    SYNTAX       CucsSwAutoNegMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcoeEstcEp:autoNegotiate managed object property"
+    ::= { cucsSwFcoeEstcEpEntry 24 }
+
 cucsSwFcoeSanEpTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwFcoeSanEpEntry
     MAX-ACCESS       not-accessible
@@ -8519,7 +9542,7 @@ CucsSwFcoeSanEpEntry ::= SEQUENCE {
     cucsSwFcoeSanEpInstanceId                                        CucsManagedObjectId,
     cucsSwFcoeSanEpDn                                                CucsManagedObjectDn,
     cucsSwFcoeSanEpRn                                                SnmpAdminString,
-    cucsSwFcoeSanEpAdminSpeed                                        CucsPortSpeed,
+    cucsSwFcoeSanEpAdminSpeed                                        CucsPortEthAdminSpeed,
     cucsSwFcoeSanEpAdminState                                        CucsFabricAdminState,
     cucsSwFcoeSanEpChassisId                                         Gauge32,
     cucsSwFcoeSanEpEpDn                                              SnmpAdminString,
@@ -8541,7 +9564,10 @@ CucsSwFcoeSanEpEntry ::= SEQUENCE {
     cucsSwFcoeSanEpTransport                                         CucsSwFcoeSanEpTransport,
     cucsSwFcoeSanEpType                                              CucsSwSanEpType,
     cucsSwFcoeSanEpUdldAdminState                                    CucsSwFcoeSanEpUdldAdminState,
-    cucsSwFcoeSanEpUdldMode                                          CucsSwFcoeSanEpUdldMode
+    cucsSwFcoeSanEpUdldMode                                          CucsSwFcoeSanEpUdldMode,
+    cucsSwFcoeSanEpAggrPortId                                        Gauge32,
+    cucsSwFcoeSanEpPeerAggrPortId                                    Gauge32,
+    cucsSwFcoeSanEpAutoNegotiate                                     CucsSwAutoNegMode
 }
 
 cucsSwFcoeSanEpInstanceId OBJECT-TYPE
@@ -8569,7 +9595,7 @@ cucsSwFcoeSanEpRn OBJECT-TYPE
     ::= { cucsSwFcoeSanEpEntry 3 }
 
 cucsSwFcoeSanEpAdminSpeed OBJECT-TYPE
-    SYNTAX       CucsPortSpeed
+    SYNTAX       CucsPortEthAdminSpeed
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
@@ -8752,6 +9778,30 @@ cucsSwFcoeSanEpUdldMode OBJECT-TYPE
         "Cisco UCS sw:FcoeSanEp:udldMode managed object property"
     ::= { cucsSwFcoeSanEpEntry 26 }
 
+cucsSwFcoeSanEpAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcoeSanEp:aggrPortId managed object property"
+    ::= { cucsSwFcoeSanEpEntry 27 }
+
+cucsSwFcoeSanEpPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcoeSanEp:peerAggrPortId managed object property"
+    ::= { cucsSwFcoeSanEpEntry 28 }
+
+cucsSwFcoeSanEpAutoNegotiate OBJECT-TYPE
+    SYNTAX       CucsSwAutoNegMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcoeSanEp:autoNegotiate managed object property"
+    ::= { cucsSwFcoeSanEpEntry 29 }
+
 cucsSwFcoeSanPcTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwFcoeSanPcEntry
     MAX-ACCESS       not-accessible
@@ -8789,7 +9839,8 @@ CucsSwFcoeSanPcEntry ::= SEQUENCE {
     cucsSwFcoeSanPcTransport                                         CucsSwFcoeSanPcTransport,
     cucsSwFcoeSanPcType                                              CucsSwSanPcType,
     cucsSwFcoeSanPcLacpFastTimer                                     TruthValue,
-    cucsSwFcoeSanPcLacpSuspendIndividual                             TruthValue
+    cucsSwFcoeSanPcLacpSuspendIndividual                             TruthValue,
+    cucsSwFcoeSanPcAdminSpeed                                        CucsPortEthAdminSpeed
 }
 
 cucsSwFcoeSanPcInstanceId OBJECT-TYPE
@@ -8952,6 +10003,14 @@ cucsSwFcoeSanPcLacpSuspendIndividual OBJECT-TYPE
         "Cisco UCS sw:FcoeSanPc:lacpSuspendIndividual managed
         object property"
     ::= { cucsSwFcoeSanPcEntry 20 }
+
+cucsSwFcoeSanPcAdminSpeed OBJECT-TYPE
+    SYNTAX       CucsPortEthAdminSpeed
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:FcoeSanPc:adminSpeed managed object property"
+    ::= { cucsSwFcoeSanPcEntry 21 }
 
 cucsSwIpRouteTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwIpRouteEntry
@@ -10064,7 +11123,10 @@ CucsSwPhysEtherEpEntry ::= SEQUENCE {
     cucsSwPhysEtherEpSlotId                                          Gauge32,
     cucsSwPhysEtherEpSwitchId                                        CucsNetworkSwitchId,
     cucsSwPhysEtherEpTransport                                       CucsNetworkTransport,
-    cucsSwPhysEtherEpType                                            CucsNetworkConnectionType
+    cucsSwPhysEtherEpType                                            CucsNetworkConnectionType,
+    cucsSwPhysEtherEpAggrPortId                                      Gauge32,
+    cucsSwPhysEtherEpPeerAggrPortId                                  Gauge32,
+    cucsSwPhysEtherEpAutoNegotiate                                   CucsSwAutoNegMode
 }
 
 cucsSwPhysEtherEpInstanceId OBJECT-TYPE
@@ -10227,6 +11289,30 @@ cucsSwPhysEtherEpType OBJECT-TYPE
         "Cisco UCS sw:PhysEtherEp:type managed object property"
     ::= { cucsSwPhysEtherEpEntry 20 }
 
+cucsSwPhysEtherEpAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:PhysEtherEp:aggrPortId managed object property"
+    ::= { cucsSwPhysEtherEpEntry 21 }
+
+cucsSwPhysEtherEpPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:PhysEtherEp:peerAggrPortId managed object property"
+    ::= { cucsSwPhysEtherEpEntry 22 }
+
+cucsSwPhysEtherEpAutoNegotiate OBJECT-TYPE
+    SYNTAX       CucsSwAutoNegMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:PhysEtherEp:autoNegotiate managed object property"
+    ::= { cucsSwPhysEtherEpEntry 23 }
+
 cucsSwPhysFcEpTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwPhysFcEpEntry
     MAX-ACCESS       not-accessible
@@ -10264,7 +11350,10 @@ CucsSwPhysFcEpEntry ::= SEQUENCE {
     cucsSwPhysFcEpSlotId                                             Gauge32,
     cucsSwPhysFcEpSwitchId                                           CucsNetworkSwitchId,
     cucsSwPhysFcEpTransport                                          CucsNetworkTransport,
-    cucsSwPhysFcEpType                                               CucsNetworkConnectionType
+    cucsSwPhysFcEpType                                               CucsNetworkConnectionType,
+    cucsSwPhysFcEpAggrPortId                                         Gauge32,
+    cucsSwPhysFcEpPeerAggrPortId                                     Gauge32,
+    cucsSwPhysFcEpAutoNegotiate                                      CucsSwAutoNegMode
 }
 
 cucsSwPhysFcEpInstanceId OBJECT-TYPE
@@ -10426,6 +11515,30 @@ cucsSwPhysFcEpType OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS sw:PhysFcEp:type managed object property"
     ::= { cucsSwPhysFcEpEntry 20 }
+
+cucsSwPhysFcEpAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:PhysFcEp:aggrPortId managed object property"
+    ::= { cucsSwPhysFcEpEntry 21 }
+
+cucsSwPhysFcEpPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:PhysFcEp:peerAggrPortId managed object property"
+    ::= { cucsSwPhysFcEpEntry 22 }
+
+cucsSwPhysFcEpAutoNegotiate OBJECT-TYPE
+    SYNTAX       CucsSwAutoNegMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:PhysFcEp:autoNegotiate managed object property"
+    ::= { cucsSwPhysFcEpEntry 23 }
 
 cucsSwPhysFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwPhysFsmEntry
@@ -10730,6 +11843,208 @@ cucsSwPhysFsmTaskSeqId OBJECT-TYPE
         "Cisco UCS sw:PhysFsmTask:seqId managed object property"
     ::= { cucsSwPhysFsmTaskEntry 7 }
 
+cucsSwPortBreakoutTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsSwPortBreakoutEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS sw:PortBreakout managed object table"
+    ::= { cucsSwObjects 87 }
+
+cucsSwPortBreakoutEntry OBJECT-TYPE
+    SYNTAX           CucsSwPortBreakoutEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsSwPortBreakoutTable table."
+    INDEX { cucsSwPortBreakoutInstanceId }
+    ::= { cucsSwPortBreakoutTable 1 }
+
+CucsSwPortBreakoutEntry ::= SEQUENCE {
+    cucsSwPortBreakoutInstanceId                                     CucsManagedObjectId,
+    cucsSwPortBreakoutDn                                             CucsManagedObjectDn,
+    cucsSwPortBreakoutRn                                             SnmpAdminString,
+    cucsSwPortBreakoutBreakoutType                                   CucsSwBreakoutType,
+    cucsSwPortBreakoutPortId                                         CucsSwPortBreakoutPortId,
+    cucsSwPortBreakoutSlotId                                         CucsSwPortBreakoutSlotId
+}
+
+cucsSwPortBreakoutInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsSwPortBreakoutEntry 1 }
+
+cucsSwPortBreakoutDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:PortBreakout:dn managed object property"
+    ::= { cucsSwPortBreakoutEntry 2 }
+
+cucsSwPortBreakoutRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:PortBreakout:rn managed object property"
+    ::= { cucsSwPortBreakoutEntry 3 }
+
+cucsSwPortBreakoutBreakoutType OBJECT-TYPE
+    SYNTAX       CucsSwBreakoutType
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:PortBreakout:breakoutType managed object property"
+    ::= { cucsSwPortBreakoutEntry 4 }
+
+cucsSwPortBreakoutPortId OBJECT-TYPE
+    SYNTAX       CucsSwPortBreakoutPortId
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:PortBreakout:portId managed object property"
+    ::= { cucsSwPortBreakoutEntry 5 }
+
+cucsSwPortBreakoutSlotId OBJECT-TYPE
+    SYNTAX       CucsSwPortBreakoutSlotId
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:PortBreakout:slotId managed object property"
+    ::= { cucsSwPortBreakoutEntry 6 }
+
+cucsSwSubGroupTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsSwSubGroupEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS sw:SubGroup managed object table"
+    ::= { cucsSwObjects 82 }
+
+cucsSwSubGroupEntry OBJECT-TYPE
+    SYNTAX           CucsSwSubGroupEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsSwSubGroupTable table."
+    INDEX { cucsSwSubGroupInstanceId }
+    ::= { cucsSwSubGroupTable 1 }
+
+CucsSwSubGroupEntry ::= SEQUENCE {
+    cucsSwSubGroupInstanceId                                         CucsManagedObjectId,
+    cucsSwSubGroupDn                                                 CucsManagedObjectDn,
+    cucsSwSubGroupRn                                                 SnmpAdminString,
+    cucsSwSubGroupAggrPortId                                         CucsSwSubGroupAggrPortId,
+    cucsSwSubGroupLicGP                                              Unsigned64,
+    cucsSwSubGroupLicState                                           CucsLicenseState,
+    cucsSwSubGroupLocale                                             CucsNetworkLocale,
+    cucsSwSubGroupName                                               SnmpAdminString,
+    cucsSwSubGroupSlotId                                             CucsSwSubGroupSlotId,
+    cucsSwSubGroupSwitchId                                           CucsNetworkSwitchId,
+    cucsSwSubGroupTransport                                          CucsNetworkTransport,
+    cucsSwSubGroupType                                               CucsNetworkConnectionType
+}
+
+cucsSwSubGroupInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsSwSubGroupEntry 1 }
+
+cucsSwSubGroupDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SubGroup:dn managed object property"
+    ::= { cucsSwSubGroupEntry 2 }
+
+cucsSwSubGroupRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SubGroup:rn managed object property"
+    ::= { cucsSwSubGroupEntry 3 }
+
+cucsSwSubGroupAggrPortId OBJECT-TYPE
+    SYNTAX       CucsSwSubGroupAggrPortId
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SubGroup:aggrPortId managed object property"
+    ::= { cucsSwSubGroupEntry 4 }
+
+cucsSwSubGroupLicGP OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SubGroup:licGP managed object property"
+    ::= { cucsSwSubGroupEntry 5 }
+
+cucsSwSubGroupLicState OBJECT-TYPE
+    SYNTAX       CucsLicenseState
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SubGroup:licState managed object property"
+    ::= { cucsSwSubGroupEntry 6 }
+
+cucsSwSubGroupLocale OBJECT-TYPE
+    SYNTAX       CucsNetworkLocale
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SubGroup:locale managed object property"
+    ::= { cucsSwSubGroupEntry 7 }
+
+cucsSwSubGroupName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SubGroup:name managed object property"
+    ::= { cucsSwSubGroupEntry 8 }
+
+cucsSwSubGroupSlotId OBJECT-TYPE
+    SYNTAX       CucsSwSubGroupSlotId
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SubGroup:slotId managed object property"
+    ::= { cucsSwSubGroupEntry 9 }
+
+cucsSwSubGroupSwitchId OBJECT-TYPE
+    SYNTAX       CucsNetworkSwitchId
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SubGroup:switchId managed object property"
+    ::= { cucsSwSubGroupEntry 10 }
+
+cucsSwSubGroupTransport OBJECT-TYPE
+    SYNTAX       CucsNetworkTransport
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SubGroup:transport managed object property"
+    ::= { cucsSwSubGroupEntry 11 }
+
+cucsSwSubGroupType OBJECT-TYPE
+    SYNTAX       CucsNetworkConnectionType
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SubGroup:type managed object property"
+    ::= { cucsSwSubGroupEntry 12 }
+
 cucsSwSystemStatsTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwSystemStatsEntry
     MAX-ACCESS       not-accessible
@@ -10767,7 +12082,19 @@ CucsSwSystemStatsEntry ::= SEQUENCE {
     cucsSwSystemStatsSuspect                                         TruthValue,
     cucsSwSystemStatsThresholded                                     CucsSwSystemStatsThresholded,
     cucsSwSystemStatsTimeCollected                                   DateAndTime,
-    cucsSwSystemStatsUpdate                                          Gauge32
+    cucsSwSystemStatsUpdate                                          Gauge32,
+    cucsSwSystemStatsCorrectableParityError                          Gauge32,
+    cucsSwSystemStatsCorrectableParityErrorAvg                       Gauge32,
+    cucsSwSystemStatsCorrectableParityErrorMax                       Gauge32,
+    cucsSwSystemStatsCorrectableParityErrorMin                       Gauge32,
+    cucsSwSystemStatsKernelMemFree                                   Gauge32,
+    cucsSwSystemStatsKernelMemFreeAvg                                Gauge32,
+    cucsSwSystemStatsKernelMemFreeMax                                Gauge32,
+    cucsSwSystemStatsKernelMemFreeMin                                Gauge32,
+    cucsSwSystemStatsKernelMemTotal                                  Gauge32,
+    cucsSwSystemStatsKernelMemTotalAvg                               Gauge32,
+    cucsSwSystemStatsKernelMemTotalMax                               Gauge32,
+    cucsSwSystemStatsKernelMemTotalMin                               Gauge32
 }
 
 cucsSwSystemStatsInstanceId OBJECT-TYPE
@@ -10930,6 +12257,112 @@ cucsSwSystemStatsUpdate OBJECT-TYPE
         "Cisco UCS sw:SystemStats:update managed object property"
     ::= { cucsSwSystemStatsEntry 20 }
 
+cucsSwSystemStatsCorrectableParityError OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStats:CorrectableParityError
+        managed object property"
+    ::= { cucsSwSystemStatsEntry 23 }
+
+cucsSwSystemStatsCorrectableParityErrorAvg OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStats:CorrectableParityErrorAvg
+        managed object property"
+    ::= { cucsSwSystemStatsEntry 24 }
+
+cucsSwSystemStatsCorrectableParityErrorMax OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStats:CorrectableParityErrorMax
+        managed object property"
+    ::= { cucsSwSystemStatsEntry 25 }
+
+cucsSwSystemStatsCorrectableParityErrorMin OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStats:CorrectableParityErrorMin
+        managed object property"
+    ::= { cucsSwSystemStatsEntry 26 }
+
+cucsSwSystemStatsKernelMemFree OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStats:kernelMemFree managed object property"
+    ::= { cucsSwSystemStatsEntry 27 }
+
+cucsSwSystemStatsKernelMemFreeAvg OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStats:kernelMemFreeAvg managed
+        object property"
+    ::= { cucsSwSystemStatsEntry 28 }
+
+cucsSwSystemStatsKernelMemFreeMax OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStats:kernelMemFreeMax managed
+        object property"
+    ::= { cucsSwSystemStatsEntry 29 }
+
+cucsSwSystemStatsKernelMemFreeMin OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStats:kernelMemFreeMin managed
+        object property"
+    ::= { cucsSwSystemStatsEntry 30 }
+
+cucsSwSystemStatsKernelMemTotal OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStats:kernelMemTotal managed object property"
+    ::= { cucsSwSystemStatsEntry 31 }
+
+cucsSwSystemStatsKernelMemTotalAvg OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStats:kernelMemTotalAvg managed
+        object property"
+    ::= { cucsSwSystemStatsEntry 32 }
+
+cucsSwSystemStatsKernelMemTotalMax OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStats:kernelMemTotalMax managed
+        object property"
+    ::= { cucsSwSystemStatsEntry 33 }
+
+cucsSwSystemStatsKernelMemTotalMin OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStats:kernelMemTotalMin managed
+        object property"
+    ::= { cucsSwSystemStatsEntry 34 }
+
 cucsSwSystemStatsHistTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwSystemStatsHistEntry
     MAX-ACCESS       not-accessible
@@ -10967,7 +12400,19 @@ CucsSwSystemStatsHistEntry ::= SEQUENCE {
     cucsSwSystemStatsHistMostRecent                                  TruthValue,
     cucsSwSystemStatsHistSuspect                                     TruthValue,
     cucsSwSystemStatsHistThresholded                                 CucsSwSystemStatsHistThresholded,
-    cucsSwSystemStatsHistTimeCollected                               DateAndTime
+    cucsSwSystemStatsHistTimeCollected                               DateAndTime,
+    cucsSwSystemStatsHistCorrectableParityError                      Gauge32,
+    cucsSwSystemStatsHistCorrectableParityErrorAvg                   Gauge32,
+    cucsSwSystemStatsHistCorrectableParityErrorMax                   Gauge32,
+    cucsSwSystemStatsHistCorrectableParityErrorMin                   Gauge32,
+    cucsSwSystemStatsHistKernelMemFree                               Gauge32,
+    cucsSwSystemStatsHistKernelMemFreeAvg                            Gauge32,
+    cucsSwSystemStatsHistKernelMemFreeMax                            Gauge32,
+    cucsSwSystemStatsHistKernelMemFreeMin                            Gauge32,
+    cucsSwSystemStatsHistKernelMemTotal                              Gauge32,
+    cucsSwSystemStatsHistKernelMemTotalAvg                           Gauge32,
+    cucsSwSystemStatsHistKernelMemTotalMax                           Gauge32,
+    cucsSwSystemStatsHistKernelMemTotalMin                           Gauge32
 }
 
 cucsSwSystemStatsHistInstanceId OBJECT-TYPE
@@ -11137,6 +12582,114 @@ cucsSwSystemStatsHistTimeCollected OBJECT-TYPE
         "Cisco UCS sw:SystemStatsHist:timeCollected managed
         object property"
     ::= { cucsSwSystemStatsHistEntry 20 }
+
+cucsSwSystemStatsHistCorrectableParityError OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStatsHist:CorrectableParityError
+        managed object property"
+    ::= { cucsSwSystemStatsHistEntry 21 }
+
+cucsSwSystemStatsHistCorrectableParityErrorAvg OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStatsHist:CorrectableParityErrorAvg
+        managed object property"
+    ::= { cucsSwSystemStatsHistEntry 22 }
+
+cucsSwSystemStatsHistCorrectableParityErrorMax OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStatsHist:CorrectableParityErrorMax
+        managed object property"
+    ::= { cucsSwSystemStatsHistEntry 23 }
+
+cucsSwSystemStatsHistCorrectableParityErrorMin OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStatsHist:CorrectableParityErrorMin
+        managed object property"
+    ::= { cucsSwSystemStatsHistEntry 24 }
+
+cucsSwSystemStatsHistKernelMemFree OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStatsHist:kernelMemFree managed
+        object property"
+    ::= { cucsSwSystemStatsHistEntry 25 }
+
+cucsSwSystemStatsHistKernelMemFreeAvg OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStatsHist:kernelMemFreeAvg
+        managed object property"
+    ::= { cucsSwSystemStatsHistEntry 26 }
+
+cucsSwSystemStatsHistKernelMemFreeMax OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStatsHist:kernelMemFreeMax
+        managed object property"
+    ::= { cucsSwSystemStatsHistEntry 27 }
+
+cucsSwSystemStatsHistKernelMemFreeMin OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStatsHist:kernelMemFreeMin
+        managed object property"
+    ::= { cucsSwSystemStatsHistEntry 28 }
+
+cucsSwSystemStatsHistKernelMemTotal OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStatsHist:kernelMemTotal managed
+        object property"
+    ::= { cucsSwSystemStatsHistEntry 29 }
+
+cucsSwSystemStatsHistKernelMemTotalAvg OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStatsHist:kernelMemTotalAvg
+        managed object property"
+    ::= { cucsSwSystemStatsHistEntry 30 }
+
+cucsSwSystemStatsHistKernelMemTotalMax OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStatsHist:kernelMemTotalMax
+        managed object property"
+    ::= { cucsSwSystemStatsHistEntry 31 }
+
+cucsSwSystemStatsHistKernelMemTotalMin OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:SystemStatsHist:kernelMemTotalMin
+        managed object property"
+    ::= { cucsSwSystemStatsHistEntry 32 }
 
 cucsSwUlanTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwUlanEntry
@@ -11876,6 +13429,71 @@ cucsSwUtilityDomainFsmTaskSeqId OBJECT-TYPE
         "Cisco UCS sw:UtilityDomainFsmTask:seqId managed object property"
     ::= { cucsSwUtilityDomainFsmTaskEntry 7 }
 
+cucsSwVIFRefTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsSwVIFRefEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS sw:VIFRef managed object table"
+    ::= { cucsSwObjects 88 }
+
+cucsSwVIFRefEntry OBJECT-TYPE
+    SYNTAX           CucsSwVIFRefEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsSwVIFRefTable table."
+    INDEX { cucsSwVIFRefInstanceId }
+    ::= { cucsSwVIFRefTable 1 }
+
+CucsSwVIFRefEntry ::= SEQUENCE {
+    cucsSwVIFRefInstanceId                                           CucsManagedObjectId,
+    cucsSwVIFRefDn                                                   CucsManagedObjectDn,
+    cucsSwVIFRefRn                                                   SnmpAdminString,
+    cucsSwVIFRefId                                                   Gauge32,
+    cucsSwVIFRefPeerDn                                               SnmpAdminString
+}
+
+cucsSwVIFRefInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsSwVIFRefEntry 1 }
+
+cucsSwVIFRefDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:VIFRef:dn managed object property"
+    ::= { cucsSwVIFRefEntry 2 }
+
+cucsSwVIFRefRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:VIFRef:rn managed object property"
+    ::= { cucsSwVIFRefEntry 3 }
+
+cucsSwVIFRefId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:VIFRef:id managed object property"
+    ::= { cucsSwVIFRefEntry 4 }
+
+cucsSwVIFRefPeerDn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:VIFRef:peerDn managed object property"
+    ::= { cucsSwVIFRefEntry 5 }
+
 cucsSwVirtL3IntfTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwVirtL3IntfEntry
     MAX-ACCESS       not-accessible
@@ -12285,7 +13903,8 @@ CucsSwVlanGroupEntry ::= SEQUENCE {
     cucsSwVlanGroupId                                                Gauge32,
     cucsSwVlanGroupPeerDn                                            SnmpAdminString,
     cucsSwVlanGroupSwitchId                                          CucsNetworkSwitchId,
-    cucsSwVlanGroupType                                              CucsSwVlanGroupType
+    cucsSwVlanGroupType                                              CucsSwVlanGroupType,
+    cucsSwVlanGroupPvScore                                           Gauge32
 }
 
 cucsSwVlanGroupInstanceId OBJECT-TYPE
@@ -12344,6 +13963,14 @@ cucsSwVlanGroupType OBJECT-TYPE
         "Cisco UCS sw:VlanGroup:type managed object property"
     ::= { cucsSwVlanGroupEntry 7 }
 
+cucsSwVlanGroupPvScore OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:VlanGroup:pvScore managed object property"
+    ::= { cucsSwVlanGroupEntry 8 }
+
 cucsSwVlanPortNsTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwVlanPortNsEntry
     MAX-ACCESS       not-accessible
@@ -12373,7 +14000,11 @@ CucsSwVlanPortNsEntry ::= SEQUENCE {
     cucsSwVlanPortNsConfigStatus                                     CucsSwConfigStatus,
     cucsSwVlanPortNsVlanCompOffLimit                                 Gauge32,
     cucsSwVlanPortNsVlanCompOnLimit                                  Gauge32,
-    cucsSwVlanPortNsTotalVlanPortCount                               Gauge32
+    cucsSwVlanPortNsTotalVlanPortCount                               Gauge32,
+    cucsSwVlanPortNsCompressedOptimizationSets                       Gauge32,
+    cucsSwVlanPortNsCompressedVlanPortCount                          Gauge32,
+    cucsSwVlanPortNsTotalOptimizationSets                            Gauge32,
+    cucsSwVlanPortNsUncompressedVlanPortCount                        Gauge32
 }
 
 cucsSwVlanPortNsInstanceId OBJECT-TYPE
@@ -12474,6 +14105,42 @@ cucsSwVlanPortNsTotalVlanPortCount OBJECT-TYPE
         "Cisco UCS sw:VlanPortNs:totalVlanPortCount managed
         object property"
     ::= { cucsSwVlanPortNsEntry 12 }
+
+cucsSwVlanPortNsCompressedOptimizationSets OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:VlanPortNs:compressedOptimizationSets
+        managed object property"
+    ::= { cucsSwVlanPortNsEntry 13 }
+
+cucsSwVlanPortNsCompressedVlanPortCount OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:VlanPortNs:compressedVlanPortCount
+        managed object property"
+    ::= { cucsSwVlanPortNsEntry 14 }
+
+cucsSwVlanPortNsTotalOptimizationSets OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:VlanPortNs:totalOptimizationSets
+        managed object property"
+    ::= { cucsSwVlanPortNsEntry 15 }
+
+cucsSwVlanPortNsUncompressedVlanPortCount OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sw:VlanPortNs:uncompressedVlanPortCount
+        managed object property"
+    ::= { cucsSwVlanPortNsEntry 16 }
 
 cucsSwVlanPortNsOverrideTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSwVlanPortNsOverrideEntry

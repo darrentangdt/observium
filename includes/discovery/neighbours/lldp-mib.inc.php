@@ -13,12 +13,13 @@
  */
 
 $lldp_array = snmpwalk_cache_threepart_oid($device, "lldpRemoteSystemsData", array(), "LLDP-MIB", NULL, OBS_SNMP_ALL | OBS_SNMP_CONCAT);
+print_debug_vars($lldp_array);
 
 if ($lldp_array)
 {
-  if (OBS_DEBUG > 1) { print_vars($lldp_array); }
   $dot1d_array = snmpwalk_cache_oid($device, "dot1dBasePortIfIndex", array(), "BRIDGE-MIB");
-  $lldp_local_array = snmpwalk_cache_oid($device, "lldpLocalSystemData", array(), "LLDP-MIB");
+  //$lldp_local_array = snmpwalk_cache_oid($device, "lldpLocalSystemData", array(), "LLDP-MIB");
+  $lldp_local_array = snmpwalk_cache_oid($device, "lldpLocPortEntry", array(), "LLDP-MIB");
 
   foreach ($lldp_array as $key => $lldp_if_array)
   {
@@ -38,13 +39,34 @@ if ($lldp_array)
       if (!$port)
       {
         $ifName = $lldp_local_array[$entry_key]['lldpLocPortDesc'];
-        $port = dbFetchRow("SELECT * FROM `ports` WHERE `device_id` = ? AND `ifDescr` = ?", array($device['device_id'], $ifName));
+        $port = dbFetchRow("SELECT * FROM `ports` WHERE `device_id` = ? AND (`ifName`= ? OR `ifDescr` = ?)", array($device['device_id'], $ifName, $ifName));
       }
+      /*
+      // last try by lldpLocPortId
+      if (!$port)
+      {
+        if ($lldp['lldpLocPortIdSubtype'] != 'macAddress')
+        {
+          $lldp['lldpLocPortId'] = snmp_hexstring($lldp['lldpLocPortId']);
+        }
+      }
+      */
 
       foreach ($lldp_instance as $entry_instance => $lldp)
       {
         $remote_device_id = FALSE;
         $remote_port_id   = 0;
+
+        // Sometime lldpRemPortDesc is not set
+        if (!isset($lldp['lldpRemPortDesc']))
+        {
+          $lldp['lldpRemPortDesc'] = '';
+        }
+        // lldpRemPortId can be hex string
+        if ($lldp['lldpRemPortIdSubtype'] != 'macAddress')
+        {
+          $lldp['lldpRemPortId'] = snmp_hexstring($lldp['lldpRemPortId']);
+        }
 
         if (is_valid_hostname($lldp['lldpRemSysName']))
         {
@@ -87,7 +109,8 @@ if ($lldp_array)
 
         if ($remote_device_id)
         {
-          $if = $lldp['lldpRemPortDesc']; $id = $lldp['lldpRemPortId'];
+          $if = $lldp['lldpRemPortDesc'];
+          $id = $lldp['lldpRemPortId'];
 
           // lldpPortIdSubtype   -> lldpPortId
           //  interfaceAlias(1), ->  ifAlias
@@ -100,11 +123,17 @@ if ($lldp_array)
           switch ($lldp['lldpRemPortIdSubtype'])
           {
             case 'interfaceAlias':
-              $id = snmp_hexstring($id);
-              $remote_port_id = dbFetchCell("SELECT `port_id` FROM `ports` WHERE (`ifAlias` = ? OR `ifDescr` = ?) AND `device_id` = ?", array($id, $if, $remote_device_id));
+              $remote_port_id = dbFetchCell("SELECT `port_id` FROM `ports` WHERE (`ifAlias` = ? OR `ifDescr` = ? OR `port_label_short` = ?) AND `device_id` = ?", array($id, $if, $if, $remote_device_id));
               break;
             case 'interfaceName':
-              $remote_port_id = dbFetchCell("SELECT `port_id` FROM `ports` WHERE (`ifName` = ?  OR `ifDescr` = ?) AND `device_id` = ?", array($id, $if, $remote_device_id));
+              // Try lldpRemPortId
+              $query = 'SELECT `port_id` FROM `ports` WHERE (`ifName` = ? OR `ifDescr` = ? OR `port_label_short` = ?) AND `device_id` = ?';
+              $remote_port_id = dbFetchCell($query, array($id, $id, $id, $remote_device_id));
+              if (!$remote_port_id)
+              {
+                // Try same by lldpRemPortDesc
+                $remote_port_id = dbFetchCell($query, array($if, $if, $if, $remote_device_id));
+              }
               break;
             case 'macAddress':
               $remote_port_id = dbFetchCell("SELECT `port_id` FROM `ports` WHERE `ifPhysAddress` = ? AND `device_id` = ?", array(strtolower(str_replace(array(' ', '-'), '', $id)), $remote_device_id));
@@ -122,7 +151,13 @@ if ($lldp_array)
               if (!ctype_digit($id))
               {
                 // Not sure what should be if $id ifName and it just numeric
-                $remote_port_id = dbFetchCell("SELECT `port_id` FROM `ports` WHERE (`ifName`= ? OR `ifDescr` = ?) AND `device_id` = ?", array($id, $if, $remote_device_id));
+                $query = 'SELECT `port_id` FROM `ports` WHERE (`ifName` = ? OR `ifDescr` = ? OR `port_label_short` = ?) AND `device_id` = ?';
+                $remote_port_id = dbFetchCell($query, array($id, $id, $id, $remote_device_id));
+                if (!$remote_port_id)
+                {
+                  // Try same by lldpRemPortDesc
+                  $remote_port_id = dbFetchCell($query, array($if, $if, $if, $remote_device_id));
+                }
               }
             case 'ifIndex':
               // These cases are handled by the ifDescr/ifIndex combination fallback below
@@ -143,6 +178,10 @@ if ($lldp_array)
               $remote_chassis_id = strtolower(str_replace(array(' ', '-'),'',$lldp['lldpRemChassisId']));
               $remote_port_ids = dbFetchRows("SELECT `port_id` FROM `ports` WHERE `ifPhysAddress` = ? AND `device_id` = ?", array($remote_chassis_id, $remote_device_id));
               if (count($remote_port_ids) == 1) { $remote_port_id = $remote_port_ids[0]['port_id']; }
+            } else {
+              // Last chance
+              $query = 'SELECT `port_id` FROM `ports` WHERE (`ifName` IN (?, ?) OR `ifDescr` IN (?, ?) OR `port_label_short` IN (?, ?)) AND `device_id` = ?';
+              $remote_port_id = dbFetchCell($query, array($id, $if, $id, $if, $id, $if, $remote_device_id));
             }
           }
         } else {

@@ -1,5 +1,5 @@
 --
--- Copyright 2010-2014 Ruckus Wireless, Inc. All rights reserved.
+-- Copyright 2010-2013 Ruckus Wireless, Inc. All rights reserved.
 --
 -- RUCKUS WIRELESS, INC. CONFIDENTIAL - 
 -- This is an unpublished, proprietary work of Ruckus Wireless, Inc., and is 
@@ -20,19 +20,19 @@ IMPORTS
         FROM SNMPv2-SMI;
 
 ruckusTCMIB MODULE-IDENTITY
-    LAST-UPDATED "201405191100Z"
+    LAST-UPDATED "201010150800Z"
     ORGANIZATION "Ruckus Wireless, Inc."
     CONTACT-INFO
         "Ruckus Wireless, Inc.
 
+        Postal:
         350 West Java Dr.
         Sunnyvale, CA 94089
         USA
 
-        T: +1 (650) 265-4200
-        F: +1 (408) 738-2065
-        EMail: info@ruckuswireless.com
-        Web: www.ruckuswireless.com"
+        EMail: support@ruckuswireless.com
+
+        Phone: +1-650-265-4200"
     DESCRIPTION
         "This is the mib module for defining all the textual
         conventions."

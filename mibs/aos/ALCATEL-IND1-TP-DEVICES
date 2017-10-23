@@ -78,31 +78,31 @@ chassisOmniAccess4000 OBJECT-IDENTITY
     ::= { familyOmniAccess4000 1 }
 
 deviceOmniAccess4012 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess 4012 12-Slot Chassis.
-		Model Name:
-		Assembly:
-		sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.1.1.1"
-	::= { chassisOmniAccess4000 1 }
+        STATUS current
+        DESCRIPTION
+                "OmniAccess 4012 12-Slot Chassis.
+                Model Name:
+                Assembly:
+                sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.1.1.1"
+        ::= { chassisOmniAccess4000 1 }
 
 deviceOmniAccess4024 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess 4024 24-Slot Chassis.
-		Model Name:
-		Assembly:
-		sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.1.1.2"
-	::= { chassisOmniAccess4000 2 }
+        STATUS current
+        DESCRIPTION
+                "OmniAccess 4024 24-Slot Chassis.
+                Model Name:
+                Assembly:
+                sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.1.1.2"
+        ::= { chassisOmniAccess4000 2 }
 
 deviceOmniAccess4102 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess 41024 2-Slot Chassis.
-		Model Name:
-		Assembly:
-		sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.1.1.3"
-	::= { chassisOmniAccess4000 3 }
+        STATUS current
+        DESCRIPTION
+                "OmniAccess 41024 2-Slot Chassis.
+                Model Name:
+                Assembly:
+                sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.1.1.3"
+        ::= { chassisOmniAccess4000 3 }
 
 fansOmniAccess4000 OBJECT-IDENTITY
     STATUS current
@@ -141,44 +141,44 @@ chassisOmniAccessWireless OBJECT-IDENTITY
 chassisOmniAccessWirelessSwitch OBJECT-IDENTITY
     STATUS current
     DESCRIPTION
-        "Branch For OmniAccess Wireless Series Switches."
+        "Branch For OmniAccess Wireless Controller Switches."
     ::= { chassisOmniAccessWireless 1 }
 
 deviceOmniAccess5000 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess 5000 Chassis.
-		Model Name: OAW-5000
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.1"
-	::= { chassisOmniAccessWirelessSwitch 1 }
+        STATUS current
+        DESCRIPTION
+                "OmniAccess 5000 Chassis.
+                Model Name: OAW-5000
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.1"
+        ::= { chassisOmniAccessWirelessSwitch 1 }
 
 deviceOmniAccess4324 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess 4024 24-Slot Chassis.
-		Model Name: OAW-4024
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.2 "
-	::= { chassisOmniAccessWirelessSwitch 2 }
+        STATUS current
+        DESCRIPTION
+                "OmniAccess 4024 24-Slot Chassis.
+                Model Name: OAW-4024
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.2 "
+        ::= { chassisOmniAccessWirelessSwitch 2 }
 
 deviceOmniAccess4308 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess 4308 8-Slot Chassis.
-		Model Name: OAW-4308
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.3"
-	::= { chassisOmniAccessWirelessSwitch 3 }
+        STATUS current
+        DESCRIPTION
+                "OmniAccess 4308 8-Slot Chassis.
+                Model Name: OAW-4308
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.3"
+        ::= { chassisOmniAccessWirelessSwitch 3 }
 
 deviceOmniAccess6000 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccessChassis.
-		Model Name: OAW-6000
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.4"
-	::= { chassisOmniAccessWirelessSwitch 4 }
+        STATUS current
+        DESCRIPTION
+                "OmniAccessChassis.
+                Model Name: OAW-6000
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.4"
+        ::= { chassisOmniAccessWirelessSwitch 4 }
 
 -- Note: Earlier AOS MIB had assigned this OID to OAW-4304
 deviceOmniAccess4302 OBJECT-IDENTITY
@@ -257,6 +257,100 @@ deviceOmniAccess4306GW OBJECT-IDENTITY
                 sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.12"
         ::= { chassisOmniAccessWirelessSwitch 12 }
 
+
+
+deviceOmniAccess4550 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess Wireless LAN 4550 controller/switch,
+                Model Name: OAW-4550
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.13"
+        ::= { chassisOmniAccessWirelessSwitch 13 }
+
+
+deviceOmniAccess4650 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess Wireless LAN  4650 controller/switch,
+                Model Name: OAW-4650
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.14"
+        ::= { chassisOmniAccessWirelessSwitch 14 }
+
+
+deviceOmniAccess4750 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess Wireless LAN  4750 controller/switch,
+                Model Name: OAW-4750
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.15"
+        ::= { chassisOmniAccessWirelessSwitch 15 }
+
+deviceOmniAccess4005 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-4005 Mobility Controller, 4 x 10/100/1000Base-T (RJ-45), 8 AP Support
+                Model Name: OAW-4005-RW
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.16"
+        ::= { chassisOmniAccessWirelessSwitch 16 }
+
+deviceOmniAccess4010 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-4010 Mobility Controller, 12x 10/100/1000Base-T (RJ-45) PoE/PoE+; 32 AP and 2K client support,  4 x 10/100/1000Base-T (RJ-45); 2 x SFP Ports
+                Model Name: OAW-4010-RW
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.17"
+        ::= { chassisOmniAccessWirelessSwitch 17 }
+
+deviceOmniAccess4030 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-4030 Mobility Controller with 8x combo (10/100/1000 or SFP) ports, 64 AP supported. 
+                Model Name: OAW-4030-RW
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.18"
+        ::= { chassisOmniAccessWirelessSwitch 18 }
+
+deviceOmniAccessWireless4024 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-4024 Mobility Controller with 32 AP support. 24x 10/100/100BASE-T PoE/PoE+; 2x 10GBase-x (SFP+); 1x USB for 3G/4G backup
+                Model Name: OAW-4024
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.19"
+        ::= { chassisOmniAccessWirelessSwitch 19 }
+
+deviceOmniAccessWireless4450 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-4450 Mobility Controller with 128 AP support. 2 x 10GBASE-x SFP/SFP+ 4 x Dual Personality ports, 4x 10/100/1000BASE-T or 4x 1000BASE-x SFP
+                Model Name: OAW-4450
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.20"
+        ::= { chassisOmniAccessWirelessSwitch 20 }
+
+deviceOmniAccess4750XM OBJECT-IDENTITY
+      STATUS current
+      DESCRIPTION
+             "OmniAccess W-4750XM Mobility Controller with 16GB Extended Memory. Includes one 350W AC 	power supply.
+              Model Name: OAW-4750XM
+              Assembly:
+              sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.21"
+      ::= { chassisOmniAccessWirelessSwitch 21 }
+
+deviceOmniAccess4008 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-4008 Mobility Controller, 8x 10/100/1000Base-T (RJ-45) POE/POE+. 16 AP and 1K client Support
+                Model Name: OAW-4008
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.1.22"
+        ::= { chassisOmniAccessWirelessSwitch 22 }
+
 chassisOmniAccessWirelessAP OBJECT-IDENTITY
     STATUS current
     DESCRIPTION
@@ -264,67 +358,67 @@ chassisOmniAccessWirelessAP OBJECT-IDENTITY
     ::= { chassisOmniAccessWireless 2 }
 
 deviceOmniAccessAP60 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess AP60 Access point Chassis.
-		Model Name: OAW-AP60
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.1"
-	::= { chassisOmniAccessWirelessAP 1 }
+        STATUS current
+        DESCRIPTION
+                "OmniAccess AP60 Access point Chassis.
+                Model Name: OAW-AP60
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.1"
+        ::= { chassisOmniAccessWirelessAP 1 }
 
 deviceOmniAccessAP61 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess AP61 Access point Chassis.
-		Model Name: OAW-AP61
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.2 "
-	::= { chassisOmniAccessWirelessAP 2 }
+        STATUS current
+        DESCRIPTION
+                "OmniAccess AP61 Access point Chassis.
+                Model Name: OAW-AP61
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.2 "
+        ::= { chassisOmniAccessWirelessAP 2 }
 
 deviceOmniAccessAP70 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess AP70 Access point Chassis.
-		Model Name: OAW-AP70
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.3"
-	::= { chassisOmniAccessWirelessAP 3 }
+        STATUS current
+        DESCRIPTION
+                "OmniAccess AP70 Access point Chassis.
+                Model Name: OAW-AP70
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.3"
+        ::= { chassisOmniAccessWirelessAP 3 }
 
 deviceOmniAccessAP80S OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess AP80S - Outdoor Dual Radio Access Point
-		Model Name: OAW-AP80S
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.4"
-	::= { chassisOmniAccessWirelessAP 4 }
+        STATUS current
+        DESCRIPTION
+                "OmniAccess AP80S - Outdoor Dual Radio Access Point
+                Model Name: OAW-AP80S
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.4"
+        ::= { chassisOmniAccessWirelessAP 4 }
 
 deviceOmniAccessAP80M OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess AP80M - Outdoor Dual Radio Access Point
-		Model Name: OAW-AP80M
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.5"
-	::= { chassisOmniAccessWirelessAP 5 }
+        STATUS current
+        DESCRIPTION
+                "OmniAccess AP80M - Outdoor Dual Radio Access Point
+                Model Name: OAW-AP80M
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.5"
+        ::= { chassisOmniAccessWirelessAP 5 }
 
 deviceOmniAccessAP65 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess AP65 - Dual Radio Access Point
-		Model Name: OAW-AP65
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.6"
-	::= { chassisOmniAccessWirelessAP 6 }
+        STATUS current
+        DESCRIPTION
+                "OmniAccess AP65 - Dual Radio Access Point
+                Model Name: OAW-AP65
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.6"
+        ::= { chassisOmniAccessWirelessAP 6 }
 
 deviceOmniAccessAP40 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess AP40 - Single Radio Access Point
-		Model Name: OAW-AP40
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.7"
-	::= { chassisOmniAccessWirelessAP 7 }
+        STATUS current
+        DESCRIPTION
+                "OmniAccess AP40 - Single Radio Access Point
+                Model Name: OAW-AP40
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.7"
+        ::= { chassisOmniAccessWirelessAP 7 }
 
 
 deviceOmniAccessAP85 OBJECT-IDENTITY
@@ -529,6 +623,301 @@ deviceOmniAccessAP185 OBJECT-IDENTITY
                 sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.26"
         ::= { chassisOmniAccessWirelessAP 26 }
 
+
+deviceOmniAccessAP175POE OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess AP175 Outdoor Access Point, 802.11n 2x2 dual radio 320mW; POE powered
+                Model Name: OAW-AP175POE
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.27"
+        ::= { chassisOmniAccessWirelessAP 27 }
+
+deviceOmniAccessAP175AC OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess AP175 Outdoor Access Point, 802.11n 2x2 dual radio 320mW; AC powered
+                Model Name: OAW-AP175AC
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.28"
+        ::= { chassisOmniAccessWirelessAP 28 }
+
+deviceOmniAccessAP175DC OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess AP175 Outdoor Access Point, 802.11n 2x2 dual radio 320mW; DC powered
+                Model Name: OAW-AP175DC
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.29"
+        ::= { chassisOmniAccessWirelessAP 29 }
+
+deviceOmniAccessAP68 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess 68 Wireless Access Point, 802.11bgn, single radio, integrated antennas
+                Model Name: OAW-AP68
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.30"
+        ::= { chassisOmniAccessWirelessAP 30 }
+
+deviceOmniAccessAP68P OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess 68P Wireless Access Point, 802.11bgn, high-power, single radio, antenna connector
+                Model Name: OAW-AP68P
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.31"
+        ::= { chassisOmniAccessWirelessAP 31 }
+
+deviceOmniAccessAP93H OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess AP93H Wireless Access Point, 802.11abgn, dual-band, single radio, integrated antennas
+                Model Name: OAW-AP93H
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.32"
+        ::= { chassisOmniAccessWirelessAP 32 }
+
+
+deviceOmniAccessAP134 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess AP134 Wireless Access Point, 802.11abgn, 3x3:3, dual radio, external antenna connectors
+                Model Name: OAW-AP134
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.33"
+        ::= { chassisOmniAccessWirelessAP 33 }
+
+deviceOmniAccessAP135 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess AP135 Wireless Access Point, 802.11abgn, 3x3:3, dual radio, integrated antennas
+                Model Name: OAW-AP135
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.34"
+        ::= { chassisOmniAccessWirelessAP 34 }
+
+deviceOmniAccessIAP23 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess IAP23 Instant Access Point (wireless, 3x10/100Base-T, USB)
+                Model Name: OAW-IAP23
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.35"
+        ::= { chassisOmniAccessWirelessAP 35 }
+
+deviceOmniAccessIAP23P OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess IAP23P Instant Access Point (wireless, 3x10/100Base-T, USB, POE out)
+                Model Name: OAW-IAP23P
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.36"
+        ::= { chassisOmniAccessWirelessAP 36 }
+
+deviceOmniAccessAP104 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess AP104 Wireless Access Point (802.11abgn 2x2:2, dual radio, antenna connectors)
+                Model Name: OAW-AP104
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.37"
+        ::= { chassisOmniAccessWirelessAP 37 }
+
+deviceOmniAccessRAP108 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess Instant RAP108 Wireless Access Point, 802.11a/b/g/n, 2x2:2, dual radio, antenna connectors
+                Model Name: OAW-RAP108
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.38"
+        ::= { chassisOmniAccessWirelessAP 38 }
+
+deviceOmniAccessRAP109 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess Instant RAP109 Wireless Access Point, 802.11a/b/g/n, 2x2:2, dual radio, integrated antennas
+                Model Name: OAW-RAP109
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.39"
+        ::= { chassisOmniAccessWirelessAP 39 }
+
+deviceOmniAccessRAP155 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess RAP155 Remote Access Point (wireless, 5x10/100/100 Base-T, USB)
+                Model Name: OAW-RAP155
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.40"
+        ::= { chassisOmniAccessWirelessAP 40 }
+
+deviceOmniAccessRAP155P OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess RAP155P Remote Access Point (wireless, 5x10/100/1000Base-T, USB, POE out)
+                Model Name: OAW-RAP155P
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.41"
+        ::= { chassisOmniAccessWirelessAP 41 }
+
+deviceOmniAccessAP224 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-AP224 Wireless Access Point, 802.11ac, 3x3:3, dual radio, antenna connectors
+                Model Name: OAW-AP224
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.42"
+        ::= { chassisOmniAccessWirelessAP 42 }
+
+deviceOmniAccessAP114 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-AP114 Wireless Access Point, 802.11ac, 3x3:3, dual radio, antenna connectors
+                Model Name: OAW-AP114
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.43"
+        ::= { chassisOmniAccessWirelessAP 43 }
+
+deviceOmniAccessAP225 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-AP225 Wireless Access Point, 802.11ac, 3x3:3, dual radio, integrated antennas
+                Model Name: OAW-AP225
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.44"
+        ::= { chassisOmniAccessWirelessAP 44 }
+
+deviceOmniAccessAP115 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-Instant IAP115 Wireless Access Point, 802.11ac, 3x3:3, dual radio, antenna connectors
+                Model Name: OAW-AP115
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.45"
+        ::= { chassisOmniAccessWirelessAP 45 }
+
+		
+deviceOmniAccessAP274 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-AP274 Outdoor Wireless Access Point, 802.11n/ac, 3x3:3, dual radio, antenna connectors
+                Model Name: OAW-AP274
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.46"
+        ::= { chassisOmniAccessWirelessAP 46 }
+		
+deviceOmniAccessAP275 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-AP275 Outdoor Wireless Access Point, 802.11n/ac, 3x3:3, dual radio, integrated antennas
+                Model Name: OAW-AP275
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.47"
+        ::= { chassisOmniAccessWirelessAP 47 }
+
+deviceOmniAccessAP214 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-AP214 Wireless Access Point, 802.11n/ac, 3x3:3, dual radio, antenna connectors
+                Model Name: OAW-AP214
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.48"
+        ::= { chassisOmniAccessWirelessAP 48 }
+
+deviceOmniAccessAP215 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-AP215 Wireless Access Point, 802.11n/ac, 3x3:3, dual radio, integrated antennas
+                Model Name: OAW-AP215
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.49"
+        ::= { chassisOmniAccessWirelessAP 49 }
+
+
+deviceOmniAccessAP204 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess  W-AP204 Wireless Access Point, 802.11n/ac, 3x3:3, dual radio, antenna connectors
+                Model Name: OAW-AP204
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.50"
+        ::= { chassisOmniAccessWirelessAP 50 }
+
+deviceOmniAccessAP205 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess  W-AP205 Wireless Access Point, 802.11n/ac, 3x3:3, dual radio, integrated antennas
+                Model Name: OAW-AP205
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.51"
+        ::= { chassisOmniAccessWirelessAP 51 }
+
+deviceOmniAccessAP103 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAcces W-AP103 Wireless Access Point, 802.11n, 2x2:2, dual radio, integrated antennas
+                Model Name: OAW-AP103
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.52"
+        ::= { chassisOmniAccessWirelessAP 52 }
+
+deviceOmniAccessAP103H OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-AP103H Wireless Access Point - Hospitality, 802.11n, 2x2:2, dual radio, integrated antennas
+                Model Name: OAW-AP103H
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.53"
+        ::= { chassisOmniAccessWirelessAP 53 }
+
+deviceOmniAccessAP277 OBJECT-IDENTITY
+       STATUS current
+       DESCRIPTION
+               "OmniAccess W-AP277 Outdoor Wireless Access Point, 802.11n/ac, 3x3:3, dual radio, integrated     directional antennas
+               Model Name: OAW-AP277
+               Assembly:
+               sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.54"
+        ::= { chassisOmniAccessWirelessAP 54 }
+
+deviceOmniAccessAP228 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+               "OmniAccess W-AP228 Weather protected extended Temperature Outdoor Wireless Access Point, 802.11n/ac, 3x3:3, dual radio, integrated directional antennas
+               Model Name: OAW-AP228
+               Assembly:
+               sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.55"
+       ::= { chassisOmniAccessWirelessAP 55 }
+
+deviceOmniAccessAP205H OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-AP205H Wireless Access Point - Hospitality, 802.11ac, 2x2:2, dual radio, integrated antennas
+                Model Name: OAW-AP205H
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.56"
+        ::= { chassisOmniAccessWirelessAP 56 }
+
+-- Not allocated .57 ... Was assignment for a duplicate request ... deleted before release ...
+
+deviceOmniAccessAP324 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-AP324 Wireless Access Point, 802.11n/ac, 4x4:4, dual radio, antenna connectors
+                Model Name: OAW-AP324
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.58"
+        ::= { chassisOmniAccessWirelessAP 58 }
+
+
+deviceOmniAccessAP325 OBJECT-IDENTITY
+        STATUS current
+        DESCRIPTION
+                "OmniAccess W-AP325 Wireless Access Point, 802.11n/ac, 4x4:4, dual radio, integrated antennas
+                Model Name: OAW-AP325
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.2.1.2.59"
+        ::= { chassisOmniAccessWirelessAP 59 }
+
 fansOmniAccessWireless OBJECT-IDENTITY
     STATUS current
     DESCRIPTION
@@ -663,111 +1052,111 @@ chassisOmniAccessWAN OBJECT-IDENTITY
     ::= { familyOmniAccessWAN 1 }
 
 deviceOmniAccess604T1 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess 604 Chassis. WAN Branch Router providing 4-ports active
-		T1, (2) 10/100 Eth. Ports, 32MB FLASH, 256MB SDRAM, BGP
-		Model Name: OA-604-T1
-		Assembly:
-		sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.3.1.20"
-	::= { chassisOmniAccessWAN  20}
+        STATUS current
+        DESCRIPTION
+                "OmniAccess 604 Chassis. WAN Branch Router providing 4-ports active
+                T1, (2) 10/100 Eth. Ports, 32MB FLASH, 256MB SDRAM, BGP
+                Model Name: OA-604-T1
+                Assembly:
+                sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.3.1.20"
+        ::= { chassisOmniAccessWAN  20}
 
 deviceOmniAccess604E1 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess 604 Chassis. WAN Branch Router providing 4-ports active
-		E1, (2) 10/100 Eth. Ports, 32MB FLASH, 256MB SDRAM, BGP
-		Model Name: OA-604-E1
-		Assembly:
-		sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.3.1.21"
-	::= { chassisOmniAccessWAN  21}
+        STATUS current
+        DESCRIPTION
+                "OmniAccess 604 Chassis. WAN Branch Router providing 4-ports active
+                E1, (2) 10/100 Eth. Ports, 32MB FLASH, 256MB SDRAM, BGP
+                Model Name: OA-604-E1
+                Assembly:
+                sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.3.1.21"
+        ::= { chassisOmniAccessWAN  21}
 
 deviceOmniAccess602T1 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess 602 Chassis. WAN Branch Router providing 2-ports active
-		T1, (2) 10/100 Eth. Ports, 16MB FLASH, 256MB SDRAM, BGP
-		Model Name: OA-602-T1
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.3.1.22 "
-	::= { chassisOmniAccessWAN  22}
+        STATUS current
+        DESCRIPTION
+                "OmniAccess 602 Chassis. WAN Branch Router providing 2-ports active
+                T1, (2) 10/100 Eth. Ports, 16MB FLASH, 256MB SDRAM, BGP
+                Model Name: OA-602-T1
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.3.1.22 "
+        ::= { chassisOmniAccessWAN  22}
 
 deviceOmniAccess602E1 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess 602 Chassis. WAN Branch Router providing 2-ports active
-		E1, (2) 10/100 Eth. Ports, 16MB FLASH, 256MB SDRAM, BGP
-		Model Name: OA-602-E1
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.3.1.23"
-	::= { chassisOmniAccessWAN  23}
+        STATUS current
+        DESCRIPTION
+                "OmniAccess 602 Chassis. WAN Branch Router providing 2-ports active
+                E1, (2) 10/100 Eth. Ports, 16MB FLASH, 256MB SDRAM, BGP
+                Model Name: OA-602-E1
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.3.1.23"
+        ::= { chassisOmniAccessWAN  23}
 
 deviceOmniAccess601 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess 601 Chassis. WAN Branch Router providing 1-port active
-		T1/E1, (2) 10/100 Eth. Ports, 16MB FLASH, 128MB SDRAM, BGP
-		Model Name: OA-601
-		Assembly:
-		sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.3.1.30"
-	::= { chassisOmniAccessWAN 30 }
+        STATUS current
+        DESCRIPTION
+                "OmniAccess 601 Chassis. WAN Branch Router providing 1-port active
+                T1/E1, (2) 10/100 Eth. Ports, 16MB FLASH, 128MB SDRAM, BGP
+                Model Name: OA-601
+                Assembly:
+                sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.3.1.30"
+        ::= { chassisOmniAccessWAN 30 }
 
 
 deviceOmniAccess601SBU OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess 601 Chassis - WAN Branch Router providing 1-port active
+        STATUS current
+        DESCRIPTION
+                "OmniAccess 601 Chassis - WAN Branch Router providing 1-port active
         USP port, 1-port ISDN BRI type U interface, (2) 10/100 Eth. Ports,
         16MB FLASH, 128MB SDRAM, BGP
-		Model Name: OA-601S-BU
-		Assembly:
-		sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.3.1.31"
-	::= { chassisOmniAccessWAN 31 }
+                Model Name: OA-601S-BU
+                Assembly:
+                sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.3.1.31"
+        ::= { chassisOmniAccessWAN 31 }
 
 deviceOmniAccess625 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess OA-625 Chassis. Modular WAN Branch Router providing
-		2-slots for  WAN Interface Modules (WIM), (2) 10/100 Eth. Ports,
-		64MB FLASH, 256MB SDRAM, BGP
-		Model Name: OA-625
-		Assembly:
-		sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.3.1.32"
-	::= { chassisOmniAccessWAN 32 }
+        STATUS current
+        DESCRIPTION
+                "OmniAccess OA-625 Chassis. Modular WAN Branch Router providing
+                2-slots for  WAN Interface Modules (WIM), (2) 10/100 Eth. Ports,
+                64MB FLASH, 256MB SDRAM, BGP
+                Model Name: OA-625
+                Assembly:
+                sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.3.1.32"
+        ::= { chassisOmniAccessWAN 32 }
 
 
 deviceOmniAccess601SBST OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess 601 Chassis - WAN Branch Router providing 1-port active
+        STATUS current
+        DESCRIPTION
+                "OmniAccess 601 Chassis - WAN Branch Router providing 1-port active
         USP port, 1-port ISDN BRI type ST interface, (2) 10/100 Eth. Ports,
         16MB FLASH, 128MB SDRAM, BGP
-		Model Name: OA-601S-BST
-		Assembly:
-		sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.3.1.33"
-	::= { chassisOmniAccessWAN 33 }
+                Model Name: OA-601S-BST
+                Assembly:
+                sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.3.1.33"
+        ::= { chassisOmniAccessWAN 33 }
 
 deviceOmniAccess601BU OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess 601 Chassis - WAN Branch Router providing 1-port active
+        STATUS current
+        DESCRIPTION
+                "OmniAccess 601 Chassis - WAN Branch Router providing 1-port active
         T1/E1, 1-port ISDN BRI type U interface, (2) 10/100 Eth. Ports,
         16MB FLASH, 128MB SDRAM, BGP
-		Model Name: OA-601-BU
-		Assembly:
-		sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.3.1.34"
-	::= { chassisOmniAccessWAN 34 }
+                Model Name: OA-601-BU
+                Assembly:
+                sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.3.1.34"
+        ::= { chassisOmniAccessWAN 34 }
 
 deviceOmniAccess601BST OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"OmniAccess 601 Chassis - WAN Branch Router providing 1-port active
+        STATUS current
+        DESCRIPTION
+                "OmniAccess 601 Chassis - WAN Branch Router providing 1-port active
         T1/E1, 1-port ISDN BRI type ST interface, (2) 10/100 Eth. Ports,
         16MB FLASH, 128MB SDRAM, BGP
-		Model Name: OA-601-BST
-		Assembly:
-		sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.3.1.35"
-	::= { chassisOmniAccessWAN 35 }
+                Model Name: OA-601-BST
+                Assembly:
+                sysObjectID:  1.3.6.1.4.1.6486.800.1.1.2.2.3.1.35"
+        ::= { chassisOmniAccessWAN 35 }
 
 
 fansOmniAccessWAN OBJECT-IDENTITY
@@ -806,74 +1195,74 @@ chassis6200 OBJECT-IDENTITY
     ::= { family6200 1 }
 
 device6224 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"6224 - stackable chassis consisting of 24 10/100 RJ45 ports,
-		two 10/100/1000 RJ45 ports, two combo ports 10/100/1000 RJ45 or fiber SFP
-		Model Name: OmniStack LS 6224
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.4.1.1 "
-	::= { chassis6200  1 }
+        STATUS current
+        DESCRIPTION
+                "6224 - stackable chassis consisting of 24 10/100 RJ45 ports,
+                two 10/100/1000 RJ45 ports, two combo ports 10/100/1000 RJ45 or fiber SFP
+                Model Name: OmniStack LS 6224
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.4.1.1 "
+        ::= { chassis6200  1 }
 
 device6224P OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"6224P - stackable chassis consisting of 24 10/100 POE RJ45 ports,
-		two 10/100/1000 RJ45 ports, two combo ports 10/100/1000 RJ45 or fiber SFP
-		Model Name: OmniStack LS 6224P
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.4.1.2 "
-	::= { chassis6200  2}
+        STATUS current
+        DESCRIPTION
+                "6224P - stackable chassis consisting of 24 10/100 POE RJ45 ports,
+                two 10/100/1000 RJ45 ports, two combo ports 10/100/1000 RJ45 or fiber SFP
+                Model Name: OmniStack LS 6224P
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.4.1.2 "
+        ::= { chassis6200  2}
 
 device6248 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"6248 - stackable chassis consisting of 48 10/100 RJ45 ports,
-		two 10/100/1000 RJ45 ports, two combo ports 10/100/1000 RJ45 or fiber SFP
-		Model Name: OmniStack LS 6248
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.4.1.3 "
-	::= { chassis6200  3}
+        STATUS current
+        DESCRIPTION
+                "6248 - stackable chassis consisting of 48 10/100 RJ45 ports,
+                two 10/100/1000 RJ45 ports, two combo ports 10/100/1000 RJ45 or fiber SFP
+                Model Name: OmniStack LS 6248
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.4.1.3 "
+        ::= { chassis6200  3}
 
 device6248P OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"6248P - stackable chassis consisting of 48 10/100 POE RJ45 ports,
-		two 10/100/1000 RJ45 ports, two combo ports 10/100/1000 RJ45 or fiber SFP
-		Model Name: OmniStack LS 6248P
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.4.1.4 "
-	::= { chassis6200  4}
+        STATUS current
+        DESCRIPTION
+                "6248P - stackable chassis consisting of 48 10/100 POE RJ45 ports,
+                two 10/100/1000 RJ45 ports, two combo ports 10/100/1000 RJ45 or fiber SFP
+                Model Name: OmniStack LS 6248P
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.4.1.4 "
+        ::= { chassis6200  4}
 
 device6224U OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"6224U - stackable chassis consisting of 24 100BaseX SFP ports,
-		two 10/100/1000 RJ45 ports, two combo ports 10/100/1000 RJ45 or fiber SFP
-		Model Name: OmniStack LS 6224U
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.4.1.5 "
-	::= { chassis6200  5}
+        STATUS current
+        DESCRIPTION
+                "6224U - stackable chassis consisting of 24 100BaseX SFP ports,
+                two 10/100/1000 RJ45 ports, two combo ports 10/100/1000 RJ45 or fiber SFP
+                Model Name: OmniStack LS 6224U
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.4.1.5 "
+        ::= { chassis6200  5}
 
 device6212 OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"6212 - stackable chassis consisting of 12 10/100 RJ45 ports,
-		two 10/100/1000 RJ45 ports, two combo ports 10/100/1000 RJ45 or fiber SFP
-		Model Name: OmniStack LS 6212
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.4.1.6 "
-	::= { chassis6200  6}
+        STATUS current
+        DESCRIPTION
+                "6212 - stackable chassis consisting of 12 10/100 RJ45 ports,
+                two 10/100/1000 RJ45 ports, two combo ports 10/100/1000 RJ45 or fiber SFP
+                Model Name: OmniStack LS 6212
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.4.1.6 "
+        ::= { chassis6200  6}
 
 device6212P OBJECT-IDENTITY
-	STATUS current
-	DESCRIPTION
-		"6212P - stackable chassis consisting of 12 10/100 POE RJ45 ports,
-		two 10/100/1000 RJ45 ports, two combo ports 10/100/1000 RJ45 or fiber SFP
-		Model Name: OmniStack LS 6212P
-		Assembly:
-		sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.4.1.7 "
-	::= { chassis6200  7}
+        STATUS current
+        DESCRIPTION
+                "6212P - stackable chassis consisting of 12 10/100 POE RJ45 ports,
+                two 10/100/1000 RJ45 ports, two combo ports 10/100/1000 RJ45 or fiber SFP
+                Model Name: OmniStack LS 6212P
+                Assembly:
+                sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.4.1.7 "
+        ::= { chassis6200  7}
 
 fans6200 OBJECT-IDENTITY
     STATUS current
@@ -1003,6 +1392,7 @@ modulesOA7XX OBJECT-IDENTITY
         "Branch for OA7XX Series Modules."
     ::= { familyOA7XX 4 }
 
+	
 --------------------------------------------------------------------------------
 -- Definitions for OmniAccess 855X Product family ...
 
@@ -1032,5 +1422,128 @@ deviceOA8550WSG OBJECT-IDENTITY
          Assembly:
          sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.7.1.1 "
     ::= { chassisOA855X  1 }
+
+--------------------------------------------------------------------------------
+
+familyWiNGOAW OBJECT-IDENTITY
+   STATUS current
+   DESCRIPTION
+       "Branch For Denali OAW Product Family."
+    ::= { alcatelIND1TpDevicesMIB 8 }
+
+--------------------------------------------------------------------------------
+-- Definitions for Phoenix OA Product family ...
+
+familyPhoenixOA OBJECT-IDENTITY
+   STATUS current
+   DESCRIPTION
+       "Branch For Phoenix OA Product Family."
+    ::= { alcatelIND1TpDevicesMIB 9 }
+
+chassisPhoenixOA OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "Branch for Phoenix OA Series Chassis.
+         sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.9.1"
+    ::= { familyPhoenixOA 1 }
+
+devicePhoenixOA5710V OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "
+         Model Name: OA-5710V
+         Assembly:
+         sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.9.1.1 "
+    ::= { chassisPhoenixOA  1 }
+
+devicePhoenixOA5720 OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "
+         Model Name: OA-5720
+         Assembly:
+         sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.9.1.2 "
+     ::= { chassisPhoenixOA  2 }
+
+devicePhoenixOA5840 OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "
+         Model Name: OA-5840
+         Assembly:
+         sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.9.1.3 "
+     ::= { chassisPhoenixOA  3 }
+
+devicePhoenixOA5850 OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "
+         Model Name: OA-5850
+         Assembly:
+         sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.9.1.4 "
+     ::= { chassisPhoenixOA  4 }
+
+devicePhoenixOA5725R61ER OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "
+         Model Name: OA-5725R-61ER
+         Assembly:
+         sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.9.1.5 "
+     ::= { chassisPhoenixOA  5 }
+
+devicePhoenixOA5725R62ER OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "
+         Model Name: OA-5725R-62ER
+         Assembly:
+         sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.9.1.6 "
+     ::= { chassisPhoenixOA  6 }
+
+devicePhoenixOA5725A3G OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "
+         Model Name: OA-5725A-3G
+         Assembly:
+         sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.9.1.7 "
+     ::= { chassisPhoenixOA  7 }
+
+devicePhoenixOA5725ALTE OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "
+         Model Name: OA-5725A-LTE
+         Assembly:
+         sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.9.1.8 "
+     ::= { chassisPhoenixOA  8 }
+
+devicePhoenixESRWWANENABLER OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "
+         Model Name: ESR-WWAN-ENABLER
+         Assembly:
+         sysObjectID: 1.3.6.1.4.1.6486.800.1.1.2.2.9.1.9 "
+     ::= { chassisPhoenixOA  9 }
+
+fansPhoenixOA OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "Branch for Phoenix OA Series Fan Trays."
+    ::= { familyPhoenixOA 2 }
+
+powersPhoenixOA OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "Branch for Phoenix OA Series Power Supplies."
+    ::= { familyPhoenixOA 3 }
+
+modulesPhoenixOA OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "Branch for Phoenix OA Series Modules."
+    ::= { familyPhoenixOA 4 }
 
 END

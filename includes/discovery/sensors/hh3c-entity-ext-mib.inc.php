@@ -7,7 +7,7 @@
  *
  * @package    observium
  * @subpackage discovery
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -26,16 +26,28 @@ foreach ($entity_array as $index => $entry)
   // HH3C-ENTITY-EXT-MIB::hh3cEntityExtLowerTemperatureThreshold.8 = INTEGER: -30
   // HH3C-ENTITY-EXT-MIB::hh3cEntityExtShutdownTemperatureThreshold.8 = INTEGER: 65535
   if ($entry['hh3cEntityExtTemperature'] != 0 &&
+      $entry['hh3cEntityExtTemperature'] != 65535 &&
       $entry['hh3cEntityExtTemperatureThreshold']         != 65535 &&
       $entry['hh3cEntityExtLowerTemperatureThreshold']    != 65535)
   {
-    $limits['limit_low']       = $entry['hh3cEntityExtLowerTemperatureThreshold'];
-    $limits['limit_high_warn'] = $entry['hh3cEntityExtTemperatureThreshold'];
-    if (($entry['hh3cEntityExtCriticalTemperatureThreshold'] != 65535 && $entry['hh3cEntityExtCriticalTemperatureThreshold'] >= $entry['hh3cEntityExtTemperatureThreshold']))
+
+    $limits = array();
+
+    if($entry['hh3cEntityExtLowerTemperatureThreshold']    != 65535)
+    {
+      $limits['limit_low']       = $entry['hh3cEntityExtLowerTemperatureThreshold'];
+    }
+    if($entry['hh3cEntityExtTemperatureThreshold']         != 65535 && $entry['hh3cEntityExtTemperatureThreshold']         != 0)
+    {
+      $limits['limit_high_warn'] = $entry['hh3cEntityExtTemperatureThreshold'];
+    }
+
+    if (($entry['hh3cEntityExtCriticalTemperatureThreshold'] != 65535 && $entry['hh3cEntityExtCriticalTemperatureThreshold'] != 0 &&
+         $entry['hh3cEntityExtCriticalTemperatureThreshold'] >= $entry['hh3cEntityExtTemperatureThreshold']))
     {
       $limits['limit_high']    = $entry['hh3cEntityExtCriticalTemperatureThreshold'];
-    } else {
-      $limits['limit_high']    = $entry['hh3cEntityExtTemperatureThreshold'] + 10;
+    } elseif(isset($limits['limit_high_warn'])) {
+      $limits['limit_high']    = $limits['limit_high_warn'] + 10;
     }
 
     $value = $entry['hh3cEntityExtTemperature'];

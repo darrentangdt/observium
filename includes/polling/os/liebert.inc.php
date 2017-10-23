@@ -25,10 +25,10 @@ if ($GLOBALS['snmp_status'])
       break;
     case 'environment':
     case 'network':
-      // Change type
+      // Change OS type
       $type = $GLOBALS['rewrite_liebert_hardware'][$lgpAgentDeviceId]['type'];
     case 'pdu':
-      // FIXME, PDU uses LIEBERT-GP-PDU-MIB
+    case 'power':
     default:
       //LIEBERT-GP-AGENT-MIB::lgpAgentIdentManufacturer.0 = STRING: Emerson Network Power
       //LIEBERT-GP-AGENT-MIB::lgpAgentIdentModel.0 = STRING: IS-UNITY-DP
@@ -36,12 +36,13 @@ if ($GLOBALS['snmp_status'])
       //LIEBERT-GP-AGENT-MIB::lgpAgentIdentSerialNumber.0 = STRING: 417831G209J2014APR240173
       //LIEBERT-GP-AGENT-MIB::lgpAgentIdentPartNumber.0 = STRING: IS-UNITY_4.0.0.0_84525
       //LIEBERT-GP-AGENT-MIB::lgpAgentDeviceId.1 = OID: LIEBERT-GP-REGISTRATION-MIB::lgpIcomPAtypeDeluxeSys3
+      /* moved to definition
       $lgpAgentIdent = snmpwalk_cache_oid($device, 'lgpAgentIdent', array(), 'LIEBERT-GP-AGENT-MIB');
 
       $manufacturer = $lgpAgentIdent[0]['lgpAgentIdentManufacturer'];
       //$hardware     = $lgpAgentIdent[0]['lgpAgentIdentModel'];
       $version      = $lgpAgentIdent[0]['lgpAgentIdentFirmwareVersion'];
-      $serial       = $lgpAgentIdent[0]['lgpAgentIdentSerialNumber'];
+      */
   }
 } else {
   // Uses UPS-MIB

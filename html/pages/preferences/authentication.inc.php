@@ -16,7 +16,6 @@ if (auth_can_change_password($_SESSION['username']))
       $form = array('type'    => 'horizontal',
                     //'space'   => '20px',
                     'title'   => 'Change Password',
-                    //'icon'    => 'oicon-key',
                     //'class'   => 'box'
                     );
                     //'fieldset'  => array('change_password' => 'Change Password'));
@@ -38,7 +37,7 @@ if (auth_can_change_password($_SESSION['username']))
       $form['row'][3]['password']   = array(
                                       'type'        => 'submit',
                                       'name'        => 'Save&nbsp;Password',
-                                      'icon'        => 'oicon-lock-warning',
+                                      'icon'        => $config['icon']['lock'],
                                       'right'       => TRUE,
                                       'value'       => 'save');
       echo('  <div class="col-md-6">' . PHP_EOL);

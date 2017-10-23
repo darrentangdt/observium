@@ -11,16 +11,33 @@
  *
  */
 
+// FIXME - expand $vars['data']['groups'] for auth. For now only allow for >5
+
 if (!is_array($vars['id'])) { $vars['id'] = array($vars['id']); }
 
-$auth = TRUE;
+$is_permitted = FALSE;
 
 foreach ($vars['id'] as $port_id)
 {
-  if (!$auth && !port_permitted($port_id))
-  $auth = FALSE;
+  if (is_numeric($port_id) && port_permitted($port_id))
+  {
+    $is_permitted = TRUE;
+  } else {
+    $is_permitted = FALSE;
+    // Bail on first reject.
+    break;
+  }
 }
 
-$title = "Multi Port :: ".count($vars['id'])." ports :: ";
+if ($auth || $is_permitted || $_SESSION['userlevel'] >= 5)
+{
+  $title_array   = array();
+  $title_array[] = array('text' => 'Multiple Ports');
+  $title_array[] = array('text' => count($vars['id']) . ' Ports');
+
+  $auth = TRUE;
+}
+
+unset($is_permitted);
 
 // EOF

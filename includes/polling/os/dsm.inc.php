@@ -11,20 +11,8 @@
  *
  */
 
-// SYNOLOGY-SYSTEM-MIB::version.0 = STRING: "DSM 4.2-3202"
-
-// SYNOLOGY-SYSTEM-MIB::modelName.0 = STRING: "DS1513+"
-// SYNOLOGY-SYSTEM-MIB::serialNumber.0 = STRING: "13A0LNN000123"
-// SYNOLOGY-SYSTEM-MIB::version.0 = STRING: "DSM 5.0-4458"
-
-$hardware = snmp_get($device, 'modelName.0', '-OQv', 'SYNOLOGY-SYSTEM-MIB');
-if ($hardware)
+if (!$hardware)
 {
-  $version  = snmp_get($device, 'version.0', '-OQv', 'SYNOLOGY-SYSTEM-MIB');
-  $serial   = snmp_get($device, 'serialNumber.0', '-OQv', 'SYNOLOGY-SYSTEM-MIB');
-
-  $version = str_replace('DSM', '', $version);
-} else {
   // HOST-RESOURCES-MIB::hrSystemInitialLoadParameters.0 = STRING: "console=ttyS0,115200 ip=off initrd=0x00800040,4M root=/dev/md0 rw syno_hw_version=DS207+v10 ihd_num=2
   $hw = snmp_get($device, 'hrSystemInitialLoadParameters.0', '-Osqnv', 'HOST-RESOURCES-MIB');
   if (preg_match('/syno_hw_version=(?<hardware>[^\s\+]+)/', $hw, $matches))

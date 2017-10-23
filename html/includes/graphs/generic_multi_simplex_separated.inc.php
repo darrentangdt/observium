@@ -45,8 +45,18 @@ if ($width > "500")
 
 $colour_iter = 0;
 $rrd_multi = array();
+
+$count = count($rrd_list);
+
+if(isset($colours) && !strstr("mixed", $colours))
+{
+  $config['graph_colours']['colours'] = generate_colour_gradient(reset($config['graph_colours'][$colours]), end($config['graph_colours'][$colours]), $count);
+  $colours = 'colours';
+}
+
 foreach ($rrd_list as $i => $rrd)
 {
+
   if ($rrd['colour'])
   {
     $colour = $rrd['colour'];

@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- MGMT management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -49,6 +49,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-MIB
     CucsCommClientAdminState,
     CucsConditionRemoteInvRslt,
+    CucsConditionSeverity,
     CucsEtherSatelliteConnectionDisc,
     CucsFsmCompletion,
     CucsFsmFlags,
@@ -62,11 +63,13 @@ IMPORTS
     CucsMgmtBackupInterval,
     CucsMgmtBackupIssue,
     CucsMgmtBackupJob,
+    CucsMgmtBackupJobStatus,
     CucsMgmtBackupPolicyFsmCurrentFsm,
     CucsMgmtBackupPolicyFsmStageName,
     CucsMgmtBackupPostAction,
     CucsMgmtBackupProto,
     CucsMgmtBackupType,
+    CucsMgmtCapability,
     CucsMgmtCfgExportPolicyFsmCurrentFsm,
     CucsMgmtCfgExportPolicyFsmStageName,
     CucsMgmtCimcSecureBootAdminState,
@@ -106,6 +109,7 @@ IMPORTS
     CucsMgmtImporterPostAction,
     CucsMgmtImporterProto,
     CucsMgmtIntAuthPolicyMethod,
+    CucsMgmtMaintMode,
     CucsMgmtMode,
     CucsMgmtOperState,
     CucsMgmtPmonEntryState,
@@ -127,7 +131,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsMgmtObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -417,7 +421,8 @@ CucsMgmtBackupEntry ::= SEQUENCE {
     cucsMgmtBackupMaxFiles                                           Gauge32,
     cucsMgmtBackupOwnerPolicy                                        SnmpAdminString,
     cucsMgmtBackupPolicyLevel                                        Gauge32,
-    cucsMgmtBackupPolicyOwner                                        CucsPolicyPolicyOwner
+    cucsMgmtBackupPolicyOwner                                        CucsPolicyPolicyOwner,
+    cucsMgmtBackupBackupstatus                                       CucsMgmtBackupJobStatus
 }
 
 cucsMgmtBackupInstanceId OBJECT-TYPE
@@ -660,6 +665,14 @@ cucsMgmtBackupPolicyOwner OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS mgmt:Backup:policyOwner managed object property"
     ::= { cucsMgmtBackupEntry 30 }
+
+cucsMgmtBackupBackupstatus OBJECT-TYPE
+    SYNTAX       CucsMgmtBackupJobStatus
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS mgmt:Backup:backupstatus managed object property"
+    ::= { cucsMgmtBackupEntry 31 }
 
 cucsMgmtBackupExportExtPolicyTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsMgmtBackupExportExtPolicyEntry
@@ -2442,7 +2455,11 @@ CucsMgmtControllerEntry ::= SEQUENCE {
     cucsMgmtControllerStorageOobInterfaceSupported                   TruthValue,
     cucsMgmtControllerStorageSubsystemState                          CucsMgmtStorageSubsystemState,
     cucsMgmtControllerStorageOobConfigSupported                      TruthValue,
-    cucsMgmtControllerId                                             CucsNetworkSwitchId
+    cucsMgmtControllerId                                             CucsNetworkSwitchId,
+    cucsMgmtControllerDesiredMaintenanceMode                         CucsMgmtMaintMode,
+    cucsMgmtControllerLastRebootReason                               SnmpAdminString,
+    cucsMgmtControllerPowerFanSpeedPolicySupported                   TruthValue,
+    cucsMgmtControllerSupportedCapability                            CucsMgmtCapability
 }
 
 cucsMgmtControllerInstanceId OBJECT-TYPE
@@ -2658,6 +2675,42 @@ cucsMgmtControllerId OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS mgmt:Controller:id managed object property"
     ::= { cucsMgmtControllerEntry 26 }
+
+cucsMgmtControllerDesiredMaintenanceMode OBJECT-TYPE
+    SYNTAX       CucsMgmtMaintMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS mgmt:Controller:desiredMaintenanceMode
+        managed object property"
+    ::= { cucsMgmtControllerEntry 27 }
+
+cucsMgmtControllerLastRebootReason OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS mgmt:Controller:lastRebootReason managed
+        object property"
+    ::= { cucsMgmtControllerEntry 28 }
+
+cucsMgmtControllerPowerFanSpeedPolicySupported OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS mgmt:Controller:powerFanSpeedPolicySupported
+        managed object property"
+    ::= { cucsMgmtControllerEntry 29 }
+
+cucsMgmtControllerSupportedCapability OBJECT-TYPE
+    SYNTAX       CucsMgmtCapability
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS mgmt:Controller:supportedCapability
+        managed object property"
+    ::= { cucsMgmtControllerEntry 30 }
 
 cucsMgmtControllerFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsMgmtControllerFsmEntry
@@ -3518,6 +3571,156 @@ cucsMgmtExportPolicyFsmTaskSeqId OBJECT-TYPE
         "Cisco UCS mgmt:ExportPolicyFsmTask:seqId managed object property"
     ::= { cucsMgmtExportPolicyFsmTaskEntry 7 }
 
+cucsMgmtHealthAttrTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsMgmtHealthAttrEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS mgmt:HealthAttr managed object table"
+    ::= { cucsMgmtObjects 66 }
+
+cucsMgmtHealthAttrEntry OBJECT-TYPE
+    SYNTAX           CucsMgmtHealthAttrEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsMgmtHealthAttrTable table."
+    INDEX { cucsMgmtHealthAttrInstanceId }
+    ::= { cucsMgmtHealthAttrTable 1 }
+
+CucsMgmtHealthAttrEntry ::= SEQUENCE {
+    cucsMgmtHealthAttrInstanceId                                     CucsManagedObjectId,
+    cucsMgmtHealthAttrDn                                             CucsManagedObjectDn,
+    cucsMgmtHealthAttrRn                                             SnmpAdminString,
+    cucsMgmtHealthAttrDescription                                    SnmpAdminString,
+    cucsMgmtHealthAttrName                                           SnmpAdminString,
+    cucsMgmtHealthAttrSeverity                                       CucsConditionSeverity,
+    cucsMgmtHealthAttrValue                                          SnmpAdminString
+}
+
+cucsMgmtHealthAttrInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsMgmtHealthAttrEntry 1 }
+
+cucsMgmtHealthAttrDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS mgmt:HealthAttr:dn managed object property"
+    ::= { cucsMgmtHealthAttrEntry 2 }
+
+cucsMgmtHealthAttrRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS mgmt:HealthAttr:rn managed object property"
+    ::= { cucsMgmtHealthAttrEntry 3 }
+
+cucsMgmtHealthAttrDescription OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS mgmt:HealthAttr:description managed object property"
+    ::= { cucsMgmtHealthAttrEntry 4 }
+
+cucsMgmtHealthAttrName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS mgmt:HealthAttr:name managed object property"
+    ::= { cucsMgmtHealthAttrEntry 5 }
+
+cucsMgmtHealthAttrSeverity OBJECT-TYPE
+    SYNTAX       CucsConditionSeverity
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS mgmt:HealthAttr:severity managed object property"
+    ::= { cucsMgmtHealthAttrEntry 6 }
+
+cucsMgmtHealthAttrValue OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS mgmt:HealthAttr:value managed object property"
+    ::= { cucsMgmtHealthAttrEntry 7 }
+
+cucsMgmtHealthStatusTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsMgmtHealthStatusEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS mgmt:HealthStatus managed object table"
+    ::= { cucsMgmtObjects 67 }
+
+cucsMgmtHealthStatusEntry OBJECT-TYPE
+    SYNTAX           CucsMgmtHealthStatusEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsMgmtHealthStatusTable table."
+    INDEX { cucsMgmtHealthStatusInstanceId }
+    ::= { cucsMgmtHealthStatusTable 1 }
+
+CucsMgmtHealthStatusEntry ::= SEQUENCE {
+    cucsMgmtHealthStatusInstanceId                                   CucsManagedObjectId,
+    cucsMgmtHealthStatusDn                                           CucsManagedObjectDn,
+    cucsMgmtHealthStatusRn                                           SnmpAdminString,
+    cucsMgmtHealthStatusHealthQualifier                              SnmpAdminString,
+    cucsMgmtHealthStatusHealthSeverity                               CucsConditionSeverity
+}
+
+cucsMgmtHealthStatusInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsMgmtHealthStatusEntry 1 }
+
+cucsMgmtHealthStatusDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS mgmt:HealthStatus:dn managed object property"
+    ::= { cucsMgmtHealthStatusEntry 2 }
+
+cucsMgmtHealthStatusRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS mgmt:HealthStatus:rn managed object property"
+    ::= { cucsMgmtHealthStatusEntry 3 }
+
+cucsMgmtHealthStatusHealthQualifier OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS mgmt:HealthStatus:healthQualifier managed
+        object property"
+    ::= { cucsMgmtHealthStatusEntry 4 }
+
+cucsMgmtHealthStatusHealthSeverity OBJECT-TYPE
+    SYNTAX       CucsConditionSeverity
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS mgmt:HealthStatus:healthSeverity managed
+        object property"
+    ::= { cucsMgmtHealthStatusEntry 5 }
+
 cucsMgmtIPv6IfAddrTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsMgmtIPv6IfAddrEntry
     MAX-ACCESS       not-accessible
@@ -4097,7 +4300,9 @@ CucsMgmtIfEntry ::= SEQUENCE {
     cucsMgmtIfTransport                                              CucsNetworkTransport,
     cucsMgmtIfType                                                   CucsNetworkConnectionType,
     cucsMgmtIfVnet                                                   Gauge32,
-    cucsMgmtIfPeerChassisId                                          Gauge32
+    cucsMgmtIfPeerChassisId                                          Gauge32,
+    cucsMgmtIfAggrPortId                                             Gauge32,
+    cucsMgmtIfPeerAggrPortId                                         Gauge32
 }
 
 cucsMgmtIfInstanceId OBJECT-TYPE
@@ -4435,6 +4640,22 @@ cucsMgmtIfPeerChassisId OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS mgmt:If:peerChassisId managed object property"
     ::= { cucsMgmtIfEntry 42 }
+
+cucsMgmtIfAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS mgmt:If:aggrPortId managed object property"
+    ::= { cucsMgmtIfEntry 43 }
+
+cucsMgmtIfPeerAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS mgmt:If:peerAggrPortId managed object property"
+    ::= { cucsMgmtIfEntry 44 }
 
 cucsMgmtIfFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsMgmtIfFsmEntry

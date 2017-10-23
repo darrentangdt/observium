@@ -11,8 +11,6 @@
  *
  */
 
-echo("Storage : ");
-
 // Include all discovery modules
 
 $include_dir = "includes/discovery/storage";
@@ -40,7 +38,5 @@ foreach (dbFetchRows($query, array($device['device_id'])) as $test_storage)
 
 $GLOBALS['module_stats'][$module]['status'] = count($valid[$module]);
 if (OBS_DEBUG && $GLOBALS['module_stats'][$module]['status']) { print_vars($valid[$module]); }
-
-echo(PHP_EOL);
 
 // EOF

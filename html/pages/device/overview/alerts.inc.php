@@ -15,7 +15,7 @@
   <div class="box box-solid">
     <div class="box-header ">
       <a href="<?php echo(generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'logs', 'section' => 'syslog'))); ?>">
-        <i class="oicon-bell"></i><h3 class="box-title">Alerts</h3>
+        <i class="<?php echo $config['icon']['alert']; ?>"></i><h3 class="box-title">Alerts</h3>
       </a>
     </div>
     <div class="box-body no-padding">

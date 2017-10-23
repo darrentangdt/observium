@@ -37,16 +37,25 @@
 // File dated 2014-10-18
 
 class StatsD {
-        /**
-         * Name of our statsd-server
-         * @var string
-         */
-   protected static $host = 'localhost';
-   /**
-    * UDP-port of the statsd-server
-    * @var string
-    */
-   protected static $port = '8125';
+
+  /**
+   * Configuration (+ default values)
+   *
+   * @var  array
+   */
+  public static $config = array(
+    /**
+     * Name of our statsd-server
+     * @var string
+     */
+    'host' => 'localhost',
+
+    /**
+     * UDP-port of the statsd-server
+     * @var string
+     */
+    'port' => '8125',
+  );
 
    /**
     * Maximum payload we may cramp into a UDP packet
@@ -74,6 +83,19 @@ class StatsD {
     * @var array
     */
    protected static $queuedCounters = array();
+
+
+  public function __construct($config = array()) {
+    
+    foreach (array_keys(StatsD::$config) as $param)
+    {
+      if (isset($config[$param]) && $config[$param] != StatsD::$config[$param])
+      {
+        StatsD::$config[$param] = $config[$param];
+      }
+      //var_dump(StatsD::$config[$param]);
+    }
+  }
 
    /**
     * Log timing information
@@ -228,8 +250,10 @@ class StatsD {
       // Wrap this in a try/catch -
       // failures in any of this should be silently ignored
       try {
-         $host = static::$host;
-         $port = static::$port;
+        // FIXME, currently not validate hostname/ip and port
+         $host = StatsD::$config['host'];
+         $port = StatsD::$config['port'];
+         //var_dump(StatsD::$config);
          $fp = fsockopen("udp://$host", $port, $errno, $errstr);
          if (! $fp) { return; }
          // Non-blocking I/O, please.

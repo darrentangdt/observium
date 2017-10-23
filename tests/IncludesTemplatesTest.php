@@ -7,7 +7,7 @@ include(dirname(__FILE__) . '/../includes/defaults.inc.php');
 include(dirname(__FILE__) . '/../includes/definitions.inc.php');
 include(dirname(__FILE__) . '/../includes/functions.inc.php');
 
-class IncludesTemplatesTest extends PHPUnit_Framework_TestCase
+class IncludesTemplatesTest extends \PHPUnit\Framework\TestCase
 {
   /**
   * @dataProvider providerSimpleTemplate

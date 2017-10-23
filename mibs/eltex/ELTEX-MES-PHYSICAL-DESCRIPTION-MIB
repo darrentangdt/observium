@@ -9,7 +9,7 @@ IMPORTS
     JackType                                                FROM MAU-MIB
     InterfaceIndexOrZero,ifIndex,InterfaceIndex             FROM IF-MIB
     eltMes                                                  FROM ELTEX-MES
-    rlPhdUnitGenParamEntry                                  FROM RADLAN-Physicaldescription-MIB
+    rlPhdUnitGenParamEntry, rlCascadeEntry                  FROM RADLAN-Physicaldescription-MIB
     ;
 
 eltMesPhysicalDescription  MODULE-IDENTITY
@@ -314,5 +314,39 @@ eltPhdUnitGenParamCommitHash OBJECT-TYPE
        STATUS      current
        DESCRIPTION "Hash of current commit."
        ::= { eltPhdUnitGenParamEntry 1 }
+
+--
+-- eltCascadeTable
+--
+
+eltCascadeTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF EltCascadeEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "This table augments existing RADLAN table rlCascadeTable."
+    ::= { eltMesPhysicalDescription 3 }
+
+eltCascadeEntry OBJECT-TYPE
+    SYNTAX      EltCascadeEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry of this table specifies a cascaded link information in a unit"
+    AUGMENTS { rlCascadeEntry }
+    ::= { eltCascadeTable 1 }
+
+EltCascadeEntry ::= SEQUENCE {
+    eltCascadeLastChange              TimeTicks
+}
+
+eltCascadeLastChange OBJECT-TYPE
+    SYNTAX      TimeTicks
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The value of sysUpTime at the time the cascade interface 
+         entered its current operational state."
+    ::= { eltCascadeEntry 1 }
 
 END

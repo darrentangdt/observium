@@ -36,7 +36,7 @@ function custom_port_parser($port)
   $type  = strtolower(trim($matches[1], " \t\n\r\0\x0B\\/\"'"));
   if (!in_array($type, $types)) { return array(); }
 
-  # Munge and Validate description
+  // Munge and Validate description
   $descr = trim($matches[2]);
   if ($descr == '') { return array(); }
 

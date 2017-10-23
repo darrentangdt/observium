@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- FAULT management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -67,7 +67,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsFaultObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -163,7 +163,9 @@ CucsFaultHolderEntry ::= SEQUENCE {
     cucsFaultHolderDn                                                CucsManagedObjectDn,
     cucsFaultHolderRn                                                SnmpAdminString,
     cucsFaultHolderName                                              SnmpAdminString,
-    cucsFaultHolderTotalFaults                                       Unsigned64
+    cucsFaultHolderTotalFaults                                       Unsigned64,
+    cucsFaultHolderIsPinningCleared                                  TruthValue,
+    cucsFaultHolderLastPinTime                                       DateAndTime
 }
 
 cucsFaultHolderInstanceId OBJECT-TYPE
@@ -205,6 +207,22 @@ cucsFaultHolderTotalFaults OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS fault:Holder:totalFaults managed object property"
     ::= { cucsFaultHolderEntry 5 }
+
+cucsFaultHolderIsPinningCleared OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS fault:Holder:isPinningCleared managed object property"
+    ::= { cucsFaultHolderEntry 6 }
+
+cucsFaultHolderLastPinTime OBJECT-TYPE
+    SYNTAX       DateAndTime
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS fault:Holder:lastPinTime managed object property"
+    ::= { cucsFaultHolderEntry 7 }
 
 cucsFaultTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsFaultEntry
@@ -532,7 +550,8 @@ CucsFaultPolicyEntry ::= SEQUENCE {
     cucsFaultPolicyPolicyLevel                                       Gauge32,
     cucsFaultPolicyPolicyOwner                                       CucsPolicyPolicyOwner,
     cucsFaultPolicySoakInterval                                      TimeIntervalSec,
-    cucsFaultPolicySoakingSeverity                                   CucsFaultBasePolicySoakingSeverity
+    cucsFaultPolicySoakingSeverity                                   CucsFaultBasePolicySoakingSeverity,
+    cucsFaultPolicyPinningExpirationInterval                         TimeIntervalSec
 }
 
 cucsFaultPolicyInstanceId OBJECT-TYPE
@@ -662,6 +681,15 @@ cucsFaultPolicySoakingSeverity OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS fault:Policy:soakingSeverity managed object property"
     ::= { cucsFaultPolicyEntry 16 }
+
+cucsFaultPolicyPinningExpirationInterval OBJECT-TYPE
+    SYNTAX       TimeIntervalSec
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS fault:Policy:pinningExpirationInterval
+        managed object property"
+    ::= { cucsFaultPolicyEntry 18 }
 
 cucsFaultSuppressPolicyTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsFaultSuppressPolicyEntry

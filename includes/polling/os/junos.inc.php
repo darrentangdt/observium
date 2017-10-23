@@ -54,9 +54,4 @@ if (empty($version))
   }
 }
 
-if ($hardware != 'Olive')
-{
-  $serial   = snmp_get($device, 'jnxBoxSerialNo.0', '-OQv', 'JUNIPER-MIB');
-}
-
 // EOF

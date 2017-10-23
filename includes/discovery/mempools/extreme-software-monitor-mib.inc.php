@@ -11,7 +11,6 @@
  *
  */
 
-# lookup for memory data
 $mempool_array = snmpwalk_cache_oid($device, 'extremeMemoryMonitorSystemTable', NULL, $mib);
 
 if (is_array($mempool_array))

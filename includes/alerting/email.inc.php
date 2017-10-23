@@ -7,7 +7,7 @@
  *
  * @package    observium
  * @subpackage alerting
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -23,25 +23,25 @@ $backend = strtolower(trim($config['email']['backend']));
 switch ($backend)
 {
   case 'sendmail':
-    $params['sendmail_path'] = $config['email']['sendmail_path'];
+    $mail_params['sendmail_path'] = $config['email']['sendmail_path'];
     break;
   case 'smtp':
-    $params['host']      = $config['email']['smtp_host'];
-    $params['port']      = $config['email']['smtp_port'];
+    $mail_params['host']      = $config['email']['smtp_host'];
+    $mail_params['port']      = $config['email']['smtp_port'];
     if ($config['email']['smtp_secure'] == 'ssl')
     {
-      $params['host']    = 'ssl://'.$config['email']['smtp_host'];
+      $mail_params['host']    = 'ssl://'.$config['email']['smtp_host'];
       if ($config['email']['smtp_port'] == 25)
       {
-        $params['port']  = 465; // Default port for SSL
+        $mail_params['port']  = 465; // Default port for SSL
       }
     }
-    $params['timeout']   = $config['email']['smtp_timeout'];
-    $params['auth']      = $config['email']['smtp_auth'];
-    $params['username']  = $config['email']['smtp_username'];
-    $params['password']  = $config['email']['smtp_password'];
-    $params['localhost'] = $localhost;
-    if (OBS_DEBUG) { $params['debug'] = TRUE; }
+    $mail_params['timeout']   = $config['email']['smtp_timeout'];
+    $mail_params['auth']      = $config['email']['smtp_auth'];
+    $mail_params['username']  = $config['email']['smtp_username'];
+    $mail_params['password']  = $config['email']['smtp_password'];
+    $mail_params['localhost'] = $localhost;
+    if (OBS_DEBUG) { $mail_params['debug'] = TRUE; }
     break;
   case 'mail':
   default:
@@ -102,18 +102,19 @@ $mime = new Mail_mime(array('head_charset' => 'utf-8',
 $message['text'] = simple_template('email_text', $message_tags, array('is_file' => TRUE));
 
 $message_tags_html = $message_tags;
-$message_tags_html['CONDITIONS'] = nl2br($message_tags['CONDITIONS']);
-$message_tags_html['METRICS']    = nl2br($message_tags['METRICS']);
+$message_tags_html['CONDITIONS'] = nl2br(escape_html($message_tags['CONDITIONS']));
+$message_tags_html['METRICS']    = nl2br(escape_html($message_tags['METRICS']));
 
 // Generate image attach
-$graphs = json_decode($message_tags_html['ENTITY_GRAPHS_ARRAY'], TRUE);
-//print_vars($graphs);
+//$graphs = json_decode($message_tags_html['ENTITY_GRAPHS_ARRAY'], TRUE);
+$graphs = $message_tags_html['ENTITY_GRAPHS_ARRAY'];
+
 if (is_array($graphs) && count($graphs))
 {
   $message_tags_html['ENTITY_GRAPHS'] = ''; // Reinit graphs html
   foreach ($graphs as $key => $graph)
   {
-    $cid = $graph['type'].$key;
+    $cid = generate_random_string(16);
     // Unencode data uri tag to file content
     list($gmime, $base64) = explode(';', $graph['data'], 2);
     $gmime  = substr($gmime, 5);
@@ -128,6 +129,8 @@ if (is_array($graphs) && count($graphs))
   }
 }
 //print_vars($message_tags_html);
+
+
 
 $message['html'] = simple_template('email_html', $message_tags_html, array('is_file' => TRUE));
 unset($message_tags_html);
@@ -173,7 +176,7 @@ $headers = $mime->headers($headers);
 //var_dump($headers);
 
 // Create mailer instance
-$mail =& Mail::factory($backend, $params);
+$mail =& Mail::factory($backend, $mail_params);
 // Sending email
 $status = $mail->send($rcpts, $headers, $body);
 

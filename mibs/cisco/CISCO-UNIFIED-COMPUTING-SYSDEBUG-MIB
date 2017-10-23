@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- SYSDEBUG management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -87,6 +87,7 @@ IMPORTS
     CucsSysdebugManualCoreFileExportTargetFsmStageName,
     CucsSysdebugManualCoreFileExportTargetFsmTaskItem,
     CucsSysdebugManualCoreFileExportTargetProto,
+    CucsSysdebugTSCmdOptCmdOptions,
     CucsSysdebugTSCmdOptMajorType,
     CucsSysdebugTechSupportAdminState,
     CucsSysdebugTechSupportFsmCurrentFsm,
@@ -97,7 +98,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsSysdebugObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -4111,7 +4112,9 @@ CucsSysdebugTechSupportCmdOptEntry ::= SEQUENCE {
     cucsSysdebugTechSupportCmdOptRackServerAdapterId                 Gauge32,
     cucsSysdebugTechSupportCmdOptRackServerId                        Gauge32,
     cucsSysdebugTechSupportCmdOptCartridgeCIMCId                     Gauge32,
-    cucsSysdebugTechSupportCmdOptChassisCartridgeId                  Gauge32
+    cucsSysdebugTechSupportCmdOptChassisCartridgeId                  Gauge32,
+    cucsSysdebugTechSupportCmdOptServerIdList                        SnmpAdminString,
+    cucsSysdebugTechSupportCmdOptCommandOptions                      CucsSysdebugTSCmdOptCmdOptions
 }
 
 cucsSysdebugTechSupportCmdOptInstanceId OBJECT-TYPE
@@ -4227,6 +4230,24 @@ cucsSysdebugTechSupportCmdOptChassisCartridgeId OBJECT-TYPE
         "Cisco UCS sysdebug:TechSupportCmdOpt:chassisCartridgeId
         managed object property"
     ::= { cucsSysdebugTechSupportCmdOptEntry 14 }
+
+cucsSysdebugTechSupportCmdOptServerIdList OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sysdebug:TechSupportCmdOpt:serverIdList
+        managed object property"
+    ::= { cucsSysdebugTechSupportCmdOptEntry 15 }
+
+cucsSysdebugTechSupportCmdOptCommandOptions OBJECT-TYPE
+    SYNTAX       CucsSysdebugTSCmdOptCmdOptions
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS sysdebug:TechSupportCmdOpt:commandOptions
+        managed object property"
+    ::= { cucsSysdebugTechSupportCmdOptEntry 18 }
 
 cucsSysdebugTechSupportFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsSysdebugTechSupportFsmEntry

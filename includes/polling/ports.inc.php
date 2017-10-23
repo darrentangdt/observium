@@ -13,7 +13,7 @@
 
 // Include description parser (usually ifAlias) if config option set
 $custom_port_parser = FALSE;
-if (isset($config['port_descr_parser']) && is_file($config['install_dir'] . "/" . $config['port_descr_parser']))
+if (isset($config['port_descr_parser']) && $config['port_descr_parser'] != FALSE && is_file($config['install_dir'] . "/" . $config['port_descr_parser']))
 {
   include_once($config['install_dir'] . "/" . $config['port_descr_parser']);
 
@@ -52,7 +52,8 @@ foreach ($ports_db as $port)
 $ports_ignored_count_db = intval(get_entity_attrib('device', $device, 'ports_ignored_count')); // Cache last ports ignored count
 
 // Ports module options
-foreach (array('etherlike', 'adsl', 'poe', 'docsis', 'junoseatmvp', 'separate_walk') as $ports_module)
+// FIXME - why are we defining an array here? Just use the config options.
+foreach (array('etherlike', 'adsl', 'poe', 'docsis', 'junoseatmvp', 'sros_egress_qstat', 'sros_ingress_qstat', 'jnx_cos_qstat', 'separate_walk') as $ports_module)
 {
   $ports_modules[$ports_module] = isset($attribs['enable_ports_' . $ports_module]) ? (bool)$attribs['enable_ports_' . $ports_module] : $config['enable_ports_' . $ports_module];
 }
@@ -236,7 +237,7 @@ if (!$ports_modules['separate_walk'])
       {
         echo("$ifIndex ");
         $port_oid = implode(".$ifIndex ", $port_oids) . ".$ifIndex";
-        $port_stats = snmpget_cache_multi($device, $port_oid, $port_stats, "IF-MIB");
+        $port_stats = snmp_get_multi_oid($device, $port_oid, $port_stats, "IF-MIB");
       }
     }
   }
@@ -512,7 +513,8 @@ foreach ($ports as $port)
         log_event('Interface changed: [HC] -> Counter64 (may cause disposable spike)', $device, 'port', $port);
       }
 
-      $port_has_mcbc = is_numeric($this_port['ifInBroadcastPkts']) && is_numeric($this_port['ifOutBroadcastPkts']) && is_numeric($this_port['ifInMulticastPkts']) && is_numeric($this_port['ifOutMulticastPkts']);
+      $port_has_mcbc = is_numeric($this_port['ifInBroadcastPkts']) && is_numeric($this_port['ifOutBroadcastPkts']) &&
+                       is_numeric($this_port['ifInMulticastPkts']) && is_numeric($this_port['ifOutMulticastPkts']);
 
       if ($port['port_mcbc'] == NULL)
       {
@@ -574,15 +576,9 @@ foreach ($ports as $port)
     }
 
     // rewrite the ifPhysAddress
-    if (strpos($this_port['ifPhysAddress'], ':'))
-    {
-      // Correct: IF-MIB::ifPhysAddress.2 = STRING: 66:c:9b:1b:62:7e
-      list($a_a, $a_b, $a_c, $a_d, $a_e, $a_f) = explode(':', $this_port['ifPhysAddress']);
-      $this_port['ifPhysAddress'] = zeropad($a_a).zeropad($a_b).zeropad($a_c).zeropad($a_d).zeropad($a_e).zeropad($a_f);
-    } else {
-      // Incorrect: IF-MIB::ifPhysAddress.2 = Hex-STRING: 00 02 99 09 E9 84
-      $this_port['ifPhysAddress'] = strtolower(str_replace(' ', '', $this_port['ifPhysAddress']));
-    }
+    // IF-MIB::ifPhysAddress.2 = STRING: 66:c:9b:1b:62:7e
+    // IF-MIB::ifPhysAddress.2 = Hex-STRING: 00 02 99 09 E9 84
+    $this_port['ifPhysAddress'] = mac_zeropad($this_port['ifPhysAddress']);
 
     // ifSpeed processing
     if (isset($port['ifSpeed_custom']) && $port['ifSpeed_custom'] > 0)
@@ -893,7 +889,7 @@ foreach ($ports as $port)
     }
 
     // Put States into alert array
-    foreach (array('ifOperStatus', 'ifAdminStatus', 'ifMtu', 'ifDuplex') as $oid)
+    foreach (array('ifOperStatus', 'ifAdminStatus', 'ifMtu', 'ifDuplex', 'ifVlan') as $oid)
     {
       if (isset($this_port[$oid]))
       {
@@ -927,6 +923,7 @@ foreach ($ports as $port)
     $port['state']['ifOctets_rate']    = $port['stats']['ifOutOctets_rate'] + $port['stats']['ifInOctets_rate'];
     $port['state']['ifUcastPkts_rate'] = $port['stats']['ifOutUcastPkts_rate'] + $port['stats']['ifInUcastPkts_rate'];
     $port['state']['ifErrors_rate'] = $port['stats']['ifOutErrors_rate'] + $port['stats']['ifInErrors_rate'];
+    $port['state']['ifDiscards_rate'] = $port['stats']['ifOutDiscards_rate'] + $port['stats']['ifInDiscards_rate'];
 
     // Send aggregate data to alerter too
     $port['alert_array']['ifOctets_rate']        = $port['state']['ifOctets_rate'];

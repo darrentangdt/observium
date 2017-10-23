@@ -11,17 +11,10 @@
  *
  */
 
-$hardware = snmp_get($device, 'sysObjectID.0', '-OQsv', 'FOUNDRY-SN-AGENT-MIB:FOUNDRY-SN-ROOT-MIB');
-
-if (isset($rewrite_ironware_hardware[$poll_device['sysObjectID']]))
+$hardware = rewrite_definition_hardware($device, $poll_device['sysObjectID']);
+if (!$hardware)
 {
-  $hardware = $rewrite_ironware_hardware[$poll_device['sysObjectID']];
+  $hardware = snmp_translate($poll_device['sysObjectID'], 'FOUNDRY-SN-AGENT-MIB:FOUNDRY-SN-ROOT-MIB');
 }
-
-$version = trim(snmp_get($device, 'snAgImgVer.0', '-OQsv', 'FOUNDRY-SN-AGENT-MIB:FOUNDRY-SN-ROOT-MIB'), ' "');
-//$version = snmp_get($device, 'snAgBuildVer.0', '-OQsv', 'FOUNDRY-SN-AGENT-MIB:FOUNDRY-SN-ROOT-MIB');
-//$version = str_replace(array('V', '"'), '', $version);
-
-$serial = trim(snmp_get($device, 'snChasSerNum.0', '-OQsv', 'FOUNDRY-SN-AGENT-MIB:FOUNDRY-SN-ROOT-MIB'), ' "');
 
 // EOF

@@ -1,4 +1,4 @@
--- ArubaOS 6.4.2.3-4.1.1.2_48114
+-- ArubaOS 6.5.1.3_58402
 -- vim:set ts=4 sw=4:
 ARUBA-TC DEFINITIONS ::= BEGIN
 
@@ -72,7 +72,8 @@ ArubaHTExtChannel ::= TEXTUAL-CONVENTION
 		 				none(1),
 						above(2),
 						below(3),
-						eighty(4)
+						eighty(4),
+                        onesixty(5)
 					  }
         
 ArubaMonEncryptionType ::= TEXTUAL-CONVENTION
@@ -431,7 +432,10 @@ ArubaCardType ::= TEXTUAL-CONVENTION
 					sw7010(23),
 					sw7005(24),
 					sw7030(25),
-					sw7110(26)
+					sw7205(26),
+					sw7024(27),
+					sw7240xm(28),
+					sw7008(29)
 				}
  
 ArubaESIServerMode ::= TEXTUAL-CONVENTION
@@ -604,7 +608,9 @@ ArubaPortSpeed ::= TEXTUAL-CONVENTION
 						  speed100Mbps(2), 
 						  speed1000Mbps(3), 
 						  speedAuto(4),
-						  speed10Gbps(5)
+						  speed10Gbps(5),
+						  speed2Gbps(6),
+						  speed5Gbps(7)
 						}
 
 ArubaPortDuplex ::= TEXTUAL-CONVENTION
@@ -626,7 +632,9 @@ ArubaPortType ::= TEXTUAL-CONVENTION
 		"
 	SYNTAX		INTEGER { fastethernet(1), 
 						  gigabitethernet(2),
-						  xgigabitethernet(3) 
+						  xgigabitethernet(3),
+						  twogigabitethernet(4), 
+						  fivegigabitethernet(5) 
 						}
 
 ArubaEnet1Mode ::= TEXTUAL-CONVENTION
@@ -1022,4 +1030,39 @@ ArubaAPUplinkChangeReason ::= TEXTUAL-CONVENTION
         preemption(3)
     }
 
+ArubaPortalServerDownReason ::= TEXTUAL-CONVENTION
+    STATUS      current
+    DESCRIPTION
+        "Used to specify the reason for Portal server down.
+
+        connectFail - Connect Portal server fail"
+    SYNTAX  INTEGER {
+        connectFail(1)
+    }
+
+ArubaHaRole ::= TEXTUAL-CONVENTION
+	STATUS		current
+	DESCRIPTION
+  		" Represents the HA role of the Aruba controller"
+	SYNTAX       INTEGER {
+                             dual(0),
+                             active(1),
+                             standby(2),
+                             disabled(3)
+                         }
+
+ArubaHaConnectivityStatus ::= TEXTUAL-CONVENTION
+	STATUS		current
+	DESCRIPTION
+  		" Represents the HA standby connectivity status of the Access Point"
+	SYNTAX      INTEGER {
+                            haSuccess(0),
+                            haNetUnreach(1),
+                            haCpUnreach(2),
+                            haImageMissMatch(3),
+                            haApDenied(4),
+                            haHbtFailure(5),
+                            haInvalidHelloResponse(6),
+                            haStandbyTunnelDown(7)
+					    }
 END

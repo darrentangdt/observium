@@ -14,9 +14,10 @@
 
 
 $query = 'SELECT * FROM `sensors`
-            LEFT JOIN `sensors-state` USING(`sensor_id`)
             WHERE `device_id` = ?
             ORDER BY `sensor_class`,`sensor_type`,`sensor_index`;';
+
+//            LEFT JOIN `sensors-state` USING(`sensor_id`)
 
 $sensors = dbFetchRows($query, array($device['device_id']));
 

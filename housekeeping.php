@@ -15,7 +15,7 @@
 
 chdir(dirname($argv[0]));
 
-$options = getopt("A:Vyaselurptdb");
+$options = getopt("A:Vyaselurptdbi");
 
 include("includes/sql-config.inc.php");
 
@@ -49,10 +49,11 @@ if (isset($options['a']) || isset($options['s'])) { $modules[] = 'syslog'; }
 if (isset($options['a']) || isset($options['e'])) { $modules[] = 'eventlog'; }
 if (isset($options['a']) || isset($options['l'])) { $modules[] = 'alertlog'; }
 if (isset($options['a']) || isset($options['u'])) { $modules[] = 'authlog'; }
-if (isset($options['a']) || isset($options['r'])) { $modules[] = 'rrd'; }
 if (isset($options['a']) || isset($options['p'])) { $modules[] = 'ports'; }
 if (isset($options['a']) || isset($options['t'])) { $modules[] = 'timing'; }
 if (isset($options['a']) || isset($options['b'])) { $modules[] = 'staledb'; }
+if (isset($options['a']) || isset($options['i'])) { $modules[] = 'inventory'; }
+if (isset($options['a']) || isset($options['r'])) { $modules[] = 'rrd'; }
 
 // Get age from command line
 if (isset($options['A']))
@@ -90,6 +91,7 @@ OPTIONS:
  -e                                          Clean up event log
  -l                                          Clean up alert log
  -u                                          Clean up auth log
+ -i                                          Clean up inventory
  -r                                          Clean up unused RRD files
  -p                                          Clean up deleted ports
  -t                                          Clean up timing data (discovery and poll times)

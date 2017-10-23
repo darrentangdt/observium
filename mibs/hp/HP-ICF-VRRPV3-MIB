@@ -1,13 +1,28 @@
+--**MOD+***********************************************************************
+ -- Module:    hpicfVrrpv3.mib
+ --
+ -- Copyright (C) 2000-2015 Hewlett Packard Enterprise Development LP
+ -- All Rights Reserved.
+ --
+ -- The contents of this software are proprietary and confidential
+ -- to the Hewlett Packard Enterprise Development LP.  No part of this
+ -- program may be photocopied, reproduced, or translated into another
+ -- programming language without prior written consent of the
+ -- Hewlett Packard Enterprise Development LP.
+ --
+ -- Purpose:  Defining propreitary MIB objects for VRRP V3.
+ --
+ --*MOD-***********************************************************************/
 HP-ICF-VRRPV3-MIB DEFINITIONS ::= BEGIN
 
     IMPORTS
-        MODULE-IDENTITY, OBJECT-TYPE, Integer32, IpAddress, Counter32
+        MODULE-IDENTITY, OBJECT-TYPE, Integer32, Counter32, Counter64
             FROM SNMPv2-SMI
         MODULE-COMPLIANCE, OBJECT-GROUP
             FROM SNMPv2-CONF
         ifIndex
             FROM IF-MIB
-        InetAddressPrefixLength
+        InetAddress
             FROM INET-ADDRESS-MIB
         SnmpAdminString
             FROM SNMP-FRAMEWORK-MIB
@@ -20,7 +35,7 @@ HP-ICF-VRRPV3-MIB DEFINITIONS ::= BEGIN
             FROM HP-ICF-OID;
 
 hpicfVrrpv3MIB  MODULE-IDENTITY
-            LAST-UPDATED "201211210000Z"   -- Nov 21, 2012
+            LAST-UPDATED "201509160000Z"   -- Sep 16, 2015."
             ORGANIZATION "HP Networking"
             CONTACT-INFO "Hewlett Packard Company
                           8000 Foothills Blvd.
@@ -28,12 +43,15 @@ hpicfVrrpv3MIB  MODULE-IDENTITY
             DESCRIPTION "This MIB module contains HP proprietary
                          extensions to the standard VRRPV3-MIB module."
 
-            REVISION    "201210250000Z"   -- Oct 25, 2012."
-            DESCRIPTION "Initial revision."
+            REVISION    "201509160000Z"   -- Sep 16, 2015."
+            DESCRIPTION "Added an object to support the bfd protocol
+                         operations under vrrp. Added hpicfVrrpv3VrBfdIPAddr."
 
             REVISION    "201211210000Z"   -- Nov 21, 2012."
             DESCRIPTION "Added statistics objects."
 
+            REVISION    "201210250000Z"   -- Oct 25, 2012."
+            DESCRIPTION "Initial revision."
            ::= { hpSwitch 90 }
 
 
@@ -93,7 +111,8 @@ hpicfVrrpv3MIB  MODULE-IDENTITY
             hpicfVrrpv3VrControl          INTEGER,
             hpicfVrrpv3VrRespondToPing    TruthValue,
             hpicfVrrpv3Version            INTEGER,
-            hpicfVrrpv3VrNullAuthCompatibility TruthValue    
+            hpicfVrrpv3VrNullAuthCompatibility      TruthValue,
+            hpicfVrrpv3VrBfdIPAddr                  InetAddress
         }
 
     hpicfVrrpv3VrMode OBJECT-TYPE
@@ -178,13 +197,21 @@ hpicfVrrpv3MIB  MODULE-IDENTITY
         SYNTAX       TruthValue
         MAX-ACCESS   read-create
         STATUS       current
-        DESCRIPTION  " When set to TRUE appends authentication data at the end to an 
+        DESCRIPTION  " When set to true appends authentication data at the end to an 
                        IPv6 VRRP packet being sent out. The authentication data is 8 
                        bytes filled with 0 and is applicable only for IPv6 Virtual 
                        router. By default hpicfVrrpv3VrNullAuthCompatibility is 
-                       set to FALSE."
-        DEFVAL       { FALSE }
+                       set to false."
+        DEFVAL       { false }
         ::= { hpicfVrrpv3OperationsEntry 6 }
+    
+     hpicfVrrpv3VrBfdIPAddr OBJECT-TYPE
+        SYNTAX       InetAddress
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION " IP address of the master to enable BFD under VRRP."
+        ::= { hpicfVrrpv3OperationsEntry 13 }
+
 
 -- **********************************************************************
 -- VRRPV3 Track Table
@@ -444,7 +471,8 @@ hpicfVrrpv3MIB  MODULE-IDENTITY
                     VRRPV3 and implementing the HP-ICF-VRRPV3-MIB."
         MODULE  -- this module
             MANDATORY-GROUPS { hpicfVrrpv3OperGroup,
-                               hpicfVrrpv3TrackGroup}
+                               hpicfVrrpv3TrackGroup,
+                               hpicfVrrpv3BfdGroup }
 
             GROUP       hpicfVrrpv3OperGroup
             DESCRIPTION "Support for this group is required for HP routers
@@ -453,7 +481,11 @@ hpicfVrrpv3MIB  MODULE-IDENTITY
             GROUP       hpicfVrrpv3TrackGroup
             DESCRIPTION "Support for this group is required for HP routers
                         that support Tracking in VRRPV3."
-            
+
+            GROUP       hpicfVrrpv3BfdGroup
+            DESCRIPTION "Support for this group is required for HP routers
+                         that support bfd under vrrp session."
+             
         ::= { hpicfVrrpv3MIBCompliances 1 }
 
 
@@ -472,7 +504,7 @@ hpicfVrrpv3MIB  MODULE-IDENTITY
                       hpicfVrrpv3VrControl,
                       hpicfVrrpv3StatsNearFailovers,
                       hpicfVrrpv3VrNullAuthCompatibility,
-                      hpicfVrrpv3RespondToPing, 
+                      hpicfVrrpv3RespondToPing,
                       hpicfVrrpv3RemoveConfig,
                       hpicfVrrpv3Nonstop, 
                       hpicfVrrpv3NotificationCntl,
@@ -495,5 +527,12 @@ hpicfVrrpv3MIB  MODULE-IDENTITY
         DESCRIPTION "A collection of HP proprietary objects to support 
                     VRRPV3 configuration on HP routers."
         ::= { hpicfVrrpv3MIBGroups 2 }
+
+    hpicfVrrpv3BfdGroup OBJECT-GROUP
+          OBJECTS     { hpicfVrrpv3VrBfdIPAddr }
+          STATUS      current
+          DESCRIPTION "A collection of HP proprietary objects to support 
+                       BFD configuration on HP routers."
+          ::= { hpicfVrrpv3MIBGroups 5 }   
 END
 

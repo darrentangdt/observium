@@ -11,7 +11,6 @@
  *
  */
 
-#F5-BIGIP-SYSTEM-MIB::sysPlatformInfoMarketingName.0 = STRING: BIG-IP 4000
 #F5-BIGIP-SYSTEM-MIB::sysProductName.0 = STRING: BIG-IP
 #F5-BIGIP-SYSTEM-MIB::sysProductVersion.0 = STRING: 11.4.1
 #F5-BIGIP-SYSTEM-MIB::sysProductBuild.0 = STRING: 637.0
@@ -28,13 +27,9 @@
 #F5-BIGIP-SYSTEM-MIB::sysModuleAllocationProvisionLevel."ltm" = INTEGER: nominal(3)
 #F5-BIGIP-SYSTEM-MIB::sysModuleAllocationProvisionLevel."psm" = INTEGER: none(1)
 
-$hardware = snmp_get($device, 'sysPlatformInfoMarketingName.0', '-OQv', 'F5-BIGIP-SYSTEM-MIB');
-
 $version = snmp_get($device, 'sysProductVersion.0', '-OQv', 'F5-BIGIP-SYSTEM-MIB');
 $version .= ' Build ' . snmp_get($device, 'sysProductBuild.0', '-OQv', 'F5-BIGIP-SYSTEM-MIB');
 $version .= ' ' . snmp_get($device, 'sysProductEdition.0', '-OQv', 'F5-BIGIP-SYSTEM-MIB');
-
-$serial .= snmp_get($device, 'sysGeneralChassisSerialNum.0', '-OQv', 'F5-BIGIP-SYSTEM-MIB');
 
 $slot_serials = snmpwalk_cache_oid($device, 'sysChassisSlotSerialNumber', array(), 'F5-BIGIP-SYSTEM-MIB');
 foreach($slot_serials as $tmp => $slot)

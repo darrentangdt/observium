@@ -183,7 +183,7 @@ chasMacRangeIndex OBJECT-TYPE
 
 chasMacAddressStart OBJECT-TYPE
 	SYNTAX	        MacAddress
-	MAX-ACCESS	read-write
+	MAX-ACCESS	read-create
 	STATUS	        current
 	DESCRIPTION 
 	"This is the starting MAC Address in the range.  This
@@ -192,7 +192,7 @@ chasMacAddressStart OBJECT-TYPE
 
 chasMacAddressCount OBJECT-TYPE
 	SYNTAX	        INTEGER (1..256)
-	MAX-ACCESS	read-write
+	MAX-ACCESS	read-create
 	STATUS	        current
 	DESCRIPTION 
 	"This is the number of MAC addresses in the range.  This 
@@ -202,7 +202,7 @@ chasMacAddressCount OBJECT-TYPE
 
 chasGlobalLocal OBJECT-TYPE
 	SYNTAX	        MacAddrGlobalLocalStatusType
-	MAX-ACCESS	read-write
+	MAX-ACCESS	read-create
 	STATUS	        current
 	DESCRIPTION "
 	Specifies whether the MAC Address/range is locally/globally 
@@ -213,7 +213,7 @@ chasGlobalLocal OBJECT-TYPE
 
 chasMacRowStatus OBJECT-TYPE
 	SYNTAX	        RowStatus
-	MAX-ACCESS	read-write
+	MAX-ACCESS	read-create
 	STATUS	        current
 	DESCRIPTION "Row status for creating/deleting mac ranges." 
 ::= { chasMacAddrRangeTableEntry 5 }
@@ -291,7 +291,7 @@ chasAllocMacAddress OBJECT-TYPE
 
 chasAllocRowStatus OBJECT-TYPE
 	SYNTAX	        RowStatus
-	MAX-ACCESS	read-write
+	MAX-ACCESS	read-create
 	STATUS	        current
 	DESCRIPTION "Row status for allocating/deallocating
 	a Mac address for a particular chaAppId/chasObjectId." 
@@ -523,8 +523,7 @@ Status Group."
 		chasRingStatus,
 		chasBaseMacAddrSource,
 		chasBaseMacAddr,
-		chasBaseMacReleaseAction 
-		 
+		chasBaseMacReleaseAction
        }
         STATUS  current
         DESCRIPTION

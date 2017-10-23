@@ -14,6 +14,9 @@
 
 #ob_start(); // FIXME why no more?
 
+// Define this is graph
+define('OBS_GRAPH', TRUE);
+
 include_once("../includes/sql-config.inc.php");
 
 $start = utime(); // Needs common.php

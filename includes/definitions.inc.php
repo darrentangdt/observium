@@ -28,7 +28,7 @@ ini_set('default_charset', 'UTF-8');
 define('OBS_QUOTES_STRIP',         1); // Strip ALL quotes from string
 define('OBS_QUOTES_TRIM',          2); // Trim quotes only from begin/end of string
 define('OBS_ESCAPE',               4); // Escape strings or output
-#define('OBS_',                    8); // Reserved
+define('OBS_DECODE_UTF8',          8); // Decode ascii coded chars in string as correct UTF-8
 
 // Bits 4-11 snmp flags
 define('OBS_SNMP_NUMERIC',        16); // Use numeric OIDs  (-On)
@@ -36,7 +36,7 @@ define('OBS_SNMP_NUMERIC_INDEX',  32); // Use numeric index (-Ob)
 define('OBS_SNMP_CONCAT',         64); // Concatinate multiline snmp variable (newline chars removed)
 define('OBS_SNMP_ENUM',          128); // Don't enumerate SNMP values
 define('OBS_SNMP_HEX',           256); // Force HEX output (-Ox)
-#define('OBS_SNMP_',             512); // Reserved
+define('OBS_SNMP_TABLE',         512); // Force Program Like output (-OX)
 #define('OBS_SNMP_',            1024); // Reserved
 #define('OBS_SNMP_',            2048); // Reserved
 
@@ -46,6 +46,7 @@ define('OBS_SNMP_ALL_HEX',           OBS_SNMP_ALL | OBS_SNMP_HEX);           // 
 define('OBS_SNMP_ALL_ENUM',          OBS_SNMP_ALL | OBS_SNMP_ENUM);          // Set of common snmp options without enumerating values
 define('OBS_SNMP_ALL_NUMERIC',       OBS_SNMP_ALL | OBS_SNMP_NUMERIC);       // Set of common snmp options with numeric OIDs
 define('OBS_SNMP_ALL_NUMERIC_INDEX', OBS_SNMP_ALL | OBS_SNMP_NUMERIC_INDEX); // Set of common snmp options with numeric indexes
+define('OBS_SNMP_ALL_TABLE',         OBS_SNMP_ALL | OBS_SNMP_TABLE);         // Set of common snmp options with Program Like (help for MAC parse in indexes)
 
 // Bits 12-15 network flags
 define('OBS_DNS_A',             4096); // Use only IPv4 dns queries
@@ -62,6 +63,11 @@ define('OBS_PERMIT_EDIT',     524288); // Can edit
 define('OBS_PERMIT_ADMIN',   1048576); // Can add/remove
 define('OBS_PERMIT_ALL', OBS_PERMIT_ACCESS | OBS_PERMIT_READ | OBS_PERMIT_SECURE | OBS_PERMIT_EDIT | OBS_PERMIT_ADMIN); // Permit all
 
+// Configuration view levels
+define('OBS_CONFIG_BASIC',          1); // 0001: Basic view, 0001
+define('OBS_CONFIG_ADVANCED',       3); // 0011: Advanced view, includes basic
+define('OBS_CONFIG_EXPERT',         7); // 0111: Expert view, includes advanced and basic
+
 // Json flags
 define('OBS_JSON_BIGINT_AS_STRING', version_compare(PHP_VERSION, '5.4.0', '>=') && !(defined('JSON_C_VERSION') && PHP_INT_SIZE > 4)); // Check if BIGINT supported
 $json_encode = defined('JSON_UNESCAPED_UNICODE') ? JSON_UNESCAPED_UNICODE : 0;
@@ -70,6 +76,12 @@ $json_decode = OBS_JSON_BIGINT_AS_STRING ? JSON_BIGINT_AS_STRING : 0;
 define('OBS_JSON_ENCODE', $json_encode);
 define('OBS_JSON_DECODE', $json_decode);
 unset($json_encode, $json_decode);
+
+// Always use "enhanced algorithm" for rounding float numbers in JSON/serialize
+ini_set('serialize_precision', -1);
+
+// Minimum supported versions
+define('OBS_MIN_PHP_VERSION', '5.5.0'); // PHP
 
 // Set QUIET
 define('OBS_QUIET', isset($options['q']));
@@ -82,7 +94,6 @@ if (isset($options['d']))
   define('OBS_DEBUG', count($options['d'])); // -d == 1, -dd == 2..
   ini_set('display_errors', 1);
   ini_set('display_startup_errors', 1);
-  ini_set('log_errors', 1);
   if (OBS_DEBUG > 1)
   {
     //ini_set('error_reporting', E_ALL ^ E_NOTICE); // FIXME, too many warnings ;)
@@ -91,9 +102,9 @@ if (isset($options['d']))
     ini_set('error_reporting', E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR); // Only various errors
   }
 }
-else if ((isset($_SERVER['PATH_INFO']) && strpos($_SERVER['PATH_INFO'], 'debug')) ||
-         (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], 'debug')) ||
-         (isset($_REQUEST['debug']) && $_REQUEST['debug']))
+else if ($debug_web_requested = (isset($_REQUEST['debug']) && $_REQUEST['debug']) ||
+         (isset($_SERVER['PATH_INFO']) && strpos($_SERVER['PATH_INFO'], 'debug')) ||
+         (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], 'debug')))
 {
   // WEB
 
@@ -101,23 +112,23 @@ else if ((isset($_SERVER['PATH_INFO']) && strpos($_SERVER['PATH_INFO'], 'debug')
   if (isset($config['web_debug_unprivileged']) && $config['web_debug_unprivileged'])
   {
     define('OBS_DEBUG', 1);
-  } else {
-    define('OBS_DEBUG_WUI', 1); // Temporary constant, for check in auth module
-  }
-  ini_set('display_errors', 1);
-  ini_set('display_startup_errors', 1);
-  ini_set('log_errors', 1);
-  ini_set('error_reporting', E_ALL ^ E_NOTICE);
-  //$vars['debug'] = 'yes';
+
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    //ini_set('error_reporting', E_ALL ^ E_NOTICE);
+    ini_set('error_reporting', E_ALL ^ E_NOTICE ^ E_WARNING);
+  } // else not set anything before auth
+
 } else {
   define('OBS_DEBUG', 0);
   ini_set('display_errors', 0);
   ini_set('display_startup_errors', 0);
-  ini_set('log_errors', 1);
-  //ini_set('error_reporting', 0); // Default
+  //ini_set('error_reporting', 0); // Use default php config
 }
-$debug = OBS_DEBUG; // DEBUG. Temporary fallback to old variable
+ini_set('log_errors', 1);
+//$debug = OBS_DEBUG; // DEBUG. Temporary fallback to old variable
 
+//
 // Unit test not used sql connect and does not include includes/sql-config.inc.php
 if (defined('__PHPUNIT_PHAR__'))
 {
@@ -139,6 +150,17 @@ if (defined('__PHPUNIT_PHAR__'))
 } else {
   define('OBS_DB_SKIP', FALSE);
 }
+
+// Set default Include path
+set_include_path($config['install_dir'] . "/libs/pear" . PATH_SEPARATOR . // Still required Pear path
+                 $config['install_dir'] . "/libs"      . PATH_SEPARATOR .
+                 get_include_path());
+
+// Load random_compat (for PHP 5.x)
+require_once("random_compat/random.php");
+
+// Load hash-compat (for < PHP 5.6)
+require_once("hash-compat/hash_equals.php");
 
 // Debug nicer functions
 if (OBS_DEBUG || strlen($_SERVER['REMOTE_ADDR']))
@@ -166,6 +188,7 @@ if (is_file($config['install_dir'].'/includes/definitions/definitions.dat'))
 }
 
 $definition_files = array('os',           // OS definitions
+                          'wui',          // Web UI specific definitions
                           'graphtypes',   // Graph Type definitions
                           'rrdtypes',     // RRD Type definitions
                           'entities',     // Entity type definitions
@@ -178,7 +201,6 @@ $definition_files = array('os',           // OS definitions
                           'vm',           // Virtual Machine definitions
                           'transports',   // Alerting transport definitions
                           'apps',         // Apps system definitions
-                          'wui',          // Web UI specific definitions
                           );
 
 foreach ($definition_files as $file)
@@ -213,84 +235,106 @@ $config['alert_graphs']['storage']['storage_perc']  = array('type' => 'storage_u
 
 $i = (is_array($config['device_types']) ? count($config['device_types']) : 0); // Allow config.php-set device_types to exist
 
-$config['device_types'][$i]['text']  = 'Servers';           // Rack mounted or tower or remote used servers
+$config['device_types'][$i]['text']  = 'Servers';
 $config['device_types'][$i]['type']  = 'server';
-$config['device_types'][$i]['icon']  = 'oicon-server';
+$config['device_types'][$i]['icon']  = 'sprite-device';
+$config['device_types'][$i]['descr'] = 'Rack mounted or tower or remote used servers';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Workstations';       // PC
-$config['device_types'][$i]['type'] = 'workstation';
-$config['device_types'][$i]['icon'] = 'oicon-computer';
+$config['device_types'][$i]['text']  = 'Server Blades';
+$config['device_types'][$i]['type']  = 'blade';
+$config['device_types'][$i]['icon']  = 'sprite-devices';
+$config['device_types'][$i]['descr'] = 'Rack modular server blades';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Network';            // Switches, routers
-$config['device_types'][$i]['type'] = 'network';
-$config['device_types'][$i]['icon'] = 'oicon-network-hub';
+$config['device_types'][$i]['text']  = 'Workstations';
+$config['device_types'][$i]['type']  = 'workstation';
+$config['device_types'][$i]['icon']  = 'sprite-workstation';
+$config['device_types'][$i]['descr'] = 'PC and workstations';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Wireless';           // Wireless network devices (also see radio type)
-$config['device_types'][$i]['type'] = 'wireless';
-$config['device_types'][$i]['icon'] = 'oicon-wi-fi-zone';
+$config['device_types'][$i]['text']  = 'Network';
+$config['device_types'][$i]['type']  = 'network';
+$config['device_types'][$i]['icon']  = 'sprite-network';
+$config['device_types'][$i]['descr'] = 'Switches and routers';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Firewalls';          // Firewall specific devices/servers
-$config['device_types'][$i]['type'] = 'firewall';
-$config['device_types'][$i]['icon'] = 'oicon-wall-brick';
+$config['device_types'][$i]['text']  = 'Wireless';
+$config['device_types'][$i]['type']  = 'wireless';
+$config['device_types'][$i]['icon']  = 'sprite-wifi';
+$config['device_types'][$i]['descr'] = 'Wireless network devices';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Security';           // Security appliance, DDoS protection, etc
+$config['device_types'][$i]['text']  = 'Firewalls';
+$config['device_types'][$i]['type']  = 'firewall';
+$config['device_types'][$i]['icon']  = 'sprite-firewall';
+$config['device_types'][$i]['descr'] = 'Firewall specific devices';
+
+$i++;
+$config['device_types'][$i]['text'] = 'Security';
 $config['device_types'][$i]['type'] = 'security';
-$config['device_types'][$i]['icon'] = 'oicon-shield';
+$config['device_types'][$i]['icon'] = 'sprite-security';
+$config['device_types'][$i]['descr'] = 'Security appliance, DDoS protection devices';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Power';              // UPS, PDU, outlets
-$config['device_types'][$i]['type'] = 'power';
-$config['device_types'][$i]['icon'] = 'oicon-plug';
+$config['device_types'][$i]['text']  = 'Power';
+$config['device_types'][$i]['type']  = 'power';
+$config['device_types'][$i]['icon']  = 'sprite-power';
+$config['device_types'][$i]['descr'] = 'UPS, PDU and outlet devices';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Environment';        // Environment sensor devices (also conditioners)
-$config['device_types'][$i]['type'] = 'environment';
-$config['device_types'][$i]['icon'] = 'oicon-water';
+$config['device_types'][$i]['text']  = 'Environment';
+$config['device_types'][$i]['type']  = 'environment';
+$config['device_types'][$i]['icon']  = 'sprite-humidity';
+$config['device_types'][$i]['descr'] = 'Environment sensor devices and conditioners';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Load Balancers';     // Load balancer servers
-$config['device_types'][$i]['type'] = 'loadbalancer';
-$config['device_types'][$i]['icon'] = 'oicon-arrow-split';
+$config['device_types'][$i]['text']  = 'Load Balancers';
+$config['device_types'][$i]['type']  = 'loadbalancer';
+$config['device_types'][$i]['icon']  = $config['icon']['loadbalancer'];
+$config['device_types'][$i]['descr'] = 'Load balancer servers';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Communication';      // Video/VoIP/Text communication server
-$config['device_types'][$i]['type'] = 'communication';
-$config['device_types'][$i]['icon'] = 'oicon-mails-stack';
+$config['device_types'][$i]['text']  = 'Communication';
+$config['device_types'][$i]['type']  = 'communication';
+$config['device_types'][$i]['icon']  = 'sprite-communication';
+$config['device_types'][$i]['descr'] = 'Video/VoIP/Text communication servers';
 
 $i++;
-$config['device_types'][$i]['text'] = 'VoIP';               // VoIP phones
-$config['device_types'][$i]['type'] = 'voip';
-$config['device_types'][$i]['icon'] = 'oicon-telephone';
+$config['device_types'][$i]['text']  = 'VoIP';
+$config['device_types'][$i]['type']  = 'voip';
+$config['device_types'][$i]['icon']  = 'sprite-voice';
+$config['device_types'][$i]['descr'] = 'VoIP phones';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Video';              // Webcams, video record devices
-$config['device_types'][$i]['type'] = 'video';
-$config['device_types'][$i]['icon'] = 'oicon-surveillance-camera';
+$config['device_types'][$i]['text']  = 'Video';
+$config['device_types'][$i]['type']  = 'video';
+$config['device_types'][$i]['icon']  = 'sprite-video';
+$config['device_types'][$i]['descr'] = 'Webcams, video record devices';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Storage';            // NAS
-$config['device_types'][$i]['type'] = 'storage';
-$config['device_types'][$i]['icon'] = 'oicon-database';
+$config['device_types'][$i]['text']  = 'Storage';
+$config['device_types'][$i]['type']  = 'storage';
+$config['device_types'][$i]['icon']  = $config['icon']['databases'];
+$config['device_types'][$i]['descr'] = 'NAS';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Management';         // IPMI, IP-KVM and other management (ie serial console)
-$config['device_types'][$i]['type'] = 'management';
-$config['device_types'][$i]['icon'] = 'oicon-service-bell'; // FIXME. I really not know what icon better
+$config['device_types'][$i]['text']  = 'Management';
+$config['device_types'][$i]['type']  = 'management';
+$config['device_types'][$i]['icon']  = 'sprite-management'; // FIXME. I really not know what icon better
+$config['device_types'][$i]['descr'] = 'IPMI, IP-KVM and other management (ie serial console)';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Radio';              // Radio transmit devices (not same as wireless!)
-$config['device_types'][$i]['type'] = 'radio';
-$config['device_types'][$i]['icon'] = 'oicon-transmitter';
+$config['device_types'][$i]['text']  = 'Radio';
+$config['device_types'][$i]['type']  = 'radio';
+$config['device_types'][$i]['icon']  = 'sprite-antenna';
+$config['device_types'][$i]['descr'] = 'Radio transmit devices';
 
 $i++;
-$config['device_types'][$i]['text'] = 'Printers';           // Printers and print servers
-$config['device_types'][$i]['type'] = 'printer';
-$config['device_types'][$i]['icon'] = 'oicon-printer-color';
+$config['device_types'][$i]['text']  = 'Printers';
+$config['device_types'][$i]['type']  = 'printer';
+$config['device_types'][$i]['icon']  = 'sprite-printer';
+$config['device_types'][$i]['descr'] = 'Printers and print servers';
 unset($i);
 
 // SLA colours
@@ -337,6 +381,8 @@ $config['snmp']['errorcodes'][4]    = array('reason' => 'Too big max-repetition 
                                             'msg'    => '');
 
 $config['snmp']['errorcodes'][900]  = array('reason' => 'isSNMPable',               // Device up/down test, not used for counting
+                                            'msg'    => '');
+$config['snmp']['errorcodes'][995]  = array('reason' => 'Incorrect arguments',      // Incorrect arguments passed to snmpcmd
                                             'msg'    => '');
 $config['snmp']['errorcodes'][996]  = array('reason' => 'MIB or oid not found',     // MIB module or oid not found in specified dirs
                                             'msg'    => '');
@@ -432,7 +478,9 @@ $config['sla_type_labels']['UdpTimestamp'] = 'UDP timestamp';
 // RANCID OS map (for config generation script)
 $config['rancid']['os_map']['arista_eos'] = 'arista';
 $config['rancid']['os_map']['asa']        = 'cisco';
-$config['rancid']['os_map']['avocent']    = 'avocent';
+//$config['rancid']['os_map']['avocent']    = 'avocent';
+$config['rancid']['os_map']['ciena-waveserveros']   = 'ciena-ws';
+$config['rancid']['os_map']['cyclades']   = 'avocent';
 $config['rancid']['os_map']['f5']         = 'f5';
 $config['rancid']['os_map']['fortigate']  = 'fortigate';
 $config['rancid']['os_map']['ftos']       = 'force10';
@@ -443,12 +491,16 @@ $config['rancid']['os_map']['ironware']   = 'foundry';
 $config['rancid']['os_map']['procurve']   = 'hp';
 $config['rancid']['os_map']['pixos']      = 'cisco';
 $config['rancid']['os_map']['junos']      = 'juniper';
-$config['rancid']['os_map']['nxos']           = 'cisco-nx';
+$config['rancid']['os_map']['nxos']       = 'cisco-nx';
 $config['rancid']['os_map']['opengear']   = 'opengear';
 $config['rancid']['os_map']['routeros']   = 'mikrotik';
 $config['rancid']['os_map']['screenos']   = 'netscreen';
 $config['rancid']['os_map']['pfsense']    = 'pfsense';
 $config['rancid']['os_map']['netscaler']  = 'netscaler';
+// Rancid v3.x specific os map
+$config['rancid']['os_map_3']['a10-ax']   = 'a10';
+$config['rancid']['os_map_3']['a10-ex']   = 'a10';
+$config['rancid']['os_map_3']['ciena-waveserveros'] = 'ciena-ws';
 
 # Enable these (in config.php) if you added the powerconnect addon to your RANCID install
 #$config['rancid']['os_map']['powerconnect-fastpath'] = 'dell';
@@ -474,9 +526,6 @@ switch ($config['db_extension'])
 }
 require_once($config['install_dir'] . "/includes/db.inc.php");
 
-// Include paths for PEAR
-set_include_path($config['install_dir'] . "/libs/pear" . PATH_SEPARATOR . get_include_path());
-
 include($config['install_dir'].'/includes/definitions/version.inc.php');
 
 // Set default paths.
@@ -485,25 +534,24 @@ if (!isset($config['html_dir'])) { $config['html_dir'] = $config['install_dir'] 
 else                             { $config['html_dir'] = rtrim($config['html_dir'], ' /'); }
 if (!isset($config['rrd_dir']))  { $config['rrd_dir']  = $config['install_dir'] . '/rrd'; }
 else                             { $config['rrd_dir']  = rtrim($config['rrd_dir'], ' /'); }
-if (!isset($config['log_dir']))  { $config['log_dir']  = $config['install_dir'] . '/logs'; }
-else                             { $config['log_dir']  = rtrim($config['log_dir'], ' /'); }
-if (!isset($config['log_file'])) { $config['log_file'] = $config['log_dir'] . '/observium.log'; } // FIXME should not be absolute path, look for where it is used
-if (!isset($config['temp_dir'])) { $config['temp_dir'] = '/tmp'; }
-else                             { $config['temp_dir'] = rtrim($config['temp_dir'], ' /'); }
-if (!isset($config['mib_dir']))  { $config['mib_dir']  = $config['install_dir'] . '/mibs'; }
-else                             { $config['mib_dir']  = rtrim($config['mib_dir'], ' /'); }
-if (!isset($config['template_dir'])) { $config['template_dir'] = $config['install_dir'] . '/templates'; }
-else                                 { $config['template_dir'] = rtrim($config['template_dir'], ' /'); }
+
+// Fix RRD Directory path to always have a trailing slash so that it works nicely with rrdcached
+//$config['rrd_dir'] = fix_path_slash($config['rrd_dir']);
+
+if (!isset($config['log_dir']))       { $config['log_dir']      = $config['install_dir'] . '/logs'; }
+else                                  { $config['log_dir']      = rtrim($config['log_dir'], ' /'); }
+if (!isset($config['log_file']))      { $config['log_file']     = $config['log_dir'] . '/observium.log'; } // FIXME should not be absolute path, look for where it is used
+if (!isset($config['temp_dir']))      { $config['temp_dir']     = '/tmp'; }
+else                                  { $config['temp_dir']     = rtrim($config['temp_dir'], ' /'); }
+if (!isset($config['mib_dir']))       { $config['mib_dir']      = $config['install_dir'] . '/mibs'; }
+else                                  { $config['mib_dir']      = rtrim($config['mib_dir'], ' /'); }
+if (!isset($config['template_dir']))  { $config['template_dir'] = $config['install_dir'] . '/templates'; }
+else                                  { $config['template_dir'] = rtrim($config['template_dir'], ' /'); }
+if (!isset($config['cache_dir']))     { $config['cache_dir']    = $config['temp_dir'] . '/observium_cache'; }
+else                                  { $config['cache_dir']    = rtrim($config['cache_dir'], ' /'); }
 
 // Connect to database
 $GLOBALS[OBS_DB_LINK] = dbOpen($config['db_host'], $config['db_user'], $config['db_pass'], $config['db_name']);
-
-// Connect to statsd
-
-if ($config['statsd']['enable'] && class_exists('StatsD'))
-{
-  $statsd = new StatsD($config['statsd']['host'].':'.$config['statsd']['port']);
-}
 
 // Base user levels
 
@@ -513,37 +561,37 @@ $config['user_level'][0]  = array('permission' => 0,
                                   'subtext'    => 'This user disabled',
                                   'notes'      => 'User complete can\'t login and use any services. Use it to block access for specific users, but not delete from DB.',
                                   'row_class'  => 'disabled',
-                                  'icon'       => 'oicon-user--minus');
+                                  'icon'       => $config['icon']['user-delete']);
 $config['user_level'][1]  = array('permission' => OBS_PERMIT_ACCESS,
                                   'name'       => 'Normal User',
                                   'subtext'    => 'This user has read access to individual entities',
                                   'notes'      => 'User can\'t see or edit anything by default. Can only see devices and entities specifically permitted.',
                                   'row_class'  => 'default',
-                                  'icon'       => 'oicon-user--plus');
+                                  'icon'       => $config['icon']['users']);
 $config['user_level'][5]  = array('permission' => OBS_PERMIT_ACCESS | OBS_PERMIT_READ,
                                   'name'       => 'Global Read',
                                   'subtext'    => 'This user has global read access',
                                   'notes'      => 'User can see all devices and entities with some security and configuration data masked, such as passwords.',
                                   'row_class'  => 'suppressed',
-                                  'icon'       => 'oicon-user-business');
+                                  'icon'       => $config['icon']['user-self']);
 $config['user_level'][7]  = array('permission' => OBS_PERMIT_ACCESS | OBS_PERMIT_READ | OBS_PERMIT_SECURE,
                                   'name'       => 'Global Secure Read',
                                   'subtext'    => 'This user has global read access with secured info',
                                   'notes'      => 'User can see all devices and entities without any information being masked, including device configuration (supplied by e.g. RANCID).',
                                   'row_class'  => 'warning',
-                                  'icon'       => 'oicon-user-business');
+                                  'icon'       => $config['icon']['user-self']);
 $config['user_level'][8]  = array('permission' => OBS_PERMIT_ACCESS | OBS_PERMIT_READ | OBS_PERMIT_SECURE | OBS_PERMIT_EDIT,
                                   'name'       => 'Global Secure Read / Limited Write',
                                   'subtext'    => 'This user has secure global read access with scheduled maintenence read/write.',
                                   'notes'      => 'User can see all devices and entities without any information being masked, including device configuration (supplied by e.g. RANCID). User can also add, edit and remove scheduled maintenance, group, contacts.',
                                   'row_class'  => 'warning',
-                                  'icon'       => 'oicon-user-business');
+                                  'icon'       => $config['icon']['user-self']);
 $config['user_level'][10] = array('permission' => OBS_PERMIT_ALL,
                                   'name'       => 'Administrator',
                                   'subtext'    => 'This user has full administrative access',
                                   'notes'      => 'User can see and edit all devices and entities. This includes adding and removing devices, bills and users.',
                                   'row_class'  => 'success',
-                                  'icon'       => 'oicon-user-detective');
+                                  'icon'       => $config['icon']['user-log']);
 
 $config['remote_access']['ssh']    = array('name' => "SSH",    'port' => '22',   'icon' => 'oicon-application-terminal');
 $config['remote_access']['telnet'] = array('name' => "Telnet", 'port' => '23',   'icon' => 'oicon-application-list');
@@ -556,6 +604,7 @@ $config['remote_access']['vnc']    = array('name' => "VNC",    'port' => '5901',
 
 // Set some times needed by loads of scripts (it's dynamic, so we do it here!)
 $config['time']['now']        = time();
+$config['time']['fiveminute'] = $config['time']['now'] - 300;      //time() - (5 * 60);
 $config['time']['fourhour']   = $config['time']['now'] - 14400;    //time() - (4 * 60 * 60);
 $config['time']['sixhour']    = $config['time']['now'] - 21600;    //time() - (6 * 60 * 60);
 $config['time']['twelvehour'] = $config['time']['now'] - 43200;    //time() - (12 * 60 * 60);
@@ -586,7 +635,7 @@ $config['device_tables'] = array(
   'ospf_nbrs', 'ospf_ports', 'packages', 'ports', 'ports_stack', 'ports_vlans', 'processors',
   'pseudowires', 'sensors', 'status', 'services', 'slas', 'storage', 'syslog', 'printersupplies',
   'ucd_diskio', 'vlans', 'vlans_fdb', 'vminfo', 'vrfs', 'wifi_accesspoints', 'wifi_sessions',
-  'group_table', 'p2p_radios', 'oids_assoc', 'lb_virtuals', 'observium_processes',
+  'group_table', 'p2p_radios', 'oids_entries', 'lb_virtuals', 'observium_processes',
   'devices' // always leave the table devices as last
 );
 

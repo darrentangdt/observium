@@ -1863,7 +1863,7 @@ vl4095(4095)
             STATUS  current
             DESCRIPTION
                  "This object specifies if the STP status is enabled (1) or
-		 disabled (2) on this STP instance."
+		 disabled (2) on this STP instance." 
 	    ::= { vStpInsEntry 27 }
 
 	--  The Spanning Tree Port Table for Omniswitch VLAN implementation
@@ -2113,7 +2113,8 @@ vl4095(4095)
 		 to another switch. Set this parameter to autopointtopoint(3)
 		 makes the point-to-point status to be determined automatically
 		 by the MAC entity. The value edgeport(4) indicates that the
-		 port is considered to be an edge port (18.3.3 of P802.1t)."
+		 port is considered to be an edge port (18.3.3 of P802.1t).Edgeport 
+		 option is deprecated in 6.3.1 but not removed physically"
 	    DEFVAL { nopointtopoint }
 	    ::= { vStpPortEntry 15 }
 
@@ -2399,7 +2400,8 @@ vl4095(4095)
 		 to another switch. Set this parameter to autopointtopoint(3)
 		 makes the point-to-point status to be determined automatically
 		 by the MAC entity. The value edgeport(4) indicates that the
-		 port is considered to be an edge port (18.3.3 of P802.1t)."
+		 port is considered to be an edge port (18.3.3 of P802.1t).Edgeport
+		 option is deprecated in 6.3.1 but not removed physically"
 	    DEFVAL { nopointtopoint }
 	    ::= { vStpInsPortEntry 15 }
 
@@ -2492,7 +2494,7 @@ vl4095(4095)
 	    STATUS  current
 	    DESCRIPTION
                 "Upon intiliazation of the port, this will be
-                the default setting of the operational edge
+                the default setting of the operational edge 
                 status of the port.  May change depending on
                 AutoEdge setting.  Will not change status after
                 link is up on port."
@@ -2507,9 +2509,9 @@ vl4095(4095)
 	    MAX-ACCESS  read-write
 	    STATUS  current
 	    DESCRIPTION
-                "When enabled STP will determine the operational
-                edge status of the port.  May overwrite the
-                AdminEdge status, if enabled.  If disabled, port
+                "When enabled STP will determine the operational 
+                edge status of the port.  May overwrite the 
+                AdminEdge status, if enabled.  If disabled, port 
                 will remain as the AdminEdge state."
 	    DEFVAL { enable }
 	    ::= { vStpInsPortEntry 23 }
@@ -2523,11 +2525,11 @@ vl4095(4095)
 	    STATUS  current
 	    DESCRIPTION
                 "When enabled, this port will not be selected as
-                the Root port and will be selected as Alternate
+                the Root port and will be selected as Alternate 
                 after the Root port is selected."
 	    DEFVAL { disable }
 	    ::= { vStpInsPortEntry 24 }
-
+         
          vStpInsPortRestrictedTcn OBJECT-TYPE
 	    SYNTAX  INTEGER {
 			enable(1),
@@ -2620,7 +2622,7 @@ vl4095(4095)
 	    DESCRIPTION
 		"The current enabled status for the whole bridge
                 of the Auto Vlan containment feature
-                which controls path costs in MSTP. This object is
+                which controls path costs in MSTP. This object is 
 		applicable only when bridge mode is flat."
 	    ::= { vStpBridge 5 }
 
@@ -2838,7 +2840,7 @@ vl4095(4095)
 
 	 vStpMstInstanceName  OBJECT-TYPE
 		SYNTAX DisplayString (SIZE (0..31))
-		MAX-ACCESS read-write
+		MAX-ACCESS read-create
 		STATUS current
 		DESCRIPTION
 			"An optional 32 character string assignable by the
@@ -2849,7 +2851,7 @@ vl4095(4095)
 
 	 vStpMstInstanceVlanBitmapAddition  OBJECT-TYPE
 		SYNTAX VlanBitmap
-		MAX-ACCESS read-write
+		MAX-ACCESS read-create
 		STATUS current
 		DESCRIPTION
 			"A string of 4096 bits forming a bitmap which defines a
@@ -2860,7 +2862,7 @@ vl4095(4095)
 
 	 vStpMstInstanceVlanBitmapDeletion  OBJECT-TYPE
 		SYNTAX VlanBitmap
-		MAX-ACCESS read-write
+		MAX-ACCESS read-create
 		STATUS current
 		DESCRIPTION
 			"A string of 4096 bits forming a bitmap which defines a
@@ -2882,7 +2884,7 @@ vl4095(4095)
 
 	vStpMstInstanceRowStatus OBJECT-TYPE
                 SYNTAX RowStatus
-      		MAX-ACCESS read-write
+      		MAX-ACCESS read-create
       		STATUS current
       		DESCRIPTION
          		"This object is the RowStatus (locking flag) for creating or
@@ -3005,7 +3007,7 @@ vl4095(4095)
 		"The status of whether this port is interacting
         with a 10 gigabit link to a OS8800 switch."
 	    DEFVAL { enable }
-	    ::= { vStpPortConfigEntry 2 }
+	    ::= { vStpPortConfigEntry 2 }    
 
 	vStpPortConfigPVST OBJECT-TYPE
 	    SYNTAX  INTEGER {
@@ -3048,7 +3050,6 @@ vl4095(4095)
                 "Configure STP loop guard on the port."
             DEFVAL { disable }
             ::= { vStpPortConfigEntry 5 }
-
 -- -------------------------------------------------------------
 	-- The Ring Rapid spanning tree global state
 
@@ -3061,7 +3062,7 @@ vl4095(4095)
 	    STATUS  current
 	    DESCRIPTION
 		"The state of Ring rapid spanning tree on a global level.
-		When the RRSTP is disabled gobally, all the rings get disabled. 		When the RRSTP is enabled globally, the rings can be
+		When the RRSTP is disabled gobally, all the rings get disabled. 		When the RRSTP is enabled globally, the rings can be 
 		individually configured to be enabled or disabled."
 	    DEFVAL { disable }
 	    ::= { vStpInfo 10}
@@ -3114,22 +3115,22 @@ vl4095(4095)
 	    ::= { vStpRrstpRingConfigEntry 1 }
 
 	vStpRrstpRingPort1 OBJECT-TYPE
-	    SYNTAX  InterfaceIndex
+	    SYNTAX  InterfaceIndex 
 	    MAX-ACCESS  read-create
 	    STATUS  current
 	    DESCRIPTION
 		"The interface index of first port that belongs
 		to the ring."
-	    ::= { vStpRrstpRingConfigEntry 2 }	
-	
+	    ::= { vStpRrstpRingConfigEntry 2 }	  
+	    
 	vStpRrstpRingPort2 OBJECT-TYPE
-	    SYNTAX  InterfaceIndex
+	    SYNTAX  InterfaceIndex 
 	    MAX-ACCESS  read-create
 	    STATUS  current
 	    DESCRIPTION
 		"The interface index of second port that belongs
 		to the ring."
-	    ::= { vStpRrstpRingConfigEntry 3 }	
+	    ::= { vStpRrstpRingConfigEntry 3 }	      
 
 	vStpRrstpRingVlanTag OBJECT-TYPE
             SYNTAX INTEGER (1..4094)
@@ -3138,14 +3139,14 @@ vl4095(4095)
 	    DESCRIPTION
 		"The VLAN tag applied to the ring with which RRSTP
 		 ring frames shall be tagged. Valid range from
-		 1 to 4094"
-	    ::= { vStpRrstpRingConfigEntry 4 }	
+		 1 to 4094"  
+	    ::= { vStpRrstpRingConfigEntry 4 }	      
 
 	vStpRrstpRingState OBJECT-TYPE
 	    SYNTAX  INTEGER {
             enable(1),
             disable(2)
-	    }
+	    } 
 	    MAX-ACCESS  read-create
 	    STATUS  current
 	    DESCRIPTION
@@ -3292,10 +3293,10 @@ stpLoopGuardRecovery NOTIFICATION-TYPE
 	    	vStpInsPortPrimaryPortNumber,
 	    	vStpInsPortAdminConnectionType,
 	        vStpInsPortOperConnectionType,
-	        vStpInsPortCistRegionRootId,
-	        vStpInsPortCistPathCost,
-	        vStpInsPortHelloTime,
-	        vStpInsBridgeHelloTime,
+                vStpInsPortCistRegionRootId,
+                vStpInsPortCistPathCost,
+                vStpInsPortHelloTime,
+            vStpInsBridgeHelloTime,
             vstpInsPortRcvdInternal,
             vStpInsBridgeTxHoldCount,
             vStpInsPortAdminEdge ,
@@ -3323,7 +3324,6 @@ stpLoopGuardRecovery NOTIFICATION-TYPE
             vStpPortPriority,
             vStpPortRole,
             vStpPortState,
-            
             vStpRootCost         
         }
         STATUS  current
@@ -3376,8 +3376,7 @@ stpLoopGuardRecovery NOTIFICATION-TYPE
             "Collection of objects for management of Spanning Tree
               assignment vlan to msti instances."
          ::= { alcatelIND1VLANSTPMIBGroups 5 }
- 
-          
+
 	vStpPortConfigGroup OBJECT-GROUP
 	OBJECTS
 	{
@@ -3408,9 +3407,9 @@ vStpRrstpRingConfigGroup OBJECT-GROUP
 	OBJECTS
 	{
          vStpRrstpRingId,
-	 	 vStpRrstpRingPort1,
-         vStpRrstpRingPort2,
-         vStpRrstpRingState,
+	 vStpRrstpRingPort1,
+         vStpRrstpRingPort2,    
+         vStpRrstpRingState, 
          vStpRrstpRingRowStatus,
          vStpRrstpRingVlanTag
 	}
@@ -3444,8 +3443,6 @@ vStpBridgeGroup OBJECT-GROUP
       "Spanning Tree Protocol activated
 		 on this bridge."
    ::= { alcatelIND1VLANSTPMIBGroups 10 }
-	
-	
 
     alcatelIND1VLANSTPMIBCompliance MODULE-COMPLIANCE
         STATUS  current
@@ -3457,16 +3454,14 @@ vStpBridgeGroup OBJECT-GROUP
             {
                 vStpGroup,
                 vStpPortGroup,
-	        	vStpMstRegionGroup,
+	        vStpMstRegionGroup,
                 vStpMstInstanceGroup,
-				vStpMstVlanAssignmentGroup,
+		vStpMstVlanAssignmentGroup,
                 vStpPortConfigGroup,
                 vStpNotificationGroup,
                 vStpRrstpRingConfigGroup,
                 vStpRrstpRingBaseGroup,
                 vStpBridgeGroup
-                
-                
             }
 
         ::= { alcatelIND1VLANSTPMIBCompliances 1 }

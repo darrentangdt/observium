@@ -7,7 +7,7 @@
  *
  * @package    observium
  * @subpackage discovery
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -21,9 +21,13 @@ $cpqrack = snmpwalk_cache_oid($device, 'cpqRackCommonEnclosureHasFans',         
 //print_vars($oids);
 
 // Power Supplies
-$oids = snmpwalk_cache_oid($device, 'cpqRackPowerSupplyTable', array(), 'CPQRACK-MIB');
-//print_vars($oids);
-foreach ($oids as $index => $entry)
+if (!isset($cache_discovery['cpqrack-mib_power']))
+{
+  $cache_discovery['cpqrack-mib_power'] = snmpwalk_cache_oid($device, 'cpqRackPowerSupplyTable', NULL, 'CPQRACK-MIB');
+}
+
+//print_vars($cache_discovery['cpqrack-mib_power']);
+foreach ($cache_discovery['cpqrack-mib_power'] as $index => $entry)
 {
   $rack    = $entry['cpqRackPowerSupplyRack'];
   if ($cpqrack[$rack]['cpqRackCommonEnclosureHasPowerSupplies'] == 'false' ||
@@ -35,6 +39,17 @@ foreach ($oids as $index => $entry)
   $chassis = $entry['cpqRackPowerSupplyChassis'];
   $name    = ($entry['cpqRackPowerSupplyEnclosureName'] ? $entry['cpqRackPowerSupplyEnclosureName'] : $entry['cpqRackPowerSupplyIndex']);
   $descr   = "$name - Rack $rack, Chassis $chassis, ".$entry['cpqRackPowerSupplyMaxPwrOutput']."W";
+
+  // Power Output
+  $oid_name   = 'cpqRackPowerSupplyCurPwrOutput';
+  $oid        = '.1.3.6.1.4.1.232.22.2.5.1.1.1.10.'.$index;
+  $type       = 'CPQRACK-MIB' . '-' . $oid_name;
+  $value      = $entry[$oid_name];
+
+  if ($value > 0)
+  {
+    discover_sensor($valid['sensor'], 'power', $device, $oid, $index, $type, 'Power Supply Output ' . $descr, 1, $value);
+  }
 
   // Intake Temperature
   $oid_name   = 'cpqRackPowerSupplyIntakeTemp';

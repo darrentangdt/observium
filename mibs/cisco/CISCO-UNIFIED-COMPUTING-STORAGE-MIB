@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- STORAGE management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -70,26 +70,24 @@ IMPORTS
     CucsStorageBbuStatus,
     CucsStorageBootableType,
     CucsStorageCacheType,
+    CucsStorageConfigCheckPoint,
     CucsStorageConfigState,
     CucsStorageConfiguration,
     CucsStorageConfiguredWriteType,
     CucsStorageConnectionProtocol,
     CucsStorageControllerFaultMonitoring,
     CucsStorageControllerId,
-    CucsStorageControllerRefControllerId,
-    CucsStorageControllerRefServerId,
+    CucsStorageControllerPinnedCacheStatus,
     CucsStorageControllerStatus,
     CucsStorageControllerType,
     CucsStorageDeployAction,
+    CucsStorageDiskEnvStatsHistThresholded,
+    CucsStorageDiskEnvStatsThresholded,
     CucsStorageDiskRole,
     CucsStorageDisklessAction,
-    CucsStorageDrawerOpenState,
-    CucsStorageEnclosureDiskSlotEpOwnership,
     CucsStorageEnclosureId,
     CucsStorageEpAccess,
-    CucsStorageEpLinkState,
     CucsStorageEtherIfVlanType,
-    CucsStorageExpanderState,
     CucsStorageFFCardHealth,
     CucsStorageFFCardMode,
     CucsStorageFFCardSizeMismatch,
@@ -134,16 +132,12 @@ IMPORTS
     CucsStorageOperationState,
     CucsStorageOperationStateType,
     CucsStorageOperationType,
+    CucsStorageOptionRomBootStatus,
     CucsStoragePDriveStatus,
-    CucsStoragePhysicalHolder,
     CucsStoragePowerState,
     CucsStorageProtocol,
     CucsStorageRaidBatteryOperabilityQualifier,
     CucsStorageReadType,
-    CucsStorageSasLinkDescriptorControllerId,
-    CucsStorageSasLinkDescriptorServerId,
-    CucsStorageSasUpLinkControllerId,
-    CucsStorageSasUpLinkServerId,
     CucsStorageSelectionDecisionType,
     CucsStorageSelectionResultType,
     CucsStorageSystemFsmCurrentFsm,
@@ -161,7 +155,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsStorageObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -577,9 +571,11 @@ CucsStorageControllerEntry ::= SEQUENCE {
     cucsStorageControllerVid                                         SnmpAdminString,
     cucsStorageControllerAdminAction                                 CucsStorageAdminCtrlActionType,
     cucsStorageControllerAdminActionTrigger                          CucsStorageAdminActionTrigger,
-    cucsStorageControllerConfigState                                 CucsLstorageConfigState,
+    cucsStorageControllerConfigState                                 CucsStorageConfigState,
+    cucsStorageControllerOpromBootStatus                             CucsStorageOptionRomBootStatus,
     cucsStorageControllerPciSlotRawName                              SnmpAdminString,
-    cucsStorageControllerIdCount                                     Gauge32
+    cucsStorageControllerIdCount                                     Gauge32,
+    cucsStorageControllerPinnedCacheStatus                           CucsStorageControllerPinnedCacheStatus
 }
 
 cucsStorageControllerInstanceId OBJECT-TYPE
@@ -854,12 +850,21 @@ cucsStorageControllerAdminActionTrigger OBJECT-TYPE
     ::= { cucsStorageControllerEntry 34 }
 
 cucsStorageControllerConfigState OBJECT-TYPE
-    SYNTAX       CucsLstorageConfigState
+    SYNTAX       CucsStorageConfigState
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
         "Cisco UCS storage:Controller:configState managed object property"
     ::= { cucsStorageControllerEntry 35 }
+
+cucsStorageControllerOpromBootStatus OBJECT-TYPE
+    SYNTAX       CucsStorageOptionRomBootStatus
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:Controller:opromBootStatus managed
+        object property"
+    ::= { cucsStorageControllerEntry 36 }
 
 cucsStorageControllerPciSlotRawName OBJECT-TYPE
     SYNTAX       SnmpAdminString
@@ -878,80 +883,364 @@ cucsStorageControllerIdCount OBJECT-TYPE
         "Cisco UCS storage:Controller:idCount managed object property"
     ::= { cucsStorageControllerEntry 38 }
 
-cucsStorageControllerRefTable OBJECT-TYPE
-    SYNTAX           SEQUENCE OF CucsStorageControllerRefEntry
+cucsStorageControllerPinnedCacheStatus OBJECT-TYPE
+    SYNTAX       CucsStorageControllerPinnedCacheStatus
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:Controller:pinnedCacheStatus
+        managed object property"
+    ::= { cucsStorageControllerEntry 39 }
+
+cucsStorageDiskEnvStatsTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsStorageDiskEnvStatsEntry
     MAX-ACCESS       not-accessible
     STATUS           current
     DESCRIPTION
-        "Cisco UCS storage:ControllerRef managed object table"
-    ::= { cucsStorageObjects 93 }
+        "Cisco UCS storage:DiskEnvStats managed object table"
+    ::= { cucsStorageObjects 50 }
 
-cucsStorageControllerRefEntry OBJECT-TYPE
-    SYNTAX           CucsStorageControllerRefEntry
+cucsStorageDiskEnvStatsEntry OBJECT-TYPE
+    SYNTAX           CucsStorageDiskEnvStatsEntry
     MAX-ACCESS       not-accessible
     STATUS           current
     DESCRIPTION
-        "Entry for the cucsStorageControllerRefTable table."
-    INDEX { cucsStorageControllerRefInstanceId }
-    ::= { cucsStorageControllerRefTable 1 }
+        "Entry for the cucsStorageDiskEnvStatsTable table."
+    INDEX { cucsStorageDiskEnvStatsInstanceId }
+    ::= { cucsStorageDiskEnvStatsTable 1 }
 
-CucsStorageControllerRefEntry ::= SEQUENCE {
-    cucsStorageControllerRefInstanceId                               CucsManagedObjectId,
-    cucsStorageControllerRefDn                                       CucsManagedObjectDn,
-    cucsStorageControllerRefRn                                       SnmpAdminString,
-    cucsStorageControllerRefControllerId                             CucsStorageControllerRefControllerId,
-    cucsStorageControllerRefLc                                       CucsFsmLifecycle,
-    cucsStorageControllerRefServerId                                 CucsStorageControllerRefServerId
+CucsStorageDiskEnvStatsEntry ::= SEQUENCE {
+    cucsStorageDiskEnvStatsInstanceId                                CucsManagedObjectId,
+    cucsStorageDiskEnvStatsDn                                        CucsManagedObjectDn,
+    cucsStorageDiskEnvStatsRn                                        SnmpAdminString,
+    cucsStorageDiskEnvStatsIntervals                                 Gauge32,
+    cucsStorageDiskEnvStatsSuspect                                   TruthValue,
+    cucsStorageDiskEnvStatsTemperature                               INTEGER,
+    cucsStorageDiskEnvStatsTemperatureAvg                            INTEGER,
+    cucsStorageDiskEnvStatsTemperatureMax                            INTEGER,
+    cucsStorageDiskEnvStatsTemperatureMin                            INTEGER,
+    cucsStorageDiskEnvStatsThresholded                               CucsStorageDiskEnvStatsThresholded,
+    cucsStorageDiskEnvStatsTimeCollected                             DateAndTime,
+    cucsStorageDiskEnvStatsUpdate                                    Gauge32,
+    cucsStorageDiskEnvStatsWearPercentage                            Gauge32,
+    cucsStorageDiskEnvStatsWearPercentageAvg                         Gauge32,
+    cucsStorageDiskEnvStatsWearPercentageMax                         Gauge32,
+    cucsStorageDiskEnvStatsWearPercentageMin                         Gauge32
 }
 
-cucsStorageControllerRefInstanceId OBJECT-TYPE
+cucsStorageDiskEnvStatsInstanceId OBJECT-TYPE
     SYNTAX       CucsManagedObjectId
     MAX-ACCESS   not-accessible
     STATUS       current
     DESCRIPTION
         "Instance identifier of the managed object."
-    ::= { cucsStorageControllerRefEntry 1 }
+    ::= { cucsStorageDiskEnvStatsEntry 1 }
 
-cucsStorageControllerRefDn OBJECT-TYPE
+cucsStorageDiskEnvStatsDn OBJECT-TYPE
     SYNTAX       CucsManagedObjectDn
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
-        "Cisco UCS storage:ControllerRef:dn managed object property"
-    ::= { cucsStorageControllerRefEntry 2 }
+        "Cisco UCS storage:DiskEnvStats:dn managed object property"
+    ::= { cucsStorageDiskEnvStatsEntry 2 }
 
-cucsStorageControllerRefRn OBJECT-TYPE
+cucsStorageDiskEnvStatsRn OBJECT-TYPE
     SYNTAX       SnmpAdminString
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
-        "Cisco UCS storage:ControllerRef:rn managed object property"
-    ::= { cucsStorageControllerRefEntry 3 }
+        "Cisco UCS storage:DiskEnvStats:rn managed object property"
+    ::= { cucsStorageDiskEnvStatsEntry 3 }
 
-cucsStorageControllerRefControllerId OBJECT-TYPE
-    SYNTAX       CucsStorageControllerRefControllerId
+cucsStorageDiskEnvStatsIntervals OBJECT-TYPE
+    SYNTAX       Gauge32
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
-        "Cisco UCS storage:ControllerRef:controllerId managed
+        "Cisco UCS storage:DiskEnvStats:intervals managed object property"
+    ::= { cucsStorageDiskEnvStatsEntry 4 }
+
+cucsStorageDiskEnvStatsSuspect OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStats:suspect managed object property"
+    ::= { cucsStorageDiskEnvStatsEntry 5 }
+
+cucsStorageDiskEnvStatsTemperature OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStats:temperature managed
         object property"
-    ::= { cucsStorageControllerRefEntry 4 }
+    ::= { cucsStorageDiskEnvStatsEntry 6 }
 
-cucsStorageControllerRefLc OBJECT-TYPE
-    SYNTAX       CucsFsmLifecycle
+cucsStorageDiskEnvStatsTemperatureAvg OBJECT-TYPE
+    SYNTAX       INTEGER
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
-        "Cisco UCS storage:ControllerRef:lc managed object property"
-    ::= { cucsStorageControllerRefEntry 5 }
+        "Cisco UCS storage:DiskEnvStats:temperatureAvg
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsEntry 7 }
 
-cucsStorageControllerRefServerId OBJECT-TYPE
-    SYNTAX       CucsStorageControllerRefServerId
+cucsStorageDiskEnvStatsTemperatureMax OBJECT-TYPE
+    SYNTAX       INTEGER
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
-        "Cisco UCS storage:ControllerRef:serverId managed object property"
-    ::= { cucsStorageControllerRefEntry 6 }
+        "Cisco UCS storage:DiskEnvStats:temperatureMax
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsEntry 8 }
+
+cucsStorageDiskEnvStatsTemperatureMin OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStats:temperatureMin
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsEntry 9 }
+
+cucsStorageDiskEnvStatsThresholded OBJECT-TYPE
+    SYNTAX       CucsStorageDiskEnvStatsThresholded
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStats:thresholded managed
+        object property"
+    ::= { cucsStorageDiskEnvStatsEntry 10 }
+
+cucsStorageDiskEnvStatsTimeCollected OBJECT-TYPE
+    SYNTAX       DateAndTime
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStats:timeCollected managed
+        object property"
+    ::= { cucsStorageDiskEnvStatsEntry 11 }
+
+cucsStorageDiskEnvStatsUpdate OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStats:update managed object property"
+    ::= { cucsStorageDiskEnvStatsEntry 12 }
+
+cucsStorageDiskEnvStatsWearPercentage OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStats:wearPercentage
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsEntry 13 }
+
+cucsStorageDiskEnvStatsWearPercentageAvg OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStats:wearPercentageAvg
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsEntry 14 }
+
+cucsStorageDiskEnvStatsWearPercentageMax OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStats:wearPercentageMax
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsEntry 15 }
+
+cucsStorageDiskEnvStatsWearPercentageMin OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStats:wearPercentageMin
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsEntry 16 }
+
+cucsStorageDiskEnvStatsHistTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsStorageDiskEnvStatsHistEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStatsHist managed object table"
+    ::= { cucsStorageObjects 51 }
+
+cucsStorageDiskEnvStatsHistEntry OBJECT-TYPE
+    SYNTAX           CucsStorageDiskEnvStatsHistEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsStorageDiskEnvStatsHistTable table."
+    INDEX { cucsStorageDiskEnvStatsHistInstanceId }
+    ::= { cucsStorageDiskEnvStatsHistTable 1 }
+
+CucsStorageDiskEnvStatsHistEntry ::= SEQUENCE {
+    cucsStorageDiskEnvStatsHistInstanceId                            CucsManagedObjectId,
+    cucsStorageDiskEnvStatsHistDn                                    CucsManagedObjectDn,
+    cucsStorageDiskEnvStatsHistRn                                    SnmpAdminString,
+    cucsStorageDiskEnvStatsHistId                                    Unsigned64,
+    cucsStorageDiskEnvStatsHistMostRecent                            TruthValue,
+    cucsStorageDiskEnvStatsHistSuspect                               TruthValue,
+    cucsStorageDiskEnvStatsHistTemperature                           INTEGER,
+    cucsStorageDiskEnvStatsHistTemperatureAvg                        INTEGER,
+    cucsStorageDiskEnvStatsHistTemperatureMax                        INTEGER,
+    cucsStorageDiskEnvStatsHistTemperatureMin                        INTEGER,
+    cucsStorageDiskEnvStatsHistThresholded                           CucsStorageDiskEnvStatsHistThresholded,
+    cucsStorageDiskEnvStatsHistTimeCollected                         DateAndTime,
+    cucsStorageDiskEnvStatsHistWearPercentage                        Gauge32,
+    cucsStorageDiskEnvStatsHistWearPercentageAvg                     Gauge32,
+    cucsStorageDiskEnvStatsHistWearPercentageMax                     Gauge32,
+    cucsStorageDiskEnvStatsHistWearPercentageMin                     Gauge32
+}
+
+cucsStorageDiskEnvStatsHistInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsStorageDiskEnvStatsHistEntry 1 }
+
+cucsStorageDiskEnvStatsHistDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStatsHist:dn managed object property"
+    ::= { cucsStorageDiskEnvStatsHistEntry 2 }
+
+cucsStorageDiskEnvStatsHistRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStatsHist:rn managed object property"
+    ::= { cucsStorageDiskEnvStatsHistEntry 3 }
+
+cucsStorageDiskEnvStatsHistId OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStatsHist:id managed object property"
+    ::= { cucsStorageDiskEnvStatsHistEntry 4 }
+
+cucsStorageDiskEnvStatsHistMostRecent OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStatsHist:mostRecent
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsHistEntry 5 }
+
+cucsStorageDiskEnvStatsHistSuspect OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStatsHist:suspect managed
+        object property"
+    ::= { cucsStorageDiskEnvStatsHistEntry 6 }
+
+cucsStorageDiskEnvStatsHistTemperature OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStatsHist:temperature
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsHistEntry 7 }
+
+cucsStorageDiskEnvStatsHistTemperatureAvg OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStatsHist:temperatureAvg
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsHistEntry 8 }
+
+cucsStorageDiskEnvStatsHistTemperatureMax OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStatsHist:temperatureMax
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsHistEntry 9 }
+
+cucsStorageDiskEnvStatsHistTemperatureMin OBJECT-TYPE
+    SYNTAX       INTEGER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStatsHist:temperatureMin
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsHistEntry 10 }
+
+cucsStorageDiskEnvStatsHistThresholded OBJECT-TYPE
+    SYNTAX       CucsStorageDiskEnvStatsHistThresholded
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStatsHist:thresholded
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsHistEntry 11 }
+
+cucsStorageDiskEnvStatsHistTimeCollected OBJECT-TYPE
+    SYNTAX       DateAndTime
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStatsHist:timeCollected
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsHistEntry 12 }
+
+cucsStorageDiskEnvStatsHistWearPercentage OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStatsHist:wearPercentage
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsHistEntry 13 }
+
+cucsStorageDiskEnvStatsHistWearPercentageAvg OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStatsHist:wearPercentageAvg
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsHistEntry 14 }
+
+cucsStorageDiskEnvStatsHistWearPercentageMax OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStatsHist:wearPercentageMax
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsHistEntry 15 }
+
+cucsStorageDiskEnvStatsHistWearPercentageMin OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:DiskEnvStatsHist:wearPercentageMin
+        managed object property"
+    ::= { cucsStorageDiskEnvStatsHistEntry 16 }
 
 cucsStorageDomainEpTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsStorageDomainEpEntry
@@ -1122,16 +1411,14 @@ CucsStorageEnclosureEntry ::= SEQUENCE {
     cucsStorageEnclosureInstanceId                                   CucsManagedObjectId,
     cucsStorageEnclosureDn                                           CucsManagedObjectDn,
     cucsStorageEnclosureRn                                           SnmpAdminString,
-    cucsStorageEnclosureId                                           Gauge32,
+    cucsStorageEnclosureId                                           CucsStorageEnclosureId,
     cucsStorageEnclosureModel                                        SnmpAdminString,
     cucsStorageEnclosureNumSlots                                     Gauge32,
     cucsStorageEnclosureRevision                                     SnmpAdminString,
     cucsStorageEnclosureSerial                                       SnmpAdminString,
     cucsStorageEnclosureVendor                                       SnmpAdminString,
     cucsStorageEnclosureLc                                           CucsFsmLifecycle,
-    cucsStorageEnclosureDescr                                        SnmpAdminString,
-    cucsStorageEnclosureDrawerState                                  CucsStorageDrawerOpenState,
-    cucsStorageEnclosureType                                         CucsStoragePhysicalHolder
+    cucsStorageEnclosureDescr                                        SnmpAdminString
 }
 
 cucsStorageEnclosureInstanceId OBJECT-TYPE
@@ -1159,7 +1446,7 @@ cucsStorageEnclosureRn OBJECT-TYPE
     ::= { cucsStorageEnclosureEntry 3 }
 
 cucsStorageEnclosureId OBJECT-TYPE
-    SYNTAX       Gauge32
+    SYNTAX       CucsStorageEnclosureId
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
@@ -1221,221 +1508,6 @@ cucsStorageEnclosureDescr OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS storage:Enclosure:descr managed object property"
     ::= { cucsStorageEnclosureEntry 11 }
-
-cucsStorageEnclosureDrawerState OBJECT-TYPE
-    SYNTAX       CucsStorageDrawerOpenState
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:Enclosure:drawerState managed object property"
-    ::= { cucsStorageEnclosureEntry 12 }
-
-cucsStorageEnclosureType OBJECT-TYPE
-    SYNTAX       CucsStoragePhysicalHolder
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:Enclosure:type managed object property"
-    ::= { cucsStorageEnclosureEntry 13 }
-
-cucsStorageEnclosureCapTable OBJECT-TYPE
-    SYNTAX           SEQUENCE OF CucsStorageEnclosureCapEntry
-    MAX-ACCESS       not-accessible
-    STATUS           current
-    DESCRIPTION
-        "Cisco UCS storage:EnclosureCap managed object table"
-    ::= { cucsStorageObjects 94 }
-
-cucsStorageEnclosureCapEntry OBJECT-TYPE
-    SYNTAX           CucsStorageEnclosureCapEntry
-    MAX-ACCESS       not-accessible
-    STATUS           current
-    DESCRIPTION
-        "Entry for the cucsStorageEnclosureCapTable table."
-    INDEX { cucsStorageEnclosureCapInstanceId }
-    ::= { cucsStorageEnclosureCapTable 1 }
-
-CucsStorageEnclosureCapEntry ::= SEQUENCE {
-    cucsStorageEnclosureCapInstanceId                                CucsManagedObjectId,
-    cucsStorageEnclosureCapDn                                        CucsManagedObjectDn,
-    cucsStorageEnclosureCapRn                                        SnmpAdminString,
-    cucsStorageEnclosureCapDescr                                     SnmpAdminString,
-    cucsStorageEnclosureCapId                                        Gauge32,
-    cucsStorageEnclosureCapNumSlots                                  Gauge32,
-    cucsStorageEnclosureCapType                                      CucsStoragePhysicalHolder
-}
-
-cucsStorageEnclosureCapInstanceId OBJECT-TYPE
-    SYNTAX       CucsManagedObjectId
-    MAX-ACCESS   not-accessible
-    STATUS       current
-    DESCRIPTION
-        "Instance identifier of the managed object."
-    ::= { cucsStorageEnclosureCapEntry 1 }
-
-cucsStorageEnclosureCapDn OBJECT-TYPE
-    SYNTAX       CucsManagedObjectDn
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:EnclosureCap:dn managed object property"
-    ::= { cucsStorageEnclosureCapEntry 2 }
-
-cucsStorageEnclosureCapRn OBJECT-TYPE
-    SYNTAX       SnmpAdminString
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:EnclosureCap:rn managed object property"
-    ::= { cucsStorageEnclosureCapEntry 3 }
-
-cucsStorageEnclosureCapDescr OBJECT-TYPE
-    SYNTAX       SnmpAdminString
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:EnclosureCap:descr managed object property"
-    ::= { cucsStorageEnclosureCapEntry 4 }
-
-cucsStorageEnclosureCapId OBJECT-TYPE
-    SYNTAX       Gauge32
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:EnclosureCap:id managed object property"
-    ::= { cucsStorageEnclosureCapEntry 5 }
-
-cucsStorageEnclosureCapNumSlots OBJECT-TYPE
-    SYNTAX       Gauge32
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:EnclosureCap:numSlots managed object property"
-    ::= { cucsStorageEnclosureCapEntry 6 }
-
-cucsStorageEnclosureCapType OBJECT-TYPE
-    SYNTAX       CucsStoragePhysicalHolder
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:EnclosureCap:type managed object property"
-    ::= { cucsStorageEnclosureCapEntry 7 }
-
-cucsStorageEnclosureDiskSlotEpTable OBJECT-TYPE
-    SYNTAX           SEQUENCE OF CucsStorageEnclosureDiskSlotEpEntry
-    MAX-ACCESS       not-accessible
-    STATUS           current
-    DESCRIPTION
-        "Cisco UCS storage:EnclosureDiskSlotEp managed object table"
-    ::= { cucsStorageObjects 54 }
-
-cucsStorageEnclosureDiskSlotEpEntry OBJECT-TYPE
-    SYNTAX           CucsStorageEnclosureDiskSlotEpEntry
-    MAX-ACCESS       not-accessible
-    STATUS           current
-    DESCRIPTION
-        "Entry for the cucsStorageEnclosureDiskSlotEpTable table."
-    INDEX { cucsStorageEnclosureDiskSlotEpInstanceId }
-    ::= { cucsStorageEnclosureDiskSlotEpTable 1 }
-
-CucsStorageEnclosureDiskSlotEpEntry ::= SEQUENCE {
-    cucsStorageEnclosureDiskSlotEpInstanceId                         CucsManagedObjectId,
-    cucsStorageEnclosureDiskSlotEpDn                                 CucsManagedObjectDn,
-    cucsStorageEnclosureDiskSlotEpRn                                 SnmpAdminString,
-    cucsStorageEnclosureDiskSlotEpConfiguration                      CucsStorageConfiguration,
-    cucsStorageEnclosureDiskSlotEpId                                 Gauge32,
-    cucsStorageEnclosureDiskSlotEpOperQualifierReason                SnmpAdminString,
-    cucsStorageEnclosureDiskSlotEpOperability                        CucsEquipmentOperability,
-    cucsStorageEnclosureDiskSlotEpPeerDn                             SnmpAdminString,
-    cucsStorageEnclosureDiskSlotEpPresence                           CucsEquipmentPresence,
-    cucsStorageEnclosureDiskSlotEpOwnership                          CucsStorageEnclosureDiskSlotEpOwnership
-}
-
-cucsStorageEnclosureDiskSlotEpInstanceId OBJECT-TYPE
-    SYNTAX       CucsManagedObjectId
-    MAX-ACCESS   not-accessible
-    STATUS       current
-    DESCRIPTION
-        "Instance identifier of the managed object."
-    ::= { cucsStorageEnclosureDiskSlotEpEntry 1 }
-
-cucsStorageEnclosureDiskSlotEpDn OBJECT-TYPE
-    SYNTAX       CucsManagedObjectDn
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:EnclosureDiskSlotEp:dn managed object property"
-    ::= { cucsStorageEnclosureDiskSlotEpEntry 2 }
-
-cucsStorageEnclosureDiskSlotEpRn OBJECT-TYPE
-    SYNTAX       SnmpAdminString
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:EnclosureDiskSlotEp:rn managed object property"
-    ::= { cucsStorageEnclosureDiskSlotEpEntry 3 }
-
-cucsStorageEnclosureDiskSlotEpConfiguration OBJECT-TYPE
-    SYNTAX       CucsStorageConfiguration
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:EnclosureDiskSlotEp:configuration
-        managed object property"
-    ::= { cucsStorageEnclosureDiskSlotEpEntry 4 }
-
-cucsStorageEnclosureDiskSlotEpId OBJECT-TYPE
-    SYNTAX       Gauge32
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:EnclosureDiskSlotEp:id managed object property"
-    ::= { cucsStorageEnclosureDiskSlotEpEntry 5 }
-
-cucsStorageEnclosureDiskSlotEpOperQualifierReason OBJECT-TYPE
-    SYNTAX       SnmpAdminString
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:EnclosureDiskSlotEp:operQualifierReason
-        managed object property"
-    ::= { cucsStorageEnclosureDiskSlotEpEntry 6 }
-
-cucsStorageEnclosureDiskSlotEpOperability OBJECT-TYPE
-    SYNTAX       CucsEquipmentOperability
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:EnclosureDiskSlotEp:operability
-        managed object property"
-    ::= { cucsStorageEnclosureDiskSlotEpEntry 7 }
-
-cucsStorageEnclosureDiskSlotEpPeerDn OBJECT-TYPE
-    SYNTAX       SnmpAdminString
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:EnclosureDiskSlotEp:peerDn managed
-        object property"
-    ::= { cucsStorageEnclosureDiskSlotEpEntry 8 }
-
-cucsStorageEnclosureDiskSlotEpPresence OBJECT-TYPE
-    SYNTAX       CucsEquipmentPresence
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:EnclosureDiskSlotEp:presence
-        managed object property"
-    ::= { cucsStorageEnclosureDiskSlotEpEntry 9 }
-
-cucsStorageEnclosureDiskSlotEpOwnership OBJECT-TYPE
-    SYNTAX       CucsStorageEnclosureDiskSlotEpOwnership
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:EnclosureDiskSlotEp:ownership
-        managed object property"
-    ::= { cucsStorageEnclosureDiskSlotEpEntry 10 }
 
 cucsStorageEpUserTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsStorageEpUserEntry
@@ -3884,8 +3956,7 @@ CucsStorageLocalDiskEntry ::= SEQUENCE {
     cucsStorageLocalDiskConfigState                                  CucsStorageConfigState,
     cucsStorageLocalDiskThermal                                      CucsEquipmentSensorThresholdStatus,
     cucsStorageLocalDiskAdminVirtualDriveId                          Gauge32,
-    cucsStorageLocalDiskLinkState                                    CucsStorageEpLinkState,
-    cucsStorageLocalDiskLinkStateReason                              SnmpAdminString
+    cucsStorageLocalDiskConfigCheckPoint                             CucsStorageConfigCheckPoint
 }
 
 cucsStorageLocalDiskInstanceId OBJECT-TYPE
@@ -4101,22 +4172,14 @@ cucsStorageLocalDiskAdminVirtualDriveId OBJECT-TYPE
         managed object property"
     ::= { cucsStorageLocalDiskEntry 26 }
 
-cucsStorageLocalDiskLinkState OBJECT-TYPE
-    SYNTAX       CucsStorageEpLinkState
+cucsStorageLocalDiskConfigCheckPoint OBJECT-TYPE
+    SYNTAX       CucsStorageConfigCheckPoint
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
-        "Cisco UCS storage:LocalDisk:linkState managed object property"
-    ::= { cucsStorageLocalDiskEntry 28 }
-
-cucsStorageLocalDiskLinkStateReason OBJECT-TYPE
-    SYNTAX       SnmpAdminString
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:LocalDisk:linkStateReason managed
+        "Cisco UCS storage:LocalDisk:configCheckPoint managed
         object property"
-    ::= { cucsStorageLocalDiskEntry 29 }
+    ::= { cucsStorageLocalDiskEntry 27 }
 
 cucsStorageLocalDiskConfigDefTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsStorageLocalDiskConfigDefEntry
@@ -4394,116 +4457,6 @@ cucsStorageLocalDiskConfigPolicyFlexFlashState OBJECT-TYPE
         managed object property"
     ::= { cucsStorageLocalDiskConfigPolicyEntry 12 }
 
-cucsStorageLocalDiskEpTable OBJECT-TYPE
-    SYNTAX           SEQUENCE OF CucsStorageLocalDiskEpEntry
-    MAX-ACCESS       not-accessible
-    STATUS           current
-    DESCRIPTION
-        "Cisco UCS storage:LocalDiskEp managed object table"
-    ::= { cucsStorageObjects 60 }
-
-cucsStorageLocalDiskEpEntry OBJECT-TYPE
-    SYNTAX           CucsStorageLocalDiskEpEntry
-    MAX-ACCESS       not-accessible
-    STATUS           current
-    DESCRIPTION
-        "Entry for the cucsStorageLocalDiskEpTable table."
-    INDEX { cucsStorageLocalDiskEpInstanceId }
-    ::= { cucsStorageLocalDiskEpTable 1 }
-
-CucsStorageLocalDiskEpEntry ::= SEQUENCE {
-    cucsStorageLocalDiskEpInstanceId                                 CucsManagedObjectId,
-    cucsStorageLocalDiskEpDn                                         CucsManagedObjectDn,
-    cucsStorageLocalDiskEpRn                                         SnmpAdminString,
-    cucsStorageLocalDiskEpDiskDn                                     SnmpAdminString,
-    cucsStorageLocalDiskEpEncId                                      Gauge32,
-    cucsStorageLocalDiskEpId                                         Gauge32,
-    cucsStorageLocalDiskEpModel                                      SnmpAdminString,
-    cucsStorageLocalDiskEpRevision                                   SnmpAdminString,
-    cucsStorageLocalDiskEpSerial                                     SnmpAdminString,
-    cucsStorageLocalDiskEpVendor                                     SnmpAdminString
-}
-
-cucsStorageLocalDiskEpInstanceId OBJECT-TYPE
-    SYNTAX       CucsManagedObjectId
-    MAX-ACCESS   not-accessible
-    STATUS       current
-    DESCRIPTION
-        "Instance identifier of the managed object."
-    ::= { cucsStorageLocalDiskEpEntry 1 }
-
-cucsStorageLocalDiskEpDn OBJECT-TYPE
-    SYNTAX       CucsManagedObjectDn
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:LocalDiskEp:dn managed object property"
-    ::= { cucsStorageLocalDiskEpEntry 2 }
-
-cucsStorageLocalDiskEpRn OBJECT-TYPE
-    SYNTAX       SnmpAdminString
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:LocalDiskEp:rn managed object property"
-    ::= { cucsStorageLocalDiskEpEntry 3 }
-
-cucsStorageLocalDiskEpDiskDn OBJECT-TYPE
-    SYNTAX       SnmpAdminString
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:LocalDiskEp:diskDn managed object property"
-    ::= { cucsStorageLocalDiskEpEntry 4 }
-
-cucsStorageLocalDiskEpEncId OBJECT-TYPE
-    SYNTAX       Gauge32
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:LocalDiskEp:encId managed object property"
-    ::= { cucsStorageLocalDiskEpEntry 5 }
-
-cucsStorageLocalDiskEpId OBJECT-TYPE
-    SYNTAX       Gauge32
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:LocalDiskEp:id managed object property"
-    ::= { cucsStorageLocalDiskEpEntry 6 }
-
-cucsStorageLocalDiskEpModel OBJECT-TYPE
-    SYNTAX       SnmpAdminString
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:LocalDiskEp:model managed object property"
-    ::= { cucsStorageLocalDiskEpEntry 7 }
-
-cucsStorageLocalDiskEpRevision OBJECT-TYPE
-    SYNTAX       SnmpAdminString
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:LocalDiskEp:revision managed object property"
-    ::= { cucsStorageLocalDiskEpEntry 8 }
-
-cucsStorageLocalDiskEpSerial OBJECT-TYPE
-    SYNTAX       SnmpAdminString
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:LocalDiskEp:serial managed object property"
-    ::= { cucsStorageLocalDiskEpEntry 9 }
-
-cucsStorageLocalDiskEpVendor OBJECT-TYPE
-    SYNTAX       SnmpAdminString
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:LocalDiskEp:vendor managed object property"
-    ::= { cucsStorageLocalDiskEpEntry 10 }
-
 cucsStorageLocalDiskPartitionTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsStorageLocalDiskPartitionEntry
     MAX-ACCESS       not-accessible
@@ -4527,7 +4480,7 @@ CucsStorageLocalDiskPartitionEntry ::= SEQUENCE {
     cucsStorageLocalDiskPartitionRn                                  SnmpAdminString,
     cucsStorageLocalDiskPartitionName                                SnmpAdminString,
     cucsStorageLocalDiskPartitionSize                                Unsigned64,
-    cucsStorageLocalDiskPartitionType                                CucsStorageLocalDiskPartitionType,
+    cucsStorageLocalDiskPartitionType                                Gauge32,
     cucsStorageLocalDiskPartitionBootable                            CucsStorageBootableType,
     cucsStorageLocalDiskPartitionId                                  Gauge32,
     cucsStorageLocalDiskPartitionPartitionEnd                        Unsigned64,
@@ -4578,7 +4531,7 @@ cucsStorageLocalDiskPartitionSize OBJECT-TYPE
     ::= { cucsStorageLocalDiskPartitionEntry 8 }
 
 cucsStorageLocalDiskPartitionType OBJECT-TYPE
-    SYNTAX       CucsStorageLocalDiskPartitionType
+    SYNTAX       Gauge32
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
@@ -5440,7 +5393,8 @@ CucsStorageQualEntry ::= SEQUENCE {
     cucsStorageQualPerDiskCap                                        Unsigned64,
     cucsStorageQualUnits                                             Gauge32,
     cucsStorageQualDiskless                                          CucsStorageDisklessAction,
-    cucsStorageQualNumberOfFlexFlashCards                            INTEGER
+    cucsStorageQualNumberOfFlexFlashCards                            INTEGER,
+    cucsStorageQualDiskType                                          CucsStorageTechnology
 }
 
 cucsStorageQualInstanceId OBJECT-TYPE
@@ -5531,6 +5485,14 @@ cucsStorageQualNumberOfFlexFlashCards OBJECT-TYPE
         "Cisco UCS storage:Qual:numberOfFlexFlashCards
         managed object property"
     ::= { cucsStorageQualEntry 11 }
+
+cucsStorageQualDiskType OBJECT-TYPE
+    SYNTAX       CucsStorageTechnology
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:Qual:diskType managed object property"
+    ::= { cucsStorageQualEntry 12 }
 
 cucsStorageRaidBatteryTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsStorageRaidBatteryEntry
@@ -5810,6 +5772,7 @@ CucsStorageSasExpanderEntry ::= SEQUENCE {
     cucsStorageSasExpanderDn                                         CucsManagedObjectDn,
     cucsStorageSasExpanderRn                                         SnmpAdminString,
     cucsStorageSasExpanderId                                         Gauge32,
+    cucsStorageSasExpanderLocationDn                                 SnmpAdminString,
     cucsStorageSasExpanderModel                                      SnmpAdminString,
     cucsStorageSasExpanderOperQualifierReason                        SnmpAdminString,
     cucsStorageSasExpanderOperState                                  CucsEquipmentOperability,
@@ -5822,11 +5785,10 @@ CucsStorageSasExpanderEntry ::= SEQUENCE {
     cucsStorageSasExpanderThermal                                    CucsEquipmentSensorThresholdStatus,
     cucsStorageSasExpanderVendor                                     SnmpAdminString,
     cucsStorageSasExpanderVoltage                                    CucsEquipmentSensorThresholdStatus,
-    cucsStorageSasExpanderAddress                                    SnmpAdminString,
-    cucsStorageSasExpanderExpanderState                              CucsStorageExpanderState,
-    cucsStorageSasExpanderLc                                         CucsFsmLifecycle,
-    cucsStorageSasExpanderUplinkState                                CucsStorageEpLinkState,
-    cucsStorageSasExpanderUplinkStateReason                          SnmpAdminString
+    cucsStorageSasExpanderFwRegionOne                                SnmpAdminString,
+    cucsStorageSasExpanderFwRegionTwo                                SnmpAdminString,
+    cucsStorageSasExpanderFwRunningRegion                            SnmpAdminString,
+    cucsStorageSasExpanderSasAddress                                 SnmpAdminString
 }
 
 cucsStorageSasExpanderInstanceId OBJECT-TYPE
@@ -5860,6 +5822,14 @@ cucsStorageSasExpanderId OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS storage:SasExpander:id managed object property"
     ::= { cucsStorageSasExpanderEntry 4 }
+
+cucsStorageSasExpanderLocationDn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:SasExpander:locationDn managed object property"
+    ::= { cucsStorageSasExpanderEntry 5 }
 
 cucsStorageSasExpanderModel OBJECT-TYPE
     SYNTAX       SnmpAdminString
@@ -5959,402 +5929,132 @@ cucsStorageSasExpanderVoltage OBJECT-TYPE
         "Cisco UCS storage:SasExpander:voltage managed object property"
     ::= { cucsStorageSasExpanderEntry 17 }
 
-cucsStorageSasExpanderAddress OBJECT-TYPE
+cucsStorageSasExpanderFwRegionOne OBJECT-TYPE
     SYNTAX       SnmpAdminString
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
-        "Cisco UCS storage:SasExpander:address managed object property"
-    ::= { cucsStorageSasExpanderEntry 18 }
-
-cucsStorageSasExpanderExpanderState OBJECT-TYPE
-    SYNTAX       CucsStorageExpanderState
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasExpander:expanderState managed
+        "Cisco UCS storage:SasExpander:fwRegionOne managed
         object property"
-    ::= { cucsStorageSasExpanderEntry 19 }
+    ::= { cucsStorageSasExpanderEntry 23 }
 
-cucsStorageSasExpanderLc OBJECT-TYPE
-    SYNTAX       CucsFsmLifecycle
+cucsStorageSasExpanderFwRegionTwo OBJECT-TYPE
+    SYNTAX       SnmpAdminString
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
-        "Cisco UCS storage:SasExpander:lc managed object property"
-    ::= { cucsStorageSasExpanderEntry 20 }
-
-cucsStorageSasExpanderUplinkState OBJECT-TYPE
-    SYNTAX       CucsStorageEpLinkState
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasExpander:uplinkState managed
+        "Cisco UCS storage:SasExpander:fwRegionTwo managed
         object property"
-    ::= { cucsStorageSasExpanderEntry 21 }
+    ::= { cucsStorageSasExpanderEntry 24 }
 
-cucsStorageSasExpanderUplinkStateReason OBJECT-TYPE
+cucsStorageSasExpanderFwRunningRegion OBJECT-TYPE
     SYNTAX       SnmpAdminString
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
-        "Cisco UCS storage:SasExpander:uplinkStateReason
+        "Cisco UCS storage:SasExpander:fwRunningRegion
         managed object property"
-    ::= { cucsStorageSasExpanderEntry 22 }
+    ::= { cucsStorageSasExpanderEntry 25 }
 
-cucsStorageSasLinkDescriptorTable OBJECT-TYPE
-    SYNTAX           SEQUENCE OF CucsStorageSasLinkDescriptorEntry
+cucsStorageSasExpanderSasAddress OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:SasExpander:sasAddress managed object property"
+    ::= { cucsStorageSasExpanderEntry 26 }
+
+cucsStorageScsiLunRefTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsStorageScsiLunRefEntry
     MAX-ACCESS       not-accessible
     STATUS           current
     DESCRIPTION
-        "Cisco UCS storage:SasLinkDescriptor managed object table"
-    ::= { cucsStorageObjects 95 }
+        "Cisco UCS storage:ScsiLunRef managed object table"
+    ::= { cucsStorageObjects 83 }
 
-cucsStorageSasLinkDescriptorEntry OBJECT-TYPE
-    SYNTAX           CucsStorageSasLinkDescriptorEntry
+cucsStorageScsiLunRefEntry OBJECT-TYPE
+    SYNTAX           CucsStorageScsiLunRefEntry
     MAX-ACCESS       not-accessible
     STATUS           current
     DESCRIPTION
-        "Entry for the cucsStorageSasLinkDescriptorTable table."
-    INDEX { cucsStorageSasLinkDescriptorInstanceId }
-    ::= { cucsStorageSasLinkDescriptorTable 1 }
+        "Entry for the cucsStorageScsiLunRefTable table."
+    INDEX { cucsStorageScsiLunRefInstanceId }
+    ::= { cucsStorageScsiLunRefTable 1 }
 
-CucsStorageSasLinkDescriptorEntry ::= SEQUENCE {
-    cucsStorageSasLinkDescriptorInstanceId                           CucsManagedObjectId,
-    cucsStorageSasLinkDescriptorDn                                   CucsManagedObjectDn,
-    cucsStorageSasLinkDescriptorRn                                   SnmpAdminString,
-    cucsStorageSasLinkDescriptorControllerId                         CucsStorageSasLinkDescriptorControllerId,
-    cucsStorageSasLinkDescriptorId                                   Gauge32,
-    cucsStorageSasLinkDescriptorLinkDescr                            SnmpAdminString,
-    cucsStorageSasLinkDescriptorServerId                             CucsStorageSasLinkDescriptorServerId
+CucsStorageScsiLunRefEntry ::= SEQUENCE {
+    cucsStorageScsiLunRefInstanceId                                  CucsManagedObjectId,
+    cucsStorageScsiLunRefDn                                          CucsManagedObjectDn,
+    cucsStorageScsiLunRefRn                                          SnmpAdminString,
+    cucsStorageScsiLunRefId                                          Gauge32,
+    cucsStorageScsiLunRefLsDn                                        SnmpAdminString,
+    cucsStorageScsiLunRefLunName                                     SnmpAdminString,
+    cucsStorageScsiLunRefProfileDn                                   SnmpAdminString,
+    cucsStorageScsiLunRefPnDn                                        SnmpAdminString
 }
 
-cucsStorageSasLinkDescriptorInstanceId OBJECT-TYPE
+cucsStorageScsiLunRefInstanceId OBJECT-TYPE
     SYNTAX       CucsManagedObjectId
     MAX-ACCESS   not-accessible
     STATUS       current
     DESCRIPTION
         "Instance identifier of the managed object."
-    ::= { cucsStorageSasLinkDescriptorEntry 1 }
+    ::= { cucsStorageScsiLunRefEntry 1 }
 
-cucsStorageSasLinkDescriptorDn OBJECT-TYPE
+cucsStorageScsiLunRefDn OBJECT-TYPE
     SYNTAX       CucsManagedObjectDn
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
-        "Cisco UCS storage:SasLinkDescriptor:dn managed object property"
-    ::= { cucsStorageSasLinkDescriptorEntry 2 }
+        "Cisco UCS storage:ScsiLunRef:dn managed object property"
+    ::= { cucsStorageScsiLunRefEntry 2 }
 
-cucsStorageSasLinkDescriptorRn OBJECT-TYPE
+cucsStorageScsiLunRefRn OBJECT-TYPE
     SYNTAX       SnmpAdminString
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
-        "Cisco UCS storage:SasLinkDescriptor:rn managed object property"
-    ::= { cucsStorageSasLinkDescriptorEntry 3 }
+        "Cisco UCS storage:ScsiLunRef:rn managed object property"
+    ::= { cucsStorageScsiLunRefEntry 3 }
 
-cucsStorageSasLinkDescriptorControllerId OBJECT-TYPE
-    SYNTAX       CucsStorageSasLinkDescriptorControllerId
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasLinkDescriptor:controllerId
-        managed object property"
-    ::= { cucsStorageSasLinkDescriptorEntry 4 }
-
-cucsStorageSasLinkDescriptorId OBJECT-TYPE
+cucsStorageScsiLunRefId OBJECT-TYPE
     SYNTAX       Gauge32
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
-        "Cisco UCS storage:SasLinkDescriptor:id managed object property"
-    ::= { cucsStorageSasLinkDescriptorEntry 5 }
+        "Cisco UCS storage:ScsiLunRef:id managed object property"
+    ::= { cucsStorageScsiLunRefEntry 4 }
 
-cucsStorageSasLinkDescriptorLinkDescr OBJECT-TYPE
+cucsStorageScsiLunRefLsDn OBJECT-TYPE
     SYNTAX       SnmpAdminString
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
-        "Cisco UCS storage:SasLinkDescriptor:linkDescr
-        managed object property"
-    ::= { cucsStorageSasLinkDescriptorEntry 6 }
+        "Cisco UCS storage:ScsiLunRef:lsDn managed object property"
+    ::= { cucsStorageScsiLunRefEntry 5 }
 
-cucsStorageSasLinkDescriptorServerId OBJECT-TYPE
-    SYNTAX       CucsStorageSasLinkDescriptorServerId
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasLinkDescriptor:serverId managed
-        object property"
-    ::= { cucsStorageSasLinkDescriptorEntry 7 }
-
-cucsStorageSasPortTable OBJECT-TYPE
-    SYNTAX           SEQUENCE OF CucsStorageSasPortEntry
-    MAX-ACCESS       not-accessible
-    STATUS           current
-    DESCRIPTION
-        "Cisco UCS storage:SasPort managed object table"
-    ::= { cucsStorageObjects 96 }
-
-cucsStorageSasPortEntry OBJECT-TYPE
-    SYNTAX           CucsStorageSasPortEntry
-    MAX-ACCESS       not-accessible
-    STATUS           current
-    DESCRIPTION
-        "Entry for the cucsStorageSasPortTable table."
-    INDEX { cucsStorageSasPortInstanceId }
-    ::= { cucsStorageSasPortTable 1 }
-
-CucsStorageSasPortEntry ::= SEQUENCE {
-    cucsStorageSasPortInstanceId                                     CucsManagedObjectId,
-    cucsStorageSasPortDn                                             CucsManagedObjectDn,
-    cucsStorageSasPortRn                                             SnmpAdminString,
-    cucsStorageSasPortAddress                                        SnmpAdminString,
-    cucsStorageSasPortEndpoint                                       Gauge32,
-    cucsStorageSasPortId                                             Gauge32,
-    cucsStorageSasPortLc                                             CucsFsmLifecycle,
-    cucsStorageSasPortLinkDescr                                      SnmpAdminString,
-    cucsStorageSasPortLinkSpeed                                      CucsStorageLinkSpeed
-}
-
-cucsStorageSasPortInstanceId OBJECT-TYPE
-    SYNTAX       CucsManagedObjectId
-    MAX-ACCESS   not-accessible
-    STATUS       current
-    DESCRIPTION
-        "Instance identifier of the managed object."
-    ::= { cucsStorageSasPortEntry 1 }
-
-cucsStorageSasPortDn OBJECT-TYPE
-    SYNTAX       CucsManagedObjectDn
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasPort:dn managed object property"
-    ::= { cucsStorageSasPortEntry 2 }
-
-cucsStorageSasPortRn OBJECT-TYPE
+cucsStorageScsiLunRefLunName OBJECT-TYPE
     SYNTAX       SnmpAdminString
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
-        "Cisco UCS storage:SasPort:rn managed object property"
-    ::= { cucsStorageSasPortEntry 3 }
+        "Cisco UCS storage:ScsiLunRef:lunName managed object property"
+    ::= { cucsStorageScsiLunRefEntry 6 }
 
-cucsStorageSasPortAddress OBJECT-TYPE
+cucsStorageScsiLunRefProfileDn OBJECT-TYPE
     SYNTAX       SnmpAdminString
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
-        "Cisco UCS storage:SasPort:address managed object property"
-    ::= { cucsStorageSasPortEntry 4 }
+        "Cisco UCS storage:ScsiLunRef:profileDn managed object property"
+    ::= { cucsStorageScsiLunRefEntry 7 }
 
-cucsStorageSasPortEndpoint OBJECT-TYPE
-    SYNTAX       Gauge32
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasPort:endpoint managed object property"
-    ::= { cucsStorageSasPortEntry 5 }
-
-cucsStorageSasPortId OBJECT-TYPE
-    SYNTAX       Gauge32
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasPort:id managed object property"
-    ::= { cucsStorageSasPortEntry 6 }
-
-cucsStorageSasPortLc OBJECT-TYPE
-    SYNTAX       CucsFsmLifecycle
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasPort:lc managed object property"
-    ::= { cucsStorageSasPortEntry 7 }
-
-cucsStorageSasPortLinkDescr OBJECT-TYPE
+cucsStorageScsiLunRefPnDn OBJECT-TYPE
     SYNTAX       SnmpAdminString
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
-        "Cisco UCS storage:SasPort:linkDescr managed object property"
-    ::= { cucsStorageSasPortEntry 8 }
-
-cucsStorageSasPortLinkSpeed OBJECT-TYPE
-    SYNTAX       CucsStorageLinkSpeed
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasPort:linkSpeed managed object property"
-    ::= { cucsStorageSasPortEntry 9 }
-
-cucsStorageSasPortDescriptorTable OBJECT-TYPE
-    SYNTAX           SEQUENCE OF CucsStorageSasPortDescriptorEntry
-    MAX-ACCESS       not-accessible
-    STATUS           current
-    DESCRIPTION
-        "Cisco UCS storage:SasPortDescriptor managed object table"
-    ::= { cucsStorageObjects 97 }
-
-cucsStorageSasPortDescriptorEntry OBJECT-TYPE
-    SYNTAX           CucsStorageSasPortDescriptorEntry
-    MAX-ACCESS       not-accessible
-    STATUS           current
-    DESCRIPTION
-        "Entry for the cucsStorageSasPortDescriptorTable table."
-    INDEX { cucsStorageSasPortDescriptorInstanceId }
-    ::= { cucsStorageSasPortDescriptorTable 1 }
-
-CucsStorageSasPortDescriptorEntry ::= SEQUENCE {
-    cucsStorageSasPortDescriptorInstanceId                           CucsManagedObjectId,
-    cucsStorageSasPortDescriptorDn                                   CucsManagedObjectDn,
-    cucsStorageSasPortDescriptorRn                                   SnmpAdminString,
-    cucsStorageSasPortDescriptorId                                   Gauge32,
-    cucsStorageSasPortDescriptorLinkDescr                            SnmpAdminString
-}
-
-cucsStorageSasPortDescriptorInstanceId OBJECT-TYPE
-    SYNTAX       CucsManagedObjectId
-    MAX-ACCESS   not-accessible
-    STATUS       current
-    DESCRIPTION
-        "Instance identifier of the managed object."
-    ::= { cucsStorageSasPortDescriptorEntry 1 }
-
-cucsStorageSasPortDescriptorDn OBJECT-TYPE
-    SYNTAX       CucsManagedObjectDn
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasPortDescriptor:dn managed object property"
-    ::= { cucsStorageSasPortDescriptorEntry 2 }
-
-cucsStorageSasPortDescriptorRn OBJECT-TYPE
-    SYNTAX       SnmpAdminString
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasPortDescriptor:rn managed object property"
-    ::= { cucsStorageSasPortDescriptorEntry 3 }
-
-cucsStorageSasPortDescriptorId OBJECT-TYPE
-    SYNTAX       Gauge32
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasPortDescriptor:id managed object property"
-    ::= { cucsStorageSasPortDescriptorEntry 4 }
-
-cucsStorageSasPortDescriptorLinkDescr OBJECT-TYPE
-    SYNTAX       SnmpAdminString
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasPortDescriptor:linkDescr
-        managed object property"
-    ::= { cucsStorageSasPortDescriptorEntry 5 }
-
-cucsStorageSasUpLinkTable OBJECT-TYPE
-    SYNTAX           SEQUENCE OF CucsStorageSasUpLinkEntry
-    MAX-ACCESS       not-accessible
-    STATUS           current
-    DESCRIPTION
-        "Cisco UCS storage:SasUpLink managed object table"
-    ::= { cucsStorageObjects 98 }
-
-cucsStorageSasUpLinkEntry OBJECT-TYPE
-    SYNTAX           CucsStorageSasUpLinkEntry
-    MAX-ACCESS       not-accessible
-    STATUS           current
-    DESCRIPTION
-        "Entry for the cucsStorageSasUpLinkTable table."
-    INDEX { cucsStorageSasUpLinkInstanceId }
-    ::= { cucsStorageSasUpLinkTable 1 }
-
-CucsStorageSasUpLinkEntry ::= SEQUENCE {
-    cucsStorageSasUpLinkInstanceId                                   CucsManagedObjectId,
-    cucsStorageSasUpLinkDn                                           CucsManagedObjectDn,
-    cucsStorageSasUpLinkRn                                           SnmpAdminString,
-    cucsStorageSasUpLinkControllerId                                 CucsStorageSasUpLinkControllerId,
-    cucsStorageSasUpLinkId                                           Gauge32,
-    cucsStorageSasUpLinkLc                                           CucsFsmLifecycle,
-    cucsStorageSasUpLinkLinkDescr                                    SnmpAdminString,
-    cucsStorageSasUpLinkLinkSpeed                                    CucsStorageLinkSpeed,
-    cucsStorageSasUpLinkServerId                                     CucsStorageSasUpLinkServerId
-}
-
-cucsStorageSasUpLinkInstanceId OBJECT-TYPE
-    SYNTAX       CucsManagedObjectId
-    MAX-ACCESS   not-accessible
-    STATUS       current
-    DESCRIPTION
-        "Instance identifier of the managed object."
-    ::= { cucsStorageSasUpLinkEntry 1 }
-
-cucsStorageSasUpLinkDn OBJECT-TYPE
-    SYNTAX       CucsManagedObjectDn
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasUpLink:dn managed object property"
-    ::= { cucsStorageSasUpLinkEntry 2 }
-
-cucsStorageSasUpLinkRn OBJECT-TYPE
-    SYNTAX       SnmpAdminString
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasUpLink:rn managed object property"
-    ::= { cucsStorageSasUpLinkEntry 3 }
-
-cucsStorageSasUpLinkControllerId OBJECT-TYPE
-    SYNTAX       CucsStorageSasUpLinkControllerId
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasUpLink:controllerId managed object property"
-    ::= { cucsStorageSasUpLinkEntry 4 }
-
-cucsStorageSasUpLinkId OBJECT-TYPE
-    SYNTAX       Gauge32
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasUpLink:id managed object property"
-    ::= { cucsStorageSasUpLinkEntry 5 }
-
-cucsStorageSasUpLinkLc OBJECT-TYPE
-    SYNTAX       CucsFsmLifecycle
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasUpLink:lc managed object property"
-    ::= { cucsStorageSasUpLinkEntry 6 }
-
-cucsStorageSasUpLinkLinkDescr OBJECT-TYPE
-    SYNTAX       SnmpAdminString
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasUpLink:linkDescr managed object property"
-    ::= { cucsStorageSasUpLinkEntry 7 }
-
-cucsStorageSasUpLinkLinkSpeed OBJECT-TYPE
-    SYNTAX       CucsStorageLinkSpeed
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasUpLink:linkSpeed managed object property"
-    ::= { cucsStorageSasUpLinkEntry 8 }
-
-cucsStorageSasUpLinkServerId OBJECT-TYPE
-    SYNTAX       CucsStorageSasUpLinkServerId
-    MAX-ACCESS   read-only
-    STATUS       current
-    DESCRIPTION
-        "Cisco UCS storage:SasUpLink:serverId managed object property"
-    ::= { cucsStorageSasUpLinkEntry 9 }
+        "Cisco UCS storage:ScsiLunRef:pnDn managed object property"
+    ::= { cucsStorageScsiLunRefEntry 8 }
 
 cucsStorageSystemTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsStorageSystemEntry
@@ -7634,7 +7334,8 @@ CucsStorageVirtualDriveRefEntry ::= SEQUENCE {
     cucsStorageVirtualDriveRefSize                                   Unsigned64,
     cucsStorageVirtualDriveRefUuid                                   SnmpAdminString,
     cucsStorageVirtualDriveRefIsBootable                             CucsLstorageBootDevice,
-    cucsStorageVirtualDriveRefOrder                                  Gauge32
+    cucsStorageVirtualDriveRefOrder                                  Gauge32,
+    cucsStorageVirtualDriveRefVendorUuid                             SnmpAdminString
 }
 
 cucsStorageVirtualDriveRefInstanceId OBJECT-TYPE
@@ -7782,6 +7483,15 @@ cucsStorageVirtualDriveRefOrder OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS storage:VirtualDriveRef:order managed object property"
     ::= { cucsStorageVirtualDriveRefEntry 17 }
+
+cucsStorageVirtualDriveRefVendorUuid OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS storage:VirtualDriveRef:vendorUuid managed
+        object property"
+    ::= { cucsStorageVirtualDriveRefEntry 18 }
 
 cucsStorageVsanRefTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsStorageVsanRefEntry

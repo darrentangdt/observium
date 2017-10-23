@@ -25,11 +25,13 @@ if (count($results))
     if (strlen($name) > 35) { $name = substr($name, 0, 35) . "..."; }
 
     $num_ports = dbFetchCell("SELECT COUNT(*) FROM `ports` WHERE device_id = ?", array($result['device_id']));
-    
+
     $device_search_results[] = array(
       'url'    => generate_device_url($result),
       'name'   => $name,
       'colour' => $result['html_tab_colour'], // FIXME. this colour removed from humanize_device in r6280
+      'row_class' => $result['row_class'],
+      'html_row_class' => $result['html_row_class'],
       'icon'   => get_device_icon($result),
       'data'   => array(
         escape_html($result['hardware'] . ' | ' . $config['os'][$result['os']]['text'] . ' ' . $result['version']),

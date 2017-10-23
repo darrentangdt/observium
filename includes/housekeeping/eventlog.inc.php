@@ -52,7 +52,7 @@ if ($cutoff)
     print_message("No event log entries found older than " . format_unixtime($cutoff));
   }
 } else {
-  print_message("Event log housekeeping is disabled in configuration or less than 24h.");
+  print_message("Event log housekeeping is disabled in configuration or incorrectly configured to less than 24h.");
 }
 
 // EOF

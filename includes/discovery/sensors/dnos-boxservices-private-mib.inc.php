@@ -41,7 +41,6 @@ if (count($oids) && count($index) === 1)
   return; // Exit from mib discovery
 }
 
-
 // DNOS-BOXSERVICES-PRIVATE-MIB::boxServicesNormalTempRangeMin.0 = INTEGER: 0
 // DNOS-BOXSERVICES-PRIVATE-MIB::boxServicesNormalTempRangeMax.0 = INTEGER: 45
 

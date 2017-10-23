@@ -15,7 +15,7 @@ IMPORTS
         FROM ALCATEL-IND1-BASE;
 
 alcatelIND1MldMIB MODULE-IDENTITY
-    LAST-UPDATED "200809100000Z" 
+    LAST-UPDATED "200908060000Z" 
     ORGANIZATION "Alcatel-Lucent"
     CONTACT-INFO
         "Please consult with Customer Service to ensure the most appropriate
@@ -57,12 +57,14 @@ alcatelIND1MldMIB MODULE-IDENTITY
                      Copyright (C) 1995-2007 Alcatel-Lucent
                          ALL RIGHTS RESERVED WORLDWIDE"
 
-    REVISION      "200809100000Z"
+    REVISION      "200908060000Z"
     DESCRIPTION
-        "Add flood unknown object"
+        "Changed the group names in alaMldCompliance."
+
     REVISION      "200808080000Z"
     DESCRIPTION
         "The latest version of this MIB Module. Added maximum group limit objects."
+
     REVISION      "200704030000Z"
     DESCRIPTION
         "The revised version of this MIB Module."
@@ -230,6 +232,7 @@ alaMldMaxGroupExceedAction OBJECT-TYPE
 	port/vlan instance."
     DEFVAL        { none }
     ::= { alaMld 16 }
+
 alaMldFloodUnknown OBJECT-TYPE
     SYNTAX          INTEGER { none(0), enable(1), disable(2) }
     MAX-ACCESS      read-write
@@ -239,7 +242,15 @@ alaMldFloodUnknown OBJECT-TYPE
     learning and setup."
     DEFVAL        { disable }
     ::= { alaMld 17 }
-
+alaMldBufferPacket OBJECT-TYPE
+    SYNTAX          INTEGER { none(0), enable(1), disable(2) }
+    MAX-ACCESS      read-write
+    STATUS          current
+    DESCRIPTION
+        "Administratively enable buffering and routing of initial multicast packets in case of
+    flood and prune multicast routing protocols." 
+    DEFVAL        { disable }
+    ::= { alaMld 18 }
 
 --
 --  VLAN Configuration Table
@@ -443,7 +454,6 @@ alaMldVlanSpoofAddressType OBJECT-TYPE
     DESCRIPTION
         "Set the type of SpoofAddress for the VLAN."
     ::= { alaMldVlanEntry 18 }
-
 alaMldVlanSpoofAddress OBJECT-TYPE   
     SYNTAX          InetAddress        
     MAX-ACCESS      read-write   
@@ -451,6 +461,7 @@ alaMldVlanSpoofAddress OBJECT-TYPE
     DESCRIPTION   
         "Set the SpoofAddress for the VLAN."   
     ::= { alaMldVlanEntry 19 } 
+
 
 --
 --  Group Membership Table
@@ -1363,12 +1374,12 @@ alaMldCompliance MODULE-COMPLIANCE
         "The compliance statement for systems running IPv6 multicast switch 
          and routing and implementing ALCATEL-IND1-MLD-MIB."
     MODULE
-    MANDATORY-GROUPS { alaMldGroup, alaMldVlanGroup, alaMldMemberGroup,
-                       alaMldStaticMemberGroup, alaMldNeighborGroup,
-                       alaMldStaticNeighborGroup, alaMldQuerierGroup,
-                       alaMldStaticQuerierGroup, alaMldSourceGroup,
-                       alaMldForwardGroup, alaMldTunnelGroup,
-                       alaMldPortGroup, alaMldPortVlanGroup }
+    MANDATORY-GROUPS { alaMldGroup, alaMldVlanGroup, alaMldMemberGroup, 
+		       alaMldStaticMemberGroup,alaMldNeighborGroup,
+                       alaMldStaticNeighborGroup,alaMldQuerierGroup,
+                       alaMldStaticQuerierGroup,alaMldSourceGroup,
+		       alaMldForwardGroup,alaMldTunnelGroup, 
+		       alaMldPortGroup, alaMldPortVlanGroup }
     ::= { alcatelIND1MldMIBCompliances 1 }
 
 alcatelIND1MldMIBGroups OBJECT IDENTIFIER ::= { alcatelIND1MldMIBConformance 2 }
@@ -1379,8 +1390,8 @@ alaMldGroup OBJECT-GROUP
               alaMldQueryResponseInterval, alaMldLastMemberQueryInterval,
               alaMldRouterTimeout, alaMldSourceTimeout, alaMldProxying,
               alaMldUnsolicitedReportInterval, alaMldQuerierForwarding,
-              alaMldMaxGroupLimit, alaMldMaxGroupExceedAction,
-              alaMldFloodUnknown }
+	      alaMldMaxGroupLimit, alaMldMaxGroupExceedAction,
+              alaMldFloodUnknown, alaMldBufferPacket }
     STATUS          current
     DESCRIPTION
         "A collection of objects to support management of IPv6 multicast switching

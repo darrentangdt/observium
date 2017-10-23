@@ -7,14 +7,13 @@
  *
  * @package        observium
  * @subpackage     web
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
 function generate_sla_query($vars)
 {
   $sql = 'SELECT * FROM `slas` ';
-  $sql .= ' LEFT JOIN `slas-state` USING (`sla_id`)';
   $sql .= ' WHERE `deleted` = 0';
 
   // Build query
@@ -36,6 +35,9 @@ function generate_sla_query($vars)
         break;
       case "owner":
         $sql .= generate_query_values($value, 'slas.sla_owner');
+        break;
+      case "target":
+        $sql .= generate_query_values($value, 'slas.sla_target');
         break;
       case "rtt_type":
         $sql .= generate_query_values($value, 'slas.rtt_type');
@@ -172,19 +174,20 @@ function print_sla_table($vars)
 
 function humanize_sla(&$sla)
 {
+  global $config;
+
   if (isset($sla['humanized'])) { return; }
 
-  if ($sla['sla_status'] != 'active' || $sla['rtt_event'] == 'ignore')
+  if (isset($config['entity_events'][$sla['rtt_event']]))
+  {
+    $sla = array_merge($sla, $config['entity_events'][$sla['rtt_event']]);
+  } else {
+    $sla['event_class'] = 'label label-primary';
+    $sla['row_class']   = '';
+  }
+  if ($sla['sla_status'] != 'active')
   {
     $sla['row_class'] = 'ignore';
-  }
-  else if ($sla['rtt_event'] == 'alert')
-  {
-    $sla['row_class'] = 'error';
-  }
-  else if ($sla['rtt_event'] != 'ok')
-  {
-    $sla['row_class'] = 'warning';
   }
 
   $device = &$GLOBALS['cache']['devices']['id'][$sla['device_id']];
@@ -246,20 +249,20 @@ function humanize_sla(&$sla)
   if ($sla['rtt_event'] == 'ok')
   {
     $sla['sla_class'] = 'label';
-    $sla['rtt_class'] = 'label label-success';
+    //$sla['rtt_class'] = 'label label-success';
   }
   else if ($sla['rtt_event'] == 'alert')
   {
     $sla['sla_class'] = 'label label-error';
-    $sla['rtt_class'] = 'label label-error';
+    //$sla['rtt_class'] = 'label label-error';
   }
   else if ($sla['rtt_event'] == 'ignore')
   {
     $sla['sla_class'] = 'label';
-    $sla['rtt_class'] = 'label';
+    //$sla['rtt_class'] = 'label';
   } else {
     $sla['sla_class'] = 'label label-warning';
-    $sla['rtt_class'] = 'label label-warning';
+    //$sla['rtt_class'] = 'label label-warning';
   }
 
   $sla['humanized'] = TRUE;
@@ -307,8 +310,8 @@ function generate_sla_row($sla, $vars)
   $out .= '<td>'. $sla['rtt_label'] .'</td>';
   $out .= '<td>' . generate_entity_link('sla', $sla, $mini_graph, NULL, FALSE) . '</td>';
   $out .= '<td style="white-space: nowrap">' . generate_tooltip_link(NULL, formatUptime(($config['time']['now'] - $sla['rtt_last_change']), 'short-2') . ' ago', format_unixtime($sla['rtt_last_change'])) . '</td>';
-  $out .= '<td style="text-align: right;"><strong><span class="' . $sla['rtt_class'] . '">' . $sla['rtt_event'] . '</span></strong></td>';
-  $out .= '<td style="text-align: right;"><strong><span class="' . $sla['rtt_class'] . '">' . $sla['rtt_sense'] . '</span></strong></td>';
+  $out .= '<td style="text-align: right;"><strong>' . generate_tooltip_link('', $sla['rtt_event'], $sla['event_descr'], $sla['event_class']) . '</strong></td>';
+  $out .= '<td style="text-align: right;"><strong>' . generate_tooltip_link('', $sla['rtt_sense'], $sla['event_descr'], $sla['event_class']) . '</strong></td>';
   $out .= '<td><span class="' . $sla['sla_class'] . '">' . $sla['human_value'] . $sla['human_unit'] . '</span></td>';
   $out .= '</tr>';
 

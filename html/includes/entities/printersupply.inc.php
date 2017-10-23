@@ -84,7 +84,6 @@ function print_printersupplies_table($vars)
 
     echo '<tr class="strong">';
     echo '<th class="state-marker"></th>';
-    echo '<th></th>';
     if ($vars['page'] != "device" && $vars['popup'] != TRUE)
     {
       echo('      <th style="width: 250px;">Device</th>');
@@ -150,7 +149,7 @@ function generate_printersupplies_row($supply, $vars)
   {
     $output .= '<td style="width: 40px; text-align: center;"><i class="'.$GLOBALS['config']['entities']['printersupply']['icon'].'"></i></td>';
   } else {
-    $output .= '<td style="width: 1px;"></td>';
+    //$output .= '<td style="width: 1px;"></td>';
   }
 
   if ($vars['page'] != "device" && $vars['popup'] != TRUE)

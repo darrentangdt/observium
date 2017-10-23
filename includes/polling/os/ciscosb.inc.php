@@ -15,8 +15,6 @@
 // CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamSoftwareVersion.1 = STRING: 1.3.5.58
 // CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamFirmwareVersion.1 = STRING: 1.3.5.06
 // CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamHardwareVersion.1 = STRING: V02
-// CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamSerialNum.1 = STRING: PSZ165003M9
-// CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamAssetTag.1 = STRING:
 // CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamServiceTag.1 = STRING: SRW2016-K9
 // CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamSoftwareDate.1 = STRING:  10-Oct-2013
 // CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamFirmwareDate.1 = STRING:  21-Jul-2013
@@ -28,13 +26,11 @@
 // CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamRegistrationDone.1 = INTEGER: false(2)
 // CISCOSB-Physicaldescription-MIB::rlPhdUnitGenParamRegistrationSuppressed.1 = INTEGER: false(2)
 
-$data = snmp_get_multi($device, 'rlPhdUnitGenParamModelName.1 rlPhdUnitGenParamServiceTag.1 rlPhdUnitGenParamSoftwareVersion.1 rlPhdUnitGenParamSerialNum.1 rlPhdUnitGenParamAssetTag.1', '-OQUs', 'CISCOSB-Physicaldescription-MIB');
+$data = snmp_get_multi($device, 'rlPhdUnitGenParamModelName.1 rlPhdUnitGenParamServiceTag.1 rlPhdUnitGenParamSoftwareVersion.1', '-OQUs', 'CISCOSB-Physicaldescription-MIB');
 $data = $data[1];
 
 $hardware  = $data['rlPhdUnitGenParamModelName'];
 $features  = $data['rlPhdUnitGenParamServiceTag'];
 $version   = $data['rlPhdUnitGenParamSoftwareVersion'];
-$serial    = $data['rlPhdUnitGenParamSerialNum'];
-$asset_tag = $data['rlPhdUnitGenParamAssetTag'];
 
 // EOF

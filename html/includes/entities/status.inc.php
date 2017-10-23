@@ -7,7 +7,7 @@
  *
  * @package        observium
  * @subpackage     web
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -16,7 +16,7 @@
  *
  * Returns a the $status array with processed information:
  * sensor_state (TRUE: state sensor, FALSE: normal sensor)
- * human_value, sensor_symbol, state_name, state_event, state_class
+ * human_value, sensor_symbol, state_name, state_event, event_class
  *
  * @param array $status
  * @return array $status
@@ -30,29 +30,16 @@ function humanize_status(&$status)
   // Exit if already humanized
   if ($status['humanized']) { return; }
 
-  switch ($status['status_event'])
+  if (isset($config['entity_events'][$status['status_event']]))
   {
-    case 'up':
-    case 'ok':
-      // FIXME -- replace up with ok to follow monitoring convention and not sound so derpy
-      $status['state_class'] = 'label label-success';
-      $status['row_class']   = 'up';
-      break;
-    case 'warning':
-      $status['state_class'] = 'label label-warning';
-      $status['row_class']   = 'warning';
-      break;
-    case 'alert':
-      $status['state_class'] = 'label label-important';
-      $status['row_class']   = 'error';
-      break;
-    case 'ignore':
-      $status['state_class'] = 'label';
-      $status['row_class']   = 'ignore';
-      break;
-    default:
-      $status['state_class'] = 'label label-primary';
-      $status['row_class']   = '';
+    $status = array_merge($status, $config['entity_events'][$status['status_event']]);
+  } else {
+    $status['event_class'] = 'label label-primary';
+    $status['row_class']   = '';
+  }
+  if ($status['status_deleted'])
+  {
+    $status['row_class']   = 'disabled';
   }
 
   $device = &$GLOBALS['cache']['devices']['id'][$status['device_id']];
@@ -68,8 +55,13 @@ function humanize_status(&$status)
 function generate_status_query($vars)
 {
   $sql = "SELECT * FROM `status`";
-  $sql .= " LEFT JOIN `status-state` USING(`status_id`)";
-  $sql .= " WHERE 1";
+  //$sql .= " LEFT JOIN `status-state` USING(`status_id`)";
+  if($vars['sort'] == 'hostname' || $vars['sort'] == 'device' || $vars['sort'] == 'device_id')
+  {
+    $sql .= ' LEFT JOIN `devices` USING(`device_id`)';
+  }
+  //$sql .= " WHERE 1";
+  $sql .= " WHERE `status_deleted` = 0";
 
   // Build query
   foreach($vars as $var => $value)
@@ -98,6 +90,46 @@ function generate_status_query($vars)
   }
   $sql .= $GLOBALS['cache']['where']['devices_permitted'];
 
+  switch ($vars['sort_order'])
+  {
+    case 'desc':
+      $sort_order = 'DESC';
+      $sort_neg   = 'ASC';
+      break;
+    case 'reset':
+      unset($vars['sort'], $vars['sort_order']);
+      // no break here
+    default:
+      $sort_order = 'ASC';
+      $sort_neg   = 'DESC';
+  }
+
+
+  switch($vars['sort'])
+  {
+    case 'device':
+      $sql .= ' ORDER BY `hostname` '.$sort_order;
+      break;
+    case 'descr':
+      $sql .= ' ORDER BY `status_descr` '.$sort_order;
+      break;
+    case 'class':
+      $sql .= ' ORDER BY `entPhysicalClass` '.$sort_order;
+      break;
+    case 'event':
+      $sql .= ' ORDER BY `status_event` '.$sort_order;
+      break;
+    case 'status':
+      $sql .= ' ORDER BY `status_name` '.$sort_order;
+      break;
+    case 'last_change':
+      $sql .= ' ORDER BY `status_last_change` '.$sort_neg;
+      break;
+    default:
+      $sql .= ' ORDER BY `status_descr` '.$sort_order;
+  }
+
+
   return $sql;
 }
 
@@ -114,45 +146,6 @@ function print_status_table($vars)
       $status['hostname'] = $GLOBALS['cache']['devices']['id'][$status['device_id']]['hostname'];
       $status_list[] = $status;
     }
-  }
-
-  // Sorting
-  // FIXME. Sorting can be as function, but in must before print_table_header and after get table from db
-  switch ($vars['sort_order'])
-  {
-    case 'desc':
-      $sort_order = SORT_DESC;
-      $sort_neg   = SORT_ASC;
-      break;
-    case 'reset':
-      unset($vars['sort'], $vars['sort_order']);
-      // no break here
-    default:
-      $sort_order = SORT_ASC;
-      $sort_neg   = SORT_DESC;
-  }
-  switch ($vars['sort'])
-  {
-    case 'device':
-      $status_list = array_sort_by($status_list, 'hostname', $sort_order, SORT_STRING);
-      break;
-    case 'descr':
-      $status_list = array_sort_by($status_list, 'status_descr', $sort_order, SORT_STRING);
-      break;
-    case 'class':
-      $status_list = array_sort_by($status_list, 'entPhysicalClass', $sort_order, SORT_STRING);
-      break;
-    case 'event':
-      $status_list = array_sort_by($status_list, 'status_event', $sort_order, SORT_STRING);
-      break;
-    case 'status':
-      $status_list = array_sort_by($status_list, 'status_name', $sort_order, SORT_STRING);
-      break;
-    case 'last_change':
-      $status_list = array_sort_by($status_list, 'status_last_change', $sort_neg, SORT_NUMERIC);
-      break;
-    default:
-      $status_list = array_sort_by($status_list, 'hostname', $sort_order, SORT_STRING, 'status_descr', $sort_order, SORT_STRING);
   }
 
   $status_count = count($status_list);
@@ -227,7 +220,7 @@ function generate_status_row($status, $vars)
 
   humanize_status($status);
 
-  $alert = ($status['state_event'] == 'alert' ? 'oicon-exclamation-red' : '');
+  $alert = ($status['state_event'] == 'alert' ? $config['icon']['flag'] : '');
 
   // FIXME - make this "four graphs in popup" a function/include and "small graph" a function.
   // FIXME - DUPLICATED IN device/overview/status
@@ -270,12 +263,12 @@ function generate_status_row($status, $vars)
   $row .= '<td style="width: 90px; text-align: right;">' . generate_entity_link('status', $status, $mini_graph, NULL, FALSE) . '</td>';
   if ($vars['tab'] != "overview")
   {
-    $row .= '<td style="white-space: nowrap">' . generate_tooltip_link(NULL, formatUptime(($config['time']['now'] - $status['status_last_change']), 'short-2') . ' ago', format_unixtime($status['status_last_change'])) . '</td>
-        <td style="text-align: right;"><strong><span class="' . $status['state_class'] . '">' . $status['status_event'] . '</span></strong></td>';
+    $row .= '<td style="white-space: nowrap">' . generate_tooltip_link('', formatUptime(($config['time']['now'] - $status['status_last_change']), 'short-2') . ' ago', format_unixtime($status['status_last_change'])) . '</td>
+        <td style="text-align: right;"><strong>' . generate_tooltip_link('', $status['status_event'], $status['event_descr'], $status['event_class']) . '</strong></td>';
     $table_cols++;
     $table_cols++;
   }
-  $row .= '<td style="width: 80px; text-align: right;"><strong><span class="' . $status['state_class'] . '">' . $status['status_name'] . '</span></strong></td>
+  $row .= '<td style="width: 80px; text-align: right;"><strong>' . generate_tooltip_link('', $status['status_name'], $status['event_descr'], $status['event_class']) . '</strong></td>
         </tr>' . PHP_EOL;
 
   if ($vars['view'] == "graphs")

@@ -3,15 +3,14 @@ ALCATEL-IND1-LBD-MIB DEFINITIONS ::= BEGIN
         IMPORTS
                 Unsigned32, Counter32, MODULE-IDENTITY,
                 NOTIFICATION-TYPE, OBJECT-TYPE,
-                OBJECT-IDENTITY
+                OBJECT-IDENTITY         
 					FROM SNMPv2-SMI
+                MODULE-COMPLIANCE, OBJECT-GROUP
+                                        FROM SNMPv2-CONF
                 InterfaceIndex          FROM IF-MIB
                 softentIND1Lbd, alaLbdTraps
-			                FROM ALCATEL-IND1-BASE
-                TEXTUAL-CONVENTION      FROM SNMPv2-TC
-                MODULE-COMPLIANCE,
-                OBJECT-GROUP,
-       		NOTIFICATION-GROUP      FROM SNMPv2-CONF;
+			                FROM ALCATEL-IND1-BASE;
+
 
                 alcatelIND1LBDMIB MODULE-IDENTITY
                 LAST-UPDATED "200812100000Z"
@@ -60,10 +59,10 @@ ALCATEL-IND1-LBD-MIB DEFINITIONS ::= BEGIN
                 REVISION      "200812100000Z"
                 DESCRIPTION
                 	"The LBD mib defines a set of LBD related management objects for ports
-			that support Loop Back Detection(LBD) mechanism.
-			LBD mechanism monitors the physical configuration of cables and detect when
-			a loopback detection exists due to any physical or logical problem. In case
-			such problem, it shall take appropriate measures for the port based upon the
+			that support Loop Back Detection(LBD) mechanism. 
+			LBD mechanism monitors the physical configuration of cables and detect when 
+			a loopback detection exists due to any physical or logical problem. In case 
+			such problem, it shall take appropriate measures for the port based upon the 
 			configured mode of operation and raise a trap to the user."
                 ::= { softentIND1Lbd 1}
 
@@ -84,7 +83,7 @@ ALCATEL-IND1-LBD-MIB DEFINITIONS ::= BEGIN
                 STATUS current
                 DESCRIPTION
 			"Branch for LBD Module MIB Subsystem Units of Conformance."
-		::= { alcatelIND1LBDMIBConformance 1 }
+		::= { alcatelIND1LBDMIBConformance 1 }  
 
 	 	alcatelIND1LBDMIBCompliances OBJECT-IDENTITY
                 STATUS current
@@ -97,7 +96,7 @@ ALCATEL-IND1-LBD-MIB DEFINITIONS ::= BEGIN
 -- --------------------------------------------------------------
 		AlaLbdPortConfigLbdOperStatus ::= TEXTUAL-CONVENTION
        		STATUS  current
-        	DESCRIPTION
+        	DESCRIPTION 
 			"Specifies the current operational state of this port."
 		SYNTAX  INTEGER {
              	       	inactive (0),  -- Specifies that the operational state is inactive.
@@ -170,13 +169,13 @@ ALCATEL-IND1-LBD-MIB DEFINITIONS ::= BEGIN
 	        MAX-ACCESS      read-write
 		STATUS  current
         	DESCRIPTION
-                	"This object is used to make up all the disabled ports which
-			was caused due to loop-back detection."
+                	"This object is used to make up all the disabled ports which 
+			was caused due to loop-back detection." 
 	        DEFVAL { 300 }
 	        ::= { alcatelIND1LBDMIBObjects 4 }
 		
 -- -------------------------------------------------------------
--- LBD Config Table on Physical Port
+-- LBD Config Table on Physical Port 
 -- -------------------------------------------------------------
 	
 		alaLbdPortConfig  OBJECT IDENTIFIER ::= { alcatelIND1LBDMIBObjects 5 }
@@ -189,7 +188,7 @@ ALCATEL-IND1-LBD-MIB DEFINITIONS ::= BEGIN
                 ::= { alaLbdPortConfig 1 }
 
 	        alaLbdPortConfigEntry  OBJECT-TYPE
-                SYNTAX                AlaLbdPortConfigEntry
+                SYNTAX                AlaLbdPortConfigEntry 
                 MAX-ACCESS            not-accessible
                 STATUS                current
                 DESCRIPTION
@@ -219,12 +218,12 @@ ALCATEL-IND1-LBD-MIB DEFINITIONS ::= BEGIN
                 MAX-ACCESS      read-write
                 STATUS          current
                 DESCRIPTION
-                        "This object is used to enable or disable loopback-detection per port.
-			The value enable(1) indicates that loopback-detection is
-			enabled on this port. The value disable(2) indicates that
+                        "This object is used to enable or disable loopback-detection per port. 
+			The value enable(1) indicates that loopback-detection is 
+			enabled on this port. The value disable(2) indicates that 
 			loopback-detection is disabled on this port.
-			The LBD configuration per port can be applied and retained,
-			irrespective of value of alaLbdGlobalConfigStatus, but the same shall
+			The LBD configuration per port can be applied and retained, 
+			irrespective of value of alaLbdGlobalConfigStatus, but the same shall 
 			be functionally unavailable when alaLbdGlobalConfigStatus is set to
 			disable(2)."
 		DEFVAL  { disable }
@@ -235,7 +234,7 @@ ALCATEL-IND1-LBD-MIB DEFINITIONS ::= BEGIN
 		MAX-ACCESS     read-only
 		STATUS          current
                 DESCRIPTION
-			"This object specifies the current operational state of the corresponding
+			"This object specifies the current operational state of the corresponding 
 			port."
 		::= { alaLbdPortConfigEntry 3 }
 
@@ -296,17 +295,17 @@ ALCATEL-IND1-LBD-MIB DEFINITIONS ::= BEGIN
                 SYNTAX INTEGER {
 			default(0),
 			reset(1)
-			}
+			} 
                 MAX-ACCESS  read-write
 		STATUS  current
                 DESCRIPTION
-			"When this object is set to reset(1), all statistics parameters
-			corresponding to this port gets cleared (reset)."
+			"When this object is set to reset(1), all statistics parameters 
+			corresponding to this port gets cleared (reset)." 
 		DEFVAL  { default }
 		::= { alaLbdPortStatsEntry 4 }
-
+ 
 -- --------------------------------------------------------------
--- Trap Description
+-- Trap Description 
 -- --------------------------------------------------------------
 		alaLbdTrapsDesc  OBJECT IDENTIFIER ::= { alaLbdTraps 1 }
 		alaLbdTrapsObj OBJECT IDENTIFIER ::= { alaLbdTraps 2 }
@@ -334,8 +333,8 @@ ALCATEL-IND1-LBD-MIB DEFINITIONS ::= BEGIN
 			} 			
 		STATUS   current
                 DESCRIPTION
-			"When the the port state changes from shutdown due to
-			clear-violation-all, a notification is sent to the Management
+			"When the the port state changes from shutdown due to 
+			clear-violation-all, a notification is sent to the Management 
 			Entity, with the LBD-state information."
 		::= { alaLbdTrapsRoot 2 }
 
@@ -383,14 +382,14 @@ ALCATEL-IND1-LBD-MIB DEFINITIONS ::= BEGIN
    			"The current state of the port on which LBD was running."
 		::= { alaLbdTrapsObj 3 }
 
-		alaLbdPreviousStateClearViolationAll OBJECT-TYPE
+		alaLbdPreviousStateClearViolationAll OBJECT-TYPE  
 		SYNTAX  INTEGER {
-			shutdown (1)	   -- State is shutdown
+			shutdown (1)	   -- State is shutdown 
 			}
 		MAX-ACCESS  accessible-for-notify
                 STATUS  current
                 DESCRIPTION
-			"The state of the the port where LBD was running
+			"The state of the the port where LBD was running 
 			before clear-violation-all applied."
 		::= { alaLbdTrapsObj 4 }
 
@@ -486,7 +485,6 @@ ALCATEL-IND1-LBD-MIB DEFINITIONS ::= BEGIN
 		alaLbdStateTrapToShutdownGroup OBJECT-GROUP
    		OBJECTS
    		{
-                        alaLbdPortIfIndex,
 			alaLbdPreviousState,
 			alaLbdCurrentState
    		}
@@ -520,8 +518,8 @@ ALCATEL-IND1-LBD-MIB DEFINITIONS ::= BEGIN
 		::= { alcatelIND1LBDMIBGroups 6 }
 
 		alaLbdTrapsGroup NOTIFICATION-GROUP
-        NOTIFICATIONS
-        {
+        	NOTIFICATIONS
+        	{
 			alaLbdStateChangeForAutoRecovery ,	
 			alaLbdStateChangeForClearViolationAll,
 			alaLbdStateChangeToShutdown
@@ -534,4 +532,4 @@ ALCATEL-IND1-LBD-MIB DEFINITIONS ::= BEGIN
 -- -------------------------------------------------------------
 
 END
-
+ 

@@ -11,10 +11,8 @@
  *
  */
 
-echo("JUNIPER-MIB ");
-
 /*
-$oids = snmp_walk($device,"1.3.6.1.4.1.2636.3.1.13.1.7", "-Osqn","JUNIPER-MIB", mib_dirs('juniper'));
+$oids = snmp_walk($device,'1.3.6.1.4.1.2636.3.1.13.1.7', '-Osqn','JUNIPER-MIB');
 $oids = trim($oids);
 
 foreach (explode("\n", $oids) as $data)
@@ -23,17 +21,17 @@ foreach (explode("\n", $oids) as $data)
   $data = substr($data, 29);
   if ($data)
   {
-    list($oid) = explode(" ", $data);
+    list($oid) = explode(' ', $data);
     $temperature_oid  = "1.3.6.1.4.1.2636.3.1.13.1.7.$oid";
     $descr_oid = "1.3.6.1.4.1.2636.3.1.13.1.5.$oid";
-    $descr = snmp_get($device, $descr_oid, "-Oqv", "JUNIPER-MIB", mib_dirs('juniper'));
-    $temperature = snmp_get($device, $temperature_oid, "-Oqv", "JUNIPER-MIB", mib_dirs('juniper'));
-    if (!strstr($descr, "No") && !strstr($temperature, "No") && $descr != "" && $temperature != "0")
+    $descr = snmp_get($device, $descr_oid, '-Oqv', 'JUNIPER-MIB');
+    $temperature = snmp_get($device, $temperature_oid, '-Oqv', 'JUNIPER-MIB');
+    if (!strstr($descr, 'No') && !strstr($temperature, 'No') && $descr != '' && $temperature != '0')
     {
-      $descr = str_replace("\"", "", $descr);
-      $descr = str_replace("temperature", "", $descr);
-      $descr = str_replace("temperature", "", $descr);
-      $descr = str_replace("sensor", "", $descr);
+      $descr = str_replace("\"", '', $descr);
+      $descr = str_replace('temperature', '', $descr);
+      $descr = str_replace('temperature', '', $descr);
+      $descr = str_replace('sensor', '', $descr);
       $descr = trim($descr);
 
       discover_sensor($valid['sensor'], 'temperature', $device, $temperature_oid, $oid, 'junos', $descr, 1, $temperature);
@@ -55,7 +53,7 @@ foreach ($oids as $index => $entry)
 
   // Temperature
   $oid_name = 'jnxOperatingTemp';
-  $oid_num  = '.1.3.6.1.4.1.2636.3.1.13.1.7.'.$index;
+  $oid_num  = ".1.3.6.1.4.1.2636.3.1.13.1.7.$index";
   //$type     = $mib . '-' . $oid_name;
   $type     = 'junos'; // Compat with old discovery style
   $scale    = 1;
@@ -66,7 +64,7 @@ foreach ($oids as $index => $entry)
   }
 
   $oid_name = 'jnxOperatingState';
-  $oid_num  = '.1.3.6.1.4.1.2636.3.1.13.1.6.'.$index;
+  $oid_num  = ".1.3.6.1.4.1.2636.3.1.13.1.6.$index";
   $type     = 'jnxOperatingState';
   $value    = $entry[$oid_name];
   switch ($entry['jnxFruType'])

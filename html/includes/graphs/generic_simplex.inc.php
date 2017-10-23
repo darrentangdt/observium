@@ -20,6 +20,8 @@ if ($config['old_graphs'])
   // Draw generic bits graph
   // args: ds_in, ds_out, unit_integer, rrd_filename, bg, legend, from, to, width, height, inverse, percentile
 
+  $graph_return['valid_options'][] = "trend";
+
   include($config['html_dir']."/includes/graphs/common.inc.php");
 
   $unit_text = str_pad(truncate($unit_text,18,''),18);
@@ -143,6 +145,15 @@ if ($config['old_graphs'])
     $rrd_options .= " LINE1.25:".$ds."X#666666:'Prev \\n'";
     $rrd_options .= " AREA:".$ds."X#99999966:";
   }
+
+
+  if ($vars['trend'])
+  {
+    $rrd_options .= " CDEF:".$ds."smooth=".$ds.",1800,TREND";
+    $rrd_options .= " CDEF:".$ds."predict=586400,-7,1800,".$ds.",PREDICT";
+    $rrd_options .= " LINE1:".$ds."predict#FF00FF::dashes=3";
+  }
+
 }
 
 // EOF

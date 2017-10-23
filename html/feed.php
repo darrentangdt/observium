@@ -89,6 +89,7 @@ if (!$auth)
     $_SESSION['userlevel'] = $user_level;
 
     $permissions = permissions_cache($_SESSION['user_id']);
+    session_commit();
 
     include($config['html_dir'] . "/includes/cache-data.inc.php"); // Need for check permissions
 

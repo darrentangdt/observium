@@ -12,8 +12,6 @@
  *
  */
 
-echo(" Virtual machines: ");
-
 // Always run libvirt (module checks for os suitability and enable_libvirt)
 include("includes/discovery/virtual-machines/libvirt.inc.php");
 

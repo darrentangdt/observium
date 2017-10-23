@@ -7,27 +7,41 @@
  *
  * @package    observium
  * @subpackage poller
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
 $table_rows = array();
 
-$sql  = "SELECT `processors`.*, `processors-state`.`processor_usage`, `processors-state`.`processor_polled`";
-$sql .= " FROM `processors`";
-$sql .= " LEFT JOIN `processors-state` USING(`processor_id`)";
-$sql .= " WHERE `device_id` = ?";
+// Pre-cache all processors oid
+$query = 'SELECT `processor_oid` FROM `processors` WHERE `device_id` = ? AND `processor_oid` REGEXP ? AND `processor_type` != ?';
+// wmi excluded, select only valid numeric OIDs like .1.2.3.3 (excluded ucd-old, hr-average)
+$oid_to_cache = dbFetchColumn($query, array($device['device_id'], '^\.?[0-9]+(\.[0-9]+)+$', 'wmi'));
+usort($oid_to_cache, 'compare_numeric_oids'); // correctly sort numeric oids
+print_debug_vars($oid_to_cache);
+$oid_cache = snmp_get_multi_oid($device, $oid_to_cache, $oid_cache, NULL, NULL, OBS_SNMP_ALL_NUMERIC);
+print_debug_vars($oid_cache);
+
+$sql  = "SELECT * FROM `processors` WHERE `device_id` = ?";
 
 foreach (dbFetchRows($sql, array($device['device_id'])) as $processor)
 {
   // echo("Processor " . $processor['processor_descr'] . " ");
 
+  $processor['processor_oid'] = '.' . ltrim($processor['processor_oid'], '.'); // Fix first dot in oid
+
   $file = $config['install_dir']."/includes/polling/processors/".$processor['processor_type'].".inc.php";
   if (is_file($file))
   {
     include($file);
+  }
+  else if (isset($oid_cache[$processor['processor_oid']]))
+  {
+    // Use cached OIDs
+    $proc = $oid_cache[$processor['processor_oid']];
   } else {
-    $proc = snmp_get($device, $processor['processor_oid'], "-OUQnv");
+    // Not should be happen, but keep it as last anyway
+    $proc = snmp_get_oid($device, $processor['processor_oid']);
   }
 
   $proc = snmp_fix_numeric($proc);
@@ -37,8 +51,6 @@ foreach (dbFetchRows($sql, array($device['device_id'])) as $processor)
   if ($processor['processor_returns_idle'] == 1) { $proc = 100 - $proc; } // The OID returns idle value, so we subtract it from 100.
 
   $graphs['processor'] = TRUE;
-
-  // echo($proc . "%\n");
 
   // Update StatsD/Carbon
   if ($config['statsd']['enable'] == TRUE)
@@ -50,15 +62,9 @@ foreach (dbFetchRows($sql, array($device['device_id'])) as $processor)
   rrdtool_update_ng($device, 'processor', array('usage' => $proc), $processor['processor_type'] . "-" . $processor['processor_index']);
 
   // Update SQL State
-  if (is_numeric($processor['processor_polled']))
-  {
-    dbUpdate(array('processor_usage' => $proc, 'processor_polled' => time()), 'processors-state', '`processor_id` = ?', array($processor['processor_id']));
-  } else {
-    dbInsert(array('processor_id' => $processor['processor_id'], 'processor_usage' => $proc, 'processor_polled' => time()), 'processors-state');
-  }
+  dbUpdate(array('processor_usage' => $proc, 'processor_polled' => time()), 'processors', '`processor_id` = ?', array($processor['processor_id']));
 
   // Check alerts
-
   check_entity('processor', $processor, array('processor_usage' => $proc));
 
     $table_row = array();

@@ -14,7 +14,7 @@
 $graph_type = "storage_usage";
 
 $sql  = "SELECT * FROM `storage`";
-$sql .= " LEFT JOIN `storage-state` USING(`storage_id`)";
+//$sql .= " LEFT JOIN `storage-state` USING(`storage_id`)";
 $sql .= " WHERE `device_id` = ?";
 
 $drives = dbFetchRows($sql, array($device['device_id']));
@@ -23,11 +23,11 @@ if (count($drives))
 {
   $drives = array_sort_by($drives, 'storage_descr', SORT_ASC, SORT_STRING);
 
-  $box_args = array('title' => 'Storage', 
-                    'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => 'storage')), 
-                    'icon' => 'oicon-drive',
-                    ); 
-  echo generate_box_open($box_args);  
+  $box_args = array('title' => 'Storage',
+                    'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => 'storage')),
+                    'icon' => $config['icon']['storage'],
+                    );
+  echo generate_box_open($box_args);
 
   echo('<table class="table table-condensed table-striped">');
 

@@ -12,7 +12,6 @@
  */
 
 $fnSysVersion = snmp_get($device, 'fgSysVersion.0', '-Ovq', 'FORTINET-FORTIGATE-MIB');
-$serial       = snmp_get($device, 'fnSysSerial.0', '-Ovq', 'FORTINET-CORE-MIB');
 
 $version = preg_replace('/(.+),(.+),(.+)/', "\\1||\\2||\\3", $fnSysVersion);
 list($version,$features) = explode('||', $version);

@@ -18,7 +18,7 @@ ALCATEL-IND1-INTERSWITCH-PROTOCOL-MIB DEFINITIONS ::= BEGIN
 			;
 
         alcatelIND1InterswitchProtocolMIB MODULE-IDENTITY
-                LAST-UPDATED "200704030000Z"
+                LAST-UPDATED "200902210000Z"
                 ORGANIZATION "Alcatel-Lucent"
                 CONTACT-INFO
             "Please consult with Customer Service to ensure the most appropriate
@@ -60,8 +60,15 @@ ALCATEL-IND1-INTERSWITCH-PROTOCOL-MIB DEFINITIONS ::= BEGIN
 
                          Copyright (C) 1995-2007 Alcatel-Lucent
                              ALL RIGHTS RESERVED WORLDWIDE"
+		REVISION      "201105060000Z"
+		DESCRIPTION
+			"Added OmniSwitch 6450 Series Product Type in aipAMAPRemDeviceType." 
 
-                REVISION      "200704030000Z"
+		REVISION      "200902210000Z"
+		DESCRIPTION
+			"Added OmniSwitch 6250 Series Product Type in aipAMAPRemDeviceType." 
+
+        REVISION      "200704030000Z"
         DESCRIPTION
             "Addressing discrepancies with Alcatel Standard."
                 ::= { softentIND1Aip 1 }
@@ -208,7 +215,7 @@ AipGMAPTableEntry ::= SEQUENCE {
 	aipGMAPProtocol Unsigned32,
 	aipGMAPVlan INTEGER,
 	aipGMAPSrcSwitch MacAddress,
-	aipGMAPFlags OCTET STRING,
+	aipGMAPFlags OCTET STRING (SIZE(4)),
 	aipGMAPTimeout INTEGER
 	}
 
@@ -294,6 +301,17 @@ aipAMAPcommontime OBJECT-TYPE
 	DEFVAL	{ 300 }
 	::= { aipAMAPconfig 3 }
 
+aipAMAPportstatus OBJECT-TYPE
+        SYNTAX  INTEGER {
+                enable  (1),
+                disable (2)
+        }
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION "Current state of the AMAP port."
+        DEFVAL  { enable }
+        ::= { aipAMAPconfig 10 }
+
 -- AMAP Trap elements *********************
 
 aipAMAPLastTrapReason OBJECT-TYPE
@@ -356,14 +374,14 @@ AipAMAPportConnectionEntry ::= SEQUENCE {
 	aipAMAPRemMac MacAddress,
 	aipAMAPRemConnectionIndex INTEGER,
 	aipAMAPRemVlan INTEGER,
-	aipAMAPRemHostname DisplayString,
+	aipAMAPRemHostname DisplayString (SIZE(0..32)),
 	aipAMAPLocalIfindex InterfaceIndex,
 	aipAMAPLocalSlot INTEGER,
 	aipAMAPLocalPort INTEGER,
 	aipAMAPRemSlot INTEGER,
 	aipAMAPRemPort INTEGER,
         aipAMAPRemDeviceType INTEGER,
-	aipAMAPRemDevModelName DisplayString,
+	aipAMAPRemDevModelName DisplayString (SIZE(0..32)),
 	aipAMAPRemProductType INTEGER
 	}
 
@@ -452,9 +470,9 @@ aipAMAPRemDeviceType OBJECT-TYPE
 	omniSwitch9600      (4),
 	omniSwitch9700	    (5),
 	omniSwitch9800	    (6),
-	omniSwitch9600E     (7),
-	omniSwitch9700E     (8),
-	omniSwitch9800E     (9),
+	-- omniSwitch9600E     (7),
+	-- omniSwitch9700E     (8),
+	-- omniSwitch9800E     (9), 
 	omniSwitch8800      (10),
 	omniSwitch6624      (20),
 	omniSwitch6648      (21),
@@ -464,12 +482,12 @@ aipAMAPRemDeviceType OBJECT-TYPE
 	omniSwitch6824      (30),
 	omniSwitch6848      (31),
 	omniSwitch6824Fiber (32),
-	omniSwitch685024    (34),
-	omniSwitch685048    (35),
-	omniSwitch685024Fiber (36),
-	omniSwitch6850E24   (37),
-	omniSwitch6850E48   (38),
-	omniSwitch6850E24Fiber (39),
+	omniSwitch6850-24   (34),
+	omniSwitch6850-48   (35),
+	omniSwitch6850-24Fiber (36),
+	-- omniSwitch6850E24   (37),
+	-- omniSwitch6850E48   (38),
+	-- omniSwitch6850E24Fiber (39),
 	omniSwitch5slotXOS  (40),
 	omniSwitch9slotXOS  (41),
 	omniSwitchRouterXOS (42),
@@ -488,24 +506,36 @@ aipAMAPRemDeviceType OBJECT-TYPE
 	omniAccess280       (62),
 	ipPhone             (70),
 	omniPCX4400         (71),
-        omniSwitch685514    (72),
-	omniSwitch6855U10   (73),
-	omniSwitch685524    (74),
-	omniSwitch6855U24   (75),
+        omniSwitch6855-14   (72),
+	omniSwitch6855-U10  (73),
+	omniSwitch6855-24   (74),
+	omniSwitch6855-U24  (75),
         omniSwitch6424      (76),
         omniSwitch6448      (77),
-    	omniSwitch6424Fiber (78),
-	omniSwitch6855U24X  (79),
-        omniSwitch62508ME   (80),
-        omniSwitch625024ME  (81),
-        omniSwitch625024SMB (82),
-	omniSwitch6200MIXEDSTACK    (214),
+        omniSwitch6424Fiber (78),
+  	omniSwitch6855-U24X (79),
+	omniSwitch62508ME   (80),
+	omniSwitch625024ME  (81),
+	omniSwitch625024SMB (82),
+	omniSwitch645010    (87), --Kingfisher2
+	omniSwitch6450645024  (88),
+	omniSwitch6450645024U (89),
+	omniSwitch645048   (90),
+	omniSwitch6250U24M (91),
+	omniSwitch645024SF (92),
+	omniSwitch645048SF (93),
+	omniSwitch6450S10  (94),
+	omniSwitch635024   (95),
+	omniSwitch6350P24  (96),
+	omniSwitch635048   (97),
+	omniSwitch6350P48  (98),
+	omniSwitch6200-MIXED-STACK    (214),
 	omniSwitch6224     (215),
 	omniSwitch6224P    (216),
 	omniSwitch6248     (217),
 	omniSwitch6248P    (218),
-	omniSwitch6224DC   (219),
-	omniSwitch6248DC   (220),
+	omniSwitch6224-DC  (219),
+	omniSwitch6248-DC  (220),
 	omniSwitch6212	   (221),
 	omniSwitch6212P	   (222),
 	omniSwitch6224U	   (223),
@@ -619,7 +649,7 @@ AipLLDPConfigManAddrEntry  ::= SEQUENCE {
 }
 
 aipLLDPConfigManAddrPortNum   OBJECT-TYPE
-    SYNTAX      InterfaceIndex
+    SYNTAX      InterfaceIndex 
     MAX-ACCESS  not-accessible
     STATUS      current
     DESCRIPTION
@@ -631,31 +661,33 @@ aipLLDPConfigManAddrTlvTxEnable	OBJECT-TYPE
     MAX-ACCESS    read-write
     STATUS        current
     DESCRIPTION
-	    " This object controls, on a per port basis, whether or not
-	      management address TLV instances are transmitted. The value
+	    " This object controls, on a per port basis, whether or not 
+	      management address TLV instances are transmitted. The value 
 	      true(1) means that management address TLVs are transmitted ;
-	      the value false(2) means that they are not.The default value
+	      the value false(2) means that they are not.The default value 
 	      for this object is false(2). "
-
+            
     DEFVAL  { false }
     ::= { aipLLDPConfigManAddrEntry 2 }
 
 -- ------------------------
--- Global objects for LLDP
+-- Global objects for LLDP 
 -- ------------------------
 
 aipLLDPDestMac  OBJECT-TYPE
-	SYNTAX INTEGER
+    SYNTAX INTEGER
 				{
-       				nearestBridge(1),
-				nearestEdge(2)
+					nearestBridge(1),
+					nearestEdge(2)
 				}
-	MAX-ACCESS  read-write
+    MAX-ACCESS  read-write
 	STATUS      current
-	DESCRIPTION
-		"This object specifies LLDP destination mac address on global level The default value for this object is nearestBridge(1)."
+	    DESCRIPTION
+		"This object specifies LLDP destination mac address on global level. 
+		The default value for this object is nearestBridge(1)."
 	DEFVAL { nearestBridge }
 	::= { aipLLDPConfig 2 }
+
 
 -- AIP Conformance
 
@@ -693,6 +725,7 @@ aipAMAPConfGroup OBJECT-GROUP
 	aipAMAPstate,
 	aipAMAPdisctime,
 	aipAMAPcommontime,
+	aipAMAPportstatus,
 	aipAMAPLastTrapReason,
 	aipAMAPLastTrapPort,
 	aipAMAPLocalConnectionIndex,
@@ -707,10 +740,7 @@ aipAMAPConfGroup OBJECT-GROUP
 	aipAMAPRemSlot,
 	aipAMAPRemPort,
 	aipAMAPHostMac,
-	aipAMAPIpAddr,
-	aipAMAPRemDeviceType,
-	aipAMAPRemDevModelName,
-	aipAMAPRemProductType
+	aipAMAPIpAddr
     }
     STATUS      current
     DESCRIPTION
@@ -727,12 +757,12 @@ aipNotificationGroup NOTIFICATION-GROUP
 
 aipLLDPConfGroup OBJECT-GROUP
     OBJECTS {
-        aipLLDPDestMac
-    }
-    STATUS      current
-    DESCRIPTION
-        "A collection of objects providing information about LLDP."
-    ::= { alcatelIND1InterswitchProtocolMIBGroups 4 }
+		aipLLDPDestMac
+			}
+	 STATUS      current
+	     DESCRIPTION
+		 	"A collection of LLDP Global Objects."
+	::= { alcatelIND1InterswitchProtocolMIBGroups 4 }
 
 aipLLDPConfigManAddrEntryGroup OBJECT-GROUP
     OBJECTS {
@@ -754,9 +784,9 @@ alcatelIND1InterswitchProtocolMIBCompliance MODULE-COMPLIANCE
         MANDATORY-GROUPS {
             aipGMAPConfGroup,
             aipAMAPConfGroup,
-	    aipNotificationGroup,
+            aipNotificationGroup,
 	    aipLLDPConfGroup,
-	    aipLLDPConfigManAddrEntryGroup
+            aipLLDPConfigManAddrEntryGroup
         }
 
     ::= { alcatelIND1InterswitchProtocolMIBCompliances 1 }

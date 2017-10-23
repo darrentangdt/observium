@@ -11,9 +11,9 @@
  *
  */
 
-// Detect old/new MIB used
-if (strlen(snmp_get($device, ".1.3.6.1.4.1.89.53.15.1.18.1", "-Oqv")) ||
-    strlen(snmp_get($device, ".1.3.6.1.4.1.89.53.15.1.19.1", "-Oqv")))
+// Detect old/new MIB used, this OIDs exist only for old firmware
+if (strlen(snmp_get($device, '.1.3.6.1.4.1.89.53.15.1.18.1', '-Oqv')) || // RADLAN-Physicaldescription-old-MIB::rlPhdUnitEnvParamTempSensor5Value.1
+    strlen(snmp_get($device, '.1.3.6.1.4.1.89.53.15.1.19.1', '-Oqv')))   // RADLAN-Physicaldescription-old-MIB::rlPhdUnitEnvParamTempSensor5Status.1
 {
   /*
 RlPhdUnitEnvParamEntry ::= SEQUENCE {
@@ -77,7 +77,7 @@ RADLAN-Physicaldescription-old-MIB::rlPhdUnitEnvParamTempSensor5Status.1 = INTEG
       if ($i == 1)
       {
         $oid_name = 'rlPhdUnitEnvParamTempSensorValue';
-        $oid_num  = ".1.3.6.1.4.1.89.53.15.1.9.{$index}";
+        $oid_num  = ".1.3.6.1.4.1.89.53.15.1.9.$index";
       } else {
         $oid_name = 'rlPhdUnitEnvParamTempSensor' . $i . 'Value';
         $oid_num  = '.1.3.6.1.4.1.89.53.15.1.' . (8 + $i * 2) . '.' . $index;
@@ -100,7 +100,7 @@ RADLAN-Physicaldescription-old-MIB::rlPhdUnitEnvParamTempSensor5Status.1 = INTEG
       $descr .= ' Unit ' . $index;
     }
     $oid_name = 'rlPhdUnitEnvParamMainPSStatus';
-    $oid_num  = '.1.3.6.1.4.1.89.53.15.1.2.'.$index;
+    $oid_num  = ".1.3.6.1.4.1.89.53.15.1.2.$index";
     $type     = 'RlEnvMonState';
     $value    = $entry[$oid_name];
 
@@ -112,7 +112,7 @@ RADLAN-Physicaldescription-old-MIB::rlPhdUnitEnvParamTempSensor5Status.1 = INTEG
       $descr .= ' Unit ' . $index;
     }
     $oid_name = 'rlPhdUnitEnvParamRedundantPSStatus';
-    $oid_num  = '.1.3.6.1.4.1.89.53.15.1.3.'.$index;
+    $oid_num  = ".1.3.6.1.4.1.89.53.15.1.3.$index";
     $type     = 'RlEnvMonState';
     $value    = $entry[$oid_name];
 
@@ -166,7 +166,7 @@ RlPhdUnitEnvParamEntry ::= SEQUENCE {
     $descr    = 'Unit ' . $index;
 
     $oid_name = 'rlPhdUnitEnvParamTempSensorValue';
-    $oid_num  = ".1.3.6.1.4.1.89.53.15.1.10.{$index}";
+    $oid_num  = ".1.3.6.1.4.1.89.53.15.1.10.$index";
     $type     = $mib . '-' . $oid_name;
     $scale    = 1;
     $value    = $entry[$oid_name];
@@ -189,7 +189,7 @@ RlPhdUnitEnvParamEntry ::= SEQUENCE {
       $descr .= ' Unit ' . $index;
     }
     $oid_name = 'rlPhdUnitEnvParamMainPSStatus';
-    $oid_num  = '.1.3.6.1.4.1.89.53.15.1.2.'.$index;
+    $oid_num  = ".1.3.6.1.4.1.89.53.15.1.2.$index";
     $type     = 'RlEnvMonState';
     $value    = $entry[$oid_name];
 
@@ -201,7 +201,7 @@ RlPhdUnitEnvParamEntry ::= SEQUENCE {
       $descr .= ' Unit ' . $index;
     }
     $oid_name = 'rlPhdUnitEnvParamRedundantPSStatus';
-    $oid_num  = '.1.3.6.1.4.1.89.53.15.1.3.'.$index;
+    $oid_num  = ".1.3.6.1.4.1.89.53.15.1.3.$index";
     $type     = 'RlEnvMonState';
     $value    = $entry[$oid_name];
 
@@ -225,7 +225,5 @@ RlPhdUnitEnvParamEntry ::= SEQUENCE {
   }
 
 }
-
-// print_vars($oids);
 
 // EOF

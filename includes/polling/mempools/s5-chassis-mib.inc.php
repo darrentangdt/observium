@@ -11,8 +11,21 @@
  *
  */
 
-$cache_mempool = snmpwalk_cache_multi_oid($device, 's5ChasUtilMemoryTotalMB',     $cache_mempool, 'S5-CHASSIS-MIB');
-$cache_mempool = snmpwalk_cache_multi_oid($device, 's5ChasUtilMemoryAvailableMB', $cache_mempool, 'S5-CHASSIS-MIB');
+$mib = 'S5-CHASSIS-MIB';
+
+$oids = array('s5ChasUtilMemoryTotalMB', 's5ChasUtilMemoryAvailableMB');
+
+if (!is_array($cache_storage[$mib]))
+{
+  foreach ($oids as $oid)
+  {
+    $cache_mempool = snmpwalk_cache_multi_oid($device, $oid, $cache_mempool, $mib);
+  }
+  $cache_storage[$mib] = $cache_mempool;
+} else {
+  print_debug("Cached!");
+  $cache_mempool = $cache_storage[$mib];
+}
 
 $mempool['total'] = $cache_mempool[$index]['s5ChasUtilMemoryTotalMB'];
 $mempool['free']  = $cache_mempool[$index]['s5ChasUtilMemoryAvailableMB'];

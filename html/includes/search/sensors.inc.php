@@ -34,7 +34,6 @@ if (count($results))
         escape_html($result['hostname']),
         highlight_search(escape_html($result['location'])) . ' | ' . nicecase($result['sensor_class']).' sensor'),
     );
-
   }
 
   $search_results['sensors'] = array('descr' => 'Sensors found', 'results' => $sensor_search_results);

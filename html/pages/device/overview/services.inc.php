@@ -24,7 +24,7 @@ if ($services['total'])
 
   <div class="box box-solid">
     <div class="box-header">
-      <i class="oicon-gear"></i><h3 class="box-title">Services</h3>
+      <i class="<?php echo $config['icon']['service']; ?>"></i><h3 class="box-title">Services</h3>
     </div>
     <div class="box-body no-padding">
 

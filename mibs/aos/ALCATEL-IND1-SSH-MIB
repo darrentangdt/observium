@@ -124,6 +124,14 @@ alaSshPubKeyEnforceAdminStatus OBJECT-TYPE
 		  on the switch."
 	DEFVAL { disabled }
 	::= { alcatelIND1SshMIBObjects 3 }
+
+alaSshPortNumber OBJECT-TYPE            
+                  SYNTAX  INTEGER (1..65535)            
+              MAX-ACCESS  read-write            
+                  STATUS  current            
+                  DESCRIPTION            
+                          "Indicates the SSH port number"            
+                  ::= { alcatelIND1SshMIBObjects 4 }
 --
 -- Compliance Statements
 --

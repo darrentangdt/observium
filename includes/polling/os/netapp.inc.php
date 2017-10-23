@@ -15,27 +15,16 @@
 // NETAPP-MIB::productVersion.0 NetApp Release 7.3.6P2: Wed Sep 14 01:39:26 PDT 2011
 // NETAPP-MIB::productId.0 0101206979
 // NETAPP-MIB::productVendor.0 netapp
-// NETAPP-MIB::productModel.0 FAS3020
 // NETAPP-MIB::productFirmwareVersion.0 CFE 3.1.0
 // NETAPP-MIB::productGuiUrl.0 https://:443/na_admin
 // NETAPP-MIB::productApiUrl.0 https://:443/servlets/netapp.servlets.admin.XMLrequest_filer
-// NETAPP-MIB::productSerialNum.0 XXXXXXXXXXX
 // NETAPP-MIB::productPartnerSerialNum.0 not applicable
-// NETAPP-MIB::productCPUArch.0 x86
 // NETAPP-MIB::productTrapData.0 Trap variable currently unused.
 // NETAPP-MIB::productMachineType.0 FAS3020
 
 $mib = 'NETAPP-MIB';
 
-if (preg_match('/^NetApp Release ([\w\.]+)(?: [\w\-]+)?:/', $poll_device['sysDescr'], $matches))
-{
-  $version = $matches[1];
-}
-
-$hardware = snmp_get($device, 'productModel.0', '-Osqv', $mib);
-$serial   = snmp_get($device, 'productSerialNum.0', '-Osqv', $mib);
 $firmware = snmp_get($device, 'productFirmwareVersion.0', '-Osqv', $mib);
-$features = snmp_get($device, 'productCPUArch.0', '-Osqv', $mib);
 
 // FIXME --- remove this stuff soon
 

@@ -151,7 +151,7 @@ qPortVlanTagValue   OBJECT-TYPE
 
 qPortVlanStatus     OBJECT-TYPE
                     SYNTAX  RowStatus
-                    MAX-ACCESS  read-write
+                    MAX-ACCESS  read-create
                     STATUS  current
                     DESCRIPTION
                 "Row Status for creating/deleting rules"
@@ -160,7 +160,7 @@ qPortVlanStatus     OBJECT-TYPE
 
 qPortVlanDescription OBJECT-TYPE
                      SYNTAX DisplayString ( SIZE (0..31) )
-                     MAX-ACCESS read-write
+                     MAX-ACCESS read-create
                      STATUS  current
                      DESCRIPTION
                      "Textual description of vlan added to a port."
@@ -172,7 +172,7 @@ qPortVlanForceTagInternal    OBJECT-TYPE
                                 on(1),
                                 off(0)
                                 }
-                    MAX-ACCESS  read-write
+                    MAX-ACCESS  read-create
                     STATUS  current
                     DESCRIPTION
                     "0-ON, 1-OFF and 2-NA"
@@ -230,7 +230,7 @@ qAggregateVlanTagValue  OBJECT-TYPE
 
 qAggregateVlanStatus     OBJECT-TYPE
                     SYNTAX  RowStatus
-                    MAX-ACCESS  read-write
+                    MAX-ACCESS  read-create
                     STATUS  current
                     DESCRIPTION
                 "Row status for creating/deleting rules."
@@ -239,7 +239,7 @@ qAggregateVlanStatus     OBJECT-TYPE
 
 qAggregateVlanDescription OBJECT-TYPE
                           SYNTAX DisplayString ( SIZE (0..31) )
-                          MAX-ACCESS read-write
+                          MAX-ACCESS read-create
                           STATUS  current
                           DESCRIPTION
                          "Textual description of vlan added to a aggregate."
@@ -323,7 +323,7 @@ QAtmIfIndexVpiVciEntry ::= SEQUENCE {
 
 qAtmIfIndexVpiVciVlanAction     OBJECT-TYPE
              SYNTAX  RowStatus
-             MAX-ACCESS  read-write
+             MAX-ACCESS  read-create
              STATUS  current
              DESCRIPTION
                 "Row Status for creating/deleting services."
@@ -332,7 +332,7 @@ qAtmIfIndexVpiVciVlanAction     OBJECT-TYPE
 
 qAtmIfIndexVpiVciVlanDescription OBJECT-TYPE
              SYNTAX DisplayString ( SIZE (0..31) )
-             MAX-ACCESS read-write
+             MAX-ACCESS read-create
              STATUS  current
              DESCRIPTION
                 "Textual description of vlan added to an Interface Index."
@@ -343,7 +343,7 @@ qAtmIfIndexVpiVciAcceptableFrameTypes   OBJECT-TYPE
                     admitAll(1),
                     admitOnlyVlanTagged(2)
                 }
-    		MAX-ACCESS  read-write
+    		MAX-ACCESS  read-create
     		STATUS      current
     		DESCRIPTION
 	        "When this is admitOnlyVlanTagged(2) the device will
@@ -365,7 +365,7 @@ qAtmIfIndexVpiVciForceTagInternal	OBJECT-TYPE
                                 on(1),
                                 off(0)
                                 }
-                    MAX-ACCESS  read-write
+                    MAX-ACCESS  read-create
                     STATUS  current
                     DESCRIPTION
                     "0-ON, 1-OFF and 2-NA"
@@ -389,7 +389,6 @@ qAtmIfIndexVpiVciForceTagInternal	OBJECT-TYPE
                 dot1qPortGroup,
                 dot1qAggregateGroup,
                 qAtmIfIndexVpiVciEntryGroup
-
             }
 
         ::= { alcatelIND1Dot1QMIBCompliances 1 }
@@ -445,8 +444,5 @@ qAtmIfIndexVpiVciForceTagInternal	OBJECT-TYPE
         DESCRIPTION
             "An entry in 802.1q IfIndex/VPI/VCI vlan table."
         ::= { alcatelIND1Dot1QMIBGroups 3 }
-
-
-
 
 END

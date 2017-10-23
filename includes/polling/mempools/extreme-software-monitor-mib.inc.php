@@ -11,8 +11,21 @@
  *
  */
 
-$cache_mempool = snmpwalk_cache_multi_oid($device, 'extremeMemoryMonitorSystemTotal', $cache_mempool, 'EXTREME-SOFTWARE-MONITOR-MIB');
-$cache_mempool = snmpwalk_cache_multi_oid($device, 'extremeMemoryMonitorSystemFree',  $cache_mempool, 'EXTREME-SOFTWARE-MONITOR-MIB');
+$mib = 'EXTREME-SOFTWARE-MONITOR-MIB';
+
+$oids = array('extremeMemoryMonitorSystemTotal', 'extremeMemoryMonitorSystemFree');
+
+if (!is_array($cache_storage[$mib]))
+{
+  foreach ($oids as $oid)
+  {
+    $cache_mempool = snmpwalk_cache_multi_oid($device, $oid, $cache_mempool, $mib);
+  }
+  $cache_storage[$mib] = $cache_mempool;
+} else {
+  print_debug("Cached!");
+  $cache_mempool = $cache_storage[$mib];
+}
 
 $index            = $mempool['mempool_index'];
 $mempool['free']  = $cache_mempool[$index]['extremeMemoryMonitorSystemFree'];

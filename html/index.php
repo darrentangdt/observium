@@ -40,13 +40,15 @@ if (!is_writable($config['temp_dir']))
 
 if (ini_get('register_globals'))
 {
-  $notifications[] = array('text' => 'register_globals enabled in php.ini. Disable it!', 'severity' => 'alert');
+  $notifications[] = array('text' => 'The PHP Option "register_globals" enabled in the php.ini. Please disable it!', 'severity' => 'alert');
 }
 
-if (version_compare(PHP_VERSION, '5.3.27', '<'))
+if (version_compare(PHP_VERSION, OBS_MIN_PHP_VERSION, '<'))
 {
-  $notifications[] = array('text' => '<h4>Your PHP version is too old.</h4> Your currently installed PHP version <b>' . PHP_VERSION . '</b> is older than the required minimum of <b>5.4</b>.
-                                        Please upgrade your version of PHP to prevent possible incompatibilities and security problems.', 'severity' => 'danger');
+  $notifications[] = array('text' => '<h4>Your PHP version is too old.</h4>
+                                      Your currently installed PHP version <b>' . PHP_VERSION . '</b>
+                                      is older than the required minimum of <b>' . OBS_MIN_PHP_VERSION . '</b>.
+                                      Please upgrade your version of PHP to prevent possible incompatibilities and security problems.', 'severity' => 'danger');
 }
 
 if (isset($config['alerts']['suppress']) && $config['alerts']['suppress'])
@@ -60,7 +62,6 @@ if (isset($config['alerts']['suppress']) && $config['alerts']['suppress'])
 check_extension_exists('session', '', TRUE);
 
 ob_start('html_callback');
-//ob_start();
 
 ?>
 <!DOCTYPE html>
@@ -76,22 +77,18 @@ ob_start('html_callback');
   <!--[if lt IE 9]><script src="js/html5shiv.min.js"></script><![endif]-->
 <?php
 
-register_html_resource('css', 'bootstrap.css');
-register_html_resource('css', 'bootstrap-select.css');
-register_html_resource('css', 'bootstrap-switch.css');
-register_html_resource('css', 'bootstrap-hacks.css');
+register_html_resource('css', 'observium.css');
+//register_html_resource('css', 'bootstrap-select.css');
+//register_html_resource('css', 'bootstrap-switch.css');
+//register_html_resource('css', 'bootstrap-hacks.css');
 register_html_resource('css', 'jquery.qtip.min.css');
-register_html_resource('css', 'sprite.css');
-register_html_resource('css', 'flags.css');
-register_html_resource('css', 'c3.min.css');
+register_html_resource('css', 'svg_png.css');
 
+//register_html_resource('js', 'iconizr.min.js');
 
 register_html_resource('js', 'jquery.min.js');
 // register_html_resource('js', 'jquery-ui.min.js'); // FIXME. We don't use JQueryUI or am I wrong? (mike)
 register_html_resource('js', 'bootstrap.min.js');
-register_html_resource('js', 'observium.js');
-register_html_resource('js', 'd3.min.js');
-register_html_resource('js', 'c3.min.js');
 
 $runtime_start = utime();
 
@@ -112,6 +109,14 @@ include($config['html_dir'] . "/includes/authenticate.inc.php");
 
 if ($_SESSION['authenticated'])
 {
+  // Register additional html resources after auth
+  register_html_resource('css', 'flags.css');
+  register_html_resource('css', 'c3.min.css');
+
+  register_html_resource('js', 'observium.js');
+  register_html_resource('js', 'd3.min.js');
+  register_html_resource('js', 'c3.min.js');
+
   $vars = get_vars(); // Parse vars from GET/POST/URI
 
   if ($vars['export'] == 'yes') // This is for display XML on export pages
@@ -132,11 +137,11 @@ if ($_SESSION['authenticated'])
   }
 }
 
-if ($vars['widescreen'] == "yes") { $_SESSION['widescreen'] = 1; unset($vars['widescreen']); }
-if ($vars['widescreen'] == "no")  { unset($_SESSION['widescreen']); unset($vars['widescreen']); }
+if ($vars['widescreen'] == "yes") { session_set_var('widescreen', 1); unset($vars['widescreen']); }
+if ($vars['widescreen'] == "no")  { session_unset_var('widescreen'); unset($vars['widescreen']); }
 
-if ($vars['big_graphs'] == "yes") { $_SESSION['big_graphs'] = 1; unset($vars['big_graphs']); }
-if ($vars['big_graphs'] == "no")  { unset($_SESSION['big_graphs']); unset($vars['big_graphs']); }
+if ($vars['big_graphs'] == "yes") { session_set_var('big_graphs', 1); unset($vars['big_graphs']); }
+if ($vars['big_graphs'] == "no")  { session_unset_var('big_graphs'); unset($vars['big_graphs']); }
 
 // FIXME this block still needed?
 if ($_SESSION['widescreen'])
@@ -156,9 +161,9 @@ if($vars['bare'] == 'yes')
 
 // Determine type of web browser.
 $browser_type = detect_browser_type();
-if ($browser_type == 'mobile' || $browser_type == 'tablet') { $_SESSION['touch'] = 'yes'; }
-if ($vars['touch'] == "yes") { $_SESSION['touch'] = 'yes'; }
-if ($vars['touch'] == "no") { unset($_SESSION['touch'], $vars['touch']); }
+if ($browser_type == 'mobile' || $browser_type == 'tablet') { session_set_var('touch', 'yes'); }
+if ($vars['touch'] == "yes") { session_set_var('touch', 'yes'); }
+if ($vars['touch'] == "no") { unset($vars['touch']); session_unset_var('touch'); }
 
 if ($_SESSION['authenticated'])
 {
@@ -236,6 +241,7 @@ if ($_SESSION['authenticated'])
     }
   }
 
+  // Display warning for scheduled maintenance
   if (isset($cache['maint']['count']) && $cache['maint']['count'] > 0)
   {
     $notifications[] = array('text' => '<h4>Scheduled Maintenance in Progress</h4>'.
@@ -246,16 +252,17 @@ if ($_SESSION['authenticated'])
     $alerts[] = array('text' => '<h4>Scheduled Maintenance in Progress</h4>'.
                                      'Some or all alert notifications have been suppressed due to a scheduled maintenance.',
                                      'severity' => 'warning');
-
   }
 
-  foreach ($alerts as $alert)
+  // Execute form actions
+  if(isset($vars['action']) && !strstr("..", $vars['action']) && is_file($config['html_dir']."/includes/actions/" . $vars['action'] . ".inc.php"))
   {
-    // FIXME handle severity parameter with colour or icon?
-    echo('<div width="100%" class="alert alert-'.$alert['severity'].'">');
-    if(isset($alert['title'])) { echo('<h4>'.$alert['title'].'</h4>'); }
-    echo($alert['text'] . '</div>');
+    include($config['html_dir']."/includes/actions/" . $vars['action'] . ".inc.php");
   }
+
+
+  // Output UI Alerts
+  echo '##UI_ALERTS##';
 
   // Authenticated. Print a page.
   if (isset($vars['page']) && !strstr("..", $vars['page']) && is_file($config['html_dir']."/pages/" . $vars['page'] . ".inc.php"))
@@ -289,11 +296,14 @@ if ($_SESSION['authenticated'])
   ?>
 
 <div class="row">
-<div class="col-xl-4 visible-xl">
+  <div class="col-xl-4 visible-xl">
+    <div id="myAffix" data-spy="affix" data-offset-top="60">
 
 ##PAGE_PANEL##
 
-</div>
+    </div>
+
+  </div>
 
 <div class="col-xl-8 col-lg-12">
 
@@ -357,7 +367,15 @@ if($vars['bare'] != 'yes')
       </a>
       <div class="nav-collapse">
         <ul class="nav">
-          <li class="dropdown"><a href="<?php echo OBSERVIUM_URL; ?>" class="dropdown-toggle" data-hover="dropdown" data-toggle="dropdown"><?php echo OBSERVIUM_PRODUCT . ' ' . OBSERVIUM_VERSION_LONG; ?></a>
+          <li class="dropdown"><?php
+
+   if(isset($config['web']['logo'])) {
+     echo '    <a class="brand brand-observium" href="/" class="dropdown-toggle" data-hover="dropdown" data-toggle="dropdown">&nbsp;</a> '.OBSERVIUM_VERSION_LONG;
+   } else {
+     echo '<a href="' . OBSERVIUM_URL . '" class="dropdown-toggle" data-hover="dropdown" data-toggle="dropdown">';
+     echo OBSERVIUM_PRODUCT . ' ' . OBSERVIUM_VERSION_LONG; 
+     echo '</a>';
+   }?>
             <div class="dropdown-menu" style="padding: 10px;">
               <div style="max-width: 145px;"><img src="images/login-hamster-large.png" alt="" /></div>
 
@@ -379,7 +397,7 @@ if($vars['bare'] != 'yes')
               }
             ?>
             <a href="<?php echo(generate_url(array('page'=>'overview'))); ?>" class="dropdown-toggle" data-hover="dropdown" data-toggle="dropdown">
-              <i class="oicon-exclamation-red"></i> <b class="caret"></b></a>
+              <i class="<?php echo $config['icon']['exclamation']; ?>"></i> <b class="caret"></b></a>
             <div class="<?php echo($div_class); ?>" style="width: 700px; max-height: 500px; z-index: 2000; padding: 10px 10px 0px;">
 
               <h3>Notifications</h3>
@@ -398,7 +416,7 @@ foreach ($notifications as $notification)
               // Dim the icon to 20% opacity, makes the red pretty much blend in to the navbar
               ?>
             <a href="<?php echo(generate_url(array('page'=>'overview'))); ?>" data-alt="Notification center" class="dropdown-toggle" data-hover="dropdown" data-toggle="dropdown">
-              <i style="opacity: 0.2; filter: alpha(opacity=20);" class="oicon-tick-circle"></i></a>
+              <i style="filter: opacity(30%);" class="sprite-checked"></i></a>
               <?php
             }
             ?>
@@ -406,7 +424,7 @@ foreach ($notifications as $notification)
 
           <li class="dropdown">
             <a href="<?php echo(generate_url(array('page'=>'overview'))); ?>" class="dropdown-toggle" data-hover="dropdown" data-toggle="dropdown">
-              <i class="oicon-time"></i> <?php echo(number_format($gentime, 3)); ?>s <b class="caret"></b></a>
+              <i class="sprite-clock"></i> <?php echo(number_format($gentime, 3)); ?>s <b class="caret"></b></a>
             <div class="dropdown-menu" style="padding: 10px 10px 0px 10px;">
               <table class="table table-condensed-more table-striped">
                 <tr>
@@ -461,15 +479,38 @@ if ($form_time)
                   <th>Peak</th><td><?php echo formatStorage(memory_get_peak_usage()); ?></td>
                 </tr>
               </table>
+<?php
+  if ($_SESSION['userlevel'] >= 10 && function_exists('get_cache_stats'))
+  {
+    $phpfastcache = get_cache_stats();
+    $phpfastcache['enabled'] = $phpfastcache['enabled'] ? '<span class="text-success">Yes</span>' : '<span class="text-danger">No</span>';
+?>
+              <table class="table  table-condensed-more  table-striped">
+                <tr>
+                  <th colspan=2>Fast Cache</th>
+                </tr>
+                <tr>
+                  <th>Enabled</th><td><?php echo $phpfastcache['enabled']; ?></td>
+                </tr>
+                <tr>
+                  <th>Driver</th><td><?php echo $phpfastcache['driver']; ?></td>
+                </tr>
+                <tr>
+                  <th>Total size</th><td><?php echo formatStorage($phpfastcache['size']); ?></td>
+                </tr>
+              </table>
+<?php
+  }
+?>
             </div>
           </li>
 
-<?php if ($config['profile_sql'] == TRUE && $SESSION['userlevel'] = '10')
+<?php if ($config['profile_sql'] == TRUE && $_SESSION['userlevel'] >= 10)
 {
 ?>
           <li class="dropdown">
             <a href="<?php echo(generate_url(array('page'=>'overview'))); ?>" class="dropdown-toggle" data-hover="dropdown" data-toggle="dropdown">
-              <i class="oicon-databases"></i> <b class="caret"></b></a>
+              <i class="<?php echo $config['icon']['databases']; ?>"></i> <b class="caret"></b></a>
             <div class="dropdown-menu" style="padding: 10px 10px 0px 10px; width: 1150px; height: 700px; z-index: 2000; overflow: scroll;">
               <table class="table  table-condensed-more  table-striped">
 
@@ -499,6 +540,7 @@ if ($form_time)
 </div>
 
 <?php
+
 } // end if bare
 
 //  <script type="text/javascript">
@@ -513,6 +555,31 @@ if ($form_time)
 //      $('#poller_status').load('ajax_poller_status.php');
 //    }, 10000); // refresh every 10000 milliseconds
 //  </script>
+
+
+  // Generate UI alerts to be inserted at ##UI_ALERTS##
+
+  // Display warning about requiring alerting rebuild
+  if(get_obs_attrib('alerts_require_rebuild'))
+  {
+    $tmp_notif = array('text' => '<h4>Alerting requires rebuild</h4>'.
+                                     'Changes have been made to the alerting system which require a rebuild before they are effective. <a href="'.generate_url(array('page' => 'alert_regenerate', 'action' => 'update')).'">Rebuild now.</a>',
+                                     'severity' => 'warning');
+
+    $alerts[]        = $tmp_notif;
+    $notifications[] = $tmp_notif;
+    unset($tmp_notif);
+  }
+
+  $ui_alerts = '';
+  foreach ($alerts as $alert)
+  {
+    // FIXME handle severity parameter with colour or icon?
+    $ui_alerts .= '<div width="100%" class="alert alert-'.$alert['severity'].'">';
+    if(isset($alert['title'])) { $ui_alerts .= '<h4>'.$alert['title'].'</h4>'; }
+    $ui_alerts .= $alert['text'] . '</div>';
+  }
+
 
 
   // No dropdowns on touch gadgets

@@ -17,12 +17,8 @@
 
 print_cli_data_field('MIBs', 2);
 
-#dbQuery('TRUNCATE TABLE `mac_accounting`');
-#dbQuery('TRUNCATE TABLE `mac_accounting-state`');
-
 // Cache DB entries
 $sql  = 'SELECT * FROM `mac_accounting`';
-$sql .= ' LEFT JOIN `mac_accounting-state` USING(`ma_id`)';
 $sql .= ' WHERE `device_id` = ?';
 
 $acc_id_db = array();
@@ -153,8 +149,6 @@ if (count($ma_array))
       $ma_id = dbInsert(array('port_id' => $port['port_id'], 'device_id' => $device['device_id'], 'vlan_id' => $ma['vlan'], 'mac' => $ma['mac'] ), 'mac_accounting');
       if ($ma_id)
       {
-        //$ma_id = dbFetchCell('SELECT * FROM mac_accounting WHERE port_id = ? AND device_id = ? AND vlan_id = ? AND mac = ?', array($port['port_id'], $device['device_id'], $ma['vlan'], $ma['mac']));
-        dbInsert(array('ma_id' => $ma_id), 'mac_accounting-state');
         echo('+');
         $acc_id[$ma_id] = $ma_id;
       } else {
@@ -213,11 +207,7 @@ if (count($ma_array))
 
       if (is_array($ma['update']))
       { // Do Updates
-        if (empty($ma_db['poll_time']))
-        {
-          $insert = dbInsert(array('ma_id' => $ma_db['ma_id']), 'mac_accounting-state');
-        }
-        dbUpdate($ma['update'], 'mac_accounting-state', '`ma_id` = ?', array($ma_db['ma_id']));
+        dbUpdate($ma['update'], 'mac_accounting', '`ma_id` = ?', array($ma_db['ma_id']));
       } // End Updates
     }
   }
@@ -235,7 +225,6 @@ foreach ($acc_id_db as $ma_id => $entry)
   if (!isset($acc_id[$ma_id]))
   {
     dbDelete('mac_accounting', '`ma_id` = ?', array($ma_id));
-    dbDelete('mac_accounting-state', '`ma_id` = ?', array($ma_id));
   }
 }
 echo(PHP_EOL);

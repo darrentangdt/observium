@@ -6,6 +6,7 @@
 --
 -- The contents of this document are subject to change without notice.
 --
+--
 
 ELTEX-LTP8X-STANDALONE DEFINITIONS ::= BEGIN
 
@@ -18,6 +19,8 @@ IMPORTS
 	RowStatus,
 	TEXTUAL-CONVENTION
 		FROM SNMPv2-TC
+	ifIndex
+		FROM IF-MIB
 	ltp8x
 		FROM ELTEX-LTP8X
 	MODULE-IDENTITY,
@@ -115,6 +118,14 @@ ltp8xSystem OBJECT IDENTIFIER 	::= { ltp8xStandalone 1 }
 		DESCRIPTION
 				""
 		::= { ltp8xSystem 9 }
+		
+	ltp8xSystemDeviceName OBJECT-TYPE
+		SYNTAX			DisplayString
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION
+				""
+		::= { ltp8xSystem 10 }
 		
 	ltp8xServicesControlTable OBJECT-TYPE
 			SYNTAX                SEQUENCE OF Ltp8xServicesControlEntry
@@ -239,6 +250,22 @@ ltp8xBoardStatus OBJECT IDENTIFIER 	::= { ltp8xStandalone 10 }
 		DESCRIPTION " "
 		::= { ltp8xBoardStatus 11 }
 		
+	ltp8xSensor1TemperatureExt OBJECT-TYPE
+		SYNTAX  INTEGER
+			{ notValid(65535) }
+		MAX-ACCESS read-only
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xBoardStatus 12 }
+		
+	ltp8xSensor2TemperatureExt OBJECT-TYPE
+		SYNTAX  INTEGER
+			{ notValid(65535) }
+		MAX-ACCESS read-only
+		STATUS  current
+		DESCRIPTION " "
+		::= { ltp8xBoardStatus 13 }
+		
 	ltp8xFanMinRPM OBJECT-TYPE
 		SYNTAX  Unsigned32
 		MAX-ACCESS read-only
@@ -252,6 +279,8 @@ ltp8xBoardStatus OBJECT IDENTIFIER 	::= { ltp8xStandalone 10 }
 		STATUS  current
 		DESCRIPTION " "
 		::= { ltp8xBoardStatus 21 }
+		
+		
 		
 	ltp8xUsers OBJECT IDENTIFIER 	::= { ltp8xStandalone 11 }
 		
@@ -277,7 +306,8 @@ ltp8xBoardStatus OBJECT IDENTIFIER 	::= { ltp8xStandalone 10 }
 				ltp8xUsersGroups			OCTET STRING,
 				ltp8xUsersOldPassword		DisplayString,
 				ltp8xUsersNewPassword		DisplayString,
-				ltp8xUsersRowStatus			RowStatus
+				ltp8xUsersRowStatus			RowStatus,
+				ltp8xUsersPriority			Unsigned32
 		}
 					
 					ltp8xUsersName OBJECT-TYPE
@@ -315,6 +345,13 @@ ltp8xBoardStatus OBJECT IDENTIFIER 	::= { ltp8xStandalone 10 }
 						DESCRIPTION ""
 						::= { ltp8xUsersEntry 5 }
 						
+					ltp8xUsersPriority OBJECT-TYPE
+						SYNTAX  Unsigned32
+						MAX-ACCESS read-write
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xUsersEntry 6 }
+						
 						
 		ltp8xUsersGroupsTable OBJECT-TYPE
 			SYNTAX                SEQUENCE OF Ltp8xUsersGroupsEntry
@@ -351,6 +388,78 @@ ltp8xBoardStatus OBJECT IDENTIFIER 	::= { ltp8xStandalone 10 }
 						STATUS  current
 						DESCRIPTION ""
 						::= { ltp8xUsersGroupsEntry 2 }
+						
+		ltp8xPrivilegesNamesTable OBJECT-TYPE
+		SYNTAX                SEQUENCE OF Ltp8xPrivilegesNamesEntry
+		MAX-ACCESS        not-accessible
+		STATUS                current
+		DESCRIPTION
+				""
+		::= { ltp8xUsers 3 }
+
+				ltp8xPrivilegesNamesEntry OBJECT-TYPE
+				SYNTAX                Ltp8xPrivilegesNamesEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xPrivilegesNamesIndex }
+				::= { ltp8xPrivilegesNamesTable 1 }
+
+				Ltp8xPrivilegesNamesEntry ::= SEQUENCE {
+						ltp8xPrivilegesNamesIndex				Unsigned32,
+						ltp8xPrivilegesNamesName				DisplayString
+				}
+				
+							ltp8xPrivilegesNamesIndex  OBJECT-TYPE
+								SYNTAX     Unsigned32
+								MAX-ACCESS not-accessible
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xPrivilegesNamesEntry 1 }
+								
+							ltp8xPrivilegesNamesName  OBJECT-TYPE
+								SYNTAX     DisplayString
+								MAX-ACCESS read-only
+								STATUS     current
+								DESCRIPTION ""
+								::= { ltp8xPrivilegesNamesEntry 2 }
+								
+		ltp8xPrivilegesLevelsTable OBJECT-TYPE
+		SYNTAX                SEQUENCE OF Ltp8xPrivilegesLevelsEntry
+		MAX-ACCESS        not-accessible
+		STATUS                current
+		DESCRIPTION
+				""
+		::= { ltp8xUsers 4 }
+
+				ltp8xPrivilegesLevelsEntry OBJECT-TYPE
+				SYNTAX                Ltp8xPrivilegesLevelsEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xPrivilegesLevelsLevel }
+				::= { ltp8xPrivilegesLevelsTable 1 }
+
+				Ltp8xPrivilegesLevelsEntry ::= SEQUENCE {
+						ltp8xPrivilegesLevelsLevel			Unsigned32,
+						ltp8xPrivilegesLevelsAllowed			OCTET STRING
+				}
+				
+							ltp8xPrivilegesLevelsLevel  OBJECT-TYPE
+								SYNTAX     Unsigned32
+								MAX-ACCESS not-accessible
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xPrivilegesLevelsEntry 1 }
+								
+							ltp8xPrivilegesLevelsAllowed  OBJECT-TYPE
+								SYNTAX     OCTET STRING (SIZE (4))
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION ""
+								::= { ltp8xPrivilegesLevelsEntry 2 }
 						
 ltp8xLogSubmodulesTable OBJECT-TYPE
 	SYNTAX                SEQUENCE OF Ltp8xLogSubmodulesEntry
@@ -483,7 +592,242 @@ ltp8xActivationAuthModeTable OBJECT-TYPE
 					STATUS  current
 					DESCRIPTION ""
 					::= { ltp8xActivationAuthModeEntry 2 }
-		
+					
+ltp8xLoggingDestinationsTable OBJECT-TYPE
+	SYNTAX                SEQUENCE OF Ltp8xLoggingDestinationsEntry
+	MAX-ACCESS        not-accessible
+	STATUS                current
+	DESCRIPTION
+			" "
+	::= { ltp8xStandalone 14 }
+	
+	ltp8xLoggingDestinationsEntry OBJECT-TYPE
+		SYNTAX                Ltp8xLoggingDestinationsEntry
+		MAX-ACCESS        not-accessible
+		STATUS                current
+		DESCRIPTION
+				""
+		INDEX         { ltp8xLoggingDestinationsId }
+		::= { ltp8xLoggingDestinationsTable 1 }
+	
+	Ltp8xLoggingDestinationsEntry ::= SEQUENCE {
+			ltp8xLoggingDestinationsId				Unsigned32,
+			ltp8xLoggingDestinationsName			DisplayString,
+			ltp8xLoggingDestinationsLevel			INTEGER
+	}
+				
+				ltp8xLoggingDestinationsId  OBJECT-TYPE
+					SYNTAX  Unsigned32
+					MAX-ACCESS not-accessible
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xLoggingDestinationsEntry 1 }
+					
+				ltp8xLoggingDestinationsName OBJECT-TYPE
+					SYNTAX  DisplayString
+					MAX-ACCESS read-only
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xLoggingDestinationsEntry 2 }
+				
+				ltp8xLoggingDestinationsLevel OBJECT-TYPE
+					SYNTAX  INTEGER {
+						emergency(0),
+						alert(1),
+						critical(2),
+						error(3),
+						warning(4),
+						notice(5),
+						info(6),
+						debug(7),
+						none(8) }
+					MAX-ACCESS read-write
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xLoggingDestinationsEntry 3 }
+					
+ltp8xInterfaceStatusTable OBJECT-TYPE
+	SYNTAX                SEQUENCE OF Ltp8xInterfaceStatusEntry
+	MAX-ACCESS        not-accessible
+	STATUS                current
+	DESCRIPTION
+			" "
+	::= { ltp8xStandalone 15 }
+	
+	ltp8xInterfaceStatusEntry OBJECT-TYPE
+		SYNTAX                Ltp8xInterfaceStatusEntry
+		MAX-ACCESS        not-accessible
+		STATUS                current
+		DESCRIPTION
+				""
+		INDEX         { ifIndex }
+		::= { ltp8xInterfaceStatusTable 1 }
+	
+	Ltp8xInterfaceStatusEntry ::= SEQUENCE {
+			ltp8xInterfaceStatusError				TruthValue,
+			ltp8xInterfaceStatusDuplex				INTEGER,
+			ltp8xInterfaceStatusFlowControlEnabled	TruthValue
+	}
+				
+				ltp8xInterfaceStatusError  OBJECT-TYPE
+					SYNTAX  TruthValue
+					MAX-ACCESS read-only
+					STATUS  current
+					DESCRIPTION "If true - all other fields should be ignored"
+					::= { ltp8xInterfaceStatusEntry 1 }
+					
+				ltp8xInterfaceStatusDuplex OBJECT-TYPE
+					SYNTAX  INTEGER {
+							halfDuplex(0),
+							fullDuplex(1) }
+					MAX-ACCESS read-only
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xInterfaceStatusEntry 2 }
+				
+				ltp8xInterfaceStatusFlowControlEnabled OBJECT-TYPE
+					SYNTAX  TruthValue
+					MAX-ACCESS read-only
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xInterfaceStatusEntry 3 }
+					
+ltp8xFanControl OBJECT IDENTIFIER 	::= { ltp8xStandalone 16 }
+
+				ltp8xFanSpeed OBJECT-TYPE
+					SYNTAX  INTEGER {
+							auto(-1) }
+					MAX-ACCESS read-write
+					STATUS  current
+					DESCRIPTION "Set fixed/auto fan speed. In percent, or auto"
+					::= { ltp8xFanControl 1 }
+
+				ltp8xFanMinSpeed OBJECT-TYPE
+					SYNTAX  Unsigned32
+					MAX-ACCESS read-write
+					STATUS  current
+					DESCRIPTION "Fan's rotation speed low limit (in percent)"
+					::= { ltp8xFanControl 2 }
+					
+ltp8xPowerSupplyTable OBJECT-TYPE
+	SYNTAX                SEQUENCE OF Ltp8xPowerSupplyEntry
+	MAX-ACCESS        not-accessible
+	STATUS                current
+	DESCRIPTION
+			" "
+	::= { ltp8xStandalone 17 }
+	
+	ltp8xPowerSupplyEntry OBJECT-TYPE
+		SYNTAX                Ltp8xPowerSupplyEntry
+		MAX-ACCESS        not-accessible
+		STATUS                current
+		DESCRIPTION
+				""
+		INDEX         { ltp8xPowerSupplyModuleId }
+		::= { ltp8xPowerSupplyTable 1 }
+	
+	Ltp8xPowerSupplyEntry ::= SEQUENCE {
+			ltp8xPowerSupplyModuleId				Unsigned32,
+			ltp8xPowerSupplyModulePresent			TruthValue,
+			ltp8xPowerSupplyModuleName				DisplayString,
+			ltp8xPowerSupplyModuleType				INTEGER,
+			ltp8xPowerSupplyModuleIntact			TruthValue
+	}
+				
+				ltp8xPowerSupplyModuleId  OBJECT-TYPE
+					SYNTAX  Unsigned32
+					MAX-ACCESS not-accessible
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xPowerSupplyEntry 1 }
+					
+				ltp8xPowerSupplyModulePresent OBJECT-TYPE
+					SYNTAX  TruthValue
+					MAX-ACCESS read-only
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xPowerSupplyEntry 2 }
+					
+				ltp8xPowerSupplyModuleName OBJECT-TYPE
+					SYNTAX  DisplayString
+					MAX-ACCESS read-only
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xPowerSupplyEntry 3 }
+					
+				ltp8xPowerSupplyModuleType OBJECT-TYPE
+					SYNTAX  INTEGER {
+							directCurrent(0),
+							alternateCurrent(1) }
+					MAX-ACCESS read-only
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xPowerSupplyEntry 4 }
+				
+				ltp8xPowerSupplyModuleIntact OBJECT-TYPE
+					SYNTAX  TruthValue
+					MAX-ACCESS read-only
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xPowerSupplyEntry 5 }
+					
+ltp8xLicense OBJECT IDENTIFIER 	::= { ltp8xStandalone 18 }
+
+				ltp8xLicenseInstalled OBJECT-TYPE
+					SYNTAX  TruthValue
+					MAX-ACCESS read-only
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xLicense 1 }
+
+				ltp8xLicenseValid OBJECT-TYPE
+					SYNTAX  TruthValue
+					MAX-ACCESS read-only
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xLicense 2 }
+					
+				ltp8xLicenseVersion OBJECT-TYPE
+					SYNTAX  INTEGER {
+							version1v0(0),
+							version1v1(1),
+							version1v2(2)}
+					MAX-ACCESS read-only
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xLicense 3 }
+					
+				ltp8xLicenseBoardSN OBJECT-TYPE
+					SYNTAX  DisplayString
+					MAX-ACCESS read-only
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xLicense 4 }
+					
+				ltp8xLicenseVendor OBJECT-TYPE
+					SYNTAX  DisplayString
+					MAX-ACCESS read-only
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xLicense 5 }
+					
+				ltp8xLicenseONTCount OBJECT-TYPE
+					SYNTAX  INTEGER {
+							unlimited(2147483647),
+							notAvailable(-1) }
+					MAX-ACCESS read-only
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xLicense 6 }
+					
+				ltp8xLicenseActiveONTCount OBJECT-TYPE
+					SYNTAX  INTEGER {
+							notAvailable(-1) }
+					MAX-ACCESS read-only
+					STATUS  current
+					DESCRIPTION ""
+					::= { ltp8xLicense 7 }
+							
 ltp8xLogSize OBJECT-TYPE
 		SYNTAX  Unsigned32
 		MAX-ACCESS read-write

@@ -13,46 +13,46 @@ IMPORTS
 		FROM ALCATEL-IND1-BASE;
 
 alcatelIND1BGPMIB MODULE-IDENTITY
-        LAST-UPDATED  "200809140900Z"
+        LAST-UPDATED  "200706111600Z"
         ORGANIZATION  "Alcatel-Lucent"
         CONTACT-INFO
             "Please consult with Customer Service to ensure the most appropriate
              version of this document is used with the products in question:
-
+         
                         Alcatel-Lucent, Enterprise Solutions Division
                        (Formerly Alcatel Internetworking, Incorporated)
                                26801 West Agoura Road
                             Agoura Hills, CA  91301-5122
                               United States Of America
-
+        
             Telephone:               North America  +1 800 995 2696
                                      Latin America  +1 877 919 9526
                                      Europe         +31 23 556 0100
                                      Asia           +65 394 7933
                                      All Other      +1 818 878 4507
-
+        
             Electronic Mail:         support@ind.alcatel.com
             World Wide Web:          http://alcatel-lucent.com/wps/portal/enterprise
             File Transfer Protocol:  ftp://ftp.ind.alcatel.com/pub/products/mibs"
-
+    
         DESCRIPTION
             "This module describes an authoritative enterprise-specific Simple
              Network Management Protocol (SNMP) Management Information Base (MIB):
-
+         
                  For the Birds Of Prey Product Line
                  Configuration Of Global BGP Configuration Parameters.
-
+         
              The right to make changes in specification and other information
              contained in this document without prior notice is reserved.
-
+         
              No liability shall be assumed for any incidental, indirect, special, or
              consequential damages whatsoever arising from or related to this
              document or the information contained herein.
-
+         
              Vendors, end-users, and other interested parties are granted
              non-exclusive license to use this specification in connection with
              management of the products for which it is intended to be used.
-
+         
                          Copyright (C) 1995-2007 Alcatel-Lucent
                              ALL RIGHTS RESERVED WORLDWIDE"
 
@@ -142,7 +142,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 		        MAX-ACCESS  read-write
             	STATUS  current
             	DESCRIPTION
-            	"Enable/Disable BGP Metric MULTI_EXIT_DISC comparison between
+            	"Enable/Disable BGP Metric MULTI_EXIT_DISC comparison between 
                  routes from different Autonomous Systems."
         	    DEFVAL { disable }
 		        ::= { alaBgpGlobal 5 }
@@ -152,8 +152,8 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             	MAX-ACCESS  read-write
             	STATUS  current
             	DESCRIPTION
-            	"The default LOCAL_PREF to be applied to routes learnt from
-                 neighbouring autonomous system."
+            	"The default LOCAL_PREF to be applied to routes learnt from 
+                 neighbouring autonomous system." 
         	    DEFVAL { 100 }
 		        ::= { alaBgpGlobal 6 }
 
@@ -174,7 +174,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             	MAX-ACCESS  read-only
             	STATUS  current
             	DESCRIPTION
-            	"Manual tag to be used.
+            	"Manual tag to be used. 
                  A value of 0 means no manual tagging."
         	    DEFVAL { 0 }
 		        ::= { alaBgpGlobal 8 }
@@ -187,7 +187,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             	MAX-ACCESS  read-write
             	STATUS  deprecated
             	DESCRIPTION
-            	"Enable/Disable BGP to accept connections from neighbours
+            	"Enable/Disable BGP to accept connections from neighbours 
                  that are not configured."
         	    DEFVAL { disable }
 		        ::= { alaBgpGlobal 9 }
@@ -197,7 +197,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             	MAX-ACCESS  read-write
             	STATUS  current
             	DESCRIPTION
-            	"Confederation identifier. A value of 0 means this local speaker
+            	"Confederation identifier. A value of 0 means this local speaker 
                  is not a member of any confederation"
         	    DEFVAL { 0 }
 		        ::= { alaBgpGlobal 10 }
@@ -219,7 +219,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             	MAX-ACCESS  not-accessible
             	STATUS  deprecated
             	DESCRIPTION
-            	"The time in seconds in which the penalty to a flapping route
+            	"The time in seconds in which the penalty to a flapping route 
                  decreases to half its initial value while the route remains reachable.
                  Obsoleted by the variable alaBgpDampHalfLife."
         	    DEFVAL { 300 }
@@ -230,7 +230,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             	MAX-ACCESS  not-accessible
             	STATUS  deprecated
             	DESCRIPTION
-            	"The time in seconds in which the penalty to a flapping route
+            	"The time in seconds in which the penalty to a flapping route 
                  decreases to half its initial value while the route remains unreachable.
                  Obsoleted by the variable alaBgpDampHalfLife."
         	    DEFVAL { 900 }
@@ -262,7 +262,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             	MAX-ACCESS  read-write
             	STATUS  current
             	DESCRIPTION
-            	"Enable/Disable Resetting session immediately if a link to a
+            	"Enable/Disable Resetting session immediately if a link to a 
                  directly connected  external peer is operationally down."
         	    DEFVAL { disable }
 		        ::= { alaBgpGlobal 16 }
@@ -360,7 +360,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             	MAX-ACCESS  read-only
             	STATUS  current
             	DESCRIPTION
-            	"The total number of paths learnt from internal peers that are
+            	"The total number of paths learnt from internal peers that are 
                  waiting to be synchronized with IGP."
 		        ::= { alaBgpGlobal 27 }
 
@@ -369,8 +369,8 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             	MAX-ACCESS  read-only
             	STATUS  current
             	DESCRIPTION
-            	"The total number of paths that are currently rejected but stored
-                 anticipating an inbound policy change for an external peer which
+            	"The total number of paths that are currently rejected but stored 
+                 anticipating an inbound policy change for an external peer which 
                  is configured to accept dynamic policy changes."
 		        ::= { alaBgpGlobal 28 }
 
@@ -414,7 +414,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             	MAX-ACCESS  read-write
             	STATUS  current
             	DESCRIPTION
-            	"Writing a value of clear into this variable will clear the
+            	"Writing a value of clear into this variable will clear the 
                  dampening history."	
         	    DEFVAL { clear }
 		        ::= { alaBgpGlobal 32 }
@@ -424,9 +424,9 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             	MAX-ACCESS  read-write
             	STATUS  current
             	DESCRIPTION
-            	"When a route's figure of merit reaches this value, the route
-                 is considered damped.  This is a floating point value with 2 digit
-                 precision.  For example, a value of 3.5 is encoded as 350, a value
+            	"When a route's figure of merit reaches this value, the route 
+                 is considered damped.  This is a floating point value with 2 digit 
+                 precision.  For example, a value of 3.5 is encoded as 350, a value  
                  of 0.9 is encoded as 90 ,a value of 9.45 is encoded as 945."
         	    DEFVAL { 300 }
 		        ::= { alaBgpGlobal 33 }
@@ -436,9 +436,9 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             	MAX-ACCESS  read-write
             	STATUS  current
             	DESCRIPTION
-            	"When a route's figure of merit decays to this value, the route
-                 can be reused.  This is a floating point value with 2 digit precision.
-                 For example, a value of 3.5 is encoded as 350, a value of 0.9 is
+            	"When a route's figure of merit decays to this value, the route 
+                 can be reused.  This is a floating point value with 2 digit precision. 
+                 For example, a value of 3.5 is encoded as 350, a value of 0.9 is 
                  encoded as 90 , a value of 9.45 is encoded as 945."
         	    DEFVAL { 200 }
 		        ::= { alaBgpGlobal 34 }
@@ -448,9 +448,9 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 		        MAX-ACCESS  read-only
             	STATUS  current
             	DESCRIPTION
-            	"The maximum value that the figure of merit of a route can attain.
+            	"The maximum value that the figure of merit of a route can attain.  
                  This is a floating point value with 2 digit precision.  For example,
-                 a value of 3.5 is encoded as 350, a value of 0.9 is encoded as 90,
+                 a value of 3.5 is encoded as 350, a value of 0.9 is encoded as 90, 
                  a value of 9.45 is encoded as 945."
         	    DEFVAL { 1600 }
 		        ::= { alaBgpGlobal 35 }
@@ -472,7 +472,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             	MAX-ACCESS  read-write
             	STATUS  current
             	DESCRIPTION
-            	"The minimum interval in seconds between successive updates
+            	"The minimum interval in seconds between successive updates 
                  advertising the networks belonging to the local autonomous system."
         		DEFVAL { 15 }
         		::= { alaBgpGlobal 37 }
@@ -482,7 +482,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             	MAX-ACCESS  read-write
             	STATUS  current
             	DESCRIPTION
-            	"The time in seconds in which the penalty to a flapping route
+            	"The time in seconds in which the penalty to a flapping route 
                  decreases to half its initial value."
         	    DEFVAL { 300 }
 		        ::= { alaBgpGlobal 38 }
@@ -505,7 +505,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             	STATUS  current
             	DESCRIPTION
             	"Determines how long, in seconds, peering BGP routers are told to wait for this router
-                 to complete graceful restart and re-establish peering session. It is recommended
+                 to complete graceful restart and re-establish peering session. It is recommended 
                  that this value not be more than the configured Hold Time interval."
         	    DEFVAL { 90 }
 		        ::= { alaBgpGlobal 40 }
@@ -545,31 +545,30 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                 DEFVAL { disabled }
                 ::= { alaBgpGlobal 43 }
 
-	alaBgpBfdStatus   OBJECT-TYPE
-				 SYNTAX  INTEGER {
-								  enabled(1),
-		            			  disabled(2)
+          alaBgpBfdStatus   OBJECT-TYPE
+	      SYNTAX  INTEGER {
+		  enabled(1),
+       		  disabled(2)
 								 }
-      			 MAX-ACCESS  read-write
-			     STATUS current
-			     DESCRIPTION
-			     "Enables/Disables BFd for BGP protocol."
-				 DEFVAL { disabled }
- 				::= { alaBgpGlobal 44}
+     		 MAX-ACCESS  read-write
+         	 STATUS current
+          	 DESCRIPTION
+		     "Enables/Disables BFd for BGP protocol."
+		 DEFVAL { disabled }
+ 		::= { alaBgpGlobal 44}
 
 	alaBgpBfdAllNeighborStatus   OBJECT-TYPE
 				SYNTAX  INTEGER {
-								enabled(1),
-								disabled(2)
-								}
+					enabled(1),
+					disabled(2)
+					}
 				MAX-ACCESS  read-write
 				STATUS current
 				DESCRIPTION
 				"Enables/Disables BFd for all BGP Neighbors."
 				DEFVAL { disabled }
 				::= { alaBgpGlobal 45}
-
-
+        
 ---
 --- BGP IPv4 Peer Table
 ---
@@ -581,18 +580,18 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 			DESCRIPTION
 			"BGP IPv4 peer table."
 			::= { alcatelIND1BGPMIBObjects 2 }
-	
+	 
 	alaBgpPeerEntry OBJECT-TYPE
 		SYNTAX    AlaBgpPeerEntry
 			MAX-ACCESS    not-accessible
 			STATUS    current
-			DESCRIPTION
+			DESCRIPTION 
 			"BGP IPv4 Peer configuration entry."
 			INDEX	{
 				alaBgpPeerAddr
 				}
 			::= { alaBgpPeerTable 1 }
-	
+	 
 	AlaBgpPeerEntry ::=
 		SEQUENCE 	{
 				alaBgpPeerAddr					IpAddress,
@@ -659,11 +658,11 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                 alaBgpPeerLocalPort             INTEGER,
                 alaBgpPeerTcpWindowSize         INTEGER,
                 alaBgpPeerActivateIpv6          INTEGER,
-				alaBgpPeerBfdStatus				INTEGER,
-				alaBgpPeerPrefix6ListOut		DisplayString,
-				alaBgpPeerPrefix6ListIn			DisplayString
+                alaBgpPeerBfdStatus             INTEGER,
+                alaBgpPeerPrefix6ListOut        DisplayString,
+                alaBgpPeerPrefix6ListIn	        DisplayString
 				}
-	
+	 
 		alaBgpPeerAddr OBJECT-TYPE
 			SYNTAX  IpAddress
 					MAX-ACCESS  read-only
@@ -689,7 +688,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
         			MAX-ACCESS  read-create
         			STATUS  current
         			DESCRIPTION
-            		"Enable/Disable the peer passive status.  If enabled the peer
+            		"Enable/Disable the peer passive status.  If enabled the peer 
                      will not initiate a transport connection."
         			DEFVAL { disable }
          			::= { alaBgpPeerEntry 3 }
@@ -720,7 +719,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				MAX-ACCESS  read-create
 				STATUS  current
 				DESCRIPTION
-				"The maximum prefixes to be accepted from this peer. If this maximum
+				"The maximum prefixes to be accepted from this peer. If this maximum 
                  is reached, the peer will be sent a NOTIFY message with a CEASE ecode."
         		DEFVAL { 5000 }
 				::= { alaBgpPeerEntry 6 }
@@ -733,9 +732,9 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"If enabled, the operator will be warned when the peer reaches
-                     80% of the configured maximum prefixes. To see this message,
-                     BGP debug for type 'warnings' must be activated and debug level
+            		"If enabled, the operator will be warned when the peer reaches 
+                     80% of the configured maximum prefixes. To see this message, 
+                     BGP debug for type 'warnings' must be activated and debug level 
                      set to 20."
         			DEFVAL { enable }
          			::= { alaBgpPeerEntry 7 }
@@ -748,8 +747,8 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"If enabled, nexthop processing in the updates sent to this
-                     peer is disabled and is set to the ip address of the interface
+            		"If enabled, nexthop processing in the updates sent to this 
+                     peer is disabled and is set to the ip address of the interface 
                      attached to this peer."
         			DEFVAL { disable }
          			::= { alaBgpPeerEntry 8 }
@@ -762,7 +761,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"Enable/Disable dynamic policy configurability on the connection
+            		"Enable/Disable dynamic policy configurability on the connection 
                      to this peer."
         			DEFVAL { disable }
          			::= { alaBgpPeerEntry 9 }
@@ -775,7 +774,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-only
             		STATUS  current
             		DESCRIPTION
-            		"Route refresh capability is Enabled/Disabled on the connection
+            		"Route refresh capability is Enabled/Disabled on the connection 
                      to this peer."
         			DEFVAL { enabled }
          			::= { alaBgpPeerEntry 10 }
@@ -788,7 +787,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-only
             		STATUS  current
             		DESCRIPTION
-            		"Multiprotocol capability IPv4 Unicast is Enabled/Disabled on
+            		"Multiprotocol capability IPv4 Unicast is Enabled/Disabled on 
                      the connection to this peer ."
         			DEFVAL { enabled }
          			::= { alaBgpPeerEntry 11 }
@@ -801,7 +800,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-only
             		STATUS  current
             		DESCRIPTION
-            		"Multiprotocol capability IPv4 Multicast is Enabled/Disabled
+            		"Multiprotocol capability IPv4 Multicast is Enabled/Disabled 
                      on the connection to this peer ."
         			DEFVAL { enabled }
          			::= { alaBgpPeerEntry 12 }
@@ -827,7 +826,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
            		    MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The name of the policy map to be applied to the updates sent
+            		"The name of the policy map to be applied to the updates sent 
                      to this peer. This is same as alaBgpPolicyRouteMapName."
         			DEFVAL { "" }
          			::= { alaBgpPeerEntry 15 }
@@ -837,7 +836,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
            		    MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The name of the policy map to be applied to the updates
+            		"The name of the policy map to be applied to the updates 
                      received from this peer. This is same as alaBgpPolicyRouteMapName."
         			DEFVAL { "" }
          			::= { alaBgpPeerEntry 16 }
@@ -866,7 +865,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-only
             		STATUS  current
             		DESCRIPTION
-				    "The general reason for termination of last established session
+				    "The general reason for termination of last established session 
                      with the peer since the protocol was operationally up."
          		    ::= { alaBgpPeerEntry 18 }
 
@@ -1008,7 +1007,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-only
             		STATUS  current
             		DESCRIPTION
-            		"This indicates whether the peer belongs to the local autonomous
+            		"This indicates whether the peer belongs to the local autonomous 
                      system(internal) or another autonmous system."
          		    ::= { alaBgpPeerEntry 27 }
 
@@ -1019,7 +1018,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"Setting a value of clear into this variable will clear the
+            		"Setting a value of clear into this variable will clear the 
                      per peer statistics."	
 		            DEFVAL { clear }
          	 	    ::= { alaBgpPeerEntry 28 }
@@ -1032,8 +1031,8 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"Enable/Disable the peer autostart status.  If enabled, the peer
-                     will be automatically restarted (if administratively enabled)
+            		"Enable/Disable the peer autostart status.  If enabled, the peer 
+                     will be automatically restarted (if administratively enabled) 
                      after the transition to IDLE state."
         			DEFVAL { enable }
          			::= { alaBgpPeerEntry 29 }
@@ -1070,7 +1069,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"If enabled private as numbers are stripped out in the updates
+            		"If enabled private as numbers are stripped out in the updates 
                      sent to this peer."
         			DEFVAL { disable }
          			::= { alaBgpPeerEntry 32 }
@@ -1089,7 +1088,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
            		    MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The name of the aspath-list to be applied to the updates
+            		"The name of the aspath-list to be applied to the updates 
                      sent to this peer. This is same as alaBgpAspathMatchListId."
         			DEFVAL { "" }
          			::= { alaBgpPeerEntry 34 }
@@ -1099,7 +1098,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
            		    MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The name of the aspath-list to be applied to the updates
+            		"The name of the aspath-list to be applied to the updates 
                      received from this peer. This is same as alaBgpAspathMatchListId."
         			DEFVAL { "" }
          			::= { alaBgpPeerEntry 35 }
@@ -1109,7 +1108,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
            		    MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The name of the prefix-list to be applied to the updates
+            		"The name of the prefix-list to be applied to the updates 
                      sent to this peer. This is same as alaBgpPrefixMatchListId."
         			DEFVAL { "" }
          			::= { alaBgpPeerEntry 36 }
@@ -1119,7 +1118,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
            		    MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The name of the prefix-list to be applied to the updates
+            		"The name of the prefix-list to be applied to the updates 
                      received from this peer. This is same as alaBgpPrefixMatchListId."
         			DEFVAL { "" }
          			::= { alaBgpPeerEntry 37 }
@@ -1129,7 +1128,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
            		    MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The name of the community-list to be applied to the updates
+            		"The name of the community-list to be applied to the updates 
                      sent to this peer. This is same as alaBgpCommunityMatchListId."
         			DEFVAL { "" }
          			::= { alaBgpPeerEntry 38 }
@@ -1174,7 +1173,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"Setting a value of reconfigure into this variable will
+            		"Setting a value of reconfigure into this variable will 
                      re-start inbound policy evaluation of the peer."
 		            DEFVAL { reconfigure }
          	 	    ::= { alaBgpPeerEntry 42 }
@@ -1186,7 +1185,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"Setting a value of reconfigure into this variable will re-start
+            		"Setting a value of reconfigure into this variable will re-start 
                      outbound policy evaluation of the peer."
 		            DEFVAL { reconfigure }
          	 	    ::= { alaBgpPeerEntry 43 }
@@ -1196,7 +1195,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"Value of the MD5 key used in TCP connection with the peer.
+            		"Value of the MD5 key used in TCP connection with the peer. 
                      This field is secured and returned value is non significant."
         			DEFVAL { "" }
          			::= { alaBgpPeerEntry 44 }
@@ -1216,7 +1215,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 			SYNTAX 	RowStatus
            			MAX-ACCESS read-create
            			STATUS current
-           			DESCRIPTION
+           			DESCRIPTION 
                     "Row status variable."
 		            DEFVAL { notInService }
            			::= { alaBgpPeerEntry 46 }
@@ -1360,12 +1359,12 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpPeerLocalPort OBJECT-TYPE
         	SYNTAX  INTEGER (0..65535)
-					MAX-ACCESS read-only
+					MAX-ACCESS  read-only
                     STATUS current
                     DESCRIPTION
                     "The local port number for this peer's TCP connection."
                     ::= { alaBgpPeerEntry 62 }
-
+                    
 		alaBgpPeerTcpWindowSize OBJECT-TYPE
         	SYNTAX  INTEGER (0..65535)
                     MAX-ACCESS  read-only
@@ -1373,7 +1372,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                     DESCRIPTION
                     "The size of the socket buffers, in bytes, used for this TCP connection."
                     ::= { alaBgpPeerEntry 63 }
-
+                    
 		alaBgpPeerActivateIpv6 OBJECT-TYPE
         	SYNTAX  INTEGER {
                               enabled(1),
@@ -1388,35 +1387,36 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                     ::= { alaBgpPeerEntry 64 }
 
 		alaBgpPeerBfdStatus OBJECT-TYPE
-			SYNTAX	INTEGER	{
-								enabled(1),
-								disabled(2)
-								}
-					MAX-ACCESS  read-create
-					STATUS current
-					DESCRIPTION
-					"Enables/Disables BFd for  a particular Peer."
-					::= { alaBgpPeerEntry 65}
+		SYNTAX	INTEGER	{
+	 		enabled(1),
+			disabled(2)
+			}
+		MAX-ACCESS  read-create
+		STATUS current
+		DESCRIPTION
+			"Enables/Disables BFd for  a particular Peer."
+		::= { alaBgpPeerEntry 65}
 
 		alaBgpPeerPrefix6ListOut	OBJECT-TYPE
-			SYNTAX	DisplayString(SIZE(0..70))
-           			MAX-ACCESS  read-create
-            		STATUS  current
-            		DESCRIPTION
+		SYNTAX	DisplayString(SIZE(0..70))
+     		MAX-ACCESS  read-create
+          	STATUS  current
+            	DESCRIPTION
             		"The name of the prefix6-list to be applied to the updates
-                    sent to this peer. This is same as alaBgpPrefix6MatchListId."
-       				DEFVAL { "" }
-       				::= { alaBgpPeerEntry 66 }
+                        sent to this peer. This is same as alaBgpPrefix6MatchListId."
+       			DEFVAL { "" }
+       			::= { alaBgpPeerEntry 66 }
+
 		
 		alaBgpPeerPrefix6ListIn OBJECT-TYPE
-			SYNTAX	DisplayString(SIZE(0..70))
-           			MAX-ACCESS  read-create
-            		STATUS  current
-            		DESCRIPTION
+		SYNTAX	DisplayString(SIZE(0..70))
+     		MAX-ACCESS  read-create
+         	STATUS  current
+            	DESCRIPTION
             		"The name of the prefix6-list to be applied to the updates
                     received from this peer. This is same as alaBgpPrefix6MatchListId."
-       				DEFVAL { "" }
-       				::= { alaBgpPeerEntry 67 }
+       		DEFVAL { "" }
+       		::= { alaBgpPeerEntry 67 }
 
 
 --
@@ -1435,14 +1435,14 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 		SYNTAX  AlaBgpAggrEntry
 				MAX-ACCESS    not-accessible
 				STATUS    current
-				DESCRIPTION
+				DESCRIPTION 
 				"BGP Aggregation entry."
 				INDEX	{
 						alaBgpAggrAddr,
 						alaBgpAggrMask
 						}
 				::= { alaBgpAggrTable 1 }
-	
+	 
 	AlaBgpAggrEntry ::=
 		SEQUENCE	{
 					alaBgpAggrAddr			IpAddress,
@@ -1480,7 +1480,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"If enabled only aggregate is advertised. Otherwise more
+            		"If enabled only aggregate is advertised. Otherwise more 
                      specific routes are also advertised."
 		            DEFVAL { disable }
          	 	    ::= { alaBgpAggrEntry 3 }
@@ -1513,7 +1513,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"This specifies the MED to be used when advertising this
+            		"This specifies the MED to be used when advertising this 
                      aggregate to external peers. A value of 0 indicates not to send MED."
 					DEFVAL { 0 }
          	 	 	::= { alaBgpAggrEntry 6 }
@@ -1523,8 +1523,8 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"This specifies the override default LOCAL PREF to be used when
-                     advertising this aggregate to internal peers. A value of 0
+            		"This specifies the override default LOCAL PREF to be used when 
+                     advertising this aggregate to internal peers. A value of 0 
                      indicates not to override the default."
 					DEFVAL { 0 }
          	 	 	::= { alaBgpAggrEntry 7 }
@@ -1534,7 +1534,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The value to set the COMMUNITY attribute when advertising this
+            		"The value to set the COMMUNITY attribute when advertising this 
                      aggregate."
 					DEFVAL { "" }
          	 	 	::= { alaBgpAggrEntry 8 }
@@ -1560,19 +1560,19 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				DESCRIPTION
 				"BGP Network configuration table."
 				::= { alcatelIND1BGPMIBObjects 4 }
-	
+	 
 	alaBgpNetworkEntry OBJECT-TYPE
 		SYNTAX  AlaBgpNetworkEntry
 				MAX-ACCESS    not-accessible
 				STATUS    current
-				DESCRIPTION
+				DESCRIPTION 
 				"BGP Network entry."
 				INDEX	{
 						alaBgpNetworkAddr,
 						alaBgpNetworkMask
 						}
 				::= { alaBgpNetworkTable 1 }
-	
+	 
 	AlaBgpNetworkEntry ::=
 		SEQUENCE {
 				alaBgpNetworkAddr			IpAddress,
@@ -1616,7 +1616,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"This specifies the MED to be used when advertising this
+            		"This specifies the MED to be used when advertising this 
                      network to external peers. A value of 0 indicates not to send MED."
 					DEFVAL { 0 }
          	 	 	::= { alaBgpNetworkEntry 4 }
@@ -1626,8 +1626,8 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"This specifies the override default LOCAL PREF to be used
-                     when advertising this network to internal peers. A value of 0
+            		"This specifies the override default LOCAL PREF to be used 
+                     when advertising this network to internal peers. A value of 0 
                      indicates not to override the default."
 					DEFVAL { 0 }
          	 	 	::= { alaBgpNetworkEntry 5 }
@@ -1637,7 +1637,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The value to set the COMMUNITY attribute when advertising
+            		"The value to set the COMMUNITY attribute when advertising 
                      this network."
 					DEFVAL { "" }
          	 	 	::= { alaBgpNetworkEntry 6 }
@@ -1646,7 +1646,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
            	SYNTAX	RowStatus
            			MAX-ACCESS read-create
            			STATUS current
-           			DESCRIPTION
+           			DESCRIPTION 
                     "Row status variable."
 		            DEFVAL { notInService }
            			::= { alaBgpNetworkEntry 7 }
@@ -1661,19 +1661,19 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				DESCRIPTION
 				"BGP Routing table."
 				::= { alcatelIND1BGPMIBObjects 5 }
-	
+	 
 	alaBgpRouteEntry OBJECT-TYPE
 		SYNTAX  AlaBgpRouteEntry
 				MAX-ACCESS    not-accessible
 				STATUS    current
-				DESCRIPTION
+				DESCRIPTION 
 				"BGP Route entry."
 				INDEX	{
 						alaBgpRouteAddr,
 						alaBgpRouteMask
 						}
 				::= { alaBgpRouteTable 1 }
-	
+	 
 	AlaBgpRouteEntry ::=
 		SEQUENCE 	{
 					alaBgpRouteAddr						IpAddress,
@@ -1725,18 +1725,18 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
          		    ::= { alaBgpRouteEntry 3 }
 
 		alaBgpRoutePaths OBJECT-TYPE
-           	SYNTAX  Counter32
+           	SYNTAX  Counter32 
            			MAX-ACCESS   read-only
            			STATUS   current
-           			DESCRIPTION
+           			DESCRIPTION 
 					"Number of total paths available to this destination."
            			::= { alaBgpRouteEntry 4 }
 
 		alaBgpRouteFeasiblePaths OBJECT-TYPE
-           	SYNTAX  Counter32
+           	SYNTAX  Counter32 
            			MAX-ACCESS   read-only
            			STATUS   current
-           			DESCRIPTION
+           			DESCRIPTION 
 					"Number of Feasible paths available to this destination."
            			::= { alaBgpRouteEntry 5 }
 
@@ -1794,7 +1794,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-only
             		STATUS  current
             		DESCRIPTION
-            		"List of (addresses of) neighbours to whom this route has been
+            		"List of (addresses of) neighbours to whom this route has been 
                      advertised is encoded here."
          		    ::= { alaBgpRouteEntry 11 }
 
@@ -1888,7 +1888,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 
 --		
--- BGP path table
+-- BGP path table 
 --
 	alaBgpPathTable OBJECT-TYPE
 		SYNTAX  SEQUENCE OF AlaBgpPathEntry
@@ -1897,12 +1897,12 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				DESCRIPTION
 				"BGP Path table."
 				::= { alcatelIND1BGPMIBObjects 6 }
-	
+	 
 	alaBgpPathEntry OBJECT-TYPE
 		SYNTAX  AlaBgpPathEntry
 				MAX-ACCESS    not-accessible
 				STATUS    current
-				DESCRIPTION
+				DESCRIPTION 
 				"BGP path entry."
 				INDEX	{
 						alaBgpPathAddr,
@@ -1911,7 +1911,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 						alaBgpPathSrcProto
 						}
 				::= { alaBgpPathTable 1 }
-	
+	 
 	AlaBgpPathEntry ::=
 		SEQUENCE 	{
 					alaBgpPathAddr				IpAddress,
@@ -1958,11 +1958,11 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  current
 					DESCRIPTION
-					"The IP address or the BGP Identifier of the peer who sent this path.
+					"The IP address or the BGP Identifier of the peer who sent this path. 
                      For locally sourced routes, the value is 0.0.0.0. For peers with an
-                     IPv4 address, the value will be the peer's IPv4 address, and the
-                     value of alaBgpPathPeerInetType will be ipv4. For peers with
-                     an IPv6 address, the value will be the peer's BGP Identifier, and
+                     IPv4 address, the value will be the peer's IPv4 address, and the 
+                     value of alaBgpPathPeerInetType will be ipv4. For peers with 
+                     an IPv6 address, the value will be the peer's BGP Identifier, and 
                      the value of alaBgpPathPeerInetType will be ipv6."
 					::= { alaBgpPathEntry 3 }
 
@@ -2016,10 +2016,10 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  current
 					DESCRIPTION
-					"Indicates the state of the path.  When path state is none it
-                     indicates that there are no paths to this prefix/len and the
-                     route is being purged from the system. Stale indicates that the
-                     peer that advertised this route's nexthop is in the process of
+					"Indicates the state of the path.  When path state is none it 
+                     indicates that there are no paths to this prefix/len and the 
+                     route is being purged from the system. Stale indicates that the 
+                     peer that advertised this route's nexthop is in the process of 
                      graceful restart."
 					::= { alaBgpPathEntry 7 }
 
@@ -2053,14 +2053,14 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				"The sequence of AS path segments.
                  Each AS path segment is represented by a triple <TYPE, LENGTH, VALUE>.
                  The TYPE is a 1-octet field which has two possible values:
-                     (1) AS_SET      : unordered set of ASs a route in the UPDATE message
+                     (1) AS_SET      : unordered set of ASs a route in the UPDATE message 
                                        has traversed.
-                     (2) AS_SEQUENCE : ordered set of ASs a route in the UPDATE message
+                     (2) AS_SEQUENCE : ordered set of ASs a route in the UPDATE message 
                                        has traversed.
-                 The LENGTH is a 1-octet field containing the number of ASs in
+                 The LENGTH is a 1-octet field containing the number of ASs in 
                   the value field.
-                 The VALUE field contains one or more AS numbers, each AS is
-                  represented in the octet string as a pair of octets according to
+                 The VALUE field contains one or more AS numbers, each AS is 
+                  represented in the octet string as a pair of octets according to 
                   the following algorithm:
                        first-byte-of-pair  = ASNumber / 256;
                        second-byte-of-pair = ASNumber & 255;."
@@ -2071,7 +2071,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  current
 					DESCRIPTION
-					"The LOCAL_PREF attribute of the path.  A value of -1 indicates
+					"The LOCAL_PREF attribute of the path.  A value of -1 indicates 
                      the absence of this attribute."
 					::= { alaBgpPathEntry 11 }
 		
@@ -2080,7 +2080,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  current
 					DESCRIPTION
-					"The Multi Exit Disc. attribute of the path.  A value of 4294967295
+					"The Multi Exit Disc. attribute of the path.  A value of 4294967295 
                      indicates the absence of this attribute."
 					::= { alaBgpPathEntry 12 }
 
@@ -2092,7 +2092,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  current
 					DESCRIPTION
-					"Indicates whether this path is generated without selecting a
+					"Indicates whether this path is generated without selecting a 
                      less specific route."
 					::= { alaBgpPathEntry 13 }
 
@@ -2101,7 +2101,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  current
 					DESCRIPTION
-					"The AS number of the last BGP4 speaker that performed route
+					"The AS number of the last BGP4 speaker that performed route 
                      aggregation. A value of 0 indicates the absence of this attribute."
 					::= { alaBgpPathEntry 14 }
 
@@ -2110,8 +2110,8 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  current
 					DESCRIPTION
-					"The IP address of the last BGP4 speaker that performed route
-                     aggregation. A value of 0.0.0.0 indicates the absence of this
+					"The IP address of the last BGP4 speaker that performed route 
+                     aggregation. A value of 0.0.0.0 indicates the absence of this 
                      attribute."
 					::= { alaBgpPathEntry 15 }
 
@@ -2120,7 +2120,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  current
 					DESCRIPTION
-					"The community attribute of the path. The communities are
+					"The community attribute of the path. The communities are 
                      represented as series of 4 octet values."
 					::= { alaBgpPathEntry 16 }
 
@@ -2129,9 +2129,9 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  current
 					DESCRIPTION
-					"One or more path attributes not understood by this BGP4 speaker.
-                     Size of zero (0) indicates the absence of such attribute(s).
-                     Octets beyond the maximum size, if any, are not recorded by
+					"One or more path attributes not understood by this BGP4 speaker. 
+                     Size of zero (0) indicates the absence of such attribute(s). 
+                     Octets beyond the maximum size, if any, are not recorded by 
                      this object."
 					::= { alaBgpPathEntry 17 }
 
@@ -2141,7 +2141,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					STATUS  current
 					DESCRIPTION
 					"The Router Id of the BGP4 speaker that performed route reflection,
-                     if this is a reflected route in the local AS. A value of 0.0.0.0 indicates the
+                     if this is a reflected route in the local AS. A value of 0.0.0.0 indicates the 
                      absence of this attribute. Refer RFC 2796 (BGP Route Reflection), Section 7"
 					::= { alaBgpPathEntry 18 }
 
@@ -2165,9 +2165,9 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					STATUS  current
 					DESCRIPTION
 					"Indicates whether the peer who sent this path has an IPv4 address or an
-                     IPv6 address.  If set to ipv4, the peer has an IPv4 address, and the value
-                     of alaBgpPathPeerAddr is the peer's IPv4 address. If set to ipv6, the peer
-                     has an IPv6 address, and the value of alaBgpPathPeerAddr is the peer's
+                     IPv6 address.  If set to ipv4, the peer has an IPv4 address, and the value 
+                     of alaBgpPathPeerAddr is the peer's IPv4 address. If set to ipv6, the peer 
+                     has an IPv6 address, and the value of alaBgpPathPeerAddr is the peer's 
                      BGP Identifier. For locally sourced routes, the value is set to unknown."
 					::= { alaBgpPathEntry 20 }
 
@@ -2192,12 +2192,12 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				DESCRIPTION
 				"BGP Dampened paths table."
 				::= { alcatelIND1BGPMIBObjects 7 }
-	
+	 
 	alaBgpDampEntry OBJECT-TYPE
 		SYNTAX  AlaBgpDampEntry
 				MAX-ACCESS    not-accessible
 				STATUS    current
-				DESCRIPTION
+				DESCRIPTION 
 				"BGP Network entry."
 				INDEX	{
 						alaBgpDampAddr,
@@ -2205,7 +2205,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 						alaBgpDampPeerAddr
 						}
 				::= { alaBgpDampTable 1 }
-	
+	 
 	AlaBgpDampEntry ::=
 		SEQUENCE	{
 					alaBgpDampAddr				IpAddress,
@@ -2248,9 +2248,9 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  current
 					DESCRIPTION
-					"The figure of merit value.  This is a floating point value
-                     with 2 digit precision. For example, a value of 3.5 is encoded
-                     as 350, a value of 0.9 is encoded as 90, a value of 9.45 is
+					"The figure of merit value.  This is a floating point value 
+                     with 2 digit precision. For example, a value of 3.5 is encoded 
+                     as 350, a value of 0.9 is encoded as 90, a value of 9.45 is 
                      encoded as 945."
 					::= { alaBgpDampEntry 4 }
 
@@ -2275,7 +2275,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  current
 					DESCRIPTION
-					"Time in seconds since this damp entry (figure of merit) was
+					"Time in seconds since this damp entry (figure of merit) was 
                      last updated."
 					::= { alaBgpDampEntry 7 }
 
@@ -2314,19 +2314,19 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				DESCRIPTION
 				"BGP Policy RouteMap table."
 				::= { alaBgpPolicy 1 }
-	
+	 
 	alaBgpRouteMapEntry OBJECT-TYPE
 		SYNTAX  AlaBgpRouteMapEntry
 				MAX-ACCESS    not-accessible
 				STATUS    current
-				DESCRIPTION
+				DESCRIPTION 
 				"BGP Route Map Entry."
 				INDEX   {
 						alaBgpRouteMapName,
 						alaBgpRouteMapInst
 						}
 				::= { alaBgpRouteMapTable 1 }
-	
+	 
 	AlaBgpRouteMapEntry ::=
 		SEQUENCE	{
 					alaBgpRouteMapName					DisplayString,
@@ -2369,34 +2369,34 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpRouteMapAsPathMatchListId OBJECT-TYPE	
             SYNTAX  DisplayString(SIZE(0..70))
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"This is same as alaBgpAspathMatchListId.  It identifies the
+            		"This is same as alaBgpAspathMatchListId.  It identifies the 
                      matching criteria list of Autonomous system paths. Empty quotes
-                     indicate no autonomous system paths matching criteria is to
+                     indicate no autonomous system paths matching criteria is to 
                      be applied."
 					DEFVAL { "" }
 					::= { alaBgpRouteMapEntry 3 }
 
 		alaBgpRouteMapPrefixMatchListId OBJECT-TYPE	
             SYNTAX  DisplayString(SIZE(0..70))
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"This is same as alaBgpPrefixMatchListId.  It identifies the
-                     matching criteria list of prefixes. Empty quotes indicate no
+            		"This is same as alaBgpPrefixMatchListId.  It identifies the 
+                     matching criteria list of prefixes. Empty quotes indicate no 
                      prefix matching criteria is to be applied."
 					DEFVAL { "" }
 					::= { alaBgpRouteMapEntry 4 }
 
 		alaBgpRouteMapCommunityMatchListId OBJECT-TYPE	
            	SYNTAX  DisplayString(SIZE(0..70))
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"This is same as alaBgpCommunityMatchListId.  It identifies the
-                     matching criteria list of communities. Empty quotes indicate no
+            		"This is same as alaBgpCommunityMatchListId.  It identifies the 
+                     matching criteria list of communities. Empty quotes indicate no 
                      community matching criteria is to be applied."
 					DEFVAL { "" }
 					::= { alaBgpRouteMapEntry 5 }
@@ -2408,22 +2408,22 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 							incomplete(3),
 							none(255)
 							}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The value to set the origin of the routes matched by this
+            		"The value to set the origin of the routes matched by this 
                      RouteMap instance. A value of none means no origin is to be set."
 					DEFVAL { none }
          	 	 	::= { alaBgpRouteMapEntry 6 }
 		
 		alaBgpRouteMapLocalPref OBJECT-TYPE	
            	SYNTAX  Gauge32 (0..4294967295)
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The value to set the LOCAL PREF attribute of the routes matched
-                     by this RouteMap instance. This value is added to/is subtracted
-                     from/replaces the LOCAL PREF attribute in conjunction with the
+            		"The value to set the LOCAL PREF attribute of the routes matched 
+                     by this RouteMap instance. This value is added to/is subtracted 
+                     from/replaces the LOCAL PREF attribute in conjunction with the 
                      associated value of alaBgpRouteMapLocalPrefMode."
 					DEFVAL { 0 }
          	 	 	::= { alaBgpRouteMapEntry 7 }
@@ -2432,14 +2432,14 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
           	SYNTAX	INTEGER	{
 							none(1),
 							inc(2),
-							dec(3),
+							dec(3), 
 							rep(4)
 							}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"This variable specifies how alaBgpRouteMapLocalPref is to be
-                     operated on an existing LPREF attribute of a route on which
+            		"This variable specifies how alaBgpRouteMapLocalPref is to be 
+                     operated on an existing LPREF attribute of a route on which 
                      this RouteMap instance is applied to."
 					DEFVAL { none }
          	 	 	::= { alaBgpRouteMapEntry 8 }
@@ -2447,12 +2447,12 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 		
 		alaBgpRouteMapMed OBJECT-TYPE	
           	SYNTAX  Gauge32 (0..4294967295)
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-           			"The value to set the MULTI EXIT DISC attribute of the routes
-                     matched by this RouteMap instance. This value is added to/is
-                     subtracted from/replaces the MULTI EXIT DISC attribute in
+           			"The value to set the MULTI EXIT DISC attribute of the routes 
+                     matched by this RouteMap instance. This value is added to/is 
+                     subtracted from/replaces the MULTI EXIT DISC attribute in 
                      conjunction with the associated value of alaBgpRouteMapMedMode."
 					DEFVAL { 0 }
          	 	 	::= { alaBgpRouteMapEntry 9 }
@@ -2461,14 +2461,14 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             SYNTAX  INTEGER	{
 							none(1),
 							inc(2),
-							dec(3),
+							dec(3), 
 							rep(4)
 							}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
            			"This variable specifies how alaBgpRouteMapMed is to be operated
-                     on an existing MULTI EXIT DISC attribute of a route on which this
+                     on an existing MULTI EXIT DISC attribute of a route on which this 
                      RouteMap instance is applied to."
 					DEFVAL { none }
          	 	 	::= { alaBgpRouteMapEntry 10 }
@@ -2476,10 +2476,10 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 		
 		alaBgpRouteMapAsPrepend OBJECT-TYPE	
         	SYNTAX  DisplayString(SIZE(0..70))
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The value to prepend to the AS_PATH attribute of the routes
+            		"The value to prepend to the AS_PATH attribute of the routes 
                      matched by this RouteMap instance. Empty quotes indicates no
                      AS_PATH prepending is to be done."
 					DEFVAL { "" }
@@ -2490,28 +2490,28 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 							add(1),
 							replace(2)
 							}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"Determines whether alaBgpRouteMapCommunity will be adding to
-                     or replacing the COMMUNITY attribute of the routes matched by
+            		"Determines whether alaBgpRouteMapCommunity will be adding to 
+                     or replacing the COMMUNITY attribute of the routes matched by 
                      this RouteMap instance."
 					DEFVAL { add }
          	 	 	::= { alaBgpRouteMapEntry 12 }
 
 		alaBgpRouteMapCommunity OBJECT-TYPE	
             SYNTAX  DisplayString(SIZE(0..70))
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The value to set the COMMUNITY attribute of the routes matched
+            		"The value to set the COMMUNITY attribute of the routes matched 
                      by this RouteMap instance."
 			        DEFVAL { "" }
          		    ::= { alaBgpRouteMapEntry 13 }
 
 		alaBgpRouteMapMatchAsRegExp OBJECT-TYPE	
             SYNTAX  DisplayString(SIZE(0..70))
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
             		"AsPath regular expression matching primitive."
@@ -2520,7 +2520,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpRouteMapMatchPrefix OBJECT-TYPE
 			SYNTAX	IpAddress
-					MAX-ACCESS 	read-write	
+					MAX-ACCESS 	read-create
 					STATUS	current
 					DESCRIPTION
 					"Prefix match primitive."
@@ -2529,7 +2529,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpRouteMapMatchMask OBJECT-TYPE
 			SYNTAX	IpAddress
-					MAX-ACCESS 	read-write	
+					MAX-ACCESS 	read-create	
 					STATUS	current
 					DESCRIPTION
 					"Prefix match mask primitive"
@@ -2538,7 +2538,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpRouteMapMatchCommunity OBJECT-TYPE
 			SYNTAX  DisplayString(SIZE(1..70))
-					MAX-ACCESS  read-write
+					MAX-ACCESS  read-create
 					STATUS  current
 					DESCRIPTION
 					"Community match primitive"
@@ -2547,10 +2547,10 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpRouteMapWeight OBJECT-TYPE	
             SYNTAX  INTEGER(0..65535)
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"This sets the weight for the incoming route. This parameter has
+            		"This sets the weight for the incoming route. This parameter has 
                      no effect on outbound policy."
 					DEFVAL { 0 }
          	 	 	::= { alaBgpRouteMapEntry 18 }
@@ -2560,7 +2560,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 							permit(1),
 							deny(2)
 							}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
             		"This determines whether to allow a matching route to pass through."
@@ -2569,7 +2569,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 		
 		alaBgpRouteMapRowStatus OBJECT-TYPE
            	SYNTAX 	RowStatus
-           			MAX-ACCESS  read-write
+           			MAX-ACCESS  read-create
            			STATUS  current
            			DESCRIPTION "Row status variable"
 		            DEFVAL { notInService }
@@ -2584,19 +2584,19 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				DESCRIPTION
 				"BGP Policy Aspath criteria matching table."
 				::= { alaBgpPolicy 2 }
-	
+	 
 	alaBgpAspathMatchListEntry OBJECT-TYPE
 		SYNTAX  AlaBgpAspathMatchListEntry
 				MAX-ACCESS    not-accessible
 				STATUS    current
-				DESCRIPTION
+				DESCRIPTION 
 				"Aspath matching entry ."
 				INDEX	{
 						alaBgpAspathMatchListId,
 						alaBgpAspathMatchListRegExp
 						}
 				::= { alaBgpAspathMatchListTable 1 }
-	
+	 
 	AlaBgpAspathMatchListEntry ::=
 		SEQUENCE	{
 					alaBgpAspathMatchListId			DisplayString,
@@ -2620,17 +2620,17 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  current
 					DESCRIPTION
-					"The regular expression identifying the autnomous system paths
+					"The regular expression identifying the autnomous system paths 
                      to be matched by this instance."
 					::= { alaBgpAspathMatchListEntry 2 }
 
 		alaBgpAspathMatchListPriority OBJECT-TYPE	
             SYNTAX  INTEGER (1..255)
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"This determines the order in which the matching regular
-                     expressions are applied in the list identified by
+            		"This determines the order in which the matching regular 
+                     expressions are applied in the list identified by 
                      alaBgpAspathMatchListId."
 					DEFVAL { 1 }
          	 	 	::= { alaBgpAspathMatchListEntry 3 }
@@ -2640,7 +2640,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 							permit(1),
 							deny(2)
 							}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
             		"This determines whether to accept or reject a matching route."
@@ -2649,7 +2649,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 		
 		alaBgpAspathMatchListRowStatus OBJECT-TYPE
            	SYNTAX  RowStatus
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
 					"Row status variable"
@@ -2673,12 +2673,12 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				DESCRIPTION
 				"BGP Policy prefix matching criteria table."
 				::= { alaBgpPolicy 3 }
-	
+	 
 	alaBgpPrefixMatchListEntry OBJECT-TYPE
 		SYNTAX  AlaBgpPrefixMatchListEntry
 				MAX-ACCESS    not-accessible
 				STATUS    current
-				DESCRIPTION
+				DESCRIPTION 
 				"BGP Prefix matching instance."
 				INDEX	{
 						alaBgpPrefixMatchListId,
@@ -2686,7 +2686,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 						alaBgpPrefixMatchListMask
 						}
 				::= { alaBgpPrefixMatchListTable 1 }
-	
+	 
 	AlaBgpPrefixMatchListEntry ::=
 		SEQUENCE	{
 					alaBgpPrefixMatchListId			DisplayString,
@@ -2724,24 +2724,24 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpPrefixMatchListGE OBJECT-TYPE	
             SYNTAX  INTEGER(0..32)
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"Specifies the minimum length of the mask to be matched. A value
-                     of 0 means this criteria is absent. The value of
-                     alaBgpPrefixMatchListGE must be > length of
+            		"Specifies the minimum length of the mask to be matched. A value 
+                     of 0 means this criteria is absent. The value of 
+                     alaBgpPrefixMatchListGE must be > length of 
                      (alaBgpPrefixMatchListMask) and < alaBgpPrefixMatchListLE."
 					DEFVAL { 0 }
 					::= { alaBgpPrefixMatchListEntry 4 }
 
 		alaBgpPrefixMatchListLE OBJECT-TYPE	
            	SYNTAX  INTEGER(0..32)
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"Specifies the maximum length (inclusive) of the mask to be matched.
-                     A value of 0 means this criteria is absent. The value of
-                     alaBgpPrefixMatchListLE must be >= alaBgpPrefixMatchListGE
+            		"Specifies the maximum length (inclusive) of the mask to be matched. 
+                     A value of 0 means this criteria is absent. The value of 
+                     alaBgpPrefixMatchListLE must be >= alaBgpPrefixMatchListGE 
                      and <= 32."
 					DEFVAL { 0 }
 					::= { alaBgpPrefixMatchListEntry 5 }
@@ -2752,7 +2752,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 							permit(1),
 							deny(2)
 							}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
             		"This determines whether to accept or reject a matching route."
@@ -2761,7 +2761,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 		
 		alaBgpPrefixMatchListRowStatus OBJECT-TYPE
             SYNTAX  RowStatus
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
 					"Row status variable"
@@ -2776,19 +2776,19 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				DESCRIPTION
 				"BGP Policy Community criteria matching table."
 				::= { alaBgpPolicy 4 }
-	
+	 
 	alaBgpCommunityMatchListEntry OBJECT-TYPE
 		SYNTAX  AlaBgpCommunityMatchListEntry
 				MAX-ACCESS    not-accessible
 				STATUS    current
-				DESCRIPTION
+				DESCRIPTION 
 				"Community matching entry ."
 				INDEX   {
 						alaBgpCommunityMatchListId,
 						alaBgpCommunityMatchListString
 						}
 				::= { alaBgpCommunityMatchListTable 1 }
-	
+	 
 	AlaBgpCommunityMatchListEntry ::=
 		SEQUENCE	{
 					alaBgpCommunityMatchListId			DisplayString,
@@ -2818,11 +2818,11 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpCommunityMatchListPriority OBJECT-TYPE	
            	SYNTAX  INTEGER (0..255)
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"This determines the order in which the matching regular
-                     expressions are applied in the list identified by
+            		"This determines the order in which the matching regular 
+                     expressions are applied in the list identified by 
                      alaBgpCommunityMatchListId."
 					DEFVAL { 0 }
          	 	 	::= { alaBgpCommunityMatchListEntry 3 }
@@ -2830,10 +2830,10 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 		alaBgpCommunityMatchListType OBJECT-TYPE	
             SYNTAX  INTEGER {
 							exact(1), -- match if community appears exactly as specified
-							occur(2)  -- match if community occurs in the
+							occur(2)  -- match if community occurs in the 
 									  -- attribute somewhere
 							}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
             		"This determines the matching type."
@@ -2845,7 +2845,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 							permit(1),
 							deny(2)
 							}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
             		"This determines whether to accept or reject a matching route."
@@ -2854,9 +2854,9 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 		
 		alaBgpCommunityMatchListRowStatus OBJECT-TYPE
            	SYNTAX  RowStatus
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS      current
-            		DESCRIPTION
+            		DESCRIPTION 
                     "Row status variable."
 		            DEFVAL { notInService }
             		::= { alaBgpCommunityMatchListEntry 6 }
@@ -2878,12 +2878,12 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				DESCRIPTION
 				"Priority sorted view of BGP Policy Aspath matching table."
 				::= { alaBgpPolicy 5 }
-	
+	 
 	alaBgpAspathPriMatchListEntry OBJECT-TYPE
 		SYNTAX  AlaBgpAspathPriMatchListEntry
 				MAX-ACCESS    not-accessible
 				STATUS    current
-				DESCRIPTION
+				DESCRIPTION 
 				"Aspath matching entry ."
 				INDEX	{
 						alaBgpAspathPriMatchListId,
@@ -2891,7 +2891,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 						alaBgpAspathPriMatchListIntIdx
 						}
 				::= { alaBgpAspathPriMatchListTable 1 }
-	
+	 
 	AlaBgpAspathPriMatchListEntry ::=
 		SEQUENCE 	{
 				alaBgpAspathPriMatchListId			DisplayString,
@@ -2915,8 +2915,8 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-only
             		STATUS  current
             		DESCRIPTION
-            		"This determines the order in which the matching regular
-                     expressions are applied in the list identified by
+            		"This determines the order in which the matching regular 
+                     expressions are applied in the list identified by 
                      alaBgpAspathPriMatchListId."
          		    ::= { alaBgpAspathPriMatchListEntry 2 }
 
@@ -2925,7 +2925,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-only
             		STATUS  current
             		DESCRIPTION
-            		"This is the order in which the matching regular expressions
+            		"This is the order in which the matching regular expressions 
                      are created in the list identified by alaBgpAspathPriMatchListId."
          		    ::= { alaBgpAspathPriMatchListEntry 3 }
 
@@ -2934,7 +2934,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  current
 					DESCRIPTION
-					"The regular expression identifying the autnomous system paths
+					"The regular expression identifying the autnomous system paths 
                      to be matched by this instance"
 					::= { alaBgpAspathPriMatchListEntry 4 }
 
@@ -2965,12 +2965,12 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				DESCRIPTION
 				"Priority sorted view of BGP Policy Community matching table."
 				::= { alaBgpPolicy 6 }
-	
+	 
 	alaBgpCommunityPriMatchListEntry OBJECT-TYPE
 		SYNTAX  AlaBgpCommunityPriMatchListEntry
 				MAX-ACCESS    not-accessible
 				STATUS    current
-				DESCRIPTION
+				DESCRIPTION 
 				"Community matching entry ."
 				INDEX   {
 						alaBgpCommunityPriMatchListId,
@@ -2978,7 +2978,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 						alaBgpCommunityPriMatchListIntIdx
 						}
 				::= { alaBgpCommunityPriMatchListTable 1 }
-	
+	 
 	AlaBgpCommunityPriMatchListEntry ::=
 		SEQUENCE	{
 					alaBgpCommunityPriMatchListId			DisplayString,
@@ -3003,8 +3003,8 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-only
             		STATUS  current
             		DESCRIPTION
-            		"This determines the order in which the matching regular
-                     expressions are applied in the list identified by
+            		"This determines the order in which the matching regular 
+                     expressions are applied in the list identified by 
                      alaBgpCommunityPriMatchListId."
          		    ::= { alaBgpCommunityPriMatchListEntry 2 }
 
@@ -3013,8 +3013,8 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-only
             		STATUS  current
             		DESCRIPTION
-            		"This determines the order in which the matching regular
-                     expressions are created in the list identified by
+            		"This determines the order in which the matching regular 
+                     expressions are created in the list identified by 
                      alaBgpCommunityPriMatchListId."
          		    ::= { alaBgpCommunityPriMatchListEntry 3 }
 
@@ -3024,14 +3024,14 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  current
 					DESCRIPTION
-					"The string identifying the communities to be matched by
+					"The string identifying the communities to be matched by 
                      this instance."
 					::= { alaBgpCommunityPriMatchListEntry 4 }
 
 		alaBgpCommunityPriMatchListType OBJECT-TYPE	
             SYNTAX  INTEGER {
 							exact(1), -- match if community appears exactly as specified
-							occur(2)  -- match if community occurs in the
+							occur(2)  -- match if community occurs in the 
 									  -- attribute somewhere
 							}
             		MAX-ACCESS  read-only
@@ -3055,115 +3055,112 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
          	SYNTAX  RowStatus
             		MAX-ACCESS  read-only
             		STATUS      current
-            		DESCRIPTION
+            		DESCRIPTION 
                     "Row status variable"
             		::= { alaBgpCommunityPriMatchListEntry 7 }
 
-
 --- Policy Prefix6List
 	alaBgpPrefix6MatchListTable OBJECT-TYPE
-		SYNTAX  SEQUENCE OF AlaBgpPrefix6MatchListEntry
-				MAX-ACCESS    not-accessible
-				STATUS    current
-				DESCRIPTION
-				"BGP Policy prefix6 matching criteria table."
-				::= { alaBgpPolicy 7 }
+	SYNTAX  SEQUENCE OF AlaBgpPrefix6MatchListEntry
+	MAX-ACCESS    not-accessible
+	STATUS    current
+	DESCRIPTION
+		"BGP Policy prefix6 matching criteria table."
+		::= { alaBgpPolicy 7 }
 	
 	alaBgpPrefix6MatchListEntry OBJECT-TYPE
-		SYNTAX  AlaBgpPrefix6MatchListEntry
-				MAX-ACCESS    not-accessible
-				STATUS    current
-				DESCRIPTION
-				"BGP Prefix6 matching instance."
-				INDEX	{
-						alaBgpPrefix6MatchListId,
-						alaBgpPrefix6MatchListAddr,
-						alaBgpPrefix6MatchListAddrLength
-						}
-				::= { alaBgpPrefix6MatchListTable 1 }
+	SYNTAX  AlaBgpPrefix6MatchListEntry
+	MAX-ACCESS    not-accessible
+	STATUS    current
+	DESCRIPTION
+		"BGP Prefix6 matching instance."
+	INDEX	{
+		alaBgpPrefix6MatchListId,
+		alaBgpPrefix6MatchListAddr,
+		alaBgpPrefix6MatchListAddrLength
+		}
+		::= { alaBgpPrefix6MatchListTable 1 }
 	
 	AlaBgpPrefix6MatchListEntry ::=
-		SEQUENCE	{
-					alaBgpPrefix6MatchListId			DisplayString,
-					alaBgpPrefix6MatchListAddr  		Ipv6Address,
-					alaBgpPrefix6MatchListAddrLength	INTEGER,
-					alaBgpPrefix6MatchListGE			INTEGER,
-					alaBgpPrefix6MatchListLE			INTEGER,
-					alaBgpPrefix6MatchListAction		INTEGER,
-					alaBgpPrefix6MatchListRowStatus  	RowStatus
-					}
+	SEQUENCE	{
+			alaBgpPrefix6MatchListId			DisplayString,
+			alaBgpPrefix6MatchListAddr  		Ipv6Address,
+			alaBgpPrefix6MatchListAddrLength	INTEGER,
+			alaBgpPrefix6MatchListGE			INTEGER,
+			alaBgpPrefix6MatchListLE			INTEGER,
+			alaBgpPrefix6MatchListAction		INTEGER,
+			alaBgpPrefix6MatchListRowStatus  	RowStatus
+			}
+	alaBgpPrefix6MatchListId OBJECT-TYPE
+       	SYNTAX  DisplayString(SIZE(1..70))
+	MAX-ACCESS  not-accessible
+	STATUS  current
+	DESCRIPTION
+		"Identifier of this list of autonomous system path matching criteria."
+	::= { alaBgpPrefix6MatchListEntry 1 }
 
-		alaBgpPrefix6MatchListId OBJECT-TYPE
-           	SYNTAX  DisplayString(SIZE(1..70))
-					MAX-ACCESS  not-accessible
-					STATUS  current
-					DESCRIPTION
-					"Identifier of this list of autonomous system path matching criteria."
-					::= { alaBgpPrefix6MatchListEntry 1 }
+	alaBgpPrefix6MatchListAddr OBJECT-TYPE
+	SYNTAX  Ipv6Address
+	MAX-ACCESS  not-accessible
+	STATUS  current
+	DESCRIPTION
+		"The IPv6 Prefix to be matched. A value of 0 indicates default
+		 route prefix."
+	::= { alaBgpPrefix6MatchListEntry 2 }
 
-		alaBgpPrefix6MatchListAddr OBJECT-TYPE
-			SYNTAX  Ipv6Address
-					MAX-ACCESS  not-accessible
-					STATUS  current
-					DESCRIPTION
-					"The IPv6 Prefix to be matched. A value of 0 indicates default
-					 route prefix."
-					::= { alaBgpPrefix6MatchListEntry 2 }
+	alaBgpPrefix6MatchListAddrLength OBJECT-TYPE
+	SYNTAX  INTEGER(0..128)
+	MAX-ACCESS  not-accessible
+	STATUS  current
+	DESCRIPTION
+		"The length in bits of the IPv6 prefix being matched. A value of 0 indicates default
+		 route prefix."
+	::= { alaBgpPrefix6MatchListEntry 3 }
 
-		alaBgpPrefix6MatchListAddrLength OBJECT-TYPE
-			SYNTAX  INTEGER(0..128)
-					MAX-ACCESS  not-accessible
-					STATUS  current
-					DESCRIPTION
-					"The length in bits of the IPv6 prefix being matched. A value of 0 indicates default
-					 route prefix."
-					::= { alaBgpPrefix6MatchListEntry 3 }
+	alaBgpPrefix6MatchListGE OBJECT-TYPE	
+        SYNTAX  INTEGER(0..32)
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION
+         	"Specifies the minimum length of the mask to be matched. A value
+                 of 0 means this criteria is absent. The value of
+                 alaBgpPrefix6MatchListGE must be > length of
+                 (alaBgpPrefix6MatchListAddrLength) and < alaBgpPrefix6MatchListLE."
+	DEFVAL { 0 }
+	::= { alaBgpPrefix6MatchListEntry 4 }
 
-		alaBgpPrefix6MatchListGE OBJECT-TYPE	
-            SYNTAX  INTEGER(0..32)
-            		MAX-ACCESS  read-create
-            		STATUS  current
-            		DESCRIPTION
-            		"Specifies the minimum length of the mask to be matched. A value
-                     of 0 means this criteria is absent. The value of
-                     alaBgpPrefix6MatchListGE must be > length of
-                     (alaBgpPrefix6MatchListAddrLength) and < alaBgpPrefix6MatchListLE."
-					DEFVAL { 0 }
-					::= { alaBgpPrefix6MatchListEntry 4 }
+	alaBgpPrefix6MatchListLE OBJECT-TYPE	
+       	SYNTAX  INTEGER(0..32)
+        MAX-ACCESS  read-create
+       	STATUS  current
+         DESCRIPTION
+      		"Specifies the maximum length (inclusive) of the mask to be matched.
+         	A value of 0 means this criteria is absent. The value of
+         	alaBgpPrefix6MatchListLE must be >= alaBgpPrefix6MatchListGE
+          	and <= 32."
+	DEFVAL { 0 }
+	::= { alaBgpPrefix6MatchListEntry 5 }
 
-		alaBgpPrefix6MatchListLE OBJECT-TYPE	
-           	SYNTAX  INTEGER(0..32)
-            		MAX-ACCESS  read-create
-            		STATUS  current
-            		DESCRIPTION
-            		"Specifies the maximum length (inclusive) of the mask to be matched.
-                     A value of 0 means this criteria is absent. The value of
-                     alaBgpPrefix6MatchListLE must be >= alaBgpPrefix6MatchListGE
-                     and <= 32."
-					DEFVAL { 0 }
-					::= { alaBgpPrefix6MatchListEntry 5 }
-
-
-		alaBgpPrefix6MatchListAction OBJECT-TYPE	
-            SYNTAX  INTEGER {
-							permit(1),
-							deny(2)
-							}
-            		MAX-ACCESS  read-create
-            		STATUS  current
-            		DESCRIPTION
-            		"This determines whether to accept or reject a matching route."
-					DEFVAL { deny }
-					::= { alaBgpPrefix6MatchListEntry 6 }
+	alaBgpPrefix6MatchListAction OBJECT-TYPE	
+        SYNTAX  INTEGER {
+			permit(1),
+			deny(2)
+			}
+         MAX-ACCESS  read-create
+       	STATUS  current
+           DESCRIPTION
+          	"This determines whether to accept or reject a matching route."
+	DEFVAL { deny }
+	::= { alaBgpPrefix6MatchListEntry 6 }
 		
-		alaBgpPrefix6MatchListRowStatus OBJECT-TYPE
-            SYNTAX  RowStatus
-            		MAX-ACCESS  read-create
-            		STATUS  current
-            		DESCRIPTION
-					"Row status variable"
-		            DEFVAL { notInService }
-            		::= { alaBgpPrefix6MatchListEntry 7 }
+	alaBgpPrefix6MatchListRowStatus OBJECT-TYPE
+        SYNTAX  RowStatus
+        MAX-ACCESS  read-create
+         STATUS  current
+          DESCRIPTION
+		"Row status variable"
+            DEFVAL { notInService }
+         ::= { alaBgpPrefix6MatchListEntry 7 }
 
 --
 -- Bgp Redistribution Route table
@@ -3173,17 +3170,17 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				MAX-ACCESS    not-accessible
 				STATUS    deprecated
 				DESCRIPTION
-				"A configuration table which controls the routes to be
+				"A configuration table which controls the routes to be 
                  redistributed by BGP from other routing protocols. This table has been deprecated.
                  Use the alaRouteMapRedistProtoTable of AlcatelIND1RouteMap.mib."
 				::= { alcatelIND1BGPMIBObjects 9 }
-	
+	 
 	alaBgpRedistRouteEntry OBJECT-TYPE
 		SYNTAX  AlaBgpRedistRouteEntry
 				MAX-ACCESS   not-accessible
 				STATUS   deprecated
 				DESCRIPTION
-				"A configuration table which controls the routes to be
+				"A configuration table which controls the routes to be 
                  redistributed by BGP from other routing protocols. This entry has been deprecated.
                  Use the alaRouteMapRedistProtoEntry of AlcatelIND1RouteMap.mib."
 				INDEX	{
@@ -3241,17 +3238,17 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS   read-only
 					STATUS   deprecated
 					DESCRIPTION
-				   	"The network mask for this route. This object has been deprecated.
+				   	"The network mask for this route. This object has been deprecated. 
                      Use alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
 					::= { alaBgpRedistRouteEntry 3 }
 
 		alaBgpRedistRouteMetric OBJECT-TYPE
 			SYNTAX  Gauge32 ( 0 .. 4294967295 )
-					MAX-ACCESS   read-write
+					MAX-ACCESS   read-create
 					STATUS   deprecated
 					DESCRIPTION
-					"The med to be sent to external peers. If 0, no med is sent. This object
-                     has been deprecated. Use alaRouteMapRedistProtoEntry objects of
+					"The med to be sent to external peers. If 0, no med is sent. This object 
+                     has been deprecated. Use alaRouteMapRedistProtoEntry objects of 
                      AlcatelIND1RouteMap.mib."
 					DEFVAL { 0 }
 					::= { alaBgpRedistRouteEntry 4 }
@@ -3259,23 +3256,23 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpRedistRouteLocalPref OBJECT-TYPE
 			SYNTAX   Gauge32 (0..4294967295)
-					MAX-ACCESS   read-write
+					MAX-ACCESS   read-create
 					STATUS   deprecated
 					DESCRIPTION
-				   	"The value to override the default local pref sent to
+				   	"The value to override the default local pref sent to 
                      internal peers. If 0, no override is applied. This object has been
-                     deprecated. Use alaRouteMapRedistProtoEntry objects of
+                     deprecated. Use alaRouteMapRedistProtoEntry objects of 
                      AlcatelIND1RouteMap.mib."
 					DEFVAL { 0 }
 					::= { alaBgpRedistRouteEntry 5 }
 		
 		alaBgpRedistRouteCommunity OBJECT-TYPE	
             SYNTAX  DisplayString(SIZE(0..70))
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  deprecated
             		DESCRIPTION
-            		"The value to set the COMMUNITY attribute when advertising
-                     this network. This object has been deprecated. Use
+            		"The value to set the COMMUNITY attribute when advertising 
+                     this network. This object has been deprecated. Use 
                      alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
 					DEFVAL { "" }
          	 	 	::= { alaBgpRedistRouteEntry 6 }
@@ -3285,12 +3282,12 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 							enable(1),
 							disable(2)
 							}
-					MAX-ACCESS   read-write
+					MAX-ACCESS   read-create
 					STATUS   deprecated
 					DESCRIPTION
-					"Redistribute all the subnet routes if it is enabled. Otherwise,
+					"Redistribute all the subnet routes if it is enabled. Otherwise, 
                      redistribute only matching network route. This object has been
-                     deprecated. Use alaRouteMapRedistProtoEntry objects of
+                     deprecated. Use alaRouteMapRedistProtoEntry objects of 
                      AlcatelIND1RouteMap.mib."
 					DEFVAL { enable }
 					::= { alaBgpRedistRouteEntry 7 }
@@ -3300,7 +3297,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 							redistribute(1),
 							doNotRedistribute(2)
 							}
-					MAX-ACCESS  read-write
+					MAX-ACCESS  read-create
 					STATUS  deprecated
 					DESCRIPTION
 					"Controls the redistribution of routes in this range. This object has been
@@ -3310,10 +3307,10 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpRedistRouteRowStatus OBJECT-TYPE
 			SYNTAX  RowStatus
-					MAX-ACCESS    read-write
+					MAX-ACCESS    read-create
 					STATUS    deprecated
 					DESCRIPTION
-					"Row status variable. This object has been deprecated. Use
+					"Row status variable. This object has been deprecated. Use 
                      alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
 		            DEFVAL { notInService }
 					::= { alaBgpRedistRouteEntry 9 }
@@ -3329,18 +3326,18 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				DESCRIPTION
 				"BGP debugging table - has been deprecated in favour of alaDrcTmBgpDebug Configuration."
 				::= { alcatelIND1BGPMIBObjects 10 }
-	
+	 
 	alaBgpDebugEntry OBJECT-TYPE
 		SYNTAX  AlaBgpDebugEntry
 				MAX-ACCESS    not-accessible
 				STATUS    deprecated
-				DESCRIPTION
+				DESCRIPTION 
 				"BGP debugging entry - has been deprecated in favour of alaDrcTmBgpDebug Configuration."
 				INDEX	{
 						alaBgpDebugEvent
 						}
 				::= { alaBgpDebugTable 1 }
-	
+	 
 	AlaBgpDebugEntry ::=
 		SEQUENCE	{
 					alaBgpDebugEvent		INTEGER,
@@ -3376,7 +3373,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  deprecated
 					DESCRIPTION
-              		"All the Debug Events/types described here stands deprecated in favour of
+              		"All the Debug Events/types described here stands deprecated in favour of 
                      MIB objects defined in alaDrcTmBgpDebug Configuration."
 					::= { alaBgpDebugEntry 1 }
 
@@ -3388,7 +3385,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
     			MAX-ACCESS read-write
     			STATUS     deprecated
     			DESCRIPTION
-              	"All the Debug Events/types described here stands deprecated in favour of
+              	"All the Debug Events/types described here stands deprecated in favour of 
                  MIB objects defined in alaDrcTmBgpDebug Configuration."
     			DEFVAL { disable }
 			    ::= { alaBgpDebugEntry 2 }
@@ -3398,7 +3395,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  deprecated
 					DESCRIPTION
-              		"All the Debug Events/types described here stands deprecated in favour of
+              		"All the Debug Events/types described here stands deprecated in favour of 
                      MIB objects defined in alaDrcTmBgpDebug Configuration."
 					::= { alaBgpDebugEntry 3 }
 
@@ -3413,19 +3410,19 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				DESCRIPTION
 				"BGP Network6 configuration table."
 				::= { alcatelIND1BGPMIBObjects 11 }
-	
+	 
 	alaBgpNetwork6Entry OBJECT-TYPE
 		SYNTAX  AlaBgpNetwork6Entry
 				MAX-ACCESS  not-accessible
 				STATUS      current
-				DESCRIPTION
+				DESCRIPTION 
 				"BGP Network6 entry."
 				INDEX	{
 						alaBgpNetwork6Addr,
 						alaBgpNetwork6MaskLen
 						}
 				::= { alaBgpNetwork6Table 1 }
-	
+	 
 	AlaBgpNetwork6Entry ::=
 		SEQUENCE {
 				alaBgpNetwork6Addr		    Ipv6Address,
@@ -3444,7 +3441,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
         DESCRIPTION
             "The IPv6 address of the BGP Network."
         ::= { alaBgpNetwork6Entry 1 }
-
+        
 
     alaBgpNetwork6MaskLen   OBJECT-TYPE
         SYNTAX      Unsigned32 (0..128)
@@ -3453,7 +3450,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
         DESCRIPTION
             "The number of bits that are significant in the IPv6 address prefix of the BGP Network."
         ::= { alaBgpNetwork6Entry 2 }
-
+        
 
 	alaBgpNetwork6State OBJECT-TYPE	
         SYNTAX      INTEGER {
@@ -3468,28 +3465,28 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 	alaBgpNetwork6Metric OBJECT-TYPE
         SYNTAX      Gauge32 (0..4294967295)
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      current
         DESCRIPTION
-            "This specifies the MED to be used when advertising this network to
+            "This specifies the MED to be used when advertising this network to 
              external peers. A value of 0 indicates not to send MED."
 		DEFVAL { 0 }
         ::= { alaBgpNetwork6Entry 4 }
 
 	alaBgpNetwork6LocalPref OBJECT-TYPE	
         SYNTAX      Gauge32 (0..4294967295)
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      current
         DESCRIPTION
-            "This specifies the override default LOCAL PREF to be used when
-             advertising this network to internal peers. A value of 0 indicates
+            "This specifies the override default LOCAL PREF to be used when 
+             advertising this network to internal peers. A value of 0 indicates 
              not to override the default."
 		DEFVAL { 0 }
      	::= { alaBgpNetwork6Entry 5 }
 
 	alaBgpNetwork6Community OBJECT-TYPE	
         SYNTAX      DisplayString(SIZE(0..70))
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      current
         DESCRIPTION
             "The value to set the COMMUNITY attribute when advertising this network."
@@ -3498,9 +3495,9 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 	alaBgpNetwork6RowStatus OBJECT-TYPE
        	SYNTAX	    RowStatus
-       	MAX-ACCESS  read-write
+       	MAX-ACCESS  read-create
        	STATUS      current
-       	DESCRIPTION
+       	DESCRIPTION 
             "Row status variable."
 	    DEFVAL { notInService }
        	::= { alaBgpNetwork6Entry 7 }
@@ -3515,19 +3512,19 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				DESCRIPTION
 				"BGP IPv6 Routing table."
 				::= { alcatelIND1BGPMIBObjects 12 }
-	
+	 
 	alaBgpRoute6Entry OBJECT-TYPE
 		SYNTAX  AlaBgpRoute6Entry
 				MAX-ACCESS    not-accessible
 				STATUS    current
-				DESCRIPTION
+				DESCRIPTION 
 				"BGP Route entry."
 				INDEX	{
 						alaBgpRoute6Addr,
 						alaBgpRoute6MaskLen
 						}
 				::= { alaBgpRoute6Table 1 }
-	
+	 
 	AlaBgpRoute6Entry ::=
 		SEQUENCE 	{
 					alaBgpRoute6Addr					Ipv6Address,
@@ -3579,18 +3576,18 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
      		    ::= { alaBgpRoute6Entry 3 }
 
 	alaBgpRoute6Paths OBJECT-TYPE
-       	SYNTAX  Counter32
+       	SYNTAX  Counter32 
        			MAX-ACCESS   read-only
        			STATUS   current
-       			DESCRIPTION
+       			DESCRIPTION 
 				"Number of total paths available to this destination."
        			::= { alaBgpRoute6Entry 4 }
 
 	alaBgpRoute6FeasiblePaths OBJECT-TYPE
-       	SYNTAX  Counter32
+       	SYNTAX  Counter32 
        			MAX-ACCESS   read-only
        			STATUS   current
-       			DESCRIPTION
+       			DESCRIPTION 
 				"Number of Feasible paths available to this destination."
        			::= { alaBgpRoute6Entry 5 }
 
@@ -3648,7 +3645,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
         		MAX-ACCESS  read-only
         		STATUS  current
         		DESCRIPTION
-        		"List of (addresses of) neighbours to whom this route has been
+        		"List of (addresses of) neighbours to whom this route has been 
                  advertised is encoded here."
      		    ::= { alaBgpRoute6Entry 11 }
 
@@ -3741,7 +3738,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
      		    ::= { alaBgpRoute6Entry 19 }
 
 --		
--- BGP path6 table
+-- BGP path6 table 
 --
 	alaBgpPath6Table OBJECT-TYPE
 		SYNTAX  SEQUENCE OF AlaBgpPath6Entry
@@ -3750,12 +3747,12 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				DESCRIPTION
 				"BGP Path table."
 				::= { alcatelIND1BGPMIBObjects 13 }
-	
+	 
 	alaBgpPath6Entry OBJECT-TYPE
 		SYNTAX  AlaBgpPath6Entry
 				MAX-ACCESS    not-accessible
 				STATUS    current
-				DESCRIPTION
+				DESCRIPTION 
 				"BGP path6 entry."
 				INDEX	{
 						alaBgpPath6Addr,
@@ -3764,7 +3761,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 						alaBgpPath6SrcProto
 						}
 				::= { alaBgpPath6Table 1 }
-	
+	 
 	AlaBgpPath6Entry ::=
 		SEQUENCE 	{
 					alaBgpPath6Addr				Ipv6Address,
@@ -3810,7 +3807,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				MAX-ACCESS  read-only
 				STATUS  current
 				DESCRIPTION
-				"The BGP Identifier of the peer who sent this path. For locally
+				"The BGP Identifier of the peer who sent this path. For locally 
                  sourced routes, the value is 0.0.0.0."
 				::= { alaBgpPath6Entry 3 }
 
@@ -3864,10 +3861,10 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				MAX-ACCESS  read-only
 				STATUS  current
 				DESCRIPTION
-				"Indicates the state of the path.  When path state is none it
-                 indicates that there are no paths to this prefix/len and the
-                 route is being purged from the system. Stale indicates that the
-                 peer that advertised this route's nexthop is in the process of
+				"Indicates the state of the path.  When path state is none it 
+                 indicates that there are no paths to this prefix/len and the 
+                 route is being purged from the system. Stale indicates that the 
+                 peer that advertised this route's nexthop is in the process of 
                  graceful restart."
 				::= { alaBgpPath6Entry 7 }
 
@@ -3901,14 +3898,14 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				"The sequence of AS path segments.
                  Each AS path segment is represented by a triple <TYPE, LENGTH, VALUE>.
                  The TYPE is a 1-octet field which has two possible values:
-                     (1) AS_SET      : unordered set of ASs a route in the UPDATE message
+                     (1) AS_SET      : unordered set of ASs a route in the UPDATE message 
                                        has traversed.
-                     (2) AS_SEQUENCE : ordered set of ASs a route in the UPDATE message
+                     (2) AS_SEQUENCE : ordered set of ASs a route in the UPDATE message 
                                        has traversed.
-                 The LENGTH is a 1-octet field containing the number of ASs in
+                 The LENGTH is a 1-octet field containing the number of ASs in 
                   the value field.
-                 The VALUE field contains one or more AS numbers, each AS is
-                  represented in the octet string as a pair of octets according to
+                 The VALUE field contains one or more AS numbers, each AS is 
+                  represented in the octet string as a pair of octets according to 
                   the following algorithm:
                        first-byte-of-pair  = ASNumber / 256;
                        second-byte-of-pair = ASNumber & 255;"
@@ -3919,7 +3916,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				MAX-ACCESS  read-only
 				STATUS  current
 				DESCRIPTION
-				"The LOCAL_PREF attribute of the path.  A value of -1 indicates
+				"The LOCAL_PREF attribute of the path.  A value of -1 indicates 
                  the absence of this attribute."
 				::= { alaBgpPath6Entry 11 }
 	
@@ -3928,7 +3925,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				MAX-ACCESS  read-only
 				STATUS  current
 				DESCRIPTION
-				"The Multi Exit Disc. attribute of the path.  A value of 4294967295
+				"The Multi Exit Disc. attribute of the path.  A value of 4294967295 
                  indicates the absence of this attribute."
 				::= { alaBgpPath6Entry 12 }
 
@@ -3940,7 +3937,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				MAX-ACCESS  read-only
 				STATUS  current
 				DESCRIPTION
-				"Indicates whether this path is generated without selecting a
+				"Indicates whether this path is generated without selecting a 
                  less specific route."
 				::= { alaBgpPath6Entry 13 }
 
@@ -3949,7 +3946,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				MAX-ACCESS  read-only
 				STATUS  current
 				DESCRIPTION
-				"The AS number of the last BGP4 speaker that performed route
+				"The AS number of the last BGP4 speaker that performed route 
                  aggregation. A value of 0 indicates the absence of this attribute."
 				::= { alaBgpPath6Entry 14 }
 
@@ -3958,8 +3955,8 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				MAX-ACCESS  read-only
 				STATUS  current
 				DESCRIPTION
-				"The IP address of the last BGP4 speaker that performed route
-                 aggregation. A value of 0.0.0.0 indicates the absence of this
+				"The IP address of the last BGP4 speaker that performed route 
+                 aggregation. A value of 0.0.0.0 indicates the absence of this 
                  attribute."
 				::= { alaBgpPath6Entry 15 }
 
@@ -3968,7 +3965,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				MAX-ACCESS  read-only
 				STATUS  current
 				DESCRIPTION
-				"The community attribute of the path. The communities are
+				"The community attribute of the path. The communities are 
                  represented as series of 4 octet values."
 				::= { alaBgpPath6Entry 16 }
 
@@ -3977,9 +3974,9 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				MAX-ACCESS  read-only
 				STATUS  current
 				DESCRIPTION
-				"One or more path attributes not understood by this BGP4 speaker.
-                 Size of zero (0) indicates the absence of such attribute(s).
-                 Octets beyond the maximum size, if any, are not recorded by
+				"One or more path attributes not understood by this BGP4 speaker. 
+                 Size of zero (0) indicates the absence of such attribute(s). 
+                 Octets beyond the maximum size, if any, are not recorded by 
                  this object."
 				::= { alaBgpPath6Entry 17 }
 
@@ -3989,7 +3986,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				STATUS  current
 				DESCRIPTION
 				"The Router Id of the BGP4 speaker that performed route reflection,
-                 if this is a reflected route in the local AS. A value of 0.0.0.0 indicates the
+                 if this is a reflected route in the local AS. A value of 0.0.0.0 indicates the 
                  absence of this attribute. Refer RFC 2796 (BGP Route Reflection), Section 7"
 				::= { alaBgpPath6Entry 18 }
 
@@ -3998,9 +3995,9 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				MAX-ACCESS  read-only
 				STATUS  current
 				DESCRIPTION
-				"Sequence of Cluster Id values representing the reflection path that the route
-                 has passed, if this is a reflected route in the local AS. Size of zero (0)
-                 indicates the absence of this attribute.
+				"Sequence of Cluster Id values representing the reflection path that the route 
+                 has passed, if this is a reflected route in the local AS. Size of zero (0) 
+                 indicates the absence of this attribute. 
                  Refer RFC 2796 (BGP Route Reflection), Section 7"
 				::= { alaBgpPath6Entry 19 }
 
@@ -4026,18 +4023,18 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				DESCRIPTION
 				"BGP IPv6 peer table."
 				::= { alcatelIND1BGPMIBObjects 14 }
-	
+	 
 	alaBgpPeer6Entry OBJECT-TYPE
 		SYNTAX    AlaBgpPeer6Entry
 				MAX-ACCESS    not-accessible
 				STATUS    current
-				DESCRIPTION
+				DESCRIPTION 
 				"BGP IPv6 Peer configuration entry."
-				INDEX	{
-                        alaBgpPeer6Addr
+				INDEX	{ 
+                        alaBgpPeer6Addr 
                         }
 			::= { alaBgpPeer6Table 1 }
-	
+	 
 	AlaBgpPeer6Entry ::=
 		SEQUENCE 	{
 				alaBgpPeer6Addr					Ipv6Address,
@@ -4113,10 +4110,10 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                 alaBgpPeer6TcpWindowSize        INTEGER,
                 alaBgpPeer6ActivateIpv6         INTEGER,
                 alaBgpPeer6MinRouteAdvertisementInterval    INTEGER,
-				alaBgpPeer6Prefix6ListOut		DisplayString,
-				alaBgpPeer6Prefix6ListIn		DisplayString
+                alaBgpPeer6Prefix6ListOut		DisplayString,
+                alaBgpPeer6Prefix6ListIn		DisplayString
 				}
-	
+	 
 		alaBgpPeer6Addr OBJECT-TYPE
 			SYNTAX  Ipv6Address
 					MAX-ACCESS  read-only
@@ -4127,7 +4124,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpPeer6AS OBJECT-TYPE
 			SYNTAX  INTEGER(1..65535)
-					MAX-ACCESS  read-write
+					MAX-ACCESS  read-create
 					STATUS  current
 					DESCRIPTION
 					"Autonomous system of the peer."
@@ -4139,17 +4136,17 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                     		enable(1),
                     		disable(2)
                 			}
-        			MAX-ACCESS  read-write
+        			MAX-ACCESS  read-create
         			STATUS  current
         			DESCRIPTION
-            		"Enable/Disable the peer passive status.  If enabled the peer
+            		"Enable/Disable the peer passive status.  If enabled the peer 
                      will not initiate a transport connection."
         			DEFVAL { disable }
          			::= { alaBgpPeer6Entry 3 }
 
 		alaBgpPeer6Name OBJECT-TYPE
             SYNTAX  DisplayString(SIZE(0..60))
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
             		"A symbolic name for the neighbour."
@@ -4161,7 +4158,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                        		enable(1),
                        		disable(2)
                    			}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
             		"If enabled the external peer is allowed to be multiple hops away."
@@ -4170,10 +4167,10 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpPeer6MaxPrefix OBJECT-TYPE
 			SYNTAX  Gauge32 (0..2147483647)
-				MAX-ACCESS  read-write
+				MAX-ACCESS  read-create
 				STATUS  current
 				DESCRIPTION
-				"The maximum prefixes to be accepted from this peer. If this maximum
+				"The maximum prefixes to be accepted from this peer. If this maximum 
                  is reached, the peer will be sent a NOTIFY message with a CEASE ecode."
         		DEFVAL { 5000 }
 				::= { alaBgpPeer6Entry 6 }
@@ -4183,12 +4180,12 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                        		enable(1),
                        		disable(2)
                    			}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"If enabled, the operator will be warned when the peer reaches
-                     80% of the configured maximum prefixes. To see this message,
-                     BGP debug for type 'warnings' must be activated and debug level
+            		"If enabled, the operator will be warned when the peer reaches 
+                     80% of the configured maximum prefixes. To see this message, 
+                     BGP debug for type 'warnings' must be activated and debug level 
                      set to 20."
         			DEFVAL { enable }
          			::= { alaBgpPeer6Entry 7 }
@@ -4198,11 +4195,11 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                        		enable(1),
                        		disable(2)
                    			}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"If enabled, nexthop processing in the updates sent to this
-                     peer is disabled and is set to the IPv6 address of the interface
+            		"If enabled, nexthop processing in the updates sent to this 
+                     peer is disabled and is set to the IPv6 address of the interface 
                      attached to this peer."
         			DEFVAL { disable }
          			::= { alaBgpPeer6Entry 8 }
@@ -4212,10 +4209,10 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                        		enable(1),
                        		disable(2)
                    			}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"Enable/Disable dynamic policy configurability on the connection
+            		"Enable/Disable dynamic policy configurability on the connection 
                      to this peer."
         			DEFVAL { disable }
          			::= { alaBgpPeer6Entry 9 }
@@ -4228,7 +4225,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-only
             		STATUS  current
             		DESCRIPTION
-            		"Route refresh capability is Enabled/Disabled on the connection
+            		"Route refresh capability is Enabled/Disabled on the connection 
                      to this peer."
         			DEFVAL { enabled }
          			::= { alaBgpPeer6Entry 10 }
@@ -4241,7 +4238,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-only
             		STATUS  current
             		DESCRIPTION
-            		"Multiprotocol capability IPv4 Unicast is Enabled/Disabled on
+            		"Multiprotocol capability IPv4 Unicast is Enabled/Disabled on 
                      the connection to this peer ."
         			DEFVAL { enabled }
          			::= { alaBgpPeer6Entry 11 }
@@ -4254,7 +4251,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-only
             		STATUS  current
             		DESCRIPTION
-            		"Multiprotocol capability IPv4 Multicast is Enabled/Disabled
+            		"Multiprotocol capability IPv4 Multicast is Enabled/Disabled 
                      on the connection to this peer ."
         			DEFVAL { enabled }
          			::= { alaBgpPeer6Entry 12 }
@@ -4277,27 +4274,27 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpPeer6RouteMapOut	OBJECT-TYPE
 			SYNTAX	DisplayString(SIZE(0..70))
-           		    MAX-ACCESS  read-write
+           		    MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The name of the policy map to be applied to the updates sent
+            		"The name of the policy map to be applied to the updates sent 
                      to this peer. This is same as alaBgpPolicyRouteMapName."
         			DEFVAL { "" }
          			::= { alaBgpPeer6Entry 15 }
 
 		alaBgpPeer6RouteMapIn OBJECT-TYPE
 			SYNTAX	DisplayString(SIZE(0..70))
-           		    MAX-ACCESS  read-write
+           		    MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The name of the policy map to be applied to the updates
+            		"The name of the policy map to be applied to the updates 
                      received from this peer. This is same as alaBgpPolicyRouteMapName."
         			DEFVAL { "" }
          			::= { alaBgpPeer6Entry 16 }
 
 		alaBgpPeer6LocalAddr OBJECT-TYPE
 			SYNTAX  Ipv6Address
-					MAX-ACCESS  read-write
+					MAX-ACCESS  read-create
 					STATUS  current
 					DESCRIPTION
 					"Local IPv6 address of this connection."
@@ -4318,7 +4315,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-only
             		STATUS  current
             		DESCRIPTION
-				    "The general reason for termination of last established session
+				    "The general reason for termination of last established session 
                      with the peer since the protocol was operationally up."
          		    ::= { alaBgpPeer6Entry 18 }
 
@@ -4460,7 +4457,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             		MAX-ACCESS  read-only
             		STATUS  current
             		DESCRIPTION
-            		"This indicates whether the peer belongs to the local autonomous
+            		"This indicates whether the peer belongs to the local autonomous 
                      system(internal) or another autonomous system."
          		    ::= { alaBgpPeer6Entry 27 }
 
@@ -4468,10 +4465,10 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             SYNTAX  INTEGER {
 							clear(1)
 							}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"Setting a value of clear into this variable will clear the
+            		"Setting a value of clear into this variable will clear the 
                      per peer statistics."	
 		            DEFVAL { clear }
          	 	    ::= { alaBgpPeer6Entry 28 }
@@ -4481,11 +4478,11 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                         	enable(1),
                         	disable(2)
                     		}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"Enable/Disable the peer autostart status.  If enabled, the peer
-                     will be automatically restarted (if administratively enabled)
+            		"Enable/Disable the peer autostart status.  If enabled, the peer 
+                     will be automatically restarted (if administratively enabled) 
                      after the transition to IDLE state."
         			DEFVAL { enable }
          			::= { alaBgpPeer6Entry 29 }
@@ -4495,7 +4492,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                         	enable(1),
                         	disable(2)
                     		}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
             		"If enabled this peer is a route reflection client."
@@ -4507,7 +4504,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                         	enable(1),
                         	disable(2)
                     		}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
             		"If enabled this peer is a member of our confederation."
@@ -4519,17 +4516,17 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                         	enable(1),
                         	disable(2)
                     		}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"If enabled private as numbers are stripped out in the updates
+            		"If enabled private as numbers are stripped out in the updates 
                      sent to this peer."
         			DEFVAL { disable }
          			::= { alaBgpPeer6Entry 32 }
 
 		alaBgpPeer6TTL OBJECT-TYPE
 			SYNTAX 	INTEGER(0..255)
-           			MAX-ACCESS read-write
+           			MAX-ACCESS read-create
            			STATUS current
            			DESCRIPTION
 					"TTL count for packets on this TCP connection."
@@ -4538,57 +4535,57 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpPeer6AspathListOut	OBJECT-TYPE
 			SYNTAX	DisplayString(SIZE(0..70))
-           		    MAX-ACCESS  read-write
+           		    MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The name of the aspath-list to be applied to the updates
+            		"The name of the aspath-list to be applied to the updates 
                      sent to this peer. This is same as alaBgpAspathMatchListId."
         			DEFVAL { "" }
          			::= { alaBgpPeer6Entry 34 }
 
 		alaBgpPeer6AspathListIn OBJECT-TYPE
 			SYNTAX	DisplayString(SIZE(0..70))
-           		    MAX-ACCESS  read-write
+           		    MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The name of the aspath-list to be applied to the updates
+            		"The name of the aspath-list to be applied to the updates 
                      received from this peer. This is same as alaBgpAspathMatchListId."
         			DEFVAL { "" }
          			::= { alaBgpPeer6Entry 35 }
 
 		alaBgpPeer6PrefixListOut	OBJECT-TYPE
 			SYNTAX	DisplayString(SIZE(0..70))
-           		    MAX-ACCESS  read-write
+           		    MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The name of the prefix-list to be applied to the updates
+            		"The name of the prefix-list to be applied to the updates 
                      sent to this peer. This is same as alaBgpPrefixMatchListId."
         			DEFVAL { "" }
          			::= { alaBgpPeer6Entry 36 }
 
 		alaBgpPeer6PrefixListIn OBJECT-TYPE
 			SYNTAX	DisplayString(SIZE(0..70))
-           		    MAX-ACCESS  read-write
+           		    MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The name of the prefix-list to be applied to the updates
+            		"The name of the prefix-list to be applied to the updates 
                      received from this peer. This is same as alaBgpPrefixMatchListId."
         			DEFVAL { "" }
          			::= { alaBgpPeer6Entry 37 }
 
 		alaBgpPeer6CommunityListOut	OBJECT-TYPE
 			SYNTAX	DisplayString(SIZE(0..70))
-           		    MAX-ACCESS  read-write
+           		    MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"The name of the community-list to be applied to the updates
+            		"The name of the community-list to be applied to the updates 
                      sent to this peer. This is same as alaBgpCommunityMatchListId."
         			DEFVAL { "" }
          			::= { alaBgpPeer6Entry 38 }
 
 		alaBgpPeer6CommunityListIn OBJECT-TYPE
 			SYNTAX	DisplayString(SIZE(0..70))
-           		    MAX-ACCESS  read-write
+           		    MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
             		"The name of the community-list to be applied to the updates
@@ -4600,7 +4597,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             SYNTAX  INTEGER {
 							restart(1)
 							}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
             		"Setting a value of restart into this variable will restart the peer."	
@@ -4612,7 +4609,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 							enable(1),
 							disable(2)
 							}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
            			"If enabled a default route is sent to this neighbour."
@@ -4623,10 +4620,10 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             SYNTAX  INTEGER {
 							reconfigure(1)
 							}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"Setting a value of reconfigure into this variable will
+            		"Setting a value of reconfigure into this variable will 
                      re-start inbound policy evaluation of the peer."
 		            DEFVAL { reconfigure }
          	 	    ::= { alaBgpPeer6Entry 42 }
@@ -4635,20 +4632,20 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
             SYNTAX  INTEGER {
 							reconfigure(1)
 							}
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"Setting a value of reconfigure into this variable will re-start
+            		"Setting a value of reconfigure into this variable will re-start 
                      outbound policy evaluation of the peer."
 		            DEFVAL { reconfigure }
          	 	    ::= { alaBgpPeer6Entry 43 }
 
 		alaBgpPeer6MD5Key OBJECT-TYPE
             SYNTAX  DisplayString(SIZE(0..200))
-            		MAX-ACCESS  read-write
+            		MAX-ACCESS  read-create
             		STATUS  current
             		DESCRIPTION
-            		"Value of the MD5 key used in TCP connection with the peer.
+            		"Value of the MD5 key used in TCP connection with the peer. 
                      This field is secured and returned value is non significant."
         			DEFVAL { "" }
          			::= { alaBgpPeer6Entry 44 }
@@ -4666,9 +4663,9 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpPeer6RowStatus OBJECT-TYPE
 			SYNTAX 	RowStatus
-           			MAX-ACCESS read-write
+           			MAX-ACCESS read-create
            			STATUS current
-           			DESCRIPTION
+           			DESCRIPTION 
                     "Row status variable."
 		            DEFVAL { notInService }
            			::= { alaBgpPeer6Entry 46 }
@@ -4747,7 +4744,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpPeer6LocalIntfName OBJECT-TYPE
 			SYNTAX  DisplayString (SIZE(0..20))
-					MAX-ACCESS  read-write
+					MAX-ACCESS  read-create
 					STATUS  current
 					DESCRIPTION
 					"The user defined name used to identify the local IPv6 interface for this
@@ -4807,12 +4804,12 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  current
 					DESCRIPTION
-                    "Time interval in seconds for the Hold Timer established with the peer.
-                     The value of this object is calculated by this BGP speaker by using the
-                     smaller of the value in alaBgpPeer6HoldTimeConfigured and the Hold Time
-                     received in the OPEN message. This value must be at lease three seconds
-                     if it is not zero (0) in which case the session has not been
-                     established with the peer, or, the value of alaBgpPeer6HoldTimeConfigured
+                    "Time interval in seconds for the Hold Timer established with the peer. 
+                     The value of this object is calculated by this BGP speaker by using the 
+                     smaller of the value in alaBgpPeer6HoldTimeConfigured and the Hold Time 
+                     received in the OPEN message. This value must be at lease three seconds 
+                     if it is not zero (0) in which case the session has not been 
+                     established with the peer, or, the value of alaBgpPeer6HoldTimeConfigured 
                      is zero (0)."
 					::= { alaBgpPeer6Entry 61 }
 
@@ -4821,59 +4818,59 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 					MAX-ACCESS  read-only
 					STATUS  current
 					DESCRIPTION
-                    "Time interval in seconds for the KeepAlive timer established with the peer.
-                     The value of this object is calculated by this BGP speaker such that,
-                     when compared with alaBgpPeer6HoldTime, it has the same proportion as what
-                     alaBgpPeer6KeepAliveConfigured has when compared with alaBgpPeer6HoldTimeConfigured.
-                     If the value of this object is zero (0), it indicates that the session
-                     has not been established with the peer, or, the value of
+                    "Time interval in seconds for the KeepAlive timer established with the peer. 
+                     The value of this object is calculated by this BGP speaker such that, 
+                     when compared with alaBgpPeer6HoldTime, it has the same proportion as what 
+                     alaBgpPeer6KeepAliveConfigured has when compared with alaBgpPeer6HoldTimeConfigured. 
+                     If the value of this object is zero (0), it indicates that the session 
+                     has not been established with the peer, or, the value of 
                      alaBgpPeer6KeepAliveConfigured is zero (0)."
 					::= { alaBgpPeer6Entry 62 }
-
+                    
 		alaBgpPeer6ConnRetryInterval OBJECT-TYPE
 			SYNTAX  INTEGER (1..65535)
-					MAX-ACCESS  read-write
+					MAX-ACCESS  read-create
 					STATUS  current
 					DESCRIPTION
-                    "Time interval in seconds for the ConnectRetry timer. The suggested value
-                    for this timer is 120 seconds."
+                    "Time interval in seconds for the ConnectRetry timer. The suggested value 
+                    for this timer is 120 seconds." 
 					::= { alaBgpPeer6Entry 63 }
 
 		alaBgpPeer6HoldTimeConfigured OBJECT-TYPE
 			SYNTAX  INTEGER (0 | 3..65535)
-					MAX-ACCESS  read-write
+					MAX-ACCESS  read-create
 					STATUS  current
 					DESCRIPTION
-                    "Time interval in seconds for the Hold Time configured for this BGP speaker
-                     with this peer. This value is placed in an OPEN message sent to this peer
-                     by this BGP speaker, and is compared with the Hold Time field in an OPEN
-                     message received from the peer when determining the Hold Time
-                     (alaBgpPeer6HoldTime) with the peer. This value must not be less than
-                     three seconds if it is not zero (0) in which case the Hold Time is NOT
-                     to be negotiated with the peer. The suggested value for this timer
+                    "Time interval in seconds for the Hold Time configured for this BGP speaker 
+                     with this peer. This value is placed in an OPEN message sent to this peer 
+                     by this BGP speaker, and is compared with the Hold Time field in an OPEN 
+                     message received from the peer when determining the Hold Time 
+                     (alaBgpPeer6HoldTime) with the peer. This value must not be less than 
+                     three seconds if it is not zero (0) in which case the Hold Time is NOT 
+                     to be negotiated with the peer. The suggested value for this timer 
                      is 90 seconds."
 					::= { alaBgpPeer6Entry 64 }
 
 		alaBgpPeer6KeepAliveConfigured OBJECT-TYPE
 			SYNTAX  INTEGER (0 | 1..21845)
-					MAX-ACCESS  read-write
+					MAX-ACCESS  read-create
 					STATUS  current
 					DESCRIPTION
-                    "Time interval in seconds for the KeepAlive timer configured for this BGP
-                     speaker with this peer. The value of this object will only determine the
-                     KEEPALIVE messages' frequency relative to the value specified in
-                     alaBgpPeer6HoldTimeConfigured; the actual time interval for the KEEPALIVE
-                     messages is indicated by alaBgpPeer6KeepAlive. A reasonable maximum value
-                     for this timer would be configured to be one third of that of
-                     alaBgpPeer6HoldTimeConfigured. If the value of this object is zero (0),
-                     no periodical KEEPALIVE messages are sent to the peer after the BGP
-                     connection has been established.  The suggested value for this timer
+                    "Time interval in seconds for the KeepAlive timer configured for this BGP 
+                     speaker with this peer. The value of this object will only determine the 
+                     KEEPALIVE messages' frequency relative to the value specified in 
+                     alaBgpPeer6HoldTimeConfigured; the actual time interval for the KEEPALIVE 
+                     messages is indicated by alaBgpPeer6KeepAlive. A reasonable maximum value 
+                     for this timer would be configured to be one third of that of 
+                     alaBgpPeer6HoldTimeConfigured. If the value of this object is zero (0), 
+                     no periodical KEEPALIVE messages are sent to the peer after the BGP 
+                     connection has been established.  The suggested value for this timer 
                      is 30 seconds."
 					::= { alaBgpPeer6Entry 65 }
 
 		alaBgpPeer6Ipv4NextHop OBJECT-TYPE
 			SYNTAX  IpAddress
-					MAX-ACCESS  read-write
+					MAX-ACCESS  read-create
 					STATUS  current
 					DESCRIPTION
                     "The IPv4 nexthop address to be used for IPv4 routes advertised to this peer."
@@ -4881,7 +4878,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpPeer6Ipv6NextHop OBJECT-TYPE
 			SYNTAX  Ipv6Address
-					MAX-ACCESS  read-write
+					MAX-ACCESS  read-create
 					STATUS  current
 					DESCRIPTION
                     "The IPv6 nexthop address to be used for IPv6 routes advertised to this peer."
@@ -4892,16 +4889,16 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                                 stop(1),
                                 start(2)
                     }
-					MAX-ACCESS  read-write
+					MAX-ACCESS  read-create
 					STATUS  current
 					DESCRIPTION
                     "The desired state of the BGP connection. A transition from 'stop' to 'start'
-                     will cause the BGP Start Event to be generated. A transition from 'start' to
-                     'stop' will cause the BGP Stop Event to be generated. This parameter can be
-                     used to restart BGP peer connections. Care should be used in providing
+                     will cause the BGP Start Event to be generated. A transition from 'start' to 
+                     'stop' will cause the BGP Stop Event to be generated. This parameter can be 
+                     used to restart BGP peer connections. Care should be used in providing 
                      write access to this object without adequate authentication."
                      ::= { alaBgpPeer6Entry 68 }
-
+                     
 		alaBgpPeer6State OBJECT-TYPE
 			SYNTAX  INTEGER {
                                 idle(1),
@@ -4909,7 +4906,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                                 active(3),
                                 opensent(4),
                                 openconfirm(5),
-                                established(6)
+                                established(6) 
                     }
                     MAX-ACCESS  read-only
                     STATUS  current
@@ -4938,7 +4935,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                               enabled(1),
                               disabled(2)
                             }
-					MAX-ACCESS  read-write
+					MAX-ACCESS  read-create
                     STATUS current
                     DESCRIPTION
                     "If enabled, the Multiprotocol IPv6 Unicast capability is advertised to
@@ -4948,7 +4945,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 
 		alaBgpPeer6MinRouteAdvertisementInterval OBJECT-TYPE
         	SYNTAX  INTEGER (1..65535)
-					MAX-ACCESS  read-write
+					MAX-ACCESS  read-create
                     STATUS current
                     DESCRIPTION
                     "Time interval in seconds for the MinRouteAdvertisementInterval timer."
@@ -4956,26 +4953,27 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                     ::= { alaBgpPeer6Entry 73 }
 
 		alaBgpPeer6Prefix6ListOut	OBJECT-TYPE
-			SYNTAX	DisplayString(SIZE(0..70))
-           		    MAX-ACCESS  read-write
-            		STATUS  current
-            		DESCRIPTION
+		SYNTAX	DisplayString(SIZE(0..70))
+               MAX-ACCESS  read-create
+           	STATUS  current
+          	DESCRIPTION
             		"The name of the prefix6-list to be applied to the updates
-                     sent to this peer. This is same as alaBgpPrefix6MatchListId."
-        			DEFVAL { "" }
-         			::= { alaBgpPeer6Entry 74 }
+                        sent to this peer. This is same as alaBgpPrefix6MatchListId."
+        	DEFVAL { "" }
+         	::= { alaBgpPeer6Entry 74 }
 
 		alaBgpPeer6Prefix6ListIn OBJECT-TYPE
-			SYNTAX	DisplayString(SIZE(0..70))
-           		    MAX-ACCESS  read-write
-            		STATUS  current
-            		DESCRIPTION
+		SYNTAX	DisplayString(SIZE(0..70))
+       		MAX-ACCESS  read-create
+            	STATUS  current
+           	DESCRIPTION
             		"The name of the prefix6-list to be applied to the updates
-                     received from this peer. This is same as alaBgpPrefix6MatchListId."
-        			DEFVAL { "" }
-         			::= { alaBgpPeer6Entry 75 }
+                         received from this peer. This is same as alaBgpPrefix6MatchListId."
+        	DEFVAL { "" }
+         	::= { alaBgpPeer6Entry 75 }
 
 
+                    
 
 -- compliance statements
 
@@ -5048,10 +5046,10 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				alaBgpDampCeil,
 				alaBgpAspathCompare,
 				alaBgpAsOriginInterval,
-                alaBgpMultiProtocolIpv4,
-                alaBgpMultiProtocolIpv6,
+                		alaBgpMultiProtocolIpv4,
+                		alaBgpMultiProtocolIpv6,
 				alaBgpBfdStatus,
-				alaBgpBfdAllNeighborStatus ,
+				alaBgpBfdAllNeighborStatus,
 				alaBgpGracefulRestart,
 				alaBgpRestartInterval,
 				alaBgpRestartStatus
@@ -5121,15 +5119,14 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                 alaBgpPeerTcpWindowSize,
                 alaBgpPeerActivateIpv6,
 				alaBgpPeerBfdStatus,
- 				alaBgpPeerPrefix6ListOut,
+				alaBgpPeerPrefix6ListOut,
 				alaBgpPeerPrefix6ListIn,
 				alaBgpPeerLastTransitionTime,
 				alaBgpPeerLastUpTime,
-				alaBgpPeerLocalIntfName ,
+				alaBgpPeerLocalIntfName,
 				alaBgpPeerRestartFwdState,
 				alaBgpPeerRestartState,
 				alaBgpPeerRestartTime
-				
 				}
 		STATUS  current
 		DESCRIPTION
@@ -5163,7 +5160,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				alaBgpNetworkCommunity,
 				alaBgpNetworkRowStatus
 				}
-		STATUS  current
+		STATUS  current 
 		DESCRIPTION
 		"A collection of objects for managing BGP networks."
 		::= { alcatelIND1BGPMIBGroups 4 }
@@ -5190,7 +5187,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                 alaBgpRouteIsOnDeleteList,
                 alaBgpRouteIsDampened
 				}
-		STATUS  current
+		STATUS  current 
 		DESCRIPTION
 		"A collection of objects for managing BGP routes."
 		::= { alcatelIND1BGPMIBGroups 5 }
@@ -5214,12 +5211,12 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				alaBgpPathAggregatorAddr,
 				alaBgpPathCommunity,
 				alaBgpPathUnknownAttr,
-                alaBgpPathOriginatorId,
-                alaBgpPathClusterList,
-                alaBgpPathPeerInetType,
+                alaBgpPathOriginatorId, 
+                alaBgpPathClusterList, 
+                alaBgpPathPeerInetType, 
                 alaBgpPathPeerName
 				}
-		STATUS  current
+		STATUS  current 
 		DESCRIPTION
 		"A collection of objects for managing BGP paths attributes."
 		::= { alcatelIND1BGPMIBGroups 6 }
@@ -5236,7 +5233,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				alaBgpDampReuseTime,
 				alaBgpDampClear
 				}
-		STATUS  current
+		STATUS  current 
 		DESCRIPTION
 		"A collection of objects for managing BGP dampening."
 		::= { alcatelIND1BGPMIBGroups 7 }
@@ -5264,7 +5261,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				alaBgpRouteMapAction,
 				alaBgpRouteMapRowStatus
 				}
-		STATUS  current
+		STATUS  current 
 		DESCRIPTION
 		"A collection of objects for managing BGP route maps."
 		::= { alcatelIND1BGPMIBGroups 8 }
@@ -5277,9 +5274,8 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				alaBgpAspathMatchListAction,
 				alaBgpAspathMatchListRowStatus,
 				alaBgpAspathMatchListSubIndex
-				
 				}
-		STATUS  current
+		STATUS  current 
 		DESCRIPTION
 		"A collection of objects for managing BGP aspath lists."
 		::= { alcatelIND1BGPMIBGroups 9 }
@@ -5295,10 +5291,11 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				alaBgpPrefixMatchListRowStatus,
 				alaBgpPrefix6MatchListAction,
 				alaBgpPrefix6MatchListGE,
-				alaBgpPrefix6MatchListLE ,
+				alaBgpPrefix6MatchListLE,
 				alaBgpPrefix6MatchListRowStatus
+
 				}
-		STATUS  current
+		STATUS  current 
 		DESCRIPTION
 		"A collection of objects for managing BGP prefix lists."
 		::= { alcatelIND1BGPMIBGroups 10 }
@@ -5310,10 +5307,9 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				alaBgpCommunityMatchListPriority,
 				alaBgpCommunityMatchListType,
 				alaBgpCommunityMatchListAction,
-				alaBgpCommunityMatchListRowStatus,
-				alaBgpCommunityMatchListSubIndex
+				alaBgpCommunityMatchListRowStatus
 				}
-		STATUS  current
+		STATUS  current 
 		DESCRIPTION
 		"A collection of objects for managing BGP community lists."
 		::= { alcatelIND1BGPMIBGroups 11 }
@@ -5325,9 +5321,10 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				alaBgpAspathPriMatchListIntIdx,
 				alaBgpAspathPriMatchListRegExp,
 				alaBgpAspathPriMatchListAction,
-				alaBgpAspathPriMatchListRowStatus
+				alaBgpAspathPriMatchListRowStatus,
+				alaBgpCommunityMatchListSubIndex
 				}
-		STATUS  current
+		STATUS  current 
 		DESCRIPTION
 		"A collection of objects for managing BGP aspath lists by priority."
 		::= { alcatelIND1BGPMIBGroups 12 }
@@ -5342,7 +5339,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				alaBgpCommunityPriMatchListAction,
 				alaBgpCommunityPriMatchListRowStatus
 				}
-		STATUS  current
+		STATUS  current 
 		DESCRIPTION
 		"A collection of objects for managing BGP community lists by priority."
 		::= { alcatelIND1BGPMIBGroups 13 }
@@ -5371,7 +5368,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				alaBgpDebugStatus,
 				alaBgpDebugDescription
 				}
-		STATUS  current
+		STATUS  current 
 		DESCRIPTION
 		"A collection of objects for managing BGP debug infos. These objects have been
          deprecated, and this group is no longer mandatory."
@@ -5387,7 +5384,7 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				alaBgpNetwork6Community,
 				alaBgpNetwork6RowStatus
 				}
-		STATUS  current
+		STATUS  current 
 		DESCRIPTION
 		"A collection of objects for managing BGP IPv6 networks."
 		::= { alcatelIND1BGPMIBGroups 16 }
@@ -5414,11 +5411,11 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                 alaBgpRoute6IsOnDeleteList,
                 alaBgpRoute6IsDampened
 				}
-		STATUS  current
+		STATUS  current 
 		DESCRIPTION
 		"A collection of objects for managing BGP routes."
 		::= { alcatelIND1BGPMIBGroups 17 }
-
+        
 	alabgpMIBPath6AttrGroup OBJECT-GROUP
 		OBJECTS {
 				alaBgpPath6Addr,
@@ -5437,12 +5434,12 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
 				alaBgpPath6AggregatorAs,
 				alaBgpPath6AggregatorAddr,
 				alaBgpPath6Community,
-				alaBgpPath6UnknownAttr,
+				alaBgpPath6UnknownAttr, 
                 alaBgpPath6OriginatorId,
                 alaBgpPath6ClusterList,
                 alaBgpPath6PeerName
 				}
-		STATUS  current
+		STATUS  current 
 		DESCRIPTION
 		"A collection of objects for managing BGP paths attributes."
 		::= { alcatelIND1BGPMIBGroups 18 }
@@ -5515,16 +5512,16 @@ alcatelIND1BGPMIBCompliances OBJECT-IDENTITY
                 alaBgpPeer6TcpWindowSize,
                 alaBgpPeer6ActivateIpv6,
                 alaBgpPeer6MinRouteAdvertisementInterval,
-				alaBgpPeer6Prefix6ListOut,
-				alaBgpPeer6Prefix6ListIn,
-				alaBgpPeer6BgpId,
-				alaBgpPeer6LastUpTime,
-				alaBgpPeer6LocalIntfName ,
-				alaBgpPeer6RestartFwdState ,
-				alaBgpPeer6RestartState,
-				alaBgpPeer6RestartTime,
-				alaBgpPeer6LastTransitionTime,
-				alaBgpPeerBgpId
+		alaBgpPeer6Prefix6ListOut,
+		alaBgpPeer6Prefix6ListIn,
+		alaBgpPeer6BgpId,
+		alaBgpPeer6LastUpTime,
+		alaBgpPeer6LocalIntfName,
+		alaBgpPeer6RestartFwdState,
+		alaBgpPeer6RestartState,
+		alaBgpPeer6RestartTime,
+		alaBgpPeer6LastTransitionTime,
+		alaBgpPeerBgpId
 				}
 		STATUS  current
 		DESCRIPTION

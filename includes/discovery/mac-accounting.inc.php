@@ -16,7 +16,7 @@ $mac_list = array();
 // Disabled because we can do this better in poller now without performance hit
 // CLEANME FIXME do we do it in poller? Can this code go?
 
-if ($device['os_group'] == "cisco" && FALSE)
+if ($device['os_group'] == "cisco")
 {
   echo("Cisco MAC Accounting : ");
   $datas = snmp_walk($device, "cipMacSwitchedBytes", "-OUqsX", "CISCO-IP-STAT-MIB");
@@ -46,7 +46,6 @@ if ($device['os_group'] == "cisco" && FALSE)
         echo(".");
       } else {
         $ma_id = dbInsert(array('port_id' => $port['port_id'], 'device_id' => $device['device_id'], 'mac' => $mac_entry['mac'] ), 'mac_accounting');
-        dbInsert(array('ma_id' => $ma_id), 'mac_accounting-state');
         echo("+");
       }
     } else {

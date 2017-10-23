@@ -16,14 +16,193 @@ IMPORTS
    
     des-1210-10mebx                      MODULE-IDENTITY
         
- LAST-UPDATED "201506030000Z"         -- 03 Jun 2015
-    ORGANIZATION "DES-1210-10-BX-6-07-017.mib"
+
+    LAST-UPDATED "201703100000Z"         -- 10 Mar 2017
+    ORGANIZATION "DES-1210-10-BX-06-10-012.mib"
     CONTACT-INFO
         ""
-    DESCRIPTION
-        " In order to pass the web www.simpleweb.org to 
-          verify severity level 3, which must be change 
-          the SYNTAX of mib file."
+     DESCRIPTION
+        "1. Add tftpFwTargetBootUp object."
+
+     --  Revision history
+     REVISION     "201703100000Z"         -- 10 Mar 2017
+     DESCRIPTION
+        "1. Add tftpFwTargetBootUp object."
+
+     --  Revision history
+     REVISION     "201702230000Z"         -- 23 Feb 2017
+     DESCRIPTION
+        "1. Add ipv4IfIndex object.
+         2. Add ipv4IfVLANname object."
+	
+     --  Revision history
+     REVISION     "201702160000Z"         -- 16 Feb 2017
+     DESCRIPTION
+        "1. Add sysFirmwareDelete object for Dual image.
+         2. Add tftpCfgTargetTftpConfigID option current-config(3)."
+
+     --  Revision history
+     REVISION     "201701130000Z"         -- 13 Jan 2017
+     DESCRIPTION
+        "1. Add auto cable diag object.
+         2. Add snmpTrapAutoCableDiag object."
+
+     --  Revision history
+     REVISION     "201701190000Z"         -- 19 Jan 2017
+     DESCRIPTION
+        "1. Add aclPacketRuleReplaceVLAN object.
+         2. Modify aclPacketRuleAction value list for replaceVLAN(8)."
+
+     --  Revision history
+     REVISION     "201612210000Z"         -- 21 Dec 2016
+     DESCRIPTION
+        "1.Add snmpTrapERPS notification object.
+         2. Add sysPortCtrlState object and remove disable(7) value from sysPortCtrlSpeed."
+
+     --  Revision history
+     REVISION     "201612020000Z"         -- 02 Dec 2016
+     DESCRIPTION
+        "1. Add snmpV3TrapDULD object."
+
+     --  Revision history
+     REVISION     "201611250000Z"         -- 25 Nov 2016
+     DESCRIPTION
+        "1. For Release version.
+        2. Add MstMstiStpTopologyChangesCount,MstMstiStpLastTopologyChange object."
+
+     --  Revision history
+     REVISION     "201611150000Z"         -- 15 Nov 2016
+     DESCRIPTION
+        "1. Modify Value list for cpuFilterProfileIPProtocol and cpuFilterv6L3RuleProtocol."
+
+     --  Revision history
+     REVISION     "201610240000Z"         -- 24 Oct 2016
+     DESCRIPTION
+        "1. Add stpNniBpduAddr object(OID 6.1.18)."
+		
+     --  Revision history
+     REVISION     "201610200000Z"         -- 20 Oct 2016
+     DESCRIPTION
+        "1. Add qosInBandMgmt object."
+
+     --  Revision history
+     REVISION     "201610140000Z"         -- 14 Oct 2016
+     DESCRIPTION
+        "1. Add LACP Active Port object.
+		 2. Add Igmp Proxy Reporting.
+		 3. Add companyStaticRoute object."
+
+     --  Revision history
+     REVISION     "201610070000Z"         -- 07 Oct 2016
+     DESCRIPTION
+        "1. Add Port utilization object.
+		 2. Add PortLinkChangeTime."
+
+     --  Revision history
+     REVISION     "201609210000Z"         -- 21 Sep 2016
+     DESCRIPTION
+        "1. Add new value 'download and reboot(4)' for object tftpCfgTargetTftpOperation."
+        
+     --  Revision history
+     REVISION     "201608180000Z"         -- 18 Aug 2016
+     DESCRIPTION
+        "1. Modify Value list for aclProfileIPProtocol."
+		 
+     --  Revision history
+     REVISION     "201608030000Z"         -- 03 Aug 2016
+     DESCRIPTION
+        "1. Add portSecTableClearPortList object.
+		 2. Add portSecTableClear object.
+		 3. Add statisticsClearPortList object(OID 125).
+		 4. Add statisticsClear object(OID 125).
+		 5. Remove ipv4cpuFilterProfileTable."
+
+     --  Revision history
+     REVISION     "201606210000Z"         -- 21 Jun 2016
+     DESCRIPTION
+        "1. Add New function Reboot Schedule.
+	     2. Add New object mstDeleteInstanceStatus.
+	     3. Add dot1qVlanId MIB object.
+         4. Modify index sequence for dot1qVlanTable.
+         5. Add sysSaveOperationStatus object."
+
+     --  Revision history
+     REVISION     "201605300000Z"         -- 30 May 2016
+     DESCRIPTION
+        "1. Modify tftpCfgTargetIncrement object."
+
+     --  Revision history
+     REVISION     "201605200000Z"         -- 20 May 2016
+     DESCRIPTION
+	    "1. Add macBasedVlanLearningTable object(OID 70.2)."
+
+     --  Revision history
+     REVISION     "201605110000Z"         -- 11 May 2016
+     DESCRIPTION
+	    "1. Add impbDhcpSnoopingTableClearPortList object.
+	     2. Add impbDhcpSnoopingTableClearIPType object.
+         3. Add impbDhcpSnoopingTableClear object."
+
+     --  Revision history
+     REVISION     "201603240000Z"         -- 24 Mar 2016
+     DESCRIPTION
+        "1. Add Replace CVID object(OID 27.2.1.12, OID 27.4.1.13).
+         2. Add new port role Root-inconsistent in mstCistCurrentPortRole(OID 15.2.6.5.1.1.7)."
+
+     --  Revision history
+     REVISION     "201603100000Z"         -- 10 Mar 2016
+     DESCRIPTION
+        "1. Add mldsReportToAllPort object."
+
+     --  Revision history
+     REVISION     "201601150000Z"         -- 15 Jan 2016
+     DESCRIPTION
+        "1. Add Dying Gasp object(OID 120.0.29)."
+
+     --  Revision history
+     REVISION     "201512310000Z"         -- 31 Dec 2015
+     DESCRIPTION
+        "1. Add ipv4 CPU filter profile offset mask object(OID 33.1.1.1.13 ~ 33.1.1.1.17).
+         2. Add CPU filter profile offset mask object(OID 33.1.2.1.14 ~ 33.1.2.1.19).
+         3. Add cpuFilterUdfRule object(OID 33.4)."
+
+     --  Revision history
+     REVISION     "201511060000Z"         -- 06 Nov 2015
+     DESCRIPTION
+        "1. Add ImpbDhcpSnoopingRemainingTime object."
+
+     --  Revision history
+     REVISION     "201510290000Z"         -- 29 Oct 2015
+     DESCRIPTION
+        "1. Add icmpv6 ra filter object(OID 14.13).
+         2. Add snmpV3TrapDHCPv6ServerScreening object(OID 5.8.18 and 120.0.28)."
+
+     --  Revision history
+     REVISION     "201510230000Z"         -- 23 Oct 2015
+     DESCRIPTION
+        "For Release version."
+
+     --  Revision history
+     REVISION     "201510070000Z"         -- 07 Oct 2015
+     DESCRIPTION
+        "1. Add dhcpv6 server screen object(OID 14.12).
+         2. Add dhcpv4 server screen log object(OID 14.7.5).
+         3. Add snmpV3TrapDHCPv6ServerScreening object(OID 5.8.17 and 120.0.27)."
+
+     --  Revision history
+     REVISION     "201510010000Z"         -- 01 Oct 2015
+     DESCRIPTION
+        "For Release version."
+
+     --  Revision history
+     REVISION     "201507230000Z"         -- 23 July 2015
+     DESCRIPTION
+        "Add LEDPanel object."
+
+     --  Revision history
+     REVISION     "201507080000Z"         -- 08 July 2015
+     DESCRIPTION
+        "Add cpuFilterState object."
 
      --  Revision history
      REVISION     "201506030000Z"         -- 03 Jun 2015
@@ -277,9 +456,10 @@ Ipv6Address ::= TEXTUAL-CONVENTION
 -- ----------------------------------------------------------------- -- 
 
 
--- end DLINK_METRO_LIKE_FIRMWARE_INFO_DISPLAY
--- start DLINK_METRO_LIKE_FIRMWARE_INFO_DISPLAY
+-- end DLINK-METRO-LIKE-FIRMWARE-INFO-DISPLAY
+-- start DLINK-METRO-LIKE-FIRMWARE-INFO-DISPLAY
       companySystem           OBJECT IDENTIFIER ::= { des-1210-10mebx 1 }
+      firmwareInfoImage1       OBJECT IDENTIFIER ::= { sysFirmwareInfomation 1 }      
       companyIpifGroup            OBJECT IDENTIFIER ::= { des-1210-10mebx 2 } 
       companyTftpGroup            OBJECT IDENTIFIER ::= { des-1210-10mebx 3 } 
       companyMiscGroup            OBJECT IDENTIFIER ::= { des-1210-10mebx 4 }
@@ -316,6 +496,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
       companyQinQ                   OBJECT IDENTIFIER ::= { des-1210-10mebx 37 }
       companyTimeRangeMgmt                   OBJECT IDENTIFIER ::= { des-1210-10mebx 38 }
       companySMTP                   OBJECT IDENTIFIER ::= { des-1210-10mebx 40 }
+      companyStaticRoute           OBJECT IDENTIFIER ::= { des-1210-10mebx 42 }
       companyLimitIp             OBJECT IDENTIFIER ::= { des-1210-10mebx 45 }
       companyGratuitousARP       OBJECT IDENTIFIER ::= { des-1210-10mebx 48 }
       companyMulticastFilter           OBJECT IDENTIFIER ::= { des-1210-10mebx 49 }
@@ -335,6 +516,8 @@ Ipv6Address ::= TEXTUAL-CONVENTION
     companyDDM                                      OBJECT IDENTIFIER ::= { des-1210-10mebx 105 }
       companyFTPGroup            OBJECT IDENTIFIER ::= { des-1210-10mebx 107 } 
       companyTraps	      OBJECT IDENTIFIER ::= { des-1210-10mebx 120 }
+      companyswLedPanel             OBJECT IDENTIFIER ::= { des-1210-10mebx 121 }
+      companyStatistics            OBJECT IDENTIFIER ::= { des-1210-10mebx 125 } 
       
 -- ---------------------------------------------------------------- --
 
@@ -350,7 +533,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
           "System name used for identification of the device.
           The following characters are allowed to input.
           0 ~ 9 / a ~ z / A ~ Z
-          Special character: (  )   V  +  _  =  ."
+          Special character: (  )   V  +  -  =  ."
        ::= { companySystem 1 }
 
     sysHardwareVersion OBJECT-TYPE
@@ -390,7 +573,6 @@ Ipv6Address ::= TEXTUAL-CONVENTION
                  3rd floor').  If the location is unknown, the value is
                  the zero-length string."
        ::= { companySystem 5 }
-
 
     sysGroupInterval OBJECT-TYPE
        SYNTAX      Integer32 (0 | 120..1225)
@@ -451,8 +633,8 @@ Ipv6Address ::= TEXTUAL-CONVENTION
        MAX-ACCESS  read-write
        STATUS      current
        DESCRIPTION
-          "This object is used to save Configuration , value 1 save config_1 , 
-          value 2 is not in process , value 3 is save config_1 and value 4 is save config_2."
+          "This object is used to save Configuration , value 1 save config-1 , 
+          value 2 is not in process , value 3 is save config-1 and value 4 is save config-2."
        DEFVAL  { 1 }
        ::= { companySystem 10 }
 
@@ -513,7 +695,9 @@ Ipv6Address ::= TEXTUAL-CONVENTION
               sysPortCtrlType
                  INTEGER,           
               sysPortCtrlCapability
-              	 BITS
+              	 BITS,              
+              sysPortCtrlState
+                 INTEGER
           }
 
         sysPortCtrlIndex OBJECT-TYPE
@@ -545,8 +729,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
                          rate100M-Half   (3),
                          rate10M-Full    (4),
                          rate10M-Half    (5),
-                         auto           (6),
-                         disable        (7)
+                         auto            (6)
                       }
            MAX-ACCESS  read-write
            STATUS      current
@@ -635,8 +818,17 @@ Ipv6Address ::= TEXTUAL-CONVENTION
       		DESCRIPTION              
       			"The port's capability advertised."     
    			::= { sysPortCtrlEntry 9 }
-            
--- start DLINK_METRO_LIKE_GENERAL
+        sysPortCtrlState OBJECT-TYPE
+            SYNTAX INTEGER {
+				enable     (1),
+				disable    (2)
+            }
+            MAX-ACCESS  read-write
+            STATUS      current
+            DESCRIPTION
+                "Configures interface state."
+            ::= { sysPortCtrlEntry 11 }           
+-- start DLINK-METRO-LIKE-GENERAL
         sysPortDescriptionTable OBJECT-TYPE
            SYNTAX      SEQUENCE OF SysPortDescriptionEntry
            MAX-ACCESS  not-accessible
@@ -663,6 +855,8 @@ Ipv6Address ::= TEXTUAL-CONVENTION
               sysPortDescString
                  DisplayString,
               sysPortUpLinkTime
+                 DisplayString,
+              sysPortLinkChangeTime
                  DisplayString
            }
 
@@ -701,10 +895,18 @@ Ipv6Address ::= TEXTUAL-CONVENTION
            DESCRIPTION
                "This object indicates the port link up time."
            ::= { sysPortDescriptionEntry 4 }
+		   
+        sysPortLinkChangeTime OBJECT-TYPE
+           SYNTAX       DisplayString(SIZE(0..32))
+           MAX-ACCESS   read-only
+           STATUS       current
+           DESCRIPTION
+               "This object indicates the port link up time."
+           ::= { sysPortDescriptionEntry 5 }
 
--- end DLINK_METRO_LIKE_GENERAL
+-- end DLINK-METRO-LIKE-GENERAL
 
--- start DLINK_METRO_LIKE_GENERAL
+-- start DLINK-METRO-LIKE-GENERAL
 		sysPortErrTable OBJECT-TYPE
 		   SYNTAX       SEQUENCE OF SysPortErrEntry
 		   MAX-ACCESS   not-accessible
@@ -767,14 +969,17 @@ Ipv6Address ::= TEXTUAL-CONVENTION
 		
 		sysPortErrPortReason OBJECT-TYPE
 		   SYNTAX       INTEGER {
-		      lbd(1)
+		      lbd(1),
+		      traffic-control(2),
+		      duld(3),
+		      bpdu-protection(4)
 		   }
 		   MAX-ACCESS   read-only
 		   STATUS       current
 		   DESCRIPTION
 		        "This object decides whether the PortStatus is LBD."
 		   ::= { sysPortErrEntry 4 }
--- end DLINK_METRO_LIKE_GENERAL
+-- end DLINK-METRO-LIKE-GENERAL
 
         sysDhcpAutoConfiguration  OBJECT-TYPE
             SYNTAX      INTEGER {
@@ -788,7 +993,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
             DEFVAL { disable }
             ::= { companySystem 16 }
 
--- start DLINK_METRO_LIKE_GENERAL
+-- start DLINK-METRO-LIKE-GENERAL
 
 		   sysWebState  OBJECT-TYPE
 		   SYNTAX       INTEGER {
@@ -908,7 +1113,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
             DESCRIPTION
             "To set system contact name."
             ::= { companySystem 27 }
--- end DLINK_METRO_LIKE_GENERAL
+-- end DLINK-METRO-LIKE-GENERAL
 
         sysDhcpAutoConfigTimeout  OBJECT-TYPE
             SYNTAX      INTEGER (1..65535)
@@ -939,10 +1144,10 @@ Ipv6Address ::= TEXTUAL-CONVENTION
 
            ::= { companySystem 30 }             
            
--- start DLINK_METRO_LIKE_FIRMWARE_INFO_DISPLAY   
+-- start DLINK-METRO-LIKE-FIRMWARE-INFO-DISPLAY   
 
     --FirmwareInfo
-        sysVersion OBJECT-TYPE
+        firmwareInfoImage1Version OBJECT-TYPE
            SYNTAX      DisplayString (SIZE(1..15))
            MAX-ACCESS  read-only
            STATUS      current
@@ -950,45 +1155,45 @@ Ipv6Address ::= TEXTUAL-CONVENTION
               "The version of firmware information."
                 DEFVAL { "" }
 
-           ::= { sysFirmwareInfomation 1 }
+           ::= { firmwareInfoImage1 1 }
 
-        sysSize OBJECT-TYPE
+        firmwareInfoImage1Size OBJECT-TYPE
            SYNTAX      Integer32 
            MAX-ACCESS  read-only
            STATUS      current
            DESCRIPTION
               "The size of firmware information."
 
-           ::= { sysFirmwareInfomation 2 }
+           ::= { firmwareInfoImage1 2 }
 
-        sysUpdateTime OBJECT-TYPE
+        firmwareInfoImage1UpdateTime OBJECT-TYPE
            SYNTAX      DisplayString (SIZE(1..20))
            MAX-ACCESS  read-only
            STATUS      current
            DESCRIPTION
               "The Update Time of firmware information."
 
-           ::= { sysFirmwareInfomation 3 }
+           ::= { firmwareInfoImage1 3 }
 
-        sysFromIP OBJECT-TYPE
+        firmwareInfoImage1FromIP OBJECT-TYPE
            SYNTAX      IpAddress
            MAX-ACCESS  read-only
            STATUS      current
            DESCRIPTION
               "The IP address of firmware information."
 
-           ::= { sysFirmwareInfomation 4 }
+           ::= { firmwareInfoImage1 4 }
 
-        sysUser OBJECT-TYPE
+        firmwareInfoImage1User OBJECT-TYPE
            SYNTAX      DisplayString (SIZE(1..9))
            MAX-ACCESS  read-only
            STATUS      current
            DESCRIPTION
               "The user of firmware infomation."
 
-           ::= { sysFirmwareInfomation 5 }
+           ::= { firmwareInfoImage1 5 }
 
-          sysType OBJECT-TYPE
+          firmwareInfoImage1Type OBJECT-TYPE
            SYNTAX      INTEGER{
                     console(1),
                     telnet(2),
@@ -1002,9 +1207,8 @@ Ipv6Address ::= TEXTUAL-CONVENTION
            DESCRIPTION
               "The type of firmware infomation."
 
-           ::= { sysFirmwareInfomation 6 }
-
--- end DLINK_METRO_LIKE_FIRMWARE_INFO_DISPLAY
+           ::= { firmwareInfoImage1 6 }
+-- end DLINK-METRO-LIKE-FIRMWARE-INFO-DISPLAY
 
         sysBootupConfigID OBJECT-TYPE
            SYNTAX      INTEGER (1..2)
@@ -1160,6 +1364,94 @@ Ipv6Address ::= TEXTUAL-CONVENTION
       		"The port's DateCode."
       			        
    	    ::= { sysPortMediaTypeEntry 9 }                    
+
+sysScheduleRebootTable  OBJECT-TYPE
+            SYNTAX     SEQUENCE OF SysScheduleRebootEntry 
+            MAX-ACCESS not-accessible
+            STATUS     current
+            DESCRIPTION
+               "An entry containing systom restart time schedule."
+            ::= { companySystem 41 }
+                       
+        sysScheduleRebootEntry OBJECT-TYPE
+            SYNTAX     SysScheduleRebootEntry 
+            MAX-ACCESS not-accessible
+            STATUS     current
+            DESCRIPTION
+                  "An entry containing systom restart time schedule."
+            INDEX { sysScheduleRebootIndex}
+            ::= { sysScheduleRebootTable 1 } 
+
+        SysScheduleRebootEntry  ::= 
+           SEQUENCE {
+                sysScheduleRebootIndex        INTEGER,
+                sysScheduleRebootTimeType     INTEGER,
+                sysScheduleRebootTimeSetting  OCTET STRING,
+                sysScheduleRebootSaveConfig   INTEGER,
+                sysScheduleRebootStatus       RowStatus
+              }            
+            
+        sysScheduleRebootIndex OBJECT-TYPE 
+           SYNTAX      INTEGER
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "The index for reboot schedule."
+           ::= { sysScheduleRebootEntry 1 } 
+          
+        sysScheduleRebootTimeType OBJECT-TYPE 
+           SYNTAX INTEGER{
+                in(1),
+                at(2)
+           }
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "Schedule Reboot Time Type. One(in) is system reboots after a time interval, 
+              and Two(at) is system reboots at the specific date and time."
+           ::= { sysScheduleRebootEntry 2 }              
+                             
+        sysScheduleRebootTimeSetting OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "If Time is Type One(in) , the time format is min(1-43200).
+               If Time is Type Two(at), the time format is hh:mm ddmthyyyy(date is optional)."
+           ::= { sysScheduleRebootEntry 3 }   
+
+        sysScheduleRebootSaveConfig OBJECT-TYPE 
+           SYNTAX INTEGER  {
+        		 enabled(1),
+        		 disabled(2)
+           }
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "System will save configuration before restarting."
+           ::= { sysScheduleRebootEntry 4 }
+                                                 
+        sysScheduleRebootStatus OBJECT-TYPE
+           SYNTAX RowStatus
+           MAX-ACCESS read-write
+           STATUS     current
+           DESCRIPTION
+             "This object indicates the status of this entry. 
+             To create a new entry, you must set the cameraInformationStatus 
+             to be CreateAndGo, then this entry will turn to be Active."
+           ::= { sysScheduleRebootEntry 5 }
+        sysSaveOperationStatus OBJECT-TYPE
+             SYNTAX INTEGER {
+                save-progressing(1),
+                last-save-success(2),
+                last-save-fail(3),
+                last-save-none(4)
+             }
+             MAX-ACCESS read-only
+             STATUS current
+             DESCRIPTION
+                 "configuration saving status."
+             ::= { companySystem 42 }
 
         -- -------------------------------------------------------------------------
         -- companyIpifGroup       
@@ -1464,6 +1756,50 @@ Ipv6Address ::= TEXTUAL-CONVENTION
             "The status of an entry in the Multi Interface Table.  Only a subset
              of the rowstatus variables (active, createAndWait, destroy) are available." 
          ::= { ipifV6AddressEntry 5 }     
+
+    -- ---------------------------------------------------------------------    
+    -- ---------------------------------------------------------------------   
+
+      ipv4IPIFTable          OBJECT-TYPE
+         SYNTAX            SEQUENCE OF Ipv4IPIFEntry
+         MAX-ACCESS        not-accessible
+         STATUS            current
+         DESCRIPTION
+            "A list of interface entries."
+         ::= { ipifSupportV4V6Info 15 }
+
+      ipv4IPIFEntry          OBJECT-TYPE
+         SYNTAX            Ipv4IPIFEntry
+         MAX-ACCESS        not-accessible
+         STATUS            current
+         DESCRIPTION
+            "An entry containing management information applicable
+               to a particular interface."
+         INDEX { ipv4IfIndex }
+         ::= { ipv4IPIFTable 1 }
+
+      Ipv4IPIFEntry ::=
+         SEQUENCE {
+		    ipv4IfIndex                 InterfaceIndex,
+            ipv4IfVLANname        OCTET STRING
+            }
+			
+      ipv4IfIndex          OBJECT-TYPE
+         SYNTAX            InterfaceIndex
+         MAX-ACCESS        read-only 
+         STATUS            current
+         DESCRIPTION
+            "The index of this interface." 
+         ::= { ipv4IPIFEntry 1 }
+		 
+     ipv4IfVLANname   OBJECT-TYPE
+         SYNTAX      OCTET STRING
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+               "The vlan name for the interface."
+         ::= { ipv4IPIFEntry 2 }   
+
     -- ---------------------------------------------------------------------    
     -- ---------------------------------------------------------------------   
 
@@ -1645,8 +1981,9 @@ Ipv6Address ::= TEXTUAL-CONVENTION
              STATUS current
              DESCRIPTION
                  "The tftp operation status represent firmware backup or upgrade status."
-             ::= { tftpFwTargetGroup 6 }    	
+             ::= { tftpFwTargetGroup 6 }   
              
+        
     	tftpCfgTargetGroup OBJECT IDENTIFIER ::= { companyTftpGroup 10 }
     	                 	
          tftpCfgTargetServerIpAddress OBJECT-TYPE
@@ -1691,7 +2028,8 @@ Ipv6Address ::= TEXTUAL-CONVENTION
               SYNTAX INTEGER {
                      download(1),
                      upload(2),
-                     progressing(3)
+                     progressing(3),
+                     download-and-reboot(4)
               }
               MAX-ACCESS read-write
               STATUS current
@@ -1719,7 +2057,8 @@ Ipv6Address ::= TEXTUAL-CONVENTION
         tftpCfgTargetTftpConfigID OBJECT-TYPE
              SYNTAX INTEGER {
                     configId-1(1),
-                    configId-2(2)
+                    configId-2(2),
+                    current-config(3)
              }
              MAX-ACCESS read-write
              STATUS current
@@ -1727,10 +2066,10 @@ Ipv6Address ::= TEXTUAL-CONVENTION
                  "The tftp config ID determine which config what you need."
              ::= { tftpCfgTargetGroup 7 }  
              
-        tftpCfgTargetTftpIncrement OBJECT-TYPE
+         tftpCfgTargetIncrement OBJECT-TYPE
              SYNTAX INTEGER {
-                    false(0),
-                    true(1)
+                     none (1),
+                     increment (2)
              }
              MAX-ACCESS read-write
              STATUS current
@@ -2400,6 +2739,8 @@ Ipv6Address ::= TEXTUAL-CONVENTION
               impbDhcpSnoopingLeaseTime
                  Integer32,
               impbDhcpSnoopingPort   
+                 Integer32,
+			  impbDhcpSnoopingremainingTime
                  Integer32
           }       
                   
@@ -2435,6 +2776,14 @@ Ipv6Address ::= TEXTUAL-CONVENTION
            DESCRIPTION 
               "The port number associated of the DHCP snooping entry."
            ::= { impbDhcpSnoopingEntry 4 } 
+        
+		 impbDhcpSnoopingremainingTime OBJECT-TYPE 
+           SYNTAX      Integer32 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "The remaining time associated of the DHCP snooping entry."
+           ::= { impbDhcpSnoopingEntry 5 }
         
     impbRoamingState OBJECT-TYPE
            SYNTAX INTEGER  {
@@ -2511,7 +2860,35 @@ Ipv6Address ::= TEXTUAL-CONVENTION
            DESCRIPTION 
               "Show Auto scan status"
            ::= { securityIpMacPortBinding 16 }
-          
+
+	impbDhcpSnoopingTableClearPortList OBJECT-TYPE
+		SYNTAX      PortList
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+            "This object allow the user to set the port list for impbDhcpSnoopingTableClear."
+		::= { securityIpMacPortBinding 17 }   
+		   
+    impbDhcpSnoopingTableClearIPType OBJECT-TYPE
+           SYNTAX INTEGER  {
+                   ipv4 (0),  ipv6 (1),  both (2)
+            }
+           MAX-ACCESS  read-write
+           STATUS      current
+           DESCRIPTION
+              "This object allow the user to set the IP type for impbDhcpSnoopingTableClear."
+           ::= { securityIpMacPortBinding 18 } 		   
+		   
+	impbDhcpSnoopingTableClear OBJECT-TYPE 
+	   SYNTAX      TruthValue 
+	   MAX-ACCESS  read-write 
+	   STATUS      current 
+	   DESCRIPTION 
+		  "This object allows the user to clear the DHCP snooping entry.
+		  Setting  a value of 'true' causes the DHCP snooping entry to 
+		  be cleared."
+		DEFVAL  { false }
+	   ::= { securityIpMacPortBinding 19 }	   
           
         -- ----------------------------------------------------------------
         -- The STP Bridge Global
@@ -2549,7 +2926,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
         	   Tree Protocol specified in IEEE 802.1w and 'mstp(3)'
         	   indicates the Multiple Spanning Tree Protocol Specified
         	   in IEEE 802.1s." 
-           DEFVAL { mstp }
+           DEFVAL { rstp }
            ::= { stpBridgeGlobal 2 }
            
         stpBridgePriority OBJECT-TYPE
@@ -2708,6 +3085,20 @@ Ipv6Address ::= TEXTUAL-CONVENTION
 
         stpNewRootTraps  OBJECT IDENTIFIER ::= { stpBridgeGlobal 16 }
          
+        stpBridgeMaxHop OBJECT-TYPE
+            SYNTAX      Timeout (600..4000)  
+            MAX-ACCESS  read-write
+            STATUS      current
+            DESCRIPTION
+               "The value that all bridges use for MaxAge when
+                this bridge is acting as the root. The granularity 
+                of this timer is specified to be 1 second.
+                An agent may return a badValue error if a set is
+                attempted to a value which is not a whole number
+                of seconds."
+            DEFVAL {2000}
+            ::= { stpBridgeGlobal 17 }         
+         
         brgAddress NOTIFICATION-TYPE
            STATUS  current
            DESCRIPTION
@@ -2729,8 +3120,20 @@ Ipv6Address ::= TEXTUAL-CONVENTION
            DESCRIPTION
               "MSTI Regional Root Identifier value for the Instance."
               ::= { stpNewRootTraps 3 }
-           
-           
+
+        stpNniBpduAddr OBJECT-TYPE
+           SYNTAX   INTEGER { 
+                        dot1d (1), 
+                        dot1ad (2) 
+                    }
+           MAX-ACCESS  read-write
+           STATUS      current
+           DESCRIPTION
+              "The value dot1d(1) indicates that Tx BPDU Header should be   
+              01-80-c2-00-00-00 on nni ports when qinq enabled. The value dot1ad(2) indicates that 
+               Tx BPDU Header should be 01-80-c2-00-00-08 on nni ports when qinq enabled."
+           ::= { stpBridgeGlobal 18 }
+
      -- -------------------------------------
      -- The Spanning Tree Port Table   
      -- -------------------------------------
@@ -2927,7 +3330,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
                  network administrator to prevent bridges external to a core region of 
                  the network causing address flushing in that region, possibly because 
                  those bridges are not under the full control of the administrator or 
-                 MAC_Operational for the attached LANs transitions frequently." 
+                 MAC-Operational for the attached LANs transitions frequently." 
             ::= {stpPortEntry 10}
            
         stpPortHelloTime OBJECT-TYPE
@@ -3104,7 +3507,9 @@ Ipv6Address ::= TEXTUAL-CONVENTION
                mstInstanceVlanMapped3k 
                     OCTET STRING,
                mstInstanceVlanMapped4k 
-                    OCTET STRING
+                    OCTET STRING,
+               mstDeleteInstanceStatus
+                    TruthValue
            }
         
         mstInstanceIndex OBJECT-TYPE
@@ -3225,6 +3630,14 @@ Ipv6Address ::= TEXTUAL-CONVENTION
                     support for VlanIndex values up to 4095."
             ::= { mstVlanMstiMappingEntry 7 }
             
+        mstDeleteInstanceStatus OBJECT-TYPE
+           SYNTAX      TruthValue
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                  "Delete Instance Index."
+              ::= { mstVlanMstiMappingEntry 8 }
+
         -- -----------------------------------------------------------------
         -- Mst Multiple Spanning Tree Instance Bridge Table
         -- -----------------------------------------------------------------
@@ -3260,6 +3673,26 @@ Ipv6Address ::= TEXTUAL-CONVENTION
               be set to enabled(1) if and only if, fsMIMstSystemControl set to start."
            ::= { stpInstance 2 }
            
+        mstCiststpTopologyChangesCount OBJECT-TYPE
+             SYNTAX      Counter32
+              MAX-ACCESS  read-only
+           STATUS      current
+           DESCRIPTION
+              "The number of times that there have been atleast
+              one non-zero TcWhile Timer on this Bridge for Common
+              Spanning Tree context."
+           ::= { stpInstance 3 }
+
+        mstCiststpLastTopologyChange OBJECT-TYPE
+    SYNTAX      TimeTicks 
+   MAX-ACCESS  read-only
+   STATUS      current
+   DESCRIPTION
+         "The time (in hundredths of a second) since the
+         TcWhile Timer for any port in this Bridge was 
+         non-zero for this spanning tree instance."
+            DEFVAL {0}
+            ::= { stpInstance 4 }
         -- -----------------------------------------------------------------
         -- Mst Multiple Spanning Tree Instance Bridge Table : MSTI
         -- -----------------------------------------------------------------        
@@ -3271,7 +3704,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
               "Table containing Bridge Information specific to Spanning 
                Tree Instance. This table maintains context ID as one 
                more index to support Multiple Instances."
-           ::= { stpInstance 3 } 
+           ::= { stpInstance 20 } 
          
         mstMstiBridgeEntry OBJECT-TYPE
            SYNTAX      MstMstiBridgeEntry       
@@ -3289,7 +3722,12 @@ Ipv6Address ::= TEXTUAL-CONVENTION
               mstMstiBridgePriority 
                     Integer32,
               mstMstiStatus
-                    INTEGER
+                    INTEGER,
+              mstMstistpTopologyChangesCount
+                    Counter32,
+              mstMstistpLastTopologyChange
+                    TimeTicks
+                    
            }
         
         mstMstiInstanceIndex OBJECT-TYPE
@@ -3327,6 +3765,27 @@ Ipv6Address ::= TEXTUAL-CONVENTION
               be set to enabled(1) if and only if, fsMIMstSystemControl set to start."
            ::= { mstMstiBridgeEntry 3 }
         
+        mstMstistpTopologyChangesCount OBJECT-TYPE
+             SYNTAX      Counter32
+              MAX-ACCESS  read-only
+           STATUS      current
+           DESCRIPTION
+              "The number of times that there have been atleast
+              one non-zero TcWhile Timer on this Bridge for Common
+              Spanning Tree context."
+           ::= { mstMstiBridgeEntry 4 }
+
+        mstMstistpLastTopologyChange OBJECT-TYPE
+    SYNTAX      TimeTicks 
+   MAX-ACCESS  read-only
+   STATUS      current
+   DESCRIPTION
+         "The time (in hundredths of a second) since the
+         TcWhile Timer for any port in this Bridge was 
+         non-zero for this spanning tree instance."
+            DEFVAL {0}
+            ::= { mstMstiBridgeEntry 5 }
+
         -- -----------------------------------------------------------------
         -- Mst Multiple Spanning Tree Instance Bridge Table
         -- -----------------------------------------------------------------
@@ -3374,7 +3833,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
         
         mstCistPort OBJECT-TYPE
               SYNTAX      Integer32 (1..65535)
-              MAX-ACCESS  not-accessible
+              MAX-ACCESS  read-only
               STATUS      current
               DESCRIPTION
                   "The Port number of the port for which this entry contains   
@@ -3401,7 +3860,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
         
         mstCistPortPathCost OBJECT-TYPE
               SYNTAX      Integer32 (1..200000000)
-              MAX-ACCESS  read-write           
+              MAX-ACCESS  read-only           
               STATUS      current
               DESCRIPTION
                   "The contribution of this port to the path cost of
@@ -3442,7 +3901,8 @@ Ipv6Address ::= TEXTUAL-CONVENTION
                            backup(2),
                            root(3),
                            designated(4),
-                           master(5)
+                           master(5),
+                            root-inconsistent(6)
                           }
               MAX-ACCESS  read-only        
               STATUS      current
@@ -3493,7 +3953,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
         
         mstMstiPort OBJECT-TYPE
               SYNTAX      Integer32 (1..65535)
-              MAX-ACCESS  not-accessible
+              MAX-ACCESS  read-only
               STATUS      current
               DESCRIPTION
                   "The Port number of the port for which this entry contains   
@@ -3520,7 +3980,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
         
         mstMstiPortPathCost OBJECT-TYPE
               SYNTAX      Integer32 (1..200000000)
-              MAX-ACCESS  read-write           
+              MAX-ACCESS  read-only            
               STATUS      current
               DESCRIPTION
                   "The contribution of this port to the path cost of
@@ -3561,7 +4021,8 @@ Ipv6Address ::= TEXTUAL-CONVENTION
                            backup(2),
                            root(3),
                            designated(4),
-                           master(5)
+                           master(5),
+                            root-inconsistent(6)
                           }
               MAX-ACCESS  read-only        
               STATUS      current
@@ -3655,27 +4116,27 @@ Ipv6Address ::= TEXTUAL-CONVENTION
   		-- ----------------------------------------------------------
 		-- The 802.1Q VLAN Groups
 		-- ----------------------------------------------------------      		
+-- ----------------------------------------------------------
+--        dot1qVlanManagementOnOff OBJECT-TYPE
+--            SYNTAX INTEGER {
+--                   enabled(1),
+--                   disabled(2)
+--            }
+--            MAX-ACCESS read-write
+--            STATUS current
+--            DESCRIPTION
+--                "Enable/Disable management VLAN mechanism."
+--            ::= { companyDot1qVlanGroup 2 }
 
-        dot1qVlanManagementOnOff OBJECT-TYPE
-            SYNTAX INTEGER {
-                   enabled(1),
-                   disabled(2)
-            }
-            MAX-ACCESS read-write
-            STATUS current
-            DESCRIPTION
-                "Enable/Disable management VLAN mechanism."
-            ::= { companyDot1qVlanGroup 2 }
-
-        dot1qVlanManagementid OBJECT-TYPE
-            SYNTAX INTEGER
-            MAX-ACCESS read-write
-            STATUS current
-            DESCRIPTION
-                "The management VLAN ID, which will allow to forward packets of that VLAN to CPU."
-            DEFVAL { 1 }
-            ::= { companyDot1qVlanGroup 3 }
-
+--        dot1qVlanManagementid OBJECT-TYPE
+--            SYNTAX INTEGER
+--            MAX-ACCESS read-write
+--            STATUS current
+--            DESCRIPTION
+--                "The management VLAN ID, which will allow to forward packets of that VLAN to CPU."
+--            DEFVAL { 1 }
+--            ::= { companyDot1qVlanGroup 3 }
+-- ----------------------------------------------------------   
         dot1qVlanAsyOnOff OBJECT-TYPE
             SYNTAX INTEGER {
                    enabled(1),
@@ -3709,11 +4170,13 @@ Ipv6Address ::= TEXTUAL-CONVENTION
             DESCRIPTION
                 "Information for a VLAN configured into the
                 device by (local or network) management."
-            INDEX   { dot1qVlanName }
+            INDEX   { dot1qVlanId }
             ::= { dot1qVlanTable 1 }
         
         Dot1qVlanEntry ::=
             SEQUENCE {
+                dot1qVlanId
+                    Integer32,
                 dot1qVlanName
                     SnmpAdminString,
                 dot1qVlanEgressPorts
@@ -3728,6 +4191,15 @@ Ipv6Address ::= TEXTUAL-CONVENTION
                     RowStatus
             }
         
+        dot1qVlanId OBJECT-TYPE
+            SYNTAX      Integer32 (1..4094)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                "An administratively assigned Id, which is used
+                to identify the VLAN."
+            ::= { dot1qVlanEntry 1 }
+
         dot1qVlanName OBJECT-TYPE
             SYNTAX      SnmpAdminString (SIZE (0..20))
             MAX-ACCESS  read-create
@@ -3737,7 +4209,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
                 to identify the VLAN."
             REFERENCE
                 "IEEE 802.1Q/D11 Section 12.10.2.1"
-            ::= { dot1qVlanEntry 1 }
+            ::= { dot1qVlanEntry 2 }
         
         dot1qVlanEgressPorts OBJECT-TYPE
             SYNTAX      PortList
@@ -3755,7 +4227,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
                 appropriate length, indicating not fixed."
             REFERENCE
                 "IEEE 802.1Q/D11 Section 12.7.7.3, 11.2.3.2.3"
-            ::= { dot1qVlanEntry 2 } 
+            ::= { dot1qVlanEntry 3 } 
                     
         dot1qVlanForbiddenPorts OBJECT-TYPE
             SYNTAX      PortList
@@ -3774,7 +4246,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
                 excluding all ports from the forbidden set."
             REFERENCE
                 "IEEE 802.1Q/D11 Section 12.7.7.3, 11.2.3.2.3"
-            ::= { dot1qVlanEntry 3 }      
+            ::= { dot1qVlanEntry 4 }      
         
         dot1qVlanUntaggedPorts OBJECT-TYPE
             SYNTAX      PortList
@@ -3793,7 +4265,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
                 option."
             REFERENCE
                 "IEEE 802.1Q/D11 Section 12.10.2.1"
-            ::= { dot1qVlanEntry 4 }
+            ::= { dot1qVlanEntry 5 }
  
         dot1qVlanAdvertisementStatus OBJECT-TYPE
             SYNTAX      INTEGER {
@@ -3804,7 +4276,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
             STATUS      current
             DESCRIPTION
                 "Enable/Disable Advertisement Status of the IEEE 802.1Q VLAN."
-            ::= { dot1qVlanEntry 5 }
+            ::= { dot1qVlanEntry 6 }
  
         dot1qVlanRowStatus OBJECT-TYPE
             SYNTAX      RowStatus
@@ -3815,7 +4287,8 @@ Ipv6Address ::= TEXTUAL-CONVENTION
                 entries can be created in dot1qVlanTable and existing entries can be
                 removed from dot1qVlanTable. It can be used as specified in the SNMP
                 v2 standard."
-            ::= { dot1qVlanEntry 6 }
+            ::= { dot1qVlanEntry 7 }   
+
 
       dot1qVlanPVIDAutoAssignOnOff OBJECT-TYPE
             SYNTAX INTEGER {
@@ -3864,7 +4337,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
             MAX-ACCESS read-write
             STATUS current
             DESCRIPTION
-            "The Leave_All Time value assigned to this Leave_All Time field.
+            "The Leave-All Time value assigned to this Leave-All Time field.
             This 16-bit value is read-write."
             ::= { companyGVRPGroup 4 }
 
@@ -4336,10 +4809,12 @@ Ipv6Address ::= TEXTUAL-CONVENTION
               laPortChannelIfIndex                InterfaceIndex,
               laPortChannelMemberList             PortList,
               laPortChannelMode                   PortLaMode              
-	      -- start CAMEO_LA_MASTER_PORT_WANTED
+	      -- start CAMEO-LA-MASTER-PORT-WANTED
 	      ,
               laPortChannelMasterPort             InterfaceIndex
-	      -- end CAMEO_LA_MASTER_PORT_WANTED
+	      -- end CAMEO-LA-MASTER-PORT-WANTED
+          ,
+              laPortChannelActiveMemberPorts    PortList
               }
 
     laPortChannelIfIndex OBJECT-TYPE
@@ -4373,7 +4848,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
                      disable(3) - channeling is disabled."
         ::= { laPortChannelEntry 3 }
         
--- start CAMEO_LA_MASTER_PORT_WANTED
+-- start CAMEO-LA-MASTER-PORT-WANTED
     laPortChannelMasterPort OBJECT-TYPE
         SYNTAX      InterfaceIndex
         MAX-ACCESS  read-write
@@ -4381,7 +4856,16 @@ Ipv6Address ::= TEXTUAL-CONVENTION
         DESCRIPTION
               "The master port of the port-channel. "
         ::= { laPortChannelEntry 4 }
--- end CAMEO_LA_MASTER_PORT_WANTED
+-- end CAMEO-LA-MASTER-PORT-WANTED
+
+  	laPortChannelActiveMemberPorts OBJECT-TYPE
+	   SYNTAX          PortList
+	   MAX-ACCESS      read-only
+	   STATUS          current
+	   DESCRIPTION
+	       "This object indicates the operational bundled ports in this
+            channel group."	
+	   ::= { laPortChannelEntry 5 }
 
     -- ------------------------------------------------------------------
     -- The La Algorithm Group
@@ -4465,7 +4949,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
            MAX-ACCESS  read-write 
            STATUS      current 
            DESCRIPTION 
-                "This object indicates LACP_Activity to this Aggregation Port. 
+                "This object indicates LACP-Activity to this Aggregation Port. 
                 LACP can be configured in one of two modes: active or passive. 
                 In active mode it will always send frames along the configured links. 
                 If the actor and partner are both in passive mode, they do not 
@@ -4480,7 +4964,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
            MAX-ACCESS  read-write 
            STATUS      current 
            DESCRIPTION 
-                "This object indicates LACP_Timeout to this Aggregation Port.
+                "This object indicates LACP-Timeout to this Aggregation Port.
                 short(1) - LACP Timeout 3 seconds.
                 long (2) - LACP Timeout 90 seconds." 
            ::= { laPortControlEntry 4 }  
@@ -4733,9 +5217,9 @@ Ipv6Address ::= TEXTUAL-CONVENTION
     -- ---------------------------------------------------------------------
 	igsSystem       OBJECT IDENTIFIER ::= { companyIgsGroup 1 }
 	igsVlan         OBJECT IDENTIFIER ::= { companyIgsGroup 3 }
--- start IGMP_SNOOPING_HOST_BASED_FAST_LEAVE
+-- start IGMP-SNOOPING-HOST-BASED-FAST-LEAVE
     igsHost         OBJECT IDENTIFIER ::= { companyIgsGroup 6 }
--- end IGMP_SNOOPING_HOST_BASED_FAST_LEAVE
+-- end IGMP-SNOOPING-HOST-BASED-FAST-LEAVE
 
     igsStatus OBJECT-TYPE 
           SYNTAX      INTEGER  { enabled(1), disabled(2) } 
@@ -4939,6 +5423,8 @@ Ipv6Address ::= TEXTUAL-CONVENTION
         ,   igsVlanRobustnessValue  Integer32
         ,   igsVlanGrpQueryInterval  Integer32
         ,   igsVlanQueryMaxResponseTime  INTEGER
+        ,   igsVlanProxyReportingStatus    INTEGER
+        ,   igsVlanProxyReportingSourceIP  IpAddress
           } 
 
       igsVlanFilterVlanId OBJECT-TYPE 
@@ -5093,8 +5579,27 @@ Ipv6Address ::= TEXTUAL-CONVENTION
         	queries on this interface."
         DEFVAL     { 10 }
             ::= { igsVlanFilterEntry 15 } 
+      igsVlanProxyReportingStatus OBJECT-TYPE 
+          SYNTAX      INTEGER { enabled(1), disabled(2) } 
+          MAX-ACCESS  read-write 
+          STATUS      current 
+          DESCRIPTION 
+            "This indicates the Proxy Reporting State of this VLAN. 
+ 	        When set to enabled, intergrate into multiple IGMP reports or only integrate a single IGMP report for 
+ 	        a specific (S,G) before sending to the router port."
+          DEFVAL  { 2 }
+            ::= { igsVlanFilterEntry 16 } 
+
+      igsVlanProxyReportingSourceIP OBJECT-TYPE 
+          SYNTAX      IpAddress 
+          MAX-ACCESS  read-write 
+          STATUS      current 
+          DESCRIPTION 
+            "This indicates the IP source address of the igmp report 
+ 	        sended by the IGMP snooping proxy reporting in this VLAN."
+            ::= { igsVlanFilterEntry 17 } 
     -- VLAN Based IGMP Snooping Group 
- 
+
       igsVlanMulticastGroupTable OBJECT-TYPE 
           SYNTAX      SEQUENCE OF IgsVlanMulticastGroupEntry 
           MAX-ACCESS  not-accessible 
@@ -5163,7 +5668,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
            ::= { igsVlanMulticastGroupEntry 4 } 
 
 
--- start IGMP_SNOOPING_HOST_BASED_FAST_LEAVE
+-- start IGMP-SNOOPING-HOST-BASED-FAST-LEAVE
     igsHostTable OBJECT-TYPE
         SYNTAX      SEQUENCE OF IgsHostEntry
         MAX-ACCESS  not-accessible
@@ -5225,7 +5730,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
         DESCRIPTION 
             "Host IP address of Group in Host table entry."
         ::= { igsHostEntry 4 }
--- end IGMP_SNOOPING_HOST_BASED_FAST_LEAVE
+-- end IGMP-SNOOPING-HOST-BASED-FAST-LEAVE
     -- ---------------------------------------------------------------------
     -- MLD Snooping Function
     -- ---------------------------------------------------------------------
@@ -5282,6 +5787,19 @@ Ipv6Address ::= TEXTUAL-CONVENTION
             "The maximum data driven learning entry value."
         DEFVAL     { 64 }
         ::= { mldsSystem 8 }
+
+    mldsReportToAllPort OBJECT-TYPE
+        SYNTAX      INTEGER  { enabled(1), disabled(2) }
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION 
+           "Enables or disables MLDS snooping in the system.
+            When set to 'enabled', the MLDS module forwards packets 
+            to report to all port.
+            When set to 'disabled', the MLDS module forwards packets 
+            to router port only."
+        DEFVAL     { 2 }
+        ::= { mldsSystem 9 }
 
 -- VLAN based router table.
  
@@ -5676,7 +6194,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
         DEFVAL { authProtocolRadiusEap }
             ::= { swAuthenCtrl 3 }
 
--- start CAMEO_EAP_TRANSPARENT_FILTERING
+-- start CAMEO-EAP-TRANSPARENT-FILTERING
     swAuthCtrlPktFwdMode OBJECT-TYPE
         SYNTAX INTEGER {
             authForwardEap(1),
@@ -5688,7 +6206,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
             "When 802.1x disable, this item can decided eap packet be forward or drop."
         DEFVAL { authForwardEap }
             ::= { swAuthenCtrl 4 }
--- end CAMEO_EAP_TRANSPARENT_FILTERING
+-- end CAMEO-EAP-TRANSPARENT-FILTERING
 
 -- -------------------------------------------------------------
 -- groups in the Port Access Control MIB
@@ -6195,6 +6713,32 @@ Ipv6Address ::= TEXTUAL-CONVENTION
     -- QoS
     -- ------------------------------------------------------------------
 
+--10--
+    qosInBandMgmt         OBJECT IDENTIFIER ::= { companyQoSGroup 10  }
+
+        qosInBandMgmtSetDefPriority OBJECT-TYPE
+                SYNTAX  INTEGER  {
+                       other(1),
+                       action(2)
+                       }
+                MAX-ACCESS  read-write
+                STATUS  current
+                DESCRIPTION
+                      "Sets the default priority. It is project dependent."
+                ::= { qosInBandMgmt 1 }
+
+        qosInBandMgmtPktPriority OBJECT-TYPE
+               SYNTAX  INTEGER (0..7)
+               MAX-ACCESS  read-write
+               STATUS  current
+               DESCRIPTION
+                     "Specifies the priority of packets, the range is 0-7. 7 is the highest priority."
+               ::= { qosInBandMgmt 2 }
+
+    -- ------------------------------------------------------------------ 
+    -- QoS
+    -- ------------------------------------------------------------------
+
 --1--
     cosScheduleMechanism       OBJECT-TYPE 
         SYNTAX INTEGER {
@@ -6529,7 +7073,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
         ::= { qosDiffServTOS 1 }    
 
     -- ------------------------------------------------------------------ 
-    -- DSCP_Mode
+    -- DSCP-Mode
     -- ------------------------------------------------------------------
     
     qosDiffServTypeGroup OBJECT IDENTIFIER ::= { qosDiffServTOS 2 }
@@ -7367,7 +7911,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
         ::= { qosDiffServTypeGroup 64 }    
     
     -- ------------------------------------------------------------------ 
-    -- TOS_Mode
+    -- TOS-Mode
     -- ------------------------------------------------------------------
         
     qosTOSGroup OBJECT IDENTIFIER ::= { qosDiffServTOS 3 }
@@ -7621,9 +8165,9 @@ Ipv6Address ::= TEXTUAL-CONVENTION
               aclQosTCPUDPPort     Integer32,
               aclQosVlanID         Integer32,
               aclQosProtocol       Integer32,
---start DLINK_METRO_LIKE_R25QOS_BY_IPV6_TC_ACL
+--start DLINK-METRO-LIKE-R25QOS-BY-IPV6-TC-ACL
               aclQosIP6TC          Integer32,
---end DLINK_METRO_LIKE_R25QOS_BY_IPV6_TC_ACL
+--end DLINK-METRO-LIKE-R25QOS-BY-IPV6-TC-ACL
               aclQosAssignClass    INTEGER,
               aclQosStatus         RowStatus
               }
@@ -7693,7 +8237,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
          "Ip protocol number of priority by acl setting" 
         ::= { aclQosEntry  8 }
 
---start DLINK_METRO_LIKE_R25QOS_BY_IPV6_TC_ACL
+--start DLINK-METRO-LIKE-R25QOS-BY-IPV6-TC-ACL
     aclQosIP6TC OBJECT-TYPE
        SYNTAX       Integer32 (0..255)
        MAX-ACCESS   read-write
@@ -7701,7 +8245,7 @@ Ipv6Address ::= TEXTUAL-CONVENTION
        DESCRIPTION
          "Ipv6 Traffic Class number of priority by acl setting" 
         ::= { aclQosEntry  10 }
---end DLINK_METRO_LIKE_R25QOS_BY_IPV6_TC_ACL
+--end DLINK-METRO-LIKE-R25QOS-BY-IPV6-TC-ACL
 
     aclQosAssignClass OBJECT-TYPE
        SYNTAX       INTEGER  { class0(0), class1(1), class2(2), class3(3) }
@@ -8467,11 +9011,11 @@ sshPublKeyRSAAdmin OBJECT-TYPE
               portSecMLA 
                  Integer32             
 
--- start DLINK_METRO_LIKE_LOCK_ADDRESS_MODE
+-- start DLINK-METRO-LIKE-LOCK-ADDRESS-MODE
               ,
               portSecLockAddrMode
                  INTEGER
--- end DLINK_METRO_LIKE_LOCK_ADDRESS_MODE
+-- end DLINK-METRO-LIKE-LOCK-ADDRESS-MODE
           }
         
                
@@ -8517,7 +9061,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         
            ::= {portSecEntry 3}
 
--- start DLINK_METRO_LIKE_LOCK_ADDRESS_MODE
+-- start DLINK-METRO-LIKE-LOCK-ADDRESS-MODE
          portSecLockAddrMode OBJECT-TYPE
            SYNTAX INTEGER  {
                             deleteOnReset (1), 
@@ -8595,8 +9139,26 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                 For all machines give maximum port number."
             ::= { portSecFDBPermanentEntry 4 }
         
--- end DLINK_METRO_LIKE_LOCK_ADDRESS_MODE
+-- end DLINK-METRO-LIKE-LOCK-ADDRESS-MODE
 
+		portSecTableClearPortList OBJECT-TYPE
+		SYNTAX      PortList
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+            "This object allow the user to set the port list for portSecTableClear."
+		::= { securityPortSecurity 3 }
+		
+		portSecTableClear OBJECT-TYPE
+			SYNTAX      TruthValue 
+			MAX-ACCESS  read-write 
+			STATUS      current 
+			DESCRIPTION 
+			"This object allows the user to clear portSecTable entry.
+			Setting  a value of 'true' causes the portSecTable entry to 
+			be cleared."
+			DEFVAL  { false }
+            ::= { securityPortSecurity  4 }
  -- ----------------------------------------------------------
  -- The companyCableDiagnostic Groups
  -- ----------------------------------------------------------
@@ -8819,6 +9381,52 @@ sshPublKeyRSAAdmin OBJECT-TYPE
             	last-test-ok - the last cable diagnostics done on the port was successful
             	last-test-failed - the last cable diagnostics done on the port failed"
           ::= { cableDiagEntry 13 } 
+         autoCableDiagTable OBJECT-TYPE 
+           SYNTAX SEQUENCE OF AutoCableDiagEntry
+           MAX-ACCESS  not-accessible
+           STATUS      current 
+           DESCRIPTION 
+              "When detecting a port linkdown, system will execute cable diagnostic function on the port, 
+               and then send the trap that includes test result."
+           ::= {companyCableDiagnostic 2 }         
+    
+         autoCableDiagEntry OBJECT-TYPE 
+           SYNTAX      AutoCableDiagEntry  
+           MAX-ACCESS  not-accessible
+           STATUS      current 
+           DESCRIPTION 
+              "When detecting a port linkdown, system will execute cable diagnostic function on the port, 
+               and then send the trap that includes test result."
+            INDEX { autoCableDiagPortIndex }
+            ::= { autoCableDiagTable 1 }
+
+        AutoCableDiagEntry ::= 
+          SEQUENCE {
+              autoCableDiagPortIndex
+                  Integer32,
+              autoCableDiagStatus
+                  INTEGER}
+
+        autoCableDiagPortIndex OBJECT-TYPE
+          SYNTAX      Integer32 (1..10)
+          MAX-ACCESS  read-only 
+          STATUS      current 
+          DESCRIPTION 
+             "The interface index for which the configuration in this 
+              entry applies.
+              For all machines give maximum port number."
+          ::= { autoCableDiagEntry 1 }
+
+        autoCableDiagStatus OBJECT-TYPE
+          SYNTAX INTEGER {
+               enabled (1), 
+               disabled (2)
+          }
+          MAX-ACCESS  read-write
+          STATUS  current
+          DESCRIPTION
+            "This object indicates the link status."
+          ::= { autoCableDiagEntry 2 }
     -- ------------------------------------------------------------------ 
     -- companyACLGroup
     -- ------------------------------------------------------------------
@@ -8901,6 +9509,14 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                  Integer32,
               ipv4aclUdfOffsetMask4
                  OCTET STRING,
+	      ipv4aclUdfDstMacMask
+		 MacAddress,
+       	      ipv4aclUdfSrcMacMask
+		 MacAddress,
+	      ipv4aclUdfCTagMask
+                 OCTET STRING,
+	      ipv4aclUdfSTagMask
+                 OCTET STRING,
               ipv4aclProfileStatus
                  RowStatus
           }
@@ -8932,8 +9548,8 @@ sshPublKeyRSAAdmin OBJECT-TYPE
               "The ACL Profile type, possible value are
               l2 (1) - for MAC-based rule, 
               l3 (2) - for IPv4-based rule,
-              arpSP_permit(4) - for ARP Spoofing prevention entry,
-              arpSP_deny(5) - for ARP Spoofing prevention entry,
+              arpSP-permit(4) - for ARP Spoofing prevention entry,
+              arpSP-deny(5) - for ARP Spoofing prevention entry,
               voiceVlan(6) - for Voice VLAN OUI entry.
               userDefined(9) - for User Defined entry.
               Note that only l2, l3 and userDefined could be set by user, 
@@ -8959,30 +9575,30 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                Turn on the following bits to select the following items
                Type        Item                   BIT         
                ------------------------------------------
-               L2          DST_MAC                0 (LSB)        
-               L2          SRC_MAC                1         
+               L2          DST-MAC                0 (LSB)        
+               L2          SRC-MAC                1         
                L2          VID                    2         
-               L2          8021P_PRIORITY         3         
-               L2          ETHER_TYPE             4         
+               L2          8021P-PRIORITY         3         
+               L2          ETHER-TYPE             4         
                L3          DSCP                   5         
-               L3          ICMP_TYPE              6         
-               L3          ICMP_CODE              7         
-               L3          IGMP_TYPE              8         
-               L3          DST_IP                 9         
-               L3    	   SRC_IP                 10        
-               L3    	   DST_PORT               11        
-               L3          SRC_PORT               12        
+               L3          ICMP-TYPE              6         
+               L3          ICMP-CODE              7         
+               L3          IGMP-TYPE              8         
+               L3          DST-IP                 9         
+               L3    	   SRC-IP                 10        
+               L3    	   DST-PORT               11        
+               L3          SRC-PORT               12        
                L3          TCPFLAG                13  
-               ARP-SP      ARP_SENDER_MAC         14        
-               ARP-SP      ARP_SENDER_IP          15 
+               ARP-SP      ARP-SENDER-MAC         14        
+               ARP-SP      ARP-SENDER-IP          15 
                L3          TOS                    16
                UDF         UDF1                   17
                UDF         UDF2                   18
                UDF         UDF3                   19
                UDF         UDF4                   20
-               L3v6        TRAFFIC_CLASS          21
-               L3v6        DST_IPV6               22  
-               L3v6        SRC_IPV6               23  (MSB)
+               L3v6        TRAFFIC-CLASS          21
+               L3v6        DST-IPV6               22  
+               L3v6        SRC-IPV6               23  (MSB)
                -------------------------------------------
                
                The value is in Hex format.
@@ -8996,7 +9612,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      obsolete 
            DESCRIPTION 
               "The ACL Profile destination MAC address mask.
-               If DST_MAC is turn on in aclProfileMask, 
+               If DST-MAC is turn on in aclProfileMask, 
                it will work with its member rule field,aclL2RuleDstMacAddr, 
                to caculate a range of MAC address which is really care.
               "
@@ -9009,7 +9625,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      obsolete 
            DESCRIPTION 
               "The ACL Profile source MAC address mask.
-               If SRC_MAC is turn on in aclProfileMask, 
+               If SRC-MAC is turn on in aclProfileMask, 
                it will work with its member rule field,aclL2RuleSrcMacAddr, 
                to caculate a range of MAC address which is really care.
               "
@@ -9024,7 +9640,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            				 tcp(6),
           				 udp(17),
           				 icmpv6(58)
-                         ,ipProtocolMask(256)
+                         ,ipProtocolMask(255)
                         }
            MAX-ACCESS  read-write 
            STATUS      obsolete 
@@ -9053,7 +9669,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      obsolete 
            DESCRIPTION 
               "The ACL Profile destination IP address mask.
-               If DST_IP is turn on in aclProfileMask, 
+               If DST-IP is turn on in aclProfileMask, 
                it will work with its member rule field,aclL3RuleDstIpAddr, 
                to caculate a range of IP address which is really care.
                The value is in HEX format, for example:
@@ -9069,7 +9685,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      obsolete 
            DESCRIPTION 
               "The ACL Profile source IP address mask.
-               If SRC_IP is turn on in aclProfileMask, 
+               If SRC-IP is turn on in aclProfileMask, 
                it will work with its member rule field,aclL3RuleSrcIpAddr, 
                to caculate a range of IP address which is really care.
                The value is in HEX format, for example:
@@ -9084,7 +9700,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      obsolete 
            DESCRIPTION 
               "The ACL Profile UDP/TCP destination port mask.
-               If DST_PORT is turn on in aclProfileMask, 
+               If DST-PORT is turn on in aclProfileMask, 
                it will work with its member rule field,aclL3RuleTcpUdpDstPort, 
                to caculate a range of destination port which is really care.
                The value is in HEX format.
@@ -9099,7 +9715,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      obsolete 
            DESCRIPTION 
               "The ACL Profile UDP/TCP source port mask.
-               If SRC_PORT is turn on in aclProfileMask, 
+               If SRC-PORT is turn on in aclProfileMask, 
                it will work with its member rule field,aclL3RuleTcpUdpSrcPort, 
                to caculate a range of source port which is really care.
                The value is in HEX format.
@@ -9268,6 +9884,38 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            DEFVAL  { 'FFFFFFFF'h }
            ::= { ipv4aclProfileEntry 27 }
 
+        ipv4aclUdfDstMacMask  OBJECT-TYPE 
+           SYNTAX       MacAddress
+           MAX-ACCESS   read-write 
+           STATUS      obsolete 
+           DESCRIPTION 
+              "The value of destination MAC mask."
+           ::= { ipv4aclProfileEntry 28 }
+
+        ipv4aclUdfSrcMacMask  OBJECT-TYPE 
+           SYNTAX       MacAddress
+           MAX-ACCESS   read-write 
+           STATUS      obsolete 
+           DESCRIPTION 
+              "The value of source MAC mask."
+           ::= { ipv4aclProfileEntry 29 }
+
+        ipv4aclUdfCTagMask  OBJECT-TYPE 
+           SYNTAX       OCTET STRING
+           MAX-ACCESS   read-write 
+           STATUS      obsolete 
+           DESCRIPTION 
+              "The value of c-tag mask."
+           ::= { ipv4aclProfileEntry 30 }
+
+        ipv4aclUdfSTagMask  OBJECT-TYPE 
+           SYNTAX       OCTET STRING
+           MAX-ACCESS   read-write 
+           STATUS      obsolete 
+           DESCRIPTION 
+              "The value of s-tag mask."
+           ::= { ipv4aclProfileEntry 31 }
+
         ipv4aclProfileStatus OBJECT-TYPE 
            SYNTAX      RowStatus
            MAX-ACCESS  read-create 
@@ -9280,7 +9928,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                  aclProfileMask and ProtocolType are not conflicted.
                "
         
-           ::= { ipv4aclProfileEntry 28 }
+           ::= { ipv4aclProfileEntry 32 }
 
         -- IPv6 ACL Profile Group --------------------------------------------------
         aclProfileTable OBJECT-TYPE 
@@ -9362,6 +10010,14 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                  Integer32,
               aclUdfOffsetMask4
                  OCTET STRING,
+			  aclUdfDstMacMask
+				 MacAddress,
+			  aclUdfSrcMacMask
+				 MacAddress,
+			  aclUdfCTagMask
+                 OCTET STRING,
+			  aclUdfSTagMask
+                 OCTET STRING,
               aclProfileStatus
                  RowStatus
           }
@@ -9395,8 +10051,8 @@ sshPublKeyRSAAdmin OBJECT-TYPE
               l2 (1) - for MAC-based rule, 
               l3v4 (2) - for IPv4-based rule,
               l3v6 (11) - for IPv6-based rule,              
-              arpSP_permit(4) - for ARP Spoofing prevention entry,
-              arpSP_deny(5) - for ARP Spoofing prevention entry,
+              arpSP-permit(4) - for ARP Spoofing prevention entry,
+              arpSP-deny(5) - for ARP Spoofing prevention entry,
               voiceVlan(6) - for Voice VLAN OUI entry.
               userDefined(9) - for User Defined entry.
               Note that only l2, l3 and userDefined could be set by user, 
@@ -9422,31 +10078,31 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                Turn on the following bits to select the following items
                Type        Item                   BIT         
                ------------------------------------------
-               L2          DST_MAC                0 (LSB)        
-               L2          SRC_MAC                1         
+               L2          DST-MAC                0 (LSB)        
+               L2          SRC-MAC                1         
                L2          VID                    2         
-               L2          8021P_PRIORITY         3         
-               L2          ETHER_TYPE             4         
+               L2          8021P-PRIORITY         3         
+               L2          ETHER-TYPE             4         
                L3          DSCP                   5         
-               L3          ICMP_TYPE              6         
-               L3          ICMP_CODE              7         
-               L3          IGMP_TYPE              8         
-               L3          DST_IP                 9         
-               L3    	   SRC_IP                 10        
-               L3    	   DST_PORT               11        
-               L3          SRC_PORT               12        
+               L3          ICMP-TYPE              6         
+               L3          ICMP-CODE              7         
+               L3          IGMP-TYPE              8         
+               L3          DST-IP                 9         
+               L3    	   SRC-IP                 10        
+               L3    	   DST-PORT               11        
+               L3          SRC-PORT               12        
                L3          TCPFLAG                13  
-               ARP-SP      ARP_SENDER_MAC         14        
-               ARP-SP      ARP_SENDER_IP          15 
-               L3          TRAFFIC_CLASS          21 
+               ARP-SP      ARP-SENDER-MAC         14        
+               ARP-SP      ARP-SENDER-IP          15 
+               L3          TRAFFIC-CLASS          21 
                L3          TOS                    16
                UDF         UDF1                   17
                UDF         UDF2                   18
                UDF         UDF3                   19
                UDF         UDF4                   20
-               L3v6        TRAFFIC_CLASS          21
-               L3v6        DST_IPV6               22  
-               L3v6        SRC_IPV6               23  (MSB)
+               L3v6        TRAFFIC-CLASS          21
+               L3v6        DST-IPV6               22  
+               L3v6        SRC-IPV6               23  (MSB)
                -------------------------------------------
                
                The value is in Hex format.
@@ -9460,7 +10116,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      current 
            DESCRIPTION 
               "The ACL Profile destination MAC address mask.
-               If DST_MAC is turn on in aclProfileMask, 
+               If DST-MAC is turn on in aclProfileMask, 
                it will work with its member rule field,aclL2RuleDstMacAddr, 
                to caculate a range of MAC address which is really care.
               "
@@ -9473,7 +10129,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      current 
            DESCRIPTION 
               "The ACL Profile source MAC address mask.
-               If SRC_MAC is turn on in aclProfileMask, 
+               If SRC-MAC is turn on in aclProfileMask, 
                it will work with its member rule field,aclL2RuleSrcMacAddr, 
                to caculate a range of MAC address which is really care.
               "
@@ -9488,7 +10144,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            				 tcp(6),
           				 udp(17),
           				 icmpv6(58)
-                         ,ipProtocolMask(256)
+                         ,ipProtocolMask(255)
                         }
            MAX-ACCESS  read-write 
            STATUS      current 
@@ -9527,7 +10183,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      current 
            DESCRIPTION 
               "The ACL Profile destination IP address mask.
-               If DST_IP is turn on in aclProfileMask, 
+               If DST-IP is turn on in aclProfileMask, 
                it will work with its member rule field,aclL3RuleDstIpAddr, 
                to caculate a range of IP address which is really care.
                The value is in HEX format, for example:
@@ -9553,7 +10209,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      current 
            DESCRIPTION 
               "The ACL Profile source IP address mask.
-               If SRC_IP is turn on in aclProfileMask, 
+               If SRC-IP is turn on in aclProfileMask, 
                it will work with its member rule field,aclL3RuleSrcIpAddr, 
                to caculate a range of IP address which is really care.
                The value is in HEX format, for example:
@@ -9568,7 +10224,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      current 
            DESCRIPTION 
               "The ACL Profile UDP/TCP destination port mask.
-               If DST_PORT is turn on in aclProfileMask, 
+               If DST-PORT is turn on in aclProfileMask, 
                it will work with its member rule field,aclL3RuleTcpUdpDstPort, 
                to caculate a range of destination port which is really care.
                The value is in HEX format.
@@ -9583,7 +10239,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      current 
            DESCRIPTION 
               "The ACL Profile UDP/TCP source port mask.
-               If SRC_PORT is turn on in aclProfileMask, 
+               If SRC-PORT is turn on in aclProfileMask, 
                it will work with its member rule field,aclL3RuleTcpUdpSrcPort, 
                to caculate a range of source port which is really care.
                The value is in HEX format.
@@ -9752,6 +10408,38 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            DEFVAL  { 'FFFFFFFF'h }
            ::= { aclProfileEntry 29 }
 
+        aclUdfDstMacMask  OBJECT-TYPE 
+           SYNTAX       MacAddress
+           MAX-ACCESS   read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The value of destination MAC mask."
+           ::= { aclProfileEntry 30 }
+
+        aclUdfSrcMacMask  OBJECT-TYPE 
+           SYNTAX       MacAddress
+           MAX-ACCESS   read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The value of source MAC mask."
+           ::= { aclProfileEntry 31 }
+
+        aclUdfCTagMask  OBJECT-TYPE 
+           SYNTAX       OCTET STRING
+           MAX-ACCESS   read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The value of c-tag mask."
+           ::= { aclProfileEntry 32 }
+
+        aclUdfSTagMask  OBJECT-TYPE 
+           SYNTAX       OCTET STRING
+           MAX-ACCESS   read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The value of s-tag mask."
+           ::= { aclProfileEntry 33 }
+
         aclProfileStatus OBJECT-TYPE 
            SYNTAX      RowStatus
            MAX-ACCESS  read-create 
@@ -9764,7 +10452,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                  aclProfileMask and ProtocolType are not conflicted.
                "
         
-           ::= { aclProfileEntry 30 }
+           ::= { aclProfileEntry 34 }
 
         -- ------------------------------------------------------------------ 
         -- L2 Filter Group --------------------------------------------------
@@ -9809,8 +10497,6 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                  MacAddress, 
               aclL2RuleSrcMacAddrMask 
                  MacAddress,   
-              aclL2RuleInPortList 
-                 PortList,
               aclL2RuleAction 
                  INTEGER, 
               aclL2RuleRateLimit 
@@ -9821,10 +10507,16 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                  Integer32, 
               aclL2RuleReplaceQueue 
                  Integer32,  
+-- start CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON
+              aclL2RuleReplaceVLAN 
+                 Integer32, 
+--end CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON
               aclL2RuleFilterTimeRange 
                 OCTET STRING,
 			  aclL2RuleVlanIdMask
 				OCTET STRING,
+              aclL2RuleInPortList 
+                 PortList,                              
               aclL2RuleStatus
                  RowStatus      
           }
@@ -9919,15 +10611,6 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         
            ::= { aclL2RuleEntry 9 } 
                            
-        aclL2RuleInPortList OBJECT-TYPE 
-           SYNTAX      PortList
-           MAX-ACCESS  read-write 
-           STATUS      current 
-           DESCRIPTION 
-              "Specifies the complete set of ports over which this filter is applied
-               for packets ingress at ports in this list." 
-           ::= { aclL2RuleEntry 10 }
-        
         aclL2RuleAction OBJECT-TYPE 
            SYNTAX      INTEGER {
                           allow (1)
@@ -9936,6 +10619,9 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                           ,replaceDSCP(5)
                           ,replace1P(6)
                           ,replaceQueue(7)
+-- start CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON
+                          ,replaceVLAN(8)
+-- end CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON
                        }
            MAX-ACCESS  read-write 
            STATUS      current 
@@ -9982,13 +10668,24 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         
            ::= { aclL2RuleEntry 15 }
 
+-- start CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON 
+          aclL2RuleReplaceVLAN OBJECT-TYPE 
+           SYNTAX      Integer32  (-1..4094)
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "Replace VLAN for matched packet."
+        
+           ::= { aclL2RuleEntry 16 }
+-- end CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON
+
         aclL2RuleFilterTimeRange OBJECT-TYPE
            SYNTAX      OCTET STRING 
            MAX-ACCESS  read-create
            STATUS  current
            DESCRIPTION
             "ACL L2 Filter Time Range"
-        ::= { aclL2RuleEntry 16 }   
+        ::= { aclL2RuleEntry 17 }   
 
 	aclL2RuleVlanIdMask OBJECT-TYPE 
            SYNTAX      OCTET STRING
@@ -10001,8 +10698,17 @@ sshPublKeyRSAAdmin OBJECT-TYPE
               which means the rule don't care this condition."
               
            DEFVAL  { 'FFFF'h }   
-           ::= { aclL2RuleEntry 17 }
+           ::= { aclL2RuleEntry 18 }
 
+        aclL2RuleInPortList OBJECT-TYPE 
+           SYNTAX      PortList
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "Specifies the complete set of ports over which this filter is applied
+               for packets ingress at ports in this list." 
+           ::= { aclL2RuleEntry 51 }
+           
          aclL2RuleStatus OBJECT-TYPE 
            SYNTAX      RowStatus
            MAX-ACCESS  read-create 
@@ -10087,8 +10793,6 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                  Integer32,
               aclL3RuleIgmpType
                  Integer32,
-              aclL3RulePortList 
-                 PortList,
               aclL3RuleAction 
                  INTEGER, 
               aclL3RuleRateLimit 
@@ -10099,8 +10803,14 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                  Integer32,
               aclL3RuleReplaceQueue 
                  Integer32, 
+-- start CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON 
+              aclL3RuleReplaceVLAN
+                 Integer32,
+-- end CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON
               aclL3RuleFilterTimeRange 
                  OCTET STRING,
+              aclL3RulePortList 
+                 PortList,
               aclL3RuleStatus
                  RowStatus         
           }
@@ -10301,7 +11011,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         	STATUS		current
         	DESCRIPTION
         		" The TCP ACK bit to be checked against the packet. The default 
-        		value is 'dont_care'(-1), which means the rule don't care this 
+        		value is 'dont-care'(-1), which means the rule don't care this 
         		condition."
         	DEFVAL	{ dont-care }
         	::= { aclL3RuleEntry 15 }
@@ -10316,7 +11026,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         	STATUS		current
         	DESCRIPTION
         		" The TCP RST bit to be checked against the packet. The default 
-        		value is 'dont_care'(-1), which means the rule don't care this 
+        		value is 'dont-care'(-1), which means the rule don't care this 
         		condition."
         	DEFVAL	{ dont-care }
         	::= { aclL3RuleEntry 16 }
@@ -10331,7 +11041,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         	STATUS		current
         	DESCRIPTION
         		" The TCP Urg bit to be checked against the packet. The default 
-        		value is 'dont_care'(-1), which means the rule don't care this 
+        		value is 'dont-care'(-1), which means the rule don't care this 
         		condition."
         	DEFVAL	{ dont-care }
         	::= { aclL3RuleEntry 17 }
@@ -10346,7 +11056,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         	STATUS		current
         	DESCRIPTION
         		" The TCP Psh bit to be checked against the packet. The default 
-        		value is 'dont_care'(-1). which means the rule don't care this 
+        		value is 'dont-care'(-1). which means the rule don't care this 
         		condition."
         	DEFVAL	{ dont-care }
         	::= { aclL3RuleEntry 18 }	
@@ -10361,7 +11071,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         	STATUS		current
         	DESCRIPTION
         		" The TCP Syn bit to be checked against the packet. The default 
-        		value is 'dont_care'(-1), which means the rule don't care this condition."
+        		value is 'dont-care'(-1), which means the rule don't care this condition."
         	DEFVAL	{ dont-care }
         	::= { aclL3RuleEntry 19 }		
         
@@ -10375,7 +11085,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         	STATUS		current
         	DESCRIPTION
         		" The TCP Fin bit to be checked against the packet. The default 
-        		value is 'dont_care'(-1), which means the rule don't care this 
+        		value is 'dont-care'(-1), which means the rule don't care this 
         		condition."
         	DEFVAL	{ dont-care }
         	::= { aclL3RuleEntry 20 }		  
@@ -10412,17 +11122,6 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            DEFVAL  { -1 }
            ::= { aclL3RuleEntry 23 }
            
-        aclL3RulePortList OBJECT-TYPE 
-           SYNTAX      PortList
-           MAX-ACCESS  read-write 
-           STATUS      current 
-           DESCRIPTION 
-              "Specifies the complete set of ports over which if the packet arrives
-              this filter rule will be applicable."
- 
-           ::= { aclL3RuleEntry 24 }
-           
-           
         aclL3RuleAction OBJECT-TYPE 
            SYNTAX      INTEGER {
                           allow (1)
@@ -10431,6 +11130,9 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                           ,replaceDSCP(5)
                           ,replace1P(6)
                           ,replaceQueue(7)
+-- start CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON        
+                          ,replaceVLAN(8)
+-- end CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON 
                        }
            MAX-ACCESS  read-write 
            STATUS      current 
@@ -10471,13 +11173,32 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            DESCRIPTION 
               "Acl L3 Rule Replace Queue."
             ::= { aclL3RuleEntry 29 }
+-- start CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON        
+        aclL3RuleReplaceVLAN OBJECT-TYPE 
+           SYNTAX      Integer32  (-1..4094)
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "ReplaceVLAN for matched packet."
+            ::= { aclL3RuleEntry 30 }
+-- end CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON 
         aclL3RuleFilterTimeRange OBJECT-TYPE
            SYNTAX      OCTET STRING
            MAX-ACCESS  read-create
            STATUS  current
            DESCRIPTION
             "ACL L3 Filter Time Range"
-        ::= { aclL3RuleEntry 30 }  
+        ::= { aclL3RuleEntry 31 }  
+
+        aclL3RulePortList OBJECT-TYPE 
+           SYNTAX      PortList
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "Specifies the complete set of ports over which if the packet arrives
+              this filter rule will be applicable."
+        ::= { aclL3RuleEntry 51 }
+                  	       	
         aclL3RuleStatus OBJECT-TYPE 
            SYNTAX      RowStatus
            MAX-ACCESS  read-create 
@@ -10556,8 +11277,6 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                  INTEGER,
               aclv6L3RuleTrafficClass
                  Integer32,
-              aclv6L3RulePortList 
-                 PortList,
               aclv6L3RuleAction 
                  INTEGER, 
               aclv6L3RuleRateLimit 
@@ -10568,8 +11287,14 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                  Integer32,
               aclv6L3RuleReplaceQueue 
                  Integer32, 
+-- start CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON 
+              aclv6L3RuleReplaceVLAN
+                 Integer32,
+-- end CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON
               aclv6L3RuleFilterTimeRange 
                  OCTET STRING,
+              aclv6L3RulePortList 
+                 PortList,
               aclv6L3RuleStatus
                  RowStatus         
           }
@@ -10769,7 +11494,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         	STATUS		current
         	DESCRIPTION
         		" The TCP ACK bit to be checked against the packet. The default 
-        		value is 'dont_care'(-1), which means the rule don't care this 
+        		value is 'dont-care'(-1), which means the rule don't care this 
         		condition."
         	DEFVAL	{ dont-care }
         	::= { aclv6L3RuleEntry 15 }
@@ -10784,7 +11509,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         	STATUS		current
         	DESCRIPTION
         		" The TCP RST bit to be checked against the packet. The default 
-        		value is 'dont_care'(-1), which means the rule don't care this 
+        		value is 'dont-care'(-1), which means the rule don't care this 
         		condition."
         	DEFVAL	{ dont-care }
         	::= { aclv6L3RuleEntry 16 }
@@ -10799,7 +11524,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         	STATUS		current
         	DESCRIPTION
         		" The TCP Urg bit to be checked against the packet. The default 
-        		value is 'dont_care'(-1), which means the rule don't care this 
+        		value is 'dont-care'(-1), which means the rule don't care this 
         		condition."
         	DEFVAL	{ dont-care }
         	::= { aclv6L3RuleEntry 17 }
@@ -10814,7 +11539,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         	STATUS		current
         	DESCRIPTION
         		" The TCP Psh bit to be checked against the packet. The default 
-        		value is 'dont_care'(-1). which means the rule don't care this 
+        		value is 'dont-care'(-1). which means the rule don't care this 
         		condition."
         	DEFVAL	{ dont-care }
         	::= { aclv6L3RuleEntry 18 }	
@@ -10829,7 +11554,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         	STATUS		current
         	DESCRIPTION
         		" The TCP Syn bit to be checked against the packet. The default 
-        		value is 'dont_care'(-1), which means the rule don't care this condition."
+        		value is 'dont-care'(-1), which means the rule don't care this condition."
         	DEFVAL	{ dont-care }
         	::= { aclv6L3RuleEntry 19 }		
         
@@ -10843,7 +11568,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         	STATUS		current
         	DESCRIPTION
         		" The TCP Fin bit to be checked against the packet. The default 
-        		value is 'dont_care'(-1), which means the rule don't care this 
+        		value is 'dont-care'(-1), which means the rule don't care this 
         		condition."
         	DEFVAL	{ dont-care }
         	::= { aclv6L3RuleEntry 20 }		  
@@ -10859,17 +11584,6 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         	DEFVAL	{ -1 }
         	::= { aclv6L3RuleEntry 21 }       	
            
-        aclv6L3RulePortList OBJECT-TYPE 
-           SYNTAX      PortList
-           MAX-ACCESS  read-write 
-           STATUS      current 
-           DESCRIPTION 
-              "Specifies the complete set of ports over which if the packet arrives
-              this filter rule will be applicable."
- 
-           ::= { aclv6L3RuleEntry 23 }
-           
-           
         aclv6L3RuleAction OBJECT-TYPE 
            SYNTAX      INTEGER {
                           allow (1)
@@ -10878,6 +11592,9 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                           ,replaceDSCP(5)     
                           ,replace1P(6)
                           ,replaceQueue(7) 
+-- start CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON        
+                          ,replaceVLAN(8)
+-- end CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON
                        }
            MAX-ACCESS  read-write 
            STATUS      current 
@@ -10918,13 +11635,33 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            DESCRIPTION 
               "Acl IPV6 L3 Rule Replace Queue."
             ::= { aclv6L3RuleEntry 28 } 
+-- start CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON 
+        aclv6L3RuleReplaceVLAN OBJECT-TYPE 
+           SYNTAX      Integer32  (-1..4094)
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "Replace VLAN for matched packet."
+        
+           ::= { aclv6L3RuleEntry 29 }
+-- end CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON
         aclv6L3RuleFilterTimeRange OBJECT-TYPE
            SYNTAX      OCTET STRING
            MAX-ACCESS  read-create
            STATUS  current
            DESCRIPTION
             "ACL IPV6 L3 Filter Time Range"
-        ::= { aclv6L3RuleEntry 29 }      
+        ::= { aclv6L3RuleEntry 30 }      
+        aclv6L3RulePortList OBJECT-TYPE 
+           SYNTAX      PortList
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "Specifies the complete set of ports over which if the packet arrives
+              this filter rule will be applicable."
+ 
+           ::= { aclv6L3RuleEntry 51 }
+                   	       	
         aclv6L3RuleStatus OBJECT-TYPE 
            SYNTAX      RowStatus
            MAX-ACCESS  read-create 
@@ -10976,8 +11713,22 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                  OCTET STRING, 
               aclPacketRuleOffsetValue4 
                  OCTET STRING, 
-              aclPacketRuleInPortList 
-                 PortList,
+              aclPacketRuleDstMac
+                 MacAddress,
+              aclPacketRuleDstMacMask
+                 MacAddress,
+              aclPacketRuleSrcMac
+                 MacAddress,
+              aclPacketRuleSrcMacMask
+                 MacAddress,
+              aclPacketRuleCTag
+                 OCTET STRING, 
+              aclPacketRuleCTagMask
+                 OCTET STRING, 
+              aclPacketRuleSTag
+                 OCTET STRING, 
+              aclPacketRuleSTagMask
+                 OCTET STRING, 
               aclPacketRuleAction 
                  INTEGER, 
               aclPacketRuleRateLimit 
@@ -10988,8 +11739,14 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                  Integer32, 
               aclPacketRuleReplaceQueue 
                  Integer32, 
+-- start CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON 
+              aclPacketRuleReplaceVLAN 
+                 Integer32,
+-- end CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON
               aclPacketRuleFilterTimeRange 
                  OCTET STRING,
+              aclPacketRuleInPortList 
+                 PortList,
 			aclPacketRuleOffsetValue1Mask
 			     OCTET STRING,
 			aclPacketRuleOffsetValue2Mask
@@ -11050,15 +11807,69 @@ sshPublKeyRSAAdmin OBJECT-TYPE
               "The filter value of Offset 4."
            ::= { aclPacketRuleEntry 6 }
                       
-                           
-        aclPacketRuleInPortList OBJECT-TYPE 
-           SYNTAX      PortList
+        aclPacketRuleDstMac OBJECT-TYPE 
+           SYNTAX      MacAddress
            MAX-ACCESS  read-write 
            STATUS      current 
            DESCRIPTION 
-              "Specifies the complete set of ports over which this filter is applied
-               for packets ingress at ports in this list." 
+              "The filter value of Destination MAC."
            ::= { aclPacketRuleEntry 7 }
+
+        aclPacketRuleDstMacMask OBJECT-TYPE 
+           SYNTAX      MacAddress
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The filter mask of Destination MAC."
+           ::= { aclPacketRuleEntry 8 }
+
+        aclPacketRuleSrcMac OBJECT-TYPE 
+           SYNTAX      MacAddress
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The filter value of Source MAC."
+           ::= { aclPacketRuleEntry 9 }
+
+        aclPacketRuleSrcMacMask OBJECT-TYPE 
+           SYNTAX      MacAddress
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The filter mask of Source MAC."
+           ::= { aclPacketRuleEntry 10 }
+
+        aclPacketRuleCTag OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The filter value of c-tag."
+           ::= { aclPacketRuleEntry 11 }
+
+        aclPacketRuleCTagMask OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The filter mask of c-tag."
+           ::= { aclPacketRuleEntry 12 }
+
+        aclPacketRuleSTag OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The filter value of s-tag."
+           ::= { aclPacketRuleEntry 13 }
+                           
+        aclPacketRuleSTagMask OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The filter mask of s-tag."
+           ::= { aclPacketRuleEntry 14 }
         
         aclPacketRuleAction OBJECT-TYPE 
            SYNTAX      INTEGER {
@@ -11068,6 +11879,9 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                           ,replaceDSCP(5)     
                           ,replace1P(6)
                           ,replaceQueue(7) 
+-- start CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON        
+                          ,replaceVLAN(8)
+-- end CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON
                        }
            MAX-ACCESS  read-write 
            STATUS      current 
@@ -11078,7 +11892,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
               to the forwarding rules.
               If the action is 'drop', the packet will be discarded."
            DEFVAL  { allow } 
-           ::= { aclPacketRuleEntry 8 }
+           ::= { aclPacketRuleEntry 15 }
            
          aclPacketRuleRateLimit OBJECT-TYPE 
            SYNTAX      Unsigned32
@@ -11087,7 +11901,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            DESCRIPTION 
               "Rate limit for matched packet."
         
-           ::= { aclPacketRuleEntry 9 }
+           ::= { aclPacketRuleEntry 16 }
 
           aclPacketRuleReplaceDSCP OBJECT-TYPE 
            SYNTAX      Integer32  (-1..63)
@@ -11096,7 +11910,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            DESCRIPTION 
               "Replace DSCP for matched packet."
         
-           ::= { aclPacketRuleEntry 10 }
+           ::= { aclPacketRuleEntry 17 }
            
           aclPacketRuleReplace1P OBJECT-TYPE 
            SYNTAX      Integer32  (-1..7)
@@ -11105,7 +11919,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            DESCRIPTION 
               "Replace 1p for matched packet."
         
-           ::= { aclPacketRuleEntry 11 }
+           ::= { aclPacketRuleEntry 18 }
           aclPacketRuleReplaceQueue OBJECT-TYPE 
            SYNTAX      Integer32 
            MAX-ACCESS  read-write 
@@ -11113,15 +11927,34 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            DESCRIPTION 
               "Acl Rule Replace Queue."
         
-           ::= { aclPacketRuleEntry 12 }
+           ::= { aclPacketRuleEntry 19 }
+-- start CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON 
+          aclPacketRuleReplaceVLAN OBJECT-TYPE 
+           SYNTAX      Integer32 
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "Replace VLAN for matched packet."
+        
+           ::= { aclPacketRuleEntry 20 }
+-- end CAMEO-DLINK-ACL-RULE-REPLACE-VLAN-ON 
          aclPacketRuleFilterTimeRange OBJECT-TYPE
            SYNTAX      OCTET STRING
            MAX-ACCESS  read-create
            STATUS  current
            DESCRIPTION
             "Acl Filter Time Range"
-        ::= { aclPacketRuleEntry 13 } 
-        
+        ::= { aclPacketRuleEntry 21 } 
+
+           aclPacketRuleInPortList OBJECT-TYPE 
+           SYNTAX      PortList
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "Specifies the complete set of ports over which this filter is applied
+               for packets ingress at ports in this list." 
+           ::= { aclPacketRuleEntry 51 }
+     
         aclPacketRuleOffsetValue1Mask OBJECT-TYPE 
            SYNTAX      OCTET STRING
            MAX-ACCESS  read-write 
@@ -11129,7 +11962,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            DESCRIPTION 
               "The filter Mask of Offset 1."
            DEFVAL  { 'FFFF'h }   
-           ::= { aclPacketRuleEntry 14 }
+           ::= { aclPacketRuleEntry 52 }
            
 		aclPacketRuleOffsetValue2Mask OBJECT-TYPE 
            SYNTAX      OCTET STRING
@@ -11138,7 +11971,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            DESCRIPTION 
               "The filter Mask of Offset 2."
            DEFVAL  { 'FFFF'h }   
-           ::= { aclPacketRuleEntry 15 }
+           ::= { aclPacketRuleEntry 53 }
            
 		aclPacketRuleOffsetValue3Mask OBJECT-TYPE 
            SYNTAX      OCTET STRING
@@ -11147,7 +11980,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            DESCRIPTION 
               "The filter Mask of Offset 3."
            DEFVAL  { 'FFFF'h }   
-           ::= { aclPacketRuleEntry 16 }
+           ::= { aclPacketRuleEntry 54 }
            
 		aclPacketRuleOffsetValue4Mask OBJECT-TYPE 
            SYNTAX      OCTET STRING
@@ -11156,7 +11989,8 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            DESCRIPTION 
               "The filter Mask of Offset 4."
            DEFVAL  { 'FFFF'h }   
-           ::= { aclPacketRuleEntry 17 }      
+           ::= { aclPacketRuleEntry 55 }    
+ 
          aclPacketRuleStatus OBJECT-TYPE 
            SYNTAX      RowStatus
            MAX-ACCESS  read-create 
@@ -11286,250 +12120,6 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         -- CPU Interface Filter Profile Group --------------------------------------------------
         cpuFilterProfile       OBJECT IDENTIFIER ::= { companyCPUInterfaceFilterGroup 1 }
         
-        ipv4cpuFilterProfileTable OBJECT-TYPE 
-           SYNTAX      SEQUENCE OF Ipv4CpuFilterProfileEntry
-           MAX-ACCESS  not-accessible 
-           STATUS      current 
-           DESCRIPTION 
-               " A table to CPUInterfaceFilter profile .
-               "
-           ::= { cpuFilterProfile 1 }
-        
-        ipv4cpuFilterProfileEntry OBJECT-TYPE 
-           SYNTAX      Ipv4CpuFilterProfileEntry
-           MAX-ACCESS  not-accessible 
-           STATUS      current 
-           DESCRIPTION 
-               " Each entry in this table is a CPUInterfaceFilter profile.
-                 Index to the table is CPUInterfaceFilter profile ID. "
-           INDEX { ipv4cpuFilterProfileNo}
-           ::= { ipv4cpuFilterProfileTable 1 }
-           
-        Ipv4CpuFilterProfileEntry ::= 
-           SEQUENCE { 
-              ipv4cpuFilterProfileNo 
-                 Integer32, 
-              ipv4cpuFilterProfileType 
-                 INTEGER, 
-              ipv4cpuFilterProfileRuleCount 
-                 Integer32,  
-              ipv4cpuFilterProfileMask 
-                 OCTET STRING,
-              ipv4cpuFilterProfileDstMacAddrMask 
-                 MacAddress,          
-              ipv4cpuFilterProfileSrcMacAddrMask 
-                 MacAddress,         
-              ipv4cpuFilterProfileIPProtocol  
-                 INTEGER, 
-              ipv4cpuFilterProfileIPProtocolMask  
-                 OCTET STRING,  
-              ipv4cpuFilterProfileDstIpAddrMask 
-                 IpAddress, 
-              ipv4cpuFilterProfileSrcIpAddrMask 
-                 IpAddress,
-              ipv4cpuFilterProfileDstPortMask
-                 OCTET STRING,         
-              ipv4cpuFilterProfileSrcPortMask
-                 OCTET STRING,       
-              ipv4cpuFilterProfileStatus
-                 RowStatus
-          }
-        
-        ipv4cpuFilterProfileNo OBJECT-TYPE 
-           SYNTAX      Integer32 (1..3)
-           MAX-ACCESS  read-only 
-           STATUS      current 
-           DESCRIPTION 
-              "The CPUInterfaceFilter Profile ID. The ID 1 to 50 is user-defined CPUInterfaceFilter,
-               and the ID more than 50 is reserved for system-defined CPUInterfaceFilter.
-               The user only allow to create user-defined CPUInterfaceFilter ID.
-               And system-defined CPUInterfaceFilter is read only."
-           ::= { ipv4cpuFilterProfileEntry 1 }
-        
-        ipv4cpuFilterProfileType OBJECT-TYPE 
-           SYNTAX   INTEGER  {
-                          l2 (1),
-                          l3 (2),
-                          l3v6 (11)
-                       }
-           MAX-ACCESS   read-write 
-           STATUS      current 
-           DESCRIPTION 
-              "The CPUInterfaceFilter Profile type, possible value are
-              l2 (1) - for MAC-based rule, 
-              l3 (2) - for IPv4-based rule,
-              l3v6 (11) - for IPv6-based rule
-              "
-           ::= { ipv4cpuFilterProfileEntry 2 }
-        
-        ipv4cpuFilterProfileRuleCount  OBJECT-TYPE 
-           SYNTAX   Integer32 (0..65535)
-           MAX-ACCESS   read-only 
-           STATUS      current 
-           DESCRIPTION 
-              "The number of rules in this profile."
-           ::= { ipv4cpuFilterProfileEntry 3 }
-              
-              
-        ipv4cpuFilterProfileMask OBJECT-TYPE 
-           SYNTAX   OCTET STRING
-           MAX-ACCESS   read-write  
-           STATUS      current 
-           DESCRIPTION 
-              "Indicate which field want to care in the packet.
-               Turn on the following bits to select the following items
-               Type        Item                   BIT         
-               ------------------------------------------
-               L2          DST_MAC                0 (LSB)        
-               L2          SRC_MAC                1         
-               L2          VID                    2         
-               L2          8021P_PRIORITY         3         
-               L2          ETHER_TYPE             4         
-               L3          DSCP                   5         
-               L3          ICMP_TYPE              6         
-               L3          ICMP_CODE              7         
-               L3          IGMP_TYPE              8         
-               L3          DST_IP                 9         
-               L3          SRC_IP                 10        
-               L3          DST_PORT               11        
-               L3          SRC_PORT               12        
-               L3          TCPFLAG                13 (MSB)
-               -------------------------------------------
-               
-               The value is in Hex format.
-              "
-           ::= { ipv4cpuFilterProfileEntry 4 }
-       
-
-        ipv4cpuFilterProfileDstMacAddrMask OBJECT-TYPE 
-           SYNTAX      MacAddress
-           MAX-ACCESS  read-write 
-           STATUS      current 
-           DESCRIPTION 
-              "The CPUInterfaceFilter Profile destination MAC address mask.
-               If DST_MAC is turn on in cpuFilterProfileMask, 
-               it will work with its member rule field,cpuFilterL2RuleDstMacAddr, 
-               to caculate a range of MAC address which is really care.
-              "
-           ::= { ipv4cpuFilterProfileEntry 5 }
-        
-        
-        ipv4cpuFilterProfileSrcMacAddrMask OBJECT-TYPE 
-           SYNTAX      MacAddress
-           MAX-ACCESS  read-write 
-           STATUS      current 
-           DESCRIPTION 
-              "The CPUInterfaceFilter Profile source MAC address mask.
-               If SRC_MAC is turn on in cpuFilterProfileMask, 
-               it will work with its member rule field,cpuFilterL2RuleSrcMacAddr, 
-               to caculate a range of MAC address which is really care.
-              "
-           ::= { ipv4cpuFilterProfileEntry 6 }
-        
-        
-        ipv4cpuFilterProfileIPProtocol OBJECT-TYPE 
-           SYNTAX   INTEGER  {  
-                         none(0),   
-                                         icmp(1),
-                                         igmp(2),
-                                         tcp(6),
-                                         udp(17)
-                         ,ipMask(255)
-                        }
-           MAX-ACCESS  read-write 
-           STATUS      current 
-           DESCRIPTION 
-              "Indicate which IP Protocol will be care in this profile.
-               Only profile type is l3 can set the IP protocol.
-               For others, this field will be none.
-              "
-           ::= { ipv4cpuFilterProfileEntry 7 } 
-        ipv4cpuFilterProfileIPProtocolMask OBJECT-TYPE 
-           SYNTAX      OCTET STRING
-           MAX-ACCESS  read-write 
-           STATUS      current 
-           DESCRIPTION 
-              "The CPUInterfaceFilter Profile IP protocol mask.
-               If cpuFilterProfileIPProtocol set to ipMask, this field will be refered.
-               It will work with its member rule field,cpuFilterL3RuleProtocol, 
-               to caculate a range of IP protocol which is really care.
-               The value is in HEX format.
-              "
-           DEFVAL  { 'FF'h }   
-           ::= { ipv4cpuFilterProfileEntry 8 }
-        ipv4cpuFilterProfileDstIpAddrMask OBJECT-TYPE 
-           SYNTAX      IpAddress
-           MAX-ACCESS  read-write 
-           STATUS      current 
-           DESCRIPTION 
-              "The CPUInterfaceFilter Profile destination IP address mask.
-               If DST_IP is turn on in cpuFilterProfileMask, 
-               it will work with its member rule field,cpuFilterL3RuleDstIpAddr, 
-               to caculate a range of IP address which is really care.
-               The value is in HEX format, for example:
-               '255.255.255.0' is presented to 'FFFFFF00'
-              "
-           DEFVAL  { 'FFFFFFFF'h }
-           ::= { ipv4cpuFilterProfileEntry 9 }
-        
-        
-        ipv4cpuFilterProfileSrcIpAddrMask OBJECT-TYPE 
-           SYNTAX      IpAddress
-           MAX-ACCESS  read-write 
-           STATUS      current 
-           DESCRIPTION 
-              "The CPUInterfaceFilter Profile source IP address mask.
-               If SRC_IP is turn on in cpuFilterProfileMask, 
-               it will work with its member rule field,cpuFilterL3RuleSrcIpAddr, 
-               to caculate a range of IP address which is really care.
-               The value is in HEX format, for example:
-               '255.255.255.0' is presented to 'FFFFFF00'
-              "
-           DEFVAL  { 'FFFFFFFF'h }
-           ::= { ipv4cpuFilterProfileEntry 10 }
-        
-        ipv4cpuFilterProfileDstPortMask OBJECT-TYPE 
-           SYNTAX      OCTET STRING
-           MAX-ACCESS  read-write 
-           STATUS      current 
-           DESCRIPTION 
-              "The CPUInterfaceFilter Profile UDP/TCP destination port mask.
-               If DST_PORT is turn on in cpuFilterProfileMask, 
-               it will work with its member rule field,cpuFilterL3RuleTcpUdpDstPort, 
-               to caculate a range of destination port which is really care.
-               The value is in HEX format.
-              "
-           DEFVAL  { 'FFFF'h }   
-           ::= { ipv4cpuFilterProfileEntry 11 }
-           
-        
-        ipv4cpuFilterProfileSrcPortMask OBJECT-TYPE 
-           SYNTAX      OCTET STRING
-           MAX-ACCESS  read-write 
-           STATUS      current 
-           DESCRIPTION 
-              "The CPUInterfaceFilter Profile UDP/TCP source port mask.
-               If SRC_PORT is turn on in cpuFilterProfileMask, 
-               it will work with its member rule field,cpuFilterL3RuleTcpUdpSrcPort, 
-               to caculate a range of source port which is really care.
-               The value is in HEX format.
-              "
-           DEFVAL  { 'FFFF'h }     
-           ::= { ipv4cpuFilterProfileEntry 12 }   
-
-        ipv4cpuFilterProfileStatus OBJECT-TYPE 
-           SYNTAX      RowStatus
-           MAX-ACCESS  read-create 
-           STATUS      current 
-           DESCRIPTION 
-               " This object indicates the status of this entry, can only be set to
-                 'createAndWait','active' and 'destroy'. 
-                 When the value of the entry status is 'createAndWait', it could be 
-                 set to 'active' only if the three values of cpuFilterProfileType,
-                 cpuFilterProfileMask and ProtocolType are not conflicted.
-               "
-        
-           ::= { ipv4cpuFilterProfileEntry 15 }
 
 -------------------------------------------------------------------------------------------
 
@@ -11581,6 +12171,16 @@ sshPublKeyRSAAdmin OBJECT-TYPE
               cpuFilterProfileDstPortMask
                  OCTET STRING,         
               cpuFilterProfileSrcPortMask
+                 OCTET STRING,    
+              cpuFilterProfileOffset1Mask
+                 OCTET STRING,       
+              cpuFilterProfileOffset2Mask
+                 OCTET STRING,       
+              cpuFilterProfileOffset3Mask
+                 OCTET STRING,       
+              cpuFilterProfileOffset4Mask
+                 OCTET STRING,       
+              cpuFilterProfileOffset5Mask
                  OCTET STRING,       
               cpuFilterProfileStatus
                  RowStatus
@@ -11601,6 +12201,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            SYNTAX   INTEGER  {
                           l2 (1),
                           l3 (2),
+                          udf (9),
                           l3v6 (11)
                        }
            MAX-ACCESS   read-write 
@@ -11609,6 +12210,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
               "The CPUInterfaceFilter Profile type, possible value are
               l2 (1) - for MAC-based rule, 
               l3 (2) - for IPv4-based rule,
+              udf (9) - for User-defined rule,
               l3v6 (11) - for IPv6-based rule
               "
            ::= { cpuFilterProfileEntry 2 }
@@ -11631,21 +12233,21 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                Turn on the following bits to select the following items
                Type        Item                   BIT         
                ------------------------------------------
-               L2          DST_MAC                0 (LSB)        
-               L2          SRC_MAC                1         
+               L2          DST-MAC                0 (LSB)        
+               L2          SRC-MAC                1         
                L2          VID                    2         
-               L2          8021P_PRIORITY         3         
-               L2          ETHER_TYPE             4         
+               L2          8021P-PRIORITY         3         
+               L2          ETHER-TYPE             4         
                L3          DSCP                   5         
-               L3          ICMP_TYPE              6         
-               L3          ICMP_CODE              7         
-               L3          IGMP_TYPE              8         
-               L3          DST_IP                 9         
-               L3          SRC_IP                 10        
-               L3          DST_PORT               11        
-               L3          SRC_PORT               12        
+               L3          ICMP-TYPE              6         
+               L3          ICMP-CODE              7         
+               L3          IGMP-TYPE              8         
+               L3          DST-IP                 9         
+               L3          SRC-IP                 10        
+               L3          DST-PORT               11        
+               L3          SRC-PORT               12        
                L3          TCPFLAG                13 (MSB)
-               L3          TRAFFIC_CLASS          21
+               L3          TRAFFIC-CLASS          21
                -------------------------------------------
                
                The value is in Hex format.
@@ -11659,7 +12261,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      current 
            DESCRIPTION 
               "The CPUInterfaceFilter Profile destination MAC address mask.
-               If DST_MAC is turn on in cpuFilterProfileMask, 
+               If DST-MAC is turn on in cpuFilterProfileMask, 
                it will work with its member rule field,cpuFilterL2RuleDstMacAddr, 
                to caculate a range of MAC address which is really care.
               "
@@ -11672,7 +12274,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      current 
            DESCRIPTION 
               "The CPUInterfaceFilter Profile source MAC address mask.
-               If SRC_MAC is turn on in cpuFilterProfileMask, 
+               If SRC-MAC is turn on in cpuFilterProfileMask, 
                it will work with its member rule field,cpuFilterL2RuleSrcMacAddr, 
                to caculate a range of MAC address which is really care.
               "
@@ -11685,7 +12287,8 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                                          icmp(1),
                                          igmp(2),
                                          tcp(6),
-                                         udp(17)
+                                         udp(17),
+                                         ipv6(41)
                          ,ipMask(255)
                         }
            MAX-ACCESS  read-write 
@@ -11727,7 +12330,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      current 
            DESCRIPTION 
               "The CPUInterfaceFilter Profile destination IP address mask.
-               If DST_IP is turn on in cpuFilterProfileMask, 
+               If DST-IP is turn on in cpuFilterProfileMask, 
                it will work with its member rule field,cpuFilterL3RuleDstIpAddr, 
                to caculate a range of IP address which is really care.
                The value is in HEX format, for example:
@@ -11753,7 +12356,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      current 
            DESCRIPTION 
               "The CPUInterfaceFilter Profile source IP address mask.
-               If SRC_IP is turn on in cpuFilterProfileMask, 
+               If SRC-IP is turn on in cpuFilterProfileMask, 
                it will work with its member rule field,cpuFilterL3RuleSrcIpAddr, 
                to caculate a range of IP address which is really care.
                The value is in HEX format, for example:
@@ -11768,7 +12371,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      current 
            DESCRIPTION 
               "The CPUInterfaceFilter Profile UDP/TCP destination port mask.
-               If DST_PORT is turn on in cpuFilterProfileMask, 
+               If DST-PORT is turn on in cpuFilterProfileMask, 
                it will work with its member rule field,cpuFilterL3RuleTcpUdpDstPort, 
                to caculate a range of destination port which is really care.
                The value is in HEX format.
@@ -11783,13 +12386,78 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            STATUS      current 
            DESCRIPTION 
               "The CPUInterfaceFilter Profile UDP/TCP source port mask.
-               If SRC_PORT is turn on in cpuFilterProfileMask, 
+               If SRC-PORT is turn on in cpuFilterProfileMask, 
                it will work with its member rule field,cpuFilterL3RuleTcpUdpSrcPort, 
                to caculate a range of source port which is really care.
                The value is in HEX format.
               "
            DEFVAL  { 'FFFF'h }     
            ::= { cpuFilterProfileEntry 14 }   
+
+        cpuFilterProfileOffset1Mask OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The CPUInterfaceFilter Profile Offset1 mask.
+               If Offset1 is turn on in cpuFilterProfileMask, 
+               it will work with its member rule field,cpuFilterUdfRuleOffset1, 
+               to caculate a range of offset1 which is really care.
+               The value is in HEX format.
+              "
+           ::= { cpuFilterProfileEntry 15 }   
+
+        cpuFilterProfileOffset2Mask OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The CPUInterfaceFilter Profile Offset2 mask.
+               If Offset2 is turn on in cpuFilterProfileMask, 
+               it will work with its member rule field,cpuFilterUdfRuleOffset2, 
+               to caculate a range of offset2 which is really care.
+               The value is in HEX format.
+              "
+           ::= { cpuFilterProfileEntry 16 }   
+
+        cpuFilterProfileOffset3Mask OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The CPUInterfaceFilter Profile Offset3 mask.
+               If Offset3 is turn on in cpuFilterProfileMask, 
+               it will work with its member rule field,cpuFilterUdfRuleOffset3, 
+               to caculate a range of offset3 which is really care.
+               The value is in HEX format.
+              "
+           ::= { cpuFilterProfileEntry 17 }   
+
+        cpuFilterProfileOffset4Mask OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The CPUInterfaceFilter Profile Offset4 mask.
+               If offset4 is turn on in cpuFilterProfileMask, 
+               it will work with its member rule field,cpuFilterUdfRuleOffset4, 
+               to caculate a range of offset4 which is really care.
+               The value is in HEX format.
+              "
+           ::= { cpuFilterProfileEntry 18 }   
+
+        cpuFilterProfileOffset5Mask OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The CPUInterfaceFilter Profile Offset5 mask.
+               If Offset5 is turn on in cpuFilterProfileMask, 
+               it will work with its member rule field,cpuFilterUdfRuleOffset5, 
+               to caculate a range of offset5 which is really care.
+               The value is in HEX format.
+              "
+           ::= { cpuFilterProfileEntry 19 }   
 
         cpuFilterProfileStatus OBJECT-TYPE 
            SYNTAX      RowStatus
@@ -11803,7 +12471,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                  cpuFilterProfileMask and ProtocolType are not conflicted.
                "
         
-           ::= { cpuFilterProfileEntry 15 }
+           ::= { cpuFilterProfileEntry 20 }
 
 
         -- ------------------------------------------------------------------ 
@@ -12488,7 +13156,8 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            SYNTAX      INTEGER  {     
                                          icmp(1),
                                          tcp(6),
-                                         udp(17)
+                                         udp(17),
+                                         ipv6(41)
                         } 
            MAX-ACCESS  read-write 
            STATUS      current 
@@ -12788,6 +13457,220 @@ sshPublKeyRSAAdmin OBJECT-TYPE
                 object is SET 'notInService'. An entry created in this table is
                 be deleted when this object is SET 'destroy'."
            ::= { cpuFilterv6L3RuleEntry 24 }
+
+
+        -- ------------------------------------------------------------------ 
+        -- Udf Filter Group --------------------------------------------------
+        cpuFilterUdfRule       OBJECT IDENTIFIER ::= { companyCPUInterfaceFilterGroup 4 }
+         
+        cpuFilterUdfRuleTable OBJECT-TYPE 
+           SYNTAX      SEQUENCE OF CpuFilterUdfRuleEntry
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+               " A table to configure Udf filter rules in the system.
+               "
+           ::= { cpuFilterUdfRule 1 }
+
+        cpuFilterUdfRuleEntry OBJECT-TYPE 
+           SYNTAX      CpuFilterUdfRuleEntry
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+               " Each entry in this table is a Udf filter rule.
+                 Index to the table is Udf filter number and Profile ID."
+           INDEX { cpuFilterUdfRuleProfileNo, cpuFilterUdfRuleAccessID}
+           ::= { cpuFilterUdfRuleTable 1 }
+
+        CpuFilterUdfRuleEntry ::= 
+           SEQUENCE { 
+              cpuFilterUdfRuleProfileNo 
+                 Integer32, 
+              cpuFilterUdfRuleAccessID 
+                 Integer32,
+              cpuFilterUdfRuleOffset1  
+                 OCTET STRING, 
+              cpuFilterUdfRuleOffset2  
+                 OCTET STRING, 
+              cpuFilterUdfRuleOffset3
+                 OCTET STRING, 
+              cpuFilterUdfRuleOffset4
+                 OCTET STRING, 
+              cpuFilterUdfRuleOffset5
+                 OCTET STRING, 
+              cpuFilterUdfRuleOffset1Mask
+                 OCTET STRING, 
+              cpuFilterUdfRuleOffset2Mask
+                 OCTET STRING, 
+              cpuFilterUdfRuleOffset3Mask
+                 OCTET STRING, 
+              cpuFilterUdfRuleOffset4Mask
+                 OCTET STRING, 
+              cpuFilterUdfRuleOffset5Mask
+                 OCTET STRING, 
+              cpuFilterUdfRulePortList 
+                 PortList,
+              cpuFilterUdfRuleAction 
+                 INTEGER, 
+              cpuFilterUdfRuleStatus
+                 RowStatus
+          }
+        
+        cpuFilterUdfRuleProfileNo OBJECT-TYPE 
+           SYNTAX      Integer32 (1..5)
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Udf Filter rule ID."
+           ::= { cpuFilterUdfRuleEntry 1 }
+            
+        cpuFilterUdfRuleAccessID OBJECT-TYPE 
+           SYNTAX      Integer32 (1..3)
+           MAX-ACCESS  read-only  
+           STATUS      current 
+           DESCRIPTION 
+              "The Profile ID which this rule join."
+           ::= { cpuFilterUdfRuleEntry 2 }
+
+        cpuFilterUdfRuleOffset1 OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The filter value of Offset 1."
+           
+           ::= { cpuFilterUdfRuleEntry 3 }
+
+        cpuFilterUdfRuleOffset2 OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The filter value of Offset 2."
+           
+           ::= { cpuFilterUdfRuleEntry 4 }
+
+        cpuFilterUdfRuleOffset3 OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The filter value of Offset 3."
+           
+           ::= { cpuFilterUdfRuleEntry 5 }
+
+        cpuFilterUdfRuleOffset4 OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The filter value of Offset 4."
+           
+           ::= { cpuFilterUdfRuleEntry 6 }
+
+        cpuFilterUdfRuleOffset5 OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "The filter value of Offset 5."
+           
+           ::= { cpuFilterUdfRuleEntry 7 }
+
+        cpuFilterUdfRuleOffset1Mask OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-only
+           STATUS      current 
+           DESCRIPTION 
+              "The filter Mask of Offset 1."
+           
+           ::= { cpuFilterUdfRuleEntry 8 }
+
+        cpuFilterUdfRuleOffset2Mask OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-only
+           STATUS      current 
+           DESCRIPTION 
+              "The filter Mask of Offset 2."
+           
+           ::= { cpuFilterUdfRuleEntry 9 }
+
+        cpuFilterUdfRuleOffset3Mask OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-only
+           STATUS      current 
+           DESCRIPTION 
+              "The filter Mask of Offset 3."
+           
+           ::= { cpuFilterUdfRuleEntry 10 }
+
+        cpuFilterUdfRuleOffset4Mask OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-only
+           STATUS      current 
+           DESCRIPTION 
+              "The filter Mask of Offset 4."
+           
+           ::= { cpuFilterUdfRuleEntry 11 }
+
+        cpuFilterUdfRuleOffset5Mask OBJECT-TYPE 
+           SYNTAX      OCTET STRING
+           MAX-ACCESS  read-only
+           STATUS      current 
+           DESCRIPTION 
+              "The filter Mask of Offset 5."
+           
+           ::= { cpuFilterUdfRuleEntry 12 }
+
+        cpuFilterUdfRulePortList OBJECT-TYPE 
+           SYNTAX      PortList
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "Specifies the complete set of ports over which if the packet arrives
+              this filter rule will be applicable."
+
+           ::= { cpuFilterUdfRuleEntry 13 }
+
+        cpuFilterUdfRuleAction OBJECT-TYPE 
+           SYNTAX      INTEGER {
+                          allow (1)
+                         ,drop  (2)
+                       }
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "Specifies the action to be taken on the packet if the filter
+              rule matches."
+           DEFVAL  { allow } 
+
+           ::= { cpuFilterUdfRuleEntry 14 }
+
+        cpuFilterUdfRuleStatus OBJECT-TYPE 
+           SYNTAX      RowStatus
+           MAX-ACCESS  read-create 
+           STATUS      current 
+           DESCRIPTION 
+                "This object indicates the status of this entry. An entry is
+                created in this table when this object is SET to 'createAndWait'.
+                The entry in this table is used when the status of this object 
+                is SET 'active'. The entry in this table is not used when this 
+                object is SET 'notInService'. An entry created in this table is
+                be deleted when this object is SET 'destroy'."
+           ::= { cpuFilterUdfRuleEntry 15 }
+
+        cpuFilterState  OBJECT-TYPE
+        SYNTAX       INTEGER {
+                     enable(1),
+                     disable(2)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+             "This object is used for enabling or disabling CPU Interface Filter in the system."
+
+        DEFVAL  { disable }
+        ::= { companyCPUInterfaceFilterGroup 5 }
 
       snmpGlobalState OBJECT-TYPE
            SYNTAX      INTEGER {
@@ -13642,7 +14525,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
            DEFVAL  { none }
         ::= { snmpV3Trap 11 }
 
--- start CAMEO_PORT_SECURITY
+-- start CAMEO-PORT-SECURITY
     snmpV3TrapPortSecurity    OBJECT-TYPE
         SYNTAX INTEGER {
             enabled(1),
@@ -13653,8 +14536,8 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         DESCRIPTION
             ""
         ::= { snmpV3Trap 12 }
--- end CAMEO_PORT_SECURITY
--- start CAMEO_IMPBv2
+-- end CAMEO-PORT-SECURITY
+-- start CAMEO-IMPBv2
     snmpV3TrapIMPBViolation    OBJECT-TYPE
         SYNTAX INTEGER {
             enabled(1),
@@ -13665,8 +14548,8 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         DESCRIPTION
             ""
         ::= { snmpV3Trap 13 }
--- end CAMEO_IMPBv2
--- start CAMEO_LBD
+-- end CAMEO-IMPBv2
+-- start CAMEO-LBD
     snmpV3TrapLBD    OBJECT-TYPE
         SYNTAX INTEGER {
             enabled(1),
@@ -13677,8 +14560,8 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         DESCRIPTION
             ""
         ::= { snmpV3Trap 14 }
--- end CAMEO_LBD
--- start CAMEO_DHCP_SCREEN
+-- end CAMEO-LBD
+-- start CAMEO-DHCP-SCREEN
     snmpV3TrapDHCPServerScreening    OBJECT-TYPE
         SYNTAX INTEGER {
             enabled(1),
@@ -13689,7 +14572,7 @@ sshPublKeyRSAAdmin OBJECT-TYPE
         DESCRIPTION
             ""
         ::= { snmpV3Trap 15 }
--- end CAMEO_DHCP_SCREEN
+-- end CAMEO-DHCP-SCREEN
     snmpV3TrapDuplicateIPDetected    OBJECT-TYPE
         SYNTAX INTEGER {
             enabled(1),
@@ -13701,6 +14584,54 @@ sshPublKeyRSAAdmin OBJECT-TYPE
             "This object is for enabling or disabling send gratuitous
              trap when IP address conflicted in the network."
         ::= { snmpV3Trap 16 }
+
+-- start CAMEO-DHCPv6-SCREEN
+    snmpV3TrapDHCPv6ServerScreening    OBJECT-TYPE
+        SYNTAX INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            ""
+        ::= { snmpV3Trap 17 }
+-- end CAMEO-DHCPv6-SCREEN
+
+-- start CAMEO-ICMPv6-RA-FILTER
+    snmpV3TrapICMPv6RaAllNodeFilter    OBJECT-TYPE
+        SYNTAX INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            ""
+        ::= { snmpV3Trap 18 }
+-- end CAMEO-ICMPv6-RA-FILTER
+
+    snmpV3TrapLoginout    OBJECT-TYPE
+        SYNTAX INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            ""
+        ::= { snmpV3Trap 19 }
+
+    snmpV3TrapDULD    OBJECT-TYPE
+        SYNTAX INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            ""
+        ::= { snmpV3Trap 20 }
 
 
     snmpV3CommunityEncryption OBJECT-TYPE
@@ -13749,7 +14680,14 @@ sshPublKeyRSAAdmin OBJECT-TYPE
 			snmpTrapBPDUAttack NOTIFICATION-TYPE              	
               	STATUS  current
               	DESCRIPTION
-                      "SnmpV3TrapBPDUAttack."
+                      "                      	
+						SnmpV3TrapBPDUAttack notification. The notification is issued
+                         when the for port for folloowing status:
+                         
+                         1. BPDU Attacked on port
+                         2. BPDU Attacke Cleared on port
+                         3. BPDU Attacke Recovered on port
+					  "                      
               ::= { traps 11 }              
 			snmpTrapPortSecurity NOTIFICATION-TYPE              	
               	STATUS  current
@@ -13812,7 +14750,52 @@ sshPublKeyRSAAdmin OBJECT-TYPE
               	DESCRIPTION
  					" topologyChange. "
                	::= { traps 26 }
-               	
+-- start CAMEO-DHCPv6-SERVER-SCREEN-TRAP			
+			snmpTrapDHCPv6Screen NOTIFICATION-TYPE              	
+              	STATUS  current
+              	DESCRIPTION
+                      "SnmpV3TrapDHCPv6Screen."
+              	::= { traps 27 }              	
+-- start CAMEO-ICMPv6-RA-ALL-NODE-FILTER-TRAP			
+			snmpTrapICMPv6RaAllNodeFilter NOTIFICATION-TYPE              	
+              	STATUS  current
+              	DESCRIPTION
+                      "snmpTrapICMPv6RaAllNodeFilter."
+              	::= { traps 28 }              	
+-- end CAMEO-ICMPv6-RA-ALL-NODE-FILTER-TRAP                   	
+-- start CAMEO-DYING-GASP			
+			snmpTrapDyingGasp NOTIFICATION-TYPE              	
+              	STATUS  current
+              	DESCRIPTION
+                      "snmpTrapDyingGasp."
+              	::= { traps 29 }              	
+-- end CAMEO-DYING-GASP
+			snmpTrapWebLoginout NOTIFICATION-TYPE            
+              	STATUS  current
+              	DESCRIPTION
+                      "snmpTrapWebLoginout."
+              	::= { traps 30 }
+			snmpTrapLoginout NOTIFICATION-TYPE            
+              	STATUS  current
+              	DESCRIPTION
+                      "snmpTrapLoginout."
+              	::= { traps 31 }                
+            snmpTrapDULD NOTIFICATION-TYPE
+                STATUS  current
+                DESCRIPTION
+                    "snmpTrapDULD."
+                ::= { traps 32 }
+            snmpTrapDOSPrevent NOTIFICATION-TYPE
+                STATUS  current
+                DESCRIPTION
+                    "snmpTrapDOSPrevent."
+                ::= { traps 34 }
+-- end Dos-TRAP
+            snmpTrapAutoCableDiag NOTIFICATION-TYPE
+                STATUS  current
+                DESCRIPTION
+                    "snmpTrapAutoCableDiag."
+                ::= { traps 36 }
 
  
     -- ------------------------------------------------------------------ 
@@ -14418,7 +15401,7 @@ syslogSaveMinutes OBJECT-TYPE
        DEFVAL  { disable }
        ::= { companyTrapSetting 10 }                                    
        
--- start CAMEO_PORT_SECURITY
+-- start CAMEO-PORT-SECURITY
     sysTrapPortSecurity    OBJECT-TYPE
         SYNTAX INTEGER {
             enabled(1),
@@ -14429,8 +15412,8 @@ syslogSaveMinutes OBJECT-TYPE
         DESCRIPTION
             ""
         ::= { companyTrapSetting 13 }
--- end CAMEO_PORT_SECURITY
--- start CAMEO_IMPBv2
+-- end CAMEO-PORT-SECURITY
+-- start CAMEO-IMPBv2
     sysTrapIMPBViolation    OBJECT-TYPE
         SYNTAX INTEGER {
             enabled(1),
@@ -14441,8 +15424,8 @@ syslogSaveMinutes OBJECT-TYPE
         DESCRIPTION
             ""
         ::= { companyTrapSetting 14 }
--- end CAMEO_IMPBv2
--- start CAMEO_LBD
+-- end CAMEO-IMPBv2
+-- start CAMEO-LBD
     sysTrapLBD    OBJECT-TYPE
         SYNTAX INTEGER {
             enabled(1),
@@ -14453,8 +15436,8 @@ syslogSaveMinutes OBJECT-TYPE
         DESCRIPTION
             ""
         ::= { companyTrapSetting 15 }
--- end CAMEO_LBD
--- start CAMEO_DHCP_SCREEN
+-- end CAMEO-LBD
+-- start CAMEO-DHCP-SCREEN
     sysTrapDHCPServerScreening    OBJECT-TYPE
         SYNTAX INTEGER {
             enabled(1),
@@ -14465,7 +15448,7 @@ syslogSaveMinutes OBJECT-TYPE
         DESCRIPTION
             ""
         ::= { companyTrapSetting 16 }
--- end CAMEO_DHCP_SCREEN
+-- end CAMEO-DHCP-SCREEN
     sysTrapDuplicateIPDetected    OBJECT-TYPE
         SYNTAX INTEGER {
             enabled(1),
@@ -15118,7 +16101,8 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
             limitIpMulticastPortID          INTEGER,    
             limitIpMulticastPortState       INTEGER,
             limitIpMulticastPortProfileID   PortList,
-            limitIpMulticastPortMaxGrp      INTEGER
+            limitIpMulticastPortMaxGrp      INTEGER,
+            limitIpMulticastPortAction      INTEGER
         }                           
           
         limitIpMulticastPortIPType OBJECT-TYPE
@@ -15167,6 +16151,17 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
             DESCRIPTION
                   "The limit ip multicast per-port max group."
             ::= { limitIpMulticastPortEntry 5 } 
+            
+        limitIpMulticastPortAction OBJECT-TYPE
+           SYNTAX      INTEGER {
+                  drop(1),
+                  replace(2)
+           }
+           MAX-ACCESS read-write
+           STATUS current
+           DESCRIPTION
+                "The limit ip multicast port action."
+           ::= { limitIpMulticastPortEntry 6 }
             
 
 
@@ -18439,7 +19434,217 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
 	      "This object indicates the status of this entry."
 	   ::= { filterDHCPServerEntry 99 }
 
+    dhcpServerScreenEnableLog OBJECT-TYPE          
+       SYNTAX       INTEGER {
+                   	  enable(1),
+                      disabled(2)
+                		}
+   		 MAX-ACCESS  read-write 
+   	   STATUS      current 
+       DESCRIPTION 
+       		"To enable or disable DHCP Server Screening log function."
 
+   		 DEFVAL  { enable } 
+       ::= { securityDhcpServerScreen 5 } 
+
+ -- ----------------------------------------------------------
+ -- The companySecurity Groups
+ -- ----------------------------------------------------------
+    securityDhcpv6ServerScreen                  OBJECT IDENTIFIER ::= { companySecurity 12 }
+ -- dhcpv6 Server Screen Group --------------------------------------------- --
+
+    dhcpv6ServerScreenEnablePortlist OBJECT-TYPE
+       SYNTAX      PortList
+       MAX-ACCESS  read-write
+       STATUS      current
+       DESCRIPTION
+           "To enable or disable DHCPv6 Server Screening port list."
+       ::= { securityDhcpv6ServerScreen 1 }
+
+    dhcpv6ServerScreenEnableLog OBJECT-TYPE          
+       SYNTAX       INTEGER {
+                   	  enable(1),
+                      disabled(2)
+                		}
+   		 MAX-ACCESS  read-write 
+   	   STATUS      current 
+       DESCRIPTION 
+       		"To enable or disable DHCPv6 Server Screening log function."
+
+   		 DEFVAL  { enable } 
+       ::= { securityDhcpv6ServerScreen 2 } 
+  
+--    Currently, trap function designed to be set in snmp trap function.
+--    But it will change design in the future.  
+--    dhcpv6ServerScreenEnableTrap OBJECT-TYPE          
+--       SYNTAX       INTEGER {
+--                   	  enable(1),
+--                      disabled(2)
+--                		}
+--   		 MAX-ACCESS  read-write 
+--   	   STATUS      current 
+--       DESCRIPTION 
+--       		"To enable or disable DHCPv6 Server Screening trap function."
+
+--   		 DEFVAL  { disabled } 
+--       ::= { securityDhcpv6ServerScreen 3 } 
+
+       
+	-- filterDHCPv6Server Table
+
+	filterDHCPv6ServerTable OBJECT-TYPE
+	   SYNTAX      SEQUENCE OF FilterDHCPv6ServerEntry
+	   MAX-ACCESS  not-accessible
+	   STATUS      current
+	   DESCRIPTION
+	      "A table to control filter DHCPv6 Server for the entire
+	       switch or for each interface in the switch."
+	   ::= { securityDhcpv6ServerScreen 4 }
+
+	filterDHCPv6ServerEntry OBJECT-TYPE
+	   SYNTAX      FilterDHCPv6ServerEntry
+	   MAX-ACCESS  not-accessible
+	   STATUS      current
+	   DESCRIPTION
+	       "An entry appears in this table for each interface
+	        in the system."
+	   INDEX { filterDHCPv6ServerIpAddr }
+	   ::= { filterDHCPv6ServerTable 1 }
+
+	FilterDHCPv6ServerEntry ::=
+	   SEQUENCE {
+	      filterDHCPv6ServerIpAddr
+	         Ipv6Address,
+	      filterDHCPv6ServerPortList
+	         PortList,
+	      filterDHCPv6ServerRowStatus
+	         RowStatus
+	   }
+
+
+	filterDHCPv6ServerIpAddr OBJECT-TYPE
+	   SYNTAX      Ipv6Address
+	   MAX-ACCESS  read-only
+	   STATUS      current
+	   DESCRIPTION
+	       "Specifies either the Network or Host address from which the switch
+	        can be managed."
+	   ::= { filterDHCPv6ServerEntry 1 }
+
+	filterDHCPv6ServerPortList OBJECT-TYPE
+	   SYNTAX       PortList
+	   MAX-ACCESS   read-write
+	   STATUS       current
+	   DESCRIPTION
+	       "Specifies the port numbers through which the authorized manager can
+	        access the switch.
+
+	        By default the authorized manager is allowed to access the switch
+	        through all the ports.
+
+	        If a set of ports are configured in the 'PortList', the manager can
+	        access the switch only through the configured ports."
+	   ::= { filterDHCPv6ServerEntry 2 }
+	   
+	filterDHCPv6ServerRowStatus OBJECT-TYPE
+	   SYNTAX      RowStatus
+	   MAX-ACCESS  read-create
+	   STATUS      current
+	   DESCRIPTION
+	      "This object indicates the status of this entry."
+	   ::= { filterDHCPv6ServerEntry 99 }
+
+ -- ----------------------------------------------------------
+ -- The companySecurity Groups
+ -- ----------------------------------------------------------
+    securityIcmpv6RaAllNode                 OBJECT IDENTIFIER ::= { companySecurity 13 }
+ -- icmpv6 RA all node Group --------------------------------------------- --
+
+    icmpv6RaAllNodeEnablePortlist OBJECT-TYPE
+       SYNTAX      PortList
+       MAX-ACCESS  read-write
+       STATUS      current
+       DESCRIPTION
+           "To enable or disable ICMPv6 RA All Node port list."
+       ::= { securityIcmpv6RaAllNode 1 }
+
+    icmpv6RaAllNodeEnableLog OBJECT-TYPE          
+       SYNTAX       INTEGER {
+                   	  enable(1),
+                      disabled(2)
+                		}
+   		 MAX-ACCESS  read-write 
+   	   STATUS      current 
+       DESCRIPTION 
+       		"To enable or disable ICMPv6 RA All Node log function."
+
+   		 DEFVAL  { enable } 
+       ::= { securityIcmpv6RaAllNode 2 }  
+       
+	-- filterICMPv6RaAllNode Table
+
+	filterICMPv6RaAllNodeTable OBJECT-TYPE
+	   SYNTAX      SEQUENCE OF FilterICMPv6RaAllNodeEntry
+	   MAX-ACCESS  not-accessible
+	   STATUS      current
+	   DESCRIPTION
+	      "A table to control filter ICMPv6 RA for the entire
+	       switch or for each interface in the switch."
+	   ::= { securityIcmpv6RaAllNode 4 }
+
+	filterICMPv6RaAllNodeEntry OBJECT-TYPE
+	   SYNTAX      FilterICMPv6RaAllNodeEntry
+	   MAX-ACCESS  not-accessible
+	   STATUS      current
+	   DESCRIPTION
+	       "An entry appears in this table for each interface
+	        in the system."
+	   INDEX { filterICMPv6RaAllNodeServerIpAddr }
+	   ::= { filterICMPv6RaAllNodeTable 1 }
+
+	FilterICMPv6RaAllNodeEntry ::=
+	   SEQUENCE {
+	      filterICMPv6RaAllNodeServerIpAddr
+	         Ipv6Address,
+	      filterICMPv6RaAllNodeServerPortList
+	         PortList,
+	      filterICMPv6RaAllNodeServerRowStatus
+	         RowStatus
+	   }
+
+
+	filterICMPv6RaAllNodeServerIpAddr OBJECT-TYPE
+	   SYNTAX      Ipv6Address
+	   MAX-ACCESS  read-only
+	   STATUS      current
+	   DESCRIPTION
+	       "Specifies either the Network or Host address from which the switch
+	        can be managed."
+	   ::= { filterICMPv6RaAllNodeEntry 1 }
+
+	filterICMPv6RaAllNodeServerPortList OBJECT-TYPE
+	   SYNTAX       PortList
+	   MAX-ACCESS   read-write
+	   STATUS       current
+	   DESCRIPTION
+	       "Specifies the port numbers through which the authorized manager can
+	        access the switch.
+
+	        By default the authorized manager is allowed to access the switch
+	        through all the ports.
+
+	        If a set of ports are configured in the 'PortList', the manager can
+	        access the switch only through the configured ports."
+	   ::= { filterICMPv6RaAllNodeEntry 2 }
+	   
+	filterICMPv6RaAllNodeServerRowStatus OBJECT-TYPE
+	   SYNTAX      RowStatus
+	   MAX-ACCESS  read-create
+	   STATUS      current
+	   DESCRIPTION
+	      "This object indicates the status of this entry."
+	   ::= { filterICMPv6RaAllNodeEntry 99 }
+	            	     
     securityTrafficSeg                  OBJECT IDENTIFIER ::= { companySecurity 9}
   
 
@@ -19415,8 +20620,8 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
         MAX-ACCESS read-write 
         STATUS current
         DESCRIPTION
-            "This object indicates aac Accounting Service Network is radius_only, default_method_list,
-            method_list_name and disable about Accounting Service Network."
+            "This object indicates aac Accounting Service Network is radius-only, default-method-list,
+            method-list-name and disable about Accounting Service Network."
 
         DEFVAL  { -1 }
         ::= { aacAccountingServiceIndex 1 }
@@ -19431,8 +20636,8 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
         MAX-ACCESS read-write 
         STATUS current
         DESCRIPTION
-            "This object indicates aac Accounting Service Shell is radius_only, default_method_list,
-            method_list_name and disable about Accounting Service Network."
+            "This object indicates aac Accounting Service Shell is radius-only, default-method-list,
+            method-list-name and disable about Accounting Service Network."
 
         DEFVAL  { -1 }
         ::= { aacAccountingServiceIndex 2 }
@@ -19447,8 +20652,8 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
         MAX-ACCESS read-write 
         STATUS current
         DESCRIPTION
-            "This object indicates aac Accounting System Shell is radius_only, default_method_list,
-            method_list_name and disable about Accounting Service Network."
+            "This object indicates aac Accounting System Shell is radius-only, default-method-list,
+            method-list-name and disable about Accounting Service Network."
 
         DEFVAL  { -1 }
         ::= { aacAccountingServiceIndex 3 }
@@ -19741,7 +20946,220 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
                   
 
 
--- start DLINK_AGENT_BACIC_INFO
+    -- ------------------------------------------------------------------
+    -- The Static Multicast Group
+    -- ------------------------------------------------------------------
+
+      staticRouteTable OBJECT-TYPE
+            SYNTAX SEQUENCE OF StaticRouteEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "A list of the Static Route Table."
+            ::= { companyStaticRoute 1 }
+
+        staticRouteEntry OBJECT-TYPE
+            SYNTAX StaticRouteEntry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "A Static route entry maintain by the IP Address, netmask and gateway."
+            INDEX { staticRouteIpAddr, staticRouteNetmask, staticRouteGateway}
+            ::= { staticRouteTable 1 }
+
+        StaticRouteEntry ::= SEQUENCE {
+            staticRouteInterfaceID   INTEGER,
+            staticRouteIpAddr     	 IpAddress,
+            staticRouteNetmask       IpAddress,
+            staticRouteGateway       IpAddress,
+            staticRouteMetric        INTEGER,
+            staticRouteProtocol      INTEGER,
+            staticRouteActiveStatus  INTEGER,
+            staticRouteRowStatus     RowStatus
+        }
+        
+        staticRouteInterfaceID OBJECT-TYPE
+            SYNTAX INTEGER
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The InterfaceID of the static Route entry."
+            ::= { staticRouteEntry 1 }
+
+        staticRouteIpAddr  OBJECT-TYPE
+           SYNTAX      IpAddress
+           MAX-ACCESS  read-only
+           STATUS      current
+           DESCRIPTION 
+              "Allows the entry of an IP address that will be a static entry into
+               the Switch's Routing Table."
+           ::= { staticRouteEntry 2 }
+        
+        staticRouteNetmask  OBJECT-TYPE
+           SYNTAX      IpAddress
+           MAX-ACCESS  read-only
+           STATUS      current
+           DESCRIPTION 
+              "Allows the entry of a subnet mask corresponding to the IP address above."
+           ::= { staticRouteEntry 3 }
+    
+        staticRouteGateway  OBJECT-TYPE
+           SYNTAX      IpAddress
+           MAX-ACCESS  read-only
+           STATUS      current
+           DESCRIPTION 
+              "Allows the entry of an IP address of a gateway for the IP address above."
+           ::= { staticRouteEntry 4 }
+
+        staticRouteMetric OBJECT-TYPE
+            SYNTAX INTEGER
+            MAX-ACCESS read-write
+            STATUS current
+            DESCRIPTION
+                "Allows the entry of a routing protocol metric representing the number of 
+                 routers between the Switch and the IP address above.(1-65535)"
+            ::= { staticRouteEntry 5 }
+
+        staticRouteProtocol OBJECT-TYPE
+           SYNTAX  INTEGER {
+                       default(0),
+                       static(1)
+                   }
+           MAX-ACCESS  read-only
+           STATUS  current
+           DESCRIPTION
+             "The route protocol of the static route entry."
+            ::= { staticRouteEntry 6 }
+
+        staticRouteActiveStatus OBJECT-TYPE
+           SYNTAX  INTEGER {
+                       active(0),
+                       inactive(1)
+                   }
+           MAX-ACCESS  read-only
+           STATUS  current
+           DESCRIPTION
+             "The active/inactive status of the static route entry."
+           ::= { staticRouteEntry 8 }
+
+        staticRouteRowStatus OBJECT-TYPE
+            SYNTAX     RowStatus
+            MAX-ACCESS read-write
+            STATUS     current
+            DESCRIPTION
+                "The status of an entry in the Static Route Table.  Only a subset
+                 of the rowstatus variables (active, createAndGo, destroy) 
+                 are available."
+            ::= { staticRouteEntry 9 }
+
+    -- ------------------------------------------------------------------
+    -- The Static Multicast Group
+    -- ------------------------------------------------------------------
+
+      staticRouteV6Table OBJECT-TYPE
+            SYNTAX SEQUENCE OF StaticRouteV6Entry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "A list of the Static Route Table."
+            ::= { companyStaticRoute 2 }
+
+        staticRouteV6Entry OBJECT-TYPE
+            SYNTAX StaticRouteV6Entry
+            MAX-ACCESS not-accessible
+            STATUS current
+            DESCRIPTION
+                "A Static route entry maintain by the IP Address, netmask and gateway."
+            INDEX { staticRouteV6IpAddr, staticRouteV6Prefix, staticRouteV6NextHop}
+            ::= { staticRouteV6Table 1 }
+
+        StaticRouteV6Entry ::= SEQUENCE {
+            staticRouteV6InterfaceID   INTEGER,
+            staticRouteV6IpAddr        Ipv6Address,
+            staticRouteV6Prefix        INTEGER,
+            staticRouteV6NextHop       Ipv6Address,
+            staticRouteV6Metric        INTEGER,
+            staticRouteV6Protocol      INTEGER,
+            staticRouteV6ActiveStatus  INTEGER,
+            staticRouteV6RowStatus     RowStatus
+        }
+        
+        staticRouteV6InterfaceID OBJECT-TYPE
+            SYNTAX INTEGER
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION
+                "The InterfaceID of the static Route entry."
+            ::= { staticRouteV6Entry 1 }
+
+        staticRouteV6IpAddr  OBJECT-TYPE
+           SYNTAX      Ipv6Address
+           MAX-ACCESS  read-only
+           STATUS      current
+           DESCRIPTION 
+              "Allows the entry of an IP address that will be a static entry into
+               the Switch's Routing Table."
+           ::= { staticRouteV6Entry 2 }
+        
+        staticRouteV6Prefix  OBJECT-TYPE
+           SYNTAX      INTEGER
+           MAX-ACCESS  read-only
+           STATUS      current
+           DESCRIPTION 
+              "Allows the entry of a subnet mask corresponding to the IP address above."
+           ::= { staticRouteV6Entry 3 }
+    
+        staticRouteV6NextHop  OBJECT-TYPE
+           SYNTAX      Ipv6Address
+           MAX-ACCESS  read-only
+           STATUS      current
+           DESCRIPTION 
+              "Allows the entry of an IP address of a gateway for the IP address above."
+           ::= { staticRouteV6Entry 4 }
+
+        staticRouteV6Metric OBJECT-TYPE
+            SYNTAX INTEGER
+            MAX-ACCESS read-write
+            STATUS current
+            DESCRIPTION
+                "Allows the entry of a routing protocol metric representing the number of 
+                 routers between the Switch and the IP address above.(1-65535)"
+            ::= { staticRouteV6Entry 5 }
+
+        staticRouteV6Protocol OBJECT-TYPE
+           SYNTAX  INTEGER {
+                       default(0),
+                       static(1)
+                   }
+           MAX-ACCESS  read-only
+           STATUS  current
+           DESCRIPTION
+             "The route protocol of the static route entry."
+            ::= { staticRouteV6Entry 6 }
+
+        staticRouteV6ActiveStatus OBJECT-TYPE
+           SYNTAX  INTEGER {
+                       active(0),
+                       inactive(1)
+                   }
+           MAX-ACCESS  read-only
+           STATUS  current
+           DESCRIPTION
+             "The active/inactive status of the static route entry."
+           ::= { staticRouteV6Entry 8 }
+
+        staticRouteV6RowStatus OBJECT-TYPE
+            SYNTAX     RowStatus
+            MAX-ACCESS read-write
+            STATUS     current
+            DESCRIPTION
+                "The status of an entry in the Static Route Table.  Only a subset
+                 of the rowstatus variables (active, createAndGo, destroy) 
+                 are available."
+            ::= { staticRouteV6Entry 9 }
+
+
+-- start DLINK-AGENT-BACIC-INFO
 
         agentCPUutilization                   OBJECT IDENTIFIER ::= { companyAgentBasicInfo  1 }
         agentMEMutilization                   OBJECT IDENTIFIER ::= { companyAgentBasicInfo  2 }
@@ -19808,7 +21226,89 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
              The value will be between 0% (idle) and 100% (very busy)."
         ::= { agentMEMutilization 3 }
 
--- end DLINK_AGENT_BACIC_INFO
+-- end DLINK-AGENT-BACIC-INFO
+
+    agentPORTutilizationTable     OBJECT-TYPE
+        SYNTAX SEQUENCE OF AgentPORTutilizationEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            ""
+        ::= { companyAgentBasicInfo 3 }
+        
+    agentPORTutilizationEntry OBJECT-TYPE
+        SYNTAX AgentPORTutilizationEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            ""
+        INDEX { agentPORTutilizationPortIndex }
+        ::= { agentPORTutilizationTable 1 }
+  
+    AgentPORTutilizationEntry ::= 
+           SEQUENCE { 
+              agentPORTutilizationPortIndex 
+                 Integer32, 
+              agentPORTutilizationPortTX5sec
+                 Integer32, 
+              agentPORTutilizationPortRX5sec 
+                 Integer32,
+              agentPORTutilizationPortUtil5sec 
+                 Integer32,  
+              agentPORTutilizationPortUtil1min 
+                 Integer32,
+              agentPORTutilizationPortUtil5min 
+                 Integer32                                    
+          }
+        
+         agentPORTutilizationPortIndex OBJECT-TYPE 
+           SYNTAX      Integer32 (1..10)
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              ""
+           ::= { agentPORTutilizationEntry 1 }
+            
+        
+         agentPORTutilizationPortTX5sec OBJECT-TYPE
+           SYNTAX Integer32
+           MAX-ACCESS  read-only
+           STATUS      current
+           DESCRIPTION
+              ""
+           ::= { agentPORTutilizationEntry 2 }
+        
+         agentPORTutilizationPortRX5sec OBJECT-TYPE
+           SYNTAX Integer32
+           MAX-ACCESS  read-only
+           STATUS      current
+           DESCRIPTION
+              ""
+           ::= { agentPORTutilizationEntry 3 }
+           
+         agentPORTutilizationPortUtil5sec OBJECT-TYPE
+           SYNTAX Integer32
+           MAX-ACCESS  read-only
+           STATUS      current
+           DESCRIPTION
+              ""
+           ::= { agentPORTutilizationEntry 4 }
+		   
+         agentPORTutilizationPortUtil1min OBJECT-TYPE
+           SYNTAX Integer32
+           MAX-ACCESS  read-only
+           STATUS      current
+           DESCRIPTION
+              ""
+           ::= { agentPORTutilizationEntry 5 }
+		   
+         agentPORTutilizationPortUtil5min OBJECT-TYPE
+           SYNTAX Integer32
+           MAX-ACCESS  read-only
+           STATUS      current
+           DESCRIPTION
+              ""
+           ::= { agentPORTutilizationEntry 6 }
 
  -- ----------------------------------------------------------
  -- The companyL2PT  Groups
@@ -19895,7 +21395,9 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
 				    stp(0),
 				    gvrp(1),
     		    	macCC(2),
-		    	    macCD(3)
+		    	            macCD(3),
+                                    lldp(4),
+                                    isis(5)
 		         }
 		    MAX-ACCESS read-write
 		    STATUS     current
@@ -19911,7 +21413,11 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
                  destination MAC address 01-00-0C-CC-CC-CC will be tunneled .
 	
 		        If the 'mac-01-00-0C-CC-CC-CD' BIT is set, then the PDU with the
-	            destination MAC address 01-00-0C-CC-CC-CD will be tunneled."
+	                destination MAC address 01-00-0C-CC-CC-CD will be tunneled.
+
+		        If the 'lldp' BIT is set, the LLDP will be tunneled.
+
+                        If the 'is-is' BIT is set, the IS-IS will be tunneled."
 		    ::= { l2PTEntry 3 }
 -- -----------------------------------------------------------------------------
 -- L2PTThresholdTable
@@ -19947,7 +21453,9 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
 					stp(1),
 					gvrp(2),
 			    	macCC(3),
-			    	macCD(4)	
+			    	macCD(4),
+                                lldp(5),
+                                isis(6) 	
 			    }		
 		MAX-ACCESS  not-accessible
 		STATUS     current
@@ -19966,6 +21474,66 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
 	            The value 0 indicates there is no threshold for the protocol."
 		DEFVAL { 0 }
 		::= { l2PTThresholdEntry 2 }
+-- -----------------------------------------------------------------------------
+-- L2PTStpMacAddress
+-- -----------------------------------------------------------------------------
+    l2PTStpMacAddress OBJECT-TYPE
+        SYNTAX  MacAddress
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "This object indicates the destination multicast address of specified tunneled STP protocol to translate into."
+    	::= { companyL2PT 4 }
+-- -----------------------------------------------------------------------------
+-- L2PTGvrpMacAddress
+-- -----------------------------------------------------------------------------
+    l2PTGvrpMacAddress OBJECT-TYPE
+        SYNTAX  MacAddress
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "This object indicates the destination multicast address of specified tunneled Gvrp protocol to translate into."
+    	::= { companyL2PT 5 }
+-- -----------------------------------------------------------------------------
+-- L2PTCCMacAddress
+-- -----------------------------------------------------------------------------
+    l2PTCCMacAddress OBJECT-TYPE
+        SYNTAX  MacAddress
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "This object indicates the destination multicast address of specified tunneled 'mac-01-00-0C-CC-CC-CC' to translate into."
+    	::= { companyL2PT 6 }
+-- -----------------------------------------------------------------------------
+-- L2PTCDMacAddress
+-- -----------------------------------------------------------------------------
+    l2PTCDMacAddress OBJECT-TYPE
+        SYNTAX  MacAddress
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "This object indicates the destination multicast address of specified tunneled 'mac-01-00-0C-CC-CC-CD' to translate into."
+    	::= { companyL2PT 7 }
+-- -----------------------------------------------------------------------------
+-- L2PTLldpMacAddress
+-- -----------------------------------------------------------------------------
+    l2PTLldpMacAddress OBJECT-TYPE
+        SYNTAX  MacAddress
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "This object indicates the destination multicast address of specified tunneled LLDP protocol to translate into."
+    	::= { companyL2PT 8 }
+-- -----------------------------------------------------------------------------
+-- L2PTIsisMacAddress
+-- -----------------------------------------------------------------------------
+    l2PTIsisMacAddress OBJECT-TYPE
+        SYNTAX  MacAddress
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "This object indicates the destination multicast address of specified tunneled IS-IS protocol to translate into."
+    	::= { companyL2PT 9 }
 
     -- ------------------------------------------------------------------
     -- The SMTP Group
@@ -20225,12 +21793,14 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
             	INTEGER,
             igmpMulticastVlanReplaceSourceIp
             	IpAddress,
--- start DLINK_ISMVLAN_REMAP_REPLACE_PRIORITY
 			igmpMulticastVlanRemapPriority
 				INTEGER,
 			igmpMulticastVlanReplacePriority
 				INTEGER,
--- end DLINK_ISMVLAN_REMAP_REPLACE_PRIORITY
+			igmpMulticastVlanSrcPortDymLearn
+				INTEGER,
+			igmpMulticastVlanReplaceCVID
+				INTEGER,
             igmpMulticastVlanRowStatus
                 RowStatus
         }
@@ -20311,7 +21881,6 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
             "The replacement source IP of this multicast VLAN."
         ::= { igmpMulticastVlanEntry 8 }
         
--- start DLINK_ISMVLAN_REMAP_REPLACE_PRIORITY
     igmpMulticastVlanRemapPriority OBJECT-TYPE
     	SYNTAX  INTEGER (-1..7)
         MAX-ACCESS  read-write
@@ -20332,15 +21901,33 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
             "The replacement priority of this multicast VLAN."
 		DEFVAL  { disabled }
         ::= { igmpMulticastVlanEntry 10 }
--- end DLINK_ISMVLAN_REMAP_REPLACE_PRIORITY
 
+    igmpMulticastVlanSrcPortDymLearn OBJECT-TYPE
+    	SYNTAX  INTEGER {
+                      enabled(1),
+                      disabled(2)
+                   }
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "The source port dynamical learn of this multicast VLAN."
+		DEFVAL  { disabled }
+        ::= { igmpMulticastVlanEntry 11 }
+    igmpMulticastVlanReplaceCVID OBJECT-TYPE
+    	SYNTAX  INTEGER (-1..4094)
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "The replacement cvid of this multicast VLAN."
+		DEFVAL  { -1 }
+        ::= { igmpMulticastVlanEntry 12 }
     igmpMulticastVlanRowStatus OBJECT-TYPE
         SYNTAX  RowStatus
         MAX-ACCESS  read-create
         STATUS  current
         DESCRIPTION
             "This object indicates the status of this entry."
-        ::= { igmpMulticastVlanEntry 11 }         
+        ::= { igmpMulticastVlanEntry 13 }         
           
     -- -----------------------------------------------------------------------------
     --  igmpMulticastVlanGroupTable	
@@ -20449,12 +22036,14 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
             	IpAddress,
             multicastVlanMldReplaceSourceIp
             	Ipv6Address,
--- start DLINK_ISMVLAN_REMAP_REPLACE_PRIORITY
 			multicastVlanRemapPriority
 				INTEGER,
 			multicastVlanReplacePriority
 				INTEGER,
--- end DLINK_ISMVLAN_REMAP_REPLACE_PRIORITY
+			multicastVlanSrcPortDymLearn
+				INTEGER,
+			multicastVlanReplaceCVID
+				INTEGER,
             multicastVlanRowStatus
                 RowStatus
         }
@@ -20545,7 +22134,6 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
             "The replacement source IP of this MLD snooping multicast VLAN."
         ::= { multicastVlanEntry 9 }
         
--- start DLINK_ISMVLAN_REMAP_REPLACE_PRIORITY
     multicastVlanRemapPriority OBJECT-TYPE
     	SYNTAX  INTEGER (-1..7)
         MAX-ACCESS  read-write
@@ -20566,7 +22154,27 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
             "The replacement priority of this multicast VLAN."
 		DEFVAL  { disabled }
         ::= { multicastVlanEntry 11 }
--- end DLINK_ISMVLAN_REMAP_REPLACE_PRIORITY
+
+    multicastVlanSrcPortDymLearn OBJECT-TYPE
+    	SYNTAX  INTEGER {
+                      enabled(1),
+                      disabled(2)
+                   }
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "The source port dynamical learn of this multicast VLAN."
+		DEFVAL  { disabled }
+        ::= { multicastVlanEntry 12 }
+
+    multicastVlanReplaceCVID OBJECT-TYPE
+    	SYNTAX  INTEGER (-1..4094)
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "The replacement cvid of this multicast VLAN."
+		DEFVAL  { -1 }
+        ::= { multicastVlanEntry 13 }
 
     multicastVlanRowStatus OBJECT-TYPE
         SYNTAX  RowStatus
@@ -20574,8 +22182,8 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
         STATUS  current
         DESCRIPTION
             "This object indicates the status of this entry."
-        ::= { multicastVlanEntry 12 }         
-          
+        ::= { multicastVlanEntry 14 }         
+
     -- -----------------------------------------------------------------------------
     --  igmpMulticastVlanGroupTable	
     -- -----------------------------------------------------------------------------   
@@ -21587,6 +23195,13 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
                     "This object indicates the maximum number of router hops that the DHCPv6 packets can cross."
             ::= { dhcpv6RelayControl 2 }
 
+            dhcpv6RelayEnablePortlist OBJECT-TYPE 
+               SYNTAX      PortList
+               MAX-ACCESS  read-write 
+             STATUS      current 
+             DESCRIPTION 
+                 "This object indicates DHCPv6 relay function is enabled or disabled by portlist."
+             ::= { dhcpv6RelayControl 3 }
 
 		-- The DHCPv6 Relay Management
 		-- The DHCPv6 Relay Interface Settings Table
@@ -21911,16 +23526,92 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
 	      "The row status of the entry."  
 	   ::= { macBasedVlanEntry 99 }
     
-	macBasedVlanMethod OBJECT-TYPE 
-       SYNTAX      INTEGER {
-                    single(1),
-                    range(2)
-                   }
-       MAX-ACCESS  read-write
-       STATUS      current
+--  macBasedVlanMethod OBJECT-TYPE 
+--     SYNTAX      INTEGER {
+--                  single(1),
+--                  range(2)
+--                 }
+--     MAX-ACCESS  read-write
+--     STATUS      current
+--     DESCRIPTION 
+--        "A method of Vlan-MAC address mapping." 
+--     ::= { companyMacBasedVlan 2 } 
+
+
+
+
+	macBasedVlanLearningTable OBJECT-TYPE 
+	   SYNTAX      SEQUENCE OF MacBasedVlanLearningEntry 
+	   MAX-ACCESS  not-accessible 
+	   STATUS      current 
 	   DESCRIPTION 
-	      "A method of Vlan-MAC address mapping." 
+	      "A table that contains information on Vlan-MAC address 
+	      mapping by sw learning." 
 	   ::= { companyMacBasedVlan 2 } 
+
+	macBasedVlanLearningEntry OBJECT-TYPE
+	   SYNTAX      MacBasedVlanLearningEntry
+	   MAX-ACCESS  not-accessible 
+	   STATUS      current 
+	   DESCRIPTION 
+	      "Entry that contains Vlan-MAC address mapping by sw learning." 
+	   INDEX { vlanMacMapLearningAddr }
+	   ::= { macBasedVlanLearningTable 1 }
+
+        MacBasedVlanLearningEntry ::=
+            SEQUENCE {
+                vlanMacMapLearningAddr
+                    MacAddress,          
+                vlanMacMapLearningVid
+                    VlanIndex,
+                vlanMacLearningStatus
+                    DisplayString,
+                vlanMacLearningType
+                    DisplayString,
+                vlanMacMapLearningRowStatus
+                    RowStatus
+            }
+
+	vlanMacMapLearningAddr OBJECT-TYPE
+	   SYNTAX      MacAddress  
+	   MAX-ACCESS  read-only
+	   STATUS      current 
+	   DESCRIPTION 
+	      "The Mac address for which the Vlan mapping is present in the learning entry." 
+	   ::= { macBasedVlanLearningEntry 1 }
+
+	vlanMacMapLearningVid OBJECT-TYPE
+	   SYNTAX      VlanIndex 
+	   MAX-ACCESS  read-only
+	   STATUS      current 
+	   DESCRIPTION 
+	      "The Vlan to which the mac address of this learning entry is mapped to." 
+	   ::= { macBasedVlanLearningEntry 2 }
+
+	vlanMacLearningStatus OBJECT-TYPE
+	   SYNTAX      DisplayString 
+	   MAX-ACCESS  read-only
+	   STATUS      current 
+	   DESCRIPTION 
+	      "The status given to the mac-vlan learning entry." 
+	   ::= { macBasedVlanLearningEntry 3 }
+
+	vlanMacLearningType OBJECT-TYPE
+	   SYNTAX      DisplayString 
+	   MAX-ACCESS  read-only
+	   STATUS      current 
+	   DESCRIPTION 
+	      "The type given to the mac-vlan learning entry." 
+	   ::= { macBasedVlanLearningEntry 4 }
+
+	vlanMacMapLearningRowStatus OBJECT-TYPE
+	   SYNTAX      RowStatus 
+	   MAX-ACCESS  read-only
+	   STATUS      current 
+	   DESCRIPTION 
+	      "The row status of the learning entry."  
+	   ::= { macBasedVlanLearningEntry 99 }
+
 
 
     -- ----------------------------------------------------------
@@ -22416,7 +24107,6 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
              DESCRIPTION
             "The FTP operation status represent firmware backup or upgrade status."
              ::= { ftpFwTable 9 }
-
         ftpConfigServerIpAddress OBJECT-TYPE
               SYNTAX DisplayString (SIZE(1..64))
               MAX-ACCESS read-write
@@ -22504,6 +24194,77 @@ ipv4sysSNTPDSTState  OBJECT-TYPE
              "The FTP operation status represent config backup or upgrade status."
              ::= { ftpConfigTable 9}
 	
+	statisticsClearPortList OBJECT-TYPE
+			SYNTAX      PortList
+			MAX-ACCESS  read-write
+			STATUS      current
+			DESCRIPTION
+            "This object allow the user to set the port list for Statistics."
+			::= { companyStatistics 1 }
+		
+    statisticsClear OBJECT-TYPE 
+			SYNTAX      TruthValue 
+			MAX-ACCESS  read-write 
+			STATUS      current 
+			DESCRIPTION 
+			"This object allows the user to clear Statistics entry.
+			Setting  a value of 'true' causes the Statistics entry to 
+			be cleared."
+			DEFVAL  { false }
+           ::= { companyStatistics 2 }
+
+-- ----------------------------------------------------------
+-- The companyLedPanel Groups
+-- ----------------------------------------------------------      	
+   swLedPanelstate                  OBJECT IDENTIFIER ::= { companyswLedPanel 1 }
+
+	swLedInfoTable OBJECT-TYPE
+        SYNTAX  SEQUENCE OF SwLedInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "This table contains the LED information."
+        ::= { swLedPanelstate 1 }
+        
+	swLedInfoEntry OBJECT-TYPE
+        SYNTAX  SwLedInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "A list of front panel LED information for each unit in the system."
+        INDEX  { swLedInfoUnitId }
+        ::= { swLedInfoTable 1 }
+        
+	SwLedInfoEntry ::=
+        SEQUENCE {
+				swLedInfoUnitId
+					INTEGER,
+				swLedInfoFrontPanelLedStatus					
+					OCTET STRING
+		}
+
+	swLedInfoUnitId OBJECT-TYPE
+        SYNTAX  INTEGER (1..2)
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+            "The object indicates the unit ID."
+        ::= { swLedInfoEntry 1 }
+        
+	swLedInfoFrontPanelLedStatus OBJECT-TYPE
+        SYNTAX  OCTET STRING 
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+				"This object is a set of system LED indicators. The first 32 octets are 
+				defined as next, and following octets are for logical port LED.
+				
+				Octet 1 is console led:
+						0x01 = a user is login through console
+						0x02 = no user is login through console
+
+				Octet 2-32 are reserved."
+        ::= { swLedInfoEntry 2 }
           
 		-- *****************************************************************
 		--

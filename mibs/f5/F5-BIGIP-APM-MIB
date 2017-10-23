@@ -4,12 +4,12 @@ F5-BIGIP-APM-MIB DEFINITIONS ::= BEGIN
 -- F5-BIGIP-APM-MIB 
 --     A private enterprise MIB for F5  traffic management 
 --     systems.
---     VERSION: 11.5.1
+--     VERSION: 12.1.2
 --================================================================
 
 IMPORTS
     OBJECT-TYPE, NOTIFICATION-TYPE, MODULE-IDENTITY,
-    Integer32, Opaque, enterprises, Counter32, Counter64, TimeTicks
+    Opaque, enterprises, Counter32, Counter64, TimeTicks
         FROM SNMPv2-SMI
 
     Gauge 
@@ -17,9 +17,6 @@ IMPORTS
 
     TEXTUAL-CONVENTION, MacAddress 
         FROM SNMPv2-TC 
-
-    CounterBasedGauge64 
-        FROM HCNUM-TC 
 
     OBJECT-GROUP, MODULE-COMPLIANCE
         FROM SNMPv2-CONF
@@ -32,7 +29,7 @@ IMPORTS
 
 --================================================================
 bigipApm MODULE-IDENTITY
-    LAST-UPDATED "201208011820Z" -- Wed Aug  1 18:20:36 UTC 2012 
+    LAST-UPDATED "201610031806Z" -- Mon Oct  3 18:06:56 UTC 2016 
     ORGANIZATION "F5 Networks, Inc."
     CONTACT-INFO
          "postal: F5 Networks, Inc. 
@@ -61,6 +58,8 @@ apmLeasepool                   OBJECT IDENTIFIER ::= { bigipApm 2 }
 apmLeasepoolStat               OBJECT IDENTIFIER ::= { apmLeasepool 1 }
 apmAcl                         OBJECT IDENTIFIER ::= { bigipApm 3 }
 apmAclStat                     OBJECT IDENTIFIER ::= { apmAcl 1 }
+apmGlobalLicenseStat           OBJECT IDENTIFIER ::= {
+    apmProfiles 9 }
 
 
 --==================================================================
@@ -332,7 +331,9 @@ ApmPaStatEntry ::=
         	apmPaStatApdApInternalErrors                           Counter64,
         	apmPaStatAllowedRequests                               Counter64,
         	apmPaStatDeniedRequests                                Counter64,
-        	apmPaStatVsName                                        LongDisplayString
+        	apmPaStatVsName                                        LongDisplayString,
+        	apmPaStatSessionsEvalTimedOut                          Counter64,
+        	apmPaStatSessionsEstabTimedOut                         Counter64
 	}
 
 apmPaStatName OBJECT-TYPE 
@@ -2362,6 +2363,24 @@ apmPaStatVsName OBJECT-TYPE
 		"The name virtual server in the specified access profile"
 	::= { apmPaStatEntry 227 } 
 
+apmPaStatSessionsEvalTimedOut OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total sessions terminated due to inactivity while going through
+		access policy evaluation in the specified profile"
+	::= { apmPaStatEntry 228 } 
+
+apmPaStatSessionsEstabTimedOut OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total sessions terminated due to inactivity after completed
+		access policy evaluation in the specified profile"
+	::= { apmPaStatEntry 229 } 
+
 --==================================================================
 -- Profile_connectivity_stat
 --==================================================================
@@ -2904,7 +2923,7 @@ apmAccessStatResetStats OBJECT-TYPE
 	::= { apmAccessStat 1 } 
 
 apmAccessStatTotalSessions OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -2912,7 +2931,7 @@ apmAccessStatTotalSessions OBJECT-TYPE
 	::= { apmAccessStat 2 } 
 
 apmAccessStatCurrentActiveSessions OBJECT-TYPE 
-	SYNTAX Counter64
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -2991,6 +3010,24 @@ apmAccessStatResultRedirectWithSession OBJECT-TYPE
 		"The total sessions redirected to the configured URI without closing the session in the system"
 	::= { apmAccessStat 12 } 
 
+apmAccessStatSessionsEvalTimedOut OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total sessions terminated due to inactivity while going through access
+		policy evaluation in the system"
+	::= { apmAccessStat 13 } 
+
+apmAccessStatSessionsEstabTimedOut OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total sessions terminated due to inactivity after completed access
+		policy evaluation in the system"
+	::= { apmAccessStat 14 } 
+
 --==================================================================
 -- Global_connectivity_stat
 --==================================================================
@@ -3009,15 +3046,15 @@ apmGlobalConnectivityStatTotConns OBJECT-TYPE
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
-		"The total SSL/VPN connections in the system"
+		"The total connectivity sessions in the system"
 	::= { apmGlobalConnectivityStat 2 } 
 
 apmGlobalConnectivityStatCurConns OBJECT-TYPE 
-	SYNTAX Counter64
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
-		"The total current SSL/VPN connections in the system"
+		"The current connectivity sessions in the system"
 	::= { apmGlobalConnectivityStat 3 } 
 
 apmGlobalConnectivityStatMaxConns OBJECT-TYPE 
@@ -3025,7 +3062,7 @@ apmGlobalConnectivityStatMaxConns OBJECT-TYPE
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
-		"The max SSL/VPN connections in the system"
+		"The max connectivity sessions in the system"
 	::= { apmGlobalConnectivityStat 4 } 
 
 apmGlobalConnectivityStatIngressRaw OBJECT-TYPE 
@@ -3033,7 +3070,7 @@ apmGlobalConnectivityStatIngressRaw OBJECT-TYPE
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
-		"The total raw bytes received by SSL/VPN connections in the system"
+		"The total raw bytes received by connectivity sessions in the system"
 	::= { apmGlobalConnectivityStat 5 } 
 
 apmGlobalConnectivityStatEgressRaw OBJECT-TYPE 
@@ -3041,7 +3078,7 @@ apmGlobalConnectivityStatEgressRaw OBJECT-TYPE
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
-		"The total raw bytes transmitted by SSL/VPN connections in the system"
+		"The total raw bytes transmitted by connectivity sessions in the system"
 	::= { apmGlobalConnectivityStat 6 } 
 
 apmGlobalConnectivityStatIngressCompressed OBJECT-TYPE 
@@ -3049,7 +3086,7 @@ apmGlobalConnectivityStatIngressCompressed OBJECT-TYPE
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
-		"The total compressed bytes received by SSL/VPN connections in the system"
+		"The total compressed bytes received by connectivity sessions in the system"
 	::= { apmGlobalConnectivityStat 7 } 
 
 apmGlobalConnectivityStatEgressCompressed OBJECT-TYPE 
@@ -3057,7 +3094,7 @@ apmGlobalConnectivityStatEgressCompressed OBJECT-TYPE
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
-		"The total compressed bytes transmitted by SSL/VPN connections in the system"
+		"The total compressed bytes transmitted by connectivity sessions in the system"
 	::= { apmGlobalConnectivityStat 8 } 
 
 --==================================================================
@@ -3180,10 +3217,10 @@ apmLeasepoolStatEntry OBJECT-TYPE
 ApmLeasepoolStatEntry ::= 
 	SEQUENCE {
         	apmLeasepoolStatName                                   LongDisplayString,
-        	apmLeasepoolStatCurMembers                             Integer32,
-        	apmLeasepoolStatCurAssigned                            Integer32,
-        	apmLeasepoolStatCurFree                                Integer32,
-        	apmLeasepoolStatMaxAssigned                            Integer32,
+        	apmLeasepoolStatCurMembers                             Gauge,
+        	apmLeasepoolStatCurAssigned                            Gauge,
+        	apmLeasepoolStatCurFree                                Gauge,
+        	apmLeasepoolStatMaxAssigned                            Gauge,
         	apmLeasepoolStatTotPickRequests                        Counter64,
         	apmLeasepoolStatTotPickFailure                         Counter64,
         	apmLeasepoolStatTotReserveRequests                     Counter64,
@@ -3201,7 +3238,7 @@ apmLeasepoolStatName OBJECT-TYPE
 	::= { apmLeasepoolStatEntry 1 } 
 
 apmLeasepoolStatCurMembers OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -3209,7 +3246,7 @@ apmLeasepoolStatCurMembers OBJECT-TYPE
 	::= { apmLeasepoolStatEntry 2 } 
 
 apmLeasepoolStatCurAssigned OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -3217,7 +3254,7 @@ apmLeasepoolStatCurAssigned OBJECT-TYPE
 	::= { apmLeasepoolStatEntry 3 } 
 
 apmLeasepoolStatCurFree OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -3225,7 +3262,7 @@ apmLeasepoolStatCurFree OBJECT-TYPE
 	::= { apmLeasepoolStatEntry 4 } 
 
 apmLeasepoolStatMaxAssigned OBJECT-TYPE 
-	SYNTAX Integer32
+	SYNTAX Gauge
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
@@ -3368,6 +3405,51 @@ apmAclStatActionReject OBJECT-TYPE
 	DESCRIPTION
 		"The number of times reject action executed"
 	::= { apmAclStatEntry 5 } 
+
+--==================================================================
+-- Global_license_stat
+--==================================================================
+apmGlobalLicenseStatResetStats OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-write
+	STATUS current
+	DESCRIPTION
+		"The action to reset resetable statistics data in  apmGlobalLicenseStat. 
+		 Setting this value to 1 will reset statistics data. 
+		 Note, some statistics data may not be reset including data that are incremental counters."
+	::= { apmGlobalLicenseStat 1 } 
+
+apmGlobalLicenseStatTotalAccessSessions OBJECT-TYPE 
+	SYNTAX Gauge
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total access session licenses in the system"
+	::= { apmGlobalLicenseStat 2 } 
+
+apmGlobalLicenseStatTotalConnectivitySessions OBJECT-TYPE 
+	SYNTAX Gauge
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total connectivity session licenses in the system"
+	::= { apmGlobalLicenseStat 3 } 
+
+apmGlobalLicenseStatTotalSwgSessions OBJECT-TYPE 
+	SYNTAX Gauge
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total secure web gateway session licenses in the system"
+	::= { apmGlobalLicenseStat 4 } 
+
+apmGlobalLicenseStatTotalSwgLimitedSessions OBJECT-TYPE 
+	SYNTAX Gauge
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total secure web gateway limited session licenses in the system"
+	::= { apmGlobalLicenseStat 5 } 
 
 --================================================================
  -- Compliance and Group
@@ -3614,7 +3696,9 @@ apmPaStatGroup OBJECT-GROUP
 		apmPaStatApdApInternalErrors,
 		apmPaStatAllowedRequests,
 		apmPaStatDeniedRequests,
-		apmPaStatVsName
+		apmPaStatVsName,
+		apmPaStatSessionsEvalTimedOut,
+		apmPaStatSessionsEstabTimedOut
 	}
 	STATUS	 current
 	DESCRIPTION
@@ -3713,7 +3797,9 @@ apmAccessStatGroup OBJECT-GROUP
 		apmAccessStatResultAllow,
 		apmAccessStatResultDeny,
 		apmAccessStatResultRedirect,
-		apmAccessStatResultRedirectWithSession
+		apmAccessStatResultRedirectWithSession,
+		apmAccessStatSessionsEvalTimedOut,
+		apmAccessStatSessionsEstabTimedOut
 	}
 	STATUS	 current
 	DESCRIPTION
@@ -3788,4 +3874,17 @@ apmAclStatGroup OBJECT-GROUP
 	DESCRIPTION
 		"A collection of objects of apmAclStat MIB."
 	::= { bigipApmGroups 10 }
+
+apmGlobalLicenseStatGroup OBJECT-GROUP
+	 OBJECTS {
+		apmGlobalLicenseStatResetStats,
+		apmGlobalLicenseStatTotalAccessSessions,
+		apmGlobalLicenseStatTotalConnectivitySessions,
+		apmGlobalLicenseStatTotalSwgSessions,
+		apmGlobalLicenseStatTotalSwgLimitedSessions
+	}
+	STATUS	 current
+	DESCRIPTION
+		"A collection of objects of apmGlobalLicenseStat MIB."
+	::= { bigipApmGroups 11 }
 END

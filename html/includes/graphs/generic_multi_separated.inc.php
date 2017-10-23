@@ -79,14 +79,36 @@ if ($legend != 'no')
 
 $i = 0;
 $rrd_multi = array();
+$count = count($rrd_list);
+
+if(isset($colours_in))
+{
+  if($count > 50)
+  {
+
+    $config['graph_colours']['in'] = array_merge(array_values(generate_colour_gradient(reset($config['graph_colours'][$colours_in]), end($config['graph_colours'][$colours_in]), 25)),
+    array_values(generate_colour_gradient(end($config['graph_colours'][$colours_in]), reset($config['graph_colours'][$colours_in]), 25)));
+
+  } else {
+    $config['graph_colours']['in'] = generate_colour_gradient(reset($config['graph_colours'][$colours_in]), end($config['graph_colours'][$colours_in]), $count);
+  }
+  $colours_in = 'in';
+}
+
+if(isset($colours_out))
+{
+  $config['graph_colours']['out'] = generate_colour_gradient(reset($config['graph_colours'][$colours_out]), end($config['graph_colours'][$colours_out]), $count);
+  $colours_out = 'out';
+}
+
 foreach ($rrd_list as $rrd)
 {
-  if (!$config['graph_colours'][$colours_in][$iter] || !$config['graph_colours'][$colours_out][$iter]) { $iter = 0; }
 
+  if (!$config['graph_colours'][$colours_in][$iter] || !$config['graph_colours'][$colours_out][$iter]) { $iter = 1; }
   $colour_in=$config['graph_colours'][$colours_in][$iter];
   $colour_out=$config['graph_colours'][$colours_out][$iter];
 
-  if ($rrd['colour_area_in']) { $colour_in = $rrd['colour_area_in']; }
+  if ($rrd['colour_area_in'])  { $colour_in  = $rrd['colour_area_in']; }
   if ($rrd['colour_area_out']) { $colour_out = $rrd['colour_area_out']; }
 
   $rrd_options .= " DEF:inB".$i."=".$rrd['filename'].":".$rrd['ds_in'].":AVERAGE ";

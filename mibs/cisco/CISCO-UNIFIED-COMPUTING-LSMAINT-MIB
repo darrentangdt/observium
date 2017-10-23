@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- LSMAINT management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -56,11 +56,13 @@ IMPORTS
     CucsTrigAckMode,
     CucsTrigAckOperState,
     CucsTrigAckPrevOperState,
-    CucsTrigAdminState
+    CucsTrigAdminState,
+    CucsTrigTrigState,
+    CucsTrigTrigger
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsLsmaintObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -121,7 +123,9 @@ CucsLsmaintAckEntry ::= SEQUENCE {
     cucsLsmaintAckOperScheduler                                      SnmpAdminString,
     cucsLsmaintAckPolicyLevel                                        Gauge32,
     cucsLsmaintAckPolicyOwner                                        CucsPolicyPolicyOwner,
-    cucsLsmaintAckPrevOperState                                      CucsTrigAckPrevOperState
+    cucsLsmaintAckPrevOperState                                      CucsTrigAckPrevOperState,
+    cucsLsmaintAckPropAcl                                            Unsigned64,
+    cucsLsmaintAckTriggerConfigState                                 CucsTrigTrigState
 }
 
 cucsLsmaintAckInstanceId OBJECT-TYPE
@@ -332,6 +336,22 @@ cucsLsmaintAckPrevOperState OBJECT-TYPE
         "Cisco UCS lsmaint:Ack:prevOperState managed object property"
     ::= { cucsLsmaintAckEntry 26 }
 
+cucsLsmaintAckPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS lsmaint:Ack:propAcl managed object property"
+    ::= { cucsLsmaintAckEntry 27 }
+
+cucsLsmaintAckTriggerConfigState OBJECT-TYPE
+    SYNTAX       CucsTrigTrigState
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS lsmaint:Ack:triggerConfigState managed object property"
+    ::= { cucsLsmaintAckEntry 28 }
+
 cucsLsmaintMaintPolicyTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsLsmaintMaintPolicyEntry
     MAX-ACCESS       not-accessible
@@ -360,7 +380,8 @@ CucsLsmaintMaintPolicyEntry ::= SEQUENCE {
     cucsLsmaintMaintPolicyIntId                                      SnmpAdminString,
     cucsLsmaintMaintPolicyOperSchedName                              SnmpAdminString,
     cucsLsmaintMaintPolicyPolicyLevel                                Gauge32,
-    cucsLsmaintMaintPolicyPolicyOwner                                CucsPolicyPolicyOwner
+    cucsLsmaintMaintPolicyPolicyOwner                                CucsPolicyPolicyOwner,
+    cucsLsmaintMaintPolicyTriggerConfig                              CucsTrigTrigger
 }
 
 cucsLsmaintMaintPolicyInstanceId OBJECT-TYPE
@@ -453,5 +474,14 @@ cucsLsmaintMaintPolicyPolicyOwner OBJECT-TYPE
         "Cisco UCS lsmaint:MaintPolicy:policyOwner managed
         object property"
     ::= { cucsLsmaintMaintPolicyEntry 11 }
+
+cucsLsmaintMaintPolicyTriggerConfig OBJECT-TYPE
+    SYNTAX       CucsTrigTrigger
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS lsmaint:MaintPolicy:triggerConfig managed
+        object property"
+    ::= { cucsLsmaintMaintPolicyEntry 12 }
 
 END

@@ -11,13 +11,13 @@
  *
  */
 
-//TIMETRA-SYSTEM-MIB::sgiMemoryUsed.0 = Gauge32: 300145144 bytes
-//TIMETRA-SYSTEM-MIB::sgiMemoryAvailable.0 = Gauge32: 518611632 bytes
-//TIMETRA-SYSTEM-MIB::sgiMemoryPoolAllocated.0 = Gauge32: 320917080 bytes
+// TIMETRA-SYSTEM-MIB::sgiMemoryUsed.0 = Gauge32: 300145144 bytes
+// TIMETRA-SYSTEM-MIB::sgiMemoryAvailable.0 = Gauge32: 518611632 bytes
+// TIMETRA-SYSTEM-MIB::sgiMemoryPoolAllocated.0 = Gauge32: 320917080 bytes
 
-//TIMETRA-SYSTEM-MIB::sgiMemoryUsed.0 = Gauge32: 305605608 bytes
-//TIMETRA-SYSTEM-MIB::sgiMemoryAvailable.0 = Gauge32: 600985024 bytes
-//TIMETRA-SYSTEM-MIB::sgiMemoryPoolAllocated.0 = Gauge32: 325038952 bytes
+// TIMETRA-SYSTEM-MIB::sgiMemoryUsed.0 = Gauge32: 305605608 bytes
+// TIMETRA-SYSTEM-MIB::sgiMemoryAvailable.0 = Gauge32: 600985024 bytes
+// TIMETRA-SYSTEM-MIB::sgiMemoryPoolAllocated.0 = Gauge32: 325038952 bytes
 /*
   If the value is greater than the maximum value reportable by this
   object then this object reports its maximum value (4,294,967,295)

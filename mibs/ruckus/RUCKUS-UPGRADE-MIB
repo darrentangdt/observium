@@ -67,7 +67,7 @@ ruckusFileTransferMethod OBJECT-TYPE
 
 
 ruckusFileTransferHostName OBJECT-TYPE
-    SYNTAX  DisplayString (SIZE (1..40))
+    SYNTAX  DisplayString
     MAX-ACCESS read-write
     STATUS current
     DESCRIPTION
@@ -92,7 +92,7 @@ ruckusFileTransferHostAddr OBJECT-TYPE
 
 
 ruckusFileTransferControlFileName OBJECT-TYPE
-    SYNTAX  DisplayString (SIZE (1..63))
+    SYNTAX  DisplayString (SIZE (1..128))
     MAX-ACCESS read-write
     STATUS current
     DESCRIPTION
@@ -101,7 +101,7 @@ ruckusFileTransferControlFileName OBJECT-TYPE
 
 
 ruckusFileTransferFTPUsername OBJECT-TYPE
-    SYNTAX  DisplayString (SIZE (1..63))
+    SYNTAX  DisplayString (SIZE (1..32))
     MAX-ACCESS read-write
     STATUS current
     DESCRIPTION
@@ -110,7 +110,7 @@ ruckusFileTransferFTPUsername OBJECT-TYPE
 
 
 ruckusFileTransferFTPPassword OBJECT-TYPE
-    SYNTAX  DisplayString (SIZE (1..63))
+    SYNTAX  DisplayString (SIZE (1..32))
     MAX-ACCESS read-write
     STATUS current
     DESCRIPTION

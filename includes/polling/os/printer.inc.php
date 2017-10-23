@@ -22,47 +22,11 @@ if ($printer)
   {
     // ...7.0 = STRING: "MFG:Hewlett-Packard;CMD:PJL,MLC,BIDI-ECP,PCL,POSTSCRIPT,PCLXL;MDL:hp LaserJet 1320 series;CLS:PRINTER;DES:Hewlett-Packard LaserJet 1320 series;MEM:9MB;COMMENT:RES=1200x1;"
     //                  "MFG:HP;MDL:Officejet Pro K5400;CMD:MLC,PCL,PML,DW-PCL,DESKJET,DYN;1284.4DL:4d,4e,1;CLS:PRINTER;DES:C8185A;SN:MY82E680JG;S:038000ec840010210068eb800008fb8000041c8003844c8004445c8004d46c8003b;Z:0102,05000009000009029cc1016a81017a21025e41,0600,070000000000000"
-    $jdinfo = trim(snmp_get($device, '1.3.6.1.4.1.11.2.3.9.1.1.7.0', '-OQv'),'" ');
+    $jdinfo = snmp_get($device, '1.3.6.1.4.1.11.2.3.9.1.1.7.0', '-OQv');
     preg_match('/(?:MDL|MODEL|DESCRIPTION):([^;]+);/', $jdinfo, $matches);
     $hardware = $matches[1];
   }
 }
-
-// Features
-/// FIXME. Need rewrite function. -- Mike 03/2013
-//
-// PrtMarkerMarkTech ::= DESCRIPTION "The type of marking technology used for this marking sub-unit"
-//other(1),
-//unknown(2),
-//electrophotographicLED(3),
-//electrophotographicLaser(4),
-//electrophotographicOther(5),
-//impactMovingHeadDotMatrix9pin(6),
-//impactMovingHeadDotMatrix24pin(7),
-//impactMovingHeadDotMatrixOther(8),
-//impactMovingHeadFullyFormed(9),
-//impactBand(10),
-//impactOther(11),
-//inkjetAqueous(12),
-//inkjetSolid(13),
-//inkjetOther(14),
-//pen(15),
-//thermalTransfer(16),
-//thermalSensitive(17),
-//thermalDiffusion(18),
-//thermalOther(19),
-//electroerosion(20),
-//electrostatic(21),
-//photographicMicrofiche(22),
-//photographicImagesetter(23),
-//photographicOther(24),
-//ionDeposition(25),
-//eBeam(26),
-//typesetter(27)
-$features = snmp_get($device, 'prtMarkerMarkTech.1.1', '-OQv', 'Printer-MIB');
-
-// Serial number
-$serial  = snmp_get($device, 'prtGeneralSerialNumber.1', '-OQv', 'Printer-MIB');
 
 // OS version
 if (preg_match('/^(?:Samsung )+(?<hardware>[CMKSX][\w\-]+)[^;]*;(?: V|OS )(?<version>[\d\.]+).+?;S/N (?<serial>\w+)/', $poll_device['sysDescr'], $matches))

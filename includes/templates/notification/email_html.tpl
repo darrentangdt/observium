@@ -18,47 +18,103 @@
 <head>
   <title>Observium Alert</title>
   <style type="text/css">
-  .observium{
-    width:100%; max-width: 500px; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px;
-    border:1px solid #DDDDDD; background-color:#FAFAFA; font-size: 13px; color: #777777;
+
+  body {
+    margin: 15px;
+    font-family: 'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 20px;
+    color: #333333;
+    background-color: #fff;
+    font-weight: 400;
   }
-  .header{ font-weight: bold; font-size: 16px; padding: 5px; color: #555555; }
-  .red { color: #cc0000; }
-  #deviceinfo tr:nth-child(odd) { background: #ffffff; }
+
+  .box {
+    position: relative;
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    border-radius: 0px;
+    background: #ffffff;
+    /* border-top: 3px solid #d2d6de; */
+    margin-bottom: 10px;
+    wwidth: 100%;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.24);
+  }
+
+  .no-padding {
+    padding: 0 !important;
+  }
+
+  .table {
+    max-width: 600px;
+    background-color: #fff;
+    border-collapse: collapse;
+    border-spacing: 0;
+    color: #333;
+  }
+
+  .table th, .table td {
+    padding: 5px 10px;
+    line-height: 20px;
+    text-align: left;
+    vertical-align: top;
+    border-top: 1px solid #f4f4f4;
+  }
+
+  .table tbody > tr.ALERT > td {
+    background-color: #ffebee;
+  }
+
+  .table tbody > tr:nth-child(even) > td, .table tbody > tr:nth-child(even) > th {
+    background-color: #f9f9f9;
+  }
+
+  .table .state-marker, .state-marker {
+    padding: 0px;
+    margin: none;
+    width: 7px;
+  }
+
+  .table tbody > tr > td.state-marker {
+    background-color: #004774;
+  }
+
+  .table .ALERT .state-marker {
+    background-color: #b71c1c;
+  }
+
+  .header { font-size: 20px; font-weight: bold; padding: 10px;}
+
+  .ALERT {
+    color: #cc0000;
+  }
+
   </style>
 </head>
 <body>
-<table class="observium">
+<table class="table box box-solid">
   <tbody>
-    <tr>
-      <td>
-        <table class="observium" id="deviceinfo">
-  <tbody>
-    <tr><td class="header">{{ALERT_STATE}}</td><td><a style="float: right;" href="{{{ALERT_URL}}}">Modify</a></td></tr>
-    <tr><td><strong>Alert</strong></td><td class="red">{{ALERT_MESSAGE}}</td></tr>
+    <tr class="{{ALERT_STATE}}"><td class="state-marker"></td><td style="padding: 10px;" class="header">{{ALERT_STATE}}</td><td><a style="float: right;" href="{{{ALERT_URL}}}">Modify</a></td></tr>
+    <tr><td colspan=2><strong>Alert</strong></td><td class="{{ALERT_STATE}}"><strong>{{ALERT_MESSAGE}}</strong></td></tr>
     {{#ENTITY_LINK}}
-    <tr><td><strong>Entity</strong></td><td>{{{ENTITY_LINK}}}</td></tr>
+    <tr><td colspan=2><strong>Entity</strong></td><td><strong>{{{ENTITY_LINK}}}</strong></td></tr>
     {{/ENTITY_LINK}}
     {{#ENTITY_DESCRIPTION}}
-    <tr><td><strong>Descr</strong></td><td>{{ENTITY_DESCRIPTION}}</td></tr>
+    <tr><td colspan=2><strong>Descr</strong></td><td>{{ENTITY_DESCRIPTION}}</td></tr>
     {{/ENTITY_DESCRIPTION}}
     {{#CONDITIONS}}
-    <tr><td><strong>Conditions</strong></td><td>{{{CONDITIONS}}}</td></tr>
+    <tr><td colspan=2><strong>Conditions</strong></td><td>{{{CONDITIONS}}}</td></tr>
     {{/CONDITIONS}}
-    <tr><td><strong>Metrics</strong></td><td>{{{METRICS}}}</td></tr>
-    <tr><td><strong>Duration</strong></td><td>{{DURATION}}</td></tr>
-    <tr><td colspan="2" class="header">Device</td></tr>
-    <tr><td><strong>Device</strong></td><td>{{{DEVICE_LINK}}}</td></tr>
-    <tr><td><strong>Hardware</strong></td><td>{{DEVICE_HARDWARE}}</td></tr>
-    <tr><td><strong>Operating System</strong></td><td>{{DEVICE_OS}}</td></tr>
-    <tr><td><strong>Location</strong></td><td>{{DEVICE_LOCATION}}</td></tr>
-    <tr><td><strong>Uptime</strong></td><td>{{DEVICE_UPTIME}}</td></tr>
-  </tbody>
-        </table>
-      </td>
-    </tr>
+    <tr><td colspan=2><strong>Metrics</strong></td><td>{{{METRICS}}}</td></tr>
+    <tr><td colspan=2><strong>Duration</strong></td><td>{{DURATION}}</td></tr>
+    <tr><td colspan=3>Device</td></tr>
+    <tr><td colspan=2><strong>Device</strong></td><td><strong>{{{DEVICE_LINK}}}</strong></td></tr>
+    <tr><td colspan=2><strong>Hardware</strong></td><td>{{DEVICE_HARDWARE}}</td></tr>
+    <tr><td colspan=2><strong>Operating System</strong></td><td>{{DEVICE_OS}}</td></tr>
+    <tr><td colspan=2><strong>Location</strong></td><td>{{DEVICE_LOCATION}}</td></tr>
+    <tr><td colspan=2><strong>Uptime</strong></td><td>{{DEVICE_UPTIME}}</td></tr>
     {{#ENTITY_GRAPHS}}
-    <tr><td><center>{{{ENTITY_GRAPHS}}}</center></td></tr>
+    <tr><td colspan=3><center>{{{ENTITY_GRAPHS}}}</center></td></tr>
     {{/ENTITY_GRAPHS}}
   </tbody>
 </table>

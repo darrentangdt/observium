@@ -27,7 +27,7 @@ $descr_len += round(($width - 250) / 8);
 $iter = 0;
 $colours = 'mixed-10c';
 
-$rrd_options .= " COMMENT:'".str_pad('Size      Used    %used', $descr_len+31, ' ', STR_PAD_LEFT)."\\\l'";
+$rrd_options .= " COMMENT:'".str_pad('Size      Used    %used', $descr_len+31, ' ', STR_PAD_LEFT)."\\l'";
 
 foreach (dbFetchRows("SELECT * FROM `mempools` where `device_id` = ?", array($device['device_id'])) as $mempool)
 {
@@ -37,7 +37,7 @@ foreach (dbFetchRows("SELECT * FROM `mempools` where `device_id` = ?", array($de
   $descr = rrdtool_escape(rewrite_hrDevice($mempool['mempool_descr']), $descr_len);
   if (isset($mempool['mempool_type'])) { $mempool['mempool_mib'] = $mempool['mempool_type']; }
 
-  $rrd_filename = get_rrd_path($device, "mempool-".$mempool['mempool_mib']."-".$mempool['mempool_index'].".rrd");
+  $rrd_filename = get_rrd_path($device, "mempool-".strtolower($mempool['mempool_mib'])."-".$mempool['mempool_index'].".rrd");
 
   if (is_file($rrd_filename))
   {
@@ -49,7 +49,7 @@ foreach (dbFetchRows("SELECT * FROM `mempools` where `device_id` = ?", array($de
     $rrd_options .= " LINE1.25:".$mempool['mempool_id']."perc#" . $colour . ":'$descr'";
     $rrd_options .= " GPRINT:".$mempool['mempool_id']."size:LAST:%6.2lf%sB";
     $rrd_options .= " GPRINT:".$mempool['mempool_id']."used:LAST:%6.2lf%sB";
-    $rrd_options .= " GPRINT:".$mempool['mempool_id']."perc:LAST:%5.2lf%%\\\l";
+    $rrd_options .= " GPRINT:".$mempool['mempool_id']."perc:LAST:%5.2lf%%\\l";
     $iter++;
   }
 }

@@ -11,7 +11,8 @@
  *
  */
 
-if (preg_match('/^(?:dlink |d-link )?(?<hardware>[a-z]+\-\d+[\w\/-]+) +(?<features>.+)/i', $poll_device['sysDescr'], $matches))
+if (preg_match('/^(?:dlink |d-link )?(?<hardware>[a-z]+\-\d+[\w\/-]+) +(?<features>.+)/i', $poll_device['sysDescr'], $matches) ||
+    preg_match('/^(?:dlink |d-link )?(?<hardware>[a-z]+\-\d+[\w\/-]+)/i', $poll_device['sysDescr'], $matches))
 {
   //D-Link DES-1228/ME Metro Ethernet Switch
   //D-Link DES-3026 Fast Ethernet Switch
@@ -26,12 +27,15 @@ if (preg_match('/^(?:dlink |d-link )?(?<hardware>[a-z]+\-\d+[\w\/-]+) +(?<featur
   //DGS-3120-24SC Gigabit Ethernet Switch
   //DGS-3450 Gigabit Ethernet Switch
   //DGS-3627G Gigabit Ethernet Switch
+  //DES-2110 V1.01.02
+  //DES-1210-28/ME/B2
   $hardware = $matches['hardware'];
-  if (preg_match('/^(\d+\.)+[\w\-]+$/', $matches['features']))
+  if (preg_match('/^V?(\d+\.)+[\w\-]+$/', $matches['features']))
   {
     //4.21.02
     //6.07.B004
-    $version = $matches['features'];
+    //V1.01.02
+    $version = str_replace("V", "", $matches['features']);
   } else {
     //Fast-Ethernet Switch
     //Fast Ethernet Switch
@@ -51,13 +55,11 @@ if (!$version)
   $version = snmp_get($device, 'probeSoftwareRev.0', '-Ovq', 'RMON2-MIB');
   $version = str_replace('Build ', '', $version);
 }
+
 // HW revision is not required, but anyone can come in handy in the future.
 // I for example have more than five revisions for one platform (DES-3550)
 // RMON2-MIB::probeHardwareRev.0 = STRING: "0A3G"
-//$revision = trim(snmp_get($device, 'probeHardwareRev.0', '-Ovq', 'RMON2-MIB'), '"');
+//$revision = snmp_get($device, 'probeHardwareRev.0', '-Ovq', 'RMON2-MIB');
 //$hardware = ($revision === '') ? $hardware : $hardware . ' ' . $revision ;
-
-// AGENT-GENERAL-MIB::agentSerialNumber.0 = STRING: "PL5T2A1000668"
-$serial = snmp_get($device, 'agentSerialNumber.0', '-Ovq', 'AGENT-GENERAL-MIB');
 
 // EOF

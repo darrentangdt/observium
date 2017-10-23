@@ -27,7 +27,9 @@ if ($_SESSION['userlevel'] < 10)
   $defined_config = get_defined_settings();
   $default_config = get_default_settings();
 
-  echo('<form id="settings" name="settings" method="post" action="" class="form form-inline">' . PHP_EOL);
+  echo '<form id="settings" name="settings" method="post" action="" class="form form-inline">' . PHP_EOL;
+
+  //echo '<div class="box box-solid" style="padding:10px;">';
 
   // Pretty inefficient looping everything if section != all, but meh
   // This is only done on this page, so there is no performance issue for the rest of Observium
@@ -51,18 +53,29 @@ if ($_SESSION['userlevel'] < 10)
 
       foreach ($subdata as $subsection => $vardata)
       {
-        echo generate_box_open(array('title' => $subsection, 'header-border' => TRUE));
-        echo('  <table class="table table-striped table-condensed" style="">' . PHP_EOL);
+
+        //echo '<div class="box box-solid" style="padding:10px;">';
+        //echo '<h2 style="padding: 0px 5px; color: #555;">'.$subsection.'</h2>';
+
+        echo generate_box_open(array('title' => $subsection, 'header-border' => FALSE,
+                                     'box-style' => 'margin-bottom: 30px; margin-top: 10px;',
+                                     'title-style' => 'padding: 15px 10px; color: #555; font-size: 21px;',
+                                     'title-element' => 'h2'));
+
+        //echo generate_box_open(array('box-style' => 'margin-bottom: 30px; margin-top: 10px;'));
+
+        echo '<table class="table table-striped table-cond">' . PHP_EOL;
 
         $cols = array(
           array(NULL, 'class="state-marker"'),
-          array(NULL, 'style="width: 0px;"'),
+          //array(NULL, 'style="width: 0px;"'),
           array('Description', 'style="width: 40%;"'),
           array(NULL,          'style="width: 50px;"'),
           'Configuration Value',
-          array('Use DB',      'style="width: 75px;"'),
+          array(NULL,      'style="width: 75px;"'),
+          //array(NULL,      'style="width: 10px;"'),
         );
-        echo(get_table_header($cols));
+        //echo(get_table_header($cols));
 
         foreach ($vardata as $varname => $variable)
         {
@@ -76,25 +89,25 @@ if ($_SESSION['userlevel'] < 10)
           if (sql_to_array($varname, $database_config) !== FALSE)
           {
             $sqlset = 1;
-            $linetype = '';
+            $linetype = 'info';
             $content = sql_to_array($varname, $database_config, FALSE);
           } else {
             $sqlset = 0;
-            $linetype = "disabled";
+            //$linetype = "disabled";
           }
 
           // Check if this variable is set in the config. If so, lock it
-          if (sql_to_array($varname, $defined_config) !== FALSE)
+          $locked = sql_to_array($varname, $defined_config) !== FALSE;
+          $locked = $locked || isset($variable['locked']) && $variable['locked']; // Locked in definition
+          if ($locked)
           {
-            $locked   = 1;
             $offtext  = "Locked";
-            $offtype = "danger";
-            $linetype = 'warning';
+            $offtype  = "danger";
+            $linetype = 'error';
             $content  = sql_to_array($varname, $defined_config, FALSE);
           } else {
-            $locked   = 0;
             $offtext  = "Default";
-            $offtype = "success";
+            $offtype  = "success";
           }
 
           $htmlname = str_replace('|','__',$varname); // JQuery et al don't like the pipes a lot, replace once here in temporary variable
@@ -102,18 +115,18 @@ if ($_SESSION['userlevel'] < 10)
 
           echo('  <tr class="' . $linetype . ' vertical-align">' . PHP_EOL);
           echo('    <td class="state-marker"></td>');
-          echo('    <td style="width: 5px;"></td>');
-          echo('    <td><strong style="color: #0a5f7f;">' . $variable['name'] . '</strong>');
-          echo('<br /><i><small>' . escape_html($variable['shortdesc']) . '</small></i>' . PHP_EOL);
+          //echo('    <td style="width: 0px;"></td>');
+          echo('    <td style="width: 40%; padding-left: 15px;"><strong style="color: #0a5f7f; font-size: 1.6rem">' . $variable['name'] . '</strong>');
+          echo('<br /><small>' . escape_html($variable['shortdesc']) . '</small>' . PHP_EOL);
           echo('      </td>' . PHP_EOL);
-          echo('      <td class="text-nowrap">' . PHP_EOL);
+          echo('      <td class="text-nowrap" style="width: 50px">' . PHP_EOL);
           echo('<div class="pull-right">');
-          if ($locked)
+          if ($locked && !isset($variable['locked']))
           {
-            echo(generate_tooltip_link(NULL, '<i class="oicon-lock-warning"></i>', 'This setting is locked because it has been set in your <strong>config.php</strong> file.'));
+            echo(generate_tooltip_link(NULL, '<i class="'.$config['icon']['lock'].'"></i>', 'This setting is locked because it has been set in your <strong>config.php</strong> file.'));
             echo '&nbsp;';
           }
-          echo(generate_tooltip_link(NULL, '<i id="clipboard" class="oicon-question" data-clipboard-text="'.$confname.'"></i>', 'Variable name to use in <strong>config.php</strong>: ' . $confname));
+          echo(generate_tooltip_link(NULL, '<i id="clipboard" class="'.$config['icon']['question'].'" data-clipboard-text="'.$confname.'"></i>', 'Variable name to use in <strong>config.php</strong>: ' . $confname));
           echo('      </div>' . PHP_EOL);
           echo('      </td>'. PHP_EOL);
           echo('      <td>' . PHP_EOL);
@@ -257,25 +270,39 @@ if ($_SESSION['userlevel'] < 10)
           echo('    <td>' . PHP_EOL);
           echo('      <div class="pull-right">' . PHP_EOL);
           $item = array('id'       => $htmlname . '_custom',
-                        'size'     => 'small',
+                        //'size'     => 'small',
                         //'width'    => 100,
-                        'on-color' => 'primary',
-                        'off-color' => $offtype,
-                        'on-text'  => 'Custom',
-                        'off-text' => $offtext,
-                        'onchange' => "toggleAttrib('readonly', '" . $htmlname . "')",
+                        //'on-color' => 'primary',
+                        //'off-color' => $offtype,
+                        //'on-text'  => 'Custom',
+                        //'off-text' => $offtext,
+                        'size'     => 'large',
+                        'view'     => $locked ? 'lock' : 'square', // note this is data-tt-type, but 'type' key reserved for element type
+                        'onchange' => "toggleAttrib('readonly', obj.attr('data-onchange-id'));",
+                        'onchange-id' => $htmlname, // target id for onchange, set attrib: data-onchange-id
+                        //'onchange' => "toggleAttrib('readonly', '" . $htmlname . "')",
                         //'onchange' => '$(\'#' . $htmlname . '_content_div\').toggle()',
                         'disabled' => (bool)$locked,
                         'value'    => $sqlset && !$locked);
-          echo(generate_form_element($item, 'switch'));
-          //echo('        <input data-toggle="switch-mini" data-on="primary" data-off="' . $offtype . '" data-on-label="Custom" data-off-label="' . $offtext . '" onchange="$(\'#' . $htmlname . '_content_div\').toggle()" type="checkbox" ' . ($sqlset && !$locked ? 'checked="1" ' : '') . 'name="' . $htmlname . '_custom"' . ($locked ? ' disabled="1"' : '') . '>' . PHP_EOL);
-          echo('      </div>' . PHP_EOL);
-          echo('    </td>' . PHP_EOL);
-          echo('  </tr>' . PHP_EOL);
+          echo(generate_form_element($item, 'toggle'));
+
+          //$onchange = "toggleAttrib('readonly', '" . $htmlname . "')";
+
+
+          // echo '<input type="checkbox" data-off-label="false" data-on-label="false" data-off-icon-cls="glyphicon-thumbs-down" data-on-icon-cls="glyphicon-thumbs-up" data-group-cls="btn-group-sm" data-on="primary" data-off="' . $offtype . '" data-on-label="Custom" data-off-label="' . $offtext . '" onchange="'.$onchange.'" type="checkbox" ' . ($sqlset && !$locked ? 'checked="1" ' : '') . 'name="' . $htmlname . '_custom"' . ($locked ? ' disabled="1"' : '') . '>';
+
+          //echo '<input type="checkbox" class="tiny-toggle" data-id="' . $htmlname . '" data-tt-type="'.($locked ? 'lock' : 'square').'" data-tt-size="large" onchange="'.$onchange.'" ' . ($sqlset && !$locked ? 'checked="1" ' : '') . 'name="' . $htmlname . '_custom"' . ($locked ? ' disabled="1"' : '') . '>';
+
+
+          echo '      </div>' . PHP_EOL;
+          echo '    </td>' . PHP_EOL;
+          //echo '    <td></td>' . PHP_EOL;
+          echo '  </tr>' . PHP_EOL;
         }
 
         echo('  </table>' . PHP_EOL);
         echo generate_box_close();
+
       }
       //echo('  <br />' . PHP_EOL);
     }
@@ -284,26 +311,34 @@ if ($_SESSION['userlevel'] < 10)
 
 ?>
 <div class="row">
-<div class="col-sm-12">
+  <div class="col-sm-12">
 
-  <div class="box box-solid">
-  <div class="box-content no-padding">
-  <div class="form-actions" style="margin: 0px;">
+<!--    <div class="box box-solid">
+      <div class="box-content no-padding">
+        <div class="form-actions" style="margin: 0px;"> -->
   <?php
-  
-  $item = array('id'          => 'submit',
+
+  // Add CSRF Token
+  $item = array('type'  => 'hidden',
+                'id'    => 'requesttoken',
+                'value' => $_SESSION['requesttoken']);
+  echo(generate_form_element($item) . PHP_EOL);
+
+  $item = array('type'        => 'submit',
+                'id'          => 'submit',
                 'name'        => 'Save Changes',
                 'class'       => 'btn-primary',
                 'right'       => TRUE,
-                'icon'        => 'icon-ok oicon-white',
+                'icon'        => 'icon-ok icon-white',
                 'value'       => 'save');
-  echo(generate_form_element($item, 'submit'));
+  echo(generate_form_element($item) . PHP_EOL);
   ?>
+<!--
+        </div>
+      </div>
+    </div>
+-->
   </div>
-  </div>
-  </div>
-
-</div>
 </div>
 
 </form>
@@ -326,3 +361,4 @@ if ($_SESSION['userlevel'] < 10)
 <?php
 
 // EOF
+

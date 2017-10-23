@@ -1,8 +1,8 @@
-HP-SWITCH-TRAP-MIB DEFINITIONS ::= BEGIN 
+HP-SWITCH-TRAP-MIB DEFINITIONS ::= BEGIN
 
     IMPORTS
-
-	TRAP-TYPE				FROM RFC-1215
+	TRAP-TYPE                      FROM RFC-1215
+      
 
 	hpSwitch1600,   hpSwitchJ9079A, hpSwitchJ9080A, hpSwitchJ9028A,
 	hpSwitchJ9028B, hpSwitchJ9029A, hpSwitchJ9449A, hpSwitchJ9450A,
@@ -28,10 +28,13 @@ HP-SWITCH-TRAP-MIB DEFINITIONS ::= BEGIN
         hpSwitchJ9470A, hpSwitchJ9471A, hpSwitchJ9472A, hpSwitchJ9473A, 
         hpSwitchJ9573,  hpSwitchJ9574,  hpSwitchJ9575,   hpSwitchJ9576, 
         hpSwitchJ9584,  hpSwitchJ9585,  hpSwitchJ9586,   hpSwitchJ9587, 
-        hpSwitchJ9588,  hpStack,        hpSwitch4000,   hpSwitchJ4865A, 
-        hpSwitchJ4887A, hpSwitchJ4819A, hpSwitchJ4850A, hpSwitchJ8697A, 
+        hpSwitchJ9588,                  hpStack,       hpStackVSF5400R,
+        arubaStack3810, arubaJL071A,    arubaJL072A,       arubaJL073A,
+        arubaJL074A,    arubaJL075A,                       arubaJL076A,       
+        hpSwitch4000,   hpSwitchJ4865A, hpSwitchJ4887A, hpSwitchJ4819A,
+        hpSwitchJ4850A,                                 hpSwitchJ8697A,
         hpSwitchJ8698A, hpSwitchJ9850A, hpSwitchJ9851A, hpSwitchJ4902A, 
-        hpSwitch516733-B21, hpSwitch498358-B21, hpSwitchJ8992A, 
+        hpSwitch516733-B21, hpSwitch498358-B21,         hpSwitchJ8992A, 
         hpSwitch6308, hpSwitchJ8433A,   hpSwitchJ8474A, hpSwitchJ9263A, 
         hpSwitchJ9264A, hpSwitchJ9265A, hpSwitchJ9451A, hpSwitchJ9452A, 
         hpSwitch8000,   hpSwitchJ9477A, hpSwitchJ9091A, hpSwitch9304,   
@@ -780,6 +783,50 @@ HP-SWITCH-TRAP-MIB DEFINITIONS ::= BEGIN
           ::= 2	
 
 
+   hpStackVSF5400Rtrap   TRAP-TYPE
+          ENTERPRISE     hpStackVSF5400R
+          DESCRIPTION    "An SNMP trap that is generated for an RMON event on a VSF stack of 5400R Switches."
+          ::= 2	
+
+-- -------------
+-- 3810 SWITCHES
+-- -------------
+
+
+   arubaStack3810trap    TRAP-TYPE
+          ENTERPRISE     arubaStack3810
+          DESCRIPTION    "An SNMP trap that is generated for an RMON event on a stack of Aruba 3810 Switches."
+          ::= 2	
+
+   arubaJL071Atrap       TRAP-TYPE
+          ENTERPRISE     arubaJL071A
+          DESCRIPTION    "An SNMP trap that is generated for an RMON event on a JL071A Aruba 3810M 24G 1-slot Switch."
+          ::= 2
+
+   arubaJL072Atrap       TRAP-TYPE
+          ENTERPRISE     arubaJL072A
+          DESCRIPTION    "An SNMP trap that is generated for an RMON event on a JL072A Aruba 3810M 48G 1-slot Switch."
+          ::= 2
+
+   arubaJL073Atrap       TRAP-TYPE
+          ENTERPRISE     arubaJL073A
+          DESCRIPTION    "An SNMP trap that is generated for an RMON event on a JL073A Aruba 3810M 24G PoE+ 1-slot Switch."
+          ::= 2
+
+   arubaJL074Atrap       TRAP-TYPE
+          ENTERPRISE     arubaJL074A
+          DESCRIPTION    "An SNMP trap that is generated for an RMON event on a JL074A Aruba 3810M 48G PoE+ 1-slot Switch."
+          ::= 2
+
+   arubaJL075Atrap       TRAP-TYPE
+          ENTERPRISE     arubaJL075A
+          DESCRIPTION    "An SNMP trap that is generated for an RMON event on a JL075A Aruba 3810M 16SFP+ 2-slot Switch."
+          ::= 2
+
+   arubaJL076Atrap       TRAP-TYPE
+          ENTERPRISE     arubaJL076A
+          DESCRIPTION    "An SNMP trap that is generated for an RMON event on a JL076A Aruba 3810M 40G 8 HPE Smart Rate PoE+ 1-slot Switch."
+          ::= 2
 
 -- -------------
 -- 4000 SWITCHES

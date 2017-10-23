@@ -22,10 +22,11 @@ $message .= str_replace("             ", "", str_replace("\n", " ", $message_tag
 
 // JSON data
 $data_string = json_encode(array(
-  "from" => $endpoint['from'],
-  "color" => $color,
+  "from"           => $endpoint['from'],
+  "color"          => $color,
   "message_format" => 'html',
-  "message" => $message));
+  "notify"         => (isset($endpoint['notify']) && $endpoint['notify'] == 'true') ? 'true' : 'false',
+  "message"        => $message));
 
 // JSON data + HTTP headers
 $context_data = array(

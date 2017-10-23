@@ -68,18 +68,22 @@ function build_ports_where_array($vars)
         case 'alerted':
           if ($value == "yes")
           {
-            $where[] = ' AND `ifAdminStatus` = "up" AND (`ifOperStatus` = "lowerLayerDown" OR `ifOperStatus` = "down")';
+            // this is just state=down
+            //$where[] = ' AND `ifAdminStatus` = "up" AND (`ifOperStatus` = "lowerLayerDown" OR `ifOperStatus` = "down")';
+            $var   = 'state';
+            $value = 'down';
           }
+          // do not break here
         case 'state':
           if ($value == "down")
           {
-            $where[] = 'AND `ifAdminStatus` = "up" AND (`ifOperStatus` = "lowerLayerDown" OR `ifOperStatus` = "down")';
+            $where[] = 'AND `ifAdminStatus` = "up" AND `ifOperStatus` IN ("lowerLayerDown", "down")';
           }
           else if ($value == "up")
           {
-            $where[] = 'AND `ifAdminStatus` = "up" AND ( `ifOperStatus` = "up" OR `ifOperStatus` = "monitoring" )';
+            $where[] = 'AND `ifAdminStatus` = "up" AND `ifOperStatus` IN ("up", "testing", "monitoring")';
           }
-          else if ($value == "admindown")
+          else if ($value == "admindown" || $value == "shutdown")
           {
             $where[] = 'AND `ifAdminStatus` = "down"';
           }
@@ -88,6 +92,12 @@ function build_ports_where_array($vars)
           if ($value && $value != 'no')
           {
             $where[] = generate_query_values($GLOBALS['cache']['ports']['cbqos'], 'ports.port_id');
+          }
+          break;
+        case 'mac_accounting':
+          if ($value && $value != 'no')
+          {
+            $where[] = generate_query_values($GLOBALS['cache']['ports']['mac_accounting'], 'ports.port_id');
           }
           break;
       }
@@ -666,8 +676,8 @@ function generate_port_row($port, $vars = array())
         $link_dev = device_by_id_cache($link_if['device_id']);
         $string .= $br;
 
-        if ($int_links_phys[$int_link]) { $string .= '<a data-alt="Directly connected" class="oicon-connect"></a> '; }
-        else { $string .= '<a data-alt="Same subnet" class="oicon-network-hub"></a> '; }
+        if ($int_links_phys[$int_link]) { $string .= '<a data-alt="Directly connected" class="'.$config['icon']['connected'].'"></a> '; }
+        else { $string .= '<a data-alt="Same subnet" class="'.$config['icon']['network'].'"></a> '; }
 
         $string .= '<b>' . generate_port_link($link_if, $link_if['port_label_short']) . ' on ' . generate_device_link($link_dev, short_hostname($link_dev['hostname'])) . '</b>';
 
@@ -683,7 +693,7 @@ function generate_port_row($port, $vars = array())
       foreach ($int_links_unknown as $int_link)
       {
         // FIXME -- Expose platform and version here.
-        $string .= '<a data-alt="Directly connected" class="oicon-plug-connect"></a> ';
+        $string .= '<a data-alt="Directly connected" class="'.$config['icon']['connected'].'"></a> ';
         $string .= '<b><i>'.short_ifname($int_link['remote_port']).'</i></b> on ';
 
         $string .= '<i><b>'.generate_tooltip_link(NULL, $int_link['remote_hostname'], '<div class="small" style="max-width: 500px;"><b>'.$int_link['remote_platform'].'</b><br />'.$int_link['remote_version'].'</div>').'</b></i>';
@@ -705,9 +715,9 @@ function generate_port_row($port, $vars = array())
         if (is_array($pw_peer_int))
         {
           humanize_port($pw_peer_int);
-          $string .= $br.'<i class="oicon-arrow-switch"></i> <strong>' . generate_port_link($pw_peer_int, $pw_peer_int['port_label_short']) .' on '. generate_device_link($pw_peer_dev, short_hostname($pw_peer_dev['hostname'])) . '</strong>';
+          $string .= $br.'<i class="'.$config['icon']['cross-connect'].'"></i> <strong>' . generate_port_link($pw_peer_int, $pw_peer_int['port_label_short']) .' on '. generate_device_link($pw_peer_dev, short_hostname($pw_peer_dev['hostname'])) . '</strong>';
         } else {
-          $string .= $br.'<i class="oicon-arrow-switch"></i> <strong> VC ' . $pseudowire['pwID'] .' on '. $pseudowire['peer_addr'] . '</strong>';
+          $string .= $br.'<i class="'.$config['icon']['cross-connect'].'"></i> <strong> VC ' . $pseudowire['pwID'] .' on '. $pseudowire['peer_addr'] . '</strong>';
         }
         $string .= ' <span class="label">'.$pseudowire['pwPsnType'].'</span>';
         $string .= ' <span class="label">'.$pseudowire['pwType'].'</span>';
@@ -715,13 +725,16 @@ function generate_port_row($port, $vars = array())
       }
     }
 
+
+/** Disabled pending database rejigging to add it back
+
     if (!isset($cache['ports_option']['ports_pagp']) || in_array($port['ifIndex'], $cache['ports_option']['ports_pagp']))
     {
       foreach (dbFetchRows("SELECT * FROM `ports` WHERE `pagpGroupIfIndex` = ? AND `device_id` = ?", array($port['ifIndex'], $device['device_id'])) as $member)
       {
         humanize_port($member);
         $pagp[$device['device_id']][$port['ifIndex']][$member['ifIndex']] = TRUE;
-        $string .= $br.'<i class="oicon-arrow-join"></i> <strong>' . generate_port_link($member) . ' [PAgP]</strong>';
+        $string .= $br.'<i class="'.$config['icon']['merge'].'"></i> <strong>' . generate_port_link($member) . ' [PAgP]</strong>';
         $br = "<br />";
       }
     }
@@ -731,9 +744,11 @@ function generate_port_row($port, $vars = array())
       $pagp[$device['device_id']][$port['pagpGroupIfIndex']][$port['ifIndex']] = TRUE;
       $parent = dbFetchRow("SELECT * FROM `ports` WHERE `ifIndex` = ? and `device_id` = ?", array($port['pagpGroupIfIndex'], $device['device_id']));
       humanize_port($parent);
-      $string .= $br.'<i class="oicon-arrow-split"></i> <strong>' . generate_port_link($parent) . ' [PAgP]</strong>';
+      $string .= $br.'<i class="'.$config['icon']['split'].'"></i> <strong>' . generate_port_link($parent) . ' [PAgP]</strong>';
       $br = "<br />";
     }
+
+**/
 
     if (!isset($cache['ports_option']['ports_stack_low']) || in_array($port['ifIndex'], $cache['ports_option']['ports_stack_low']))
     {
@@ -745,7 +760,7 @@ function generate_port_row($port, $vars = array())
           $this_port = get_port_by_index_cache($device['device_id'], $higher_if['port_id_high']);
           if (is_array($this_port))
           {
-            $string .= $br.'<i class="oicon-arrow-split"></i> <strong>' . generate_port_link($this_port) . '</strong>';
+            $string .= $br.'<i class="'.$config['icon']['split'].'"></i> <strong>' . generate_port_link($this_port) . '</strong>';
             $br = "<br />";
           }
         }
@@ -762,7 +777,7 @@ function generate_port_row($port, $vars = array())
           $this_port = get_port_by_index_cache($device['device_id'], $lower_if['port_id_low']);
           if (is_array($this_port))
           {
-            $string .= $br.'<i class="oicon-arrow-join"></i> <strong>' . generate_port_link($this_port) . '</strong>';
+            $string .= $br.'<i class="'.$config['icon']['merge'].'"></i> <strong>' . generate_port_link($this_port) . '</strong>';
             $br = "<br />";
           }
         }

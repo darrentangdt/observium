@@ -35,13 +35,6 @@ foreach ($pages as $page_name => $page_desc)
     $navbar['options'][$page_name]['text'] = escape_html($page_desc);
 }
 
-/*
-$navbar['options_right']['add']['url']       = '#add_contact_modal';
-$navbar['options_right']['add']['link_opts'] = 'data-toggle="modal"';
-$navbar['options_right']['add']['text']      = 'Add Contact';
-$navbar['options_right']['add']['icon']      = 'oicon-mail--plus';
-*/
-
 // Print out the navbar defined above
 print_navbar($navbar);
 unset($navbar);
@@ -49,7 +42,8 @@ unset($navbar);
 // Change password
 if ($vars['password'] == "save")
 {
-  if (authenticate($_SESSION['username'], $vars['old_pass']))
+  if (!request_token_valid($vars)) {} // Check for CSRF attach (error showed inside request_token_valid())
+  else if (authenticate($_SESSION['username'], $vars['old_pass']))
   {
     if ($vars['new_pass'] == "" || $vars['new_pass2'] == "")
     {
@@ -74,7 +68,7 @@ if (is_numeric($_SESSION['user_id']))
   $prefs = get_user_prefs($user_id);
 
   // Reset RSS/Atom key
-  if ($vars['atom_key'] == "toggle")
+  if ($vars['atom_key'] == "toggle" && request_token_valid($vars))
   {
     if (set_user_pref($user_id, 'atom_key', md5(strgen())))
     {
@@ -86,7 +80,7 @@ if (is_numeric($_SESSION['user_id']))
   }
 
   // Reset API key
-  if ($vars['api_key'] == "toggle")
+  if ($vars['api_key'] == "toggle" && request_token_valid($vars))
   {
     if (set_user_pref($user_id, 'api_key', md5(strgen())))
     {

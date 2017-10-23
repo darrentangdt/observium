@@ -14,6 +14,7 @@
 #ob_clean();
 
 $total_start = utime();
+
 // Init global var for information about generated graph
 $graph_return = array('status'        => FALSE,   // --> $GLOBALS['rrd_status']
                       'command'       => '',      // --> $GLOBALS['exec_status']['command'] added in rrdtool_graph()
@@ -50,10 +51,10 @@ else if (!empty($vars['device']))
 {
   $device = device_by_name($vars['device']);
 }
-//else if ($type == 'device' && is_numeric($vars['id']))
-//{
-//  $device = device_by_id_cache($vars['id']);
-//}
+else if ($type == 'device' && is_numeric($vars['id']))
+{
+  $device = device_by_id_cache($vars['id']);
+}
 
 // $from, $to - unixtime (or rrdgraph time interval, i.e. '-1d', '-6w')
 // $timestamp_from, $timestamp_to - timestamps formatted as 'Y-m-d H:i:s'

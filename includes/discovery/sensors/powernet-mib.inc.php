@@ -11,6 +11,8 @@
  *
  */
 
+$mib = 'PowerNet-MIB';
+
 #### UPS #############################################################################################
 
 $scale     = 0.1;  // Default scale
@@ -100,13 +102,41 @@ if ($inputs || $outputs)
         discover_sensor($valid['sensor'], 'voltage', $device, $oid, "upsPhaseOutputVoltage.$tindex.1.$p", 'apc', $descr, 1, $value);
       }
 
-      $oid      = ".1.3.6.1.4.1.318.1.1.1.9.3.3.1.16.$tindex.1.$p";
-      $value    = $cache['apc']["$tindex.1.$p"]['upsPhaseOutputPercentPower'];
+      $oid_name = 'upsPhaseOutputPercentPower';
+      $oid_num  = ".1.3.6.1.4.1.318.1.1.1.9.3.3.1.16.$tindex.1.$p";
+      $type     = $mib . '-' . $oid_name;
+      $value    = $cache['apc']["$tindex.1.$p"][$oid_name];
+      //$oid      = ".1.3.6.1.4.1.318.1.1.1.9.3.3.1.16.$tindex.1.$p";
+      //$value    = $cache['apc']["$tindex.1.$p"]['upsPhaseOutputPercentPower'];
 
       if ($value != '' && $value != -1)
       {
-        discover_sensor($valid['sensor'], 'capacity', $device, $oid, "upsPhaseOutputPercentPower.$tindex.1.$p", 'apc', "$descr Load", 1, $value);
+        rename_rrd_entity($device, 'sensor', array('descr' => "$descr Load", 'class' => 'capacity', 'index' => "upsPhaseOutputPercentPower.$tindex.1.$p", 'type' => 'apc'),  // old
+                                             array('descr' => "$descr Load", 'class' => 'load',     'index' => "$tindex.1.$p",                            'type' => $type)); // new
+        discover_sensor($valid['sensor'], 'load', $device, $oid_num, "$tindex.1.$p", $type, "$descr Load", 1, $value);
       }
+
+      $oid_name = 'upsPhaseOutputLoad';
+      $oid_num  = ".1.3.6.1.4.1.318.1.1.1.9.3.3.1.7.$tindex.1.$p";
+      $type     = $mib . '-' . $oid_name;
+      $value    = $cache['apc']["$tindex.1.$p"][$oid_name];
+
+      if ($value != '' && $value != -1)
+      {
+        discover_sensor($valid['sensor'], 'apower', $device, $oid_num, "$tindex.1.$p", $type, "$descr Power", 1, $value);
+      }
+
+      /*
+      $oid_name = 'upsPhaseOutputPercentLoad';
+      $oid_num  = ".1.3.6.1.4.1.318.1.1.1.9.3.3.1.10.$tindex.1.$p";
+      $type     = $mib . '-' . $oid_name;
+      $value    = $cache['apc']["$tindex.1.$p"][$oid_name];
+
+      if ($value != '' && $value != -1)
+      {
+        discover_sensor($valid['sensor'], 'load', $device, $oid_num, "$tindex.1.$p", $type, "$descr Load", 1, $value);
+      }
+      */
     }
 
     // Frequency is reported only once per output
@@ -1733,11 +1763,16 @@ unset($apc_discrete_map);
 
 echo(' ');
 
+//mUpsEnvironAmbientTemperature.0 = 24
+//mUpsEnvironRelativeHumidity.0 = 25
+//mUpsEnvironAmbientTemperature2.0 = 0
+//mUpsEnvironRelativeHumidity2.0 = 255
 $cache['apc'] = snmp_get_multi($device, "mUpsEnvironAmbientTemperature.0 mUpsEnvironRelativeHumidity.0 mUpsEnvironAmbientTemperature2.0 mUpsEnvironRelativeHumidity2.0", "-OUQs", "PowerNet-MIB");
 
 foreach ($cache['apc'] as $index => $entry)
 {
-  if (is_numeric($entry['mUpsEnvironAmbientTemperature']))
+  if (is_numeric($entry['mUpsEnvironAmbientTemperature']) &&
+      !isset($valid['sensor']['temperature']['apc']['emsProbeStatusProbeTemperature.1']))
   {
     $descr = "Probe 1 Temperature";
     $oid   = ".1.3.6.1.4.1.318.1.1.2.1.1.$index";
@@ -1746,7 +1781,8 @@ foreach ($cache['apc'] as $index => $entry)
     discover_sensor($valid['sensor'], 'temperature', $device, $oid, "mUpsEnvironAmbientTemperature.$index", 'apc', $descr, 1, $value);
   }
 
-  if (is_numeric($entry['mUpsEnvironRelativeHumidity']))
+  if (is_numeric($entry['mUpsEnvironRelativeHumidity']) &&
+      !isset($valid['sensor']['humidity']['apc']['emsProbeStatusProbeHumidity.1']))
   {
     $descr = "Probe 1 Humidity";
     $oid   = ".1.3.6.1.4.1.318.1.1.2.1.2.$index";
@@ -1755,22 +1791,27 @@ foreach ($cache['apc'] as $index => $entry)
     discover_sensor($valid['sensor'], 'humidity', $device, $oid, "mUpsEnvironRelativeHumidity.$index", 'apc', $descr, 1, $value);
   }
 
-  if (is_numeric($entry['mUpsEnvironAmbientTemperature2']))
+  if ($entry['mUpsEnvironAmbientTemperature2'] != 0 && $entry['mUpsEnvironRelativeHumidity2'] != 255)
   {
-    $descr = "Probe 2 Temperature";
-    $oid   = ".1.3.6.1.4.1.318.1.1.2.1.3.$index";
-    $value = $entry['mUpsEnvironAmbientTemperature2'];
+    if (is_numeric($entry['mUpsEnvironAmbientTemperature2']) &&
+        !isset($valid['sensor']['temperature']['apc']['emsProbeStatusProbeTemperature.2']))
+    {
+      $descr = "Probe 2 Temperature";
+      $oid   = ".1.3.6.1.4.1.318.1.1.2.1.3.$index";
+      $value = $entry['mUpsEnvironAmbientTemperature2'];
 
-    discover_sensor($valid['sensor'], 'temperature', $device, $oid, "mUpsEnvironAmbientTemperature2.$index", 'apc', $descr, 1, $value);
-  }
+      discover_sensor($valid['sensor'], 'temperature', $device, $oid, "mUpsEnvironAmbientTemperature2.$index", 'apc', $descr, 1, $value);
+    }
 
-  if (is_numeric($entry['mUpsEnvironRelativeHumidity2']))
-  {
-    $descr = "Probe 2 Humidity";
-    $oid   = ".1.3.6.1.4.1.318.1.1.2.1.4.$index";
-    $value = $entry['mUpsEnvironRelativeHumidity2'];
+    if (is_numeric($entry['mUpsEnvironRelativeHumidity2']) &&
+        !isset($valid['sensor']['humidity']['apc']['emsProbeStatusProbeHumidity.2']))
+    {
+      $descr = "Probe 2 Humidity";
+      $oid   = ".1.3.6.1.4.1.318.1.1.2.1.4.$index";
+      $value = $entry['mUpsEnvironRelativeHumidity2'];
 
-    discover_sensor($valid['sensor'], 'humidity', $device, $oid, "mUpsEnvironRelativeHumidity2.$index", 'apc', $descr, 1, $value);
+      discover_sensor($valid['sensor'], 'humidity', $device, $oid, "mUpsEnvironRelativeHumidity2.$index", 'apc', $descr, 1, $value);
+    }
   }
 }
 

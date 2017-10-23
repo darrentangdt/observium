@@ -10,15 +10,16 @@
  *
  */
 
-function print_storage_table($vars)
+function generate_storage_query($vars)
 {
 
-    global $cache, $config;
+    $sql  = "SELECT * FROM `storage`";
 
-    $graph_type = "storage_usage";
+    if($vars['sort'] == 'hostname' || $vars['sort'] == 'device' || $vars['sort'] == 'device_id')
+    {
+      $sql .= ' LEFT JOIN `devices` USING(`device_id`)';
+    }
 
-    $sql  = "SELECT *, `storage`.`storage_id` AS `storage_id` FROM `storage`";
-    $sql .= " LEFT JOIN `storage-state` USING(`storage_id`)";
     $sql .= ' WHERE 1' . generate_query_permitted(array('device'));
 
     // Build query
@@ -38,9 +39,58 @@ function print_storage_table($vars)
         case 'ignored':
           $sql .= generate_query_values($value, 'storage.storage_ignore');
           break;
-
       }
     }
+
+    switch ($vars['sort_order'])
+    {
+      case 'desc':
+        $sort_order = 'DESC';
+        $sort_neg   = 'ASC';
+        break;
+      case 'reset':
+        unset($vars['sort'], $vars['sort_order']);
+        // no break here
+      default:
+        $sort_order = 'ASC';
+        $sort_neg   = 'DESC';
+    }
+
+    switch($vars['sort'])
+    {
+      case 'usage':
+        $sql .= ' ORDER BY `storage_perc` '.$sort_neg;
+        break;
+      case 'descr':
+      case 'mountpoint':
+        $sql .= ' ORDER BY `storage_descr` '.$sort_order;
+        break;
+      case 'size':
+      case 'free':
+      case 'used':
+        $sql .= ' ORDER BY `storage_'.$vars['sort'].'` '.$sort_order;
+        break;
+      case 'device':
+      case 'hostname':
+        $sql .= ' ORDER BY `hostname` '.$sort_order;
+        break;
+      default:
+        $sql .= ' ORDER BY `storage_descr` '.$sort_order;
+        break;
+    }
+
+    return $sql;
+
+}
+
+function print_storage_table($vars)
+{
+
+    global $cache, $config;
+
+    $graph_type = "storage_usage";
+
+    $sql = generate_storage_query($vars);
 
     $storages = array();
     foreach (dbFetchRows($sql) as $storage)
@@ -51,39 +101,6 @@ function print_storage_table($vars)
         $storage['html_row_class'] = $cache['devices']['id'][$storage['device_id']]['html_row_class'];
         $storages[] = $storage;
       }
-    }
-
-    // Sorting
-    // FIXME. Sorting can be as function, but in must before print_table_header and after get table from db
-    switch ($vars['sort_order'])
-    {
-      case 'desc':
-        $sort_order = SORT_DESC;
-        $sort_neg   = SORT_ASC;
-        break;
-      case 'reset':
-        unset($vars['sort'], $vars['sort_order']);
-        // no break here
-      default:
-        $sort_order = SORT_ASC;
-        $sort_neg   = SORT_DESC;
-    }
-    switch($vars['sort'])
-    {
-      case 'usage':
-        $storages = array_sort_by($storages, 'storage_perc', $sort_neg, SORT_NUMERIC);
-        break;
-      case 'mountpoint':
-        $storages = array_sort_by($storages, 'storage_descr', $sort_order, SORT_STRING);
-        break;
-      case 'size':
-      case 'free':
-      case 'used':
-        $storages = array_sort_by($storages, 'storage_'.$vars['sort'], $sort_neg, SORT_NUMERIC);
-        break;
-      default:
-        $storages = array_sort_by($storages, 'hostname', $sort_order, SORT_STRING, 'storage_descr', $sort_order, SORT_STRING);
-        break;
     }
 
     $storages_count = count($storages);
@@ -105,9 +122,7 @@ function print_storage_table($vars)
 
     foreach ($storages as $storage)
     {
-
       print_storage_row($storage, $vars);
-
     }
 
     echo("</tbody></table>");
@@ -213,16 +228,16 @@ function generate_storage_row($storage, $vars) {
   if ($vars['view'] == "graphs") { $vars['graph'] = "usage"; }
   if ($vars['graph'])
   {
-    echo '<tr class="' . $storage['row_class'] . '">';
-    echo '<td class="state-marker"></td>';
-    echo '<td colspan="' . $table_cols . '">';
+    $row .= '<tr class="' . $storage['row_class'] . '">';
+    $row .= '<td class="state-marker"></td>';
+    $row .= '<td colspan="' . $table_cols . '">';
 
     unset($graph_array['height'], $graph_array['width'], $graph_array['legend']);
     $graph_array['to']     = $config['time']['now'];
     $graph_array['id']     = $storage['storage_id'];
     $graph_array['type']   = 'storage_'.$vars['graph'];
 
-    print_graph_row($graph_array, TRUE);
+    $row .= generate_graph_row($graph_array, TRUE);
 
     $row .= '</td></tr>';
   } # endif graphs

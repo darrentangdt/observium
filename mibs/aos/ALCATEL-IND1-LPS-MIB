@@ -311,7 +311,7 @@ LearnedPortSecurityMacAddressEntry ::=
 
 lpsMacAddress OBJECT-TYPE
     SYNTAX   MacAddress
-    MAX-ACCESS   read-write
+    MAX-ACCESS   read-only
     STATUS   deprecated
     DESCRIPTION
     "The MacAddress that is either configured or dynamically learnt on the LPS port.
@@ -333,7 +333,7 @@ lpsMacAddressLearnType OBJECT-TYPE
 
 lpsMacAddressRowStatus OBJECT-TYPE
     SYNTAX   RowStatus
-    MAX-ACCESS   read-write
+    MAX-ACCESS   read-create
     STATUS   deprecated
     DESCRIPTION
     "The RowStatus for this table.
@@ -346,7 +346,7 @@ lpsMacAddressRowStatus OBJECT-TYPE
 learnedPortSecurityGlobalGroup OBJECT IDENTIFIER ::= {alcatelIND1LearnedPortSecurityMIBObjects 3 }
 
 lpsLearningWindowTime OBJECT-TYPE
-    SYNTAX   INTEGER ( 0 .. 65536)
+    SYNTAX   INTEGER ( 0 .. 65535)
     MAX-ACCESS   read-write
     STATUS   current
     DESCRIPTION
@@ -410,6 +410,29 @@ lpsLearningWindowExpiryStatus  OBJECT-TYPE
         "If it is enabled Learning Window is Running, if Disabled Learning Window has Expired"
           ::= { learnedPortSecurityGlobalGroup 6 } 
 
+ lpsLearningWindowLearnAsStatic OBJECT-TYPE
+       SYNTAX   INTEGER {
+            enable(1),
+            disable(2)
+        }
+       MAX-ACCESS   read-write
+        STATUS   current
+        DESCRIPTION
+       "If it is enabled, all mac-address learnt on the port would be directly converted to static"
+        DEFVAL  {disable} 
+        ::= { learnedPortSecurityGlobalGroup 7 }
+ 
+ lpsLearningWindowPseudoMacMove  OBJECT-TYPE
+       SYNTAX   INTEGER {
+            enable(1),
+            disable(2)
+        }
+       MAX-ACCESS   read-write
+        STATUS   current
+        DESCRIPTION
+       "If it is enabled, pseudo-static MACs will be subject to MAC move"
+        DEFVAL  {disable}
+        ::= { learnedPortSecurityGlobalGroup 8 }
 
 --- Learned Port Security L2 Mac Address MIB Table
 
@@ -641,6 +664,7 @@ alcatelIND1LearnedPortSecurityMIBCompliance MODULE-COMPLIANCE
             learnedPortSecurityTrapsGroup,
             learnedPortSecurityTrapObjectsGroup,
             learnedPortSecurityL2MacAddressGroup
+            
         }
     ::= { alcatelIND1LearnedPortSecurityMIBCompliances 1 }
 
@@ -690,7 +714,9 @@ learnedPortSecurityGlobGroup OBJECT-GROUP
       lpsLearningWindowTimeWithStaticConversion,
       lpsConvertToStatic,
       lpsLearningWindowNoAging,
-      lpsLearningWindowBootupStatus
+      lpsLearningWindowBootupStatus,
+      lpsLearningWindowLearnAsStatic,
+      lpsLearningWindowPseudoMacMove
    }
    STATUS  current
    DESCRIPTION

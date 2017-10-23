@@ -5,13 +5,13 @@ ALCATEL-IND1-WEBMGT-MIB DEFINITIONS ::= BEGIN
 			FROM SNMPv2-SMI
 		RowStatus, DisplayString
 			FROM SNMPv2-TC
-        	OBJECT-GROUP,
-                NOTIFICATION-GROUP
-            	        FROM SNMPv2-CONF
+        	OBJECT-GROUP
+            	FROM SNMPv2-CONF
 		InetAddress, InetAddressType
 			FROM INET-ADDRESS-MIB
-		softentIND1WebMgt, switchMgtTraps
-			FROM ALCATEL-IND1-BASE;
+		softentIND1WebMgt
+			FROM ALCATEL-IND1-BASE
+	        switchMgtTraps       FROM ALCATEL-IND1-BASE;
 
         alcatelIND1WebMgtMIB MODULE-IDENTITY
 		LAST-UPDATED    "200704030000Z"
@@ -172,7 +172,7 @@ ALCATEL-IND1-WEBMGT-MIB DEFINITIONS ::= BEGIN
 
 		alaIND1WebMgtRFSIPServerName OBJECT-TYPE
     	           	SYNTAX  DisplayString
-     	           	MAX-ACCESS  read-write
+     	           	MAX-ACCESS  read-create
       	     	STATUS  current
        	     	DESCRIPTION
                  	     "RFS DNS Name."
@@ -180,7 +180,7 @@ ALCATEL-IND1-WEBMGT-MIB DEFINITIONS ::= BEGIN
 
 		alaIND1WebMgtRFSServerLogin OBJECT-TYPE
                   SYNTAX  DisplayString
-                  MAX-ACCESS  read-write
+                  MAX-ACCESS  read-create
                   STATUS  current
                   DESCRIPTION
                        "Login name for RFS."
@@ -188,7 +188,7 @@ ALCATEL-IND1-WEBMGT-MIB DEFINITIONS ::= BEGIN
 
 		alaIND1WebMgtRFSServerPassword OBJECT-TYPE
                    SYNTAX  DisplayString
-                   MAX-ACCESS  read-write
+                   MAX-ACCESS  read-create
                    STATUS  current
                    DESCRIPTION
                       "Password for RFS."
@@ -198,7 +198,7 @@ ALCATEL-IND1-WEBMGT-MIB DEFINITIONS ::= BEGIN
                    SYNTAX  INTEGER {
                         		preferred(1)
                         		}
-                   MAX-ACCESS  read-write
+                   MAX-ACCESS  read-create
                    STATUS  current
                    DESCRIPTION
                         "The value 1 indicates that this server is a preferred one.
@@ -209,7 +209,7 @@ ALCATEL-IND1-WEBMGT-MIB DEFINITIONS ::= BEGIN
 
            alaIND1WebMgtRFSPath OBJECT-TYPE
                    SYNTAX  DisplayString
-                   MAX-ACCESS  read-write
+                   MAX-ACCESS  read-create
                    STATUS  current
                    DESCRIPTION
                         "Directory path for the Remote File Server "
@@ -217,7 +217,7 @@ ALCATEL-IND1-WEBMGT-MIB DEFINITIONS ::= BEGIN
 
            alaIND1WebMgtRFSRowStatus OBJECT-TYPE
                     SYNTAX  RowStatus
-                    MAX-ACCESS  read-write
+                    MAX-ACCESS  read-create
                     STATUS  current
                     DESCRIPTION
                         "The status column used for creating, modifying,
@@ -259,6 +259,14 @@ ALCATEL-IND1-WEBMGT-MIB DEFINITIONS ::= BEGIN
             DEFVAL { 443 }
          ::= { alcatelIND1WebMgtMIBObjects 6 }
 
+        alaIND1WebMgtHanIp OBJECT-TYPE 
+            SYNTAX  IpAddress
+            MAX-ACCESS  read-write
+            STATUS  current
+            DESCRIPTION
+                 "Alcatel-Lucent Enterprise Access Point address type.
+                  IpAddressIPv4 (1) is the only type currently supported. "
+         ::= { alcatelIND1WebMgtMIBObjects 7 }
 
 --
 -- Trap definition
@@ -344,7 +352,7 @@ alaIND1WebMgtRFSMIBGroup OBJECT-GROUP
         DESCRIPTION
             "Collection of objects for management of Remote File Server."
         ::= { alcatelIND1WebMgtMIBGroups 2 }
-		
+
 		webMgtTrapsGroup OBJECT-GROUP
         OBJECTS
         {
@@ -357,7 +365,6 @@ alaIND1WebMgtRFSMIBGroup OBJECT-GROUP
             "This trap is sent every 1 minute while the HTTP
 	     server detects it is under attack."
         ::= { alcatelIND1WebMgtMIBGroups 3 }
-
         webMgtTrapsDescGroup NOTIFICATION-GROUP
         NOTIFICATIONS
         {
@@ -368,4 +375,5 @@ alaIND1WebMgtRFSMIBGroup OBJECT-GROUP
             "his trap is sent to management station(s) when the
 	     HTTP server is under Denial of Service attack."
         ::= { alcatelIND1WebMgtMIBGroups 4 }
+
 END

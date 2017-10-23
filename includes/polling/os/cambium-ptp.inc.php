@@ -15,7 +15,6 @@ if (is_device_mib($device, 'CAMBIUM-PTP800-MIB'))
 {
   $version  = snmp_get($device, 'softwareVersion.0', '-OQv', 'CAMBIUM-PTP800-MIB');
   $hardware = snmp_get($device, 'productName.0',     '-OQv', 'CAMBIUM-PTP800-MIB');
-  $serial   = snmp_get($device, 'rFUSerial.0',       '-OQv', 'CAMBIUM-PTP800-MIB');
 }
 else if (is_device_mib($device, 'MOTOROLA-PTP-MIB'))
 {

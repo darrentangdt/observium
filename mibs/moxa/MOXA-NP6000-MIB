@@ -1,16 +1,19 @@
 
 -- *****************************************************************
--- Moxa NPort 6000 MIB
+-- Moxa NPort 6000 Series MIB
 --
--- Copyright (c) 2006 by Moxa Technologies Co., Ltd.
+-- Copyright (c) 2006-2020 by Moxa Inc.
 -- All rights reserved.
+
+-- Version: 1.16
+-- Date: 2017/03/15
 -- *****************************************************************
 
 MOXA-NP6000-MIB DEFINITIONS ::= BEGIN
     IMPORTS
         enterprises, IpAddress, OBJECT-TYPE
         	FROM SNMPv2-SMI
-        DateAndTime, TEXTUAL-CONVENTION, MacAddress, DisplayString  
+        	TEXTUAL-CONVENTION, MacAddress, DisplayString  
         	FROM SNMPv2-TC;
         
     moxa 				OBJECT IDENTIFIER ::= { enterprises 8691 }	-- 1.3.6.1.4.1.8691
@@ -18,14 +21,14 @@ MOXA-NP6000-MIB DEFINITIONS ::= BEGIN
     nport OBJECT IDENTIFIER ::= { moxa 2 }			-- 1.3.6.1.4.1.8691.2
     
     np6000   MODULE-IDENTITY
-	    LAST-UPDATED "200607120000Z"
-	    ORGANIZATION "Moxa Technologies Co."
+	    LAST-UPDATED "201703150000Z"
+	    ORGANIZATION "Moxa Inc."
 	    CONTACT-INFO
-	            "Email: support@moxa.com.tw
-    			 Tel  : +886 2 89191230 ext.300"
+	            "Email: support@moxa.com
+    			     Tel: +886-2-89191230"
 	             
 	    DESCRIPTION
-	            "The MIB module for Moxa NPort 6000 series specific information."            
+	            "The MIB module for Moxa NPort 6000 Series specific information."            
 	
 	    ::= { nport 8 }    -- 1.3.6.1.4.1.8691.2.8
     
@@ -135,7 +138,7 @@ PortList ::= TEXTUAL-CONVENTION
         STATUS current
         DESCRIPTION
             "The time (in human-readable notation) since the
-            system was  was last re-initialized."
+            system was last re-initialized."
         ::= { overview 7 }
         
     moduleType OBJECT-TYPE
@@ -146,6 +149,53 @@ PortList ::= TEXTUAL-CONVENTION
             "The module name currently plugged into the NPort."
         ::= { overview 8 }
     
+    moduleApVersion OBJECT-TYPE
+        SYNTAX DisplayString
+        MAX-ACCESS read-only               
+        STATUS current
+        DESCRIPTION
+            "The module AP version currently plugged into the NPort."
+        ::= { overview 9 }    
+    
+    viewIpv4Address OBJECT-TYPE
+        SYNTAX DisplayString
+        MAX-ACCESS read-only                
+        STATUS current
+        DESCRIPTION
+            "An IPv4 address is a number assigned to a network
+            device (such as a computer) as a permanent address
+            on the network. Computers use the IP address to
+            identify and talk to each other over the network.
+            Choose a proper IP address that is unique and valid
+            in your network environment."
+        ::= { overview 10 }
+    
+    viewIpv6LinkLocalAddress OBJECT-TYPE
+        SYNTAX DisplayString
+        MAX-ACCESS read-only                
+        STATUS current
+        DESCRIPTION
+            "An IPv6 Link-Local address is a number assigned to a network
+            device (such as a computer) as a permanent address
+            on the network. Computers use the IP address to
+            identify and talk to each other over the network.
+            Choose a proper IP address that is unique and valid
+            in your network environment."
+        ::= { overview 11 }
+    
+    viewIpv6GlobalAddress OBJECT-TYPE
+        SYNTAX DisplayString
+        MAX-ACCESS read-only                
+        STATUS current
+        DESCRIPTION
+            "An IPv6 Global address is a number assigned to a network
+            device (such as a computer) as a permanent address
+            on the network. Computers use the IP address to
+            identify and talk to each other over the network.
+            Choose a proper IP address that is unique and valid
+            in your network environment."
+        ::= { overview 12 }
+
 -- -------------------------------------------------------------
 -- Basic settings
 -- -------------------------------------------------------------
@@ -191,11 +241,12 @@ PortList ::= TEXTUAL-CONVENTION
         ::= { timeSetting 1 }
     
     localTime OBJECT-TYPE
-        SYNTAX DateAndTime
+        SYNTAX DisplayString (SIZE (0..19))
         MAX-ACCESS read-write               
         STATUS current
         DESCRIPTION
-            "The system time in seconds since 1970/1/1."
+            "The system time in the following format 
+            yyyy/mm/dd hh:mm:ss"
         ::= { timeSetting 2 }
         
     timeServer OBJECT-TYPE
@@ -218,22 +269,22 @@ PortList ::= TEXTUAL-CONVENTION
     
     networkSetting OBJECT IDENTIFIER ::= { swMgmt 3 }		-- 1.3.6.1.4.1.8691.2.8.1.3
     
-    ipConfiguration OBJECT-TYPE
+    ipv4Configuration OBJECT-TYPE
         SYNTAX INTEGER { static(0), dhcp(1), dhcp-BOOTP(2), bootp(3), pppoe(4)}
         MAX-ACCESS read-write               
         STATUS current
         DESCRIPTION
-            "The IP configuration mode of the NPort. You can
+            "The IPv4 configuration mode of the NPort. You can
             choose from four possible IP configuration modes:
             Static, DHCP, DHCP/BOOTP, BOOTP, and PPPoE."
         ::= { networkSetting 1 }
         
-    sysIpAddress OBJECT-TYPE
+    ipv4Address OBJECT-TYPE
         SYNTAX IpAddress
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
-            "An IP address is a number assigned to a network
+            "An IPv4 address is a number assigned to a network
             device (such as a computer) as a permanent address
             on the network. Computers use the IP address to
             identify and talk to each other over the network.
@@ -241,7 +292,7 @@ PortList ::= TEXTUAL-CONVENTION
             in your network environment."
         ::= { networkSetting 2 }
     
-    netMask OBJECT-TYPE
+    ipv4NetMask OBJECT-TYPE
         SYNTAX IpAddress
         MAX-ACCESS read-write                
         STATUS current
@@ -249,35 +300,32 @@ PortList ::= TEXTUAL-CONVENTION
             "A subnet mask represents all of the network hosts
             at one geographic location, in one building, or on
             the same local area network. When a packet is sent
-            out over the network, the NPort 6000 series device
-            server will use the subnet mask to check whether the
-            TCP/IP host specified in the packet is on
-            the local network segment. If the address is on the
-            same network segment as the NPort 6000 series device
-            server, a connection is established directly from
-            the NPort 6000 series device server. Otherwise, the
+            out over the network, the NPort will use the subnet mask 
+            to check whether the TCP/IP host specified in the 
+            packet is on the local network segment. If the address 
+            is on the same network segment as the NPort, a connection 
+            is established directly from the NPort. Otherwise, the
             connection is established through the given default
             gateway."
         ::= { networkSetting 3 }
     
-    defaultGateway OBJECT-TYPE
+    ipv4DefaultGateway OBJECT-TYPE
         SYNTAX IpAddress
-        MAX-ACCESS read-only                
+        MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
             "A gateway is a network computer that acts as an
             entrance to another network. Usually, the computers
             that control traffic within the network or at the
             local Internet service provider are gateway nodes.
-            The NPort 6000 series device server needs to know
-            the IP address of the default gateway computer in
-            order to communicate with the hosts outside the
-            local network environment. For correct gateway IP
-            address information, consult with the network
-            administrator."
+            The NPort needs to know the IP address of the 
+            default gateway computer in order to communicate with 
+            the hosts outside the local network environment. 
+            For correct gateway IP address information, 
+            consult with the network administrator."
         ::= { networkSetting 4 }
     
-    dnsServer1IpAddr OBJECT-TYPE
+    ipv4DnsServer1IpAddr OBJECT-TYPE
         SYNTAX IpAddress
         MAX-ACCESS read-write               
         STATUS current
@@ -296,7 +344,7 @@ PortList ::= TEXTUAL-CONVENTION
             TCP/IP connection."
         ::= { networkSetting 5 }
         
-    dnsServer2IpAddr OBJECT-TYPE
+    ipv4DnsServer2IpAddr OBJECT-TYPE
         SYNTAX IpAddress
         MAX-ACCESS read-write               
         STATUS current
@@ -315,7 +363,7 @@ PortList ::= TEXTUAL-CONVENTION
             TCP/IP connection."
         ::= { networkSetting 6 }
     
-    pppoeUserAccount OBJECT-TYPE
+    ipv4PppoeUserAccount OBJECT-TYPE
         SYNTAX DisplayString
         MAX-ACCESS read-write
         STATUS current
@@ -328,7 +376,7 @@ PortList ::= TEXTUAL-CONVENTION
             connection."
         ::= { networkSetting 7 }
     
-    pppoePassword OBJECT-TYPE
+    ipv4PppoePassword OBJECT-TYPE
         SYNTAX DisplayString
         MAX-ACCESS read-write
         STATUS current
@@ -340,7 +388,7 @@ PortList ::= TEXTUAL-CONVENTION
             ISP to establish a network connection."
         ::= { networkSetting 8 }
         
-    winsFunction OBJECT-TYPE
+    ipv4WinsFunction OBJECT-TYPE
         SYNTAX INTEGER { disable(0), enable(1)}
         MAX-ACCESS read-write               
         STATUS current
@@ -348,7 +396,7 @@ PortList ::= TEXTUAL-CONVENTION
             "Enable or disable the WINS server."
         ::= { networkSetting 9 }
     
-    winsServer OBJECT-TYPE
+    ipv4WinsServer OBJECT-TYPE
         SYNTAX IpAddress
         MAX-ACCESS read-write               
         STATUS current
@@ -361,7 +409,7 @@ PortList ::= TEXTUAL-CONVENTION
             TCP/IP, contains a dynamic database to map computer
             names to IP addresses."
         ::= { networkSetting 10 }
-        
+    
     lan1Speed OBJECT-TYPE
         SYNTAX INTEGER { 
         	auto-Negation(0), 
@@ -377,10 +425,11 @@ PortList ::= TEXTUAL-CONVENTION
             speed function to get suitable speeds. However, for
             connecting to some switches/hubs, the communication
             speed must be fixed at 100 Mbps or 10 Mbps. Users can
-            use this function to fix the communication speed."
+            use this function to fix the communication speed.
+            Note: NPort 6250-S-SC, 6250-M-SC only accept setting
+             as 'auto-Negation'."
         ::= { networkSetting 11 }
-        
-
+    
 -- -------------------------------------------------------------
 -- Network settings -> Advanced
 -- -------------------------------------------------------------
@@ -415,7 +464,862 @@ PortList ::= TEXTUAL-CONVENTION
         DESCRIPTION
             "The send period of the gratuitous ARP function."
         ::= { networkSetting 14 }
+
+    
+-- -------------------------------------------------------------
+-- Network settings -> Module
+-- -------------------------------------------------------------
         
+    moduleSetting OBJECT IDENTIFIER ::= { networkSetting 15 } 
+        
+-- -------------------------------------------------------------
+-- Network settings -> Module -> Redundancy settings
+-- -------------------------------------------------------------
+        
+    redundancySetting OBJECT IDENTIFIER ::= { moduleSetting 1 }
+
+    redundancyProtocol OBJECT-TYPE
+        SYNTAX INTEGER  { spanningTree(1), turboRing(2), turboRingV2(3) }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+        "This set the redundancy protocol.
+        Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+        do not support write access."
+        ::= { redundancySetting 1 }
+
+    spanningTree OBJECT IDENTIFIER ::= { redundancySetting 2 }
+    
+    spanningTreeBridgePriority OBJECT-TYPE
+        SYNTAX INTEGER {priority-0(0), priority-4096(4096), priority-8192(8192), priority-12288(12288),
+                        priority-16384(16384), priority-20480(20480), priority-24576(24576),
+                        priority-28672(28672), priority-32768(32768), priority-36864(36864),
+                        priority-40960(40960), priority-45056(45056), priority-49152(49152),
+                        priority-53248(53248), priority-57344(57344), priority-61440(61440)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "The bridge priority of spanning tree protocol.
+        		Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+        		do not support write access."
+        ::= { spanningTree 1 }
+
+    spanningTreeHelloTime OBJECT-TYPE
+        SYNTAX INTEGER  
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "The hello time of spanning tree protocol. Range is 1~10.
+             A Bridge shall enforce the following relationships: 
+				2 x (Forward Delay - 1) >= Max Age
+				Max Age >= 2 x (Hello Time + 1).
+        Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+        do not support write access."
+        ::= { spanningTree 2 }
+    
+    spanningTreeForwardingDelay OBJECT-TYPE
+        SYNTAX INTEGER  
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "The forwarding delay of spanning tree protocol. Range is 4~30.
+             A Bridge shall enforce the following relationships: 
+				2 x (Forward Delay - 1) >= Max Age
+				Max Age >= 2 x (Hello Time + 1).
+        Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+        do not support write access."
+        ::= { spanningTree 3 }
+
+    spanningTreeMaxAge OBJECT-TYPE
+        SYNTAX INTEGER  
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "The max. age of spanning tree protocol. Range is 6~40.
+             A Bridge shall enforce the following relationships: 
+				2 x (Forward Delay - 1) >= Max Age
+				Max Age >= 2 x (Hello Time + 1).
+        Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+        do not support write access."
+        ::= { spanningTree 4 }
+    
+    spanningTreePortTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF SpanningTreePortEntry
+        MAX-ACCESS not-accessible               
+        STATUS current
+        DESCRIPTION
+            "The spanning tree table."
+        ::= { spanningTree 5 }
+    
+    spanningTreePortEntry OBJECT-TYPE
+        SYNTAX SpanningTreePortEntry
+        MAX-ACCESS not-accessible               
+        STATUS current
+        DESCRIPTION
+            "The spanning tree port entry."
+        INDEX { spanningTreePortIndex }
+        ::= { spanningTreePortTable 1 }
+        
+    SpanningTreePortEntry ::=
+        SEQUENCE {
+            spanningTreePortIndex
+                INTEGER,
+            spanningTreePortEnable
+                INTEGER,
+            spanningTreePortPriority
+                INTEGER,
+            spanningTreePortCost
+                INTEGER
+        }
+    spanningTreePortIndex OBJECT-TYPE
+        SYNTAX INTEGER 
+        MAX-ACCESS read-only                
+        STATUS current
+        DESCRIPTION
+            "The index of spanning tree table."
+        ::= { spanningTreePortEntry 1 }
+
+    spanningTreePortEnable OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1) }
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "This enable of spanning tree protocol for this port.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { spanningTreePortEntry 2 }
+    
+    spanningTreePortPriority OBJECT-TYPE
+        SYNTAX INTEGER {priority-0(0), priority-16(16), priority-32(32), priority-48(48),
+                        priority-64(64), priority-80(80), priority-96(96), priority-112(112),
+                        priority-128(128), priority-144(144), priority-160(160), priority-176(176),
+                        priority-192(192), priority-208(208), priority-224(224), priority-240(240)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "The port priority of spanning tree protocol.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { spanningTreePortEntry 3 }
+    
+    spanningTreePortCost OBJECT-TYPE
+        SYNTAX INTEGER 
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "The port cost of spanning tree protocol. Range is 1~20000000.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { spanningTreePortEntry 4 }
+
+    turboRing OBJECT IDENTIFIER ::= { redundancySetting 3}
+        
+    turboRingMasterSetup OBJECT-TYPE
+        SYNTAX INTEGER  { no(0), yes(1) }
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Set this to be Master.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { turboRing 1 }
+        
+    turboRingRdntPort1 OBJECT-TYPE
+        SYNTAX  INTEGER
+        ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "The port number of 1st Redundant Port on the TURBO RING.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { turboRing 2 } 
+        
+    turboRingRdntPort2 OBJECT-TYPE
+        SYNTAX  INTEGER
+        ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "The port number of 2nd Redundant Port on the TURBO RING.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { turboRing 3 } 
+
+    turboRingV2 OBJECT IDENTIFIER ::= { redundancySetting 4}
+        
+    turboRingV2MasterSetup OBJECT-TYPE
+        SYNTAX INTEGER  { no(0), yes(1) }
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Set this to be Master.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { turboRingV2 1 }
+        
+    turboRingV2RdntPort1 OBJECT-TYPE
+        SYNTAX  INTEGER
+        ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "The port number of 1st Redundant Port on the TURBO RING V2.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { turboRingV2 2 } 
+        
+    turboRingV2RdntPort2 OBJECT-TYPE
+        SYNTAX  INTEGER
+        ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "The port number of 2nd Redundant Port on the TURBO RING V2.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { turboRingV2 3 } 
+
+-- -------------------------------------------------------------
+-- Network settings -> Module -> GSM/GPRS settings
+-- -------------------------------------------------------------
+        
+    gsmGprsSetting OBJECT IDENTIFIER ::= { moduleSetting 2 }
+
+    gsmGprsType OBJECT-TYPE
+        SYNTAX INTEGER  { gsm(0), gprs(1), sms(2) }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+        "This set the GSM/GPRS type.
+        Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+        do not support write access."
+        ::= { gsmGprsSetting 1 }
+
+    gsmGprsPIN OBJECT-TYPE
+        SYNTAX DisplayString
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+        "This set the PIN of SIM card.
+        Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+        do not support write access."
+        ::= { gsmGprsSetting 2 }
+
+    gsmGprsBand OBJECT-TYPE
+        SYNTAX INTEGER  { band-850-Mhz(0), band-900-Mhz(1), band-1800-Mhz(2), band-1900-Mhz(3), band-850-1900-Mhz(4), band-900-1800-Mhz(5), band-900-1900-Mhz(6)}
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+        "This set the GSM band.
+        Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+        do not support write access."
+        ::= { gsmGprsSetting 3 }
+    
+-- -------------------------------------------------------------
+-- Network settings -> Module -> GSM/GPRS settings -> gsm
+-- -------------------------------------------------------------
+        
+    gsmSetting OBJECT IDENTIFIER ::= { gsmGprsSetting 4 }
+
+    gsmMode OBJECT-TYPE
+        SYNTAX INTEGER  { ppp(0), pppd(1) }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+        "This set the GSM mode.
+        Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+        do not support write access."
+        ::= { gsmSetting 1 }
+
+	gsmDestinationIpAddress OBJECT-TYPE
+		SYNTAX IpAddress
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Destination IP address is the IP address of the
+			remote dial-in/dial-out server.
+        Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+        do not support write access."
+		::= { gsmSetting 2 }    
+		
+	gsmSourceIpAddress OBJECT-TYPE
+		SYNTAX IpAddress
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Source IP address is IP address of this serial
+			port. The NPort 6000 series device server will
+			automatically assign an IP address for the port.
+			We recommend leaving this field blank.
+        Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+        do not support write access."
+		::= { gsmSetting 3 }    
+		
+	gsmIpNetmask OBJECT-TYPE
+		SYNTAX IpAddress
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"The IP netmask used for dial-in/dial-out networks.
+        Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+        do not support write access."
+		::= { gsmSetting 4 } 
+		
+	gsmTcpIpCompression OBJECT-TYPE
+		SYNTAX INTEGER { disable(0), enable(1)}
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Depends on whether the remote user's application
+			requests compression.
+        Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+        do not support write access."
+		::= { gsmSetting 5 } 
+	
+	gsmInactivityTime OBJECT-TYPE
+        SYNTAX INTEGER
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "0 ms: TCP connection will not be closed if the 
+            serial line becomes idle.
+            1-65535 ms: The NPort 6000 series device server
+            automatically closes the TCP connection if there is
+            no serial data activity for the given time. After
+            the connection is closed, the NPort 6000 series
+            device server starts listening for another
+            TCP connection.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { gsmSetting 6 }
+		
+	gsmLinkQualityReport OBJECT-TYPE
+		SYNTAX INTEGER { disable(0), enable(1)}
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Choose YES if you are using software to collect Link quality
+			information.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { gsmSetting 7 } 
+		
+	gsmUsername OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(0..16))
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Dial-out user name.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { gsmSetting 8 }
+		
+	gsmPassword OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(0..16))
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Dial-out user password.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { gsmSetting 9 }
+		
+	gsmAuthenticationType OBJECT-TYPE
+        SYNTAX INTEGER  { none(0), local(1), radius(2), radius-local(3), local-radius(4), tacacsPlus(5), tacacsPlus-local(6), local-tacacsPlus(7)}
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "Dial-in authentication type.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { gsmSetting 10 }
+    
+    gsmTryNextAuth OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Try next type on authentication denied or not.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+		::= { gsmSetting 11 }    
+        
+	gsmOutPhoneNumber OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(0..20))
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+		"Set the number used to dial out.
+		Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+		do not support write access."
+		::= { gsmSetting 12 }
+
+	gsmInitialString OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(0..24))
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+		"Set the modem's initial string to establish the
+		connection. E.g., 'AT&S0=1' for auto-answer.
+		Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+		do not support write access."
+		::= { gsmSetting 13 }
+		
+	gsmConnectionControl OBJECT-TYPE
+		SYNTAX INTEGER { alwaysOn-None(0), periodicallyConnect-InactivityTime(1), remoteHostFail-remoteHostRecovered(2) }
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Set the connect/disconnect condition.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { gsmSetting 14 } 
+	
+	gsmConnectionInterval OBJECT-TYPE
+        SYNTAX INTEGER
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "Set the connection interval when connect condition is 'periodically connect'.
+             Range is 5~65535 minutes.
+             Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+             do not support write access."
+        ::= { gsmSetting 15 }
+
+	gsmPingRemoteHost OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..40))
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "Set the remote hostname when connect condition is 'remote host fail'.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { gsmSetting 16 }
+        
+    gsmInPhoneNumber OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(0..20))
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+		"Set the number allow to dial in.
+		Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+		do not support write access."
+		::= { gsmSetting 17 }
+
+-- -------------------------------------------------------------
+-- Network settings -> Module -> GSM/GPRS settings -> gprs
+-- -------------------------------------------------------------
+        
+    gprsSetting OBJECT IDENTIFIER ::= { gsmGprsSetting 5 }
+		
+	gprsTcpIpCompression OBJECT-TYPE
+		SYNTAX INTEGER { disable(0), enable(1)}
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Depends on whether the remote user's application
+			requests compression.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { gprsSetting 1 } 
+	
+	gprsInactivityTime OBJECT-TYPE
+        SYNTAX INTEGER
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "0 ms: TCP connection will not be closed if the 
+            serial line becomes idle.
+            1-65535 ms: The NPort 6000 series device server
+            automatically closes the TCP connection if there is
+            no serial data activity for the given time. After
+            the connection is closed, the NPort 6000 series
+            device server starts listening for another
+            TCP connection.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { gprsSetting 2 }
+		
+	gprsLinkQualityReport OBJECT-TYPE
+		SYNTAX INTEGER { disable(0), enable(1)}
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Choose YES if you are using software to collect Link quality
+			information.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { gprsSetting 3 } 
+		
+	gprsInitialString OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(0..24))
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+		"Set the modem's initial string to establish the
+		connection. E.g., 'AT&S0=1' for auto-answer.
+		Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+		do not support write access."
+		::= { gprsSetting 4 }
+
+	gprsUsername OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(0..16))
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Dial-out user name.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { gprsSetting 5 }
+		
+	gprsPassword OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(0..16))
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Dial-out user password.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { gprsSetting 6 }
+
+	gprsAPN OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(0..30))
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+		"Set GPRS APN.
+		Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+		do not support write access."
+		::= { gprsSetting 7 }
+		
+	gprsConnectionControl OBJECT-TYPE
+		SYNTAX INTEGER { alwaysOn-None(0), periodicallyConnect-InactivityTime(1), remoteHostFail-remoteHostRecovered(2) }
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Set the connect/disconnect condition.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { gprsSetting 8 } 
+	
+	gprsConnectionInterval OBJECT-TYPE
+        SYNTAX INTEGER
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "Set the connection interval when connect condition is 'periodically connect'.
+             Range is 5~65535 minutes.
+             Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+             do not support write access."
+        ::= { gprsSetting 9 }
+
+	gprsPingRemoteHost OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..40))
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "Set the remote hostname when connect condition is 'remote host fail'.
+             Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+             do not support write access."
+        ::= { gprsSetting 10 }
+
+-- -------------------------------------------------------------
+-- Network settings -> Module -> GSM/GPRS settings -> sms
+-- -------------------------------------------------------------
+        
+    smsSetting OBJECT IDENTIFIER ::= { gsmGprsSetting 6 }
+		
+	smsFormat OBJECT-TYPE
+		SYNTAX INTEGER { sms-Text-ASCII(0) }
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Set SMS format.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { smsSetting 1 } 
+
+-- -------------------------------------------------------------
+-- Network settings -> Module -> V.92 Modem settings
+-- -------------------------------------------------------------
+        
+    v92ModemSetting OBJECT IDENTIFIER ::= { moduleSetting 3 }
+
+    v92ModemMode OBJECT-TYPE
+        SYNTAX INTEGER  { ppp(0), pppd(1) }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+        "This set the modem mode.
+        Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+        do not support write access."
+        ::= { v92ModemSetting 1 }
+
+	v92ModemDestinationIpAddress OBJECT-TYPE
+		SYNTAX IpAddress
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Destination IP address is the IP address of the
+			remote dial-in/dial-out server.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { v92ModemSetting 2 }    
+		
+	v92ModemSourceIpAddress OBJECT-TYPE
+		SYNTAX IpAddress
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Source IP address is IP address of this serial
+			port. The NPort 6000 series device server will
+			automatically assign an IP address for the port.
+			We recommend leaving this field blank.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { v92ModemSetting 3 }    
+		
+	v92ModemIpNetmask OBJECT-TYPE
+		SYNTAX IpAddress
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"The IP netmask used for dial-in/dial-out networks.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { v92ModemSetting 4 } 
+		
+	v92ModemTcpIpCompression OBJECT-TYPE
+		SYNTAX INTEGER { disable(0), enable(1)}
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Depends on whether the remote user's application
+			requests compression.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { v92ModemSetting 5 } 
+	
+	v92ModemInactivityTime OBJECT-TYPE
+        SYNTAX INTEGER
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "0 ms: TCP connection will not be closed if the 
+            serial line becomes idle.
+            1-65535 ms: The NPort 6000 series device server
+            automatically closes the TCP connection if there is
+            no serial data activity for the given time. After
+            the connection is closed, the NPort 6000 series
+            device server starts listening for another
+            TCP connection.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { v92ModemSetting 6 }
+		
+	v92ModemLinkQualityReport OBJECT-TYPE
+		SYNTAX INTEGER { disable(0), enable(1)}
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Choose YES if you are using software to collect Link quality
+			information.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { v92ModemSetting 7 } 
+		
+	v92ModemUsername OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(0..16))
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Dial-out user ID account.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { v92ModemSetting 8 }
+		
+	v92ModemPassword OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(0..16))
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Dial-out user password.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { v92ModemSetting 9 }
+		
+	v92ModemIncomingPAPCheck OBJECT-TYPE
+        SYNTAX INTEGER  { none(0), local(1), radius(2), radius-local(3), local-radius(4), tacacsPlus(5), tacacsPlus-local(6), local-tacacsPlus(7)}
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "The Dial in/out incoming PAP check type.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { v92ModemSetting 10 }
+    
+    v92ModemIncomingTryNextAuth OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Try next type on authentication denied or not.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+		::= { v92ModemSetting 11 }    
+        
+	v92ModemPhoneNumber OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(0..20))
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+		"Set the number used to dial out.
+		Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+		do not support write access."
+		::= { v92ModemSetting 12 }
+
+	v92ModemInitialString OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(0..24))
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+		"Set the modem's initial string to establish the
+		connection. E.g., 'AT&S0=1' for auto-answer.
+		Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+		do not support write access."
+		::= { v92ModemSetting 13 }
+		
+	v92ModemConnectionControl OBJECT-TYPE
+		SYNTAX INTEGER { alwaysOn-None(0), periodicallyConnect-InactivityTime(1), remoteHostFail-remoteHostRecovered(2) }
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"Set the connect/disconnect condition.
+			Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+			do not support write access."
+		::= { v92ModemSetting 14 } 
+	
+	v92ModemConnectionInterval OBJECT-TYPE
+        SYNTAX INTEGER
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "Set the connection interval when connect condition is 'periodically connect'.
+             Range is 5~65535 minutes.
+             Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+             do not support write access."
+        ::= { v92ModemSetting 15 }
+
+	v92ModemPingRemoteHost OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..40))
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "Set the remote hostname when connect condition is 'remote host fail'.
+             Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+             do not support write access."
+        ::= { v92ModemSetting 16 }
+
+    ipv6Configuration OBJECT-TYPE
+        SYNTAX INTEGER { auto(0), static(1), disable(2)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "The IPv6 configuration mode of the NPort. You can
+            choose from four possible IP configuration modes:
+            Auto, DHCPv6, Static, Disable."
+        ::= { networkSetting 16 }
+    
+    ipv6Address OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..16))
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "An IPv6 address is a number assigned to a network
+            device (such as a computer) as a permanent address
+            on the network. Computers use the IP address to
+            identify and talk to each other over the network.
+            Choose a proper IP address that is unique and valid
+            in your network environment."
+        ::= { networkSetting 17 }
+    
+    ipv6Prefix OBJECT-TYPE
+        SYNTAX INTEGER
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "A prefix represents all of the network hosts
+            at one geographic location, in one building, or on
+            the same local area network. When a packet is sent
+            out over the network, the NPort will use the prefix 
+            to check whether the TCP/IP host specified in the 
+            packet is on the local network segment. If the address 
+            is on the same network segment as the NPort, a connection 
+            is established directly from the NPort. Otherwise, the
+            connection is established through the given default
+            gateway. Range is 1~128"
+        ::= { networkSetting 18 }
+    
+    ipv6DefaultGateway OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..16))
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "A gateway is a network computer that acts as an
+            entrance to another network. Usually, the computers
+            that control traffic within the network or at the
+            local Internet service provider are gateway nodes.
+            The NPort needs to know the IP address of the 
+            default gateway computer in order to communicate with 
+            the hosts outside the local network environment. 
+            For correct gateway IP address information, 
+            consult with the network administrator."
+        ::= { networkSetting 19 }
+    
+    ipv6DnsServer1IpAddr OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..16))
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "The first DNS server address. When the user wants
+            to visit a particular website, the computer asks a
+            Domain Name System (DNS) server for the website¡¦s
+            correct IP address, and then the computer uses the
+            response to connect to the web server. DNS is the
+            way that Internet domain names are identified and
+            translated into IP addresses. A domain name is an
+            alphanumeric name, such as moxa.com, that it is
+            usually easier to remember. A DNS server is a host
+            that translates this kind of text-based domain name
+            into the numeric IP address used to establish a
+            TCP/IP connection."
+        ::= { networkSetting 20 }
+        
+    ipv6DnsServer2IpAddr OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..16))
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "The second DNS server address. When the user wants
+            to visit a particular website, the computer asks a
+            Domain Name System (DNS) server for the website¡¦s
+            correct IP address, and then the computer uses the
+            response to connect to the web server. DNS is the
+            way that Internet domain names are identified and
+            translated into IP addresses. A domain name is an
+            alphanumeric name, such as moxa.com, that it is
+            usually easier to remember. A DNS server is a host
+            that translates this kind of text-based domain name
+            into the numeric IP address used to establish a
+            TCP/IP connection."
+        ::= { networkSetting 21 }
+    
+    connectionPriority OBJECT-TYPE
+        SYNTAX INTEGER { ipv6-first(0), ipv4-first(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "This value determines which DNS record are used 
+            in first priority."
+        ::= { networkSetting 22 }
+
 -- -------------------------------------------------------------
 -- Serial port settings
 -- -------------------------------------------------------------
@@ -479,7 +1383,7 @@ PortList ::= TEXTUAL-CONVENTION
 			terminal(2),
 			reverse-Terminal(3),
 			printer(6),				       	
-			dial-InOut(1)     	
+			dial-InOut(1)
         }
         MAX-ACCESS read-write                
         STATUS current
@@ -493,13 +1397,13 @@ PortList ::= TEXTUAL-CONVENTION
         SYNTAX INTEGER { 
         	pair-Slave(0), 
         	pair-Master(1), 
-        	aspp(2), 
+        	real-Com(2), 
         	raw-PRN(3),
 			slip(4), 
 			slipd(5), 
 			ppp(6), 
 			disable(7),
-			telnetd(8), 
+			reverse-Telnet(8), 
 			dynamic(9), 
 			tcp-Server(10), 
 			lpd-PRN(11),	
@@ -511,7 +1415,8 @@ PortList ::= TEXTUAL-CONVENTION
 			term-BIN(17), 
 			reverse-SSH(18), 
 			ssh(19), 
-			rfc-2217(20) 	
+			rfc-2217(20),
+			reverse-Real-Com(21)
         }
         MAX-ACCESS read-write                
         STATUS current
@@ -560,13 +1465,39 @@ PortList ::= TEXTUAL-CONVENTION
             	INTEGER,
             deviceControlAllowDriverControl
             	INTEGER,
+            deviceControlCommandByCommandOperation
+            	INTEGER,	
             deviceControlSecure
-            	INTEGER,
-            deviceControlTcpPort
             	INTEGER,
             deviceControlConnectionDownRTS
             	INTEGER,
             deviceControlConnectionDownDTR
+            	INTEGER,
+            deviceControlResponseTimeout
+            	INTEGER,
+            deviceControlNonRequestSerialData
+            	INTEGER,
+            deviceControlTcpPort
+            	INTEGER,
+            deviceControlDestinationAddress1
+            	DisplayString,
+            deviceControlDestinationTcpPort1
+            	INTEGER,
+            deviceControlDestinationCmdPort1
+            	INTEGER,
+            deviceControlDestinationAddress2
+            	DisplayString,
+            deviceControlDestinationTcpPort2
+            	INTEGER,
+            deviceControlDestinationCmdPort2
+            	INTEGER,
+            deviceControlDesignatedLocalTcpPort1
+            	INTEGER,
+            deviceControlDesignatedLocalCmdPort1
+            	INTEGER,
+            deviceControlDesignatedLocalTcpPort2
+            	INTEGER,
+            deviceControlDesignatedLocalCmdPort2
             	INTEGER
         }
 	
@@ -613,7 +1544,7 @@ PortList ::= TEXTUAL-CONVENTION
         ::= { deviceControlEntry 2 }
         
     deviceControlIgnoreJammedIp OBJECT-TYPE
-        SYNTAX INTEGER { no(0), yes(1) }
+        SYNTAX INTEGER { disable(0), enable(1) }
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
@@ -630,7 +1561,7 @@ PortList ::= TEXTUAL-CONVENTION
         ::= { deviceControlEntry 3 }
         
     deviceControlAllowDriverControl OBJECT-TYPE
-        SYNTAX INTEGER { no(0), yes(1) }
+        SYNTAX INTEGER { disable(0), enable(1) }
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
@@ -642,41 +1573,40 @@ PortList ::= TEXTUAL-CONVENTION
             configuration changes from multiple hosts, the most
             recent command received will take precedence."
         ::= { deviceControlEntry 4 }
+    
+    deviceControlCommandByCommandOperation OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1) }
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "Commands will be sent from the NPort to the 
+            serial device. After each command, the NPort will wait to 
+            receive a response before sending the next command."
+        ::= { deviceControlEntry 5 }     
         
 	deviceControlSecure OBJECT-TYPE
-        SYNTAX INTEGER { no(0), yes(1) }
+        SYNTAX INTEGER { disable(0), enable(1) }
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
             "If 'Secure' is enabled, the data on the Ethernet
             will be encrypted with SSL."
-        ::= { deviceControlEntry 5 }
-        
-    deviceControlTcpPort OBJECT-TYPE
-        SYNTAX INTEGER
-        MAX-ACCESS read-write                
-        STATUS current
-        DESCRIPTION
-            "The 'TCP port' is the TCP port that the NPort
-            6000 series device server uses to listen to
-            connections, and that other devices must use to
-            contact the NPort 6000 series device server."
         ::= { deviceControlEntry 6 }
         
 	deviceControlConnectionDownRTS OBJECT-TYPE
-        SYNTAX INTEGER { goes-low(1), always-high(0) }
+        SYNTAX INTEGER { always-low(1), always-high(0) }
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
             "For some applications, serial devices must obtain
             the Ethernet link status by reading the RTS signal from the
             NPort 6000 series device server. If this setting is
-            set to 'goes low,' RTS will change its state to
+            set to 'always low,' RTS will change its state to
             low if the Ethernet link is off."
         ::= { deviceControlEntry 7 }
         
     deviceControlConnectionDownDTR OBJECT-TYPE
-        SYNTAX INTEGER { goes-low(1), always-high(0) }
+        SYNTAX INTEGER { always-low(1), always-high(0) }
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
@@ -686,8 +1616,138 @@ PortList ::= TEXTUAL-CONVENTION
             set to 'goes low,' DTR will change its state to
             low if the Ethernet link is off."
         ::= { deviceControlEntry 8 }
-        
-        
+	
+	deviceControlResponseTimeout OBJECT-TYPE
+        SYNTAX INTEGER
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "After sending a command to the serial device, the NPort 
+            will wait for a response. If no response is received from 
+            the serial device within the specified time, the NPort will 
+            give up and continue to the next command."
+        ::= { deviceControlEntry 9 }    
+    
+    deviceControlNonRequestSerialData OBJECT-TYPE
+        SYNTAX INTEGER { discard(0), forward-to-last-requester(1), forward-to-all-open-connections(2) }
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "This specifies how the NPort will handle data that is 
+            received from a serial device that is not a response to 
+            a command. The NPort can either discard such data, forward 
+            the data to the network host that sent the most recent request, 
+            or forward the data to all open host connections."
+        ::= { deviceControlEntry 10 }
+    
+    deviceControlTcpPort OBJECT-TYPE
+        SYNTAX INTEGER
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "The 'TCP port' is the TCP port that the NPort
+            6000 series device server uses to listen to
+            connections, and that other devices must use to
+            contact the NPort 6000 series device server.
+            This setting is used in RFC2217 mode."
+        ::= { deviceControlEntry 11 }
+     
+	deviceControlDestinationAddress1 OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(0..40))
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"The NPort 6000 series device server can connect actively 
+			to a remote host that has this IP address.
+			This setting is used in Reverse RealCOM mode."
+		::= { deviceControlEntry 12 }
+            	
+	deviceControlDestinationTcpPort1 OBJECT-TYPE
+		SYNTAX INTEGER
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"The NPort 6000 series device server can connect actively 
+			to a remote host that has this TCP data port number.
+			This setting is used in Reverse RealCOM mode."
+		::= { deviceControlEntry 13 }
+            	
+	deviceControlDestinationCmdPort1 OBJECT-TYPE
+		SYNTAX INTEGER
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"The NPort 6000 series device server can connect actively 
+			to a remote host that has this TCP command port number.
+			This setting is used in Reverse RealCOM mode."
+		::= { deviceControlEntry 14 }
+    
+	deviceControlDestinationAddress2 OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(0..40))
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"The NPort 6000 series device server can connect actively 
+			to a remote host that has this IP address.
+			This setting is used in Reverse RealCOM mode."
+		::= { deviceControlEntry 15 }
+    
+	deviceControlDestinationTcpPort2 OBJECT-TYPE
+		SYNTAX INTEGER
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"The NPort 6000 series device server can connect actively 
+			to a remote host that has this TCP data port number.
+			This setting is used in Reverse RealCOM mode."
+		::= { deviceControlEntry 16 }
+            	
+	deviceControlDestinationCmdPort2 OBJECT-TYPE
+		SYNTAX INTEGER
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"The NPort 6000 series device server can connect actively 
+			to a remote host that has this TCP command port number.
+			This setting is used in Reverse RealCOM mode."
+		::= { deviceControlEntry 17 }
+    
+	deviceControlDesignatedLocalTcpPort1 OBJECT-TYPE
+		SYNTAX INTEGER
+		MAX-ACCESS read-write
+		STATUS current
+		DESCRIPTION
+			"The local TCP data port used to connect actively to the
+			remote host. This setting is used in Reverse RealCOM mode."
+		::= { deviceControlEntry 18 }
+    
+	deviceControlDesignatedLocalCmdPort1 OBJECT-TYPE
+		SYNTAX INTEGER
+		MAX-ACCESS read-write
+		STATUS current
+		DESCRIPTION
+			"The local TCP command port used to connect actively to the
+			remote host. This setting is used in Reverse RealCOM mode."
+		::= { deviceControlEntry 19 }
+            	
+	deviceControlDesignatedLocalTcpPort2 OBJECT-TYPE
+		SYNTAX INTEGER
+		MAX-ACCESS read-write
+		STATUS current
+		DESCRIPTION
+			"The local TCP data port used to connect actively to the
+			remote host. This setting is used in Reverse RealCOM mode."
+		::= { deviceControlEntry 20 }
+            	
+	deviceControlDesignatedLocalCmdPort2 OBJECT-TYPE
+		SYNTAX INTEGER
+		MAX-ACCESS read-write
+		STATUS current
+		DESCRIPTION
+			"The local TCP command port used to connect actively to the
+			remote host. This setting is used in Reverse RealCOM mode."
+		::= { deviceControlEntry 21 }
+            	
 -- --------------------------------------------------------------------------------------
 -- Serial port settings -> Operation Modes settings -> Application -> Socket
 -- --------------------------------------------------------------------------------------
@@ -723,6 +1783,8 @@ PortList ::= TEXTUAL-CONVENTION
             	INTEGER,
             socketAllowDriverControl
             	INTEGER,
+            socketCommandByCommandOperation
+            	INTEGER,
             socketSecure
             	INTEGER,
             socketTcpPort
@@ -733,6 +1795,10 @@ PortList ::= TEXTUAL-CONVENTION
             	INTEGER,
             socketTcpServerConnectionDownDTR
             	INTEGER,
+            socketResponseTimeout
+            	INTEGER,
+            socketNonRequestSerialData
+            	INTEGER,		
             socketTcpClientDestinationAddress1
                 DisplayString,
             socketTcpClientDestinationPort1
@@ -760,30 +1826,34 @@ PortList ::= TEXTUAL-CONVENTION
             socketTcpClientConnectionControl
             	INTEGER,
             socketUdpDestinationAddress1Begin
-            	IpAddress,
+            	DisplayString,
             socketUdpDestinationAddress1End
-            	IpAddress,
+            	DisplayString,
             socketUdpDestinationPort1
             	INTEGER,
             socketUdpDestinationAddress2Begin
-            	IpAddress,
+            	DisplayString,
             socketUdpDestinationAddress2End
-            	IpAddress,
+            	DisplayString,
             socketUdpDestinationPort2
             	INTEGER,
             socketUdpDestinationAddress3Begin
-            	IpAddress,
+            	DisplayString,
             socketUdpDestinationAddress3End
-            	IpAddress,
+            	DisplayString,
             socketUdpDestinationPort3
             	INTEGER,
             socketUdpDestinationAddress4Begin
-            	IpAddress,
+            	DisplayString,
             socketUdpDestinationAddress4End
-            	IpAddress,
+            	DisplayString,
             socketUdpDestinationPort4
             	INTEGER,
             socketUdpLocalListenPort
+            	INTEGER,
+	    socketUDPDynamicDst
+            	INTEGER,
+	    socketUDPDynamicDstTimeout
             	INTEGER
         }
         
@@ -845,7 +1915,7 @@ PortList ::= TEXTUAL-CONVENTION
         ::= { socketEntry 3 }
         
     socketIgnoreJammedIp OBJECT-TYPE
-        SYNTAX INTEGER { no(0), yes(1) }
+        SYNTAX INTEGER { disable(0), enable(1) }
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
@@ -862,7 +1932,7 @@ PortList ::= TEXTUAL-CONVENTION
         ::= { socketEntry 4 }
         
     socketAllowDriverControl OBJECT-TYPE
-        SYNTAX INTEGER { no(0), yes(1) }
+        SYNTAX INTEGER { disable(0), enable(1) }
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
@@ -874,15 +1944,25 @@ PortList ::= TEXTUAL-CONVENTION
             configuration changes from multiple hosts, the most
             recent command received will take precedence."
         ::= { socketEntry 5 }
-        
+
+	socketCommandByCommandOperation OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1) }
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "Commands will be sent from the NPort to the 
+            serial device. After each command, the NPort will wait to 
+            receive a response before sending the next command."
+        ::= { socketEntry 6 }
+	
 	socketSecure OBJECT-TYPE
-        SYNTAX INTEGER { no(0), yes(1) }
+        SYNTAX INTEGER { disable(0), enable(1) }
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
             "If Secure is enabled, data sent over the Ethernet will be
             encrypted with SSL."
-        ::= { socketEntry 6 }
+        ::= { socketEntry 7 }
         
     socketTcpPort OBJECT-TYPE
         SYNTAX INTEGER
@@ -893,7 +1973,7 @@ PortList ::= TEXTUAL-CONVENTION
             6000 series device server uses to listen to
             connections, and that other devices must use to
             contact the NPort 6000 series device server."
-        ::= { socketEntry 7 }
+        ::= { socketEntry 8 }
         
     socketCmdPort OBJECT-TYPE
         SYNTAX INTEGER
@@ -908,10 +1988,10 @@ PortList ::= TEXTUAL-CONVENTION
             the Command Port on the NPort 6000 series device
             server to avoid the need for the user to configure
             the program."
-        ::= { socketEntry 8 }
+        ::= { socketEntry 9 }
 	
     socketTcpServerConnectionDownRTS OBJECT-TYPE
-        SYNTAX INTEGER { goes-low(1), always-high(0) }
+        SYNTAX INTEGER { always-low(1), always-high(0) }
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
@@ -920,10 +2000,10 @@ PortList ::= TEXTUAL-CONVENTION
             NPort 6000 series device server. If this setting is
             set to 'goes low,' RTS will change the state to
             low if the Ethernet link is off."
-        ::= { socketEntry 9 }
+        ::= { socketEntry 10 }
         
     socketTcpServerConnectionDownDTR OBJECT-TYPE
-        SYNTAX INTEGER { goes-low(1), always-high(0) }
+        SYNTAX INTEGER { always-low(1), always-high(0) }
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
@@ -932,37 +2012,58 @@ PortList ::= TEXTUAL-CONVENTION
             NPort 6000 series device server. If this setting is
             set to 'goes low,' DTR will change the state to
             low if the Ethernet link is off."
-        ::= { socketEntry 10 }
-        
+        ::= { socketEntry 11 }
+
+	socketResponseTimeout OBJECT-TYPE
+        SYNTAX INTEGER
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "After sending a command to the serial device, the NPort 
+            will wait for a response. If no response is received from 
+            the serial device within the specified time, the NPort will 
+            give up and continue to the next command."
+        ::= { socketEntry 12 }	
+	
+	socketNonRequestSerialData OBJECT-TYPE
+        SYNTAX INTEGER { discard(0), forward-to-last-requester(1), forward-to-all-open-connections(2) }
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "This specifies how the NPort will handle data that is 
+            received from a serial device that is not a response to 
+            a command. The NPort can either discard such data, forward 
+            the data to the network host that sent the most recent request, 
+            or forward the data to all open host connections."
+        ::= { socketEntry 13 }
+
     socketTcpClientDestinationAddress1 OBJECT-TYPE
-		SYNTAX DisplayString
+		SYNTAX DisplayString (SIZE(0..40))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
-			"The NPort 6000 series device server can
-                         connect actively to a remote host that
-                         has this IP address."
-		::= { socketEntry 11 }       
+			"The NPort 6000 series device server can connect actively 
+			to a remote host that has this IP address."
+		::= { socketEntry 14 }       
 		
 	socketTcpClientDestinationPort1 OBJECT-TYPE
 		SYNTAX INTEGER
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
-			"The NPort 6000 series device server can
-			connect actively to a remote host that has this 
-                        TCP port number."
-		::= { socketEntry 12 }    
+			"The NPort 6000 series device server can connect actively 
+			to a remote host that has this TCP port number."
+		::= { socketEntry 15 }    
 		
 	socketTcpClientDestinationAddress2 OBJECT-TYPE
-		SYNTAX DisplayString
+		SYNTAX DisplayString (SIZE(0..40))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
 			"The NPort 6000 series device server can
 			connect actively to a remote host that has this IP
 			address."
-		::= { socketEntry 13 }       
+		::= { socketEntry 16 }       
 		
 	socketTcpClientDestinationPort2 OBJECT-TYPE
 		SYNTAX INTEGER
@@ -972,17 +2073,17 @@ PortList ::= TEXTUAL-CONVENTION
 			"The NPort 6000 series device server can
 			connect actively to a remote host that
 			has this TCP port number."
-		::= { socketEntry 14 }   
+		::= { socketEntry 17 }   
 		
 	socketTcpClientDestinationAddress3 OBJECT-TYPE
-		SYNTAX DisplayString
+		SYNTAX DisplayString (SIZE(0..40))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
 			"The NPort 6000 series device server can
 			connect actively to a remote host that 
                         has this IP address."
-		::= { socketEntry 15 }       
+		::= { socketEntry 18 }       
 		
 	socketTcpClientDestinationPort3 OBJECT-TYPE
 		SYNTAX INTEGER
@@ -992,17 +2093,17 @@ PortList ::= TEXTUAL-CONVENTION
 			"The NPort 6000 series device server can
 			connect actively to a remote host that
                         has this port number."
-		::= { socketEntry 16 } 
+		::= { socketEntry 19 } 
 		
 	socketTcpClientDestinationAddress4 OBJECT-TYPE
-		SYNTAX DisplayString
+		SYNTAX DisplayString (SIZE(0..40))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
 			"The NPort 6000 series device server can
 			connect actively to a remote host that
                         has this IP address."
-		::= { socketEntry 17 }       
+		::= { socketEntry 20 }       
 		
 	socketTcpClientDestinationPort4 OBJECT-TYPE
 		SYNTAX INTEGER
@@ -1012,7 +2113,7 @@ PortList ::= TEXTUAL-CONVENTION
 			"The NPort 6000 series device server can
 			connect actively to a remote host that 
                         has this port number."
-		::= { socketEntry 18 } 
+		::= { socketEntry 21 } 
 		
 	socketTcpClientDesignatedLocalPort1 OBJECT-TYPE
 		SYNTAX INTEGER
@@ -1021,7 +2122,7 @@ PortList ::= TEXTUAL-CONVENTION
 		DESCRIPTION
 			"The local TCP port used to connect actively to the
 			remote host."
-		::= { socketEntry 19 } 
+		::= { socketEntry 22 } 
 		
 	socketTcpClientDesignatedLocalPort2 OBJECT-TYPE
 		SYNTAX INTEGER
@@ -1030,7 +2131,7 @@ PortList ::= TEXTUAL-CONVENTION
 		DESCRIPTION
 			"The local TCP port used to connect actively to the
 			remote host."
-		::= { socketEntry 20 }
+		::= { socketEntry 23 }
 		
 	socketTcpClientDesignatedLocalPort3 OBJECT-TYPE
 		SYNTAX INTEGER
@@ -1039,7 +2140,7 @@ PortList ::= TEXTUAL-CONVENTION
 		DESCRIPTION
 			"The local TCP port used to connect actively to the
 			remote host."
-		::= { socketEntry 21 }
+		::= { socketEntry 24 }
 		
 	socketTcpClientDesignatedLocalPort4 OBJECT-TYPE
 		SYNTAX INTEGER
@@ -1048,7 +2149,7 @@ PortList ::= TEXTUAL-CONVENTION
 		DESCRIPTION
 			"The local TCP port used to connect actively to the
 			remote host."
-		::= { socketEntry 22 }
+		::= { socketEntry 25 }
 		
 	socketTcpClientConnectionControl OBJECT-TYPE
 		SYNTAX INTEGER {
@@ -1065,10 +2166,10 @@ PortList ::= TEXTUAL-CONVENTION
 		DESCRIPTION
 			"Events that cause the TCP client to drop the
 			connection."
-		::= { socketEntry 23 }
+		::= { socketEntry 26 }
 	
 	socketUdpDestinationAddress1Begin OBJECT-TYPE
-		SYNTAX IpAddress
+		SYNTAX DisplayString (SIZE(0..40))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1076,10 +2177,10 @@ PortList ::= TEXTUAL-CONVENTION
 			UDP packets to remote hosts whose IP
 			addresses are in the range between this parameter and
 			socketUdpDestinationAddress1End."
-		::= { socketEntry 24 }     
+		::= { socketEntry 27 }     
 		
 	socketUdpDestinationAddress1End OBJECT-TYPE
-		SYNTAX IpAddress
+		SYNTAX DisplayString (SIZE(0..40))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1087,7 +2188,7 @@ PortList ::= TEXTUAL-CONVENTION
 			UDP packets to remote hosts whose IP
 			addresses are in the range between
 			socketUdpDestinationAddress1Begin and this parameter."
-		::= { socketEntry 25 }    
+		::= { socketEntry 28 }    
 		
 	socketUdpDestinationPort1 OBJECT-TYPE
 		SYNTAX INTEGER
@@ -1097,10 +2198,10 @@ PortList ::= TEXTUAL-CONVENTION
 			"The NPort 6000 series device server can actively send
 			UDP packets to remote hosts that have this port
 			number."
-		::= { socketEntry 26 }    
+		::= { socketEntry 29 }    
 		
 	socketUdpDestinationAddress2Begin OBJECT-TYPE
-		SYNTAX IpAddress
+		SYNTAX DisplayString (SIZE(0..40))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1108,10 +2209,10 @@ PortList ::= TEXTUAL-CONVENTION
 			UDP packets to remote hosts whose IP
 			addresses are in the range between this parameter and
 			socketUdpDestinationAddress2End."
-		::= { socketEntry 27 }     
+		::= { socketEntry 30 }     
 		
 	socketUdpDestinationAddress2End OBJECT-TYPE
-		SYNTAX IpAddress
+		SYNTAX DisplayString (SIZE(0..40))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1119,7 +2220,7 @@ PortList ::= TEXTUAL-CONVENTION
 			UDP packets to the remote hosts whose IP
 			addresses are in the range between
 			socketUdpDestinationAddress2Begin and this parameter."
-		::= { socketEntry 28 }    
+		::= { socketEntry 31 }    
 		
 	socketUdpDestinationPort2 OBJECT-TYPE
 		SYNTAX INTEGER
@@ -1129,10 +2230,10 @@ PortList ::= TEXTUAL-CONVENTION
 			"The NPort 6000 series device server can actively send
 			UDP packets to the remote hosts that have this 
                         TCP port number."
-		::= { socketEntry 29 } 
+		::= { socketEntry 32 } 
 	
 	socketUdpDestinationAddress3Begin OBJECT-TYPE
-		SYNTAX IpAddress
+		SYNTAX DisplayString (SIZE(0..40))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1140,10 +2241,10 @@ PortList ::= TEXTUAL-CONVENTION
 			UDP packets to remote hosts whose IP
 			addresses are in the range between this parameter and
 			socketUdpDestinationAddress3End."
-		::= { socketEntry 30 }     
+		::= { socketEntry 33 }     
 		
 	socketUdpDestinationAddress3End OBJECT-TYPE
-		SYNTAX IpAddress
+		SYNTAX DisplayString (SIZE(0..40))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1151,7 +2252,7 @@ PortList ::= TEXTUAL-CONVENTION
 			UDP packets to remote hosts whose IP
 			addresses are in the range between
 			socketUdpDestinationAddress3Begin and this parameter."
-		::= { socketEntry 31 }    
+		::= { socketEntry 34 }    
 		
 	socketUdpDestinationPort3 OBJECT-TYPE
 		SYNTAX INTEGER
@@ -1161,10 +2262,10 @@ PortList ::= TEXTUAL-CONVENTION
 			"The NPort 6000 series device server can actively send
 			UDP packets to remote hosts that have this 
                         TCP port number."
-		::= { socketEntry 32 } 
+		::= { socketEntry 35 } 
 		
 	socketUdpDestinationAddress4Begin OBJECT-TYPE
-		SYNTAX IpAddress
+		SYNTAX DisplayString (SIZE(0..40))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1172,10 +2273,10 @@ PortList ::= TEXTUAL-CONVENTION
 			UDP packets to remote hosts whose IP
 			addresses are in the range between this parameter and
 			socketUdpDestinationAddress4End."
-		::= { socketEntry 33 }     
+		::= { socketEntry 36 }     
 		
 	socketUdpDestinationAddress4End OBJECT-TYPE
-		SYNTAX IpAddress
+		SYNTAX DisplayString (SIZE(0..40))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1183,7 +2284,7 @@ PortList ::= TEXTUAL-CONVENTION
 			UDP packets to remote hosts whose IP
 			addresses are in the range between
 			socketUdpDestinationAddress4Begin and this parameter."
-		::= { socketEntry 34 }    
+		::= { socketEntry 37 }    
 		
 	socketUdpDestinationPort4 OBJECT-TYPE
 		SYNTAX INTEGER
@@ -1193,7 +2294,7 @@ PortList ::= TEXTUAL-CONVENTION
 			"The NPort 6000 series device server can actively send
 			UDP packets to remote hosts that have this 
                         TCP port number."
-		::= { socketEntry 35 } 
+		::= { socketEntry 38 } 
 		
 	socketUdpLocalListenPort OBJECT-TYPE
 		SYNTAX INTEGER
@@ -1203,7 +2304,27 @@ PortList ::= TEXTUAL-CONVENTION
 			"The UDP port that the NPort 6000 series device
 			server listens to and that other devices must use
 			to contact the NPort 6000 series device server."
-		::= { socketEntry 36 } 
+		::= { socketEntry 39 } 
+
+	socketUDPDynamicDst OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1) }
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "If enable Dynamic Destination, 
+	     the target address is decieded by the source 
+             address of the last received data."
+        ::= { socketEntry 40 }
+
+	socketUDPDynamicDstTimeout OBJECT-TYPE
+        SYNTAX INTEGER
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "0 ms: The target address will be changed every time.
+            1-65535 ms: The target address will be occupied before the
+	    source address idle for a period of time."
+        ::= { socketEntry 41 }
 
 -- --------------------------------------------------------------------------------------
 -- Serial port settings -> Operation Modes settings -> Pair Connection
@@ -1259,7 +2380,7 @@ PortList ::= TEXTUAL-CONVENTION
         ::= { pairConnectionEntry 1 }
         
     pairConnectionSecure OBJECT-TYPE
-        SYNTAX INTEGER { no(0), yes(1) }
+        SYNTAX INTEGER { disable(0), enable(1) }
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
@@ -1268,7 +2389,7 @@ PortList ::= TEXTUAL-CONVENTION
         ::= { pairConnectionEntry 2 }
         
 	pairConnectionDestinationAddress OBJECT-TYPE
-		SYNTAX DisplayString
+		SYNTAX DisplayString (SIZE(0..40))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1407,6 +2528,8 @@ PortList ::= TEXTUAL-CONVENTION
             	DisplayString,
             terminalAuthenticationType
             	INTEGER,
+            terminalTryNextAuth
+            	INTEGER,	
             terminalAutoLoginPrompt
             	DisplayString,
             terminalPasswordPrompt
@@ -1464,7 +2587,7 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { terminalEntry 3 } 
 		
 	terminalPrimaryHostAddress OBJECT-TYPE
-		SYNTAX DisplayString
+		SYNTAX DisplayString (SIZE(0..40))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1473,7 +2596,7 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { terminalEntry 4 }   
 		
 	terminalSecondHostAddress OBJECT-TYPE
-		SYNTAX DisplayString
+		SYNTAX DisplayString (SIZE(0..40))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1506,7 +2629,7 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { terminalEntry 7 }  
 
 	terminalType OBJECT-TYPE
-		SYNTAX DisplayString
+		SYNTAX DisplayString (SIZE(0..8))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1514,7 +2637,7 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { terminalEntry 8 } 
 		
 	terminalMaxSessions OBJECT-TYPE
-        SYNTAX INTEGER
+        SYNTAX INTEGER (1..8)
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
@@ -1522,7 +2645,7 @@ PortList ::= TEXTUAL-CONVENTION
         ::= { terminalEntry 9 }  
         
     terminalChangeSession OBJECT-TYPE
-		SYNTAX DisplayString
+		SYNTAX DisplayString (SIZE(0..2))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1531,7 +2654,7 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { terminalEntry 10 }    
 		
 	terminalQuit OBJECT-TYPE
-		SYNTAX DisplayString
+		SYNTAX DisplayString (SIZE(0..2))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1540,7 +2663,7 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { terminalEntry 11 } 
 		
 	terminalBreak OBJECT-TYPE
-		SYNTAX DisplayString
+		SYNTAX DisplayString (SIZE(0..2))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1549,7 +2672,7 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { terminalEntry 12 } 
 	
 	terminalInterrupt OBJECT-TYPE
-		SYNTAX DisplayString
+		SYNTAX DisplayString (SIZE(0..2))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1558,15 +2681,23 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { terminalEntry 13 } 
 		
 	terminalAuthenticationType OBJECT-TYPE
-        SYNTAX INTEGER  { none(0), local(1), radius(2) }
+        SYNTAX INTEGER  { none(0), local(1), radius(2), radius-local(3), local-radius(4), tacacsPlus(5), tacacsPlus-local(6), local-tacacsPlus(7)}
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
             "The terminal authentication type."
         ::= { terminalEntry 14 }
+
+	terminalTryNextAuth OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Try next type on authentication denied or not"
+		::= { terminalEntry 15 }    
         
     terminalAutoLoginPrompt OBJECT-TYPE
-		SYNTAX DisplayString
+		SYNTAX DisplayString (SIZE(0..16))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1574,10 +2705,10 @@ PortList ::= TEXTUAL-CONVENTION
 			NPort 6000 series device server receives this string
 			from a remote telnet/rlogin server, it will
 			automatically reply with the user ID."
-		::= { terminalEntry 15 } 
+		::= { terminalEntry 16 } 
 		
 	terminalPasswordPrompt OBJECT-TYPE
-		SYNTAX DisplayString
+		SYNTAX DisplayString (SIZE(0..16))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1585,7 +2716,7 @@ PortList ::= TEXTUAL-CONVENTION
 			When the NPort 6000 series device server receives this
 			string from a remote telnet/rlogin server, it will
 			automatically reply with the user password."
-		::= { terminalEntry 16 } 
+		::= { terminalEntry 17 } 
 		
 	terminalLoginUserName OBJECT-TYPE
 		SYNTAX DisplayString (SIZE(0..16))
@@ -1593,7 +2724,7 @@ PortList ::= TEXTUAL-CONVENTION
 		STATUS current
 		DESCRIPTION
 			"Terminal login ID for automatic login."
-		::= { terminalEntry 17 } 
+		::= { terminalEntry 18 } 
 		
 	terminalLoginPassword OBJECT-TYPE
 		SYNTAX DisplayString (SIZE(0..16))
@@ -1601,7 +2732,7 @@ PortList ::= TEXTUAL-CONVENTION
 		STATUS current
 		DESCRIPTION
 			"Terminal login password for automatic login."
-		::= { terminalEntry 18 } 
+		::= { terminalEntry 19 } 
 
 -- --------------------------------------------------------------------------------------
 -- Serial port settings -> Operation Modes settings -> Application -> Reverse Terminal
@@ -1636,6 +2767,8 @@ PortList ::= TEXTUAL-CONVENTION
             	INTEGER,
             reverseTerminalAuthenticationType
             	INTEGER,
+            reverseTerminalTryNextAuth
+            	INTEGER,	
             reverseTerminalMapKeys
             	INTEGER
         }
@@ -1681,12 +2814,20 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { reverseTerminalEntry 3 }   
 		
 	reverseTerminalAuthenticationType OBJECT-TYPE
-		SYNTAX INTEGER  { none(0), local(1), radius(2) }
+		SYNTAX INTEGER  { none(0), local(1), radius(2), radius-local(3), local-radius(4), tacacsPlus(5), tacacsPlus-local(6), local-tacacsPlus(7)}
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
 			"The reverse terminal authentication type."
 		::= { reverseTerminalEntry 4 } 
+	
+	reverseTerminalTryNextAuth OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Try next type on authentication denied or not"
+		::= { reverseTerminalEntry 5 }    
 		
 	reverseTerminalMapKeys OBJECT-TYPE
 		SYNTAX INTEGER  { cr-lf(0), cr(1), lf(2) }
@@ -1707,7 +2848,7 @@ PortList ::= TEXTUAL-CONVENTION
 			3. 'line feed' if you select the 'lf' option. (i.e.,
 			the cursor will jump to the next line, but not move
 			horizontally)"
-		::= { reverseTerminalEntry 5 } 
+		::= { reverseTerminalEntry 6 } 
 		
 		
 -- --------------------------------------------------------------------------------------
@@ -1745,7 +2886,7 @@ PortList ::= TEXTUAL-CONVENTION
             	DisplayString,
             printerQueueNameASCII
             	DisplayString,
-            printerAppendFromFeed
+            printerAppendFormFeed
             	INTEGER
        }
     
@@ -1793,7 +2934,23 @@ PortList ::= TEXTUAL-CONVENTION
 			group13(12),
 			group14(13),
 			group15(14),
-			group16(15)
+			group16(15),
+			group17(16),
+			group18(17),
+			group19(18),
+			group20(19),
+			group21(20),
+			group22(21),
+			group23(22),
+			group24(23),
+			group25(24),
+			group26(25),
+			group27(26), 
+			group28(27), 
+			group29(28), 
+			group30(29), 
+			group31(30),
+			group32(31)
 		}
 		MAX-ACCESS read-write                
 		STATUS current
@@ -1808,7 +2965,7 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { printerEntry 3 } 
 		
 	printerQueueNameRaw OBJECT-TYPE
-		SYNTAX DisplayString
+		SYNTAX DisplayString (SIZE(0..16))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -1816,14 +2973,14 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { printerEntry 4 }
 		
 	printerQueueNameASCII OBJECT-TYPE
-		SYNTAX DisplayString
+		SYNTAX DisplayString (SIZE(0..16))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
 			"Specify the name of the print queue (in ASCII mode)."
 		::= { printerEntry 5 }
 		
-	printerAppendFromFeed OBJECT-TYPE
+	printerAppendFormFeed OBJECT-TYPE
 		SYNTAX INTEGER { disable(0), enable(1)}
 		MAX-ACCESS read-write                
 		STATUS current
@@ -1864,6 +3021,8 @@ PortList ::= TEXTUAL-CONVENTION
             	INTEGER,
             dialAuthType
             	INTEGER,
+            dialTryNextAuth
+            	INTEGER,	
             dialDisconnectBy
             	INTEGER,
             dialDestinationIpAddress
@@ -1878,16 +3037,18 @@ PortList ::= TEXTUAL-CONVENTION
             	INTEGER,
             dialLinkQualityReport
             	INTEGER,
-            dialOutgoingPAPID
+            dialUsername
             	DisplayString,
-            dialPAPPassword
+            dialPassword
             	DisplayString,
             dialIncomingPAPCheck
-            	INTEGER
+            	INTEGER,
+            dialIncomingTryNextAuth
+            	INTEGER	
         }
 	
 	dialTERMBINMode OBJECT-TYPE
-        SYNTAX INTEGER  { no(0), yes(1) }
+        SYNTAX INTEGER  { disable(0), enable(1) }
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
@@ -1895,7 +3056,7 @@ PortList ::= TEXTUAL-CONVENTION
         ::= { dialEntry 1 }
         
     dialPPPDMode OBJECT-TYPE
-        SYNTAX INTEGER  { no(0), yes(1) }
+        SYNTAX INTEGER  { disable(0), enable(1) }
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
@@ -1903,7 +3064,7 @@ PortList ::= TEXTUAL-CONVENTION
         ::= { dialEntry 2 }
     
     dialSLIPDMode OBJECT-TYPE
-        SYNTAX INTEGER  { no(0), yes(1) }
+        SYNTAX INTEGER  { disable(0), enable(1) }
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
@@ -1911,12 +3072,20 @@ PortList ::= TEXTUAL-CONVENTION
         ::= { dialEntry 3 }
     
     dialAuthType OBJECT-TYPE
-        SYNTAX INTEGER  { none(0), local(1), radius(2) }
+        SYNTAX INTEGER  { none(0), local(1), radius(2), radius-local(3), local-radius(4), tacacsPlus(5), tacacsPlus-local(6), local-tacacsPlus(7)}
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
             "The dial in/out authentication type."
         ::= { dialEntry 4 }
+    
+    dialTryNextAuth OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Try next type on authentication denied or not"
+		::= { dialEntry 5 }    
         
     dialDisconnectBy OBJECT-TYPE
         SYNTAX INTEGER  { none(0), dcd-off(2), dsr-off(4) }
@@ -1927,7 +3096,7 @@ PortList ::= TEXTUAL-CONVENTION
             will be disconnected when the DCD signal is off.
             If this field is set to 'dsr-off,' the connection
             will be disconnected when the DSR signal is off."
-        ::= { dialEntry 5 }
+        ::= { dialEntry 6 }
 	
 	dialDestinationIpAddress OBJECT-TYPE
 		SYNTAX IpAddress
@@ -1936,7 +3105,7 @@ PortList ::= TEXTUAL-CONVENTION
 		DESCRIPTION
 			"Destination IP address is the IP address of the
 			remote dial-in/dial-out server."
-		::= { dialEntry 6 }    
+		::= { dialEntry 7 }    
 		
 	dialSourceIpAddress OBJECT-TYPE
 		SYNTAX IpAddress
@@ -1947,7 +3116,7 @@ PortList ::= TEXTUAL-CONVENTION
 			port. The NPort 6000 series device server will
 			automatically assign an IP address for the port.
 			We recommend leaving this field blank."
-		::= { dialEntry 7 }    
+		::= { dialEntry 8 }    
 		
 	dialIpNetmask OBJECT-TYPE
 		SYNTAX IpAddress
@@ -1956,16 +3125,16 @@ PortList ::= TEXTUAL-CONVENTION
 		DESCRIPTION
 			"The IP netmask used for dial-in/dial-out networks
 			(PPP or SLIP)."
-		::= { dialEntry 8 } 
+		::= { dialEntry 9 } 
 		
 	dialTcpIpCompression OBJECT-TYPE
-		SYNTAX INTEGER { no(0), yes(1)}
+		SYNTAX INTEGER { disable(0), enable(1)}
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
 			"Depends on whether the remote user's application
 			requests compression."
-		::= { dialEntry 9 } 
+		::= { dialEntry 10 } 
 	
 	dialInactivityTime OBJECT-TYPE
         SYNTAX INTEGER
@@ -1980,42 +3149,49 @@ PortList ::= TEXTUAL-CONVENTION
             the connection is closed, the NPort 6000 series
             device server starts listening for another
             TCP connection."
-        ::= { dialEntry 10 }
+        ::= { dialEntry 11 }
 		
 	dialLinkQualityReport OBJECT-TYPE
-		SYNTAX INTEGER { no(0), yes(1)}
+		SYNTAX INTEGER { disable(0), enable(1)}
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
 			"Choose YES if you are using software to collect Link quality
 			information."
-		::= { dialEntry 11 } 
+		::= { dialEntry 12 } 
 		
-	dialOutgoingPAPID OBJECT-TYPE
-		SYNTAX DisplayString
+	dialUsername OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(0..16))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
 			"Dial-out user ID account."
-		::= { dialEntry 12 }
+		::= { dialEntry 13 }
 		
-	dialPAPPassword OBJECT-TYPE
-		SYNTAX DisplayString
+	dialPassword OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(0..16))
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
 			"Dial-out user password."
-		::= { dialEntry 13 }
+		::= { dialEntry 14 }
 		
 	dialIncomingPAPCheck OBJECT-TYPE
-        SYNTAX INTEGER  { none(0), local(1), radius(2) }
+        SYNTAX INTEGER  { none(0), local(1), radius(2), radius-local(3), local-radius(4), tacacsPlus(5), tacacsPlus-local(6), local-tacacsPlus(7)}
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
             "The Dial in/out incoming PAP check type."
-        ::= { dialEntry 14 }
-		
+        ::= { dialEntry 15 }
 
+	dialIncomingTryNextAuth OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Try next type on authentication denied or not"
+		::= { dialEntry 16 }    
+        
 -- --------------------------------------------------------------------------------------
 -- Serial port settings -> Operation Modes settings -> Data Packing
 -- --------------------------------------------------------------------------------------
@@ -2178,6 +3354,10 @@ PortList ::= TEXTUAL-CONVENTION
 			portFlowControl
 				INTEGER,
 			portFIFO
+				INTEGER,
+			portOnDelay
+				INTEGER,
+			portOffDelay
 				INTEGER
         }
     
@@ -2235,7 +3415,7 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { comParamPortEntry 3 }   
 		
 	portBaudRateManual OBJECT-TYPE
-        SYNTAX INTEGER
+        SYNTAX INTEGER (50..921600)
         MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
@@ -2245,10 +3425,10 @@ PortList ::= TEXTUAL-CONVENTION
         
     portDataBits OBJECT-TYPE
 		SYNTAX INTEGER  { 
-			d5(0), 
-			d6(1), 
-			d7(2),
-			d8(3) 
+			bits-5(0), 
+			bits-6(1), 
+			bits-7(2),
+			bits-8(3) 
 		}
 		MAX-ACCESS read-write
 		STATUS current
@@ -2258,9 +3438,9 @@ PortList ::= TEXTUAL-CONVENTION
 		
 	portStopBits OBJECT-TYPE
 		SYNTAX INTEGER  {
-			s1(0),
-			s15(1),
-			s2(2)
+			bits-1(0),
+			bits-1dot5(1),
+			bits-2(2)
 		}
 		MAX-ACCESS read-write
 		STATUS current
@@ -2287,7 +3467,8 @@ PortList ::= TEXTUAL-CONVENTION
 			none(0),
 			rts-cts(1),
 			xon-xoff(2),
-			dtr-dsr(3)
+			dtr-dsr(3),
+			rts-toggle(4)
 		}
 		MAX-ACCESS read-write                
 		STATUS current
@@ -2305,7 +3486,23 @@ PortList ::= TEXTUAL-CONVENTION
 		DESCRIPTION
 			"Enable or disable the port's FIFO."
 		::= { comParamPortEntry 9 }
-		
+
+	portOnDelay OBJECT-TYPE
+        SYNTAX INTEGER 
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "The port's RTS toggle On delay time (ms)."
+        ::= { comParamPortEntry 10 }
+
+	portOffDelay OBJECT-TYPE
+        SYNTAX INTEGER 
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "The port's RTS toggle Off delay time (ms)."
+        ::= { comParamPortEntry 11 }
+
 -- --------------------------------------------------------------------------------------
 -- Serial port settings -> Data Buffering/Log 
 -- --------------------------------------------------------------------------------------
@@ -2342,7 +3539,7 @@ PortList ::= TEXTUAL-CONVENTION
         }
         
 	portBufferingEnable OBJECT-TYPE
-		SYNTAX INTEGER {no(0), yes(1)}
+		SYNTAX INTEGER {disable(0), enable(1)}
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
@@ -2354,7 +3551,8 @@ PortList ::= TEXTUAL-CONVENTION
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
-			"The location of off-line port buffering."
+			"The location of off-line port buffering.
+       Note: NPort 6150 can not be set as sdCard."
 		::= { dataBufferingPortEntry 2 }
 		
 	portBufferingSDFileSize OBJECT-TYPE
@@ -2363,17 +3561,18 @@ PortList ::= TEXTUAL-CONVENTION
 		STATUS current
 		DESCRIPTION
 			"The maximum file size of off-line port buffering,
-			in MBytes, if the location is set to 'sdCard.'"
+			in MBytes, if the location is set to 'sdCard.'
+			Note: NPort 6150 do not support write access."
 		::= { dataBufferingPortEntry 3 }
 		
 	portSerialDataLoggingEnable OBJECT-TYPE
-		SYNTAX INTEGER {no(0), yes(1)}
+		SYNTAX INTEGER {disable(0), enable(1)}
 		MAX-ACCESS read-write                
 		STATUS current
 		DESCRIPTION
 			"Enable or disable serial data logging for the port."
 		::= { dataBufferingPortEntry 4 }
-		
+
 -- --------------------------------------------------------------------------------------
 -- Serial port settings -> Modem Settings
 -- --------------------------------------------------------------------------------------
@@ -2441,12 +3640,83 @@ PortList ::= TEXTUAL-CONVENTION
 		DESCRIPTION
 		"Set the number used to dial out."
 		::= { modemSettingsPortEntry 4 }
+
+-- --------------------------------------------------------------------------------------
+-- Serial port settings -> Cipher Sorting
+-- --------------------------------------------------------------------------------------
+		
+	cipherSettings OBJECT IDENTIFIER ::= { portSetting 5 }
 	
+	cipherSettingsPortTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF CipherSettingsPortEntry
+        MAX-ACCESS not-accessible               
+        STATUS current
+        DESCRIPTION
+            "The Cipher Settings table."
+        ::= { cipherSettings 1 }
+    
+    cipherSettingsPortEntry OBJECT-TYPE
+        SYNTAX CipherSettingsPortEntry
+        MAX-ACCESS not-accessible               
+        STATUS current
+        DESCRIPTION
+            "The Cipher Settings entry."
+        INDEX { portIndex }
+        ::= { cipherSettingsPortTable 1 }
+        
+    CipherSettingsPortEntry ::=
+        SEQUENCE {
+			sslCipherSort
+				DisplayString,
+			sshCipherSort
+				DisplayString
+        }
+        
+	sslCipherSort OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(53..53))
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"SSL cipher sorting. The format is '2,0,1,3,5,6,8,9,4,7' for example.
+             The index mapping of each cipher method is shown blow. EDH-RSA-DES-CBC3-SHA(2) has
+             the highest priority in this example.
+				DHE-RSA-AES256-SHA(0),
+				AES256-SHA(1),
+				EDH-RSA-DES-CBC3-SHA(2),
+				DES-CBC3-SHA(3),
+				DES-CBC3-MD5(SSL2)(4),
+				DHE-RSA-AES128-SHA(5),
+				AES128-SHA(6),
+				RC4-SHA(7),
+				RC4-MD5(8),
+				EDH-RSA-DES-CBC-SHA(9),
+				DES-CBC-SHA(10),
+				DES-CBC-MD5(SSL2)(11)"
+		::= { cipherSettingsPortEntry 1 }
+		
+	sshCipherSort OBJECT-TYPE
+		SYNTAX DisplayString (SIZE(16..16))
+		MAX-ACCESS read-write                
+		STATUS current
+		DESCRIPTION
+			"SSL cipher sorting. The format is '2,0,1,3,5,4,6,7' for example.
+             The index mapping of each cipher method is shown blow. aes192-cbc(2) has
+             the highest priority in this example.
+				aes128-cbc(0),
+				3dec-cbc(1),
+				aes192-cbc(2),
+				aes256-cbc(3),
+				twofish256-cbc(4),
+				twofish-cbc(5),
+				twofish128-cbc(6),
+				blowfish-cbc(7)"
+		::= { cipherSettingsPortEntry 2 }	
+
 -- --------------------------------------------------------------------------------------
 -- Serial port settings -> Welcome Message
 -- --------------------------------------------------------------------------------------
 	
-	welcomeMessage OBJECT IDENTIFIER ::= { portSetting 5 }
+	welcomeMessage OBJECT IDENTIFIER ::= { portSetting 6 }
 	
 	portEnableWelcomeMessage OBJECT-TYPE
 		SYNTAX INTEGER  { disable(0), enable(1) }
@@ -2504,7 +3774,7 @@ PortList ::= TEXTUAL-CONVENTION
         STATUS current
         DESCRIPTION
             "Accessible IP List entry."
-        INDEX { activeAccessibleIpList }
+        INDEX { accessibleIpListIndex }
         ::= { accessibleIpListTable 1 }
         
     AccessibleIpListEntry ::=
@@ -2514,9 +3784,9 @@ PortList ::= TEXTUAL-CONVENTION
             activeAccessibleIpList
             	INTEGER,
             accessibleIpListAddress
-                IpAddress,
+                DisplayString,
             accessibleIpListNetmask
-                IpAddress
+                DisplayString
         }
 	
 	accessibleIpListIndex OBJECT-TYPE
@@ -2536,7 +3806,7 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { accessibleIpListEntry 2 }
 		
 	accessibleIpListAddress  OBJECT-TYPE
-        SYNTAX IpAddress
+        SYNTAX DisplayString (SIZE(0..40))
         MAX-ACCESS read-write
         STATUS current
         DESCRIPTION
@@ -2546,7 +3816,7 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { accessibleIpListEntry 3 }
 		
 	accessibleIpListNetmask  OBJECT-TYPE
-        SYNTAX IpAddress
+        SYNTAX DisplayString (SIZE(0..15))
         MAX-ACCESS read-write
         STATUS current
         DESCRIPTION
@@ -2604,7 +3874,7 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { dDNS 1 }
 		
 	dDNSServerAddress  OBJECT-TYPE
-        SYNTAX INTEGER { dynDns_org(0) }
+        SYNTAX INTEGER { dynDns-org(0) }
         MAX-ACCESS read-write               
         STATUS current
         DESCRIPTION
@@ -2668,7 +3938,7 @@ PortList ::= TEXTUAL-CONVENTION
             hostName
                 DisplayString,
             hostIpAddress
-            	IpAddress
+            	DisplayString
         }
        
 	hostTableIndex OBJECT-TYPE
@@ -2688,7 +3958,7 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { hostTableEntry 2 }
 		
 	hostIpAddress  OBJECT-TYPE
-        SYNTAX IpAddress
+        SYNTAX DisplayString (SIZE(0..40))
         MAX-ACCESS read-write
         STATUS current
         DESCRIPTION
@@ -2797,6 +4067,22 @@ PortList ::= TEXTUAL-CONVENTION
         	port14(13),
         	port15(14),
         	port16(15),
+        	port17(16),
+        	port18(17),
+        	port19(18),
+        	port20(19),
+        	port21(20),
+        	port22(21),
+        	port23(22),
+        	port24(23),
+        	port25(24),
+        	port26(25),
+        	port27(26),
+        	port28(27),
+        	port29(28),
+        	port30(29),
+        	port31(30),
+        	port32(31),
         	lan(256)
         }
         MAX-ACCESS read-write
@@ -2881,7 +4167,7 @@ PortList ::= TEXTUAL-CONVENTION
 	authenticationServer OBJECT IDENTIFIER ::= { miscNetworkSettings 7 }
 	
 	radiusServerIp  OBJECT-TYPE
-        SYNTAX DisplayString
+        SYNTAX DisplayString (SIZE(0..40))
         MAX-ACCESS read-write               
         STATUS current
         DESCRIPTION
@@ -2911,7 +4197,32 @@ PortList ::= TEXTUAL-CONVENTION
         STATUS current
         DESCRIPTION
             "Enable or disable RADIUS accounting."
-		::= { authenticationServer 4 }
+		::= { authenticationServer 4 }	
+	
+	tacacsPlusServerIp  OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..40))
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "The IP address or domain name of the TACACS+ server."
+		::= { authenticationServer 5 }
+		
+	tacacsPlusSecret  OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..16))
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "TACACS+ shared secret. Must be the same as in the TACACS+
+            server."
+		::= { authenticationServer 6 }
+	
+	tacacsPlusAccounting  OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Enable or disable TACACS+ accounting."
+		::= { authenticationServer 7 }
 		
 -- ----------------------------------------------------------------------------
 -- System Management -> Misc. Network Settings -> System Log Settings
@@ -2959,6 +4270,75 @@ PortList ::= TEXTUAL-CONVENTION
             Connect, Disconnect, Authentication Fail, Restart."
 		::= { sysLogSettings 4 }
 	
+	sysRemoteLog  OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Log the following events to the remote log server: System Cold
+            Start, System Warm Start."
+		::= { sysLogSettings 5 }
+		
+	networkRemoteLog  OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Log the following events to the remote log server:
+            DHCP/BOOTP/PPPoE Get IP/Renew, NTP, Mail Fail, NTP
+            Connect Fail, DHCP Fail, IP Conflict, Ethernet Link
+            Down."
+		::= { sysLogSettings 6 }
+		
+	configRemoteLog  OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Log the following events to the remote log server: Login Fail, IP
+            Changed, Password Changed, Config Changed, Firmware
+            Upgrade, SSL Key Import, Config Import, Config
+            Export."
+		::= { sysLogSettings 7 }
+		
+	opModeRemoteLog  OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Log the following op-mode events to the remote log server:
+            Connect, Disconnect, Authentication Fail, Restart."
+		::= { sysLogSettings 8 }	
+
+-- ----------------------------------------------------------------------------
+-- System Management -> Misc. Network Settings -> Remote Log Server
+-- ----------------------------------------------------------------------------
+
+	remoteLogServer OBJECT IDENTIFIER ::= { miscNetworkSettings 9 }
+	
+	syslogServerIp  OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..40))
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "The IP address or domain name of the SYSLOG server."
+		::= { remoteLogServer 1 }
+
+	syslogFacility  OBJECT-TYPE
+        SYNTAX INTEGER { local-use-0(0), local-use-1(1), local-use-2(2), local-use-3(3), local-use-4(4), local-use-5(5), local-use-6(6), local-use-7(7)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "The SYSLOG facility level."
+		::= { remoteLogServer 2 }
+		
+	syslogSeverity  OBJECT-TYPE
+        SYNTAX INTEGER { emergency(0), alert(1), critical(2), error(3), warning(4), notice(5), informational(6), debug(7)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "The SYSLOG severity level."
+		::= { remoteLogServer 3 }
 	
 -- -------------------------------------------------------------
 -- System Management -> Auto Warning Settings
@@ -3077,7 +4457,9 @@ PortList ::= TEXTUAL-CONVENTION
         DESCRIPTION
             "When the built-in link1 port is off, the NPort 6000
             series device server will automatically raise a
-            d-out alarm."
+            d-out alarm.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
         ::= { eventSettings 9 }
         
     alarmServerEthernet2LinkDown OBJECT-TYPE
@@ -3085,11 +4467,17 @@ PortList ::= TEXTUAL-CONVENTION
         MAX-ACCESS read-write
         STATUS current
         DESCRIPTION
-            "The NPort 6000 series device server can provide an
+            "The 
+            
+            
+            
+             6000 series device server can provide an
             extra Ethernet port via the network module. When the
             first port on the network module is off, the NPort 6000
             series device server will automatically raise a
-            d-out alarm."
+            d-out alarm.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
         ::= { eventSettings 10 }
     
     alarmServerEthernet3LinkDown OBJECT-TYPE
@@ -3101,9 +4489,117 @@ PortList ::= TEXTUAL-CONVENTION
             extra Ethernet port via the network module. When the
             second port on the network module is off, the NPort 6000
             series device server will automatically raise a
-            d-out alarm."
+            d-out alarm.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
         ::= { eventSettings 11 }
+        
+	smsServerColdStart OBJECT-TYPE
+        SYNTAX INTEGER  { disable(0), enable(1) }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "Refers to starting the system from power off
+            (contrast this with warm start). When performing a
+            cold start, the NPort 6000 series device server will
+            automatically issue an auto warning message by
+            SMS after booting up.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { eventSettings 12 }
+        
+    smsServerWarmStart OBJECT-TYPE
+        SYNTAX INTEGER  { disable(0), enable(1) }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "Refers to restarting the NPort 6000 without
+            turning the power off. When performing a warm start,
+            the NPort 6000 series device server will
+            automatically send a SMS after rebooting.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { eventSettings 13 }  
+        
+    smsServerEthernet1LinkDown OBJECT-TYPE
+        SYNTAX INTEGER  { disable(0), enable(1) }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "When the built-in link1 port is off, the NPort 6000
+            series device server will automatically send a
+            SMS alarm.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { eventSettings 14 }
+        
+    smsServerEthernet2LinkDown OBJECT-TYPE
+        SYNTAX INTEGER  { disable(0), enable(1) }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "The NPort 6000 series device server can provide an
+            extra Ethernet port via the network module. When the
+            first port on the network module is off, the NPort 6000
+            series device server will automatically send a
+            SMS alarm.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { eventSettings 15 }
+    
+    smsServerEthernet3LinkDown OBJECT-TYPE
+        SYNTAX INTEGER  { disable(0), enable(1) }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "The NPort 6000 series device server can provide an
+            extra Ethernet port via the network module. When the
+            second port on the network module is off, the NPort 6000
+            series device server will automatically send a
+            SMS alarm.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { eventSettings 16 }
 	
+    smsServerAuthFailure OBJECT-TYPE
+        SYNTAX INTEGER  { disable(0), enable(1) }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "The user inputs a wrong password from the Console
+            or Administrator. When authentication failure
+            occurs, the NPort 6000 series device server will
+            immediately send a SMS.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { eventSettings 17 }
+        
+    smsServerIpChanged OBJECT-TYPE
+        SYNTAX INTEGER  { disable(0), enable(1) }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "The user has changed the NPort 6000 series device
+            server's IP address. When the IP address changes,
+            the NPort 6000 series device server will send a
+            SMS with the new IP address before it reboots.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { eventSettings 18 }
+        
+    smsServerPasswordChanged OBJECT-TYPE
+        SYNTAX INTEGER  { disable(0), enable(1) }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "The user has changed the NPort 6000 series device
+            server's password. When the password changes, the
+            NPort 6000 series device server will send a SMS
+            with the password changed notice before it reboots.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { eventSettings 19 }
+
 -- -------------------------------------------------------------
 -- System Management -> Auto Warning Settings -> Serial Event Settings
 -- -------------------------------------------------------------
@@ -3135,11 +4631,15 @@ PortList ::= TEXTUAL-CONVENTION
                 INTEGER,
             alarmDCDchange
                 INTEGER,
+            smsDCDchange
+                INTEGER,
             mailDSRchange
         		INTEGER,
             trapDSRchange
                 INTEGER,
             alarmDSRchange
+                INTEGER,
+            smsDSRchange
                 INTEGER
         }
 	
@@ -3182,8 +4682,26 @@ PortList ::= TEXTUAL-CONVENTION
             low, it indicates that the connection line is down.
             When the DCD signal changes to low, the NPort 6000
             series device server will immediately raise a d-out
-            alarm."
+            alarm.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
 		::= { portEventSettingsEntry 3 }
+
+	smsDCDchange OBJECT-TYPE
+		SYNTAX INTEGER { disable(0), enable(1)}
+		MAX-ACCESS read-write
+		STATUS current
+		DESCRIPTION
+			"A change in the DCD (Data Carrier Detect) signal
+            indicates that the modem connection status has
+            changed. For example, if the DCD signal changes to
+            low, it indicates that the connection line is down.
+            When the DCD signal changes to low, the NPort 6000
+            series device server will automatically send a SMS
+            alarm.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+		::= { portEventSettingsEntry 4 }
 		
 	mailDSRchange OBJECT-TYPE
         SYNTAX INTEGER { disable(0), enable(1)}
@@ -3197,7 +4715,7 @@ PortList ::= TEXTUAL-CONVENTION
             equipment is powered down. When the DSR signal
             changes to low, the NPort 6000 series device server
             will immediately send an e-mail message."
-        ::= { portEventSettingsEntry 4 }
+        ::= { portEventSettingsEntry 5 }
         
 	trapDSRchange OBJECT-TYPE
 		SYNTAX INTEGER { disable(0), enable(1)}
@@ -3211,7 +4729,7 @@ PortList ::= TEXTUAL-CONVENTION
             equipment is powered down. When the DSR signal
             changes to low, the NPort 6000 series device server
             will immediately send an SNMP trap."
-		::= { portEventSettingsEntry 5 }
+		::= { portEventSettingsEntry 6 }
 		
 	alarmDSRchange OBJECT-TYPE
 		SYNTAX INTEGER { disable(0), enable(1)}
@@ -3224,9 +4742,27 @@ PortList ::= TEXTUAL-CONVENTION
             to low, it indicates that the data communication
             equipment is powered down. When the DSR signal
             changes to low, the NPort 6000 series device server
-            will immediately raise a d-out alarm."
-		::= { portEventSettingsEntry 6 }
-	
+            will immediately raise a d-out alarm.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+		::= { portEventSettingsEntry 7 }
+
+	smsDSRchange OBJECT-TYPE
+		SYNTAX INTEGER { disable(0), enable(1)}
+		MAX-ACCESS read-write
+		STATUS current
+		DESCRIPTION
+			"A change in the DSR (Data Set Ready) signal
+            indicates that the data communication equipment is
+            powered off. For example, if the DSR signal changes
+            to low, it indicates that the data communication
+            equipment is powered down. When the DSR signal
+            changes to low, the NPort 6000 series device server
+            will automatically send a SMS alarm.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+		::= { portEventSettingsEntry 8 }
+
 -- -------------------------------------------------------------
 -- System Management -> Auto Warning Settings -> E-mail Alert
 -- -------------------------------------------------------------
@@ -3251,7 +4787,7 @@ PortList ::= TEXTUAL-CONVENTION
         ::= { emailAlert 2 }
         
     emailWarningUserName OBJECT-TYPE
-        SYNTAX DisplayString
+        SYNTAX DisplayString (SIZE(0..64))
         MAX-ACCESS read-write
         STATUS current
         DESCRIPTION
@@ -3260,7 +4796,7 @@ PortList ::= TEXTUAL-CONVENTION
         ::= { emailAlert 3 }
         
     emailWarningPassword OBJECT-TYPE
-        SYNTAX DisplayString
+        SYNTAX DisplayString (SIZE(0..16))
         MAX-ACCESS read-write
         STATUS current
         DESCRIPTION
@@ -3324,7 +4860,7 @@ PortList ::= TEXTUAL-CONVENTION
         MAX-ACCESS read-write               
         STATUS current
         DESCRIPTION
-            "SNMP trap receiver IP address or domain name."
+            "SNMP trap server IP address or domain name."
 		::= { snmpTrap 1 }
 		
 	trapVersion  OBJECT-TYPE
@@ -3334,8 +4870,113 @@ PortList ::= TEXTUAL-CONVENTION
         DESCRIPTION
             "SNMP trap version used for the auto-warning function."
 		::= { snmpTrap 2 }
-	
-	
+
+-- -------------------------------------------------------------
+-- System Management -> Auto Warning Settings -> SMS Alert
+-- -------------------------------------------------------------
+
+	smsAlert OBJECT IDENTIFIER ::= { autoWarningSettings 5 }
+	    
+    smsAlertFirstPhoneNumber OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..20))
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "The first phone number to where the auto-warning
+            SMS is to be sent.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { smsAlert 1 }
+
+    smsAlertSecondPhoneNumber OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..16))
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "The second phone number to where the auto-warning
+            SMS is to be sent.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { smsAlert 2 }
+        
+    smsAlertThirdPhoneNumber OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..16))
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "The third phone number to where the auto-warning
+            SMS is to be sent.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { smsAlert 3 }
+
+    smsAlertFourthPhoneNumber OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..16))
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "The fourth phone number to where the auto-warning
+            SMS is to be sent.
+            Note: NPort 6150, 6250, 6250-S-SC, 6250-M-SC 
+            do not support write access."
+        ::= { smsAlert 4 }
+
+-- -------------------------------------------------------------
+-- System Management -> Auto Warning Settings -> Event Log Setting
+-- -------------------------------------------------------------
+
+    eventLogSettings OBJECT IDENTIFIER ::= { autoWarningSettings 6 }
+        
+    currentLogCapacityRatio OBJECT-TYPE
+        SYNTAX DisplayString
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+            "The current usage ratio of log capacity."
+        ::= { eventLogSettings 1 }
+
+    logCapacityWarningEnable OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "Enable/disable the log capacity warning."
+        ::= { eventLogSettings 2 }
+        
+    logCapacityWarningThreshold OBJECT-TYPE
+        SYNTAX INTEGER (0..100)
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "The log capacity warning threshold."
+        ::= { eventLogSettings 3 }
+
+    mailLogCapacity OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "The log capacity warning which alerts 
+            user by mail message."
+        ::= { eventLogSettings 4 }
+
+    trapLogCapacity OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "The log capacity warning which alerts 
+            user by SNMP trap."
+        ::= { eventLogSettings 5 }
+
+    logOversizeAction OBJECT-TYPE
+        SYNTAX INTEGER { overwriteTheOldestEventLog(0), stopRecordingEventLog(1) }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "The event log oversize actions."
+        ::= { eventLogSettings 6 }
+        
 -- -------------------------------------------------------------
 -- System Management -> Maintenance
 -- -------------------------------------------------------------
@@ -3349,7 +4990,7 @@ PortList ::= TEXTUAL-CONVENTION
 	consoleSettings OBJECT IDENTIFIER ::= { maintenance 1 }
 	
 	httpConsole OBJECT-TYPE
-        SYNTAX INTEGER { enable(0), disable(1)}
+        SYNTAX INTEGER { disable(0), enable(1)}
         MAX-ACCESS read-write               
         STATUS current
         DESCRIPTION
@@ -3357,7 +4998,7 @@ PortList ::= TEXTUAL-CONVENTION
         ::= { consoleSettings 1 }
         
     httpsConsole OBJECT-TYPE
-        SYNTAX INTEGER { enable(0), disable(1)}
+        SYNTAX INTEGER { disable(0), enable(1)}
         MAX-ACCESS read-write               
         STATUS current
         DESCRIPTION
@@ -3365,7 +5006,7 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { consoleSettings 2 }
 	
 	telnetConsole OBJECT-TYPE
-        SYNTAX INTEGER { enable(0), disable(1)}
+        SYNTAX INTEGER { disable(0), enable(1)}
         MAX-ACCESS read-write               
         STATUS current
         DESCRIPTION
@@ -3373,15 +5014,41 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { consoleSettings 3 }
 		
 	sshConsole OBJECT-TYPE
-        SYNTAX INTEGER { enable(0), disable(1)}
+        SYNTAX INTEGER { disable(0), enable(1)}
         MAX-ACCESS read-write               
         STATUS current
         DESCRIPTION
             "Enable or disable SSH console."
 		::= { consoleSettings 4 }
+	
+	consoleAuthenticationType OBJECT-TYPE
+        SYNTAX INTEGER  { local(0), radius(1), radius-local(2), local-radius(3), tacacsPlus(4), tacacsPlus-local(5), local-tacacsPlus(6) }
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "The console authentication type."
+        ::= { consoleSettings 5 }
+        
+    tryNextTypeOnAuthDenied OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Try next type on authentication denied or not"
+		::= { consoleSettings 6 }    
 		
+	resetButtonFunction OBJECT-TYPE
+        SYNTAX INTEGER { disable-after-60-sec(0), always-enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Enable or disable reset button protection. You can
+            disable the hardware reset button after the NPort 6000
+            series device server has been restarted for 60 seconds."
+		::= { consoleSettings 7 }
+	
 	lcmReadOnlyProtect OBJECT-TYPE
-        SYNTAX INTEGER { writable(0), readonly(1)}
+        SYNTAX INTEGER { readonly(0), writable(1)}
         MAX-ACCESS read-write               
         STATUS current
         DESCRIPTION
@@ -3390,17 +5057,23 @@ PortList ::= TEXTUAL-CONVENTION
             view the configurations from the LCM panel. Otherwise,
             by default, users can modify the settings directly
             on the LCM panel."
-		::= { consoleSettings 5 }
-		
-	resetButtonFunction OBJECT-TYPE
-        SYNTAX INTEGER { always-enable(0), disable-after-60-sec(1)}
-        MAX-ACCESS read-write               
+		::= { consoleSettings 8 }
+
+	maxHttpLoginUsers OBJECT-TYPE
+        SYNTAX INTEGER (1..10)
+        MAX-ACCESS read-write                
         STATUS current
         DESCRIPTION
-            "Enable or disable reset button protection. You can
-            disable the hardware reset button after the NPort 6000
-            series device server has been restarted for 60 seconds."
-		::= { consoleSettings 6 }
+            "The maximum login users for HTTP/HTTPS."
+        ::= { consoleSettings 9 }
+
+	autoLogoutSetting OBJECT-TYPE
+        SYNTAX INTEGER (1..1440)
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "Auto logout setting (ms)"
+        ::= { consoleSettings 10 }
 
 -- ----------------------------------------------------------------------------
 -- System Management -> Maintenance -> Load Factory Default
@@ -3426,7 +5099,289 @@ PortList ::= TEXTUAL-CONVENTION
             settings including the IP configuration to factory
             defaults."
 		::= { loadFactoryDefault 1 }
-		
+
+-- -------------------------------------------------------------
+-- System Management -> Account Management
+-- -------------------------------------------------------------
+
+    accountManagement OBJECT IDENTIFIER ::= { sysManagement 4 }   
+    
+-- -------------------------------------------------------------
+-- System Management -> Account Management -> Notification Message
+-- -------------------------------------------------------------
+
+    notificationMessage OBJECT IDENTIFIER ::= { accountManagement 1 }   
+
+    loginNotificationMessage  OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..240))
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Login notification message."
+        ::= { notificationMessage 1 }
+
+    loginFailureMessage  OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(0..240))
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Login failure message."
+        ::= { notificationMessage 2 }
+
+-- -------------------------------------------------------------
+-- System Management -> Account Management -> User Account
+-- -------------------------------------------------------------
+
+    userAccount OBJECT IDENTIFIER ::= { accountManagement 2 }   
+
+    userAccountTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF UserAccountEntry
+        MAX-ACCESS not-accessible               
+        STATUS current
+        DESCRIPTION
+            "User account list"
+        ::= { userAccount 1 }
+    
+    userAccountEntry OBJECT-TYPE
+        SYNTAX UserAccountEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "User account list entry"
+        INDEX { userAccountIndex }
+        ::= { userAccountTable 1 }
+        
+    UserAccountEntry ::=
+        SEQUENCE {
+            userAccountIndex
+                INTEGER,
+            activeUserAccount
+                INTEGER,
+            accountName
+                DisplayString,
+            accountGroupName
+                DisplayString,
+        }
+       
+    userAccountIndex OBJECT-TYPE
+        SYNTAX INTEGER
+        MAX-ACCESS read-only                
+        STATUS current
+        DESCRIPTION
+            "The Host Table index."
+        ::= { userAccountEntry 1 } 
+    
+    activeUserAccount OBJECT-TYPE
+        SYNTAX INTEGER { non_active(0), avtive(1)}
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "The user account is activate or not."
+        ::= { userAccountEntry 2 } 
+
+    accountName  OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(1..16))
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Name of user account"
+        ::= { userAccountEntry 3 }
+        
+    accountGroupName  OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(1..16))
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "Group name of user account"
+        ::= { userAccountEntry 4 }
+
+-- -------------------------------------------------------------
+-- System Management -> Account Management -> Access Permission
+-- -------------------------------------------------------------
+
+    accessPermission OBJECT IDENTIFIER ::= { accountManagement 3 }   
+
+    accessPermissionTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF AccessPermissionEntry
+        MAX-ACCESS not-accessible               
+        STATUS current
+        DESCRIPTION
+            "Access permission list"
+        ::= { accessPermission 1 }
+    
+    accessPermissionEntry OBJECT-TYPE
+        SYNTAX AccessPermissionEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "Access permission list entry"
+        INDEX { groupName }
+        ::= { accessPermissionTable 1 }
+        
+    AccessPermissionEntry ::=
+        SEQUENCE {
+            groupName
+                DisplayString,
+            networkConfig
+                INTEGER,
+            serialConfig
+                INTEGER,
+            systemConfig
+                INTEGER,
+            adminConfig
+                INTEGER,
+            monitorLogWarning
+                INTEGER,
+            commonSetting
+                INTEGER
+        }
+       
+    groupName OBJECT-TYPE
+        SYNTAX DisplayString (SIZE(1..16))
+        MAX-ACCESS read-write                
+        STATUS current
+        DESCRIPTION
+            "Group name"
+        ::= { accessPermissionEntry 1 } 
+    
+    networkConfig  OBJECT-TYPE
+        SYNTAX  INTEGER {no-display(0), read-only(1), read-write(2)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Access permission of network configuration group"
+        ::= { accessPermissionEntry 2 }
+        
+    serialConfig  OBJECT-TYPE
+        SYNTAX  INTEGER {no-display(0), read-only(1), read-write(2)}
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "Access permission of serial configuration group"
+        ::= { accessPermissionEntry 3 }
+
+    systemConfig  OBJECT-TYPE
+        SYNTAX  INTEGER {no-display(0), read-only(1), read-write(2)}
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "Access permission of system configuration group"
+        ::= { accessPermissionEntry 4 }
+
+    adminConfig  OBJECT-TYPE
+        SYNTAX  INTEGER {no-display(0), read-only(1), read-write(2)}
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "Access permission of administration group"
+        ::= { accessPermissionEntry 5 }
+
+    monitorLogWarning  OBJECT-TYPE
+        SYNTAX  INTEGER {no-display(0), read-only(1), read-write(2)}
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "Access permission of log monitoring group"
+        ::= { accessPermissionEntry 6 }
+
+    commonSetting  OBJECT-TYPE
+        SYNTAX  INTEGER {no-display(0), read-only(1), read-write(2)}
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+            "Access permission of common setting group"
+        ::= { accessPermissionEntry 7 }
+
+-- ----------------------------------------------------------------------
+-- System Management -> Account Management -> Password and Login Management
+-- ----------------------------------------------------------------------
+
+    accountPasswordAndLoginMgmt OBJECT IDENTIFIER ::= { accountManagement 4 }   
+
+-- -----------------------------------------------------------------------------------------
+-- System Management -> Account Management -> Password and Login Management -> Password Policy
+-- -----------------------------------------------------------------------------------------
+
+    accountPasswordPolicy OBJECT IDENTIFIER ::= { accountPasswordAndLoginMgmt 1 }  
+
+    pwdMinLength  OBJECT-TYPE
+        SYNTAX INTEGER (4..16)
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "The minimum length of password."
+        ::= { accountPasswordPolicy 1 }
+
+    pwdComplexityCheckEnable  OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Enable or disable password complexity check"
+        ::= { accountPasswordPolicy 2 }
+
+    pwdComplexityCheckDigitEnable  OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Enable or disable digit check"
+        ::= { accountPasswordPolicy 3 }
+
+    pwdComplexityCheckAlphabetEnable  OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Enable or disable alphabet check"
+        ::= { accountPasswordPolicy 4 }        
+
+    pwdComplexityCheckSpecialCharEnable  OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Enable or disable special letter check"
+        ::= { accountPasswordPolicy 5 }
+
+    pwdLifetime  OBJECT-TYPE
+        SYNTAX INTEGER (90..180)
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Password life time"
+        ::= { accountPasswordPolicy 6 }
+                        
+-- -------------------------------------------------------------
+-- System Management -> Account Management -> Password and Login Management -> Login Failure Lockout
+-- -------------------------------------------------------------
+
+    accountLoginFailureLockout OBJECT IDENTIFIER ::= { accountPasswordAndLoginMgmt 2 }  
+
+    loginFailureLockoutEnable  OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1)}
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "Enable or disable lockout when login failure"
+        ::= { accountLoginFailureLockout 1 }
+
+    loginFailureLockoutRetrys  OBJECT-TYPE
+        SYNTAX INTEGER (1..10)
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "The login lockout after fail retry over the count."
+        ::= { accountLoginFailureLockout 2 }
+
+    loginFailureLockoutTime  OBJECT-TYPE
+        SYNTAX INTEGER (1..60)
+        MAX-ACCESS read-write               
+        STATUS current
+        DESCRIPTION
+            "The lockout time after fail retry over the count."
+        ::= { accountLoginFailureLockout 3 }		
+
 -- -------------------------------------------------------------
 -- System Status
 -- -------------------------------------------------------------
@@ -3461,7 +5416,9 @@ PortList ::= TEXTUAL-CONVENTION
         	remoteIpIndex
         		INTEGER,
             monitorRemoteIp
-                IpAddress
+                DisplayString,
+            monitorCipher
+            	DisplayString   
         }
     
     remoteIpIndex  OBJECT-TYPE
@@ -3473,12 +5430,20 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { monitorRemoteIpEntry 1 }
    	    
 	monitorRemoteIp  OBJECT-TYPE
-        SYNTAX IpAddress
+        SYNTAX DisplayString
         MAX-ACCESS read-only               
         STATUS current
         DESCRIPTION
             "The remote IP currently connecting to this port."
 		::= { monitorRemoteIpEntry 2 }
+
+	monitorCipher  OBJECT-TYPE
+        SYNTAX DisplayString
+        MAX-ACCESS read-only               
+        STATUS current
+        DESCRIPTION
+            "Currently used cipher for this connection if secure mode is enabled."
+		::= { monitorRemoteIpEntry 3 }
 	
 -- -------------------------------------------------------------
 -- System Status -> Serial Port Status
@@ -3707,6 +5672,8 @@ PortList ::= TEXTUAL-CONVENTION
 				INTEGER,
 			monitorDTRDSRFlowControl
 				INTEGER,
+			monitorRTSToggleFlowControl
+				INTEGER,	
 			monitorFIFO
 				INTEGER,
 			monitorInterface
@@ -3722,7 +5689,12 @@ PortList ::= TEXTUAL-CONVENTION
 		::= { monitorSerialPortSettingsEntry 1 }
 		
 	monitorDataBits  OBJECT-TYPE
-        SYNTAX INTEGER
+		SYNTAX INTEGER  { 
+			bits-5(0), 
+			bits-6(1), 
+			bits-7(2),
+			bits-8(3) 
+		}
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
@@ -3775,6 +5747,14 @@ PortList ::= TEXTUAL-CONVENTION
             "View if the port is using DTR/DSR flow control."
 		::= { monitorSerialPortSettingsEntry 7 }
 		
+	monitorRTSToggleFlowControl  OBJECT-TYPE
+        SYNTAX INTEGER { off(0), on(1) }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+            "View if the port is using RTS toggle flow control."
+		::= { monitorSerialPortSettingsEntry 8 }	
+		
 	monitorFIFO  OBJECT-TYPE
         SYNTAX INTEGER {
         	disable(0),
@@ -3784,7 +5764,7 @@ PortList ::= TEXTUAL-CONVENTION
         STATUS current
         DESCRIPTION
             "View FIFO status of this port."
-		::= { monitorSerialPortSettingsEntry 8 }
+		::= { monitorSerialPortSettingsEntry 9 }
 		
 	monitorInterface  OBJECT-TYPE
         SYNTAX INTEGER {
@@ -3797,13 +5777,50 @@ PortList ::= TEXTUAL-CONVENTION
         STATUS current
         DESCRIPTION
             "View the serial interface that the port is using."
-		::= { monitorSerialPortSettingsEntry 9 }
-		
+		::= { monitorSerialPortSettingsEntry 10 }
+
+-- -------------------------------------------------------------
+-- System Status -> Buffering
+-- -------------------------------------------------------------
+
+	serialPortBuffering OBJECT IDENTIFIER ::= { sysStatus 5 }
+	
+	monitorSerialPortBufferingTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF MonitorSerialPortBufferingEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "Serial Port Buffering table."
+        ::= { serialPortBuffering 1 }
+    
+    monitorSerialPortBufferingEntry OBJECT-TYPE
+        SYNTAX MonitorSerialPortBufferingEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "Serial Port Settings entry."
+        INDEX { portIndex }
+        ::= { monitorSerialPortBufferingTable 1 }
+        
+    MonitorSerialPortBufferingEntry ::=
+        SEQUENCE {
+            monitorBuffering
+				INTEGER
+        }
+        
+	monitorBuffering  OBJECT-TYPE
+        SYNTAX INTEGER
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+            "View length of buffered data for the port. The length unit is byte."
+		::= { monitorSerialPortBufferingEntry 1 }
+
 -- -------------------------------------------------------------
 -- System Status -> Relay Output Status 
 -- -------------------------------------------------------------
 
-	relayOutputStatus  OBJECT IDENTIFIER ::= { sysStatus 5 }
+	relayOutputStatus  OBJECT IDENTIFIER ::= { sysStatus 6 }
 	
 	relayOutputEthernet1LinkDown  OBJECT-TYPE
         SYNTAX INTEGER {
@@ -3982,7 +5999,183 @@ PortList ::= TEXTUAL-CONVENTION
             is changed. Acknowledgement will clear the d-out
             alarm before you can actually fix the problem."
 		::= { portDSRChangedStatusEntry 2 }
-		
+
+-- -------------------------------------------------------------
+-- Module Status
+-- -------------------------------------------------------------
+        
+    moduleStatus OBJECT IDENTIFIER ::= { sysStatus 7 } 
+        
+-- -------------------------------------------------------------
+-- Redundancy Status
+-- -------------------------------------------------------------
+        
+    redundancyStatus OBJECT IDENTIFIER ::= { moduleStatus 1 }        
+    
+    activeRedundancyProtocol OBJECT-TYPE
+        SYNTAX INTEGER  { none(0), spanningTree(1), turboRing(2), turboRingV2(3) }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+        "This shows the active redundancy protocol. The none(0) stauts will be showed
+         if only if the redundancy protocol is set to spanning tree and none of
+         ports enable spanning tree."
+        ::= { redundancyStatus 1 }
+    
+    spanningTreeStatus OBJECT IDENTIFIER ::= { redundancyStatus 2 }
+        
+    spanningTreeBridgeRole OBJECT-TYPE
+        SYNTAX DisplayString
+        MAX-ACCESS read-only                
+        STATUS current
+        DESCRIPTION
+            "This displays NPort's bridge role (root/not-root) in spanning tree."
+        ::= { spanningTreeStatus 1 }
+
+    spanningTreeRootBridge OBJECT-TYPE
+        SYNTAX DisplayString
+        MAX-ACCESS read-only                
+        STATUS current
+        DESCRIPTION
+            "This displays root bridge identifier of spanning tree."
+        ::= { spanningTreeStatus 2 }
+
+    spanningTreeRootPathCost OBJECT-TYPE
+        SYNTAX DisplayString
+        MAX-ACCESS read-only                
+        STATUS current
+        DESCRIPTION
+            "The root path cost of NPort."
+        ::= { spanningTreeStatus 3 }
+
+    spanningTreePortStatusTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF SpanningTreePortStatusEntry
+        MAX-ACCESS not-accessible               
+        STATUS current
+        DESCRIPTION
+            "The spanning tree port status table."
+        ::= { spanningTreeStatus 4 }
+    
+    spanningTreePortStatusEntry OBJECT-TYPE
+        SYNTAX SpanningTreePortStatusEntry
+        MAX-ACCESS not-accessible               
+        STATUS current
+        DESCRIPTION
+            "The spanning tree port entry."
+        INDEX { spanningTreePortStatusIndex }
+        ::= { spanningTreePortStatusTable 1 }
+        
+    SpanningTreePortStatusEntry ::=
+        SEQUENCE {
+            spanningTreePortStatusIndex
+                INTEGER,
+            spanningTreePortEnableStatus
+                INTEGER,
+            spanningTreePortRole
+                DisplayString,
+            spanningTreePortDesignatedBridge
+                DisplayString,
+            spanningTreePortStatus
+                DisplayString
+        }
+
+    spanningTreePortStatusIndex OBJECT-TYPE
+        SYNTAX INTEGER 
+        MAX-ACCESS read-only                
+        STATUS current
+        DESCRIPTION
+            "The index of spanning tree table."
+        ::= { spanningTreePortStatusEntry 1 }
+
+    spanningTreePortEnableStatus OBJECT-TYPE
+        SYNTAX INTEGER { disable(0), enable(1) }
+        MAX-ACCESS read-only           
+        STATUS current
+        DESCRIPTION
+            "This displays whether or not spanning tree protocol is enabled for this port."
+        ::= { spanningTreePortStatusEntry 2 }
+    
+    spanningTreePortRole OBJECT-TYPE
+        SYNTAX DisplayString
+        MAX-ACCESS read-only               
+        STATUS current
+        DESCRIPTION
+            "This port's role in spanning tree protocol."
+        ::= { spanningTreePortStatusEntry 3 }
+    
+    spanningTreePortDesignatedBridge OBJECT-TYPE
+        SYNTAX DisplayString 
+        MAX-ACCESS read-only             
+        STATUS current
+        DESCRIPTION
+            "This port's designated bridge ID."
+        ::= { spanningTreePortStatusEntry 4 }
+    
+    spanningTreePortStatus OBJECT-TYPE
+        SYNTAX DisplayString
+        MAX-ACCESS read-only                
+        STATUS current
+        DESCRIPTION
+            "The port status of spanning tree protocol."
+        ::= { spanningTreePortStatusEntry 5 } 
+
+    turboRingStatus OBJECT IDENTIFIER ::= { redundancyStatus 3}
+    
+    turboRingBrokenStatus OBJECT-TYPE
+        SYNTAX INTEGER
+            {
+            notTurboRingV2(0),
+            healthy(1),
+            break(2)
+            }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+            "Turbo Ring V2 status."
+        ::= { turboRingStatus 1 }
+        
+    turboRingMaster OBJECT-TYPE
+        SYNTAX INTEGER  { no(0), yes(1) }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+            "Is this a Master or Slave of Turbo Ring or Turbo Ring V2."
+        ::= { turboRingStatus 2 }
+
+    turboRingPort1 OBJECT-TYPE
+        SYNTAX  INTEGER
+        ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+             "The port number of 1st Redundant Port on the Turbo Ring or Turbo Ring V2.
+              Return 0 if not Turbo Ring or Turbo Ring V2."
+        ::= { turboRingStatus 3 }
+
+    turboRingPort2 OBJECT-TYPE
+        SYNTAX  INTEGER
+        ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+             "The port number of 2nd Redundant Port on the Turbo Ring or Turbo Ring V2.
+              Return 0 if not Turbo Ring or Turbo Ring V2."
+        ::= { turboRingStatus 4 }
+
+    turboRingPort1Status OBJECT-TYPE
+        SYNTAX DisplayString
+        ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+             "The port status of 1st Redundant Port on the Turbo Ring or Turbo Ring V2."
+        ::= { turboRingStatus 5 }
+
+    turboRingPort2Status OBJECT-TYPE
+        SYNTAX DisplayString
+        ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+             "The port status of 2nd Redundant Port on the Turbo Ring or Turbo Ring V2."
+        ::= { turboRingStatus 6 }
+
 -- -------------------------------------------------------------
 -- Save Configuration
 -- -------------------------------------------------------------
@@ -4023,7 +6216,23 @@ PortList ::= TEXTUAL-CONVENTION
         	port13(12), 
         	port14(13),
         	port15(14), 
-        	port16(15)
+        	port16(15),
+        	port17(16),
+        	port18(17),
+        	port19(18),
+        	port20(19),
+        	port21(20),
+        	port22(21),
+        	port23(22),
+        	port24(23),
+        	port25(24),
+        	port26(25),
+        	port27(26),
+        	port28(27),
+        	port29(28),
+        	port30(29),
+        	port31(30),
+        	port32(31)
         }
         MAX-ACCESS write-only               
         STATUS current

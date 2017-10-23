@@ -11,11 +11,24 @@
  *
  */
 
-$tmm_mempool = snmpwalk_cache_multi_oid($device, 'sysTmmStatMemoryUsed', array(), 'F5-BIGIP-SYSTEM-MIB');
-$tmm_mempool = snmpwalk_cache_multi_oid($device, 'sysTmmStatMemoryTotal', $tmm_mempool, 'F5-BIGIP-SYSTEM-MIB');
+$mib = 'F5-BIGIP-SYSTEM-MIB';
+
+$oids = array('sysTmmStatMemoryUsed', 'sysTmmStatMemoryTotal');
+
+if (!is_array($cache_storage[$mib]))
+{
+  foreach ($oids as $oid)
+  {
+    $cache_mempool = snmpwalk_cache_multi_oid($device, $oid, $cache_mempool, $mib);
+  }
+  $cache_storage[$mib] = $cache_mempool;
+} else {
+  print_debug("Cached!");
+  $cache_mempool = $cache_storage[$mib];
+}
 
 $index            = $mempool['mempool_index'];
-$mempool['total'] = $tmm_mempool[$index]['sysTmmStatMemoryTotal'];
-$mempool['used']  = $tmm_mempool[$index]['sysTmmStatMemoryUsed'];
+$mempool['total'] = $cache_mempool[$index]['sysTmmStatMemoryTotal'];
+$mempool['used']  = $cache_mempool[$index]['sysTmmStatMemoryUsed'];
 
 // EOF

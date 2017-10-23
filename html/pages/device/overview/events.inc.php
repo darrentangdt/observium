@@ -13,7 +13,7 @@
 
     print_events(array('device' => $device['device_id'], 'short' => TRUE, 'pagesize' => '20',
                         'header' => array('title' => 'Eventlog',
-                                          'icon' => 'oicon-clipboard-audit',
+                                          'icon' => $config['icon']['eventlog'],
                                           'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'logs', 'section' => 'eventlog'))
                                     )
     ));

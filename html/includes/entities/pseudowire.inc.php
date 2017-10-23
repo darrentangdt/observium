@@ -14,7 +14,7 @@
 function generate_pseudowire_query($vars)
 {
   $sql = 'SELECT * FROM `pseudowires` ';
-  $sql .= ' LEFT JOIN `pseudowires-state` USING (`pseudowire_id`)';
+  //$sql .= ' LEFT JOIN `pseudowires-state` USING (`pseudowire_id`)';
   //$sql .= " WHERE `pwRowStatus` = 'active'";
   $sql .= ' WHERE 1';
 
@@ -245,36 +245,26 @@ function print_pseudowire_table($vars)
 
 function humanize_pseudowire(&$pw)
 {
+  global $config;
+
   if (isset($pw['humanized'])) { return; }
 
+  if (isset($config['entity_events'][$pw['event']]))
+  {
+    $pw = array_merge($pw, $config['entity_events'][$pw['event']]);
+  } else {
+    $pw['event_class'] = 'label label-primary';
+    $pw['row_class']   = '';
+  }
   if ($pw['pwRowStatus'] != 'active')
   {
     $pw['row_class'] = 'ignore';
-  }
-  else if ($pw['event'] == 'alert')
-  {
-    $pw['row_class'] = 'error';
-  }
-  else if ($pw['event'] != 'ok')
-  {
-    $pw['row_class'] = 'warning';
   }
 
   $device = &$GLOBALS['cache']['devices']['id'][$pw['device_id']];
   if ((isset($device['status']) && !$device['status']) || (isset($device['disabled']) && $device['disabled']))
   {
     $pw['row_class'] = 'error';
-  }
-
-  if ($pw['event'] == 'ok')
-  {
-    $pw['pw_class'] = 'label label-success';
-  }
-  else if ($pw['event'] == 'alert')
-  {
-    $pw['pw_class'] = 'label label-error';
-  } else {
-    $pw['pw_class'] = 'label label-warning';
   }
 
   $translate = entity_type_translate_array('pseudowire');
@@ -335,8 +325,8 @@ function generate_pseudowire_row($pw, $vars)
   }
   $out .= '<td>' . generate_entity_link('pseudowire', $pw, $mini_graph, NULL, FALSE) . '</td>';
   $out .= '<td style="white-space: nowrap">' . generate_tooltip_link(NULL, formatUptime(($config['time']['now'] - $pw['last_change']), 'short-2') . ' ago', format_unixtime($pw['last_change'])) . '</td>';
-  $out .= '<td style="text-align: right;"><strong><span class="' . $pw['pw_class'] . '">' . $pw['event'] . '</span></strong></td>';
-  $out .= '<td style="text-align: right;"><strong><span class="' . $pw['pw_class'] . '">' . $pw['pwOperStatus'] . '</span></strong></td>';
+  $out .= '<td style="text-align: right;"><strong>' . generate_tooltip_link('', $pw['event'], $pw['event_descr'], $pw['event_class']) . '</strong></td>';
+  $out .= '<td style="text-align: right;"><strong>' . generate_tooltip_link('', $pw['pwOperStatus'], $pw['event_descr'], $pw['event_class']) . '</strong></td>';
   $out .= '<td>' . formatUptime($pw['pwUptime'], 'short-2') . '</td>';
   $out .= '</tr>';
 

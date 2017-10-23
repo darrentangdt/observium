@@ -41,7 +41,6 @@ if (strstr($poll_device['sysObjectID'], '.1.3.6.1.4.1.2272.'))
     $version = snmp_get($device, 'rcSysVersion.0', '-Oqvn', 'RAPID-CITY');
     list(,$version) = explode(' ', $version);
   }
-  $serial  = snmp_get($device, 'rcChasSerialNumber.0', '-Oqvn', 'RAPID-CITY');
 } else {
   if (!$version)
   {
@@ -53,16 +52,6 @@ if (strstr($poll_device['sysObjectID'], '.1.3.6.1.4.1.2272.'))
   {
     $serial  = snmp_get($device, '.1.3.6.1.2.1.47.1.1.1.1.11.2', '-Oqvn'); // entPhysicalSerialNum.2
   }
-
-  // FIXME, remove this retard code
-  $stack = snmp_walk($device, '.1.3.6.1.4.1.45.1.6.3.3.1.1.6.8', '-OsqnU');
-  $stack_size = count(explode("\n", $stack));
-  if ($stack_size > 1)
-  {
-    $features = "Stack of $stack_size units";
-  }
-  # Is this a 5500 series or 5600 series stack?
-  $features = ''; // FIXME this resets the $features set by the above retard code anyway
 }
 
 // EOF

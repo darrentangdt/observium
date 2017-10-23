@@ -13,7 +13,7 @@
 
 // Force10 S-Series
 
-#F10-S-SERIES-CHASSIS-MIB::chStackUnitMemUsageUtil.1 = Gauge32: 86
+// F10-S-SERIES-CHASSIS-MIB::chStackUnitMemUsageUtil.1 = Gauge32: 86
 
 $mempool_array = snmpwalk_cache_oid($device, 'chStackUnitMemUsageUtil', array(), $mib);
 if (is_array($mempool_array))
@@ -32,7 +32,7 @@ if (is_array($mempool_array))
         //$total    *= $precision;
       } else {
         $precision = 1;
-        $total     = 1090519040;
+        $total     = 1090519040; // Hardcoded total
       }
       $percent = $entry['chStackUnitMemUsageUtil'];
       $used    = $total * $percent / 100;

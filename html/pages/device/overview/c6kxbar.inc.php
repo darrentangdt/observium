@@ -11,9 +11,9 @@
  *
  */
 
-$box_args = array('title' => 'c6500/7600 Crossbar', 
-                  'icon' => 'oicon-arrow-switch',
-                  ); 
+$box_args = array('title' => 'c6500/7600 Crossbar',
+                  'icon' => $config['icon']['crossbar'],
+                  );
 echo generate_box_open($box_args);
 
 echo('<table class="table table-condensed table-striped">');

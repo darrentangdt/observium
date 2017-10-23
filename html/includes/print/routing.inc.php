@@ -314,11 +314,11 @@ function get_bgp_array($vars)
   $query  = 'FROM `bgpPeers` AS B';
   $query_count = 'SELECT COUNT(*) ' . $query . $where . $query_permitted; // Use only bgpPeer_id and device_id in query!
 
-  $query .= ' LEFT JOIN `bgpPeers-state` AS S ON B.`bgpPeer_id` = S.`bgpPeer_id`';
+  //$query .= ' LEFT JOIN `bgpPeers-state` AS S ON B.`bgpPeer_id` = S.`bgpPeer_id`';
   $query .= ' LEFT JOIN `devices` AS D ON B.`device_id` = D.`device_id`';
   $query .= $where . $query_permitted;
 
-  $query = 'SELECT D.`hostname`, D.`bgpLocalAs`, B.*, S.* '.$query;
+  $query = 'SELECT D.`hostname`, D.`bgpLocalAs`, B.* '.$query;
   $query .= ' ORDER BY D.`hostname`, B.`bgpPeerRemoteAs`, B.`bgpPeerRemoteAddr`';
   $query .= " LIMIT $start,$pagesize";
 

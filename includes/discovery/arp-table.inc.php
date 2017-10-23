@@ -29,8 +29,6 @@ foreach (dbFetchRows($query, array($device['device_id'])) as $entry)
   $interface[$entry_if] = $entry['port_id'];
 }
 
-echo("ARP/NDP Tables : ");
-
 /// FIXME. Here necessary to use snmpwalk_cache_oid, but snmpwalk_cache_oid() not support custom options like (-OXqs) for parser. -- mike
 /// Duplicate the function to use -OX. The SNMP specific stuff is all elsewhere, so shouldn't be too much duplicated -- adama
 

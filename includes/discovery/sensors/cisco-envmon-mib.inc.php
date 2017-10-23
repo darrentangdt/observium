@@ -80,8 +80,8 @@ foreach ($oids as $index => $entry)
   {
     $oid   = '.1.3.6.1.4.1.9.9.13.1.2.1.7.'.$index;
     //Not numerical values, only states
-    $query = 'SELECT COUNT(*) FROM `sensors` WHERE `device_id` = ? AND `sensor_type` = ? AND `sensor_class` = ? AND (`sensor_descr` LIKE ? OR `sensor_descr` LIKE ?);';
-    $ent_count = dbFetchCell($query, array($device['device_id'], 'cisco-entity-state', 'state', $descr.'%', '%- '.$descr));
+    $query = 'SELECT COUNT(*) FROM `status` WHERE `device_id` = ? AND `status_type` = ? AND (`sensor_descr` LIKE ? OR `sensor_descr` LIKE ?);';
+    $ent_count = dbFetchCell($query, array($device['device_id'], 'cisco-entity-state', $descr.'%', '%- '.$descr));
     if (!$ent_count)
     {
       discover_sensor($valid['sensor'], 'state', $device, $oid, 'voltage-'.$index, $sensor_state_type, $descr, NULL,
@@ -102,8 +102,8 @@ foreach ($oids as $index => $entry)
   {
     $oid = '.1.3.6.1.4.1.9.9.13.1.5.1.3.'.$index;
     // Exclude duplicated entries from CISCO-ENTITY-SENSOR
-    $ent_count = dbFetchCell('SELECT COUNT(*) FROM `sensors` WHERE `device_id` = ? AND `sensor_type` = ? AND `sensor_class` = ? AND (`sensor_descr` LIKE ? OR `sensor_descr` LIKE ?);',
-                              array($device['device_id'], 'cisco-entity-state', 'state', $descr.'%', '%- '.$descr));
+    $ent_count = dbFetchCell('SELECT COUNT(*) FROM `status` WHERE `device_id` = ? AND `status_type` = ? AND (`status_descr` LIKE ? OR `status_descr` LIKE ?);',
+                              array($device['device_id'], 'cisco-entity-state', $descr.'%', '%- '.$descr));
     //Not numerical values, only states
     if (!$ent_count)
     {
@@ -127,8 +127,8 @@ foreach ($oids as $index => $entry)
   {
     $oid = '.1.3.6.1.4.1.9.9.13.1.4.1.3.'.$index;
     // Exclude duplicated entries from CISCO-ENTITY-SENSOR
-    $ent_count = dbFetchCell('SELECT COUNT(*) FROM `sensors` WHERE `device_id` = ? AND `sensor_type` = ? AND `sensor_class` = ? AND (`sensor_descr` LIKE ? OR `sensor_descr` LIKE ?);',
-                              array($device['device_id'], 'cisco-entity-state', 'state', $descr.'%', '%- '.$descr));
+    $ent_count = dbFetchCell('SELECT COUNT(*) FROM `status` WHERE `device_id` = ? AND `status_type` = ? AND (`status_descr` LIKE ? OR `status_descr` LIKE ?);',
+                              array($device['device_id'], 'cisco-entity-state', $descr.'%', '%- '.$descr));
     //Not numerical values, only states
     if (!$ent_count)
     {

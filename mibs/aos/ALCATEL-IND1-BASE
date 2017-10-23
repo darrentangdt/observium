@@ -289,11 +289,10 @@ alaDhcpClientTraps OBJECT-IDENTITY
   ::= { notificationIND1Traps 23 }
 
 alaLLDPTraps OBJECT-IDENTITY
-   STATUS current
+   STATUS current 
    DESCRIPTION
-                  "Branch for ALA LLDP Notification/Trap Definitions."
+          "Branch for ALA LLDP Notification/Trap Definitions."
   ::= { notificationIND1Traps 24 }
-
 
 hardentIND1Physical OBJECT-IDENTITY
     STATUS current
@@ -625,6 +624,7 @@ softentIND1Dot3Oam OBJECT-IDENTITY
     STATUS current
     DESCRIPTION
         "Branch for 802.3ah proprietary information."
+
     ::= { softwareIND1Entities 52 }
 
 softentIND1MplsFrr OBJECT-IDENTITY
@@ -643,7 +643,7 @@ softentIND1Saa OBJECT-IDENTITY
     STATUS current
     DESCRIPTION
 	"Branch for Service Assurance Agent proprietary information."
-    ::= { softwareIND1Entities 55 }
+    ::= { softwareIND1Entities 55} 
 
 softentIND1Lbd OBJECT-IDENTITY
     STATUS current
@@ -672,7 +672,7 @@ softentIND1DhcpSrv OBJECT-IDENTITY
 softentIND1LLDP OBJECT-IDENTITY
     STATUS current
     DESCRIPTION
-        "Branch for LLDP proprietary information."
+	 "Branch for LLDP proprietary information."
     ::= { softwareIND1Entities 60 }
 
 softentIND1DHL OBJECT-IDENTITY
@@ -680,6 +680,54 @@ softentIND1DHL OBJECT-IDENTITY
     DESCRIPTION
         "Branch for Dual Home Link (DHL) proprietary information."
     ::= { softwareIND1Entities 63 }
+
+softentIND1PPPoEIA OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+	 "Branch for PPPoE Intermediate Agent proprietary information."
+   ::= { softwareIND1Entities 64 }
+
+softentIND1TestOam OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "Branch for Test-oam proprietary information."
+    ::= { softwareIND1Entities 65 }
+
+softentIND1Kerberos OBJECT-IDENTITY
+     STATUS current
+     DESCRIPTION
+        "Branch for Kerberos proprietary information."
+     ::= { softwareIND1Entities 66 }
+
+softentIND1SIPSnooping	OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "Branch for SIP Snooping proprietary information."
+    ::= { softwareIND1Entities 67 }
+
+softentIND1Da OBJECT-IDENTITY
+     STATUS current
+     DESCRIPTION
+        "Branch for vNP proprietary information."
+     ::= { softwareIND1Entities 68 }
+
+softentIND1MultiChassisManager OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "Branch for Multi-Chassis Manager proprietary information."
+    ::= { softwareIND1Entities 69 }
+
+softentIND1OpenflowMIB OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "Branch for OPENFLOW proprietary information."
+    ::= { softwareIND1Entities 70 }
+
+softentIND1TWAMP OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "Branch for Two Way Active Measurement Protocol proprietary information."
+    ::= { softwareIND1Entities 71 } 
 
 routingIND1Tm OBJECT-IDENTITY
     STATUS current
@@ -777,7 +825,11 @@ routingIND1Vrf OBJECT-IDENTITY
     DESCRIPTION
         "Branch For Virtual Router support."
     ::= { softentIND1Routing 15 }
-
+routingIND1GlobalRouteTableMIB OBJECT-IDENTITY
+   STATUS current
+   DESCRIPTION
+       "Branch For Global Route Table support."
+   ::= { softentIND1Routing 16 }
 
 serventIND1Aqe OBJECT-IDENTITY
 	STATUS current
@@ -787,8 +839,6 @@ serventIND1Aqe OBJECT-IDENTITY
 
 
 END
-
-
 
 
 

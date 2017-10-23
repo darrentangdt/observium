@@ -8,7 +8,7 @@ ALCATEL-IND1-RIPNG-MIB DEFINITIONS ::= BEGIN
                 FROM IPV6-TC
         RowStatus
                 FROM SNMPv2-TC
-        MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+        MODULE-COMPLIANCE, OBJECT-GROUP
                 FROM SNMPv2-CONF
         routingIND1Ripng
                 FROM ALCATEL-IND1-BASE;
@@ -449,7 +449,7 @@ AlaRipngInterfaceEntry ::=
 
         alaRipngInterfaceStatus OBJECT-TYPE
                 SYNTAX  RowStatus
-                MAX-ACCESS  read-write
+                MAX-ACCESS  read-create
                 STATUS  current
                 DESCRIPTION
                         "Create/delete RIPng interfaces."
@@ -466,7 +466,7 @@ AlaRipngInterfaceEntry ::=
 
         alaRipngInterfaceMetric OBJECT-TYPE
                 SYNTAX  Integer32 (1 .. 15)
-                MAX-ACCESS read-write
+                MAX-ACCESS read-create
                 STATUS current
                 DESCRIPTION
                         "Metric used on this interface."
@@ -478,7 +478,7 @@ AlaRipngInterfaceEntry ::=
                         enabled (1),
                         disabled (2)
                 }
-                MAX-ACCESS read-write
+                MAX-ACCESS read-create
                 STATUS current
                 DESCRIPTION
                         "Controls whether or not to recv updates on this intf."
@@ -490,7 +490,7 @@ AlaRipngInterfaceEntry ::=
                         enabled (1),
                         disabled (2)
                 }
-                MAX-ACCESS read-write
+                MAX-ACCESS read-create
                 STATUS current
                 DESCRIPTION
                         "Controls whether or not to send updates on this intf."
@@ -503,7 +503,7 @@ AlaRipngInterfaceEntry ::=
                         onlysplit (2),
                         poison (3)
                 }
-                MAX-ACCESS read-write
+                MAX-ACCESS read-create
                 STATUS current
                 DESCRIPTION
                         "Controls use of split horizon on this interface."
@@ -544,7 +544,7 @@ AlaRipngInterfaceEntry ::=
 
         alaRipngInterfaceJitter OBJECT-TYPE
                 SYNTAX  Integer32 (0 .. 60)
-                MAX-ACCESS  read-write
+                MAX-ACCESS  read-create
                 STATUS  deprecated
                 DESCRIPTION
                         "Deprecated in favour of alaRipngJitter"
@@ -584,7 +584,7 @@ AlaRipngNexthopFilterEntry ::=
 
         alaRipngNexthopFilterStatus OBJECT-TYPE
                 SYNTAX  RowStatus
-                MAX-ACCESS  read-write
+                MAX-ACCESS  read-create
                 STATUS  deprecated
                 DESCRIPTION
                         "Create/delete RIPng Nexthop Filter."
@@ -637,7 +637,7 @@ AlaRipngSummarizationEntry ::=
 
         alaRipngSummarizationStatus OBJECT-TYPE
                 SYNTAX  RowStatus
-                MAX-ACCESS  read-write
+                MAX-ACCESS  read-create
                 STATUS  deprecated
                 DESCRIPTION
                         "Create/delete RIPng Summarization Filter."
@@ -682,7 +682,7 @@ AlaRipngSummarizationEntry ::=
                         include (1),
                         donotinclude (2)
                 }
-                MAX-ACCESS read-write
+                MAX-ACCESS read-create
                 STATUS deprecated
                 DESCRIPTION
                         "Include subnets?"
@@ -725,7 +725,7 @@ AlaRipngRouteFilterEntry ::=
 
         alaRipngRouteFilterStatus OBJECT-TYPE
                 SYNTAX  RowStatus
-                MAX-ACCESS  read-write
+                MAX-ACCESS  read-create
                 STATUS  deprecated
                 DESCRIPTION
                         "Create/delete RIPng route Filter."
@@ -764,7 +764,7 @@ AlaRipngRouteFilterEntry ::=
                         include (1),
                         donotinclude (2)
                 }
-                MAX-ACCESS read-write
+                MAX-ACCESS read-create
                 STATUS deprecated
                 DESCRIPTION
                         "Include subnets?"
@@ -1148,7 +1148,7 @@ alaRipngRouteGroup OBJECT-GROUP
         }
         STATUS current
         DESCRIPTION
-                "Collection of Miscellaneous objects for management of RIPng."
+                "Collection of Miscellaneous objects for management of RIP."
 ::= { alcatelIND1RIPNGMIBGroups 8 }
 
 alaRipngNotificationGroup NOTIFICATION-GROUP

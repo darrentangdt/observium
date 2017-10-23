@@ -7,13 +7,13 @@
  *
  * @package    observium
  * @subpackage graphs
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
 //include_once($config['html_dir']."/includes/graphs/common.inc.php");
 
-foreach (dbFetchRows("SELECT * FROM `sensors` WHERE `sensor_class` = ? AND `device_id` = ? ORDER BY `sensor_index`", array($class, $device['device_id'])) as $sensor)
+foreach (dbFetchRows("SELECT * FROM `sensors` WHERE `sensor_class` = ? AND `device_id` = ? AND `sensor_deleted` = ? ORDER BY `sensor_index`", array($class, $device['device_id'], '0')) as $sensor)
 {
   $rrd_filename = get_rrd_path($device, get_sensor_rrd($device, $sensor));
 

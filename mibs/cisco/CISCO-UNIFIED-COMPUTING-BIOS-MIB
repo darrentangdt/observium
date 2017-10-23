@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- BIOS management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -59,7 +59,10 @@ IMPORTS
     CucsBiosVfAssertNMIOnPERRVpAssertNMIOnPERR,
     CucsBiosVfAssertNMIOnSERRVpAssertNMIOnSERR,
     CucsBiosVfBootOptionRetryVpBootOptionRetry,
+    CucsBiosVfCPUHardwarePowerManagementVpCPUHardwarePowerManagement,
     CucsBiosVfCPUPerformanceVpCPUPerformance,
+    CucsBiosVfCPUPowerManagementVpCPUPowerManagement,
+    CucsBiosVfConsistentDeviceNameControlVpCDNControl,
     CucsBiosVfConsoleRedirectionVpBaudRate,
     CucsBiosVfConsoleRedirectionVpConsoleRedirection,
     CucsBiosVfConsoleRedirectionVpFlowControl,
@@ -72,13 +75,17 @@ IMPORTS
     CucsBiosVfDirectCacheAccessVpDirectCacheAccess,
     CucsBiosVfDramRefreshRateVpDramRefreshRate,
     CucsBiosVfEnhancedIntelSpeedStepTechVpEnhancedIntelSpeedStepTech,
+    CucsBiosVfEnhancedPowerCappingSupportVpEnhancedPowerCapping,
     CucsBiosVfExecuteDisableBitVpExecuteDisableBit,
     CucsBiosVfFRB2TimerVpFRB2Timer,
     CucsBiosVfFrequencyFloorOverrideVpFrequencyFloorOverride,
     CucsBiosVfFrontPanelLockoutVpFrontPanelLockout,
+    CucsBiosVfIntegratedGraphicsApertureSizeVpIntegratedGraphicsApertureSize,
+    CucsBiosVfIntegratedGraphicsVpIntegratedGraphics,
     CucsBiosVfIntelEntrySASRAIDModuleVpSASRAID,
     CucsBiosVfIntelEntrySASRAIDModuleVpSASRAIDModule,
     CucsBiosVfIntelHyperThreadingTechVpIntelHyperThreadingTech,
+    CucsBiosVfIntelTrustedExecutionTechnologyVpIntelTstdExecTechSup,
     CucsBiosVfIntelTurboBoostTechVpIntelTurboBoostTech,
     CucsBiosVfIntelVTForDirectedIOVpIntelVTDATSSupport,
     CucsBiosVfIntelVTForDirectedIOVpIntelVTDCoherencySupport,
@@ -98,11 +105,14 @@ IMPORTS
     CucsBiosVfOSBootWatchdogTimerPolicyVpOSBootWatchdogTimerPolicy,
     CucsBiosVfOSBootWatchdogTimerTimeoutVpOSBootWatchdogTimerTimeout,
     CucsBiosVfOSBootWatchdogTimerVpOSBootWatchdogTimer,
+    CucsBiosVfOnboardGraphicsVpOnboardGraphics,
     CucsBiosVfOnboardSATAControllerVpOnboardSATAController,
     CucsBiosVfOnboardSATAControllerVpSATAMode,
     CucsBiosVfOnboardStorageVpOnboardSCUStorageSupport,
     CucsBiosVfOptionROMEnableVpState,
     CucsBiosVfOptionROMLoadVpLoad,
+    CucsBiosVfPCHSATAModeVpSATAMode,
+    CucsBiosVfPCILOMPortsConfigurationVpPCIe10GLOM2Link,
     CucsBiosVfPCISlotLinkSpeedVpPCIeSlot10LinkSpeed,
     CucsBiosVfPCISlotLinkSpeedVpPCIeSlot1LinkSpeed,
     CucsBiosVfPCISlotLinkSpeedVpPCIeSlot2LinkSpeed,
@@ -144,6 +154,7 @@ IMPORTS
     CucsBiosVfProcessorPrefetchConfigVpDCUStreamerPrefetch,
     CucsBiosVfProcessorPrefetchConfigVpHardwarePrefetcher,
     CucsBiosVfQPILinkFrequencySelectVpQPILinkFrequencySelect,
+    CucsBiosVfQPISnoopModeVpQPISnoopMode,
     CucsBiosVfQuietBootVpQuietBoot,
     CucsBiosVfResumeOnACPowerLossVpResumeOnACPowerLoss,
     CucsBiosVfScrubPoliciesVpDemandScrub,
@@ -151,7 +162,9 @@ IMPORTS
     CucsBiosVfSerialPortAEnableVpSerialPortAEnable,
     CucsBiosVfSparingModeVpSparingMode,
     CucsBiosVfSriovConfigVpSriov,
+    CucsBiosVfTPMPendingOperationVpTPMPendingOperation,
     CucsBiosVfTPMSupportVpTPMSupport,
+    CucsBiosVfTrustedPlatformModuleVpTrustedPlatformModuleSupport,
     CucsBiosVfUCSMBootModeControlVpUEFIBootMode,
     CucsBiosVfUCSMBootOrderRuleControlVpUCSMBootOrderRule,
     CucsBiosVfUEFIOSUseLegacyVideoVpUEFIOSUseLegacyVideo,
@@ -175,7 +188,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsBiosObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -731,7 +744,8 @@ cucsBiosSettingsEntry OBJECT-TYPE
 CucsBiosSettingsEntry ::= SEQUENCE {
     cucsBiosSettingsInstanceId                                       CucsManagedObjectId,
     cucsBiosSettingsDn                                               CucsManagedObjectDn,
-    cucsBiosSettingsRn                                               SnmpAdminString
+    cucsBiosSettingsRn                                               SnmpAdminString,
+    cucsBiosSettingsPropAcl                                          Unsigned64
 }
 
 cucsBiosSettingsInstanceId OBJECT-TYPE
@@ -757,6 +771,14 @@ cucsBiosSettingsRn OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS bios:Settings:rn managed object property"
     ::= { cucsBiosSettingsEntry 3 }
+
+cucsBiosSettingsPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:Settings:propAcl managed object property"
+    ::= { cucsBiosSettingsEntry 4 }
 
 cucsBiosUnitTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosUnitEntry
@@ -1057,7 +1079,9 @@ CucsBiosVfACPI10SupportEntry ::= SEQUENCE {
     cucsBiosVfACPI10SupportInstanceId                                CucsManagedObjectId,
     cucsBiosVfACPI10SupportDn                                        CucsManagedObjectDn,
     cucsBiosVfACPI10SupportRn                                        SnmpAdminString,
-    cucsBiosVfACPI10SupportVpACPI10Support                           CucsBiosVfACPI10SupportVpACPI10Support
+    cucsBiosVfACPI10SupportVpACPI10Support                           CucsBiosVfACPI10SupportVpACPI10Support,
+    cucsBiosVfACPI10SupportPropAcl                                   Unsigned64,
+    cucsBiosVfACPI10SupportSupportedByDefault                        CucsBiosSupportedAction
 }
 
 cucsBiosVfACPI10SupportInstanceId OBJECT-TYPE
@@ -1093,6 +1117,23 @@ cucsBiosVfACPI10SupportVpACPI10Support OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfACPI10SupportEntry 4 }
 
+cucsBiosVfACPI10SupportPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfACPI10Support:propAcl managed object property"
+    ::= { cucsBiosVfACPI10SupportEntry 5 }
+
+cucsBiosVfACPI10SupportSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfACPI10Support:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfACPI10SupportEntry 6 }
+
 cucsBiosVfASPMSupportTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfASPMSupportEntry
     MAX-ACCESS       not-accessible
@@ -1114,7 +1155,9 @@ CucsBiosVfASPMSupportEntry ::= SEQUENCE {
     cucsBiosVfASPMSupportInstanceId                                  CucsManagedObjectId,
     cucsBiosVfASPMSupportDn                                          CucsManagedObjectDn,
     cucsBiosVfASPMSupportRn                                          SnmpAdminString,
-    cucsBiosVfASPMSupportVpASPMSupport                               CucsBiosVfASPMSupportVpASPMSupport
+    cucsBiosVfASPMSupportVpASPMSupport                               CucsBiosVfASPMSupportVpASPMSupport,
+    cucsBiosVfASPMSupportSupportedByDefault                          CucsBiosSupportedAction,
+    cucsBiosVfASPMSupportPropAcl                                     Unsigned64
 }
 
 cucsBiosVfASPMSupportInstanceId OBJECT-TYPE
@@ -1150,6 +1193,23 @@ cucsBiosVfASPMSupportVpASPMSupport OBJECT-TYPE
         object property"
     ::= { cucsBiosVfASPMSupportEntry 4 }
 
+cucsBiosVfASPMSupportSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfASPMSupport:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfASPMSupportEntry 5 }
+
+cucsBiosVfASPMSupportPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfASPMSupport:propAcl managed object property"
+    ::= { cucsBiosVfASPMSupportEntry 6 }
+
 cucsBiosVfAllUSBDevicesTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfAllUSBDevicesEntry
     MAX-ACCESS       not-accessible
@@ -1171,7 +1231,9 @@ CucsBiosVfAllUSBDevicesEntry ::= SEQUENCE {
     cucsBiosVfAllUSBDevicesInstanceId                                CucsManagedObjectId,
     cucsBiosVfAllUSBDevicesDn                                        CucsManagedObjectDn,
     cucsBiosVfAllUSBDevicesRn                                        SnmpAdminString,
-    cucsBiosVfAllUSBDevicesVpAllUSBDevices                           CucsBiosVfAllUSBDevicesVpAllUSBDevices
+    cucsBiosVfAllUSBDevicesVpAllUSBDevices                           CucsBiosVfAllUSBDevicesVpAllUSBDevices,
+    cucsBiosVfAllUSBDevicesPropAcl                                   Unsigned64,
+    cucsBiosVfAllUSBDevicesSupportedByDefault                        CucsBiosSupportedAction
 }
 
 cucsBiosVfAllUSBDevicesInstanceId OBJECT-TYPE
@@ -1207,6 +1269,23 @@ cucsBiosVfAllUSBDevicesVpAllUSBDevices OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfAllUSBDevicesEntry 4 }
 
+cucsBiosVfAllUSBDevicesPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfAllUSBDevices:propAcl managed object property"
+    ::= { cucsBiosVfAllUSBDevicesEntry 5 }
+
+cucsBiosVfAllUSBDevicesSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfAllUSBDevices:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfAllUSBDevicesEntry 6 }
+
 cucsBiosVfAltitudeTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfAltitudeEntry
     MAX-ACCESS       not-accessible
@@ -1228,7 +1307,9 @@ CucsBiosVfAltitudeEntry ::= SEQUENCE {
     cucsBiosVfAltitudeInstanceId                                     CucsManagedObjectId,
     cucsBiosVfAltitudeDn                                             CucsManagedObjectDn,
     cucsBiosVfAltitudeRn                                             SnmpAdminString,
-    cucsBiosVfAltitudeVpAltitude                                     CucsBiosVfAltitudeVpAltitude
+    cucsBiosVfAltitudeVpAltitude                                     CucsBiosVfAltitudeVpAltitude,
+    cucsBiosVfAltitudePropAcl                                        Unsigned64,
+    cucsBiosVfAltitudeSupportedByDefault                             CucsBiosSupportedAction
 }
 
 cucsBiosVfAltitudeInstanceId OBJECT-TYPE
@@ -1263,6 +1344,23 @@ cucsBiosVfAltitudeVpAltitude OBJECT-TYPE
         "Cisco UCS bios:VfAltitude:vpAltitude managed object property"
     ::= { cucsBiosVfAltitudeEntry 4 }
 
+cucsBiosVfAltitudePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfAltitude:propAcl managed object property"
+    ::= { cucsBiosVfAltitudeEntry 5 }
+
+cucsBiosVfAltitudeSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfAltitude:supportedByDefault managed
+        object property"
+    ::= { cucsBiosVfAltitudeEntry 6 }
+
 cucsBiosVfAssertNMIOnPERRTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfAssertNMIOnPERREntry
     MAX-ACCESS       not-accessible
@@ -1284,7 +1382,9 @@ CucsBiosVfAssertNMIOnPERREntry ::= SEQUENCE {
     cucsBiosVfAssertNMIOnPERRInstanceId                              CucsManagedObjectId,
     cucsBiosVfAssertNMIOnPERRDn                                      CucsManagedObjectDn,
     cucsBiosVfAssertNMIOnPERRRn                                      SnmpAdminString,
-    cucsBiosVfAssertNMIOnPERRVpAssertNMIOnPERR                       CucsBiosVfAssertNMIOnPERRVpAssertNMIOnPERR
+    cucsBiosVfAssertNMIOnPERRVpAssertNMIOnPERR                       CucsBiosVfAssertNMIOnPERRVpAssertNMIOnPERR,
+    cucsBiosVfAssertNMIOnPERRPropAcl                                 Unsigned64,
+    cucsBiosVfAssertNMIOnPERRSupportedByDefault                      CucsBiosSupportedAction
 }
 
 cucsBiosVfAssertNMIOnPERRInstanceId OBJECT-TYPE
@@ -1320,6 +1420,23 @@ cucsBiosVfAssertNMIOnPERRVpAssertNMIOnPERR OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfAssertNMIOnPERREntry 4 }
 
+cucsBiosVfAssertNMIOnPERRPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfAssertNMIOnPERR:propAcl managed object property"
+    ::= { cucsBiosVfAssertNMIOnPERREntry 5 }
+
+cucsBiosVfAssertNMIOnPERRSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfAssertNMIOnPERR:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfAssertNMIOnPERREntry 6 }
+
 cucsBiosVfAssertNMIOnSERRTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfAssertNMIOnSERREntry
     MAX-ACCESS       not-accessible
@@ -1341,7 +1458,9 @@ CucsBiosVfAssertNMIOnSERREntry ::= SEQUENCE {
     cucsBiosVfAssertNMIOnSERRInstanceId                              CucsManagedObjectId,
     cucsBiosVfAssertNMIOnSERRDn                                      CucsManagedObjectDn,
     cucsBiosVfAssertNMIOnSERRRn                                      SnmpAdminString,
-    cucsBiosVfAssertNMIOnSERRVpAssertNMIOnSERR                       CucsBiosVfAssertNMIOnSERRVpAssertNMIOnSERR
+    cucsBiosVfAssertNMIOnSERRVpAssertNMIOnSERR                       CucsBiosVfAssertNMIOnSERRVpAssertNMIOnSERR,
+    cucsBiosVfAssertNMIOnSERRPropAcl                                 Unsigned64,
+    cucsBiosVfAssertNMIOnSERRSupportedByDefault                      CucsBiosSupportedAction
 }
 
 cucsBiosVfAssertNMIOnSERRInstanceId OBJECT-TYPE
@@ -1377,6 +1496,23 @@ cucsBiosVfAssertNMIOnSERRVpAssertNMIOnSERR OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfAssertNMIOnSERREntry 4 }
 
+cucsBiosVfAssertNMIOnSERRPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfAssertNMIOnSERR:propAcl managed object property"
+    ::= { cucsBiosVfAssertNMIOnSERREntry 5 }
+
+cucsBiosVfAssertNMIOnSERRSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfAssertNMIOnSERR:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfAssertNMIOnSERREntry 6 }
+
 cucsBiosVfBootOptionRetryTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfBootOptionRetryEntry
     MAX-ACCESS       not-accessible
@@ -1398,7 +1534,9 @@ CucsBiosVfBootOptionRetryEntry ::= SEQUENCE {
     cucsBiosVfBootOptionRetryInstanceId                              CucsManagedObjectId,
     cucsBiosVfBootOptionRetryDn                                      CucsManagedObjectDn,
     cucsBiosVfBootOptionRetryRn                                      SnmpAdminString,
-    cucsBiosVfBootOptionRetryVpBootOptionRetry                       CucsBiosVfBootOptionRetryVpBootOptionRetry
+    cucsBiosVfBootOptionRetryVpBootOptionRetry                       CucsBiosVfBootOptionRetryVpBootOptionRetry,
+    cucsBiosVfBootOptionRetryPropAcl                                 Unsigned64,
+    cucsBiosVfBootOptionRetrySupportedByDefault                      CucsBiosSupportedAction
 }
 
 cucsBiosVfBootOptionRetryInstanceId OBJECT-TYPE
@@ -1434,6 +1572,102 @@ cucsBiosVfBootOptionRetryVpBootOptionRetry OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfBootOptionRetryEntry 4 }
 
+cucsBiosVfBootOptionRetryPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfBootOptionRetry:propAcl managed object property"
+    ::= { cucsBiosVfBootOptionRetryEntry 5 }
+
+cucsBiosVfBootOptionRetrySupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfBootOptionRetry:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfBootOptionRetryEntry 6 }
+
+cucsBiosVfCPUHardwarePowerManagementTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsBiosVfCPUHardwarePowerManagementEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS bios:VfCPUHardwarePowerManagement managed object table"
+    ::= { cucsBiosObjects 92 }
+
+cucsBiosVfCPUHardwarePowerManagementEntry OBJECT-TYPE
+    SYNTAX           CucsBiosVfCPUHardwarePowerManagementEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsBiosVfCPUHardwarePowerManagementTable table."
+    INDEX { cucsBiosVfCPUHardwarePowerManagementInstanceId }
+    ::= { cucsBiosVfCPUHardwarePowerManagementTable 1 }
+
+CucsBiosVfCPUHardwarePowerManagementEntry ::= SEQUENCE {
+    cucsBiosVfCPUHardwarePowerManagementInstanceId                   CucsManagedObjectId,
+    cucsBiosVfCPUHardwarePowerManagementDn                           CucsManagedObjectDn,
+    cucsBiosVfCPUHardwarePowerManagementRn                           SnmpAdminString,
+    cucsBiosVfCPUHardwarePowerManagementSupportedByDefault           CucsBiosSupportedAction,
+    cucsBiosVfCPUHardwarePowerManagementVpCPUHardwarePowerManagement CucsBiosVfCPUHardwarePowerManagementVpCPUHardwarePowerManagement,
+    cucsBiosVfCPUHardwarePowerManagementPropAcl                      Unsigned64
+}
+
+cucsBiosVfCPUHardwarePowerManagementInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsBiosVfCPUHardwarePowerManagementEntry 1 }
+
+cucsBiosVfCPUHardwarePowerManagementDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfCPUHardwarePowerManagement:dn
+        managed object property"
+    ::= { cucsBiosVfCPUHardwarePowerManagementEntry 2 }
+
+cucsBiosVfCPUHardwarePowerManagementRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfCPUHardwarePowerManagement:rn
+        managed object property"
+    ::= { cucsBiosVfCPUHardwarePowerManagementEntry 3 }
+
+cucsBiosVfCPUHardwarePowerManagementSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfCPUHardwarePowerManagement:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfCPUHardwarePowerManagementEntry 4 }
+
+cucsBiosVfCPUHardwarePowerManagementVpCPUHardwarePowerManagement OBJECT-TYPE
+    SYNTAX       CucsBiosVfCPUHardwarePowerManagementVpCPUHardwarePowerManagement
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfCPUHardwarePowerManagement:vpCPUHardwarePowerMan
+        agement managed object property"
+    ::= { cucsBiosVfCPUHardwarePowerManagementEntry 5 }
+
+cucsBiosVfCPUHardwarePowerManagementPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfCPUHardwarePowerManagement:propAcl
+        managed object property"
+    ::= { cucsBiosVfCPUHardwarePowerManagementEntry 6 }
+
 cucsBiosVfCPUPerformanceTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfCPUPerformanceEntry
     MAX-ACCESS       not-accessible
@@ -1455,7 +1689,9 @@ CucsBiosVfCPUPerformanceEntry ::= SEQUENCE {
     cucsBiosVfCPUPerformanceInstanceId                               CucsManagedObjectId,
     cucsBiosVfCPUPerformanceDn                                       CucsManagedObjectDn,
     cucsBiosVfCPUPerformanceRn                                       SnmpAdminString,
-    cucsBiosVfCPUPerformanceVpCPUPerformance                         CucsBiosVfCPUPerformanceVpCPUPerformance
+    cucsBiosVfCPUPerformanceVpCPUPerformance                         CucsBiosVfCPUPerformanceVpCPUPerformance,
+    cucsBiosVfCPUPerformancePropAcl                                  Unsigned64,
+    cucsBiosVfCPUPerformanceSupportedByDefault                       CucsBiosSupportedAction
 }
 
 cucsBiosVfCPUPerformanceInstanceId OBJECT-TYPE
@@ -1491,6 +1727,180 @@ cucsBiosVfCPUPerformanceVpCPUPerformance OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfCPUPerformanceEntry 4 }
 
+cucsBiosVfCPUPerformancePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfCPUPerformance:propAcl managed object property"
+    ::= { cucsBiosVfCPUPerformanceEntry 5 }
+
+cucsBiosVfCPUPerformanceSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfCPUPerformance:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfCPUPerformanceEntry 6 }
+
+cucsBiosVfCPUPowerManagementTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsBiosVfCPUPowerManagementEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS bios:VfCPUPowerManagement managed object table"
+    ::= { cucsBiosObjects 82 }
+
+cucsBiosVfCPUPowerManagementEntry OBJECT-TYPE
+    SYNTAX           CucsBiosVfCPUPowerManagementEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsBiosVfCPUPowerManagementTable table."
+    INDEX { cucsBiosVfCPUPowerManagementInstanceId }
+    ::= { cucsBiosVfCPUPowerManagementTable 1 }
+
+CucsBiosVfCPUPowerManagementEntry ::= SEQUENCE {
+    cucsBiosVfCPUPowerManagementInstanceId                           CucsManagedObjectId,
+    cucsBiosVfCPUPowerManagementDn                                   CucsManagedObjectDn,
+    cucsBiosVfCPUPowerManagementRn                                   SnmpAdminString,
+    cucsBiosVfCPUPowerManagementPropAcl                              Unsigned64,
+    cucsBiosVfCPUPowerManagementSupportedByDefault                   CucsBiosSupportedAction,
+    cucsBiosVfCPUPowerManagementVpCPUPowerManagement                 CucsBiosVfCPUPowerManagementVpCPUPowerManagement
+}
+
+cucsBiosVfCPUPowerManagementInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsBiosVfCPUPowerManagementEntry 1 }
+
+cucsBiosVfCPUPowerManagementDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfCPUPowerManagement:dn managed object property"
+    ::= { cucsBiosVfCPUPowerManagementEntry 2 }
+
+cucsBiosVfCPUPowerManagementRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfCPUPowerManagement:rn managed object property"
+    ::= { cucsBiosVfCPUPowerManagementEntry 3 }
+
+cucsBiosVfCPUPowerManagementPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfCPUPowerManagement:propAcl managed
+        object property"
+    ::= { cucsBiosVfCPUPowerManagementEntry 4 }
+
+cucsBiosVfCPUPowerManagementSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfCPUPowerManagement:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfCPUPowerManagementEntry 5 }
+
+cucsBiosVfCPUPowerManagementVpCPUPowerManagement OBJECT-TYPE
+    SYNTAX       CucsBiosVfCPUPowerManagementVpCPUPowerManagement
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfCPUPowerManagement:vpCPUPowerManagement
+        managed object property"
+    ::= { cucsBiosVfCPUPowerManagementEntry 6 }
+
+cucsBiosVfConsistentDeviceNameControlTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsBiosVfConsistentDeviceNameControlEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS bios:VfConsistentDeviceNameControl managed
+        object table"
+    ::= { cucsBiosObjects 87 }
+
+cucsBiosVfConsistentDeviceNameControlEntry OBJECT-TYPE
+    SYNTAX           CucsBiosVfConsistentDeviceNameControlEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsBiosVfConsistentDeviceNameControlTable table."
+    INDEX { cucsBiosVfConsistentDeviceNameControlInstanceId }
+    ::= { cucsBiosVfConsistentDeviceNameControlTable 1 }
+
+CucsBiosVfConsistentDeviceNameControlEntry ::= SEQUENCE {
+    cucsBiosVfConsistentDeviceNameControlInstanceId                  CucsManagedObjectId,
+    cucsBiosVfConsistentDeviceNameControlDn                          CucsManagedObjectDn,
+    cucsBiosVfConsistentDeviceNameControlRn                          SnmpAdminString,
+    cucsBiosVfConsistentDeviceNameControlVpCDNControl                CucsBiosVfConsistentDeviceNameControlVpCDNControl,
+    cucsBiosVfConsistentDeviceNameControlSupportedByDefault          CucsBiosSupportedAction,
+    cucsBiosVfConsistentDeviceNameControlPropAcl                     Unsigned64
+}
+
+cucsBiosVfConsistentDeviceNameControlInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsBiosVfConsistentDeviceNameControlEntry 1 }
+
+cucsBiosVfConsistentDeviceNameControlDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfConsistentDeviceNameControl:dn
+        managed object property"
+    ::= { cucsBiosVfConsistentDeviceNameControlEntry 2 }
+
+cucsBiosVfConsistentDeviceNameControlRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfConsistentDeviceNameControl:rn
+        managed object property"
+    ::= { cucsBiosVfConsistentDeviceNameControlEntry 3 }
+
+cucsBiosVfConsistentDeviceNameControlVpCDNControl OBJECT-TYPE
+    SYNTAX       CucsBiosVfConsistentDeviceNameControlVpCDNControl
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfConsistentDeviceNameControl:vpCDNControl
+        managed object property"
+    ::= { cucsBiosVfConsistentDeviceNameControlEntry 4 }
+
+cucsBiosVfConsistentDeviceNameControlSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfConsistentDeviceNameControl:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfConsistentDeviceNameControlEntry 5 }
+
+cucsBiosVfConsistentDeviceNameControlPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfConsistentDeviceNameControl:propAcl
+        managed object property"
+    ::= { cucsBiosVfConsistentDeviceNameControlEntry 6 }
+
 cucsBiosVfConsoleRedirectionTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfConsoleRedirectionEntry
     MAX-ACCESS       not-accessible
@@ -1517,7 +1927,9 @@ CucsBiosVfConsoleRedirectionEntry ::= SEQUENCE {
     cucsBiosVfConsoleRedirectionVpFlowControl                        CucsBiosVfConsoleRedirectionVpFlowControl,
     cucsBiosVfConsoleRedirectionVpLegacyOSRedirection                CucsBiosVfConsoleRedirectionVpLegacyOSRedirection,
     cucsBiosVfConsoleRedirectionVpTerminalType                       CucsBiosVfConsoleRedirectionVpTerminalType,
-    cucsBiosVfConsoleRedirectionVpPuttyKeyPad                        CucsBiosVfConsoleRedirectionVpPuttyKeyPad
+    cucsBiosVfConsoleRedirectionVpPuttyKeyPad                        CucsBiosVfConsoleRedirectionVpPuttyKeyPad,
+    cucsBiosVfConsoleRedirectionPropAcl                              Unsigned64,
+    cucsBiosVfConsoleRedirectionSupportedByDefault                   CucsBiosSupportedAction
 }
 
 cucsBiosVfConsoleRedirectionInstanceId OBJECT-TYPE
@@ -1598,6 +2010,24 @@ cucsBiosVfConsoleRedirectionVpPuttyKeyPad OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfConsoleRedirectionEntry 9 }
 
+cucsBiosVfConsoleRedirectionPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfConsoleRedirection:propAcl managed
+        object property"
+    ::= { cucsBiosVfConsoleRedirectionEntry 10 }
+
+cucsBiosVfConsoleRedirectionSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfConsoleRedirection:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfConsoleRedirectionEntry 11 }
+
 cucsBiosVfCoreMultiProcessingTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfCoreMultiProcessingEntry
     MAX-ACCESS       not-accessible
@@ -1619,7 +2049,9 @@ CucsBiosVfCoreMultiProcessingEntry ::= SEQUENCE {
     cucsBiosVfCoreMultiProcessingInstanceId                          CucsManagedObjectId,
     cucsBiosVfCoreMultiProcessingDn                                  CucsManagedObjectDn,
     cucsBiosVfCoreMultiProcessingRn                                  SnmpAdminString,
-    cucsBiosVfCoreMultiProcessingVpCoreMultiProcessing               CucsBiosVfCoreMultiProcessingVpCoreMultiProcessing
+    cucsBiosVfCoreMultiProcessingVpCoreMultiProcessing               CucsBiosVfCoreMultiProcessingVpCoreMultiProcessing,
+    cucsBiosVfCoreMultiProcessingPropAcl                             Unsigned64,
+    cucsBiosVfCoreMultiProcessingSupportedByDefault                  CucsBiosSupportedAction
 }
 
 cucsBiosVfCoreMultiProcessingInstanceId OBJECT-TYPE
@@ -1655,6 +2087,24 @@ cucsBiosVfCoreMultiProcessingVpCoreMultiProcessing OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfCoreMultiProcessingEntry 4 }
 
+cucsBiosVfCoreMultiProcessingPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfCoreMultiProcessing:propAcl managed
+        object property"
+    ::= { cucsBiosVfCoreMultiProcessingEntry 5 }
+
+cucsBiosVfCoreMultiProcessingSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfCoreMultiProcessing:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfCoreMultiProcessingEntry 6 }
+
 cucsBiosVfDDR3VoltageSelectionTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfDDR3VoltageSelectionEntry
     MAX-ACCESS       not-accessible
@@ -1676,7 +2126,9 @@ CucsBiosVfDDR3VoltageSelectionEntry ::= SEQUENCE {
     cucsBiosVfDDR3VoltageSelectionInstanceId                         CucsManagedObjectId,
     cucsBiosVfDDR3VoltageSelectionDn                                 CucsManagedObjectDn,
     cucsBiosVfDDR3VoltageSelectionRn                                 SnmpAdminString,
-    cucsBiosVfDDR3VoltageSelectionVpDDR3VoltageSelection             CucsBiosVfDDR3VoltageSelectionVpDDR3VoltageSelection
+    cucsBiosVfDDR3VoltageSelectionVpDDR3VoltageSelection             CucsBiosVfDDR3VoltageSelectionVpDDR3VoltageSelection,
+    cucsBiosVfDDR3VoltageSelectionSupportedByDefault                 CucsBiosSupportedAction,
+    cucsBiosVfDDR3VoltageSelectionPropAcl                            Unsigned64
 }
 
 cucsBiosVfDDR3VoltageSelectionInstanceId OBJECT-TYPE
@@ -1712,6 +2164,24 @@ cucsBiosVfDDR3VoltageSelectionVpDDR3VoltageSelection OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfDDR3VoltageSelectionEntry 4 }
 
+cucsBiosVfDDR3VoltageSelectionSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfDDR3VoltageSelection:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfDDR3VoltageSelectionEntry 5 }
+
+cucsBiosVfDDR3VoltageSelectionPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfDDR3VoltageSelection:propAcl
+        managed object property"
+    ::= { cucsBiosVfDDR3VoltageSelectionEntry 6 }
+
 cucsBiosVfDRAMClockThrottlingTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfDRAMClockThrottlingEntry
     MAX-ACCESS       not-accessible
@@ -1733,7 +2203,9 @@ CucsBiosVfDRAMClockThrottlingEntry ::= SEQUENCE {
     cucsBiosVfDRAMClockThrottlingInstanceId                          CucsManagedObjectId,
     cucsBiosVfDRAMClockThrottlingDn                                  CucsManagedObjectDn,
     cucsBiosVfDRAMClockThrottlingRn                                  SnmpAdminString,
-    cucsBiosVfDRAMClockThrottlingVpDRAMClockThrottling               CucsBiosVfDRAMClockThrottlingVpDRAMClockThrottling
+    cucsBiosVfDRAMClockThrottlingVpDRAMClockThrottling               CucsBiosVfDRAMClockThrottlingVpDRAMClockThrottling,
+    cucsBiosVfDRAMClockThrottlingPropAcl                             Unsigned64,
+    cucsBiosVfDRAMClockThrottlingSupportedByDefault                  CucsBiosSupportedAction
 }
 
 cucsBiosVfDRAMClockThrottlingInstanceId OBJECT-TYPE
@@ -1769,6 +2241,24 @@ cucsBiosVfDRAMClockThrottlingVpDRAMClockThrottling OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfDRAMClockThrottlingEntry 4 }
 
+cucsBiosVfDRAMClockThrottlingPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfDRAMClockThrottling:propAcl managed
+        object property"
+    ::= { cucsBiosVfDRAMClockThrottlingEntry 5 }
+
+cucsBiosVfDRAMClockThrottlingSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfDRAMClockThrottling:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfDRAMClockThrottlingEntry 6 }
+
 cucsBiosVfDirectCacheAccessTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfDirectCacheAccessEntry
     MAX-ACCESS       not-accessible
@@ -1790,7 +2280,9 @@ CucsBiosVfDirectCacheAccessEntry ::= SEQUENCE {
     cucsBiosVfDirectCacheAccessInstanceId                            CucsManagedObjectId,
     cucsBiosVfDirectCacheAccessDn                                    CucsManagedObjectDn,
     cucsBiosVfDirectCacheAccessRn                                    SnmpAdminString,
-    cucsBiosVfDirectCacheAccessVpDirectCacheAccess                   CucsBiosVfDirectCacheAccessVpDirectCacheAccess
+    cucsBiosVfDirectCacheAccessVpDirectCacheAccess                   CucsBiosVfDirectCacheAccessVpDirectCacheAccess,
+    cucsBiosVfDirectCacheAccessPropAcl                               Unsigned64,
+    cucsBiosVfDirectCacheAccessSupportedByDefault                    CucsBiosSupportedAction
 }
 
 cucsBiosVfDirectCacheAccessInstanceId OBJECT-TYPE
@@ -1826,6 +2318,24 @@ cucsBiosVfDirectCacheAccessVpDirectCacheAccess OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfDirectCacheAccessEntry 4 }
 
+cucsBiosVfDirectCacheAccessPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfDirectCacheAccess:propAcl managed
+        object property"
+    ::= { cucsBiosVfDirectCacheAccessEntry 5 }
+
+cucsBiosVfDirectCacheAccessSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfDirectCacheAccess:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfDirectCacheAccessEntry 6 }
+
 cucsBiosVfDramRefreshRateTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfDramRefreshRateEntry
     MAX-ACCESS       not-accessible
@@ -1847,7 +2357,9 @@ CucsBiosVfDramRefreshRateEntry ::= SEQUENCE {
     cucsBiosVfDramRefreshRateInstanceId                              CucsManagedObjectId,
     cucsBiosVfDramRefreshRateDn                                      CucsManagedObjectDn,
     cucsBiosVfDramRefreshRateRn                                      SnmpAdminString,
-    cucsBiosVfDramRefreshRateVpDramRefreshRate                       CucsBiosVfDramRefreshRateVpDramRefreshRate
+    cucsBiosVfDramRefreshRateVpDramRefreshRate                       CucsBiosVfDramRefreshRateVpDramRefreshRate,
+    cucsBiosVfDramRefreshRatePropAcl                                 Unsigned64,
+    cucsBiosVfDramRefreshRateSupportedByDefault                      CucsBiosSupportedAction
 }
 
 cucsBiosVfDramRefreshRateInstanceId OBJECT-TYPE
@@ -1883,6 +2395,23 @@ cucsBiosVfDramRefreshRateVpDramRefreshRate OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfDramRefreshRateEntry 4 }
 
+cucsBiosVfDramRefreshRatePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfDramRefreshRate:propAcl managed object property"
+    ::= { cucsBiosVfDramRefreshRateEntry 5 }
+
+cucsBiosVfDramRefreshRateSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfDramRefreshRate:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfDramRefreshRateEntry 6 }
+
 cucsBiosVfEnhancedIntelSpeedStepTechTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfEnhancedIntelSpeedStepTechEntry
     MAX-ACCESS       not-accessible
@@ -1904,7 +2433,9 @@ CucsBiosVfEnhancedIntelSpeedStepTechEntry ::= SEQUENCE {
     cucsBiosVfEnhancedIntelSpeedStepTechInstanceId                   CucsManagedObjectId,
     cucsBiosVfEnhancedIntelSpeedStepTechDn                           CucsManagedObjectDn,
     cucsBiosVfEnhancedIntelSpeedStepTechRn                           SnmpAdminString,
-    cucsBiosVfEnhancedIntelSpeedStepTechVpEnhancedIntelSpeedStepTech CucsBiosVfEnhancedIntelSpeedStepTechVpEnhancedIntelSpeedStepTech
+    cucsBiosVfEnhancedIntelSpeedStepTechVpEnhancedIntelSpeedStepTech CucsBiosVfEnhancedIntelSpeedStepTechVpEnhancedIntelSpeedStepTech,
+    cucsBiosVfEnhancedIntelSpeedStepTechPropAcl                      Unsigned64,
+    cucsBiosVfEnhancedIntelSpeedStepTechSupportedByDefault           CucsBiosSupportedAction
 }
 
 cucsBiosVfEnhancedIntelSpeedStepTechInstanceId OBJECT-TYPE
@@ -1942,6 +2473,104 @@ cucsBiosVfEnhancedIntelSpeedStepTechVpEnhancedIntelSpeedStepTech OBJECT-TYPE
         tepTech managed object property"
     ::= { cucsBiosVfEnhancedIntelSpeedStepTechEntry 4 }
 
+cucsBiosVfEnhancedIntelSpeedStepTechPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfEnhancedIntelSpeedStepTech:propAcl
+        managed object property"
+    ::= { cucsBiosVfEnhancedIntelSpeedStepTechEntry 5 }
+
+cucsBiosVfEnhancedIntelSpeedStepTechSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfEnhancedIntelSpeedStepTech:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfEnhancedIntelSpeedStepTechEntry 6 }
+
+cucsBiosVfEnhancedPowerCappingSupportTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsBiosVfEnhancedPowerCappingSupportEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS bios:VfEnhancedPowerCappingSupport managed
+        object table"
+    ::= { cucsBiosObjects 83 }
+
+cucsBiosVfEnhancedPowerCappingSupportEntry OBJECT-TYPE
+    SYNTAX           CucsBiosVfEnhancedPowerCappingSupportEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsBiosVfEnhancedPowerCappingSupportTable table."
+    INDEX { cucsBiosVfEnhancedPowerCappingSupportInstanceId }
+    ::= { cucsBiosVfEnhancedPowerCappingSupportTable 1 }
+
+CucsBiosVfEnhancedPowerCappingSupportEntry ::= SEQUENCE {
+    cucsBiosVfEnhancedPowerCappingSupportInstanceId                  CucsManagedObjectId,
+    cucsBiosVfEnhancedPowerCappingSupportDn                          CucsManagedObjectDn,
+    cucsBiosVfEnhancedPowerCappingSupportRn                          SnmpAdminString,
+    cucsBiosVfEnhancedPowerCappingSupportPropAcl                     Unsigned64,
+    cucsBiosVfEnhancedPowerCappingSupportSupportedByDefault          CucsBiosSupportedAction,
+    cucsBiosVfEnhancedPowerCappingSupportVpEnhancedPowerCapping      CucsBiosVfEnhancedPowerCappingSupportVpEnhancedPowerCapping
+}
+
+cucsBiosVfEnhancedPowerCappingSupportInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsBiosVfEnhancedPowerCappingSupportEntry 1 }
+
+cucsBiosVfEnhancedPowerCappingSupportDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfEnhancedPowerCappingSupport:dn
+        managed object property"
+    ::= { cucsBiosVfEnhancedPowerCappingSupportEntry 2 }
+
+cucsBiosVfEnhancedPowerCappingSupportRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfEnhancedPowerCappingSupport:rn
+        managed object property"
+    ::= { cucsBiosVfEnhancedPowerCappingSupportEntry 3 }
+
+cucsBiosVfEnhancedPowerCappingSupportPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfEnhancedPowerCappingSupport:propAcl
+        managed object property"
+    ::= { cucsBiosVfEnhancedPowerCappingSupportEntry 4 }
+
+cucsBiosVfEnhancedPowerCappingSupportSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfEnhancedPowerCappingSupport:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfEnhancedPowerCappingSupportEntry 5 }
+
+cucsBiosVfEnhancedPowerCappingSupportVpEnhancedPowerCapping OBJECT-TYPE
+    SYNTAX       CucsBiosVfEnhancedPowerCappingSupportVpEnhancedPowerCapping
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfEnhancedPowerCappingSupport:vpEnhancedPowerCappi
+        ng managed object property"
+    ::= { cucsBiosVfEnhancedPowerCappingSupportEntry 6 }
+
 cucsBiosVfExecuteDisableBitTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfExecuteDisableBitEntry
     MAX-ACCESS       not-accessible
@@ -1963,7 +2592,9 @@ CucsBiosVfExecuteDisableBitEntry ::= SEQUENCE {
     cucsBiosVfExecuteDisableBitInstanceId                            CucsManagedObjectId,
     cucsBiosVfExecuteDisableBitDn                                    CucsManagedObjectDn,
     cucsBiosVfExecuteDisableBitRn                                    SnmpAdminString,
-    cucsBiosVfExecuteDisableBitVpExecuteDisableBit                   CucsBiosVfExecuteDisableBitVpExecuteDisableBit
+    cucsBiosVfExecuteDisableBitVpExecuteDisableBit                   CucsBiosVfExecuteDisableBitVpExecuteDisableBit,
+    cucsBiosVfExecuteDisableBitPropAcl                               Unsigned64,
+    cucsBiosVfExecuteDisableBitSupportedByDefault                    CucsBiosSupportedAction
 }
 
 cucsBiosVfExecuteDisableBitInstanceId OBJECT-TYPE
@@ -1999,6 +2630,24 @@ cucsBiosVfExecuteDisableBitVpExecuteDisableBit OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfExecuteDisableBitEntry 4 }
 
+cucsBiosVfExecuteDisableBitPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfExecuteDisableBit:propAcl managed
+        object property"
+    ::= { cucsBiosVfExecuteDisableBitEntry 5 }
+
+cucsBiosVfExecuteDisableBitSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfExecuteDisableBit:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfExecuteDisableBitEntry 6 }
+
 cucsBiosVfFRB2TimerTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfFRB2TimerEntry
     MAX-ACCESS       not-accessible
@@ -2020,7 +2669,9 @@ CucsBiosVfFRB2TimerEntry ::= SEQUENCE {
     cucsBiosVfFRB2TimerInstanceId                                    CucsManagedObjectId,
     cucsBiosVfFRB2TimerDn                                            CucsManagedObjectDn,
     cucsBiosVfFRB2TimerRn                                            SnmpAdminString,
-    cucsBiosVfFRB2TimerVpFRB2Timer                                   CucsBiosVfFRB2TimerVpFRB2Timer
+    cucsBiosVfFRB2TimerVpFRB2Timer                                   CucsBiosVfFRB2TimerVpFRB2Timer,
+    cucsBiosVfFRB2TimerPropAcl                                       Unsigned64,
+    cucsBiosVfFRB2TimerSupportedByDefault                            CucsBiosSupportedAction
 }
 
 cucsBiosVfFRB2TimerInstanceId OBJECT-TYPE
@@ -2055,6 +2706,23 @@ cucsBiosVfFRB2TimerVpFRB2Timer OBJECT-TYPE
         "Cisco UCS bios:VfFRB2Timer:vpFRB2Timer managed object property"
     ::= { cucsBiosVfFRB2TimerEntry 4 }
 
+cucsBiosVfFRB2TimerPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfFRB2Timer:propAcl managed object property"
+    ::= { cucsBiosVfFRB2TimerEntry 5 }
+
+cucsBiosVfFRB2TimerSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfFRB2Timer:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfFRB2TimerEntry 6 }
+
 cucsBiosVfFrequencyFloorOverrideTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfFrequencyFloorOverrideEntry
     MAX-ACCESS       not-accessible
@@ -2076,7 +2744,9 @@ CucsBiosVfFrequencyFloorOverrideEntry ::= SEQUENCE {
     cucsBiosVfFrequencyFloorOverrideInstanceId                       CucsManagedObjectId,
     cucsBiosVfFrequencyFloorOverrideDn                               CucsManagedObjectDn,
     cucsBiosVfFrequencyFloorOverrideRn                               SnmpAdminString,
-    cucsBiosVfFrequencyFloorOverrideVpFrequencyFloorOverride         CucsBiosVfFrequencyFloorOverrideVpFrequencyFloorOverride
+    cucsBiosVfFrequencyFloorOverrideVpFrequencyFloorOverride         CucsBiosVfFrequencyFloorOverrideVpFrequencyFloorOverride,
+    cucsBiosVfFrequencyFloorOverridePropAcl                          Unsigned64,
+    cucsBiosVfFrequencyFloorOverrideSupportedByDefault               CucsBiosSupportedAction
 }
 
 cucsBiosVfFrequencyFloorOverrideInstanceId OBJECT-TYPE
@@ -2114,6 +2784,24 @@ cucsBiosVfFrequencyFloorOverrideVpFrequencyFloorOverride OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfFrequencyFloorOverrideEntry 4 }
 
+cucsBiosVfFrequencyFloorOverridePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfFrequencyFloorOverride:propAcl
+        managed object property"
+    ::= { cucsBiosVfFrequencyFloorOverrideEntry 5 }
+
+cucsBiosVfFrequencyFloorOverrideSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfFrequencyFloorOverride:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfFrequencyFloorOverrideEntry 6 }
+
 cucsBiosVfFrontPanelLockoutTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfFrontPanelLockoutEntry
     MAX-ACCESS       not-accessible
@@ -2135,7 +2823,9 @@ CucsBiosVfFrontPanelLockoutEntry ::= SEQUENCE {
     cucsBiosVfFrontPanelLockoutInstanceId                            CucsManagedObjectId,
     cucsBiosVfFrontPanelLockoutDn                                    CucsManagedObjectDn,
     cucsBiosVfFrontPanelLockoutRn                                    SnmpAdminString,
-    cucsBiosVfFrontPanelLockoutVpFrontPanelLockout                   CucsBiosVfFrontPanelLockoutVpFrontPanelLockout
+    cucsBiosVfFrontPanelLockoutVpFrontPanelLockout                   CucsBiosVfFrontPanelLockoutVpFrontPanelLockout,
+    cucsBiosVfFrontPanelLockoutPropAcl                               Unsigned64,
+    cucsBiosVfFrontPanelLockoutSupportedByDefault                    CucsBiosSupportedAction
 }
 
 cucsBiosVfFrontPanelLockoutInstanceId OBJECT-TYPE
@@ -2171,6 +2861,181 @@ cucsBiosVfFrontPanelLockoutVpFrontPanelLockout OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfFrontPanelLockoutEntry 4 }
 
+cucsBiosVfFrontPanelLockoutPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfFrontPanelLockout:propAcl managed
+        object property"
+    ::= { cucsBiosVfFrontPanelLockoutEntry 5 }
+
+cucsBiosVfFrontPanelLockoutSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfFrontPanelLockout:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfFrontPanelLockoutEntry 6 }
+
+cucsBiosVfIntegratedGraphicsTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsBiosVfIntegratedGraphicsEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntegratedGraphics managed object table"
+    ::= { cucsBiosObjects 93 }
+
+cucsBiosVfIntegratedGraphicsEntry OBJECT-TYPE
+    SYNTAX           CucsBiosVfIntegratedGraphicsEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsBiosVfIntegratedGraphicsTable table."
+    INDEX { cucsBiosVfIntegratedGraphicsInstanceId }
+    ::= { cucsBiosVfIntegratedGraphicsTable 1 }
+
+CucsBiosVfIntegratedGraphicsEntry ::= SEQUENCE {
+    cucsBiosVfIntegratedGraphicsInstanceId                           CucsManagedObjectId,
+    cucsBiosVfIntegratedGraphicsDn                                   CucsManagedObjectDn,
+    cucsBiosVfIntegratedGraphicsRn                                   SnmpAdminString,
+    cucsBiosVfIntegratedGraphicsSupportedByDefault                   CucsBiosSupportedAction,
+    cucsBiosVfIntegratedGraphicsVpIntegratedGraphics                 CucsBiosVfIntegratedGraphicsVpIntegratedGraphics,
+    cucsBiosVfIntegratedGraphicsPropAcl                              Unsigned64
+}
+
+cucsBiosVfIntegratedGraphicsInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsBiosVfIntegratedGraphicsEntry 1 }
+
+cucsBiosVfIntegratedGraphicsDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntegratedGraphics:dn managed object property"
+    ::= { cucsBiosVfIntegratedGraphicsEntry 2 }
+
+cucsBiosVfIntegratedGraphicsRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntegratedGraphics:rn managed object property"
+    ::= { cucsBiosVfIntegratedGraphicsEntry 3 }
+
+cucsBiosVfIntegratedGraphicsSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntegratedGraphics:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfIntegratedGraphicsEntry 4 }
+
+cucsBiosVfIntegratedGraphicsVpIntegratedGraphics OBJECT-TYPE
+    SYNTAX       CucsBiosVfIntegratedGraphicsVpIntegratedGraphics
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntegratedGraphics:vpIntegratedGraphics
+        managed object property"
+    ::= { cucsBiosVfIntegratedGraphicsEntry 5 }
+
+cucsBiosVfIntegratedGraphicsPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntegratedGraphics:propAcl managed
+        object property"
+    ::= { cucsBiosVfIntegratedGraphicsEntry 6 }
+
+cucsBiosVfIntegratedGraphicsApertureSizeTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsBiosVfIntegratedGraphicsApertureSizeEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntegratedGraphicsApertureSize
+        managed object table"
+    ::= { cucsBiosObjects 94 }
+
+cucsBiosVfIntegratedGraphicsApertureSizeEntry OBJECT-TYPE
+    SYNTAX           CucsBiosVfIntegratedGraphicsApertureSizeEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsBiosVfIntegratedGraphicsApertureSizeTable table."
+    INDEX { cucsBiosVfIntegratedGraphicsApertureSizeInstanceId }
+    ::= { cucsBiosVfIntegratedGraphicsApertureSizeTable 1 }
+
+CucsBiosVfIntegratedGraphicsApertureSizeEntry ::= SEQUENCE {
+    cucsBiosVfIntegratedGraphicsApertureSizeInstanceId               CucsManagedObjectId,
+    cucsBiosVfIntegratedGraphicsApertureSizeDn                       CucsManagedObjectDn,
+    cucsBiosVfIntegratedGraphicsApertureSizeRn                       SnmpAdminString,
+    cucsBiosVfIntegratedGraphicsApertureSizeSupportedByDefault       CucsBiosSupportedAction,
+    cucsBiosVfIntegratedGraphicsApertureSizeVpIntegratedGraphicsApertureSize CucsBiosVfIntegratedGraphicsApertureSizeVpIntegratedGraphicsApertureSize,
+    cucsBiosVfIntegratedGraphicsApertureSizePropAcl                  Unsigned64
+}
+
+cucsBiosVfIntegratedGraphicsApertureSizeInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsBiosVfIntegratedGraphicsApertureSizeEntry 1 }
+
+cucsBiosVfIntegratedGraphicsApertureSizeDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntegratedGraphicsApertureSize:dn
+        managed object property"
+    ::= { cucsBiosVfIntegratedGraphicsApertureSizeEntry 2 }
+
+cucsBiosVfIntegratedGraphicsApertureSizeRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntegratedGraphicsApertureSize:rn
+        managed object property"
+    ::= { cucsBiosVfIntegratedGraphicsApertureSizeEntry 3 }
+
+cucsBiosVfIntegratedGraphicsApertureSizeSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntegratedGraphicsApertureSize:supportedByDefaul
+        t managed object property"
+    ::= { cucsBiosVfIntegratedGraphicsApertureSizeEntry 4 }
+
+cucsBiosVfIntegratedGraphicsApertureSizeVpIntegratedGraphicsApertureSize OBJECT-TYPE
+    SYNTAX       CucsBiosVfIntegratedGraphicsApertureSizeVpIntegratedGraphicsApertureSize
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntegratedGraphicsApertureSize:vpIntegratedGraph
+        icsApertureSize managed object property"
+    ::= { cucsBiosVfIntegratedGraphicsApertureSizeEntry 5 }
+
+cucsBiosVfIntegratedGraphicsApertureSizePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntegratedGraphicsApertureSize:propAcl
+        managed object property"
+    ::= { cucsBiosVfIntegratedGraphicsApertureSizeEntry 6 }
+
 cucsBiosVfIntelEntrySASRAIDModuleTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfIntelEntrySASRAIDModuleEntry
     MAX-ACCESS       not-accessible
@@ -2193,7 +3058,9 @@ CucsBiosVfIntelEntrySASRAIDModuleEntry ::= SEQUENCE {
     cucsBiosVfIntelEntrySASRAIDModuleDn                              CucsManagedObjectDn,
     cucsBiosVfIntelEntrySASRAIDModuleRn                              SnmpAdminString,
     cucsBiosVfIntelEntrySASRAIDModuleVpSASRAID                       CucsBiosVfIntelEntrySASRAIDModuleVpSASRAID,
-    cucsBiosVfIntelEntrySASRAIDModuleVpSASRAIDModule                 CucsBiosVfIntelEntrySASRAIDModuleVpSASRAIDModule
+    cucsBiosVfIntelEntrySASRAIDModuleVpSASRAIDModule                 CucsBiosVfIntelEntrySASRAIDModuleVpSASRAIDModule,
+    cucsBiosVfIntelEntrySASRAIDModulePropAcl                         Unsigned64,
+    cucsBiosVfIntelEntrySASRAIDModuleSupportedByDefault              CucsBiosSupportedAction
 }
 
 cucsBiosVfIntelEntrySASRAIDModuleInstanceId OBJECT-TYPE
@@ -2240,6 +3107,24 @@ cucsBiosVfIntelEntrySASRAIDModuleVpSASRAIDModule OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfIntelEntrySASRAIDModuleEntry 5 }
 
+cucsBiosVfIntelEntrySASRAIDModulePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntelEntrySASRAIDModule:propAcl
+        managed object property"
+    ::= { cucsBiosVfIntelEntrySASRAIDModuleEntry 6 }
+
+cucsBiosVfIntelEntrySASRAIDModuleSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntelEntrySASRAIDModule:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfIntelEntrySASRAIDModuleEntry 7 }
+
 cucsBiosVfIntelHyperThreadingTechTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfIntelHyperThreadingTechEntry
     MAX-ACCESS       not-accessible
@@ -2261,7 +3146,9 @@ CucsBiosVfIntelHyperThreadingTechEntry ::= SEQUENCE {
     cucsBiosVfIntelHyperThreadingTechInstanceId                      CucsManagedObjectId,
     cucsBiosVfIntelHyperThreadingTechDn                              CucsManagedObjectDn,
     cucsBiosVfIntelHyperThreadingTechRn                              SnmpAdminString,
-    cucsBiosVfIntelHyperThreadingTechVpIntelHyperThreadingTech       CucsBiosVfIntelHyperThreadingTechVpIntelHyperThreadingTech
+    cucsBiosVfIntelHyperThreadingTechVpIntelHyperThreadingTech       CucsBiosVfIntelHyperThreadingTechVpIntelHyperThreadingTech,
+    cucsBiosVfIntelHyperThreadingTechPropAcl                         Unsigned64,
+    cucsBiosVfIntelHyperThreadingTechSupportedByDefault              CucsBiosSupportedAction
 }
 
 cucsBiosVfIntelHyperThreadingTechInstanceId OBJECT-TYPE
@@ -2299,6 +3186,104 @@ cucsBiosVfIntelHyperThreadingTechVpIntelHyperThreadingTech OBJECT-TYPE
         h managed object property"
     ::= { cucsBiosVfIntelHyperThreadingTechEntry 4 }
 
+cucsBiosVfIntelHyperThreadingTechPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntelHyperThreadingTech:propAcl
+        managed object property"
+    ::= { cucsBiosVfIntelHyperThreadingTechEntry 5 }
+
+cucsBiosVfIntelHyperThreadingTechSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntelHyperThreadingTech:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfIntelHyperThreadingTechEntry 6 }
+
+cucsBiosVfIntelTrustedExecutionTechnologyTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsBiosVfIntelTrustedExecutionTechnologyEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntelTrustedExecutionTechnology
+        managed object table"
+    ::= { cucsBiosObjects 88 }
+
+cucsBiosVfIntelTrustedExecutionTechnologyEntry OBJECT-TYPE
+    SYNTAX           CucsBiosVfIntelTrustedExecutionTechnologyEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsBiosVfIntelTrustedExecutionTechnologyTable table."
+    INDEX { cucsBiosVfIntelTrustedExecutionTechnologyInstanceId }
+    ::= { cucsBiosVfIntelTrustedExecutionTechnologyTable 1 }
+
+CucsBiosVfIntelTrustedExecutionTechnologyEntry ::= SEQUENCE {
+    cucsBiosVfIntelTrustedExecutionTechnologyInstanceId              CucsManagedObjectId,
+    cucsBiosVfIntelTrustedExecutionTechnologyDn                      CucsManagedObjectDn,
+    cucsBiosVfIntelTrustedExecutionTechnologyRn                      SnmpAdminString,
+    cucsBiosVfIntelTrustedExecutionTechnologyVpIntelTstdExecTechSup  CucsBiosVfIntelTrustedExecutionTechnologyVpIntelTstdExecTechSup,
+    cucsBiosVfIntelTrustedExecutionTechnologySupportedByDefault      CucsBiosSupportedAction,
+    cucsBiosVfIntelTrustedExecutionTechnologyPropAcl                 Unsigned64
+}
+
+cucsBiosVfIntelTrustedExecutionTechnologyInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsBiosVfIntelTrustedExecutionTechnologyEntry 1 }
+
+cucsBiosVfIntelTrustedExecutionTechnologyDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntelTrustedExecutionTechnology:dn
+        managed object property"
+    ::= { cucsBiosVfIntelTrustedExecutionTechnologyEntry 2 }
+
+cucsBiosVfIntelTrustedExecutionTechnologyRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntelTrustedExecutionTechnology:rn
+        managed object property"
+    ::= { cucsBiosVfIntelTrustedExecutionTechnologyEntry 3 }
+
+cucsBiosVfIntelTrustedExecutionTechnologyVpIntelTstdExecTechSup OBJECT-TYPE
+    SYNTAX       CucsBiosVfIntelTrustedExecutionTechnologyVpIntelTstdExecTechSup
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntelTrustedExecutionTechnology:vpIntelTrustedEx
+        ecutionTechnologySupport managed object property"
+    ::= { cucsBiosVfIntelTrustedExecutionTechnologyEntry 4 }
+
+cucsBiosVfIntelTrustedExecutionTechnologySupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntelTrustedExecutionTechnology:supportedByDefau
+        lt managed object property"
+    ::= { cucsBiosVfIntelTrustedExecutionTechnologyEntry 5 }
+
+cucsBiosVfIntelTrustedExecutionTechnologyPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntelTrustedExecutionTechnology:propAcl
+        managed object property"
+    ::= { cucsBiosVfIntelTrustedExecutionTechnologyEntry 6 }
+
 cucsBiosVfIntelTurboBoostTechTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfIntelTurboBoostTechEntry
     MAX-ACCESS       not-accessible
@@ -2320,7 +3305,9 @@ CucsBiosVfIntelTurboBoostTechEntry ::= SEQUENCE {
     cucsBiosVfIntelTurboBoostTechInstanceId                          CucsManagedObjectId,
     cucsBiosVfIntelTurboBoostTechDn                                  CucsManagedObjectDn,
     cucsBiosVfIntelTurboBoostTechRn                                  SnmpAdminString,
-    cucsBiosVfIntelTurboBoostTechVpIntelTurboBoostTech               CucsBiosVfIntelTurboBoostTechVpIntelTurboBoostTech
+    cucsBiosVfIntelTurboBoostTechVpIntelTurboBoostTech               CucsBiosVfIntelTurboBoostTechVpIntelTurboBoostTech,
+    cucsBiosVfIntelTurboBoostTechPropAcl                             Unsigned64,
+    cucsBiosVfIntelTurboBoostTechSupportedByDefault                  CucsBiosSupportedAction
 }
 
 cucsBiosVfIntelTurboBoostTechInstanceId OBJECT-TYPE
@@ -2356,6 +3343,24 @@ cucsBiosVfIntelTurboBoostTechVpIntelTurboBoostTech OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfIntelTurboBoostTechEntry 4 }
 
+cucsBiosVfIntelTurboBoostTechPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntelTurboBoostTech:propAcl managed
+        object property"
+    ::= { cucsBiosVfIntelTurboBoostTechEntry 5 }
+
+cucsBiosVfIntelTurboBoostTechSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntelTurboBoostTech:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfIntelTurboBoostTechEntry 6 }
+
 cucsBiosVfIntelVTForDirectedIOTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfIntelVTForDirectedIOEntry
     MAX-ACCESS       not-accessible
@@ -2381,7 +3386,9 @@ CucsBiosVfIntelVTForDirectedIOEntry ::= SEQUENCE {
     cucsBiosVfIntelVTForDirectedIOVpIntelVTDCoherencySupport         CucsBiosVfIntelVTForDirectedIOVpIntelVTDCoherencySupport,
     cucsBiosVfIntelVTForDirectedIOVpIntelVTDInterruptRemapping       CucsBiosVfIntelVTForDirectedIOVpIntelVTDInterruptRemapping,
     cucsBiosVfIntelVTForDirectedIOVpIntelVTDPassThroughDMASupport    CucsBiosVfIntelVTForDirectedIOVpIntelVTDPassThroughDMASupport,
-    cucsBiosVfIntelVTForDirectedIOVpIntelVTForDirectedIO             CucsBiosVfIntelVTForDirectedIOVpIntelVTForDirectedIO
+    cucsBiosVfIntelVTForDirectedIOVpIntelVTForDirectedIO             CucsBiosVfIntelVTForDirectedIOVpIntelVTForDirectedIO,
+    cucsBiosVfIntelVTForDirectedIOPropAcl                            Unsigned64,
+    cucsBiosVfIntelVTForDirectedIOSupportedByDefault                 CucsBiosSupportedAction
 }
 
 cucsBiosVfIntelVTForDirectedIOInstanceId OBJECT-TYPE
@@ -2453,6 +3460,24 @@ cucsBiosVfIntelVTForDirectedIOVpIntelVTForDirectedIO OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfIntelVTForDirectedIOEntry 8 }
 
+cucsBiosVfIntelVTForDirectedIOPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntelVTForDirectedIO:propAcl
+        managed object property"
+    ::= { cucsBiosVfIntelVTForDirectedIOEntry 9 }
+
+cucsBiosVfIntelVTForDirectedIOSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntelVTForDirectedIO:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfIntelVTForDirectedIOEntry 10 }
+
 cucsBiosVfIntelVirtualizationTechnologyTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfIntelVirtualizationTechnologyEntry
     MAX-ACCESS       not-accessible
@@ -2475,7 +3500,9 @@ CucsBiosVfIntelVirtualizationTechnologyEntry ::= SEQUENCE {
     cucsBiosVfIntelVirtualizationTechnologyInstanceId                CucsManagedObjectId,
     cucsBiosVfIntelVirtualizationTechnologyDn                        CucsManagedObjectDn,
     cucsBiosVfIntelVirtualizationTechnologyRn                        SnmpAdminString,
-    cucsBiosVpIntelVirtualizationTechnology                          CucsBiosVpIntelVirtualizationTechnology
+    cucsBiosVpIntelVirtualizationTechnology                          CucsBiosVpIntelVirtualizationTechnology,
+    cucsBiosVfIntelVirtualizationTechnologyPropAcl                   Unsigned64,
+    cucsBiosVfIntelVirtualizationTechnologySupportedByDefault        CucsBiosSupportedAction
 }
 
 cucsBiosVfIntelVirtualizationTechnologyInstanceId OBJECT-TYPE
@@ -2513,6 +3540,24 @@ cucsBiosVpIntelVirtualizationTechnology OBJECT-TYPE
         ionTechnology managed object property"
     ::= { cucsBiosVfIntelVirtualizationTechnologyEntry 4 }
 
+cucsBiosVfIntelVirtualizationTechnologyPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntelVirtualizationTechnology:propAcl
+        managed object property"
+    ::= { cucsBiosVfIntelVirtualizationTechnologyEntry 5 }
+
+cucsBiosVfIntelVirtualizationTechnologySupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfIntelVirtualizationTechnology:supportedByDefault
+         managed object property"
+    ::= { cucsBiosVfIntelVirtualizationTechnologyEntry 6 }
+
 cucsBiosVfInterleaveConfigurationTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfInterleaveConfigurationEntry
     MAX-ACCESS       not-accessible
@@ -2536,7 +3581,9 @@ CucsBiosVfInterleaveConfigurationEntry ::= SEQUENCE {
     cucsBiosVfInterleaveConfigurationRn                              SnmpAdminString,
     cucsBiosVfInterleaveConfigurationVpChannelInterleaving           CucsBiosVfInterleaveConfigurationVpChannelInterleaving,
     cucsBiosVfInterleaveConfigurationVpMemoryInterleaving            CucsBiosVfInterleaveConfigurationVpMemoryInterleaving,
-    cucsBiosVfInterleaveConfigurationVpRankInterleaving              CucsBiosVfInterleaveConfigurationVpRankInterleaving
+    cucsBiosVfInterleaveConfigurationVpRankInterleaving              CucsBiosVfInterleaveConfigurationVpRankInterleaving,
+    cucsBiosVfInterleaveConfigurationPropAcl                         Unsigned64,
+    cucsBiosVfInterleaveConfigurationSupportedByDefault              CucsBiosSupportedAction
 }
 
 cucsBiosVfInterleaveConfigurationInstanceId OBJECT-TYPE
@@ -2592,6 +3639,24 @@ cucsBiosVfInterleaveConfigurationVpRankInterleaving OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfInterleaveConfigurationEntry 6 }
 
+cucsBiosVfInterleaveConfigurationPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfInterleaveConfiguration:propAcl
+        managed object property"
+    ::= { cucsBiosVfInterleaveConfigurationEntry 7 }
+
+cucsBiosVfInterleaveConfigurationSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfInterleaveConfiguration:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfInterleaveConfigurationEntry 8 }
+
 cucsBiosVfLocalX2ApicTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfLocalX2ApicEntry
     MAX-ACCESS       not-accessible
@@ -2613,7 +3678,9 @@ CucsBiosVfLocalX2ApicEntry ::= SEQUENCE {
     cucsBiosVfLocalX2ApicInstanceId                                  CucsManagedObjectId,
     cucsBiosVfLocalX2ApicDn                                          CucsManagedObjectDn,
     cucsBiosVfLocalX2ApicRn                                          SnmpAdminString,
-    cucsBiosVfLocalX2ApicVpLocalX2Apic                               CucsBiosVfLocalX2ApicVpLocalX2Apic
+    cucsBiosVfLocalX2ApicVpLocalX2Apic                               CucsBiosVfLocalX2ApicVpLocalX2Apic,
+    cucsBiosVfLocalX2ApicPropAcl                                     Unsigned64,
+    cucsBiosVfLocalX2ApicSupportedByDefault                          CucsBiosSupportedAction
 }
 
 cucsBiosVfLocalX2ApicInstanceId OBJECT-TYPE
@@ -2649,6 +3716,23 @@ cucsBiosVfLocalX2ApicVpLocalX2Apic OBJECT-TYPE
         object property"
     ::= { cucsBiosVfLocalX2ApicEntry 4 }
 
+cucsBiosVfLocalX2ApicPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfLocalX2Apic:propAcl managed object property"
+    ::= { cucsBiosVfLocalX2ApicEntry 5 }
+
+cucsBiosVfLocalX2ApicSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfLocalX2Apic:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfLocalX2ApicEntry 6 }
+
 cucsBiosVfLvDIMMSupportTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfLvDIMMSupportEntry
     MAX-ACCESS       not-accessible
@@ -2670,7 +3754,9 @@ CucsBiosVfLvDIMMSupportEntry ::= SEQUENCE {
     cucsBiosVfLvDIMMSupportInstanceId                                CucsManagedObjectId,
     cucsBiosVfLvDIMMSupportDn                                        CucsManagedObjectDn,
     cucsBiosVfLvDIMMSupportRn                                        SnmpAdminString,
-    cucsBiosVfLvDIMMSupportVpLvDDRMode                               CucsBiosVfLvDIMMSupportVpLvDDRMode
+    cucsBiosVfLvDIMMSupportVpLvDDRMode                               CucsBiosVfLvDIMMSupportVpLvDDRMode,
+    cucsBiosVfLvDIMMSupportPropAcl                                   Unsigned64,
+    cucsBiosVfLvDIMMSupportSupportedByDefault                        CucsBiosSupportedAction
 }
 
 cucsBiosVfLvDIMMSupportInstanceId OBJECT-TYPE
@@ -2706,6 +3792,23 @@ cucsBiosVfLvDIMMSupportVpLvDDRMode OBJECT-TYPE
         object property"
     ::= { cucsBiosVfLvDIMMSupportEntry 4 }
 
+cucsBiosVfLvDIMMSupportPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfLvDIMMSupport:propAcl managed object property"
+    ::= { cucsBiosVfLvDIMMSupportEntry 5 }
+
+cucsBiosVfLvDIMMSupportSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfLvDIMMSupport:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfLvDIMMSupportEntry 6 }
+
 cucsBiosVfMaxVariableMTRRSettingTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfMaxVariableMTRRSettingEntry
     MAX-ACCESS       not-accessible
@@ -2727,7 +3830,9 @@ CucsBiosVfMaxVariableMTRRSettingEntry ::= SEQUENCE {
     cucsBiosVfMaxVariableMTRRSettingInstanceId                       CucsManagedObjectId,
     cucsBiosVfMaxVariableMTRRSettingDn                               CucsManagedObjectDn,
     cucsBiosVfMaxVariableMTRRSettingRn                               SnmpAdminString,
-    cucsBiosVfMaxVariableMTRRSettingVpProcessorMtrr                  CucsBiosVfMaxVariableMTRRSettingVpProcessorMtrr
+    cucsBiosVfMaxVariableMTRRSettingVpProcessorMtrr                  CucsBiosVfMaxVariableMTRRSettingVpProcessorMtrr,
+    cucsBiosVfMaxVariableMTRRSettingPropAcl                          Unsigned64,
+    cucsBiosVfMaxVariableMTRRSettingSupportedByDefault               CucsBiosSupportedAction
 }
 
 cucsBiosVfMaxVariableMTRRSettingInstanceId OBJECT-TYPE
@@ -2765,6 +3870,24 @@ cucsBiosVfMaxVariableMTRRSettingVpProcessorMtrr OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfMaxVariableMTRRSettingEntry 4 }
 
+cucsBiosVfMaxVariableMTRRSettingPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfMaxVariableMTRRSetting:propAcl
+        managed object property"
+    ::= { cucsBiosVfMaxVariableMTRRSettingEntry 5 }
+
+cucsBiosVfMaxVariableMTRRSettingSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfMaxVariableMTRRSetting:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfMaxVariableMTRRSettingEntry 6 }
+
 cucsBiosVfMaximumMemoryBelow4GBTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfMaximumMemoryBelow4GBEntry
     MAX-ACCESS       not-accessible
@@ -2786,7 +3909,9 @@ CucsBiosVfMaximumMemoryBelow4GBEntry ::= SEQUENCE {
     cucsBiosVfMaximumMemoryBelow4GBInstanceId                        CucsManagedObjectId,
     cucsBiosVfMaximumMemoryBelow4GBDn                                CucsManagedObjectDn,
     cucsBiosVfMaximumMemoryBelow4GBRn                                SnmpAdminString,
-    cucsBiosVfMaximumMemoryBelow4GBVpMaximumMemoryBelow4GB           CucsBiosVfMaximumMemoryBelow4GBVpMaximumMemoryBelow4GB
+    cucsBiosVfMaximumMemoryBelow4GBVpMaximumMemoryBelow4GB           CucsBiosVfMaximumMemoryBelow4GBVpMaximumMemoryBelow4GB,
+    cucsBiosVfMaximumMemoryBelow4GBPropAcl                           Unsigned64,
+    cucsBiosVfMaximumMemoryBelow4GBSupportedByDefault                CucsBiosSupportedAction
 }
 
 cucsBiosVfMaximumMemoryBelow4GBInstanceId OBJECT-TYPE
@@ -2824,6 +3949,24 @@ cucsBiosVfMaximumMemoryBelow4GBVpMaximumMemoryBelow4GB OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfMaximumMemoryBelow4GBEntry 4 }
 
+cucsBiosVfMaximumMemoryBelow4GBPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfMaximumMemoryBelow4GB:propAcl
+        managed object property"
+    ::= { cucsBiosVfMaximumMemoryBelow4GBEntry 5 }
+
+cucsBiosVfMaximumMemoryBelow4GBSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfMaximumMemoryBelow4GB:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfMaximumMemoryBelow4GBEntry 6 }
+
 cucsBiosVfMemoryMappedIOAbove4GBTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfMemoryMappedIOAbove4GBEntry
     MAX-ACCESS       not-accessible
@@ -2845,7 +3988,9 @@ CucsBiosVfMemoryMappedIOAbove4GBEntry ::= SEQUENCE {
     cucsBiosVfMemoryMappedIOAbove4GBInstanceId                       CucsManagedObjectId,
     cucsBiosVfMemoryMappedIOAbove4GBDn                               CucsManagedObjectDn,
     cucsBiosVfMemoryMappedIOAbove4GBRn                               SnmpAdminString,
-    cucsBiosVfMemoryMappedIOAbove4GBVpMemoryMappedIOAbove4GB         CucsBiosVfMemoryMappedIOAbove4GBVpMemoryMappedIOAbove4GB
+    cucsBiosVfMemoryMappedIOAbove4GBVpMemoryMappedIOAbove4GB         CucsBiosVfMemoryMappedIOAbove4GBVpMemoryMappedIOAbove4GB,
+    cucsBiosVfMemoryMappedIOAbove4GBPropAcl                          Unsigned64,
+    cucsBiosVfMemoryMappedIOAbove4GBSupportedByDefault               CucsBiosSupportedAction
 }
 
 cucsBiosVfMemoryMappedIOAbove4GBInstanceId OBJECT-TYPE
@@ -2883,6 +4028,24 @@ cucsBiosVfMemoryMappedIOAbove4GBVpMemoryMappedIOAbove4GB OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfMemoryMappedIOAbove4GBEntry 4 }
 
+cucsBiosVfMemoryMappedIOAbove4GBPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfMemoryMappedIOAbove4GB:propAcl
+        managed object property"
+    ::= { cucsBiosVfMemoryMappedIOAbove4GBEntry 5 }
+
+cucsBiosVfMemoryMappedIOAbove4GBSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfMemoryMappedIOAbove4GB:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfMemoryMappedIOAbove4GBEntry 6 }
+
 cucsBiosVfMirroringModeTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfMirroringModeEntry
     MAX-ACCESS       not-accessible
@@ -2904,7 +4067,9 @@ CucsBiosVfMirroringModeEntry ::= SEQUENCE {
     cucsBiosVfMirroringModeInstanceId                                CucsManagedObjectId,
     cucsBiosVfMirroringModeDn                                        CucsManagedObjectDn,
     cucsBiosVfMirroringModeRn                                        SnmpAdminString,
-    cucsBiosVfMirroringModeVpMirroringMode                           CucsBiosVfMirroringModeVpMirroringMode
+    cucsBiosVfMirroringModeVpMirroringMode                           CucsBiosVfMirroringModeVpMirroringMode,
+    cucsBiosVfMirroringModePropAcl                                   Unsigned64,
+    cucsBiosVfMirroringModeSupportedByDefault                        CucsBiosSupportedAction
 }
 
 cucsBiosVfMirroringModeInstanceId OBJECT-TYPE
@@ -2940,6 +4105,23 @@ cucsBiosVfMirroringModeVpMirroringMode OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfMirroringModeEntry 4 }
 
+cucsBiosVfMirroringModePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfMirroringMode:propAcl managed object property"
+    ::= { cucsBiosVfMirroringModeEntry 5 }
+
+cucsBiosVfMirroringModeSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfMirroringMode:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfMirroringModeEntry 6 }
+
 cucsBiosVfNUMAOptimizedTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfNUMAOptimizedEntry
     MAX-ACCESS       not-accessible
@@ -2961,7 +4143,9 @@ CucsBiosVfNUMAOptimizedEntry ::= SEQUENCE {
     cucsBiosVfNUMAOptimizedInstanceId                                CucsManagedObjectId,
     cucsBiosVfNUMAOptimizedDn                                        CucsManagedObjectDn,
     cucsBiosVfNUMAOptimizedRn                                        SnmpAdminString,
-    cucsBiosVfNUMAOptimizedVpNUMAOptimized                           CucsBiosVfNUMAOptimizedVpNUMAOptimized
+    cucsBiosVfNUMAOptimizedVpNUMAOptimized                           CucsBiosVfNUMAOptimizedVpNUMAOptimized,
+    cucsBiosVfNUMAOptimizedPropAcl                                   Unsigned64,
+    cucsBiosVfNUMAOptimizedSupportedByDefault                        CucsBiosSupportedAction
 }
 
 cucsBiosVfNUMAOptimizedInstanceId OBJECT-TYPE
@@ -2997,6 +4181,23 @@ cucsBiosVfNUMAOptimizedVpNUMAOptimized OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfNUMAOptimizedEntry 4 }
 
+cucsBiosVfNUMAOptimizedPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfNUMAOptimized:propAcl managed object property"
+    ::= { cucsBiosVfNUMAOptimizedEntry 5 }
+
+cucsBiosVfNUMAOptimizedSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfNUMAOptimized:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfNUMAOptimizedEntry 6 }
+
 cucsBiosVfOSBootWatchdogTimerTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfOSBootWatchdogTimerEntry
     MAX-ACCESS       not-accessible
@@ -3018,7 +4219,9 @@ CucsBiosVfOSBootWatchdogTimerEntry ::= SEQUENCE {
     cucsBiosVfOSBootWatchdogTimerInstanceId                          CucsManagedObjectId,
     cucsBiosVfOSBootWatchdogTimerDn                                  CucsManagedObjectDn,
     cucsBiosVfOSBootWatchdogTimerRn                                  SnmpAdminString,
-    cucsBiosVfOSBootWatchdogTimerVpOSBootWatchdogTimer               CucsBiosVfOSBootWatchdogTimerVpOSBootWatchdogTimer
+    cucsBiosVfOSBootWatchdogTimerVpOSBootWatchdogTimer               CucsBiosVfOSBootWatchdogTimerVpOSBootWatchdogTimer,
+    cucsBiosVfOSBootWatchdogTimerPropAcl                             Unsigned64,
+    cucsBiosVfOSBootWatchdogTimerSupportedByDefault                  CucsBiosSupportedAction
 }
 
 cucsBiosVfOSBootWatchdogTimerInstanceId OBJECT-TYPE
@@ -3054,6 +4257,24 @@ cucsBiosVfOSBootWatchdogTimerVpOSBootWatchdogTimer OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfOSBootWatchdogTimerEntry 4 }
 
+cucsBiosVfOSBootWatchdogTimerPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOSBootWatchdogTimer:propAcl managed
+        object property"
+    ::= { cucsBiosVfOSBootWatchdogTimerEntry 5 }
+
+cucsBiosVfOSBootWatchdogTimerSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOSBootWatchdogTimer:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfOSBootWatchdogTimerEntry 6 }
+
 cucsBiosVfOSBootWatchdogTimerPolicyTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfOSBootWatchdogTimerPolicyEntry
     MAX-ACCESS       not-accessible
@@ -3075,7 +4296,9 @@ CucsBiosVfOSBootWatchdogTimerPolicyEntry ::= SEQUENCE {
     cucsBiosVfOSBootWatchdogTimerPolicyInstanceId                    CucsManagedObjectId,
     cucsBiosVfOSBootWatchdogTimerPolicyDn                            CucsManagedObjectDn,
     cucsBiosVfOSBootWatchdogTimerPolicyRn                            SnmpAdminString,
-    cucsBiosVfOSBootWatchdogTimerPolicyVpOSBootWatchdogTimerPolicy   CucsBiosVfOSBootWatchdogTimerPolicyVpOSBootWatchdogTimerPolicy
+    cucsBiosVfOSBootWatchdogTimerPolicyVpOSBootWatchdogTimerPolicy   CucsBiosVfOSBootWatchdogTimerPolicyVpOSBootWatchdogTimerPolicy,
+    cucsBiosVfOSBootWatchdogTimerPolicyPropAcl                       Unsigned64,
+    cucsBiosVfOSBootWatchdogTimerPolicySupportedByDefault            CucsBiosSupportedAction
 }
 
 cucsBiosVfOSBootWatchdogTimerPolicyInstanceId OBJECT-TYPE
@@ -3113,6 +4336,24 @@ cucsBiosVfOSBootWatchdogTimerPolicyVpOSBootWatchdogTimerPolicy OBJECT-TYPE
         olicy managed object property"
     ::= { cucsBiosVfOSBootWatchdogTimerPolicyEntry 4 }
 
+cucsBiosVfOSBootWatchdogTimerPolicyPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOSBootWatchdogTimerPolicy:propAcl
+        managed object property"
+    ::= { cucsBiosVfOSBootWatchdogTimerPolicyEntry 5 }
+
+cucsBiosVfOSBootWatchdogTimerPolicySupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOSBootWatchdogTimerPolicy:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfOSBootWatchdogTimerPolicyEntry 6 }
+
 cucsBiosVfOSBootWatchdogTimerTimeoutTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfOSBootWatchdogTimerTimeoutEntry
     MAX-ACCESS       not-accessible
@@ -3134,7 +4375,9 @@ CucsBiosVfOSBootWatchdogTimerTimeoutEntry ::= SEQUENCE {
     cucsBiosVfOSBootWatchdogTimerTimeoutInstanceId                   CucsManagedObjectId,
     cucsBiosVfOSBootWatchdogTimerTimeoutDn                           CucsManagedObjectDn,
     cucsBiosVfOSBootWatchdogTimerTimeoutRn                           SnmpAdminString,
-    cucsBiosVfOSBootWatchdogTimerTimeoutVpOSBootWatchdogTimerTimeout CucsBiosVfOSBootWatchdogTimerTimeoutVpOSBootWatchdogTimerTimeout
+    cucsBiosVfOSBootWatchdogTimerTimeoutVpOSBootWatchdogTimerTimeout CucsBiosVfOSBootWatchdogTimerTimeoutVpOSBootWatchdogTimerTimeout,
+    cucsBiosVfOSBootWatchdogTimerTimeoutPropAcl                      Unsigned64,
+    cucsBiosVfOSBootWatchdogTimerTimeoutSupportedByDefault           CucsBiosSupportedAction
 }
 
 cucsBiosVfOSBootWatchdogTimerTimeoutInstanceId OBJECT-TYPE
@@ -3172,6 +4415,100 @@ cucsBiosVfOSBootWatchdogTimerTimeoutVpOSBootWatchdogTimerTimeout OBJECT-TYPE
         Timeout managed object property"
     ::= { cucsBiosVfOSBootWatchdogTimerTimeoutEntry 4 }
 
+cucsBiosVfOSBootWatchdogTimerTimeoutPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOSBootWatchdogTimerTimeout:propAcl
+        managed object property"
+    ::= { cucsBiosVfOSBootWatchdogTimerTimeoutEntry 5 }
+
+cucsBiosVfOSBootWatchdogTimerTimeoutSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOSBootWatchdogTimerTimeout:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfOSBootWatchdogTimerTimeoutEntry 6 }
+
+cucsBiosVfOnboardGraphicsTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsBiosVfOnboardGraphicsEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS bios:VfOnboardGraphics managed object table"
+    ::= { cucsBiosObjects 95 }
+
+cucsBiosVfOnboardGraphicsEntry OBJECT-TYPE
+    SYNTAX           CucsBiosVfOnboardGraphicsEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsBiosVfOnboardGraphicsTable table."
+    INDEX { cucsBiosVfOnboardGraphicsInstanceId }
+    ::= { cucsBiosVfOnboardGraphicsTable 1 }
+
+CucsBiosVfOnboardGraphicsEntry ::= SEQUENCE {
+    cucsBiosVfOnboardGraphicsInstanceId                              CucsManagedObjectId,
+    cucsBiosVfOnboardGraphicsDn                                      CucsManagedObjectDn,
+    cucsBiosVfOnboardGraphicsRn                                      SnmpAdminString,
+    cucsBiosVfOnboardGraphicsSupportedByDefault                      CucsBiosSupportedAction,
+    cucsBiosVfOnboardGraphicsVpOnboardGraphics                       CucsBiosVfOnboardGraphicsVpOnboardGraphics,
+    cucsBiosVfOnboardGraphicsPropAcl                                 Unsigned64
+}
+
+cucsBiosVfOnboardGraphicsInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsBiosVfOnboardGraphicsEntry 1 }
+
+cucsBiosVfOnboardGraphicsDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOnboardGraphics:dn managed object property"
+    ::= { cucsBiosVfOnboardGraphicsEntry 2 }
+
+cucsBiosVfOnboardGraphicsRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOnboardGraphics:rn managed object property"
+    ::= { cucsBiosVfOnboardGraphicsEntry 3 }
+
+cucsBiosVfOnboardGraphicsSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOnboardGraphics:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfOnboardGraphicsEntry 4 }
+
+cucsBiosVfOnboardGraphicsVpOnboardGraphics OBJECT-TYPE
+    SYNTAX       CucsBiosVfOnboardGraphicsVpOnboardGraphics
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOnboardGraphics:vpOnboardGraphics
+        managed object property"
+    ::= { cucsBiosVfOnboardGraphicsEntry 5 }
+
+cucsBiosVfOnboardGraphicsPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOnboardGraphics:propAcl managed object property"
+    ::= { cucsBiosVfOnboardGraphicsEntry 6 }
+
 cucsBiosVfOnboardSATAControllerTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfOnboardSATAControllerEntry
     MAX-ACCESS       not-accessible
@@ -3194,7 +4531,9 @@ CucsBiosVfOnboardSATAControllerEntry ::= SEQUENCE {
     cucsBiosVfOnboardSATAControllerDn                                CucsManagedObjectDn,
     cucsBiosVfOnboardSATAControllerRn                                SnmpAdminString,
     cucsBiosVfOnboardSATAControllerVpOnboardSATAController           CucsBiosVfOnboardSATAControllerVpOnboardSATAController,
-    cucsBiosVfOnboardSATAControllerVpSATAMode                        CucsBiosVfOnboardSATAControllerVpSATAMode
+    cucsBiosVfOnboardSATAControllerVpSATAMode                        CucsBiosVfOnboardSATAControllerVpSATAMode,
+    cucsBiosVfOnboardSATAControllerPropAcl                           Unsigned64,
+    cucsBiosVfOnboardSATAControllerSupportedByDefault                CucsBiosSupportedAction
 }
 
 cucsBiosVfOnboardSATAControllerInstanceId OBJECT-TYPE
@@ -3241,6 +4580,24 @@ cucsBiosVfOnboardSATAControllerVpSATAMode OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfOnboardSATAControllerEntry 5 }
 
+cucsBiosVfOnboardSATAControllerPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOnboardSATAController:propAcl
+        managed object property"
+    ::= { cucsBiosVfOnboardSATAControllerEntry 6 }
+
+cucsBiosVfOnboardSATAControllerSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOnboardSATAController:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfOnboardSATAControllerEntry 7 }
+
 cucsBiosVfOnboardStorageTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfOnboardStorageEntry
     MAX-ACCESS       not-accessible
@@ -3262,7 +4619,9 @@ CucsBiosVfOnboardStorageEntry ::= SEQUENCE {
     cucsBiosVfOnboardStorageInstanceId                               CucsManagedObjectId,
     cucsBiosVfOnboardStorageDn                                       CucsManagedObjectDn,
     cucsBiosVfOnboardStorageRn                                       SnmpAdminString,
-    cucsBiosVfOnboardStorageVpOnboardSCUStorageSupport               CucsBiosVfOnboardStorageVpOnboardSCUStorageSupport
+    cucsBiosVfOnboardStorageVpOnboardSCUStorageSupport               CucsBiosVfOnboardStorageVpOnboardSCUStorageSupport,
+    cucsBiosVfOnboardStoragePropAcl                                  Unsigned64,
+    cucsBiosVfOnboardStorageSupportedByDefault                       CucsBiosSupportedAction
 }
 
 cucsBiosVfOnboardStorageInstanceId OBJECT-TYPE
@@ -3298,6 +4657,23 @@ cucsBiosVfOnboardStorageVpOnboardSCUStorageSupport OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfOnboardStorageEntry 4 }
 
+cucsBiosVfOnboardStoragePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOnboardStorage:propAcl managed object property"
+    ::= { cucsBiosVfOnboardStorageEntry 5 }
+
+cucsBiosVfOnboardStorageSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOnboardStorage:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfOnboardStorageEntry 6 }
+
 cucsBiosVfOptionROMEnableTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfOptionROMEnableEntry
     MAX-ACCESS       not-accessible
@@ -3319,7 +4695,9 @@ CucsBiosVfOptionROMEnableEntry ::= SEQUENCE {
     cucsBiosVfOptionROMEnableInstanceId                              CucsManagedObjectId,
     cucsBiosVfOptionROMEnableDn                                      CucsManagedObjectDn,
     cucsBiosVfOptionROMEnableRn                                      SnmpAdminString,
-    cucsBiosVfOptionROMEnableVpState                                 CucsBiosVfOptionROMEnableVpState
+    cucsBiosVfOptionROMEnableVpState                                 CucsBiosVfOptionROMEnableVpState,
+    cucsBiosVfOptionROMEnablePropAcl                                 Unsigned64,
+    cucsBiosVfOptionROMEnableSupportedByDefault                      CucsBiosSupportedAction
 }
 
 cucsBiosVfOptionROMEnableInstanceId OBJECT-TYPE
@@ -3354,6 +4732,23 @@ cucsBiosVfOptionROMEnableVpState OBJECT-TYPE
         "Cisco UCS bios:VfOptionROMEnable:vpState managed object property"
     ::= { cucsBiosVfOptionROMEnableEntry 4 }
 
+cucsBiosVfOptionROMEnablePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOptionROMEnable:propAcl managed object property"
+    ::= { cucsBiosVfOptionROMEnableEntry 5 }
+
+cucsBiosVfOptionROMEnableSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOptionROMEnable:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfOptionROMEnableEntry 6 }
+
 cucsBiosVfOptionROMLoadTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfOptionROMLoadEntry
     MAX-ACCESS       not-accessible
@@ -3375,7 +4770,9 @@ CucsBiosVfOptionROMLoadEntry ::= SEQUENCE {
     cucsBiosVfOptionROMLoadInstanceId                                CucsManagedObjectId,
     cucsBiosVfOptionROMLoadDn                                        CucsManagedObjectDn,
     cucsBiosVfOptionROMLoadRn                                        SnmpAdminString,
-    cucsBiosVfOptionROMLoadVpLoad                                    CucsBiosVfOptionROMLoadVpLoad
+    cucsBiosVfOptionROMLoadVpLoad                                    CucsBiosVfOptionROMLoadVpLoad,
+    cucsBiosVfOptionROMLoadPropAcl                                   Unsigned64,
+    cucsBiosVfOptionROMLoadSupportedByDefault                        CucsBiosSupportedAction
 }
 
 cucsBiosVfOptionROMLoadInstanceId OBJECT-TYPE
@@ -3410,6 +4807,177 @@ cucsBiosVfOptionROMLoadVpLoad OBJECT-TYPE
         "Cisco UCS bios:VfOptionROMLoad:vpLoad managed object property"
     ::= { cucsBiosVfOptionROMLoadEntry 4 }
 
+cucsBiosVfOptionROMLoadPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOptionROMLoad:propAcl managed object property"
+    ::= { cucsBiosVfOptionROMLoadEntry 5 }
+
+cucsBiosVfOptionROMLoadSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfOptionROMLoad:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfOptionROMLoadEntry 6 }
+
+cucsBiosVfPCHSATAModeTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsBiosVfPCHSATAModeEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS bios:VfPCHSATAMode managed object table"
+    ::= { cucsBiosObjects 84 }
+
+cucsBiosVfPCHSATAModeEntry OBJECT-TYPE
+    SYNTAX           CucsBiosVfPCHSATAModeEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsBiosVfPCHSATAModeTable table."
+    INDEX { cucsBiosVfPCHSATAModeInstanceId }
+    ::= { cucsBiosVfPCHSATAModeTable 1 }
+
+CucsBiosVfPCHSATAModeEntry ::= SEQUENCE {
+    cucsBiosVfPCHSATAModeInstanceId                                  CucsManagedObjectId,
+    cucsBiosVfPCHSATAModeDn                                          CucsManagedObjectDn,
+    cucsBiosVfPCHSATAModeRn                                          SnmpAdminString,
+    cucsBiosVfPCHSATAModePropAcl                                     Unsigned64,
+    cucsBiosVfPCHSATAModeSupportedByDefault                          CucsBiosSupportedAction,
+    cucsBiosVfPCHSATAModeVpSATAMode                                  CucsBiosVfPCHSATAModeVpSATAMode
+}
+
+cucsBiosVfPCHSATAModeInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsBiosVfPCHSATAModeEntry 1 }
+
+cucsBiosVfPCHSATAModeDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPCHSATAMode:dn managed object property"
+    ::= { cucsBiosVfPCHSATAModeEntry 2 }
+
+cucsBiosVfPCHSATAModeRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPCHSATAMode:rn managed object property"
+    ::= { cucsBiosVfPCHSATAModeEntry 3 }
+
+cucsBiosVfPCHSATAModePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPCHSATAMode:propAcl managed object property"
+    ::= { cucsBiosVfPCHSATAModeEntry 4 }
+
+cucsBiosVfPCHSATAModeSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPCHSATAMode:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfPCHSATAModeEntry 5 }
+
+cucsBiosVfPCHSATAModeVpSATAMode OBJECT-TYPE
+    SYNTAX       CucsBiosVfPCHSATAModeVpSATAMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPCHSATAMode:vpSATAMode managed object property"
+    ::= { cucsBiosVfPCHSATAModeEntry 7 }
+
+cucsBiosVfPCILOMPortsConfigurationTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsBiosVfPCILOMPortsConfigurationEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS bios:VfPCILOMPortsConfiguration managed object table"
+    ::= { cucsBiosObjects 89 }
+
+cucsBiosVfPCILOMPortsConfigurationEntry OBJECT-TYPE
+    SYNTAX           CucsBiosVfPCILOMPortsConfigurationEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsBiosVfPCILOMPortsConfigurationTable table."
+    INDEX { cucsBiosVfPCILOMPortsConfigurationInstanceId }
+    ::= { cucsBiosVfPCILOMPortsConfigurationTable 1 }
+
+CucsBiosVfPCILOMPortsConfigurationEntry ::= SEQUENCE {
+    cucsBiosVfPCILOMPortsConfigurationInstanceId                     CucsManagedObjectId,
+    cucsBiosVfPCILOMPortsConfigurationDn                             CucsManagedObjectDn,
+    cucsBiosVfPCILOMPortsConfigurationRn                             SnmpAdminString,
+    cucsBiosVfPCILOMPortsConfigurationVpPCIe10GLOM2Link              CucsBiosVfPCILOMPortsConfigurationVpPCIe10GLOM2Link,
+    cucsBiosVfPCILOMPortsConfigurationSupportedByDefault             CucsBiosSupportedAction,
+    cucsBiosVfPCILOMPortsConfigurationPropAcl                        Unsigned64
+}
+
+cucsBiosVfPCILOMPortsConfigurationInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsBiosVfPCILOMPortsConfigurationEntry 1 }
+
+cucsBiosVfPCILOMPortsConfigurationDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPCILOMPortsConfiguration:dn managed
+        object property"
+    ::= { cucsBiosVfPCILOMPortsConfigurationEntry 2 }
+
+cucsBiosVfPCILOMPortsConfigurationRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPCILOMPortsConfiguration:rn managed
+        object property"
+    ::= { cucsBiosVfPCILOMPortsConfigurationEntry 3 }
+
+cucsBiosVfPCILOMPortsConfigurationVpPCIe10GLOM2Link OBJECT-TYPE
+    SYNTAX       CucsBiosVfPCILOMPortsConfigurationVpPCIe10GLOM2Link
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPCILOMPortsConfiguration:vpPCIe10GLOM2Link
+        managed object property"
+    ::= { cucsBiosVfPCILOMPortsConfigurationEntry 4 }
+
+cucsBiosVfPCILOMPortsConfigurationSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPCILOMPortsConfiguration:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfPCILOMPortsConfigurationEntry 5 }
+
+cucsBiosVfPCILOMPortsConfigurationPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPCILOMPortsConfiguration:propAcl
+        managed object property"
+    ::= { cucsBiosVfPCILOMPortsConfigurationEntry 6 }
+
 cucsBiosVfPCISlotLinkSpeedTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfPCISlotLinkSpeedEntry
     MAX-ACCESS       not-accessible
@@ -3440,7 +5008,9 @@ CucsBiosVfPCISlotLinkSpeedEntry ::= SEQUENCE {
     cucsBiosVfPCISlotLinkSpeedVpPCIeSlot6LinkSpeed                   CucsBiosVfPCISlotLinkSpeedVpPCIeSlot6LinkSpeed,
     cucsBiosVfPCISlotLinkSpeedVpPCIeSlot7LinkSpeed                   CucsBiosVfPCISlotLinkSpeedVpPCIeSlot7LinkSpeed,
     cucsBiosVfPCISlotLinkSpeedVpPCIeSlot8LinkSpeed                   CucsBiosVfPCISlotLinkSpeedVpPCIeSlot8LinkSpeed,
-    cucsBiosVfPCISlotLinkSpeedVpPCIeSlot9LinkSpeed                   CucsBiosVfPCISlotLinkSpeedVpPCIeSlot9LinkSpeed
+    cucsBiosVfPCISlotLinkSpeedVpPCIeSlot9LinkSpeed                   CucsBiosVfPCISlotLinkSpeedVpPCIeSlot9LinkSpeed,
+    cucsBiosVfPCISlotLinkSpeedPropAcl                                Unsigned64,
+    cucsBiosVfPCISlotLinkSpeedSupportedByDefault                     CucsBiosSupportedAction
 }
 
 cucsBiosVfPCISlotLinkSpeedInstanceId OBJECT-TYPE
@@ -3557,6 +5127,24 @@ cucsBiosVfPCISlotLinkSpeedVpPCIeSlot9LinkSpeed OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfPCISlotLinkSpeedEntry 13 }
 
+cucsBiosVfPCISlotLinkSpeedPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPCISlotLinkSpeed:propAcl managed
+        object property"
+    ::= { cucsBiosVfPCISlotLinkSpeedEntry 14 }
+
+cucsBiosVfPCISlotLinkSpeedSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPCISlotLinkSpeed:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfPCISlotLinkSpeedEntry 15 }
+
 cucsBiosVfPCISlotOptionROMEnableTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfPCISlotOptionROMEnableEntry
     MAX-ACCESS       not-accessible
@@ -3593,7 +5181,9 @@ CucsBiosVfPCISlotOptionROMEnableEntry ::= SEQUENCE {
     cucsBiosVfPCISlotOptionROMEnableVpPCIeSlotHBAOptionROM           CucsBiosVfPCISlotOptionROMEnableVpPCIeSlotHBAOptionROM,
     cucsBiosVfPCISlotOptionROMEnableVpPCIeSlotMLOMOptionROM          CucsBiosVfPCISlotOptionROMEnableVpPCIeSlotMLOMOptionROM,
     cucsBiosVfPCISlotOptionROMEnableVpPCIeSlotN1OptionROM            CucsBiosVfPCISlotOptionROMEnableVpPCIeSlotN1OptionROM,
-    cucsBiosVfPCISlotOptionROMEnableVpPCIeSlotN2OptionROM            CucsBiosVfPCISlotOptionROMEnableVpPCIeSlotN2OptionROM
+    cucsBiosVfPCISlotOptionROMEnableVpPCIeSlotN2OptionROM            CucsBiosVfPCISlotOptionROMEnableVpPCIeSlotN2OptionROM,
+    cucsBiosVfPCISlotOptionROMEnablePropAcl                          Unsigned64,
+    cucsBiosVfPCISlotOptionROMEnableSupportedByDefault               CucsBiosSupportedAction
 }
 
 cucsBiosVfPCISlotOptionROMEnableInstanceId OBJECT-TYPE
@@ -3766,6 +5356,24 @@ cucsBiosVfPCISlotOptionROMEnableVpPCIeSlotN2OptionROM OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfPCISlotOptionROMEnableEntry 19 }
 
+cucsBiosVfPCISlotOptionROMEnablePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPCISlotOptionROMEnable:propAcl
+        managed object property"
+    ::= { cucsBiosVfPCISlotOptionROMEnableEntry 20 }
+
+cucsBiosVfPCISlotOptionROMEnableSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPCISlotOptionROMEnable:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfPCISlotOptionROMEnableEntry 21 }
+
 cucsBiosVfPOSTErrorPauseTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfPOSTErrorPauseEntry
     MAX-ACCESS       not-accessible
@@ -3787,7 +5395,9 @@ CucsBiosVfPOSTErrorPauseEntry ::= SEQUENCE {
     cucsBiosVfPOSTErrorPauseInstanceId                               CucsManagedObjectId,
     cucsBiosVfPOSTErrorPauseDn                                       CucsManagedObjectDn,
     cucsBiosVfPOSTErrorPauseRn                                       SnmpAdminString,
-    cucsBiosVfPOSTErrorPauseVpPOSTErrorPause                         CucsBiosVfPOSTErrorPauseVpPOSTErrorPause
+    cucsBiosVfPOSTErrorPauseVpPOSTErrorPause                         CucsBiosVfPOSTErrorPauseVpPOSTErrorPause,
+    cucsBiosVfPOSTErrorPausePropAcl                                  Unsigned64,
+    cucsBiosVfPOSTErrorPauseSupportedByDefault                       CucsBiosSupportedAction
 }
 
 cucsBiosVfPOSTErrorPauseInstanceId OBJECT-TYPE
@@ -3823,6 +5433,23 @@ cucsBiosVfPOSTErrorPauseVpPOSTErrorPause OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfPOSTErrorPauseEntry 4 }
 
+cucsBiosVfPOSTErrorPausePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPOSTErrorPause:propAcl managed object property"
+    ::= { cucsBiosVfPOSTErrorPauseEntry 5 }
+
+cucsBiosVfPOSTErrorPauseSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPOSTErrorPause:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfPOSTErrorPauseEntry 6 }
+
 cucsBiosVfPSTATECoordinationTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfPSTATECoordinationEntry
     MAX-ACCESS       not-accessible
@@ -3844,7 +5471,9 @@ CucsBiosVfPSTATECoordinationEntry ::= SEQUENCE {
     cucsBiosVfPSTATECoordinationInstanceId                           CucsManagedObjectId,
     cucsBiosVfPSTATECoordinationDn                                   CucsManagedObjectDn,
     cucsBiosVfPSTATECoordinationRn                                   SnmpAdminString,
-    cucsBiosVfPSTATECoordinationVpPSTATECoordination                 CucsBiosVfPSTATECoordinationVpPSTATECoordination
+    cucsBiosVfPSTATECoordinationVpPSTATECoordination                 CucsBiosVfPSTATECoordinationVpPSTATECoordination,
+    cucsBiosVfPSTATECoordinationPropAcl                              Unsigned64,
+    cucsBiosVfPSTATECoordinationSupportedByDefault                   CucsBiosSupportedAction
 }
 
 cucsBiosVfPSTATECoordinationInstanceId OBJECT-TYPE
@@ -3880,6 +5509,24 @@ cucsBiosVfPSTATECoordinationVpPSTATECoordination OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfPSTATECoordinationEntry 4 }
 
+cucsBiosVfPSTATECoordinationPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPSTATECoordination:propAcl managed
+        object property"
+    ::= { cucsBiosVfPSTATECoordinationEntry 5 }
+
+cucsBiosVfPSTATECoordinationSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPSTATECoordination:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfPSTATECoordinationEntry 6 }
+
 cucsBiosVfPackageCStateLimitTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfPackageCStateLimitEntry
     MAX-ACCESS       not-accessible
@@ -3901,7 +5548,9 @@ CucsBiosVfPackageCStateLimitEntry ::= SEQUENCE {
     cucsBiosVfPackageCStateLimitInstanceId                           CucsManagedObjectId,
     cucsBiosVfPackageCStateLimitDn                                   CucsManagedObjectDn,
     cucsBiosVfPackageCStateLimitRn                                   SnmpAdminString,
-    cucsBiosVfPackageCStateLimitVpPackageCStateLimit                 CucsBiosVfPackageCStateLimitVpPackageCStateLimit
+    cucsBiosVfPackageCStateLimitVpPackageCStateLimit                 CucsBiosVfPackageCStateLimitVpPackageCStateLimit,
+    cucsBiosVfPackageCStateLimitPropAcl                              Unsigned64,
+    cucsBiosVfPackageCStateLimitSupportedByDefault                   CucsBiosSupportedAction
 }
 
 cucsBiosVfPackageCStateLimitInstanceId OBJECT-TYPE
@@ -3937,6 +5586,24 @@ cucsBiosVfPackageCStateLimitVpPackageCStateLimit OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfPackageCStateLimitEntry 4 }
 
+cucsBiosVfPackageCStateLimitPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPackageCStateLimit:propAcl managed
+        object property"
+    ::= { cucsBiosVfPackageCStateLimitEntry 5 }
+
+cucsBiosVfPackageCStateLimitSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfPackageCStateLimit:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfPackageCStateLimitEntry 6 }
+
 cucsBiosVfProcessorC1ETable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfProcessorC1EEntry
     MAX-ACCESS       not-accessible
@@ -3958,7 +5625,9 @@ CucsBiosVfProcessorC1EEntry ::= SEQUENCE {
     cucsBiosVfProcessorC1EInstanceId                                 CucsManagedObjectId,
     cucsBiosVfProcessorC1EDn                                         CucsManagedObjectDn,
     cucsBiosVfProcessorC1ERn                                         SnmpAdminString,
-    cucsBiosVfProcessorC1EVpProcessorC1E                             CucsBiosVfProcessorC1EVpProcessorC1E
+    cucsBiosVfProcessorC1EVpProcessorC1E                             CucsBiosVfProcessorC1EVpProcessorC1E,
+    cucsBiosVfProcessorC1EPropAcl                                    Unsigned64,
+    cucsBiosVfProcessorC1ESupportedByDefault                         CucsBiosSupportedAction
 }
 
 cucsBiosVfProcessorC1EInstanceId OBJECT-TYPE
@@ -3994,6 +5663,23 @@ cucsBiosVfProcessorC1EVpProcessorC1E OBJECT-TYPE
         object property"
     ::= { cucsBiosVfProcessorC1EEntry 4 }
 
+cucsBiosVfProcessorC1EPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfProcessorC1E:propAcl managed object property"
+    ::= { cucsBiosVfProcessorC1EEntry 5 }
+
+cucsBiosVfProcessorC1ESupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfProcessorC1E:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfProcessorC1EEntry 6 }
+
 cucsBiosVfProcessorC3ReportTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfProcessorC3ReportEntry
     MAX-ACCESS       not-accessible
@@ -4015,7 +5701,9 @@ CucsBiosVfProcessorC3ReportEntry ::= SEQUENCE {
     cucsBiosVfProcessorC3ReportInstanceId                            CucsManagedObjectId,
     cucsBiosVfProcessorC3ReportDn                                    CucsManagedObjectDn,
     cucsBiosVfProcessorC3ReportRn                                    SnmpAdminString,
-    cucsBiosVfProcessorC3ReportVpProcessorC3Report                   CucsBiosVfProcessorC3ReportVpProcessorC3Report
+    cucsBiosVfProcessorC3ReportVpProcessorC3Report                   CucsBiosVfProcessorC3ReportVpProcessorC3Report,
+    cucsBiosVfProcessorC3ReportPropAcl                               Unsigned64,
+    cucsBiosVfProcessorC3ReportSupportedByDefault                    CucsBiosSupportedAction
 }
 
 cucsBiosVfProcessorC3ReportInstanceId OBJECT-TYPE
@@ -4051,6 +5739,24 @@ cucsBiosVfProcessorC3ReportVpProcessorC3Report OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfProcessorC3ReportEntry 4 }
 
+cucsBiosVfProcessorC3ReportPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfProcessorC3Report:propAcl managed
+        object property"
+    ::= { cucsBiosVfProcessorC3ReportEntry 5 }
+
+cucsBiosVfProcessorC3ReportSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfProcessorC3Report:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfProcessorC3ReportEntry 6 }
+
 cucsBiosVfProcessorC6ReportTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfProcessorC6ReportEntry
     MAX-ACCESS       not-accessible
@@ -4072,7 +5778,9 @@ CucsBiosVfProcessorC6ReportEntry ::= SEQUENCE {
     cucsBiosVfProcessorC6ReportInstanceId                            CucsManagedObjectId,
     cucsBiosVfProcessorC6ReportDn                                    CucsManagedObjectDn,
     cucsBiosVfProcessorC6ReportRn                                    SnmpAdminString,
-    cucsBiosVfProcessorC6ReportVpProcessorC6Report                   CucsBiosVfProcessorC6ReportVpProcessorC6Report
+    cucsBiosVfProcessorC6ReportVpProcessorC6Report                   CucsBiosVfProcessorC6ReportVpProcessorC6Report,
+    cucsBiosVfProcessorC6ReportPropAcl                               Unsigned64,
+    cucsBiosVfProcessorC6ReportSupportedByDefault                    CucsBiosSupportedAction
 }
 
 cucsBiosVfProcessorC6ReportInstanceId OBJECT-TYPE
@@ -4108,6 +5816,24 @@ cucsBiosVfProcessorC6ReportVpProcessorC6Report OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfProcessorC6ReportEntry 4 }
 
+cucsBiosVfProcessorC6ReportPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfProcessorC6Report:propAcl managed
+        object property"
+    ::= { cucsBiosVfProcessorC6ReportEntry 5 }
+
+cucsBiosVfProcessorC6ReportSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfProcessorC6Report:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfProcessorC6ReportEntry 6 }
+
 cucsBiosVfProcessorC7ReportTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfProcessorC7ReportEntry
     MAX-ACCESS       not-accessible
@@ -4129,7 +5855,9 @@ CucsBiosVfProcessorC7ReportEntry ::= SEQUENCE {
     cucsBiosVfProcessorC7ReportInstanceId                            CucsManagedObjectId,
     cucsBiosVfProcessorC7ReportDn                                    CucsManagedObjectDn,
     cucsBiosVfProcessorC7ReportRn                                    SnmpAdminString,
-    cucsBiosVfProcessorC7ReportVpProcessorC7Report                   CucsBiosVfProcessorC7ReportVpProcessorC7Report
+    cucsBiosVfProcessorC7ReportVpProcessorC7Report                   CucsBiosVfProcessorC7ReportVpProcessorC7Report,
+    cucsBiosVfProcessorC7ReportPropAcl                               Unsigned64,
+    cucsBiosVfProcessorC7ReportSupportedByDefault                    CucsBiosSupportedAction
 }
 
 cucsBiosVfProcessorC7ReportInstanceId OBJECT-TYPE
@@ -4165,6 +5893,24 @@ cucsBiosVfProcessorC7ReportVpProcessorC7Report OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfProcessorC7ReportEntry 4 }
 
+cucsBiosVfProcessorC7ReportPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfProcessorC7Report:propAcl managed
+        object property"
+    ::= { cucsBiosVfProcessorC7ReportEntry 5 }
+
+cucsBiosVfProcessorC7ReportSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfProcessorC7Report:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfProcessorC7ReportEntry 6 }
+
 cucsBiosVfProcessorCStateTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfProcessorCStateEntry
     MAX-ACCESS       not-accessible
@@ -4186,7 +5932,9 @@ CucsBiosVfProcessorCStateEntry ::= SEQUENCE {
     cucsBiosVfProcessorCStateInstanceId                              CucsManagedObjectId,
     cucsBiosVfProcessorCStateDn                                      CucsManagedObjectDn,
     cucsBiosVfProcessorCStateRn                                      SnmpAdminString,
-    cucsBiosVfProcessorCStateVpProcessorCState                       CucsBiosVfProcessorCStateVpProcessorCState
+    cucsBiosVfProcessorCStateVpProcessorCState                       CucsBiosVfProcessorCStateVpProcessorCState,
+    cucsBiosVfProcessorCStatePropAcl                                 Unsigned64,
+    cucsBiosVfProcessorCStateSupportedByDefault                      CucsBiosSupportedAction
 }
 
 cucsBiosVfProcessorCStateInstanceId OBJECT-TYPE
@@ -4222,6 +5970,23 @@ cucsBiosVfProcessorCStateVpProcessorCState OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfProcessorCStateEntry 4 }
 
+cucsBiosVfProcessorCStatePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfProcessorCState:propAcl managed object property"
+    ::= { cucsBiosVfProcessorCStateEntry 5 }
+
+cucsBiosVfProcessorCStateSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfProcessorCState:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfProcessorCStateEntry 6 }
+
 cucsBiosVfProcessorEnergyConfigurationTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfProcessorEnergyConfigurationEntry
     MAX-ACCESS       not-accessible
@@ -4245,7 +6010,9 @@ CucsBiosVfProcessorEnergyConfigurationEntry ::= SEQUENCE {
     cucsBiosVfProcessorEnergyConfigurationDn                         CucsManagedObjectDn,
     cucsBiosVfProcessorEnergyConfigurationRn                         SnmpAdminString,
     cucsBiosVfProcessorEnergyConfigurationVpEnergyPerformance        CucsBiosVfProcessorEnergyConfigurationVpEnergyPerformance,
-    cucsBiosVfProcessorEnergyConfigurationVpPowerTechnology          CucsBiosVfProcessorEnergyConfigurationVpPowerTechnology
+    cucsBiosVfProcessorEnergyConfigurationVpPowerTechnology          CucsBiosVfProcessorEnergyConfigurationVpPowerTechnology,
+    cucsBiosVfProcessorEnergyConfigurationPropAcl                    Unsigned64,
+    cucsBiosVfProcessorEnergyConfigurationSupportedByDefault         CucsBiosSupportedAction
 }
 
 cucsBiosVfProcessorEnergyConfigurationInstanceId OBJECT-TYPE
@@ -4292,6 +6059,24 @@ cucsBiosVfProcessorEnergyConfigurationVpPowerTechnology OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfProcessorEnergyConfigurationEntry 5 }
 
+cucsBiosVfProcessorEnergyConfigurationPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfProcessorEnergyConfiguration:propAcl
+        managed object property"
+    ::= { cucsBiosVfProcessorEnergyConfigurationEntry 6 }
+
+cucsBiosVfProcessorEnergyConfigurationSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfProcessorEnergyConfiguration:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfProcessorEnergyConfigurationEntry 7 }
+
 cucsBiosVfProcessorPrefetchConfigTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfProcessorPrefetchConfigEntry
     MAX-ACCESS       not-accessible
@@ -4316,7 +6101,9 @@ CucsBiosVfProcessorPrefetchConfigEntry ::= SEQUENCE {
     cucsBiosVfProcessorPrefetchConfigVpAdjacentCacheLinePrefetcher   CucsBiosVfProcessorPrefetchConfigVpAdjacentCacheLinePrefetcher,
     cucsBiosVfProcessorPrefetchConfigVpDCUIPPrefetcher               CucsBiosVfProcessorPrefetchConfigVpDCUIPPrefetcher,
     cucsBiosVfProcessorPrefetchConfigVpDCUStreamerPrefetch           CucsBiosVfProcessorPrefetchConfigVpDCUStreamerPrefetch,
-    cucsBiosVfProcessorPrefetchConfigVpHardwarePrefetcher            CucsBiosVfProcessorPrefetchConfigVpHardwarePrefetcher
+    cucsBiosVfProcessorPrefetchConfigVpHardwarePrefetcher            CucsBiosVfProcessorPrefetchConfigVpHardwarePrefetcher,
+    cucsBiosVfProcessorPrefetchConfigPropAcl                         Unsigned64,
+    cucsBiosVfProcessorPrefetchConfigSupportedByDefault              CucsBiosSupportedAction
 }
 
 cucsBiosVfProcessorPrefetchConfigInstanceId OBJECT-TYPE
@@ -4381,6 +6168,24 @@ cucsBiosVfProcessorPrefetchConfigVpHardwarePrefetcher OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfProcessorPrefetchConfigEntry 7 }
 
+cucsBiosVfProcessorPrefetchConfigPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfProcessorPrefetchConfig:propAcl
+        managed object property"
+    ::= { cucsBiosVfProcessorPrefetchConfigEntry 8 }
+
+cucsBiosVfProcessorPrefetchConfigSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfProcessorPrefetchConfig:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfProcessorPrefetchConfigEntry 9 }
+
 cucsBiosVfQPILinkFrequencySelectTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfQPILinkFrequencySelectEntry
     MAX-ACCESS       not-accessible
@@ -4402,7 +6207,9 @@ CucsBiosVfQPILinkFrequencySelectEntry ::= SEQUENCE {
     cucsBiosVfQPILinkFrequencySelectInstanceId                       CucsManagedObjectId,
     cucsBiosVfQPILinkFrequencySelectDn                               CucsManagedObjectDn,
     cucsBiosVfQPILinkFrequencySelectRn                               SnmpAdminString,
-    cucsBiosVfQPILinkFrequencySelectVpQPILinkFrequencySelect         CucsBiosVfQPILinkFrequencySelectVpQPILinkFrequencySelect
+    cucsBiosVfQPILinkFrequencySelectVpQPILinkFrequencySelect         CucsBiosVfQPILinkFrequencySelectVpQPILinkFrequencySelect,
+    cucsBiosVfQPILinkFrequencySelectPropAcl                          Unsigned64,
+    cucsBiosVfQPILinkFrequencySelectSupportedByDefault               CucsBiosSupportedAction
 }
 
 cucsBiosVfQPILinkFrequencySelectInstanceId OBJECT-TYPE
@@ -4440,6 +6247,100 @@ cucsBiosVfQPILinkFrequencySelectVpQPILinkFrequencySelect OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfQPILinkFrequencySelectEntry 4 }
 
+cucsBiosVfQPILinkFrequencySelectPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfQPILinkFrequencySelect:propAcl
+        managed object property"
+    ::= { cucsBiosVfQPILinkFrequencySelectEntry 5 }
+
+cucsBiosVfQPILinkFrequencySelectSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfQPILinkFrequencySelect:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfQPILinkFrequencySelectEntry 6 }
+
+cucsBiosVfQPISnoopModeTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsBiosVfQPISnoopModeEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS bios:VfQPISnoopMode managed object table"
+    ::= { cucsBiosObjects 81 }
+
+cucsBiosVfQPISnoopModeEntry OBJECT-TYPE
+    SYNTAX           CucsBiosVfQPISnoopModeEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsBiosVfQPISnoopModeTable table."
+    INDEX { cucsBiosVfQPISnoopModeInstanceId }
+    ::= { cucsBiosVfQPISnoopModeTable 1 }
+
+CucsBiosVfQPISnoopModeEntry ::= SEQUENCE {
+    cucsBiosVfQPISnoopModeInstanceId                                 CucsManagedObjectId,
+    cucsBiosVfQPISnoopModeDn                                         CucsManagedObjectDn,
+    cucsBiosVfQPISnoopModeRn                                         SnmpAdminString,
+    cucsBiosVfQPISnoopModeVpQPISnoopMode                             CucsBiosVfQPISnoopModeVpQPISnoopMode,
+    cucsBiosVfQPISnoopModePropAcl                                    Unsigned64,
+    cucsBiosVfQPISnoopModeSupportedByDefault                         CucsBiosSupportedAction
+}
+
+cucsBiosVfQPISnoopModeInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsBiosVfQPISnoopModeEntry 1 }
+
+cucsBiosVfQPISnoopModeDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfQPISnoopMode:dn managed object property"
+    ::= { cucsBiosVfQPISnoopModeEntry 2 }
+
+cucsBiosVfQPISnoopModeRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfQPISnoopMode:rn managed object property"
+    ::= { cucsBiosVfQPISnoopModeEntry 3 }
+
+cucsBiosVfQPISnoopModeVpQPISnoopMode OBJECT-TYPE
+    SYNTAX       CucsBiosVfQPISnoopModeVpQPISnoopMode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfQPISnoopMode:vpQPISnoopMode managed
+        object property"
+    ::= { cucsBiosVfQPISnoopModeEntry 4 }
+
+cucsBiosVfQPISnoopModePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfQPISnoopMode:propAcl managed object property"
+    ::= { cucsBiosVfQPISnoopModeEntry 5 }
+
+cucsBiosVfQPISnoopModeSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfQPISnoopMode:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfQPISnoopModeEntry 6 }
+
 cucsBiosVfQuietBootTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfQuietBootEntry
     MAX-ACCESS       not-accessible
@@ -4461,7 +6362,9 @@ CucsBiosVfQuietBootEntry ::= SEQUENCE {
     cucsBiosVfQuietBootInstanceId                                    CucsManagedObjectId,
     cucsBiosVfQuietBootDn                                            CucsManagedObjectDn,
     cucsBiosVfQuietBootRn                                            SnmpAdminString,
-    cucsBiosVfQuietBootVpQuietBoot                                   CucsBiosVfQuietBootVpQuietBoot
+    cucsBiosVfQuietBootVpQuietBoot                                   CucsBiosVfQuietBootVpQuietBoot,
+    cucsBiosVfQuietBootPropAcl                                       Unsigned64,
+    cucsBiosVfQuietBootSupportedByDefault                            CucsBiosSupportedAction
 }
 
 cucsBiosVfQuietBootInstanceId OBJECT-TYPE
@@ -4496,6 +6399,23 @@ cucsBiosVfQuietBootVpQuietBoot OBJECT-TYPE
         "Cisco UCS bios:VfQuietBoot:vpQuietBoot managed object property"
     ::= { cucsBiosVfQuietBootEntry 4 }
 
+cucsBiosVfQuietBootPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfQuietBoot:propAcl managed object property"
+    ::= { cucsBiosVfQuietBootEntry 5 }
+
+cucsBiosVfQuietBootSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfQuietBoot:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfQuietBootEntry 6 }
+
 cucsBiosVfResumeOnACPowerLossTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfResumeOnACPowerLossEntry
     MAX-ACCESS       not-accessible
@@ -4517,7 +6437,9 @@ CucsBiosVfResumeOnACPowerLossEntry ::= SEQUENCE {
     cucsBiosVfResumeOnACPowerLossInstanceId                          CucsManagedObjectId,
     cucsBiosVfResumeOnACPowerLossDn                                  CucsManagedObjectDn,
     cucsBiosVfResumeOnACPowerLossRn                                  SnmpAdminString,
-    cucsBiosVfResumeOnACPowerLossVpResumeOnACPowerLoss               CucsBiosVfResumeOnACPowerLossVpResumeOnACPowerLoss
+    cucsBiosVfResumeOnACPowerLossVpResumeOnACPowerLoss               CucsBiosVfResumeOnACPowerLossVpResumeOnACPowerLoss,
+    cucsBiosVfResumeOnACPowerLossPropAcl                             Unsigned64,
+    cucsBiosVfResumeOnACPowerLossSupportedByDefault                  CucsBiosSupportedAction
 }
 
 cucsBiosVfResumeOnACPowerLossInstanceId OBJECT-TYPE
@@ -4553,6 +6475,24 @@ cucsBiosVfResumeOnACPowerLossVpResumeOnACPowerLoss OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfResumeOnACPowerLossEntry 4 }
 
+cucsBiosVfResumeOnACPowerLossPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfResumeOnACPowerLoss:propAcl managed
+        object property"
+    ::= { cucsBiosVfResumeOnACPowerLossEntry 5 }
+
+cucsBiosVfResumeOnACPowerLossSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfResumeOnACPowerLoss:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfResumeOnACPowerLossEntry 6 }
+
 cucsBiosVfScrubPoliciesTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfScrubPoliciesEntry
     MAX-ACCESS       not-accessible
@@ -4575,7 +6515,9 @@ CucsBiosVfScrubPoliciesEntry ::= SEQUENCE {
     cucsBiosVfScrubPoliciesDn                                        CucsManagedObjectDn,
     cucsBiosVfScrubPoliciesRn                                        SnmpAdminString,
     cucsBiosVfScrubPoliciesVpDemandScrub                             CucsBiosVfScrubPoliciesVpDemandScrub,
-    cucsBiosVfScrubPoliciesVpPatrolScrub                             CucsBiosVfScrubPoliciesVpPatrolScrub
+    cucsBiosVfScrubPoliciesVpPatrolScrub                             CucsBiosVfScrubPoliciesVpPatrolScrub,
+    cucsBiosVfScrubPoliciesPropAcl                                   Unsigned64,
+    cucsBiosVfScrubPoliciesSupportedByDefault                        CucsBiosSupportedAction
 }
 
 cucsBiosVfScrubPoliciesInstanceId OBJECT-TYPE
@@ -4620,6 +6562,23 @@ cucsBiosVfScrubPoliciesVpPatrolScrub OBJECT-TYPE
         object property"
     ::= { cucsBiosVfScrubPoliciesEntry 5 }
 
+cucsBiosVfScrubPoliciesPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfScrubPolicies:propAcl managed object property"
+    ::= { cucsBiosVfScrubPoliciesEntry 6 }
+
+cucsBiosVfScrubPoliciesSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfScrubPolicies:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfScrubPoliciesEntry 7 }
+
 cucsBiosVfSelectMemoryRASConfigurationTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfSelectMemoryRASConfigurationEntry
     MAX-ACCESS       not-accessible
@@ -4642,7 +6601,9 @@ CucsBiosVfSelectMemoryRASConfigurationEntry ::= SEQUENCE {
     cucsBiosVfSelectMemoryRASConfigurationInstanceId                 CucsManagedObjectId,
     cucsBiosVfSelectMemoryRASConfigurationDn                         CucsManagedObjectDn,
     cucsBiosVfSelectMemoryRASConfigurationRn                         SnmpAdminString,
-    cucsBiosVpSelectMemoryRASConfiguration                           CucsBiosVpSelectMemoryRASConfiguration
+    cucsBiosVpSelectMemoryRASConfiguration                           CucsBiosVpSelectMemoryRASConfiguration,
+    cucsBiosVfSelectMemoryRASConfigurationPropAcl                    Unsigned64,
+    cucsBiosVfSelectMemoryRASConfigurationSupportedByDefault         CucsBiosSupportedAction
 }
 
 cucsBiosVfSelectMemoryRASConfigurationInstanceId OBJECT-TYPE
@@ -4680,6 +6641,24 @@ cucsBiosVpSelectMemoryRASConfiguration OBJECT-TYPE
         nfiguration managed object property"
     ::= { cucsBiosVfSelectMemoryRASConfigurationEntry 4 }
 
+cucsBiosVfSelectMemoryRASConfigurationPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfSelectMemoryRASConfiguration:propAcl
+        managed object property"
+    ::= { cucsBiosVfSelectMemoryRASConfigurationEntry 5 }
+
+cucsBiosVfSelectMemoryRASConfigurationSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfSelectMemoryRASConfiguration:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfSelectMemoryRASConfigurationEntry 6 }
+
 cucsBiosVfSerialPortAEnableTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfSerialPortAEnableEntry
     MAX-ACCESS       not-accessible
@@ -4701,7 +6680,9 @@ CucsBiosVfSerialPortAEnableEntry ::= SEQUENCE {
     cucsBiosVfSerialPortAEnableInstanceId                            CucsManagedObjectId,
     cucsBiosVfSerialPortAEnableDn                                    CucsManagedObjectDn,
     cucsBiosVfSerialPortAEnableRn                                    SnmpAdminString,
-    cucsBiosVfSerialPortAEnableVpSerialPortAEnable                   CucsBiosVfSerialPortAEnableVpSerialPortAEnable
+    cucsBiosVfSerialPortAEnableVpSerialPortAEnable                   CucsBiosVfSerialPortAEnableVpSerialPortAEnable,
+    cucsBiosVfSerialPortAEnablePropAcl                               Unsigned64,
+    cucsBiosVfSerialPortAEnableSupportedByDefault                    CucsBiosSupportedAction
 }
 
 cucsBiosVfSerialPortAEnableInstanceId OBJECT-TYPE
@@ -4737,6 +6718,24 @@ cucsBiosVfSerialPortAEnableVpSerialPortAEnable OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfSerialPortAEnableEntry 4 }
 
+cucsBiosVfSerialPortAEnablePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfSerialPortAEnable:propAcl managed
+        object property"
+    ::= { cucsBiosVfSerialPortAEnableEntry 5 }
+
+cucsBiosVfSerialPortAEnableSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfSerialPortAEnable:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfSerialPortAEnableEntry 6 }
+
 cucsBiosVfSparingModeTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfSparingModeEntry
     MAX-ACCESS       not-accessible
@@ -4758,7 +6757,9 @@ CucsBiosVfSparingModeEntry ::= SEQUENCE {
     cucsBiosVfSparingModeInstanceId                                  CucsManagedObjectId,
     cucsBiosVfSparingModeDn                                          CucsManagedObjectDn,
     cucsBiosVfSparingModeRn                                          SnmpAdminString,
-    cucsBiosVfSparingModeVpSparingMode                               CucsBiosVfSparingModeVpSparingMode
+    cucsBiosVfSparingModeVpSparingMode                               CucsBiosVfSparingModeVpSparingMode,
+    cucsBiosVfSparingModePropAcl                                     Unsigned64,
+    cucsBiosVfSparingModeSupportedByDefault                          CucsBiosSupportedAction
 }
 
 cucsBiosVfSparingModeInstanceId OBJECT-TYPE
@@ -4794,6 +6795,23 @@ cucsBiosVfSparingModeVpSparingMode OBJECT-TYPE
         object property"
     ::= { cucsBiosVfSparingModeEntry 4 }
 
+cucsBiosVfSparingModePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfSparingMode:propAcl managed object property"
+    ::= { cucsBiosVfSparingModeEntry 5 }
+
+cucsBiosVfSparingModeSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfSparingMode:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfSparingModeEntry 6 }
+
 cucsBiosVfSriovConfigTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfSriovConfigEntry
     MAX-ACCESS       not-accessible
@@ -4815,7 +6833,9 @@ CucsBiosVfSriovConfigEntry ::= SEQUENCE {
     cucsBiosVfSriovConfigInstanceId                                  CucsManagedObjectId,
     cucsBiosVfSriovConfigDn                                          CucsManagedObjectDn,
     cucsBiosVfSriovConfigRn                                          SnmpAdminString,
-    cucsBiosVfSriovConfigVpSriov                                     CucsBiosVfSriovConfigVpSriov
+    cucsBiosVfSriovConfigVpSriov                                     CucsBiosVfSriovConfigVpSriov,
+    cucsBiosVfSriovConfigPropAcl                                     Unsigned64,
+    cucsBiosVfSriovConfigSupportedByDefault                          CucsBiosSupportedAction
 }
 
 cucsBiosVfSriovConfigInstanceId OBJECT-TYPE
@@ -4850,6 +6870,100 @@ cucsBiosVfSriovConfigVpSriov OBJECT-TYPE
         "Cisco UCS bios:VfSriovConfig:vpSriov managed object property"
     ::= { cucsBiosVfSriovConfigEntry 4 }
 
+cucsBiosVfSriovConfigPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfSriovConfig:propAcl managed object property"
+    ::= { cucsBiosVfSriovConfigEntry 5 }
+
+cucsBiosVfSriovConfigSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfSriovConfig:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfSriovConfigEntry 6 }
+
+cucsBiosVfTPMPendingOperationTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsBiosVfTPMPendingOperationEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS bios:VfTPMPendingOperation managed object table"
+    ::= { cucsBiosObjects 90 }
+
+cucsBiosVfTPMPendingOperationEntry OBJECT-TYPE
+    SYNTAX           CucsBiosVfTPMPendingOperationEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsBiosVfTPMPendingOperationTable table."
+    INDEX { cucsBiosVfTPMPendingOperationInstanceId }
+    ::= { cucsBiosVfTPMPendingOperationTable 1 }
+
+CucsBiosVfTPMPendingOperationEntry ::= SEQUENCE {
+    cucsBiosVfTPMPendingOperationInstanceId                          CucsManagedObjectId,
+    cucsBiosVfTPMPendingOperationDn                                  CucsManagedObjectDn,
+    cucsBiosVfTPMPendingOperationRn                                  SnmpAdminString,
+    cucsBiosVfTPMPendingOperationVpTPMPendingOperation               CucsBiosVfTPMPendingOperationVpTPMPendingOperation,
+    cucsBiosVfTPMPendingOperationSupportedByDefault                  CucsBiosSupportedAction,
+    cucsBiosVfTPMPendingOperationPropAcl                             Unsigned64
+}
+
+cucsBiosVfTPMPendingOperationInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsBiosVfTPMPendingOperationEntry 1 }
+
+cucsBiosVfTPMPendingOperationDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfTPMPendingOperation:dn managed object property"
+    ::= { cucsBiosVfTPMPendingOperationEntry 2 }
+
+cucsBiosVfTPMPendingOperationRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfTPMPendingOperation:rn managed object property"
+    ::= { cucsBiosVfTPMPendingOperationEntry 3 }
+
+cucsBiosVfTPMPendingOperationVpTPMPendingOperation OBJECT-TYPE
+    SYNTAX       CucsBiosVfTPMPendingOperationVpTPMPendingOperation
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfTPMPendingOperation:vpTPMPendingOperation
+        managed object property"
+    ::= { cucsBiosVfTPMPendingOperationEntry 4 }
+
+cucsBiosVfTPMPendingOperationSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfTPMPendingOperation:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfTPMPendingOperationEntry 5 }
+
+cucsBiosVfTPMPendingOperationPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfTPMPendingOperation:propAcl managed
+        object property"
+    ::= { cucsBiosVfTPMPendingOperationEntry 6 }
+
 cucsBiosVfTPMSupportTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfTPMSupportEntry
     MAX-ACCESS       not-accessible
@@ -4871,7 +6985,9 @@ CucsBiosVfTPMSupportEntry ::= SEQUENCE {
     cucsBiosVfTPMSupportInstanceId                                   CucsManagedObjectId,
     cucsBiosVfTPMSupportDn                                           CucsManagedObjectDn,
     cucsBiosVfTPMSupportRn                                           SnmpAdminString,
-    cucsBiosVfTPMSupportVpTPMSupport                                 CucsBiosVfTPMSupportVpTPMSupport
+    cucsBiosVfTPMSupportVpTPMSupport                                 CucsBiosVfTPMSupportVpTPMSupport,
+    cucsBiosVfTPMSupportPropAcl                                      Unsigned64,
+    cucsBiosVfTPMSupportSupportedByDefault                           CucsBiosSupportedAction
 }
 
 cucsBiosVfTPMSupportInstanceId OBJECT-TYPE
@@ -4906,6 +7022,102 @@ cucsBiosVfTPMSupportVpTPMSupport OBJECT-TYPE
         "Cisco UCS bios:VfTPMSupport:vpTPMSupport managed object property"
     ::= { cucsBiosVfTPMSupportEntry 4 }
 
+cucsBiosVfTPMSupportPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfTPMSupport:propAcl managed object property"
+    ::= { cucsBiosVfTPMSupportEntry 5 }
+
+cucsBiosVfTPMSupportSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfTPMSupport:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfTPMSupportEntry 6 }
+
+cucsBiosVfTrustedPlatformModuleTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsBiosVfTrustedPlatformModuleEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS bios:VfTrustedPlatformModule managed object table"
+    ::= { cucsBiosObjects 91 }
+
+cucsBiosVfTrustedPlatformModuleEntry OBJECT-TYPE
+    SYNTAX           CucsBiosVfTrustedPlatformModuleEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsBiosVfTrustedPlatformModuleTable table."
+    INDEX { cucsBiosVfTrustedPlatformModuleInstanceId }
+    ::= { cucsBiosVfTrustedPlatformModuleTable 1 }
+
+CucsBiosVfTrustedPlatformModuleEntry ::= SEQUENCE {
+    cucsBiosVfTrustedPlatformModuleInstanceId                        CucsManagedObjectId,
+    cucsBiosVfTrustedPlatformModuleDn                                CucsManagedObjectDn,
+    cucsBiosVfTrustedPlatformModuleRn                                SnmpAdminString,
+    cucsBiosVfTrustedPlatformModuleVpTrustedPlatformModuleSupport    CucsBiosVfTrustedPlatformModuleVpTrustedPlatformModuleSupport,
+    cucsBiosVfTrustedPlatformModuleSupportedByDefault                CucsBiosSupportedAction,
+    cucsBiosVfTrustedPlatformModulePropAcl                           Unsigned64
+}
+
+cucsBiosVfTrustedPlatformModuleInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsBiosVfTrustedPlatformModuleEntry 1 }
+
+cucsBiosVfTrustedPlatformModuleDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfTrustedPlatformModule:dn managed
+        object property"
+    ::= { cucsBiosVfTrustedPlatformModuleEntry 2 }
+
+cucsBiosVfTrustedPlatformModuleRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfTrustedPlatformModule:rn managed
+        object property"
+    ::= { cucsBiosVfTrustedPlatformModuleEntry 3 }
+
+cucsBiosVfTrustedPlatformModuleVpTrustedPlatformModuleSupport OBJECT-TYPE
+    SYNTAX       CucsBiosVfTrustedPlatformModuleVpTrustedPlatformModuleSupport
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfTrustedPlatformModule:vpTrustedPlatformModuleSup
+        port managed object property"
+    ::= { cucsBiosVfTrustedPlatformModuleEntry 4 }
+
+cucsBiosVfTrustedPlatformModuleSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfTrustedPlatformModule:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfTrustedPlatformModuleEntry 5 }
+
+cucsBiosVfTrustedPlatformModulePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfTrustedPlatformModule:propAcl
+        managed object property"
+    ::= { cucsBiosVfTrustedPlatformModuleEntry 6 }
+
 cucsBiosVfUCSMBootModeControlTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfUCSMBootModeControlEntry
     MAX-ACCESS       not-accessible
@@ -4927,7 +7139,9 @@ CucsBiosVfUCSMBootModeControlEntry ::= SEQUENCE {
     cucsBiosVfUCSMBootModeControlInstanceId                          CucsManagedObjectId,
     cucsBiosVfUCSMBootModeControlDn                                  CucsManagedObjectDn,
     cucsBiosVfUCSMBootModeControlRn                                  SnmpAdminString,
-    cucsBiosVfUCSMBootModeControlVpUEFIBootMode                      CucsBiosVfUCSMBootModeControlVpUEFIBootMode
+    cucsBiosVfUCSMBootModeControlVpUEFIBootMode                      CucsBiosVfUCSMBootModeControlVpUEFIBootMode,
+    cucsBiosVfUCSMBootModeControlPropAcl                             Unsigned64,
+    cucsBiosVfUCSMBootModeControlSupportedByDefault                  CucsBiosSupportedAction
 }
 
 cucsBiosVfUCSMBootModeControlInstanceId OBJECT-TYPE
@@ -4963,6 +7177,24 @@ cucsBiosVfUCSMBootModeControlVpUEFIBootMode OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfUCSMBootModeControlEntry 4 }
 
+cucsBiosVfUCSMBootModeControlPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfUCSMBootModeControl:propAcl managed
+        object property"
+    ::= { cucsBiosVfUCSMBootModeControlEntry 5 }
+
+cucsBiosVfUCSMBootModeControlSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfUCSMBootModeControl:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfUCSMBootModeControlEntry 6 }
+
 cucsBiosVfUCSMBootOrderRuleControlTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfUCSMBootOrderRuleControlEntry
     MAX-ACCESS       not-accessible
@@ -4984,7 +7216,9 @@ CucsBiosVfUCSMBootOrderRuleControlEntry ::= SEQUENCE {
     cucsBiosVfUCSMBootOrderRuleControlInstanceId                     CucsManagedObjectId,
     cucsBiosVfUCSMBootOrderRuleControlDn                             CucsManagedObjectDn,
     cucsBiosVfUCSMBootOrderRuleControlRn                             SnmpAdminString,
-    cucsBiosVfUCSMBootOrderRuleControlVpUCSMBootOrderRule            CucsBiosVfUCSMBootOrderRuleControlVpUCSMBootOrderRule
+    cucsBiosVfUCSMBootOrderRuleControlVpUCSMBootOrderRule            CucsBiosVfUCSMBootOrderRuleControlVpUCSMBootOrderRule,
+    cucsBiosVfUCSMBootOrderRuleControlPropAcl                        Unsigned64,
+    cucsBiosVfUCSMBootOrderRuleControlSupportedByDefault             CucsBiosSupportedAction
 }
 
 cucsBiosVfUCSMBootOrderRuleControlInstanceId OBJECT-TYPE
@@ -5022,6 +7256,24 @@ cucsBiosVfUCSMBootOrderRuleControlVpUCSMBootOrderRule OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfUCSMBootOrderRuleControlEntry 4 }
 
+cucsBiosVfUCSMBootOrderRuleControlPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfUCSMBootOrderRuleControl:propAcl
+        managed object property"
+    ::= { cucsBiosVfUCSMBootOrderRuleControlEntry 5 }
+
+cucsBiosVfUCSMBootOrderRuleControlSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfUCSMBootOrderRuleControl:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfUCSMBootOrderRuleControlEntry 6 }
+
 cucsBiosVfUEFIOSUseLegacyVideoTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfUEFIOSUseLegacyVideoEntry
     MAX-ACCESS       not-accessible
@@ -5043,7 +7295,9 @@ CucsBiosVfUEFIOSUseLegacyVideoEntry ::= SEQUENCE {
     cucsBiosVfUEFIOSUseLegacyVideoInstanceId                         CucsManagedObjectId,
     cucsBiosVfUEFIOSUseLegacyVideoDn                                 CucsManagedObjectDn,
     cucsBiosVfUEFIOSUseLegacyVideoRn                                 SnmpAdminString,
-    cucsBiosVfUEFIOSUseLegacyVideoVpUEFIOSUseLegacyVideo             CucsBiosVfUEFIOSUseLegacyVideoVpUEFIOSUseLegacyVideo
+    cucsBiosVfUEFIOSUseLegacyVideoVpUEFIOSUseLegacyVideo             CucsBiosVfUEFIOSUseLegacyVideoVpUEFIOSUseLegacyVideo,
+    cucsBiosVfUEFIOSUseLegacyVideoPropAcl                            Unsigned64,
+    cucsBiosVfUEFIOSUseLegacyVideoSupportedByDefault                 CucsBiosSupportedAction
 }
 
 cucsBiosVfUEFIOSUseLegacyVideoInstanceId OBJECT-TYPE
@@ -5079,6 +7333,24 @@ cucsBiosVfUEFIOSUseLegacyVideoVpUEFIOSUseLegacyVideo OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfUEFIOSUseLegacyVideoEntry 4 }
 
+cucsBiosVfUEFIOSUseLegacyVideoPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfUEFIOSUseLegacyVideo:propAcl
+        managed object property"
+    ::= { cucsBiosVfUEFIOSUseLegacyVideoEntry 5 }
+
+cucsBiosVfUEFIOSUseLegacyVideoSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfUEFIOSUseLegacyVideo:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfUEFIOSUseLegacyVideoEntry 6 }
+
 cucsBiosVfUSBBootConfigTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfUSBBootConfigEntry
     MAX-ACCESS       not-accessible
@@ -5101,7 +7373,9 @@ CucsBiosVfUSBBootConfigEntry ::= SEQUENCE {
     cucsBiosVfUSBBootConfigDn                                        CucsManagedObjectDn,
     cucsBiosVfUSBBootConfigRn                                        SnmpAdminString,
     cucsBiosVfUSBBootConfigVpMakeDeviceNonBootable                   CucsBiosVfUSBBootConfigVpMakeDeviceNonBootable,
-    cucsBiosVfUSBBootConfigVpLegacyUSBSupport                        CucsBiosVfUSBBootConfigVpLegacyUSBSupport
+    cucsBiosVfUSBBootConfigVpLegacyUSBSupport                        CucsBiosVfUSBBootConfigVpLegacyUSBSupport,
+    cucsBiosVfUSBBootConfigPropAcl                                   Unsigned64,
+    cucsBiosVfUSBBootConfigSupportedByDefault                        CucsBiosSupportedAction
 }
 
 cucsBiosVfUSBBootConfigInstanceId OBJECT-TYPE
@@ -5146,6 +7420,23 @@ cucsBiosVfUSBBootConfigVpLegacyUSBSupport OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfUSBBootConfigEntry 5 }
 
+cucsBiosVfUSBBootConfigPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfUSBBootConfig:propAcl managed object property"
+    ::= { cucsBiosVfUSBBootConfigEntry 6 }
+
+cucsBiosVfUSBBootConfigSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfUSBBootConfig:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfUSBBootConfigEntry 7 }
+
 cucsBiosVfUSBConfigurationTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfUSBConfigurationEntry
     MAX-ACCESS       not-accessible
@@ -5168,7 +7459,9 @@ CucsBiosVfUSBConfigurationEntry ::= SEQUENCE {
     cucsBiosVfUSBConfigurationDn                                     CucsManagedObjectDn,
     cucsBiosVfUSBConfigurationRn                                     SnmpAdminString,
     cucsBiosVfUSBConfigurationVpLegacyUSBSupport                     CucsBiosVfUSBConfigurationVpLegacyUSBSupport,
-    cucsBiosVfUSBConfigurationVpXHCIMode                             CucsBiosVfUSBConfigurationVpXHCIMode
+    cucsBiosVfUSBConfigurationVpXHCIMode                             CucsBiosVfUSBConfigurationVpXHCIMode,
+    cucsBiosVfUSBConfigurationPropAcl                                Unsigned64,
+    cucsBiosVfUSBConfigurationSupportedByDefault                     CucsBiosSupportedAction
 }
 
 cucsBiosVfUSBConfigurationInstanceId OBJECT-TYPE
@@ -5213,6 +7506,24 @@ cucsBiosVfUSBConfigurationVpXHCIMode OBJECT-TYPE
         object property"
     ::= { cucsBiosVfUSBConfigurationEntry 5 }
 
+cucsBiosVfUSBConfigurationPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfUSBConfiguration:propAcl managed
+        object property"
+    ::= { cucsBiosVfUSBConfigurationEntry 6 }
+
+cucsBiosVfUSBConfigurationSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfUSBConfiguration:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfUSBConfigurationEntry 7 }
+
 cucsBiosVfUSBFrontPanelAccessLockTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfUSBFrontPanelAccessLockEntry
     MAX-ACCESS       not-accessible
@@ -5234,7 +7545,9 @@ CucsBiosVfUSBFrontPanelAccessLockEntry ::= SEQUENCE {
     cucsBiosVfUSBFrontPanelAccessLockInstanceId                      CucsManagedObjectId,
     cucsBiosVfUSBFrontPanelAccessLockDn                              CucsManagedObjectDn,
     cucsBiosVfUSBFrontPanelAccessLockRn                              SnmpAdminString,
-    cucsBiosVfUSBFrontPanelAccessLockVpUSBFrontPanelLock             CucsBiosVfUSBFrontPanelAccessLockVpUSBFrontPanelLock
+    cucsBiosVfUSBFrontPanelAccessLockVpUSBFrontPanelLock             CucsBiosVfUSBFrontPanelAccessLockVpUSBFrontPanelLock,
+    cucsBiosVfUSBFrontPanelAccessLockPropAcl                         Unsigned64,
+    cucsBiosVfUSBFrontPanelAccessLockSupportedByDefault              CucsBiosSupportedAction
 }
 
 cucsBiosVfUSBFrontPanelAccessLockInstanceId OBJECT-TYPE
@@ -5272,6 +7585,24 @@ cucsBiosVfUSBFrontPanelAccessLockVpUSBFrontPanelLock OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfUSBFrontPanelAccessLockEntry 4 }
 
+cucsBiosVfUSBFrontPanelAccessLockPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfUSBFrontPanelAccessLock:propAcl
+        managed object property"
+    ::= { cucsBiosVfUSBFrontPanelAccessLockEntry 5 }
+
+cucsBiosVfUSBFrontPanelAccessLockSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfUSBFrontPanelAccessLock:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfUSBFrontPanelAccessLockEntry 6 }
+
 cucsBiosVfUSBPortConfigurationTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfUSBPortConfigurationEntry
     MAX-ACCESS       not-accessible
@@ -5299,7 +7630,9 @@ CucsBiosVfUSBPortConfigurationEntry ::= SEQUENCE {
     cucsBiosVfUSBPortConfigurationVpUSBPortKVM                       CucsBiosVfUSBPortConfigurationVpUSBPortKVM,
     cucsBiosVfUSBPortConfigurationVpUSBPortRear                      CucsBiosVfUSBPortConfigurationVpUSBPortRear,
     cucsBiosVfUSBPortConfigurationVpUSBPortSDCard                    CucsBiosVfUSBPortConfigurationVpUSBPortSDCard,
-    cucsBiosVfUSBPortConfigurationVpUSBPortVMedia                    CucsBiosVfUSBPortConfigurationVpUSBPortVMedia
+    cucsBiosVfUSBPortConfigurationVpUSBPortVMedia                    CucsBiosVfUSBPortConfigurationVpUSBPortVMedia,
+    cucsBiosVfUSBPortConfigurationPropAcl                            Unsigned64,
+    cucsBiosVfUSBPortConfigurationSupportedByDefault                 CucsBiosSupportedAction
 }
 
 cucsBiosVfUSBPortConfigurationInstanceId OBJECT-TYPE
@@ -5389,6 +7722,24 @@ cucsBiosVfUSBPortConfigurationVpUSBPortVMedia OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfUSBPortConfigurationEntry 10 }
 
+cucsBiosVfUSBPortConfigurationPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfUSBPortConfiguration:propAcl
+        managed object property"
+    ::= { cucsBiosVfUSBPortConfigurationEntry 11 }
+
+cucsBiosVfUSBPortConfigurationSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfUSBPortConfiguration:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfUSBPortConfigurationEntry 12 }
+
 cucsBiosVfUSBSystemIdlePowerOptimizingSettingTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfUSBSystemIdlePowerOptimizingSettingEntry
     MAX-ACCESS       not-accessible
@@ -5411,7 +7762,9 @@ CucsBiosVfUSBSystemIdlePowerOptimizingSettingEntry ::= SEQUENCE {
     cucsBiosVfUSBSystemIdlePowerOptimizingSettingInstanceId          CucsManagedObjectId,
     cucsBiosVfUSBSystemIdlePowerOptimizingSettingDn                  CucsManagedObjectDn,
     cucsBiosVfUSBSystemIdlePowerOptimizingSettingRn                  SnmpAdminString,
-    cucsBiosVfUSBSystemIdlePowerOptimizingSettingVpUSBIdlePowerOptimizing CucsBiosVfUSBSysIdlePowerOptimizingSettingVpUSBIdlePowerOptimize
+    cucsBiosVfUSBSysIdlePowerOptimizingSettingVpUSBIdlePowerOptimize CucsBiosVfUSBSysIdlePowerOptimizingSettingVpUSBIdlePowerOptimize,
+    cucsBiosVfUSBSystemIdlePowerOptimizingSettingPropAcl             Unsigned64,
+    cucsBiosVfUSBSystemIdlePowerOptimizingSettingSupportedByDefault  CucsBiosSupportedAction
 }
 
 cucsBiosVfUSBSystemIdlePowerOptimizingSettingInstanceId OBJECT-TYPE
@@ -5440,7 +7793,7 @@ cucsBiosVfUSBSystemIdlePowerOptimizingSettingRn OBJECT-TYPE
         managed object property"
     ::= { cucsBiosVfUSBSystemIdlePowerOptimizingSettingEntry 3 }
 
-cucsBiosVfUSBSystemIdlePowerOptimizingSettingVpUSBIdlePowerOptimizing OBJECT-TYPE
+cucsBiosVfUSBSysIdlePowerOptimizingSettingVpUSBIdlePowerOptimize OBJECT-TYPE
     SYNTAX       CucsBiosVfUSBSysIdlePowerOptimizingSettingVpUSBIdlePowerOptimize
     MAX-ACCESS   read-only
     STATUS       current
@@ -5448,6 +7801,24 @@ cucsBiosVfUSBSystemIdlePowerOptimizingSettingVpUSBIdlePowerOptimizing OBJECT-TYP
         "Cisco UCS bios:VfUSBSystemIdlePowerOptimizingSetting:vpUSBIdlePow
         erOptimizing managed object property"
     ::= { cucsBiosVfUSBSystemIdlePowerOptimizingSettingEntry 4 }
+
+cucsBiosVfUSBSystemIdlePowerOptimizingSettingPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfUSBSystemIdlePowerOptimizingSetting:propAcl
+        managed object property"
+    ::= { cucsBiosVfUSBSystemIdlePowerOptimizingSettingEntry 5 }
+
+cucsBiosVfUSBSystemIdlePowerOptimizingSettingSupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfUSBSystemIdlePowerOptimizingSetting:supportedByD
+        efault managed object property"
+    ::= { cucsBiosVfUSBSystemIdlePowerOptimizingSettingEntry 6 }
 
 cucsBiosVfVGAPriorityTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsBiosVfVGAPriorityEntry
@@ -5470,7 +7841,9 @@ CucsBiosVfVGAPriorityEntry ::= SEQUENCE {
     cucsBiosVfVGAPriorityInstanceId                                  CucsManagedObjectId,
     cucsBiosVfVGAPriorityDn                                          CucsManagedObjectDn,
     cucsBiosVfVGAPriorityRn                                          SnmpAdminString,
-    cucsBiosVfVGAPriorityVpVGAPriority                               CucsBiosVfVGAPriorityVpVGAPriority
+    cucsBiosVfVGAPriorityVpVGAPriority                               CucsBiosVfVGAPriorityVpVGAPriority,
+    cucsBiosVfVGAPriorityPropAcl                                     Unsigned64,
+    cucsBiosVfVGAPrioritySupportedByDefault                          CucsBiosSupportedAction
 }
 
 cucsBiosVfVGAPriorityInstanceId OBJECT-TYPE
@@ -5505,5 +7878,22 @@ cucsBiosVfVGAPriorityVpVGAPriority OBJECT-TYPE
         "Cisco UCS bios:VfVGAPriority:vpVGAPriority managed
         object property"
     ::= { cucsBiosVfVGAPriorityEntry 4 }
+
+cucsBiosVfVGAPriorityPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfVGAPriority:propAcl managed object property"
+    ::= { cucsBiosVfVGAPriorityEntry 5 }
+
+cucsBiosVfVGAPrioritySupportedByDefault OBJECT-TYPE
+    SYNTAX       CucsBiosSupportedAction
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS bios:VfVGAPriority:supportedByDefault
+        managed object property"
+    ::= { cucsBiosVfVGAPriorityEntry 6 }
 
 END

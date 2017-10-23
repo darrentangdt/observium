@@ -1,7 +1,11 @@
 --
 -- File Name : A10-AX-MIB.txt
 --
--- Copyright (C) 2006 - 2009, A10 Networks Inc. All rights reserved.
+-- Copyright(C) 2005-2011, A10 Networks Inc. All rights reserved.
+-- Software for all A10 products contain trade secrets and confidential
+-- information of A10 Networks and its subsidiaries and may not be disclosed,
+-- copied, reproduced or distributed to anyone outside of A10 Networks
+-- without prior written consent of A10 Networks, Inc.
 --
 -- Description:     This is the A10 AX mib file.
 --
@@ -20,10 +24,16 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
     DisplayString, PhysAddress
       FROM SNMPv2-TC
 
+	InetAddressType
+      FROM INET-ADDRESS-MIB
+
     a10Mgmt
       FROM A10-COMMON-MIB
 
-    MODULE-IDENTITY, OBJECT-TYPE, Counter32, Integer32, Counter64, OBJECT-IDENTITY, NOTIFICATION-TYPE
+    CounterBasedGauge64
+      FROM HCNUM-TC
+
+    MODULE-IDENTITY, OBJECT-TYPE, Gauge32, Counter32, Integer32, Counter64, OBJECT-IDENTITY, NOTIFICATION-TYPE
       FROM SNMPv2-SMI;
 
     axMgmt MODULE-IDENTITY
@@ -42,7 +52,7 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
     axSystem           OBJECT IDENTIFIER ::=  {  axMgmt  1  }
     axLogging          OBJECT IDENTIFIER ::=  {  axMgmt  2  }     
     axApp              OBJECT IDENTIFIER ::=  {  axMgmt  3  }
-
+    acosRoot 		OBJECT IDENTIFIER ::=  {  axMgmt  100  }
 --==================================================================
 --  axSystem
 --==================================================================
@@ -133,7 +143,8 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
       SEQUENCE {
               axSysCpuIndex           Integer32,
               axSysCpuUsage           DisplayString,
-	      axSysCpuUsageValue      Integer32
+	      axSysCpuUsageValue      Integer32,
+	      axSysCpuCtrlCpuFlag     Integer32
       }
 
     axSysCpuIndex OBJECT-TYPE
@@ -159,6 +170,14 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
         "The CPU usage value."
       ::= { axSysCpuEntry 3 }
+
+    axSysCpuCtrlCpuFlag OBJECT-TYPE
+      SYNTAX Integer32
+      MAX-ACCESS read-only
+      STATUS current
+      DESCRIPTION
+        "The control CPU flag: 1 - control CPU, 0 - data CPU."
+      ::= { axSysCpuEntry 4 }
 
     axSysAverageCpuUsage OBJECT-TYPE
       SYNTAX Integer32
@@ -208,7 +227,8 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
       SEQUENCE {
               axSysCpuIndexInUsage        Integer32,
               axSysCpuUsagePeriodIndex	  Integer32,
-	      axSysCpuUsageValueAtPeriod  Integer32
+	      axSysCpuUsageValueAtPeriod  Integer32,
+	      axSysCpuUsageCtrlCpuFlag    Integer32
       }
 
     axSysCpuIndexInUsage OBJECT-TYPE
@@ -216,7 +236,7 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
       MAX-ACCESS read-only
       STATUS current
       DESCRIPTION
-        "The index of the CPU. The value, 0, is for the control CPU."
+        "The index of the CPU."
       ::= { axSysCpuUsageEntry 1 }
 
     axSysCpuUsagePeriodIndex OBJECT-TYPE
@@ -239,6 +259,89 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
       DESCRIPTION
         "The CPU usage value at given period, 1-sec, 5-sec, 10-sec, 30-sec, and 60-sec."
       ::= { axSysCpuUsageEntry 3 }
+
+    axSysCpuUsageCtrlCpuFlag OBJECT-TYPE
+      SYNTAX Integer32
+      MAX-ACCESS read-only
+      STATUS current
+      DESCRIPTION
+        "The control CPU flag: 1 - control CPU, 0 - data CPU."
+      ::= { axSysCpuUsageEntry 4 }
+
+    axSysCpuUsagePerPartitionTable OBJECT-TYPE
+      SYNTAX SEQUENCE OF AxSysCpuUsagePerPartitionEntry
+      MAX-ACCESS not-accessible
+      STATUS current
+      DESCRIPTION
+        "The cpu usage per partition information table."
+      ::= { axSysCpu 7 }
+
+    axSysCpuUsagePerPartitionEntry OBJECT-TYPE
+      SYNTAX  AxSysCpuUsagePerPartitionEntry
+      MAX-ACCESS not-accessible
+      STATUS current
+      DESCRIPTION
+        "The CPU Usage per partition entry"
+      INDEX {
+        axSysCpuIndexInUsagePerPartition,
+	axSysCpuUsagePerPartitionPeriodIndex,
+	axSysCpuUsagePartitionName
+      }
+      ::= { axSysCpuUsagePerPartitionTable 1 }
+
+    AxSysCpuUsagePerPartitionEntry ::=
+      SEQUENCE {
+              axSysCpuIndexInUsagePerPartition        Integer32,
+              axSysCpuUsagePerPartitionPeriodIndex    Integer32,
+              axSysCpuUsagePartitionName              DisplayString,
+	      axSysCpuUsagePerPartitionValueAtPeriod  Integer32,
+	      axSysCpuUsagePerPartitionCtrlCpuFlag    Integer32
+      }
+
+    axSysCpuIndexInUsagePerPartition OBJECT-TYPE
+      SYNTAX Integer32
+      MAX-ACCESS read-only
+      STATUS current
+      DESCRIPTION
+        "The index of the CPU. The value, 0, is for the control CPU."
+      ::= { axSysCpuUsagePerPartitionEntry 1 }
+
+    axSysCpuUsagePerPartitionPeriodIndex OBJECT-TYPE
+      SYNTAX Integer32 ( 1 .. 5 )
+      MAX-ACCESS read-only
+      STATUS current
+      DESCRIPTION
+        "The CPU usage per partition sampling period:  
+		1: 1-second sampling,
+		2: 5-second sampling,
+		3: 10-second sampling,
+		4: 30-second sampling,
+		5: 60-second sampling."
+      ::= { axSysCpuUsagePerPartitionEntry 2 }
+
+    axSysCpuUsagePartitionName OBJECT-TYPE
+      SYNTAX DisplayString
+      MAX-ACCESS read-only
+      STATUS current
+      DESCRIPTION
+        "The partition name in the CPU usage per partition table."
+      ::= { axSysCpuUsagePerPartitionEntry 3 }
+
+    axSysCpuUsagePerPartitionValueAtPeriod OBJECT-TYPE
+      SYNTAX Integer32
+      MAX-ACCESS read-only
+      STATUS current
+      DESCRIPTION
+        "The CPU usage per partition value at given period, 1-sec, 5-sec, 10-sec, 30-sec, and 60-sec."
+      ::= { axSysCpuUsagePerPartitionEntry 4 }
+
+    axSysCpuUsagePerPartitionCtrlCpuFlag OBJECT-TYPE
+      SYNTAX Integer32
+      MAX-ACCESS read-only
+      STATUS current
+      DESCRIPTION
+        "The control CPU flag: 1 - control CPU, 0 - data CPU."
+      ::= { axSysCpuUsagePerPartitionEntry 5 }
 
 -- axSysDisk info
 
@@ -271,7 +374,7 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
     axSysHwFan1Speed OBJECT-TYPE
       SYNTAX Integer32
       MAX-ACCESS read-only
-      STATUS current
+      STATUS deprecated
       DESCRIPTION
         "The fan1's speed"
       ::= { axSysHwInfo 2 }
@@ -279,7 +382,7 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
     axSysHwFan2Speed OBJECT-TYPE
       SYNTAX Integer32
       MAX-ACCESS read-only
-      STATUS current
+      STATUS deprecated
       DESCRIPTION
         "The fan2's speed"
       ::= { axSysHwInfo 3 }
@@ -287,33 +390,51 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
     axSysHwFan3Speed OBJECT-TYPE
       SYNTAX Integer32
       MAX-ACCESS read-only
-      STATUS current
+      STATUS deprecated
       DESCRIPTION
         "The fan3's speed"
       ::= { axSysHwInfo 4 }
 
-    axSysLowerPowerSupplyStatus OBJECT-TYPE
+	 axSysHwPhySystemTempStatus OBJECT-TYPE
+      SYNTAX INTEGER {
+        failed(0),
+        low-med(1),
+        med-med(2),
+        med-high(3),
+        ok(4)
+      }
+      MAX-ACCESS read-only
+      STATUS current
+      DESCRIPTION
+        "The system temperature status range"
+      ::= { axSysHwInfo 5 }
+
+    axSysLowerOrLeftPowerSupplyStatus OBJECT-TYPE
       SYNTAX INTEGER {
 		off(0),
 		on(1),
 		unknown(-1)
       }
       MAX-ACCESS read-only
-      STATUS current
+	  STATUS deprecated
       DESCRIPTION
-        "The lower power supply status."
+        "The lower power supply status for AX 2000, 2100, 2200, 3100, 3200, 4330, 4430, 5100, 5200, 5330, 5430, 5630, 6430 and 6630; or, 
+         the left power supply status for AX 2500, 2600, 300, or
+         the AX 1000 power supply status."
       ::= { axSysHwInfo 7 }
 
-    axSysUpperPowerSupplyStatus OBJECT-TYPE
+    axSysUpperOrRightPowerSupplyStatus OBJECT-TYPE
       SYNTAX INTEGER {
 		off(0),
 		on(1),
 		unknown(-1)
       }
       MAX-ACCESS read-only
-      STATUS current
+	  STATUS deprecated
       DESCRIPTION
-        "The upper power supply status."
+         "The upper power supply status for AX 2000, 2100, 2200, 3100, 3200, 4330, 4430, 5100, 5200, 5330, 5430, 5630, 6430 and 6630
+         the right power supply status for AX 2500, 2600, 3000.
+         Not applied for AX 1000."
       ::= { axSysHwInfo 8 }
 
 --  axSysFanStatusTable
@@ -323,7 +444,7 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 	MAX-ACCESS not-accessible
 	STATUS current
 	DESCRIPTION
-		"The table contains system fan status for AX 2500/2600/3000/5100/5200 only."
+		"The table contains system fan status " 
 	::= { axSysHwInfo 9 } 
 
     axSysFanStatusEntry OBJECT-TYPE
@@ -341,7 +462,8 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 	SEQUENCE {
         	axFanIndex               Integer32,
         	axFanName                DisplayString,
-        	axFanStatus              INTEGER
+        	axFanStatus              INTEGER,
+            axFanSpeed               Integer32
 	}
 
     axFanIndex OBJECT-TYPE 
@@ -377,6 +499,138 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 		   0: Failed, 4: OK-fixed/high, 5: OK-low/med, 6: OK-med/med, 7: OK-med/high, 
 		   -2: not ready, -1: unknown."
 	::= { axSysFanStatusEntry 3 } 
+
+    axFanSpeed OBJECT-TYPE 
+	SYNTAX Integer32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The fan speed."
+	::= { axSysFanStatusEntry 4 } 
+
+-- axPowerSupplyVoltageTotal
+
+    axPowerSupplyVoltageTotal OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of axPowerSupplyVoltage entries."
+	::= { axSysHwInfo 10 } 
+
+-- axPowerSupplyVoltageTable
+
+    axPowerSupplyVoltageTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF AxPowerSupplyVoltageEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"A table contains the system power supply voltage status."
+	::= { axSysHwInfo 11 } 
+
+    axPowerSupplyVoltageEntry OBJECT-TYPE
+	SYNTAX  AxPowerSupplyVoltageEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"Columns in the axPowerSupplyVoltageTable"
+	INDEX {
+		axPowerSupplyVoltageIndex
+	}
+	::= { axPowerSupplyVoltageTable 1 } 
+
+    AxPowerSupplyVoltageEntry ::= 
+	SEQUENCE {
+        	axPowerSupplyVoltageIndex         INTEGER,
+        	axPowerSupplyVoltageStatus        INTEGER,
+        	axPowerSupplyVoltageDescription   DisplayString
+	}
+
+    axPowerSupplyVoltageIndex OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The table index."
+	::= { axPowerSupplyVoltageEntry 1 } 
+
+    axPowerSupplyVoltageStatus OBJECT-TYPE 
+	SYNTAX INTEGER {
+		invalid(0),
+		normal(1),
+		unknown(2)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The status of the indexed system power supply voltage.
+		 This is only supported for the platform where the sensor data is available."
+	::= { axPowerSupplyVoltageEntry 2 } 
+
+    axPowerSupplyVoltageDescription OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The description of the system power supply voltage."
+	::= { axPowerSupplyVoltageEntry 3 } 
+
+-- axSysPowerSupplyStatusTable
+
+    axSysPowerSupplyStatusTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF AxSysPowerSupplyStatusEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"The table contains power supply  status."
+	::= { axSysHwInfo 12 } 
+
+    axSysPowerSupplyStatusEntry OBJECT-TYPE
+	SYNTAX  AxSysPowerSupplyStatusEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"Columns in the axSysPowerSupplyStatusTable"
+	INDEX {
+		axPowerSupplyIndex
+	}
+	::= { axSysPowerSupplyStatusTable 1 } 
+
+    AxSysPowerSupplyStatusEntry ::= 
+	SEQUENCE {
+        	axPowerSupplyIndex      Integer32,
+            axPowerSupplyName       DisplayString,
+        	axPowerSupplyStatus     INTEGER
+	}
+
+    axPowerSupplyIndex OBJECT-TYPE 
+	SYNTAX Integer32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The system power suplly index."
+	::= { axSysPowerSupplyStatusEntry 1 } 
+
+    axPowerSupplyName OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The pwer supply name."
+	::= { axSysPowerSupplyStatusEntry 2 } 
+
+    axPowerSupplyStatus OBJECT-TYPE 
+	SYNTAX INTEGER {
+        off(0),
+        on(1),
+        absent(2),
+		unknown(-1)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		   "The power supply status."
+	::= { axSysPowerSupplyStatusEntry 3 } 
 
 -- axSysInfo
 
@@ -424,6 +678,8 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 
     axInterfaces           OBJECT IDENTIFIER ::= { axNetwork 1 }
     axVlans                OBJECT IDENTIFIER ::= { axNetwork 2 }
+    axTrunks               OBJECT IDENTIFIER ::= { axNetwork 3 }
+    axLayer3               OBJECT IDENTIFIER ::= { axNetwork 100 }
 
 --==================================================================
 --  axInterfaces
@@ -650,7 +906,13 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
         	axInterfaceStatErrorsOut          Counter64,
         	axInterfaceStatDropsIn            Counter64,
         	axInterfaceStatDropsOut           Counter64,
-        	axInterfaceStatCollisions         Counter64
+        	axInterfaceStatCollisions         Counter64,
+		axInterfaceStatBitsPerSecIn       Counter64,
+		axInterfaceStatPktsPerSecIn       Counter64,
+		axInterfaceStatUtilPercentIn      Integer32,
+		axInterfaceStatBitsPerSecOut      Counter64,
+		axInterfaceStatPktsPerSecOut      Counter64,
+		axInterfaceStatUtilPercentOut     Integer32
 	}
 
     axInterfaceStatIndex OBJECT-TYPE 
@@ -753,6 +1015,54 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 		"The number of collisions on this interface, incremented by the 
 		number of collisions experienced during transmissions of a frame"
 	::= { axInterfaceStatEntry 12 } 
+
+    axInterfaceStatBitsPerSecIn OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The input rate in bits per second."
+	::= { axInterfaceStatEntry 13 } 
+
+    axInterfaceStatPktsPerSecIn OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The input rate in packets per second."
+	::= { axInterfaceStatEntry 14 } 
+
+    axInterfaceStatUtilPercentIn OBJECT-TYPE 
+	SYNTAX Integer32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The input utilization in percentage.  For the ve interface, it's 0."
+	::= { axInterfaceStatEntry 15 } 
+
+    axInterfaceStatBitsPerSecOut OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The output rate in bits per second."
+	::= { axInterfaceStatEntry 16 } 
+
+    axInterfaceStatPktsPerSecOut OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The output rate in packets per second."
+	::= { axInterfaceStatEntry 17 } 
+
+    axInterfaceStatUtilPercentOut OBJECT-TYPE 
+	SYNTAX Integer32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The output utilization in percentage.  For the ve interface, it's 0."
+	::= { axInterfaceStatEntry 18 } 
 
 --==================================================================
 --  axVlans
@@ -866,6 +1176,327 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 	DESCRIPTION
 		"The tagged/untagged state of the specific VLAN member."
 	::= { axVlanCfgMemberEntry 3 } 
+
+--==================================================================
+--  axTrunks
+--==================================================================
+
+    axTrunk                      OBJECT IDENTIFIER ::= { axTrunks 1 }
+    axTrunkStats                 OBJECT IDENTIFIER ::= { axTrunks 2 }
+    axTrunkCfgMembers            OBJECT IDENTIFIER ::= { axTrunks 3 }
+
+--  axTrunk
+
+    axTrunkTotal OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of axTrunk entries in the table."
+	::= { axTrunk 1 } 
+
+    axTrunkTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF AxTrunkEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"A table contains trunk information."
+	::= { axTrunk 2 } 
+
+    axTrunkEntry OBJECT-TYPE
+	SYNTAX  AxTrunkEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"Columns in the axTrunkTable"
+	INDEX {
+		axTrunkName
+	}
+	::= { axTrunkTable 1 } 
+
+    AxTrunkEntry ::= 
+	SEQUENCE {
+        	axTrunkName                             DisplayString,
+        	axTrunkStatus                           INTEGER,
+        	axTrunkDescription                      DisplayString,
+        	axTrunkTypeLacpEnabled                  INTEGER,
+        	axTrunkCfgMemberCount                   INTEGER,
+        	axTrunkPortThreshold                    INTEGER,
+        	axTrunkPortThresholdTimer               INTEGER
+	}
+
+    axTrunkName OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The trunk name."
+	::= { axTrunkEntry 1 } 
+
+    axTrunkStatus OBJECT-TYPE 
+	SYNTAX INTEGER {
+		down(0),
+		up(1)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The trunk status."
+	::= { axTrunkEntry 2 } 
+
+    axTrunkDescription OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The trunk description."
+	::= { axTrunkEntry 3 } 
+
+    axTrunkTypeLacpEnabled OBJECT-TYPE 
+	SYNTAX INTEGER {
+		false(0),
+		true(1)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The trunk type is dynamic, LACP."
+	::= { axTrunkEntry 4 } 
+
+    axTrunkCfgMemberCount OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of configured trunk members."
+	::= { axTrunkEntry 5 } 
+
+    axTrunkPortThreshold OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Threshold for minimum number of ports that need to be up."
+	::= { axTrunkEntry 6 } 
+
+    axTrunkPortThresholdTimer OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Timer for port-threshold in second."
+	::= { axTrunkEntry 7 } 
+
+--  axTrunkStats
+
+    axTrunkStatTotal OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of axTrunkStat entries in the table."
+	::= { axTrunkStats 1 } 
+
+    axTrunkStatTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF AxTrunkStatEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"A table contains trunk statistic information."
+	::= { axTrunkStats 2 } 
+
+    axTrunkStatEntry OBJECT-TYPE
+	SYNTAX  AxTrunkStatEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"Columns in the axTrunkStatTable"
+	INDEX {
+		axTrunkStatName
+	}
+	::= { axTrunkStatTable 1 } 
+
+    AxTrunkStatEntry ::= 
+	SEQUENCE {
+        	axTrunkStatName              DisplayString,
+        	axTrunkStatPktsIn            Counter64,
+        	axTrunkStatBytesIn           Counter64,
+        	axTrunkStatPktsOut           Counter64,
+        	axTrunkStatBytesOut          Counter64,
+        	axTrunkStatMcastIn           Counter64,
+        	axTrunkStatMcastOut          Counter64,
+        	axTrunkStatErrorsIn          Counter64,
+        	axTrunkStatErrorsOut         Counter64,
+        	axTrunkStatDropsIn           Counter64,
+        	axTrunkStatDropsOut          Counter64
+	}
+
+    axTrunkStatName OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The trunk name."
+	::= { axTrunkStatEntry 1 } 
+
+    axTrunkStatPktsIn OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of received packets on the given trunk."
+	::= { axTrunkStatEntry 2 } 
+
+    axTrunkStatBytesIn OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of received bytes on the given trunk."
+	::= { axTrunkStatEntry 3 } 
+
+    axTrunkStatPktsOut OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of transmitted packets on the given trunk."
+	::= { axTrunkStatEntry 4 } 
+
+    axTrunkStatBytesOut OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of transmitted bytes on the given trunk."
+	::= { axTrunkStatEntry 5 } 
+
+    axTrunkStatMcastIn OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of received multicast packets on the given trunk."
+	::= { axTrunkStatEntry 6 } 
+
+    axTrunkStatMcastOut OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of transmitted multicast packets out of the given trunk."
+	::= { axTrunkStatEntry 7 } 
+
+    axTrunkStatErrorsIn OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of received packets with errors by the given trunk."
+	::= { axTrunkStatEntry 8 } 
+
+    axTrunkStatErrorsOut OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of excessive collisions, incremented for each 
+		frame that experienced 16 collisions during transmission and 
+		was aborted on the given trunk."
+	::= { axTrunkStatEntry 9 } 
+
+    axTrunkStatDropsIn OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of dropped packets on the given trunk."
+	::= { axTrunkStatEntry 10 } 
+
+    axTrunkStatDropsOut OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of packets aged out or with excessive transmission 
+		delays due to multiple deferrals on the given trunk."
+	::= { axTrunkStatEntry 11 } 
+
+--  axTrunkCfgMembers
+
+    axTrunkCfgMemberTotal OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of axTrunkCfgMember entries."
+	::= { axTrunkCfgMembers 1 } 
+
+    axTrunkCfgMemberTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF AxTrunkCfgMemberEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"A table contains configured trunk member information."
+	::= { axTrunkCfgMembers 2 } 
+
+    axTrunkCfgMemberEntry OBJECT-TYPE
+	SYNTAX  AxTrunkCfgMemberEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"Columns in the sysTrunkCfgMember Table"
+	INDEX {
+		axTrunkCfgMemberTrunkName,
+		axTrunkCfgMemberName
+	}
+	::= { axTrunkCfgMemberTable 1 } 
+
+    AxTrunkCfgMemberEntry ::= 
+	SEQUENCE {
+        	axTrunkCfgMemberTrunkName     DisplayString,
+        	axTrunkCfgMemberName          DisplayString,
+        	axTrunkCfgMemberAdminStatus   INTEGER,
+        	axTrunkCfgMemberOperStatus    INTEGER
+	}
+
+    axTrunkCfgMemberTrunkName OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The trunk name."
+	::= { axTrunkCfgMemberEntry 1 } 
+
+    axTrunkCfgMemberName OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The trunk member name: the physical port belongs to the trunk."
+	::= { axTrunkCfgMemberEntry 2 } 
+
+    axTrunkCfgMemberAdminStatus OBJECT-TYPE 
+	SYNTAX INTEGER {
+		disabled(0),
+		enabled(1)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The trunk port member administrative status."
+	::= { axTrunkCfgMemberEntry 3 } 
+
+    axTrunkCfgMemberOperStatus OBJECT-TYPE 
+	SYNTAX INTEGER {
+		down(0),
+		up(1)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The trunk port member operational status."
+	::= { axTrunkCfgMemberEntry 4 } 
 
 --================================================================
 -- axLogging leafs
@@ -1030,47 +1661,113 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
         DEFVAL          { -1 }
         ::=  {  axLogging  11  }
 
---==================================================================
--- axSyslog trap
---==================================================================
+--================================================================
+-- axLayer3 
+--================================================================
 
-    axSyslogTrapPrefix OBJECT-IDENTITY
-        STATUS          current
-        DESCRIPTION     "prefix of A10 logging traps"
-        ::=  {  axLogging  100  }
+    axArpInfo          OBJECT IDENTIFIER ::= { axLayer3 1 }
 
-    axSyslogTrap   NOTIFICATION-TYPE
-        OBJECTS         { axSyslogModuleName, axSyslogPriority, axSyslogMsg }
-        STATUS          current
-        DESCRIPTION     "the syslog messages sent through snmp trap"
-        ::=  {  axSyslogTrapPrefix  1  }
+--================================================================
+-- axArpInfo
+--================================================================
 
-    axSyslogTrapObjects    OBJECT-IDENTITY
-        STATUS          current
-        DESCRIPTION     "Objects of AX syslog trap"
-        ::=  {  axLogging  101  }
+    axArpEntryTotal OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of ARP entries in the table."
+	::= { axArpInfo 1 } 
 
-    axSyslogModuleName OBJECT-TYPE
-        SYNTAX          DisplayString  ( SIZE ( 0 .. 15  ) )
-        MAX-ACCESS      accessible-for-notify
-        STATUS          current
-        DESCRIPTION     "The module name sent the syslog message."
-        ::=  {  axSyslogTrapObjects  1  }
+    axArpInfoTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF AxArpInfoEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"A table contains opertional ARP information."
+	::= { axArpInfo 2 } 
 
-    axSyslogPriority   OBJECT-TYPE
-        SYNTAX          Integer32  ( 0 .. 7  )
-        MAX-ACCESS      accessible-for-notify
-        STATUS          current
-        DESCRIPTION     "The syslog message priority."
-        ::=  {  axSyslogTrapObjects  2  }
+    axArpInfoEntry OBJECT-TYPE
+	SYNTAX  AxArpInfoEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"Columns in the axArpInfoTable"
+	INDEX {
+		axArpIpAddr
+	}
+	::= { axArpInfoTable 1 } 
 
-    axSyslogMsg    OBJECT-TYPE
-        SYNTAX          OCTET STRING  ( SIZE ( 0 .. 1023  ) )
-        MAX-ACCESS      accessible-for-notify
-        STATUS          current
-        DESCRIPTION     "The syslog message."
-        ::=  {  axSyslogTrapObjects  3  }
+    AxArpInfoEntry ::= 
+	SEQUENCE {
+        	axArpIpAddr                             DisplayString,
+        	axArpMacAddr                            PhysAddress,
+        	axArpEntryVlan                          INTEGER,
+        	axArpEntrySourceInterface               INTEGER,
+        	axArpEntrySourceIntName                 DisplayString,
+        	axArpEntryType                          INTEGER,
+        	axArpEntryAging                         INTEGER
+	}
 
+    axArpIpAddr OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The destination IP address of the ARP entry."
+	::= { axArpInfoEntry 1 } 
+
+    axArpMacAddr OBJECT-TYPE 
+	SYNTAX PhysAddress
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The MAC address for the ARP entry."
+	::= { axArpInfoEntry 2 } 
+
+    axArpEntryVlan OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The VLAN identifier for the ARP entry."
+	::= { axArpInfoEntry 3 } 
+
+    axArpEntrySourceInterface OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The port number in ifIndex for the ARP entry taking effective."
+	::= { axArpInfoEntry 4 } 
+
+    axArpEntrySourceIntName OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The interface description name for axArpEntrySourceInterface."
+	::= { axArpInfoEntry 5 } 
+
+    axArpEntryType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		incomplete(0),
+		static(1),
+		dynamic(2)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The type of the ARP entry."
+	::= { axArpInfoEntry 6 } 
+
+    axArpEntryAging OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The aging time of the ARP entry in seconds."
+	::= { axArpInfoEntry 7 } 
 
 --==================================================================
 -- axApp
@@ -1095,12 +1792,14 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
     axHA                    OBJECT IDENTIFIER ::= { axApp 17 }
     axIpNatStats            OBJECT IDENTIFIER ::= { axApp 18 }
     axSessionStats          OBJECT IDENTIFIER ::= { axApp 19 }
-
+    axGslb                  OBJECT IDENTIFIER ::= { axApp 20 }
+	axNetworkingStats       OBJECT IDENTIFIER ::= { axApp 21 }
 
 -- axGlobals
     axAppGlobalSetting         OBJECT IDENTIFIER ::= { axAppGlobals 1 }
     axAppGlobalStats           OBJECT IDENTIFIER ::= { axAppGlobals 2 }
     axGlobalAppBuffer          OBJECT IDENTIFIER ::= { axAppGlobals 3 }
+	axL3vStats				   OBJECT IDENTIFIER ::= { axAppGlobals 4 }
 
 -- axServers
     axServer                   OBJECT IDENTIFIER ::= { axServers 1 }
@@ -1119,6 +1818,8 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
     axVirtualServerStat        OBJECT IDENTIFIER ::= { axVirtualServers 2 }
     axVirtualServerPort        OBJECT IDENTIFIER ::= { axVirtualServers 3 }
     axVirtualServerPortStat    OBJECT IDENTIFIER ::= { axVirtualServers 4 }
+    axVirtualServerNameStat        OBJECT IDENTIFIER ::= { axVirtualServers 5 }
+    axVirtualServerNamePortStat    OBJECT IDENTIFIER ::= { axVirtualServers 6 }
 
 -- axHA
     axHAGlobalConfig           OBJECT IDENTIFIER ::= { axHA 1 }
@@ -1234,7 +1935,7 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 --==================================================================
 
     axAppGlobalTotalCurrentConnections	OBJECT-TYPE	
-	SYNTAX			Counter64
+	SYNTAX			CounterBasedGauge64
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
@@ -1283,7 +1984,7 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
-		"Total new SSL connections"
+		"Total SSL connections"
 	DEFVAL			{ 0 }
 	::=  {  axAppGlobalStats  6  }
 
@@ -1323,6 +2024,33 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 	DEFVAL			{ 0 }
 	::=  {  axAppGlobalStats  10  }
 
+   axGlobalTotalThroughput OBJECT-TYPE
+        SYNTAX                  Counter64
+        MAX-ACCESS              read-only
+        STATUS                  current
+        DESCRIPTION
+        "Total throughput of all the interfaces."
+        DEFVAL { 0 }
+        ::= { axAppGlobalStats 13 }
+
+    axAppGlobalTotalCurrentConnectionsInteger OBJECT-TYPE	
+	SYNTAX			INTEGER
+	MAX-ACCESS		read-only
+	STATUS			current
+	DESCRIPTION		
+		"Total current connections"
+	DEFVAL			{ 0 }
+	::=  {  axAppGlobalStats  11  }
+
+    axGlobalTotalL4SessionInteger	OBJECT-TYPE	
+	SYNTAX			INTEGER
+	MAX-ACCESS		read-only
+	STATUS			current
+	DESCRIPTION		
+		"Total number of L4 sessions."
+	DEFVAL			{ 0 }
+	::=  {  axAppGlobalStats  12  }
+
 --==================================================================
 -- axGlobalAppBuffer
 --==================================================================
@@ -1344,6 +2072,114 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 		"Application buffer current usage."
 	DEFVAL			{ 0 }
 	::=  {  axGlobalAppBuffer  2  }
+
+--==================================================================
+-- axL3vStats
+--==================================================================
+
+    axL3vGlobalStatsTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF AxL3vGlobalStatsEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"The global statitics in a l3v partition."
+	::= { axL3vStats 1 } 
+
+    axL3vGlobalStatsEntry OBJECT-TYPE
+	SYNTAX  AxL3vGlobalStatsEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"Columns in the axL3vGlobalStatsTable"
+	INDEX {
+		axL3vGlobalStatsPartitionName
+	}
+	::= { axL3vGlobalStatsTable 1 } 
+
+    AxL3vGlobalStatsEntry ::= 
+	SEQUENCE {
+        	axL3vGlobalStatsPartitionName	           	 DisplayString,
+        	axL3vGlobalStatsTotalThroughput              Counter64,
+        	axL3vGlobalStatsTotalCurrentConnections      Counter64,
+        	axL3vGlobalStatsTotalNewConnections          Counter64,
+        	axL3vGlobalStatsTotalNewL4Connections        Counter64,
+			axL3vGlobalStatsTotalNewL7Connections  		 Counter64,
+			axL3vGlobalStatsTotalSslConnections  		 Counter64,
+			axL3vGlobalStatsTotalL7Requests 	 		 Counter64,
+			axL3vGlobalStatsTotalL4Sessions 	 		 Counter64
+	}
+
+    axL3vGlobalStatsPartitionName OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The L3V partition name."
+	::= { axL3vGlobalStatsEntry 1 } 
+
+   axL3vGlobalStatsTotalThroughput OBJECT-TYPE
+        SYNTAX                  Counter64
+        MAX-ACCESS              read-only
+        STATUS                  current
+        DESCRIPTION
+        "Total throughput of all the interfaces in a L3V partition."
+   ::= { axL3vGlobalStatsEntry 2 }
+
+   axL3vGlobalStatsTotalCurrentConnections OBJECT-TYPE
+        SYNTAX                  Counter64
+        MAX-ACCESS              read-only
+        STATUS                  current
+        DESCRIPTION
+        "Total current connections in a L3V partition."
+   ::= { axL3vGlobalStatsEntry 3 }
+
+   axL3vGlobalStatsTotalNewConnections OBJECT-TYPE
+        SYNTAX                  Counter64
+        MAX-ACCESS              read-only
+        STATUS                  current
+        DESCRIPTION
+        "Total new connections in a L3V partition."
+   ::= { axL3vGlobalStatsEntry 4 }
+
+   axL3vGlobalStatsTotalNewL4Connections OBJECT-TYPE
+        SYNTAX                  Counter64
+        MAX-ACCESS              read-only
+        STATUS                  current
+        DESCRIPTION
+        "Total new layer 4 connections in a L3V partition."
+   ::= { axL3vGlobalStatsEntry 5 }
+
+   axL3vGlobalStatsTotalNewL7Connections OBJECT-TYPE
+        SYNTAX                  Counter64
+        MAX-ACCESS              read-only
+        STATUS                  current
+        DESCRIPTION
+        "Total new layer 7 connections in a L3V partition."
+   ::= { axL3vGlobalStatsEntry 6 }
+
+   axL3vGlobalStatsTotalSslConnections OBJECT-TYPE
+        SYNTAX                  Counter64
+        MAX-ACCESS              read-only
+        STATUS                  current
+        DESCRIPTION
+        "Total SSL connections in a L3V partition."
+   ::= { axL3vGlobalStatsEntry 7 }
+
+   axL3vGlobalStatsTotalL7Requests OBJECT-TYPE
+        SYNTAX                  Counter64
+        MAX-ACCESS              read-only
+        STATUS                  current
+        DESCRIPTION
+        "Total layer 7 requests in a L3V partition."
+   ::= { axL3vGlobalStatsEntry 8 }
+
+   axL3vGlobalStatsTotalL4Sessions OBJECT-TYPE
+        SYNTAX                  Counter64
+        MAX-ACCESS              read-only
+        STATUS                  current
+        DESCRIPTION
+        "Total layer 7 session in a L3V partition."
+   ::= { axL3vGlobalStatsEntry 9 }
 
 --==================================================================
 -- axServer
@@ -1378,11 +2214,12 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 
     AxServerEntry ::= 
 	SEQUENCE {
-        	axServerName		                     DisplayString,
+        	axServerName		                      	 DisplayString,
         	axServerAddress                              DisplayString,
         	axServerEnabledState                         INTEGER,
         	axServerHealthMonitor                        DisplayString,
-        	axServerMonitorState                         INTEGER
+        	axServerMonitorState                         INTEGER,
+			axServerAddressType              			 InetAddressType
 	}
 
     axServerName OBJECT-TYPE 
@@ -1398,7 +2235,7 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
-		"The IP address of the server."
+		"The IP address or host name of the server."
 	::= { axServerEntry 2 } 
 
     axServerEnabledState OBJECT-TYPE 
@@ -1434,6 +2271,16 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 			1: Up (administrative enabled)
 			2: Down (administrative enabled)"
 	::= { axServerEntry 5 } 
+
+	axServerAddressType OBJECT-TYPE
+    SYNTAX InetAddressType
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The type of axServerAddress:
+            unknown(0), ipv4(1), ipv6(2)..."
+    ::= { axServerEntry 6 }
+
 
 --==================================================================
 -- axServerStat
@@ -1480,7 +2327,9 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
         	axServerStatServerStatus                  INTEGER,
         	axServerStatServerTotalL7Reqs             Counter64,
         	axServerStatServerTotalCurrL7Reqs         Counter64,
-        	axServerStatServerTotalSuccL7Reqs         Counter64
+        	axServerStatServerTotalSuccL7Reqs         Counter64,
+        	axServerStatServerPeakConns               Counter32,
+			axServerStatAddressType           		  InetAddressType
 	}
 
     axServerStatAddress OBJECT-TYPE 
@@ -1594,6 +2443,24 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 		"The number of successful L7 requests if applicable"
 	::= { axServerStatEntry 13 } 
 
+    axServerStatServerPeakConns OBJECT-TYPE 
+	SYNTAX Counter32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of the peak connections"
+	::= { axServerStatEntry 14 } 
+
+	axServerStatAddressType OBJECT-TYPE
+    SYNTAX InetAddressType
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The type of axServerStatAddress:
+            unknown(0), ipv4(1), ipv6(2)..."
+    ::= { axServerStatEntry 15 }
+
+
 --==================================================================
 -- axServerPort
 --==================================================================
@@ -1629,7 +2496,8 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
         	axServerPortHealthMonitor                  DisplayString,
         	axServerPortConnLimit                      Integer32,
         	axServerPortWeight                         Integer32,
-        	axServerPortMonitorState                   INTEGER
+        	axServerPortMonitorState                   INTEGER,
+			axServerAddressInPortType          		   InetAddressType
 	}
 
     axServerNameInPort OBJECT-TYPE 
@@ -1664,7 +2532,7 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 	MAX-ACCESS read-only
 	STATUS current
 	DESCRIPTION
-		"The IP address of the server."
+		"The IP address or host name of the server."
 	::= { axServerPortEntry 4 } 
 
     axServerPortEnabledState OBJECT-TYPE 
@@ -1717,6 +2585,16 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 			2: Down (administrative enabled)"
 	::= { axServerPortEntry 9 } 
 
+	axServerAddressInPortType OBJECT-TYPE
+    SYNTAX InetAddressType
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The type of axServerAddressInPort:
+            unknown(0), ipv4(1), ipv6(2)..."
+    ::= { axServerPortEntry 10 }
+
+
 --==================================================================
 -- axServerPortStat
 --==================================================================
@@ -1758,7 +2636,9 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
         	axServerPortStatStatus                  INTEGER,
         	axServerPortStatTotalL7Reqs             Counter64,
         	axServerPortStatTotalCurrL7Reqs         Counter64,
-        	axServerPortStatTotalSuccL7Reqs         Counter64
+        	axServerPortStatTotalSuccL7Reqs         Counter64,
+        	axServerPortStatPeakConns               Counter32,
+			axServerStatAddrInPortType      		InetAddressType
 	}
 
     axServerStatAddrInPort OBJECT-TYPE 
@@ -1891,6 +2771,23 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 		"The number of successful L7 requests if applicable"
 	::= { axServerPortStatEntry 15 } 
 
+    axServerPortStatPeakConns OBJECT-TYPE 
+	SYNTAX Counter32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of peak connections"
+	::= { axServerPortStatEntry 16 } 
+
+	axServerStatAddrInPortType OBJECT-TYPE
+    SYNTAX InetAddressType
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The type of axServerStatAddrInPort:
+            unknown(0), ipv4(1), ipv6(2)..."
+    ::= { axServerPortStatEntry 17 }
+
 --==================================================================
 -- axServiceGroup
 --==================================================================
@@ -1927,7 +2824,7 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
         	axServiceGroupName               DisplayString,
         	axServiceGroupType               INTEGER,
         	axServiceGroupLbAlgorithm        INTEGER,
-		axServiceGroupDisplayStatus      INTEGER
+			axServiceGroupDisplayStatus      INTEGER,
 	}
 
     axServiceGroupName OBJECT-TYPE 
@@ -1960,7 +2857,16 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 		serviceWeightLeastConnection(5),
 		fastResponseTime(6),
 		leastRequest(7),
-		roundRobinStrict(8)
+		roundRobinStrict(8),
+		sourceIpHashBasedStateless(9),
+		sourceIpOnlyHashBasedStateless(10),
+		destinationIpHashBasedStateless(11),
+		sourceDestinationIpHashBasedStateless(12),
+		perPacketRoundRobinStateless(13),
+		sourceIpOnlyHash(15),
+		sourceIpWithPortHash(16),
+		destinationIpOnlyHash(17),
+		destinationIpWithPortHash(18)
 	}
 	MAX-ACCESS read-only
 	STATUS current
@@ -1981,6 +2887,8 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 		"The display status of the service group: 
 		    AllUp(1), FunctionalUp(2), PartialUp(3), Stopped(4)."
 	::= { axServiceGroupEntry 4 } 
+
+	
 
 --==================================================================
 -- axServiceGroupStat
@@ -2018,7 +2926,8 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 		axServiceGroupStatDisplayStatus               INTEGER,
          	axServiceGroupStatTotalL7Reqs                 Counter64,
         	axServiceGroupStatTotalCurrL7Reqs             Counter64,
-        	axServiceGroupStatTotalSuccL7Reqs             Counter64
+        	axServiceGroupStatTotalSuccL7Reqs             Counter64,
+        	axServiceGroupStatPeakConns                   Counter32
 	}
 
     axServiceGroupStatName OBJECT-TYPE 
@@ -2122,6 +3031,14 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 	DESCRIPTION
 		"The number of successful L7 requests if applicable"
 	::= { axServiceGroupStatEntry 12 } 
+
+    axServiceGroupStatPeakConns OBJECT-TYPE 
+	SYNTAX Counter32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of peak connections"
+	::= { axServiceGroupStatEntry 13 } 
 
 --==================================================================
 -- axServiceGroupMember
@@ -2259,7 +3176,8 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
          	axServiceGroupMemberStatTotalL7Reqs              Counter64,
         	axServiceGroupMemberStatTotalCurrL7Reqs          Counter64,
         	axServiceGroupMemberStatTotalSuccL7Reqs          Counter64,
-        	axServiceGroupMemberStatResponseTime             Integer32
+        	axServiceGroupMemberStatResponseTime             Integer32,
+        	axServiceGroupMemberStatPeakConns                Counter32
 	}
 
     axServiceGroupMemberStatName OBJECT-TYPE 
@@ -2399,6 +3317,14 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 		"The service group member response time in millisecond."
 	::= { axServiceGroupMemberStatEntry 16 } 
 
+    axServiceGroupMemberStatPeakConns OBJECT-TYPE 
+	SYNTAX Counter32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The service group member peak connections."
+	::= { axServiceGroupMemberStatEntry 17 } 
+
 --==================================================================
 -- axVirtualServer
 --==================================================================
@@ -2436,7 +3362,8 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
         	axVirtualServerAddress                   DisplayString,
         	axVirtualServerEnabled                   INTEGER,
         	axVirtualServerHAGroup                   DisplayString,
-        	axVirtualServerDisplayStatus             INTEGER
+        	axVirtualServerDisplayStatus             INTEGER,
+			axVirtualServerAddressType       		 InetAddressType
 	}
 
     axVirtualServerName OBJECT-TYPE 
@@ -2489,6 +3416,15 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 		    Disabled(0), AllUp(1), FunctionalUp(2), PartialUp(3), Stopped(4)."
 	::= { axVirtualServerEntry 5 } 
 
+	axVirtualServerAddressType OBJECT-TYPE
+    SYNTAX InetAddressType
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The type of axVirtualServerAddress:
+            unknown(0), ipv4(1), ipv6(2)..."
+    ::= { axVirtualServerEntry 6 }
+
 --==================================================================
 -- axVirtualServerStat
 --==================================================================
@@ -2527,7 +3463,9 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
         	axVirtualServerStatDisplayStatus        INTEGER,
          	axVirtualServerStatTotalL7Reqs          Counter64,
         	axVirtualServerStatTotalCurrL7Reqs      Counter64,
-        	axVirtualServerStatTotalSuccL7Reqs      Counter64
+        	axVirtualServerStatTotalSuccL7Reqs      Counter64,
+        	axVirtualServerStatPeakConns            Counter32,
+			axVirtualServerStatAddressType      	InetAddressType
 	}
 
     axVirtualServerStatAddress OBJECT-TYPE 
@@ -2653,6 +3591,23 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 		"The number of successful L7 requests if applicable"
 	::= { axVirtualServerStatEntry 14 } 
 
+    axVirtualServerStatPeakConns OBJECT-TYPE 
+	SYNTAX Counter32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of peak connections"
+	::= { axVirtualServerStatEntry 15 } 
+
+    axVirtualServerStatAddressType OBJECT-TYPE
+    SYNTAX InetAddressType
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The type of axVirtualServerStatAddress:
+            unknown(0), ipv4(1), ipv6(2)..."
+    ::= { axVirtualServerStatEntry 16 }
+
 --==================================================================
 -- axVirtualServerPort
 --==================================================================
@@ -2702,7 +3657,10 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
         	axVirtualServerPortSMTPTemplate              DisplayString,
         	axVirtualServerPortSIPTemplate               DisplayString,
         	axVirtualServerPortUDPTemplate               DisplayString,
-        	axVirtualServerPortDisplayStatus             INTEGER
+        	axVirtualServerPortDisplayStatus             INTEGER,
+			xVirtualServerPortAddressType 				 InetAddressType,
+			axVirtualServerPortDiameterTemplate          DisplayString,
+			axVirtualServerPortAddressType			     InetAddressType
 	}
 
     axVirtualServerPortName OBJECT-TYPE 
@@ -2729,7 +3687,12 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 		sip(11), 
 		sips(19), 
 		sip-TCP(18), 
-		others(5)
+		others(5),
+		tcpProxy(20),
+		diameter(21),
+		dnsUdp(22),
+		tftp(23),
+		dnsTcp(24)
 	}
 	MAX-ACCESS read-only
 	STATUS current
@@ -2920,6 +3883,25 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 		    Disabled(0), AllUp(1), FunctionalUp(2), Stopped(4)."
 	::= { axVirtualServerPortEntry 23 } 
 
+-- axVirtualServerPortDisplayStatus 24 is used in 266 for axVirtualServerPortAddressType
+
+	axVirtualServerPortAddressType OBJECT-TYPE
+    SYNTAX InetAddressType
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The type of axVirtualServerPortAddress:
+            unknown(0), ipv4(1), ipv6(2)..."
+    ::= { axVirtualServerPortEntry 24 }
+
+    axVirtualServerPortDiameterTemplate OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The Diameter template for diameter type only."
+	::= { axVirtualServerPortEntry 25 } 
+
 --==================================================================
 -- axVirtualServerPortStat
 --==================================================================
@@ -2962,7 +3944,9 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
         	axVirtualServerStatPortDisplayStatus        INTEGER,
          	axVirtualServerPortStatTotalL7Reqs          Counter64,
         	axVirtualServerPortStatTotalCurrL7Reqs      Counter64,
-        	axVirtualServerPortStatTotalSuccL7Reqs      Counter64
+        	axVirtualServerPortStatTotalSuccL7Reqs      Counter64,
+        	axVirtualServerPortStatPeakConns            Counter32,
+			axVirtualServerPortStatAddressType      	InetAddressType
 	}
 
     axVirtualServerPortStatAddress OBJECT-TYPE 
@@ -2989,7 +3973,12 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 		sip(11), 
 		sips(19), 
 		sip-tcp(18), 
-		others(5)
+		others(5),
+		tcpProxy(20),
+		diameter(21),
+		dnsUdp(22),
+		tftp(23),
+        dnsTcp(24)
 	}
 	MAX-ACCESS read-only
 	STATUS current
@@ -3118,6 +4107,391 @@ A10-AX-MIB DEFINITIONS ::= BEGIN
 	DESCRIPTION
 		"The number of successful L7 requests if applicable"
 	::= { axVirtualServerPortStatEntry 16 } 
+
+    axVirtualServerPortStatPeakConns OBJECT-TYPE 
+	SYNTAX Counter32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of peak connections"
+	::= { axVirtualServerPortStatEntry 17 } 
+
+	axVirtualServerPortStatAddressType OBJECT-TYPE
+    SYNTAX InetAddressType
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The type of axVirtualServerPortStatAddress:
+            unknown(0), ipv4(1), ipv6(2)..."
+    ::= { axVirtualServerPortStatEntry 18 }
+
+--==================================================================
+-- axVirtualServerNameStat
+--==================================================================
+
+    axVirtualServerNameStatTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF AxVirtualServerNameStatEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"A table containing statistic information of virtual servers."
+	::= { axVirtualServerNameStat 1 } 
+
+    axVirtualServerNameStatEntry OBJECT-TYPE
+	SYNTAX  AxVirtualServerNameStatEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"Columns in the axVirtualServerNameStat Table"
+	INDEX {
+		axVirtualServerStatDisplayName
+	}
+	::= { axVirtualServerNameStatTable 1 } 
+
+    AxVirtualServerNameStatEntry ::= 
+	SEQUENCE {
+        	axVirtualServerStatDisplayName          DisplayString,
+        	axVirtualServerNameStatPktsIn               Counter64,
+        	axVirtualServerNameStatBytesIn              Counter64,
+        	axVirtualServerNameStatPktsOut              Counter64,
+        	axVirtualServerNameStatBytesOut             Counter64,
+        	axVirtualServerNameStatPersistConns         Integer32,
+        	axVirtualServerNameStatTotConns             Counter64,
+        	axVirtualServerNameStatCurConns             Integer32,
+        	axVirtualServerNameStatStatus               INTEGER,
+        	axVirtualServerNameStatDisplayStatus        INTEGER,
+         	axVirtualServerNameStatTotalL7Reqs          Counter64,
+        	axVirtualServerNameStatTotalCurrL7Reqs      Counter64,
+        	axVirtualServerNameStatTotalSuccL7Reqs      Counter64,
+        	axVirtualServerNameStatPeakConns            Counter32
+	}
+
+    axVirtualServerStatDisplayName OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The name of this virtual server."
+	::= { axVirtualServerNameStatEntry 1 } 
+
+    axVirtualServerNameStatPktsIn OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of packets received from client to server."
+	::= { axVirtualServerNameStatEntry 2 } 
+
+    axVirtualServerNameStatBytesIn OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of bytes received from client to server."
+	::= { axVirtualServerNameStatEntry 3 } 
+
+    axVirtualServerNameStatPktsOut OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of packets sent from server to client."
+	::= { axVirtualServerNameStatEntry 4 } 
+
+    axVirtualServerNameStatBytesOut OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of bytes sent from server to client."
+	::= { axVirtualServerNameStatEntry 5 } 
+
+    axVirtualServerNameStatPersistConns OBJECT-TYPE 
+	SYNTAX Integer32
+	MAX-ACCESS read-only
+	STATUS deprecated
+	DESCRIPTION
+		"The persistent connections from client side."
+	::= { axVirtualServerNameStatEntry 6 } 
+
+    axVirtualServerNameStatTotConns OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total connections from client side."
+	::= { axVirtualServerNameStatEntry 7 } 
+
+    axVirtualServerNameStatCurConns OBJECT-TYPE 
+	SYNTAX Integer32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The current connections from client side."
+	::= { axVirtualServerNameStatEntry 8 } 
+
+    axVirtualServerNameStatStatus OBJECT-TYPE 
+	SYNTAX INTEGER {
+		up(1),
+		down(2),
+		disabled(3)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The current virtual server status."
+	::= { axVirtualServerNameStatEntry 9 } 
+
+    axVirtualServerNameStatDisplayStatus OBJECT-TYPE 
+	SYNTAX INTEGER {
+		disabled(0),
+		allUp(1),
+		functionalUp(2),
+		partialUp(3),
+		stopped(4)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The display status of this virtual server: 
+		    Disabled(0), AllUp(1), FunctionalUp(2), PartialUp(3), Stopped(4)."
+	::= { axVirtualServerNameStatEntry 10 } 
+
+    axVirtualServerNameStatTotalL7Reqs OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of L7 requests if applicable"
+	::= { axVirtualServerNameStatEntry 11 } 
+
+    axVirtualServerNameStatTotalCurrL7Reqs OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of current L7 requests if applicable"
+	::= { axVirtualServerNameStatEntry 12 } 
+
+    axVirtualServerNameStatTotalSuccL7Reqs OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of successful L7 requests if applicable"
+	::= { axVirtualServerNameStatEntry 13 } 
+
+    axVirtualServerNameStatPeakConns OBJECT-TYPE 
+	SYNTAX Counter32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of peak connections"
+	::= { axVirtualServerNameStatEntry 14 } 
+
+--==================================================================
+-- axVirtualServerNamePortStat
+--==================================================================
+
+    axVirtualServerNamePortStatTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF AxVirtualServerNamePortStatEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"A table containing statistic information of virtual server service ports."
+	::= { axVirtualServerNamePortStat 1 } 
+
+    axVirtualServerNamePortStatEntry OBJECT-TYPE
+	SYNTAX  AxVirtualServerNamePortStatEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"Columns in the axVirtualServerNamePortStat Table"
+	INDEX {
+		axVirtualServerNamePortStatName,
+		axVirtualServerNameStatPortType,
+		axVirtualServerNameStatPortNum
+	}
+	::= { axVirtualServerNamePortStatTable 1 } 
+
+    AxVirtualServerNamePortStatEntry ::= 
+	SEQUENCE {
+        	axVirtualServerNamePortStatName                 DisplayString,
+        	axVirtualServerNameStatPortType                 INTEGER,
+        	axVirtualServerNameStatPortNum                  Integer32,
+        	axVirtualServerNameStatPortStatus               INTEGER,
+        	axVirtualServerNamePortStatPktsIn               Counter64,
+        	axVirtualServerNamePortStatBytesIn              Counter64,
+        	axVirtualServerNamePortStatPktsOut              Counter64,
+        	axVirtualServerNamePortStatBytesOut             Counter64,
+        	axVirtualServerNamePortStatPersistConns         Integer32,
+        	axVirtualServerNamePortStatTotConns             Counter64,
+        	axVirtualServerNamePortStatCurConns             Integer32,
+        	axVirtualServerNameStatPortDisplayStatus        INTEGER,
+         	axVirtualServerNamePortStatTotalL7Reqs          Counter64,
+        	axVirtualServerNamePortStatTotalCurrL7Reqs      Counter64,
+        	axVirtualServerNamePortStatTotalSuccL7Reqs      Counter64,
+        	axVirtualServerNamePortStatPeakConns            Counter32
+	}
+
+    axVirtualServerNamePortStatName OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The name of the virtual server"
+	::= { axVirtualServerNamePortStatEntry 1 } 
+
+    axVirtualServerNameStatPortType OBJECT-TYPE 
+	SYNTAX INTEGER {
+		firewall(1),
+		tcp(2),
+		udp(3),
+		rtsp(8),
+		ftp(9),
+		mms(10),
+		fastHTTP(12),
+		http(14),
+		https(15),
+		sslProxy(16),
+		smtp(17),
+		sip(11), 
+		sips(19), 
+		sip-tcp(18), 
+		others(5),
+		tcpProxy(20),
+		diameter(21),
+		dnsUdp(22),
+		tftp(23),
+        dnsTcp(24)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The port type of a virtual server port"
+	::= { axVirtualServerNamePortStatEntry 2 } 
+
+    axVirtualServerNameStatPortNum OBJECT-TYPE 
+	SYNTAX Integer32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The service port number."
+	::= { axVirtualServerNamePortStatEntry 3 } 
+
+    axVirtualServerNameStatPortStatus OBJECT-TYPE 
+	SYNTAX INTEGER {
+		up(1),
+		down(2),
+		disabled(3)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The status of this virtual server port."
+	::= { axVirtualServerNamePortStatEntry 4 } 
+
+    axVirtualServerNamePortStatPktsIn OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of packets received from client to server."
+	::= { axVirtualServerNamePortStatEntry 5 } 
+
+    axVirtualServerNamePortStatBytesIn OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of bytes received from client to server."
+	::= { axVirtualServerNamePortStatEntry 6 } 
+
+    axVirtualServerNamePortStatPktsOut OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of packets sent from server to client."
+	::= { axVirtualServerNamePortStatEntry 7 } 
+
+    axVirtualServerNamePortStatBytesOut OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of bytes sent from server to client."
+	::= { axVirtualServerNamePortStatEntry 8 } 
+
+    axVirtualServerNamePortStatPersistConns OBJECT-TYPE 
+	SYNTAX Integer32
+	MAX-ACCESS read-only
+	STATUS deprecated
+	DESCRIPTION
+		"Persistent connections from client side."
+	::= { axVirtualServerNamePortStatEntry 9 } 
+
+    axVirtualServerNamePortStatTotConns OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Total connections from client side."
+	::= { axVirtualServerNamePortStatEntry 10 } 
+
+    axVirtualServerNamePortStatCurConns OBJECT-TYPE 
+	SYNTAX Integer32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Current connections from client side."
+	::= { axVirtualServerNamePortStatEntry 11 } 
+
+    axVirtualServerNameStatPortDisplayStatus OBJECT-TYPE 
+	SYNTAX INTEGER {
+		disabled(0),
+		allUp(1),
+		functionalUp(2),
+		stopped(4)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The display status of this virtual server port: 
+		    Disabled(0), AllUp(1), FunctionalUp(2), Stopped(4)."
+	::= { axVirtualServerNamePortStatEntry 12 } 
+
+    axVirtualServerNamePortStatTotalL7Reqs OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of L7 requests if applicable"
+	::= { axVirtualServerNamePortStatEntry 13 } 
+
+    axVirtualServerNamePortStatTotalCurrL7Reqs OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of current L7 requests if applicable"
+	::= { axVirtualServerNamePortStatEntry 14 } 
+
+    axVirtualServerNamePortStatTotalSuccL7Reqs OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of successful L7 requests if applicable"
+	::= { axVirtualServerNamePortStatEntry 15 } 
+
+    axVirtualServerNamePortStatPeakConns OBJECT-TYPE 
+	SYNTAX Counter32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of peak connections"
+	::= { axVirtualServerNamePortStatEntry 16 } 
 
 --==================================================================
 -- axConnReuseStat
@@ -4481,7 +5855,7 @@ successful."
 		::=  {  axSslStats  1  }
 
 	axSslStatCurrSSLConn	OBJECT-TYPE	
-		SYNTAX			INTEGER
+		SYNTAX			Counter64
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4490,7 +5864,7 @@ successful."
 		::=  {  axSslStats  2  }
 
 	axSslStatTotalSSLConn	OBJECT-TYPE	
-		SYNTAX			INTEGER
+		SYNTAX			Counter64
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4499,7 +5873,7 @@ successful."
 		::=  {  axSslStats  3  }
 
 	axSslStatFailSSLHandshake	OBJECT-TYPE	
-		SYNTAX			INTEGER
+		SYNTAX			Counter64
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4663,7 +6037,7 @@ successful."
 -- axNetStat
 --==================================================================	
 	axNetStatIPOutNoRoute	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4672,7 +6046,7 @@ successful."
 		::=  {  axNetStats  1  }
 
 	axNetStatTCPOutRst	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4681,7 +6055,7 @@ successful."
 		::=  {  axNetStats  2  }
 
 	axNetStatTCPSynRcv	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4690,7 +6064,7 @@ successful."
 		::=  {  axNetStats  3  }
 
 	axNetStatTCPSYNCookieSent	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4699,7 +6073,7 @@ successful."
 		::=  {  axNetStats  4  }
 
 	axNetStatTCPSYNCookieSentFail	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4708,7 +6082,7 @@ successful."
 		::=  {  axNetStats  5  }
 
 	axNetStatTCPReceive	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4717,7 +6091,7 @@ successful."
 		::=  {  axNetStats  6  }
 		
 	axNetStatUDPReceive	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4726,7 +6100,7 @@ successful."
 		::=  {  axNetStats  7  }
 		
 	axNetStatServerSelFail	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4735,7 +6109,7 @@ successful."
 		::=  {  axNetStats  8  }
 		
 	axNetStatSourceNATFail	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4744,7 +6118,7 @@ successful."
 		::=  {  axNetStats  9  }
 		
 	axNetStatTCPSynCookieFail	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4753,7 +6127,7 @@ successful."
 		::=  {  axNetStats  10  }
 		
 	axNetStatNoVportDrop	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4762,7 +6136,7 @@ successful."
 		::=  {  axNetStats  11  }
 		
 	axNetStatNoSynPktDrop	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4771,7 +6145,7 @@ successful."
 		::=  {  axNetStats  12  }
 
 	axNetStatConnLimitDrop	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4780,7 +6154,7 @@ successful."
 		::=  {  axNetStats  13  }
 		
 	axNetStatConnLimitReset	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4789,7 +6163,7 @@ successful."
 		::=  {  axNetStats  14  }
 			
 	axNetStatProxyNoSockDrop	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4798,7 +6172,7 @@ successful."
 		::=  {  axNetStats  15  }
 		
 	axNetStataFlexDrop	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4807,7 +6181,7 @@ successful."
 		::=  {  axNetStats  16  }
 		
 	axNetStatSessionAgingOut	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4816,7 +6190,7 @@ successful."
 		::=  {  axNetStats  17  }
 		
 	axNetStatTCPNoSLB	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4825,7 +6199,7 @@ successful."
 		::=  {  axNetStats  18  }
 		
 	axNetStatUDPNoSLB	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4834,7 +6208,7 @@ successful."
 		::=  {  axNetStats  19  }	
 		
 	axNetStatTCPOutRSTNoSYN	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4843,7 +6217,7 @@ successful."
 		::=  {  axNetStats  20  }	
 
 	axNetStatTCPOutRSTL4Proxy	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4852,7 +6226,7 @@ successful."
 		::=  {  axNetStats  21  }	
 
 	axNetStatTCPOutRSTACKattack	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4861,7 +6235,7 @@ successful."
 		::=  {  axNetStats  22  }	
 
 	axNetStatTCPOutRSTAFleX	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4870,7 +6244,7 @@ successful."
 		::=  {  axNetStats  23  }	
 
 	axNetStatTCPOutRSTStaleSess	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4879,7 +6253,7 @@ successful."
 		::=  {  axNetStats  24  }	
 
 	axNetStatTCPOutRSTProxy		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4888,7 +6262,7 @@ successful."
 		::=  {  axNetStats  25  }	
 
 	axNetStatNoSYNPktDropFIN	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4897,7 +6271,7 @@ successful."
 		::=  {  axNetStats  26  }	
 
 	axNetStatNoSYNPktDropRST	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4906,7 +6280,7 @@ successful."
 		::=  {  axNetStats  27  }	
 
 	axNetStatNoSYNPktDropACK	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4915,7 +6289,7 @@ successful."
 		::=  {  axNetStats  28  }	
 
 	axNetStatSYNThrotte		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4924,7 +6298,7 @@ successful."
 		::=  {  axNetStats  29  }	
 
 	axNetStatSSLSIDPersistSucc		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4933,7 +6307,7 @@ successful."
 		::=  {  axNetStats  30  }	
 
 	axNetStatSSLSIDPersistFail		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4942,7 +6316,7 @@ successful."
 		::=  {  axNetStats  31  }	
 
 	axNetStatClientSSLSIDNotFound		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4951,7 +6325,7 @@ successful."
 		::=  {  axNetStats  32  }
 		
 	axNetStatClientSSLSIDMatch		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4960,7 +6334,7 @@ successful."
 		::=  {  axNetStats  33  }	
 
 	axNetStatClientSSLSIDNotMatch		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4969,7 +6343,7 @@ successful."
 		::=  {  axNetStats  34  }	
 
 	axNetStatServerSSLSIDNotFound		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4978,7 +6352,7 @@ successful."
 		::=  {  axNetStats  35  }	
 
 	axNetStatServerSSLSIDReset		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4987,7 +6361,7 @@ successful."
 		::=  {  axNetStats  36  }	
 
 	axNetStatServerSSLSIDMatch		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -4996,7 +6370,7 @@ successful."
 		::=  {  axNetStats  37  }	
 
 	axNetStatServerSSLSIDNotMatch		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5005,7 +6379,7 @@ successful."
 		::=  {  axNetStats  38  }	
 
 	axNetStatCreateSSLSIDSucc		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5014,7 +6388,7 @@ successful."
 		::=  {  axNetStats  39  }	
 
 	axNetStatCreateSSLSIDFail		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5023,7 +6397,7 @@ successful."
 		::=  {  axNetStats  40  }
 
 	axNetStatConnRateLimitDrops	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5032,7 +6406,7 @@ successful."
 		::=  {  axNetStats  41  }	
 
 	axNetStatConnRateLimitResets	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5041,7 +6415,7 @@ successful."
 		::=  {  axNetStats  42  }	
 
 	axNetStatInbandHMRetry		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5050,7 +6424,7 @@ successful."
 		::=  {  axNetStats  43  }	
 
 	axNetStatInbandHMReassign	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5077,6 +6451,620 @@ successful."
 		DEFVAL			{ 0 }
 		::=  {  axNetStats  46  }
 
+	axNetStatL4SynAttack	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 SYN attacks"
+		DEFVAL			{ 0 }
+		::=  {  axNetStats  47  }
+
+	axNetStatExt	OBJECT IDENTIFIER ::= { axNetStats  90 }
+
+	axNetStatExtL2Dsr	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L2 DSR"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  1  }
+
+	axNetStatExtL3Dsr	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L3 DSR"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  2  }
+
+	axNetStatExtNatNoFwdRoute	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of Source NAT no fwd route"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  3  }
+
+	axNetStatExtNatNoRevRoute	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of Source NAT no rev route"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  4  }
+
+	axNetStatExtNatIcmpProcess	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of Source NAT ICMP process"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  5  }
+
+	axNetStatExtNatIcmpNoMatch	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of Source NAT ICMP no match"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  6  }
+
+	axNetStatExtAutoNatIdMismatch	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of Auto NAT id mismatch"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  7  }
+
+	axNetStatExtNoVportDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of vport not matching drops"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  8  }
+
+	axNetStatExtTcpSessionAgedOut	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of TCP Session aged out"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  9  }
+
+	axNetStatExtUdpSessionAgedOut	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of UDP Session aged out"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  10  }
+
+	axNetStatExtOtherSessionAgedOut	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of Other Session aged out"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  11  }
+
+	axNetStatExtAutoReselectServer	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of Auto-reselect server"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  12  }
+
+	axNetStatExtFastAgingSet	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of Fast aging set"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  13  }
+
+	axNetStatExtFastAgingReset	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of Fast aging reset"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  14  }
+
+	axNetStatExtTcpInvalidDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of TCP invalid drop"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  15  }
+
+	axNetStatExtOutOfSeqAckDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of Out of sequence ACK drop"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  16  }
+
+	axNetStatExtTcpSynStaleSessionDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of SYN stale sess drop"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  17  }
+
+	axNetStatExtAnomalyOutOfSeq	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of Anomaly out of sequence"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  18  }
+
+	axNetStatExtAnomalyZeroWindow	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of Anomaly zero window"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  19  }
+
+	axNetStatExtAnomalyBadContent	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of Anomaly bad content"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  20  }
+
+	axNetStatExtAnomalyPbslbDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of Anomaly pbslb drop"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  21  }
+
+	axNetStatExtNoResourceDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of No resource drop"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  22  }
+
+	axNetStatExtResetUnknownConns	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of Reset unknown conn"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  23  }
+
+	axNetStatExtRstL7OnFailover	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of RST L7 on failover "
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  24  }
+
+	axNetStatExtTcpSynOtherFlagsDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of TCP SYN Other Flags Drop"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  25  }
+
+	axNetStatExtTcpSynWithDataDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of TCP SYN With Data Drop"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  26  }
+
+	axNetStatExtIgnoreMsl	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of ignore msl"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  27  }
+
+	axNetStatExtNatPortPreserveTry	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of NAT Port Preserve Try"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  28  }
+
+	axNetStatExtNatPortPreserveSucc	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of NAT Port Preserve Succ"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  29  }
+
+	axNetStatExtBwLimitExceedDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of BW-Limit Exceed drop"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  30  }
+
+	axNetStatExtBwWaterMarkDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of BW-Watermark drop"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  31  }
+
+	axNetStatExtL4CpsExceedDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 CPS exceed drop"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  32  }
+
+	axNetStatExtNatCpsExceedDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of NAT CPS exceed drop"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  33  }
+
+	axNetStatExtL7CpsExceedDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L7 CPS exceed drop"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  34  }
+
+	axNetStatExtSslCpsExceedDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of SSL CPS exceed drop"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  35  }
+
+	axNetStatExtSslTptExceedDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of SSL TPT exceed drop"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  36  }
+
+	axNetStatExtSslTptWaterMarkDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of SSL TPT-Watermark drop"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  37  }
+
+	axNetStatExtL3vConnLimitDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L3V Conn Limit Drop"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  38  }
+
+	axNetStatExtL4ServerHandshakeFail	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 server handshake fail"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  39  }
+
+	axNetStatExtL4AxReXmitSyn	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 AX re-xmit SYN"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  40  }
+
+	axNetStatExtL4RcvAckOnSyn	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 rcv ACK on SYN"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  41  }
+
+	axNetStatExtL4RcvRstOnSyn	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 rcv RST on SYN"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  42  }
+
+	axNetStatExtTcpNoEstSessionAgedOut	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of TCP no-Est Sess aged out"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  43  }
+
+	axNetStatExtNoEstCsynRcvAgedOut	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of no-Est CSYN rcv aged out"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  44  }
+
+	axNetStatExtNoEstSsynSntAgedOut	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of no-Est SSYN snt aged out"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  45  }
+
+	axNetStatExtL4RcvReXmitSyn	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 rcv rexmit SYN"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  46  }
+
+	axNetStatExtL4RcvReXmitSynDelq	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 rcv rexmit SYN (delq)"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  47  }
+
+	axNetStatExtL4RcvReXmitSynAck	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 rcv rexmit SYN|ACK"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  48  }
+
+	axNetStatExtL4RcvReXmitSynAckDq	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 rcv rexmit SYN|ACK DQ "
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  49  }
+
+	axNetStatExtL4RcvFwdLastAck	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 rcv fwd last ACK"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  50  }
+
+	axNetStatExtL4RcvRevLastAck	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 rcv rev last ACK"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  51  }
+
+	axNetStatExtL4RcvFwdFin	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 rcv fwd FIN"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  52  }
+
+	axNetStatExtL4RcvFwdFinDrop	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 rcv fwd FIN dup"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  53  }
+
+	axNetStatExtL4RcvFwdFinAck	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 rcv fwd FIN|ACK"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  54  }
+
+	axNetStatExtL4RcvRevFin	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 rcv rev FIN"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  55  }
+
+	axNetStatExtL4RcvRevFinDup	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 rcv rev FIN dup"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  56  }
+
+	axNetStatExtL4RcvFevFinAck	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 rcv rev FIN|ACK"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  57  }
+
+	axNetStatExtL4RcvFwdRst	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 rcv fwd RST"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  58  }
+
+	axNetStatExtL4RcfRevRst	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 rcv rev RST"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  59  }
+
+	axNetStatExtL4UdpReqsNoRsp	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 UDP reqs no rsp"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  60  }
+
+	axNetStatExtL4UdpReqRsps	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 UDP req rsps"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  61  }
+
+	axNetStatExtL4UdpReqRspNotMatch	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 UDP req/rsp not match"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  62  }
+
+	axNetStatExtL4UdpReqGreaterRsps	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 UDP req > rsps"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  63  }
+
+	axNetStatExtL4UdpRspsGreaterReqs	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 UDP rsps > reqs"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  64  }
+
+	axNetStatExtL4UdpReqs	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 UDP reqs"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  65  }
+
+	axNetStatExtL4UdpRsps	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 UDP rsps"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  66  }
+
+	axNetStatExtL4TcpEst	OBJECT-TYPE	
+		SYNTAX			Counter32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		
+                        "Number of L4 TCP Established"
+		DEFVAL			{ 0 }
+		::=  {  axNetStatExt  67  }
+
 	axNetStatTable	OBJECT-TYPE
 		SYNTAX		SEQUENCE  OF  AxNetStatEntry
 		MAX-ACCESS	not-accessible
@@ -5095,56 +7083,56 @@ successful."
 		::=  { axNetStatTable 1 }
 
 	AxNetStatEntry  ::=  SEQUENCE {
-		axNetStatCpuIndex  Counter,
-		axNetStatIPOutNoRt Counter,
-		axNetStatTCPOutReset Counter,
-		axNetStatTCPSynRecv Counter,
-		axNetStatTCPSYNCookieSnt Counter,
-		axNetStatTCPSYNCookieSntFail Counter,
-		axNetStatTCPRcv Counter,
-		axNetStatUDPRcv Counter,
-		axNetStatServerSelFails Counter,
-		axNetStatSourceNATFails Counter,
-		axNetStatTCPSynCookieFails Counter,
-		axNetStatNoVportDrops Counter,
-		axNetStatNoSynPktDrops Counter,
-		axNetStatConnLimitDrops Counter,
-		axNetStatConnLimitResets Counter,
-		axNetStatProxyNoSockDrops Counter,
-		axNetStataFlexDrops Counter,
-		axNetStatSessionsAgingOut Counter,
-		axNetStatTCPsNoSLB Counter,
-		axNetStatUDPsNoSLB Counter,
+		axNetStatCpuIndex  Gauge32,
+		axNetStatIPOutNoRt Counter32,
+		axNetStatTCPOutReset Counter32,
+		axNetStatTCPSynRecv Counter32,
+		axNetStatTCPSYNCookieSnt Counter32,
+		axNetStatTCPSYNCookieSntFail Counter32,
+		axNetStatTCPRcv Counter32,
+		axNetStatUDPRcv Counter32,
+		axNetStatServerSelFails Counter32,
+		axNetStatSourceNATFails Counter32,
+		axNetStatTCPSynCookieFails Counter32,
+		axNetStatNoVportDrops Counter32,
+		axNetStatNoSynPktDrops Counter32,
+		axNetStatConnLimitDrops Counter32,
+		axNetStatConnLimitResets Counter32,
+		axNetStatProxyNoSockDrops Counter32,
+		axNetStataFlexDrops Counter32,
+		axNetStatSessionsAgingOut Counter32,
+		axNetStatTCPsNoSLB Counter32,
+		axNetStatUDPsNoSLB Counter32,
 
-		axNetStatEntryTCPOutRSTNoSYN Counter,
-		axNetStatEntryTCPOutRSTL4Proxy Counter,
-		axNetStatEntryTCPOutRSTACKattack Counter,	
-		axNetStatEntryTCPOutRSTAFleX Counter,	
-		axNetStatEntryTCPOutRSTStaleSess Counter,
-		axNetStatEntryTCPOutRSTProxy Counter,
-		axNetStatEntryNoSYNPktDropFIN Counter,
-		axNetStatEntryNoSYNPktDropRST Counter,
-		axNetStatEntryNoSYNPktDropACK Counter,
-		axNetStatEntrySYNThrotte Counter,
-		axNetStatEntrySSLSIDPersistSucc Counter,
-		axNetStatEntrySSLSIDPersistFail Counter,
-		axNetStatEntryClientSSLSIDNotFound Counter,
-		axNetStatEntryClientSSLSIDMatch Counter,
-		axNetStatEntryClientSSLSIDNotMatch Counter,
-		axNetStatEntryServerSSLSIDNotFound Counter,
-		axNetStatEntryServerSSLSIDReset Counter,
-		axNetStatEntryServerSSLSIDMatch Counter,
-		axNetStatEntryServerSSLSIDNotMatch Counter,
-		axNetStatEntryCreateSSLSIDSucc Counter,
-		axNetStatEntryCreateSSLSIDFail Counter,
-		axNetStatEntryConnRateLimitDrops Counter,
-		axNetStatEntryConnRateLimitResets Counter,
-		axNetStatEntryInbandHMRetry Counter,
-		axNetStatEntryInbandHMReassign Counter
+		axNetStatEntryTCPOutRSTNoSYN Counter32,
+		axNetStatEntryTCPOutRSTL4Proxy Counter32,
+		axNetStatEntryTCPOutRSTACKattack Counter32,	
+		axNetStatEntryTCPOutRSTAFleX Counter32,	
+		axNetStatEntryTCPOutRSTStaleSess Counter32,
+		axNetStatEntryTCPOutRSTProxy Counter32,
+		axNetStatEntryNoSYNPktDropFIN Counter32,
+		axNetStatEntryNoSYNPktDropRST Counter32,
+		axNetStatEntryNoSYNPktDropACK Counter32,
+		axNetStatEntrySYNThrotte Counter32,
+		axNetStatEntrySSLSIDPersistSucc Counter32,
+		axNetStatEntrySSLSIDPersistFail Counter32,
+		axNetStatEntryClientSSLSIDNotFound Counter32,
+		axNetStatEntryClientSSLSIDMatch Counter32,
+		axNetStatEntryClientSSLSIDNotMatch Counter32,
+		axNetStatEntryServerSSLSIDNotFound Counter32,
+		axNetStatEntryServerSSLSIDReset Counter32,
+		axNetStatEntryServerSSLSIDMatch Counter32,
+		axNetStatEntryServerSSLSIDNotMatch Counter32,
+		axNetStatEntryCreateSSLSIDSucc Counter32,
+		axNetStatEntryCreateSSLSIDFail Counter32,
+		axNetStatEntryConnRateLimitDrops Counter32,
+		axNetStatEntryConnRateLimitResets Counter32,
+		axNetStatEntryInbandHMRetry Counter32,
+		axNetStatEntryInbandHMReassign Counter32
 		}
 
 	axNetStatCpuIndex	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Gauge32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5152,7 +7140,7 @@ successful."
 		::=  {  axNetStatEntry  1  }
 
 	axNetStatIPOutNoRt	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5161,7 +7149,7 @@ successful."
 		::=  {  axNetStatEntry  2  }
 
 	axNetStatTCPOutReset	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5170,7 +7158,7 @@ successful."
 		::=  {  axNetStatEntry  3  }
 
 	axNetStatTCPSynRecv	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5179,7 +7167,7 @@ successful."
 		::=  {  axNetStatEntry  4  }
 
 	axNetStatTCPSYNCookieSnt	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5188,7 +7176,7 @@ successful."
 		::=  {  axNetStatEntry  5  }
 
 	axNetStatTCPSYNCookieSntFail	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5197,7 +7185,7 @@ successful."
 		::=  {  axNetStatEntry  6  }
 		
 	axNetStatTCPRcv	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5206,7 +7194,7 @@ successful."
 		::=  {  axNetStatEntry  7  }
 		
 	axNetStatUDPRcv	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5215,7 +7203,7 @@ successful."
 		::=  {  axNetStatEntry  8  }
 		
 	axNetStatServerSelFails	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5224,7 +7212,7 @@ successful."
 		::=  {  axNetStatEntry  9  }
 		
 	axNetStatSourceNATFails	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5233,7 +7221,7 @@ successful."
 		::=  {  axNetStatEntry  10  }
 		
 	axNetStatTCPSynCookieFails	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5242,7 +7230,7 @@ successful."
 		::=  {  axNetStatEntry  11  }
 		
 	axNetStatNoVportDrops	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5251,7 +7239,7 @@ successful."
 		::=  {  axNetStatEntry  12  }
 		
 	axNetStatNoSynPktDrops	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5260,7 +7248,7 @@ successful."
 		::=  {  axNetStatEntry  13  }
 
 	axNetStatConnLimitDrops	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5269,7 +7257,7 @@ successful."
 		::=  {  axNetStatEntry  14  }
 		
 	axNetStatConnLimitResets	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5278,7 +7266,7 @@ successful."
 		::=  { axNetStatEntry  15  }
 			
 	axNetStatProxyNoSockDrops	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5287,7 +7275,7 @@ successful."
 		::=  {  axNetStatEntry  16  }
 		
 	axNetStataFlexDrops	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5296,7 +7284,7 @@ successful."
 		::=  {  axNetStatEntry  17 }
 		
 	axNetStatSessionsAgingOut	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5305,7 +7293,7 @@ successful."
 		::=  {  axNetStatEntry  18  }
 		
 	axNetStatTCPsNoSLB	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5314,7 +7302,7 @@ successful."
 		::=  {  axNetStatEntry  19  }
 		
 	axNetStatUDPsNoSLB	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5323,7 +7311,7 @@ successful."
 		::=  {  axNetStatEntry  20  }	
 
 	axNetStatEntryTCPOutRSTNoSYN	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5332,7 +7320,7 @@ successful."
 		::=  {  axNetStatEntry  21  }	
 		
 	axNetStatEntryTCPOutRSTL4Proxy	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5341,7 +7329,7 @@ successful."
 		::=  {  axNetStatEntry  22  }	
 		
 	axNetStatEntryTCPOutRSTACKattack	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5350,7 +7338,7 @@ successful."
 		::=  {  axNetStatEntry  23  }	
 		
 	axNetStatEntryTCPOutRSTAFleX	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5359,7 +7347,7 @@ successful."
 		::=  {  axNetStatEntry  24  }	
 		
 	axNetStatEntryTCPOutRSTStaleSess	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5368,7 +7356,7 @@ successful."
 		::=  {  axNetStatEntry  25  }	
 		
 	axNetStatEntryTCPOutRSTProxy		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5377,7 +7365,7 @@ successful."
 		::=  {  axNetStatEntry  26  }	
 		
 	axNetStatEntryNoSYNPktDropFIN	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5386,7 +7374,7 @@ successful."
 		::=  {  axNetStatEntry  27  }	
 		
 	axNetStatEntryNoSYNPktDropRST	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5395,7 +7383,7 @@ successful."
 		::=  {  axNetStatEntry  28  }	
 		
 	axNetStatEntryNoSYNPktDropACK	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5404,7 +7392,7 @@ successful."
 		::=  {  axNetStatEntry  29  }	
 		
 	axNetStatEntrySYNThrotte		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5413,7 +7401,7 @@ successful."
 		::=  {  axNetStatEntry  30  }	
 
 	axNetStatEntrySSLSIDPersistSucc		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5422,7 +7410,7 @@ successful."
 		::=  {  axNetStatEntry  31  }	
 
 	axNetStatEntrySSLSIDPersistFail		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5431,7 +7419,7 @@ successful."
 		::=  {  axNetStatEntry  32  }	
 
 	axNetStatEntryClientSSLSIDNotFound		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5440,7 +7428,7 @@ successful."
 		::=  {  axNetStatEntry  33  }
 		
 	axNetStatEntryClientSSLSIDMatch		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5449,7 +7437,7 @@ successful."
 		::=  {  axNetStatEntry  34  }	
 
 	axNetStatEntryClientSSLSIDNotMatch		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5458,7 +7446,7 @@ successful."
 		::=  {  axNetStatEntry  35  }	
 
 	axNetStatEntryServerSSLSIDNotFound		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5467,7 +7455,7 @@ successful."
 		::=  {  axNetStatEntry  36  }	
 
 	axNetStatEntryServerSSLSIDReset		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5476,7 +7464,7 @@ successful."
 		::=  {  axNetStatEntry  37  }	
 
 	axNetStatEntryServerSSLSIDMatch		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5485,7 +7473,7 @@ successful."
 		::=  {  axNetStatEntry  38  }	
 
 	axNetStatEntryServerSSLSIDNotMatch		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5494,7 +7482,7 @@ successful."
 		::=  {  axNetStatEntry  39  }	
 
 	axNetStatEntryCreateSSLSIDSucc		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5503,7 +7491,7 @@ successful."
 		::=  {  axNetStatEntry  40  }	
 
 	axNetStatEntryCreateSSLSIDFail		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5512,7 +7500,7 @@ successful."
 		::=  {  axNetStatEntry  41  }	
 
 	axNetStatEntryConnRateLimitDrops	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5521,7 +7509,7 @@ successful."
 		::=  {  axNetStatEntry  42  }	
 		
 	axNetStatEntryConnRateLimitResets	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5530,7 +7518,7 @@ successful."
 		::=  {  axNetStatEntry  43  }	
 		
 	axNetStatEntryInbandHMRetry		OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
@@ -5539,477 +7527,13 @@ successful."
 		::=  {  axNetStatEntry  44  }	
 		
 	axNetStatEntryInbandHMReassign	OBJECT-TYPE	
-		SYNTAX			Counter
+		SYNTAX			Counter32
 		MAX-ACCESS		read-only
 		STATUS			current
 		DESCRIPTION		
                         "Number of Inband HM reassign."
 		DEFVAL			{ 0 }
 		::=  {  axNetStatEntry  45  }	
-
---================================================================
--- axNotification 
---================================================================
-
-    axNotificationObjects        OBJECT IDENTIFIER ::= { axNotification 1 }
-    axNotifications              OBJECT IDENTIFIER ::= { axNotification 2 }
-
---================================================================
--- axNotificationObjects 
---================================================================
-
-    axSystemNotifications        OBJECT IDENTIFIER ::= { axNotifications 1 }
-    axAppNotifications           OBJECT IDENTIFIER ::= { axNotifications 2 }
-    axNetworkNotifications       OBJECT IDENTIFIER ::= { axNotifications 3 }
-
---================================================================
--- axNotifications
---================================================================
-
-axNotificationMsg OBJECT-TYPE
-        SYNTAX        DisplayString 
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION   "The information about the related notification."
-        ::= { axNotificationObjects 1 }
-
-axNotificationSLBServer OBJECT-TYPE
-        SYNTAX        DisplayString 
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION   "The address or host name of the server."
-        ::= { axNotificationObjects 2 }
-
-axNotificationSLBPort OBJECT-TYPE
-        SYNTAX        INTEGER 
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION   "The service port."
-        ::= { axNotificationObjects 3 }
-
-axNotificationSLBCurConns OBJECT-TYPE
-        SYNTAX        Counter32 
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION   "The current total of connections."
-        ::= { axNotificationObjects 4 }
-
-axNotificationVirtualServer OBJECT-TYPE
-        SYNTAX        DisplayString 
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION   "The address or host name of the virtual server."
-        ::= { axNotificationObjects 5 }
-
-axNotificationVirtualServerPort OBJECT-TYPE
-        SYNTAX        INTEGER 
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION   "The virtual server port."
-        ::= { axNotificationObjects 6 }
-
-axNotificationVirtualServerPortType OBJECT-TYPE
-        SYNTAX INTEGER {
-		firewall(1),
-		tcp(2),
-		udp(3),
-		rtsp(8),
-		ftp(9),
-		mms(10),
-		fastHTTP(12),
-		http(14),
-		https(15),
-		sslProxy(16),
-		smtp(17),
-		sip(11),
-		sips(19), 
-		sip-TCP(18), 
-		others(5)
-	}
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION   "The virtual server port type."
-        ::= { axNotificationObjects 7 }
-
-axNotificationDropEventReason OBJECT-TYPE
-        SYNTAX        INTEGER 
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION   "The event indicator type, such as Firmware, HighPerformanceDriver, L2, L3, .etc"
-        ::= { axNotificationObjects 8 }
-
-axNotificationConfiguredThreshold OBJECT-TYPE
-        SYNTAX        INTEGER 
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION   "The configured threshold value."
-        ::= { axNotificationObjects 9 }
-
-axNotificationCurrentUsage OBJECT-TYPE
-        SYNTAX        INTEGER 
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION   "The current usage value."
-        ::= { axNotificationObjects 10 }
-
-axNotificationConnLimit OBJECT-TYPE
-        SYNTAX        INTEGER 
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION   "The conn-limit."
-        ::= { axNotificationObjects 11 }
-
-axNotificationTrunkID OBJECT-TYPE
-        SYNTAX        INTEGER 
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION   "The trunk ID"
-        ::= { axNotificationObjects 12 }
-
-axNotificationPortThreshold OBJECT-TYPE
-        SYNTAX        INTEGER 
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION   "The port threshold"
-        ::= { axNotificationObjects 13 }
-
-axNotificationCurrentUpPorts OBJECT-TYPE
-        SYNTAX        INTEGER 
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION   "The current up ports"
-        ::= { axNotificationObjects 14 }
-
-axNotificationFanName OBJECT-TYPE
-        SYNTAX        DisplayString 
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION   "The system fan name."
-        ::= { axNotificationObjects 15 }
-
-axNotificationPowerSupplyName OBJECT-TYPE
-        SYNTAX        DisplayString 
-        MAX-ACCESS    read-only
-        STATUS        current
-        DESCRIPTION   "The system power supply name."
-        ::= { axNotificationObjects 16 }
-
---================================================================
--- axSystemNotifications
---================================================================
-
-axSystemStart        NOTIFICATION-TYPE
-	STATUS       current
-	DESCRIPTION  "Notify that the system has started running."
-	::= { axSystemNotifications 1 }
-
-axSystemShutdown     NOTIFICATION-TYPE
-	STATUS       current
-	DESCRIPTION  "Notify that the system is in the process of being shut down."
-	::= { axSystemNotifications 2 }
-
-axSystemTempHigh      NOTIFICATION-TYPE
-	STATUS       current
-	DESCRIPTION  "The system tempature is high."
-	::= { axSystemNotifications 3 }
-
-axFan1Failure      NOTIFICATION-TYPE
-	STATUS       deprecated
-	DESCRIPTION  "The system fan1 is failed."
-	::= { axSystemNotifications 4 }
-
-axFan2Failure      NOTIFICATION-TYPE
-	STATUS       deprecated
-	DESCRIPTION  "The system fan2 is failed."
-	::= { axSystemNotifications 5 }
-
-axFan3Failure      NOTIFICATION-TYPE
-	STATUS       deprecated
-	DESCRIPTION  "The system fan3 is failed."
-	::= { axSystemNotifications 6 }
-
-axUpperPowerSupplyFailure      NOTIFICATION-TYPE
-	STATUS       deprecated
-	DESCRIPTION  "The system upper power supply is failed."
-	::= { axSystemNotifications 9 }
-
-axLowerPowerSupplyFailure      NOTIFICATION-TYPE
-	STATUS        deprecated
-	DESCRIPTION   "The system lower power supply is failed."
-	::= { axSystemNotifications 10 }
-
-axPrimaryHardDiskFailure      NOTIFICATION-TYPE
-	STATUS        current
-	DESCRIPTION   "The primary hard disk is failed."
-	::= { axSystemNotifications 11 }
-
-axSecondaryHardDiskFailure      NOTIFICATION-TYPE
-	STATUS        current
-	DESCRIPTION   "The secondary hard disk is failed."
-	::= { axSystemNotifications 12 }
-
-axHardDiskUsageHigh      NOTIFICATION-TYPE
-	STATUS        current
-	DESCRIPTION   "The hard disk usage is high."
-	::= { axSystemNotifications 13 }
-
-axMemoryUsageHigh      NOTIFICATION-TYPE
-	STATUS       current
-	DESCRIPTION  "The memory usage is high."
-	::= { axSystemNotifications 14 }
-
-axSystemRestart      NOTIFICATION-TYPE
-	STATUS       current
-	DESCRIPTION  "Notify that the agent has been restarted."
-	::= { axSystemNotifications 15 }
-
-axSystemDropPacketEvent   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationDropEventReason
-		      }
-	STATUS        current
-	DESCRIPTION   "The AX experiences the packet dropped in the reason of axNotificationDropEventReason."
-	::= { axSystemNotifications 16 }
-
-axSystemRelieveDropPacketEvent   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationDropEventReason
-		      }
-	STATUS        current
-	DESCRIPTION   "The AX recovers from the packet dropped of the reason, axNotificationDropEventReason, before."
-	::= { axSystemNotifications 17 }
-
-axSystemControlCpuHigh   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationConfiguredThreshold,
-			axNotificationCurrentUsage
-		      }
-	STATUS        current
-	DESCRIPTION   "The AX control CPU usage is high."
-	::= { axSystemNotifications 18 }
-
-axSystemDataCpuHigh   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationConfiguredThreshold,
-			axNotificationCurrentUsage
-		      }
-	STATUS        current
-	DESCRIPTION   "The AX data CPU usage is high."
-	::= { axSystemNotifications 19 }
-
-axSystemFanFailure   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationFanName
-		      }
-	STATUS        current
-	DESCRIPTION   "The system fan is failed."
-	::= { axSystemNotifications 20 }
-
-axSystemPowerSupplyFailure   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationPowerSupplyName
-		      }
-	STATUS        current
-	DESCRIPTION   "The system power supply is failed."
-	::= { axSystemNotifications 21 }
-
---================================================================
--- axAppNotifications
---================================================================
-
-axHAStandby      NOTIFICATION-TYPE
-	OBJECTS       { axNotificationMsg }
-	STATUS        current
-	DESCRIPTION   "The system is going into standby mode."
-	::= { axAppNotifications 1 }
-
-axHAActive      NOTIFICATION-TYPE
-	OBJECTS       { axNotificationMsg }
-	STATUS        current
-	DESCRIPTION   "The system is going into active mode."
-	::= { axAppNotifications 2 }
-
-axHAActiveActive      NOTIFICATION-TYPE
-	OBJECTS       { axNotificationMsg }
-	STATUS        current
-	DESCRIPTION   "The system is going into active-active mode."
-	::= { axAppNotifications 3 }
-
-axServiceDown      NOTIFICATION-TYPE
-	OBJECTS       { axNotificationMsg, axNotificationSLBServer, axNotificationSLBPort }
-	STATUS        current
-	DESCRIPTION   "A service is detected DOWN."
-	::= { axAppNotifications 4 }
-
-axServiceUp      NOTIFICATION-TYPE
-	OBJECTS       { axNotificationMsg, axNotificationSLBServer, axNotificationSLBPort }
-	STATUS        current
-	DESCRIPTION   "A SLB service is up."
-	::= { axAppNotifications 5 }
-
-axServerDown      NOTIFICATION-TYPE
-	OBJECTS      { axNotificationMsg, axNotificationSLBServer }
-	STATUS        current
-	DESCRIPTION   "A SLB server is down."
-	::= { axAppNotifications 6 }
-
-axServerUp   NOTIFICATION-TYPE
-	OBJECTS       { axNotificationMsg, axNotificationSLBServer }
-	STATUS        current
-	DESCRIPTION   "A SLB server is up."
-	::= { axAppNotifications 7 }
-
-axServerConnLimit   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationMsg, 
-			axNotificationSLBServer,
-			axNotificationSLBCurConns
-		      }
-	STATUS        current
-	DESCRIPTION   "A SLB server has reached the configured connection limits."
-	::= { axAppNotifications 8 }
-
-axServerConnResume   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationMsg, 
-			axNotificationSLBServer,
-			axNotificationSLBCurConns
-		      }
-	STATUS        current
-	DESCRIPTION   "A SLB server has reached the configured connection-resume value."
-	::= { axAppNotifications 9 }
-
-axServiceConnLimit   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationMsg, 
-			axNotificationSLBServer, 
-			axNotificationSLBPort,
-			axNotificationSLBCurConns
-		      }
-	STATUS        current
-	DESCRIPTION   "A SLB service has reached the configured connection limits."
-	::= { axAppNotifications 10 }
-
-axServiceConnResume   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationMsg, 
-			axNotificationSLBServer, 
-			axNotificationSLBPort,
-			axNotificationSLBCurConns 
-		      }
-	STATUS        current
-	DESCRIPTION   "A SLB service has reached the configured connection-resume value."
-	::= { axAppNotifications 11 }
-
-axVirtualServerPortDown   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationMsg, 
-			axNotificationVirtualServer, 
-			axNotificationVirtualServerPort,
-			axNotificationVirtualServerPortType 
-		      }
-	STATUS        current
-	DESCRIPTION   "A SLB virtual server's service is down when all members of the service group belonging to the virtual server port are down."
-	::= { axAppNotifications 12 }
-
-axVirtualServerPortUp   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationMsg, 
-			axNotificationVirtualServer, 
-			axNotificationVirtualServerPort,
-			axNotificationVirtualServerPortType 
-		      }
-	STATUS        current
-	DESCRIPTION   "A SLB virtual server's service port is up when at least one member of the service group belonging to the virtual server port are up."
-	::= { axAppNotifications 13 }
-
-axApplicationBufferReachLimit	NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationConfiguredThreshold,
-			axNotificationCurrentUsage
-		      }
-	STATUS        current
-	DESCRIPTION   "The AX SLB application buffer usage execeeded the configured threshold."
-	::= { axAppNotifications 14 }
-
-axVirtualServerPortReachConnLimit   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationMsg, 
-			axNotificationSLBServer, 
-			axNotificationSLBPort,
-			axNotificationConnLimit
-		      }
-	STATUS        current
-	DESCRIPTION   "A virtual service port has reached the configured connection limits."
-	::= { axAppNotifications 15 }
-
-axVirtualServerPortReachConnRateLimit   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationMsg, 
-			axNotificationSLBServer, 
-			axNotificationSLBPort,
-			axNotificationConnLimit
-		      }
-	STATUS        current
-	DESCRIPTION   "A virtual service port has reached the configured connection rate-limits."
-	::= { axAppNotifications 16 }
-
-axVirtualServerReachConnLimit   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationMsg, 
-			axNotificationSLBServer, 
-			axNotificationConnLimit
-		      }
-	STATUS        current
-	DESCRIPTION   "A virtual server has reached the configured connection limits."
-	::= { axAppNotifications 17 }
-
-axVirtualServerReachConnRateLimit   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationMsg, 
-			axNotificationSLBServer, 
-			axNotificationConnLimit
-		      }
-	STATUS        current
-	DESCRIPTION   "A virtual server has reached the configured connection rate-limits."
-	::= { axAppNotifications 18 }
-
-axServerConnRateLimit   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationMsg, 
-			axNotificationSLBServer,
-			axNotificationSLBCurConns
-		      }
-	STATUS        current
-	DESCRIPTION   "A SLB server has reached the configured conn-rate-limits."
-	::= { axAppNotifications 19 }
-
-axServiceConnRateLimit   NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationMsg, 
-			axNotificationSLBServer, 
-			axNotificationSLBPort,
-			axNotificationSLBCurConns
-		      }
-	STATUS        current
-	DESCRIPTION   "A SLB service gropu member has reached the configured conn-rate-limits."
-	::= { axAppNotifications 20 }
-
-
---================================================================
--- axNetworkNotifications
---================================================================
-
-axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
-	OBJECTS       { 
-			axNotificationTrunkID,
-			axNotificationPortThreshold,
-			axNotificationCurrentUpPorts
-		      }
-	STATUS        current
-	DESCRIPTION   "The trunk ports threshold trap."
-	::= { axNetworkNotifications 1 }
-
 
 --================================================================
 --  axSmtpProxyStats     
@@ -7504,14 +9028,20 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
     axIpNatStatsGlobal            OBJECT IDENTIFIER ::= { axIpNatStats 1 }
     axIpNatStatsIntfInsideOutside OBJECT IDENTIFIER ::= { axIpNatStats 2 }
     axIpNatStatsDynamicMapping    OBJECT IDENTIFIER ::= { axIpNatStats 3 }
+    axIpNatPoolStats              OBJECT IDENTIFIER ::= { axIpNatStats 100 }
+	axIpNatLoggingStats           OBJECT IDENTIFIER ::= { axIpNatStats 101 }
     axIpNatLsnStats               OBJECT IDENTIFIER ::= { axIpNatStats 4 }
+    axIpNatNat64Stats             OBJECT IDENTIFIER ::= { axIpNatStats 5 }
+    axIpNatDsliteStats            OBJECT IDENTIFIER ::= { axIpNatStats 6 }
+    axIpNatStatsDynamicMappingAclName    OBJECT IDENTIFIER ::= { axIpNatStats 19 }
+    axFixedNatStats               OBJECT IDENTIFIER ::= { axIpNatStats 120 }
 
 --==================================================================
 -- axIpNatStatsGlobal
 --==================================================================
 
     axIpNatStatsGlobalHits	OBJECT-TYPE	
-	SYNTAX			Integer32
+	SYNTAX			CounterBasedGauge64
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
@@ -7520,7 +9050,7 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
 	::=  {  axIpNatStatsGlobal  1  }
 
     axIpNatStatsGlobalMisses	OBJECT-TYPE	
-	SYNTAX			Integer32
+	SYNTAX			CounterBasedGauge64
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
@@ -7616,7 +9146,9 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
         	axIpNatStatsDynamicMappingEndAddress         DisplayString,
         	axIpNatStatsDynamicMappingTotalAddresses     INTEGER,
         	axIpNatStatsDynamicMappingAllocAddresses     INTEGER,
-        	axIpNatStatsDynamicMappingMissAddresses      INTEGER
+        	axIpNatStatsDynamicMappingMissAddresses      INTEGER,
+			axIpNatStatsDynamicMappingStartAddressType   InetAddressType,
+        	axIpNatStatsDynamicMappingEndAddressType     InetAddressType
 	}
 
     axIpNatStatsDynamicMappingAccessListID OBJECT-TYPE 
@@ -7676,759 +9208,114 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
 		"The total misses in the pool"
 	::= { axIpNatStatsDynamicMappingEntry 7 }
 
---==================================================================
--- axIpNatLsnStats               
---==================================================================
+    axIpNatStatsDynamicMappingStartAddressType OBJECT-TYPE
+    SYNTAX InetAddressType
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The type of axIpNatStatsDynamicMappingStartAddress:
+            unknown(0), ipv4(1), ipv6(2)..."
+    ::= { axIpNatStatsDynamicMappingEntry 8 }
 
-    axIpNatLsnGobalStats                       OBJECT IDENTIFIER ::= { axIpNatLsnStats 1 }
-    axIpNatLsnTop5PrivateIpAddrTotSessions     OBJECT IDENTIFIER ::= { axIpNatLsnStats 2 }
-    axIpNatLsnTop5PrivateIpAddrTotTcpPorts     OBJECT IDENTIFIER ::= { axIpNatLsnStats 3 }
-    axIpNatLsnTop5PrivateIpAddrTotUdpPorts     OBJECT IDENTIFIER ::= { axIpNatLsnStats 4 }
-    axIpNatLsnTop5PrivateIpAddrTotIcmpPorts    OBJECT IDENTIFIER ::= { axIpNatLsnStats 5 }
-    axIpNatLsnTop5UserPrivateIpAddrTotSessions     OBJECT IDENTIFIER ::= { axIpNatLsnStats 6 }
-    axIpNatLsnTop5UserPrivateIpAddrTotTcpSessions  OBJECT IDENTIFIER ::= { axIpNatLsnStats 7 }
-    axIpNatLsnTop5UserPrivateIpAddrTotUdpSessions  OBJECT IDENTIFIER ::= { axIpNatLsnStats 8 }
-    axIpNatLsnTop5UserPrivateIpAddrTotIcmpSessions OBJECT IDENTIFIER ::= { axIpNatLsnStats 9 }
-    axIpNatLsnTop5GlobalPoolIpAddrTotUsers         OBJECT IDENTIFIER ::= { axIpNatLsnStats 10 }
-    axIpNatLsnTop5GlobalPoolIpAddrTotTcpPorts      OBJECT IDENTIFIER ::= { axIpNatLsnStats 11 }
-    axIpNatLsnTop5GlobalPoolIpAddrTotUdpPorts      OBJECT IDENTIFIER ::= { axIpNatLsnStats 12 }
+    axIpNatStatsDynamicMappingEndAddressType OBJECT-TYPE
+    SYNTAX InetAddressType
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The type of axIpNatStatsDynamicMappingEndAddress:
+            unknown(0), ipv4(1), ipv6(2)..."
+    ::= { axIpNatStatsDynamicMappingEntry 9 }
 
---==================================================================
--- axIpNatLsnGobalStats
---==================================================================
-
-    axIpNatLsnTotalUserQuotaSessions	OBJECT-TYPE	
-	SYNTAX			Counter64
-	MAX-ACCESS		read-only
-	STATUS			current
-	DESCRIPTION		
-		"The total number of user-quota sessions."
-	DEFVAL			{ 0 }
-	::=  {  axIpNatLsnGobalStats  1  }
-
-    axIpNatLsnTotalIpAddrTranslated	OBJECT-TYPE	
-	SYNTAX			Counter64
-	MAX-ACCESS		read-only
-	STATUS			current
-	DESCRIPTION		
-		"The total number of global (translated) Ip addresses which has at least 1 users."
-	DEFVAL			{ 0 }
-	::=  {  axIpNatLsnGobalStats  2  }
-
-    axIpNatLsnTotalFullConeSessions	OBJECT-TYPE	
-	SYNTAX			Counter64
-	MAX-ACCESS		read-only
-	STATUS			current
-	DESCRIPTION		
-		"The total number of full cone sessions."
-	DEFVAL			{ 0 }
-	::=  {  axIpNatLsnGobalStats  3  }
-
-    axIpNatLsnTrafficStats  OBJECT IDENTIFIER ::= { axIpNatLsnGobalStats 4 }
-
-    axIpNatLsnTrafficFullConeSessionCreated OBJECT-TYPE 
-	SYNTAX Counter64
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of full-cone session created."
-	::= { axIpNatLsnTrafficStats 1 } 
-
-    axIpNatLsnTrafficFullConeSessionFreed OBJECT-TYPE 
-	SYNTAX Counter64
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of full-cone session freed."
-	::= { axIpNatLsnTrafficStats 2 } 
-
-    axIpNatLsnTrafficFailsInFullConeSessionCreation OBJECT-TYPE 
-	SYNTAX Counter64
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of full-cone session creation failure."
-	::= { axIpNatLsnTrafficStats 3 } 
-
-    axIpNatLsnTrafficHairpinSessionCreated OBJECT-TYPE 
-	SYNTAX Counter64
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of hairpin session created."
-	::= { axIpNatLsnTrafficStats 4 } 
-
-    axIpNatLsnTrafficEndpointIndepMapMatch OBJECT-TYPE 
-	SYNTAX Counter64
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of endpoint independent mapping match."
-	::= { axIpNatLsnTrafficStats 5 } 
-
-    axIpNatLsnTrafficEndpointIndepFilterMatch OBJECT-TYPE 
-	SYNTAX Counter64
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of endpoint independent filtering match."
-	::= { axIpNatLsnTrafficStats 6 } 
-
-    axIpNatLsnTrafficUserQuotasCreated OBJECT-TYPE 
-	SYNTAX Counter64
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of user-quotas created."
-	::= { axIpNatLsnTrafficStats 7 } 
-
-    axIpNatLsnTrafficUserQuotasFreed OBJECT-TYPE 
-	SYNTAX Counter64
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of user-quotas freed."
-	::= { axIpNatLsnTrafficStats 8 } 
-
-    axIpNatLsnTrafficFailsInUserQuotasCreation OBJECT-TYPE 
-	SYNTAX Counter64
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of user-quotas creation failure."
-	::= { axIpNatLsnTrafficStats 9 } 
-
-    axIpNatLsnTrafficIcmpUserQuotasExceeded OBJECT-TYPE 
-	SYNTAX Counter64
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of ICMP user-quotas exceeded."
-	::= { axIpNatLsnTrafficStats 10 } 
-
-    axIpNatLsnTrafficUdpUserQuotasExceeded OBJECT-TYPE 
-	SYNTAX Counter64
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of UDP user-quotas exceeded."
-	::= { axIpNatLsnTrafficStats 11 } 
-
-    axIpNatLsnTrafficTcpUserQuotasExceeded OBJECT-TYPE 
-	SYNTAX Counter64
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of TCP user-quotas exceeded."
-	::= { axIpNatLsnTrafficStats 12 } 
-
-    axIpNatLsnTrafficExtendedUserQuotasMatch OBJECT-TYPE 
-	SYNTAX Counter64
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of extended user-quotas matches."
-	::= { axIpNatLsnTrafficStats 13 } 
-
-    axIpNatLsnTrafficExtendedUserQuotasExceeded OBJECT-TYPE 
-	SYNTAX Counter64
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of extended user-quotas exceeded."
-	::= { axIpNatLsnTrafficStats 14 } 
-
-    axIpNatLsnTrafficNatPortUnavailable OBJECT-TYPE 
-	SYNTAX Counter64
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of NAT port unavailable."
-	::= { axIpNatLsnTrafficStats 15 } 
-
-    axIpNatLsnTrafficNewUserResourceUnavailable OBJECT-TYPE 
-	SYNTAX Counter64
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of NAT resource unavailable for new users."
-	::= { axIpNatLsnTrafficStats 16 } 
 
 --==================================================================
--- axIpNatLsnTop5PrivateIpAddrTotSessions
+-- axIpNatPoolStats
 --==================================================================
 
-    axIpNatLsnTop5PrivateIpAddrTotSessionTable OBJECT-TYPE
-	SYNTAX SEQUENCE OF AxIpNatLsnTop5PrivateIpAddrTotSessionEntry
-	MAX-ACCESS not-accessible
-	STATUS current
-	DESCRIPTION
-		"A table containing Top 5 private IPs and total number of sessions(ports)."
-	::= { axIpNatLsnTop5PrivateIpAddrTotSessions 1 } 
-
-    axIpNatLsnTop5PrivateIpAddrTotSessionEntry OBJECT-TYPE
-	SYNTAX  AxIpNatLsnTop5PrivateIpAddrTotSessionEntry
-	MAX-ACCESS not-accessible
-	STATUS current
-	DESCRIPTION
-		"Columns in the axIpNatLsnTop5PrivateIpAddrTotSessions Table"
-	INDEX {
-		axIpNatLsnTop5PrivateIpAddr
-	}
-	::= { axIpNatLsnTop5PrivateIpAddrTotSessionTable 1 } 
-
-    AxIpNatLsnTop5PrivateIpAddrTotSessionEntry ::= 
-	SEQUENCE {
-        	axIpNatLsnTop5PrivateIpAddr                 DisplayString,
-        	axIpNatLsnTop5PrivateIpAddrTotNumSessions   Integer32,
-        	axIpNatLsnTop5PrivateIpAddrGlobalIpAddr     DisplayString
-	}
-
-    axIpNatLsnTop5PrivateIpAddr OBJECT-TYPE 
-	SYNTAX DisplayString
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The private IP address in the Top 5 private IP address entry."
-	::= { axIpNatLsnTop5PrivateIpAddrTotSessionEntry 1 } 
-
-    axIpNatLsnTop5PrivateIpAddrTotNumSessions OBJECT-TYPE 
-	SYNTAX Integer32
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of sessions in the Top 5 private IP address entry."
-	::= { axIpNatLsnTop5PrivateIpAddrTotSessionEntry 2 } 
-
-    axIpNatLsnTop5PrivateIpAddrGlobalIpAddr OBJECT-TYPE 
-	SYNTAX DisplayString
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The global IP address in the Top 5 private IP address entry."
-	::= { axIpNatLsnTop5PrivateIpAddrTotSessionEntry 3 } 
-
---==================================================================
--- axIpNatLsnTop5PrivateIpAddrTotTcpPorts
---==================================================================
-
-    axIpNatLsnTop5PrivateIpAddrTotTcpPortTable OBJECT-TYPE
-        SYNTAX SEQUENCE OF AxIpNatLsnTop5PrivateIpAddrTotTcpPortEntry
+    axIpNatPoolStatsTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF AxIpNatPoolStatsEntry
         MAX-ACCESS not-accessible
         STATUS current
         DESCRIPTION
-                "A table containing Top 5 private IPs and total number of TCP ports."
-        ::= { axIpNatLsnTop5PrivateIpAddrTotTcpPorts 1 }
+        	"A table has information of IP NAT pool statistics."
+        ::= { axIpNatPoolStats 1 } 
 
-    axIpNatLsnTop5PrivateIpAddrTotTcpPortEntry OBJECT-TYPE
-        SYNTAX  AxIpNatLsnTop5PrivateIpAddrTotTcpPortEntry
+    axIpNatPoolStatsEntry OBJECT-TYPE
+        SYNTAX  AxIpNatPoolStatsEntry
         MAX-ACCESS not-accessible
         STATUS current
         DESCRIPTION
-                "Columns in the axIpNatLsnTop5PrivateIpAddrTotTcpPorts Table"
+                "Columns in the axIpNatPoolStats Table"
         INDEX {
-                axIpNatLsnTop5PrivateIpAddrInTcpPort
+                axIpNatPoolName
         }
-        ::= { axIpNatLsnTop5PrivateIpAddrTotTcpPortTable 1 }
+        ::= { axIpNatPoolStatsTable 1 } 
 
-    AxIpNatLsnTop5PrivateIpAddrTotTcpPortEntry ::=
+    AxIpNatPoolStatsEntry ::= 
         SEQUENCE {
-                axIpNatLsnTop5PrivateIpAddrInTcpPort              DisplayString,
-                axIpNatLsnTop5PrivateIpAddrTotNumTcpPorts         Integer32,
-                axIpNatLsnTop5PrivateIpAddrGlobalIpAddrInTcpPort  DisplayString
+                axIpNatPoolName          DisplayString,
+                axIpNatPoolStartAddress  DisplayString,
+                axIpNatPoolEndAddress    DisplayString,
+                axIpNatPoolPortUsage     INTEGER,
+                axIpNatPoolTotalUsed     INTEGER,
+                axIpNatPoolTotalFree     INTEGER,
+                axIpNatPoolFailed        INTEGER
         }
 
-    axIpNatLsnTop5PrivateIpAddrInTcpPort OBJECT-TYPE
+    axIpNatPoolName OBJECT-TYPE 
         SYNTAX DisplayString
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
-                "The private IP address in the Top 5 private IP address entry."
-        ::= { axIpNatLsnTop5PrivateIpAddrTotTcpPortEntry 1 }
+                "The IP NAT pool name"
+        ::= { axIpNatPoolStatsEntry 1 } 
 
-    axIpNatLsnTop5PrivateIpAddrTotNumTcpPorts OBJECT-TYPE
-        SYNTAX Integer32
-        MAX-ACCESS read-only
-        STATUS current
-        DESCRIPTION
-                "The total number of TCP sessions in the Top 5 private IP address entry."
-        ::= { axIpNatLsnTop5PrivateIpAddrTotTcpPortEntry 2 }
-
-    axIpNatLsnTop5PrivateIpAddrGlobalIpAddrInTcpPort OBJECT-TYPE
+    axIpNatPoolStartAddress OBJECT-TYPE 
         SYNTAX DisplayString
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
-                "The global IP address in the Top 5 private IP address entry."
-        ::= { axIpNatLsnTop5PrivateIpAddrTotTcpPortEntry 3 }
+                "The IP NAT pool start address (IPv4 or IPv6)"
+        ::= { axIpNatPoolStatsEntry 2 } 
 
---==================================================================
--- axIpNatLsnTop5PrivateIpAddrTotUdpPorts
---==================================================================
-
-    axIpNatLsnTop5PrivateIpAddrTotUdpPortTable OBJECT-TYPE
-        SYNTAX SEQUENCE OF AxIpNatLsnTop5PrivateIpAddrTotUdpPortEntry
-        MAX-ACCESS not-accessible
-        STATUS current
-        DESCRIPTION
-                "A table containing Top 5 private IPs and total number of UDP ports."
-        ::= { axIpNatLsnTop5PrivateIpAddrTotUdpPorts 1 }
-
-    axIpNatLsnTop5PrivateIpAddrTotUdpPortEntry OBJECT-TYPE
-        SYNTAX  AxIpNatLsnTop5PrivateIpAddrTotUdpPortEntry
-        MAX-ACCESS not-accessible
-        STATUS current
-        DESCRIPTION
-                "Columns in the axIpNatLsnTop5PrivateIpAddrTotUdpPorts Table"
-        INDEX {
-                axIpNatLsnTop5PrivateIpAddrInUdpPort
-        }
-        ::= { axIpNatLsnTop5PrivateIpAddrTotUdpPortTable 1 }
-
-    AxIpNatLsnTop5PrivateIpAddrTotUdpPortEntry ::=
-        SEQUENCE {
-                axIpNatLsnTop5PrivateIpAddrInUdpPort              DisplayString,
-                axIpNatLsnTop5PrivateIpAddrTotNumUdpPorts         Integer32,
-                axIpNatLsnTop5PrivateIpAddrGlobalIpAddrInUdpPort  DisplayString
-        }
-
-    axIpNatLsnTop5PrivateIpAddrInUdpPort OBJECT-TYPE
+    axIpNatPoolEndAddress OBJECT-TYPE 
         SYNTAX DisplayString
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
-                "The private IP address in the Top 5 private IP address entry."
-        ::= { axIpNatLsnTop5PrivateIpAddrTotUdpPortEntry 1 }
+                "The IP NAT pool end address (IPv4 or IPv6)"
+        ::= { axIpNatPoolStatsEntry 3 } 
 
-    axIpNatLsnTop5PrivateIpAddrTotNumUdpPorts OBJECT-TYPE
-        SYNTAX Integer32
+    axIpNatPoolPortUsage OBJECT-TYPE 
+        SYNTAX INTEGER
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
-                "The total number of UDP sessions in the Top 5 private IP address entry."
-        ::= { axIpNatLsnTop5PrivateIpAddrTotUdpPortEntry 2 }
+               "The total port usage in the pool."
+        ::= { axIpNatPoolStatsEntry 4 } 
 
-    axIpNatLsnTop5PrivateIpAddrGlobalIpAddrInUdpPort OBJECT-TYPE
-        SYNTAX DisplayString
+    axIpNatPoolTotalUsed OBJECT-TYPE 
+        SYNTAX INTEGER
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
-                "The global IP address in the Top 5 private IP address entry."
-        ::= { axIpNatLsnTop5PrivateIpAddrTotUdpPortEntry 3 }
+                "The total of used addresses in the pool."
+        ::= { axIpNatPoolStatsEntry 5 } 
 
---==================================================================
--- axIpNatLsnTop5PrivateIpAddrTotIcmpPorts
---==================================================================
-
-    axIpNatLsnTop5PrivateIpAddrTotIcmpPortTable OBJECT-TYPE
-        SYNTAX SEQUENCE OF AxIpNatLsnTop5PrivateIpAddrTotIcmpPortEntry
-        MAX-ACCESS not-accessible
-        STATUS current
-        DESCRIPTION
-                "A table containing Top 5 private IPs and total number of ICMP ports."
-        ::= { axIpNatLsnTop5PrivateIpAddrTotIcmpPorts 1 }
-
-    axIpNatLsnTop5PrivateIpAddrTotIcmpPortEntry OBJECT-TYPE
-        SYNTAX  AxIpNatLsnTop5PrivateIpAddrTotIcmpPortEntry
-        MAX-ACCESS not-accessible
-        STATUS current
-        DESCRIPTION
-                "Columns in the axIpNatLsnTop5PrivateIpAddrTotIcmpPorts Table"
-        INDEX {
-                axIpNatLsnTop5PrivateIpAddrInIcmpPort
-        }
-        ::= { axIpNatLsnTop5PrivateIpAddrTotIcmpPortTable 1 }
-
-    AxIpNatLsnTop5PrivateIpAddrTotIcmpPortEntry ::=
-        SEQUENCE {
-                axIpNatLsnTop5PrivateIpAddrInIcmpPort              DisplayString,
-                axIpNatLsnTop5PrivateIpAddrTotNumIcmpPorts         Integer32,
-                axIpNatLsnTop5PrivateIpAddrGlobalIpAddrInIcmpPort  DisplayString
-        }
-
-    axIpNatLsnTop5PrivateIpAddrInIcmpPort OBJECT-TYPE
-        SYNTAX DisplayString
+    axIpNatPoolTotalFree OBJECT-TYPE 
+        SYNTAX INTEGER
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
-                "The private IP address in the Top 5 private IP address entry."
-        ::= { axIpNatLsnTop5PrivateIpAddrTotIcmpPortEntry 1 }
+                "The total of free addresses in the pool"
+        ::= { axIpNatPoolStatsEntry 6 } 
 
-    axIpNatLsnTop5PrivateIpAddrTotNumIcmpPorts OBJECT-TYPE
-        SYNTAX Integer32
+    axIpNatPoolFailed OBJECT-TYPE 
+        SYNTAX INTEGER
         MAX-ACCESS read-only
         STATUS current
         DESCRIPTION
-                "The total number of ICMP sessions in the Top 5 private IP address entry."
-        ::= { axIpNatLsnTop5PrivateIpAddrTotIcmpPortEntry 2 }
-
-    axIpNatLsnTop5PrivateIpAddrGlobalIpAddrInIcmpPort OBJECT-TYPE
-        SYNTAX DisplayString
-        MAX-ACCESS read-only
-        STATUS current
-        DESCRIPTION
-                "The global IP address in the Top 5 private IP address entry."
-        ::= { axIpNatLsnTop5PrivateIpAddrTotIcmpPortEntry 3 }
-
---==================================================================
--- axIpNatLsnTop5UserPrivateIpAddrTotSessions
---==================================================================
-
-    axIpNatLsnTop5UserPrivateIpAddrTotSessionTable OBJECT-TYPE
-	SYNTAX SEQUENCE OF AxIpNatLsnTop5UserPrivateIpAddrTotSessionEntry
-	MAX-ACCESS not-accessible
-	STATUS current
-	DESCRIPTION
-		"A table containing Top 5 users private IPs and total number of sessions. 
-		 To monitor users who use most of resources: pick up global pool IP which
-		 ports are most used total of TCP/UDP/ICMP sessions; 
-		 then, find out the top 5 users who use the global pool most used total of TCP/UDP/ICMP sessions."
-	::= { axIpNatLsnTop5UserPrivateIpAddrTotSessions 1 } 
-
-    axIpNatLsnTop5UserPrivateIpAddrTotSessionEntry OBJECT-TYPE
-	SYNTAX  AxIpNatLsnTop5UserPrivateIpAddrTotSessionEntry
-	MAX-ACCESS not-accessible
-	STATUS current
-	DESCRIPTION
-		"Columns in the axIpNatLsnTop5UserPrivateIpAddrTotSessions Table"
-	INDEX {
-		axIpNatLsnTop5UserPrivateIpAddr
-	}
-	::= { axIpNatLsnTop5UserPrivateIpAddrTotSessionTable 1 } 
-
-    AxIpNatLsnTop5UserPrivateIpAddrTotSessionEntry ::= 
-	SEQUENCE {
-        	axIpNatLsnTop5UserPrivateIpAddr                 DisplayString,
-        	axIpNatLsnTop5UserPrivateIpAddrTotNumSessions   Integer32,
-        	axIpNatLsnTop5UserPrivateIpAddrGlobalIpAddr     DisplayString
-	}
-
-    axIpNatLsnTop5UserPrivateIpAddr OBJECT-TYPE 
-	SYNTAX DisplayString
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The private IP address in the Top 5 user entry."
-	::= { axIpNatLsnTop5UserPrivateIpAddrTotSessionEntry 1 } 
-
-    axIpNatLsnTop5UserPrivateIpAddrTotNumSessions OBJECT-TYPE 
-	SYNTAX Integer32
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of TCP/UDP/ICMP sessions in the Top 5 user entry."
-	::= { axIpNatLsnTop5UserPrivateIpAddrTotSessionEntry 2 } 
-
-    axIpNatLsnTop5UserPrivateIpAddrGlobalIpAddr OBJECT-TYPE 
-	SYNTAX DisplayString
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The global IP address in the Top 5 user entry."
-	::= { axIpNatLsnTop5UserPrivateIpAddrTotSessionEntry 3 } 
-
---==================================================================
--- axIpNatLsnTop5UserPrivateIpAddrTotTcpSessions
---==================================================================
-
-    axIpNatLsnTop5UserPrivateIpAddrTotTcpSessionTable OBJECT-TYPE
-        SYNTAX SEQUENCE OF AxIpNatLsnTop5UserPrivateIpAddrTotTcpSessionEntry
-        MAX-ACCESS not-accessible
-        STATUS current
-        DESCRIPTION
-		"A table containing Top 5 users private IPs and total number of sessions. 
-		 To monitor users who use most of resources: pick up global pool IP which
-		 ports are most used total of TCP/UDP/ICMP sessions; 
-		 then, find out the top 5 users who use the global pool most used total of TCP sessions."
-        ::= { axIpNatLsnTop5UserPrivateIpAddrTotTcpSessions 1 }
-
-    axIpNatLsnTop5UserPrivateIpAddrTotTcpSessionEntry OBJECT-TYPE
-        SYNTAX  AxIpNatLsnTop5UserPrivateIpAddrTotTcpSessionEntry
-        MAX-ACCESS not-accessible
-        STATUS current
-        DESCRIPTION
-                "Columns in the axIpNatLsnTop5UserPrivateIpAddrTotTcpSessions Table"
-        INDEX {
-                axIpNatLsnTop5UserPrivateIpAddrInTcp
-        }
-        ::= { axIpNatLsnTop5UserPrivateIpAddrTotTcpSessionTable 1 }
-
-    AxIpNatLsnTop5UserPrivateIpAddrTotTcpSessionEntry ::=
-        SEQUENCE {
-                axIpNatLsnTop5UserPrivateIpAddrInTcp              DisplayString,
-                axIpNatLsnTop5UserPrivateIpAddrTotNumTcpSessions  Integer32,
-                axIpNatLsnTop5UserPrivateIpAddrGlobalIpAddrInTcp  DisplayString
-        }
-
-    axIpNatLsnTop5UserPrivateIpAddrInTcp OBJECT-TYPE
-        SYNTAX DisplayString
-        MAX-ACCESS read-only
-        STATUS current
-        DESCRIPTION
-                "The private IP address in the Top 5 user entry."
-        ::= { axIpNatLsnTop5UserPrivateIpAddrTotTcpSessionEntry 1 }
-
-    axIpNatLsnTop5UserPrivateIpAddrTotNumTcpSessions OBJECT-TYPE
-        SYNTAX Integer32
-        MAX-ACCESS read-only
-        STATUS current
-        DESCRIPTION
-                "The total number of TCP sessions in the Top 5 user entry."
-        ::= { axIpNatLsnTop5UserPrivateIpAddrTotTcpSessionEntry 2 }
-
-    axIpNatLsnTop5UserPrivateIpAddrGlobalIpAddrInTcp OBJECT-TYPE
-        SYNTAX DisplayString
-        MAX-ACCESS read-only
-        STATUS current
-        DESCRIPTION
-                "The global IP address in the Top 5 user entry."
-        ::= { axIpNatLsnTop5UserPrivateIpAddrTotTcpSessionEntry 3 }
-
---==================================================================
--- axIpNatLsnTop5UserPrivateIpAddrTotUdpSessions
---==================================================================
-
-    axIpNatLsnTop5UserPrivateIpAddrTotUdpSessionTable OBJECT-TYPE
-        SYNTAX SEQUENCE OF AxIpNatLsnTop5UserPrivateIpAddrTotUdpSessionEntry
-        MAX-ACCESS not-accessible
-        STATUS current
-        DESCRIPTION
-		"A table containing Top 5 users private IPs and total number of sessions. 
-		 To monitor users who use most of resources: pick up global pool IP which
-		 ports are most used total of TCP/UDP/ICMP sessions; 
-		 then, find out the top 5 users who use the global pool most used total of UDP sessions."
-        ::= { axIpNatLsnTop5UserPrivateIpAddrTotUdpSessions 1 }
-
-    axIpNatLsnTop5UserPrivateIpAddrTotUdpSessionEntry OBJECT-TYPE
-        SYNTAX  AxIpNatLsnTop5UserPrivateIpAddrTotUdpSessionEntry
-        MAX-ACCESS not-accessible
-        STATUS current
-        DESCRIPTION
-                "Columns in the axIpNatLsnTop5UserPrivateIpAddrTotUdpSessions Table"
-        INDEX {
-                axIpNatLsnTop5UserPrivateIpAddrInUdp
-        }
-        ::= { axIpNatLsnTop5UserPrivateIpAddrTotUdpSessionTable 1 }
-
-    AxIpNatLsnTop5UserPrivateIpAddrTotUdpSessionEntry ::=
-        SEQUENCE {
-                axIpNatLsnTop5UserPrivateIpAddrInUdp              DisplayString,
-                axIpNatLsnTop5UserPrivateIpAddrTotNumUdpSessions  Integer32,
-                axIpNatLsnTop5UserPrivateIpAddrGlobalIpAddrInUdp  DisplayString
-        }
-
-    axIpNatLsnTop5UserPrivateIpAddrInUdp OBJECT-TYPE
-        SYNTAX DisplayString
-        MAX-ACCESS read-only
-        STATUS current
-        DESCRIPTION
-                "The private IP address in the Top 5 user entry."
-        ::= { axIpNatLsnTop5UserPrivateIpAddrTotUdpSessionEntry 1 }
-
-    axIpNatLsnTop5UserPrivateIpAddrTotNumUdpSessions OBJECT-TYPE
-        SYNTAX Integer32
-        MAX-ACCESS read-only
-        STATUS current
-        DESCRIPTION
-                "The total number of UDP sessions in the Top 5 user entry."
-        ::= { axIpNatLsnTop5UserPrivateIpAddrTotUdpSessionEntry 2 }
-
-    axIpNatLsnTop5UserPrivateIpAddrGlobalIpAddrInUdp OBJECT-TYPE
-        SYNTAX DisplayString
-        MAX-ACCESS read-only
-        STATUS current
-        DESCRIPTION
-                "The global IP address in the Top 5 user entry."
-        ::= { axIpNatLsnTop5UserPrivateIpAddrTotUdpSessionEntry 3 }
-
---==================================================================
--- axIpNatLsnTop5UserPrivateIpAddrTotIcmpSessions
---==================================================================
-
-    axIpNatLsnTop5UserPrivateIpAddrTotIcmpSessionTable OBJECT-TYPE
-        SYNTAX SEQUENCE OF AxIpNatLsnTop5UserPrivateIpAddrTotIcmpSessionEntry
-        MAX-ACCESS not-accessible
-        STATUS current
-        DESCRIPTION
-		"A table containing Top 5 users private IPs and total number of sessions. 
-		 To monitor users who use most of resources: pick up global pool IP which
-		 ports are most used total of TCP/UDP/ICMP sessions; 
-		 then, find out the top 5 users who use the global pool most used total of ICMP sessions."
-        ::= { axIpNatLsnTop5UserPrivateIpAddrTotIcmpSessions 1 }
-
-    axIpNatLsnTop5UserPrivateIpAddrTotIcmpSessionEntry OBJECT-TYPE
-        SYNTAX  AxIpNatLsnTop5UserPrivateIpAddrTotIcmpSessionEntry
-        MAX-ACCESS not-accessible
-        STATUS current
-        DESCRIPTION
-                "Columns in the axIpNatLsnTop5UserPrivateIpAddrTotIcmpSessions Table"
-        INDEX {
-                axIpNatLsnTop5UserPrivateIpAddrInIcmp
-        }
-        ::= { axIpNatLsnTop5UserPrivateIpAddrTotIcmpSessionTable 1 }
-
-    AxIpNatLsnTop5UserPrivateIpAddrTotIcmpSessionEntry ::=
-        SEQUENCE {
-                axIpNatLsnTop5UserPrivateIpAddrInIcmp              DisplayString,
-                axIpNatLsnTop5UserPrivateIpAddrTotNumIcmpSessions  Integer32,
-                axIpNatLsnTop5UserPrivateIpAddrGlobalIpAddrInIcmp  DisplayString
-        }
-
-    axIpNatLsnTop5UserPrivateIpAddrInIcmp OBJECT-TYPE
-        SYNTAX DisplayString
-        MAX-ACCESS read-only
-        STATUS current
-        DESCRIPTION
-                "The private IP address in the Top 5 user entry."
-        ::= { axIpNatLsnTop5UserPrivateIpAddrTotIcmpSessionEntry 1 }
-
-    axIpNatLsnTop5UserPrivateIpAddrTotNumIcmpSessions OBJECT-TYPE
-        SYNTAX Integer32
-        MAX-ACCESS read-only
-        STATUS current
-        DESCRIPTION
-                "The total number of ICMP sessions in the Top 5 user entry."
-        ::= { axIpNatLsnTop5UserPrivateIpAddrTotIcmpSessionEntry 2 }
-
-    axIpNatLsnTop5UserPrivateIpAddrGlobalIpAddrInIcmp OBJECT-TYPE
-        SYNTAX DisplayString
-        MAX-ACCESS read-only
-        STATUS current
-        DESCRIPTION
-                "The global IP address in the Top 5 user entry."
-        ::= { axIpNatLsnTop5UserPrivateIpAddrTotIcmpSessionEntry 3 }
-
---==================================================================
--- axIpNatLsnTop5GlobalPoolIpAddrTotUsers
---==================================================================
-    axIpNatLsnTop5GlobalPoolIpAddrTotUserTable OBJECT-TYPE
-	SYNTAX SEQUENCE OF AxIpNatLsnTop5GlobalPoolIpAddrTotUserEntry
-	MAX-ACCESS not-accessible
-	STATUS current
-	DESCRIPTION
-		"A table containing Top 5 global pool IPs and total number of users."
-	::= { axIpNatLsnTop5GlobalPoolIpAddrTotUsers 1 } 
-
-    axIpNatLsnTop5GlobalPoolIpAddrTotUserEntry OBJECT-TYPE
-	SYNTAX  AxIpNatLsnTop5GlobalPoolIpAddrTotUserEntry
-	MAX-ACCESS not-accessible
-	STATUS current
-	DESCRIPTION
-		"Columns in the axIpNatLsnTop5GlobalPoolIpAddrTotUsers Table"
-	INDEX {
-		axIpNatLsnTop5GlobalPoolIpAddr
-	}
-	::= { axIpNatLsnTop5GlobalPoolIpAddrTotUserTable 1 } 
-
-    AxIpNatLsnTop5GlobalPoolIpAddrTotUserEntry ::= 
-	SEQUENCE {
-        	axIpNatLsnTop5GlobalPoolIpAddr              DisplayString,
-        	axIpNatLsnTop5GlobalPoolIpAddrTotNumUsers   Integer32
-	}
-
-    axIpNatLsnTop5GlobalPoolIpAddr OBJECT-TYPE 
-	SYNTAX DisplayString
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The global pool IP address in the Top 5 global pool IPs entry."
-	::= { axIpNatLsnTop5GlobalPoolIpAddrTotUserEntry 1 } 
-
-    axIpNatLsnTop5GlobalPoolIpAddrTotNumUsers OBJECT-TYPE 
-	SYNTAX Integer32
-	MAX-ACCESS read-only
-	STATUS current
-	DESCRIPTION
-		"The total number of users in the Top 5 global pool IPs entry."
-	::= { axIpNatLsnTop5GlobalPoolIpAddrTotUserEntry 2 } 
-
---==================================================================
--- axIpNatLsnTop5GlobalPoolIpAddrTotTcpPorts
---==================================================================
-    axIpNatLsnTop5GlobalPoolIpAddrTotTcpPortTable OBJECT-TYPE
-        SYNTAX SEQUENCE OF AxIpNatLsnTop5GlobalPoolIpAddrTotTcpPortEntry
-        MAX-ACCESS not-accessible
-        STATUS current
-        DESCRIPTION
-                "A table containing Top 5 global pool IPs and total number of TCP ports."
-        ::= { axIpNatLsnTop5GlobalPoolIpAddrTotTcpPorts 1 }
-
-    axIpNatLsnTop5GlobalPoolIpAddrTotTcpPortEntry OBJECT-TYPE
-        SYNTAX  AxIpNatLsnTop5GlobalPoolIpAddrTotTcpPortEntry
-        MAX-ACCESS not-accessible
-        STATUS current
-        DESCRIPTION
-                "Columns in the axIpNatLsnTop5GlobalPoolIpAddrTotTcpPorts Table"
-        INDEX {
-                axIpNatLsnTop5GlobalPoolIpAddrInTcp
-        }
-        ::= { axIpNatLsnTop5GlobalPoolIpAddrTotTcpPortTable 1 }
-
-    AxIpNatLsnTop5GlobalPoolIpAddrTotTcpPortEntry ::=
-        SEQUENCE {
-                axIpNatLsnTop5GlobalPoolIpAddrInTcp            DisplayString,
-                axIpNatLsnTop5GlobalPoolIpAddrTotNumTcpPorts   Integer32
-        }
-
-    axIpNatLsnTop5GlobalPoolIpAddrInTcp OBJECT-TYPE
-        SYNTAX DisplayString
-        MAX-ACCESS read-only
-        STATUS current
-        DESCRIPTION
-                "The global pool IP address in the Top 5 global pool IPs entry."
-        ::= { axIpNatLsnTop5GlobalPoolIpAddrTotTcpPortEntry 1 }
-
-    axIpNatLsnTop5GlobalPoolIpAddrTotNumTcpPorts OBJECT-TYPE
-        SYNTAX Integer32
-        MAX-ACCESS read-only
-        STATUS current
-        DESCRIPTION
-                "The total number of TCP ports in the Top 5 global pool IPs entry."
-        ::= { axIpNatLsnTop5GlobalPoolIpAddrTotTcpPortEntry 2 }
-
---==================================================================
--- axIpNatLsnTop5GlobalPoolIpAddrTotUdpPorts
---==================================================================
-    axIpNatLsnTop5GlobalPoolIpAddrTotUdpPortTable OBJECT-TYPE
-        SYNTAX SEQUENCE OF AxIpNatLsnTop5GlobalPoolIpAddrTotUdpPortEntry
-        MAX-ACCESS not-accessible
-        STATUS current
-        DESCRIPTION
-                "A table containing Top 5 global pool IPs and total number of UDP ports."
-        ::= { axIpNatLsnTop5GlobalPoolIpAddrTotUdpPorts 1 }
-
-    axIpNatLsnTop5GlobalPoolIpAddrTotUdpPortEntry OBJECT-TYPE
-        SYNTAX  AxIpNatLsnTop5GlobalPoolIpAddrTotUdpPortEntry
-        MAX-ACCESS not-accessible
-        STATUS current
-        DESCRIPTION
-                "Columns in the axIpNatLsnTop5GlobalPoolIpAddrTotUdpPorts Table"
-        INDEX {
-                axIpNatLsnTop5GlobalPoolIpAddrInUdp
-        }
-        ::= { axIpNatLsnTop5GlobalPoolIpAddrTotUdpPortTable 1 }
-
-    AxIpNatLsnTop5GlobalPoolIpAddrTotUdpPortEntry ::=
-        SEQUENCE {
-                axIpNatLsnTop5GlobalPoolIpAddrInUdp            DisplayString,
-                axIpNatLsnTop5GlobalPoolIpAddrTotNumUdpPorts   Integer32
-        }
-
-    axIpNatLsnTop5GlobalPoolIpAddrInUdp OBJECT-TYPE
-        SYNTAX DisplayString
-        MAX-ACCESS read-only
-        STATUS current
-        DESCRIPTION
-                "The global pool IP address in the Top 5 global pool IPs entry."
-        ::= { axIpNatLsnTop5GlobalPoolIpAddrTotUdpPortEntry 1 }
-
-    axIpNatLsnTop5GlobalPoolIpAddrTotNumUdpPorts OBJECT-TYPE
-        SYNTAX Integer32
-        MAX-ACCESS read-only
-        STATUS current
-        DESCRIPTION
-                "The total number of UDP ports in the Top 5 global pool IPs entry."
-        ::= { axIpNatLsnTop5GlobalPoolIpAddrTotUdpPortEntry 2 }
+                "The total misses in the pool"
+        ::= { axIpNatPoolStatsEntry 7 }
 
 --==================================================================
 -- axSessionStats
@@ -8439,7 +9326,7 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
 --==================================================================
 
     axSessionGlobalStatTCPEstablished	OBJECT-TYPE	
-	SYNTAX			Counter
+	SYNTAX			Gauge32
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
@@ -8448,7 +9335,7 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
 	::=  {  axSessionStatsGlobal  1  }
 
     axSessionGlobalStatTCPHalfOpen	OBJECT-TYPE	
-	SYNTAX			Counter
+	SYNTAX			Gauge32
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
@@ -8457,7 +9344,7 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
 	::=  {  axSessionStatsGlobal  2  }
 
     axSessionGlobalStatUDP	OBJECT-TYPE	
-	SYNTAX			Counter
+	SYNTAX			Gauge32
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
@@ -8466,7 +9353,7 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
 	::=  {  axSessionStatsGlobal  3  }
 
     axSessionGlobalStatNonTcpUdpIPSession	OBJECT-TYPE	
-	SYNTAX			Counter
+	SYNTAX			Gauge32
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
@@ -8475,7 +9362,7 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
 	::=  {  axSessionStatsGlobal  4  }
 
     axSessionGlobalStatOther	OBJECT-TYPE	
-	SYNTAX			Counter
+	SYNTAX			Gauge32
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
@@ -8484,7 +9371,7 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
 	::=  {  axSessionStatsGlobal  5  }
 
     axSessionGlobalStatReverseNATTCP	OBJECT-TYPE	
-	SYNTAX			Counter
+	SYNTAX			Gauge32
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
@@ -8493,7 +9380,7 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
 	::=  {  axSessionStatsGlobal  6  }
 
     axSessionGlobalStatReverseNATUDP	OBJECT-TYPE	
-	SYNTAX			Counter
+	SYNTAX			Gauge32
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
@@ -8502,7 +9389,7 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
 	::=  {  axSessionStatsGlobal  7  }
 
     axSessionGlobalStatFreeBufferCount	OBJECT-TYPE	
-	SYNTAX			Counter
+	SYNTAX			Gauge32
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
@@ -8511,7 +9398,7 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
 	::=  {  axSessionStatsGlobal  8  }
 
     axSessionGlobalStatFreeCurrentConns	OBJECT-TYPE	
-	SYNTAX			Counter
+	SYNTAX			Gauge32
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
@@ -8520,7 +9407,7 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
 	::=  {  axSessionStatsGlobal  9  }
 
     axSessionGlobalStatConnCount	OBJECT-TYPE	
-	SYNTAX			Counter
+	SYNTAX			Gauge32
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
@@ -8529,7 +9416,7 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
 	::=  {  axSessionStatsGlobal  10  }
 
     axSessionGlobalStatConnFree	OBJECT-TYPE	
-	SYNTAX			Counter
+	SYNTAX			Gauge32
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
@@ -8538,7 +9425,7 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
 	::=  {  axSessionStatsGlobal  11  }
 
     axSessionGlobalStatTCPSynHalfOpen	OBJECT-TYPE	
-	SYNTAX			Counter
+	SYNTAX			Gauge32
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
@@ -8547,7 +9434,7 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
 	::=  {  axSessionStatsGlobal  12 }
 
     axSessionGlobalStatConnSMPAllocated	OBJECT-TYPE	
-	SYNTAX			Counter
+	SYNTAX			Gauge32
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
@@ -8556,7 +9443,7 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
 	::=  {  axSessionStatsGlobal  13  }
 
     axSessionGlobalStatConnSMPFree	OBJECT-TYPE	
-	SYNTAX			Counter
+	SYNTAX			Gauge32
 	MAX-ACCESS		read-only
 	STATUS			current
 	DESCRIPTION		
@@ -8564,6 +9451,919 @@ axNetworkTrunkPortsThreshold      NOTIFICATION-TYPE
 	DEFVAL			{ 0 }
 	::=  {  axSessionStatsGlobal  14  }
 
+--==================================================================
+-- axGslb
+--==================================================================
+ 
+    axGslbZones           OBJECT IDENTIFIER ::= { axGslb 1 }
+    axGslbSites           OBJECT IDENTIFIER ::= { axGslb 2 }
+    axGslbServiceIPs      OBJECT IDENTIFIER ::= { axGslb 3 }
+    axGslbServiceIpPorts  OBJECT IDENTIFIER ::= { axGslb 4 }
+    axGslbSiteSlbDevices  OBJECT IDENTIFIER ::= { axGslb 5 }
+    axGslbGroups  		  OBJECT IDENTIFIER ::= { axGslb 6 }
+ 
+--==================================================================
+-- axGslbZones
+--==================================================================
+
+    axGslbZoneCount OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of axGslbZoneStatsTable entries in the table."
+	::= { axGslbZones 1 } 
+
+    axGslbZoneStatsTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF AxGslbZoneStatsEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+	"A table has information of GSLB zones"
+	::= { axGslbZones 2 } 
+
+    axGslbZoneStatsEntry OBJECT-TYPE
+	SYNTAX  AxGslbZoneStatsEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+	"Columns in the axGslbStatsZones Table"
+	INDEX {
+	axGslbZoneName
+	}
+	::= { axGslbZoneStatsTable 1 } 
+ 
+    AxGslbZoneStatsEntry ::= 
+	SEQUENCE {
+         axGslbZoneName                  DisplayString,
+	 axGslbZoneAdminState            INTEGER,
+	 axGslbZoneOperState             INTEGER,
+         axGslbZoneReceivedQueries       Counter64,
+         axGslbZoneSentResponses         Counter64,
+         axGslbZoneProxyModeCount        Counter64,
+         axGslbZoneCacheModeCount        Counter64,
+         axGslbZoneServerModeCount       Counter64,
+         axGslbZoneStickyModeCount       Counter64,
+         axGslbZoneBackupModeCount       Counter64
+	}
+ 
+    axGslbZoneName OBJECT-TYPE 
+	 SYNTAX DisplayString
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The name of the zone entry."
+	 ::= { axGslbZoneStatsEntry 1 } 
+ 
+    axGslbZoneAdminState OBJECT-TYPE 
+	SYNTAX INTEGER {
+		disabled(0),
+		enable(1)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The Zone administrative state." 
+	::= { axGslbZoneStatsEntry 2 } 
+ 
+    axGslbZoneOperState OBJECT-TYPE 
+	SYNTAX INTEGER {
+		up(1),
+		down(2),
+		unknown(3)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The Zone operational state." 
+	::= { axGslbZoneStatsEntry 3 } 
+
+    axGslbZoneReceivedQueries OBJECT-TYPE 
+	 SYNTAX Counter64
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The number of received queries on the zone entry."
+	 ::= { axGslbZoneStatsEntry 4 } 
+ 
+    axGslbZoneSentResponses OBJECT-TYPE 
+	 SYNTAX Counter64
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The number of sent response on the zone entry."
+	 ::= { axGslbZoneStatsEntry 5 } 
+ 
+    axGslbZoneProxyModeCount OBJECT-TYPE 
+	 SYNTAX Counter64
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The count in proxy mode."
+	 ::= { axGslbZoneStatsEntry 6 } 
+ 
+    axGslbZoneCacheModeCount OBJECT-TYPE 
+	 SYNTAX Counter64
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The count in cache mode."
+	 ::= { axGslbZoneStatsEntry 7 } 
+ 
+    axGslbZoneServerModeCount OBJECT-TYPE 
+	 SYNTAX Counter64
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The count in server mode."
+	 ::= { axGslbZoneStatsEntry 8 } 
+ 
+    axGslbZoneStickyModeCount OBJECT-TYPE 
+	 SYNTAX Counter64
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The count in sticky mode."
+	 ::= { axGslbZoneStatsEntry 9 } 
+ 
+    axGslbZoneBackupModeCount OBJECT-TYPE 
+	 SYNTAX Counter64
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The count in backup mode."
+	 ::= { axGslbZoneStatsEntry 10 } 
+
+    axGslbZoneServiceStatsTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF AxGslbZoneServiceStatsEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+	"A table has information of GSLB zone services"
+	::= { axGslbZones 3 } 
+
+    axGslbZoneServiceStatsEntry OBJECT-TYPE
+	SYNTAX  AxGslbZoneServiceStatsEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+	"Columns in the axGslbZoneServiceStats Table"
+	INDEX {
+    axGslbZoneServiceFqdn
+	}
+	::= { axGslbZoneServiceStatsTable 1 } 
+ 
+    AxGslbZoneServiceStatsEntry ::= 
+	SEQUENCE {
+         axGslbZoneServiceFqdn          DisplayString,
+         axGslbZoneNameInServiceEntry           DisplayString,
+         axGslbZoneServiceName                  DisplayString,
+         axGslbZoneServicePortNum               INTEGER,
+	 axGslbZoneServiceAdminState            INTEGER,
+	 axGslbZoneServiceOperState             INTEGER,
+         axGslbZoneServiceReceivedQueries       Counter64,
+         axGslbZoneServiceSentResponses         Counter64,
+         axGslbZoneServiceProxyModeCount        Counter64,
+         axGslbZoneServiceCacheModeCount        Counter64,
+         axGslbZoneServiceServerModeCount       Counter64,
+         axGslbZoneServiceStickyModeCount       Counter64,
+         axGslbZoneServiceBackupModeCount       Counter64
+	}
+
+    axGslbZoneServiceFqdn OBJECT-TYPE
+     SYNTAX DisplayString
+     MAX-ACCESS read-only
+     STATUS current
+     DESCRIPTION
+      "The Fqdn of Zone Service Entry."
+     ::= { axGslbZoneServiceStatsEntry 1 }
+ 
+    axGslbZoneNameInServiceEntry  OBJECT-TYPE 
+	 SYNTAX DisplayString
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The name of the zone in service entry."
+	 ::= { axGslbZoneServiceStatsEntry 2 } 
+ 
+    axGslbZoneServiceName OBJECT-TYPE 
+	 SYNTAX DisplayString
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The service name of the zone service entry."
+	 ::= { axGslbZoneServiceStatsEntry 3 } 
+ 
+    axGslbZoneServicePortNum OBJECT-TYPE 
+	 SYNTAX INTEGER
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The port number of the zone service entry."
+	 ::= { axGslbZoneServiceStatsEntry 4 } 
+
+    axGslbZoneServiceAdminState OBJECT-TYPE 
+	SYNTAX INTEGER {
+		disabled(0),
+		enable(1)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The Zone Service administrative state." 
+	::= { axGslbZoneServiceStatsEntry 5 } 
+
+    axGslbZoneServiceOperState OBJECT-TYPE 
+	SYNTAX INTEGER {
+		up(1),
+		down(2),
+		unknown(3)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The Zone Service operational state." 
+	::= { axGslbZoneServiceStatsEntry 6 } 
+ 
+    axGslbZoneServiceReceivedQueries OBJECT-TYPE 
+	 SYNTAX Counter64
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The number of received queries on the zone service entry."
+	 ::= { axGslbZoneServiceStatsEntry 7 } 
+ 
+    axGslbZoneServiceSentResponses OBJECT-TYPE 
+	 SYNTAX Counter64
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The number of sent response on the zone service entry."
+	 ::= { axGslbZoneServiceStatsEntry 8 } 
+ 
+    axGslbZoneServiceProxyModeCount OBJECT-TYPE 
+	 SYNTAX Counter64
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The count in proxy mode."
+	 ::= { axGslbZoneServiceStatsEntry 9 } 
+ 
+    axGslbZoneServiceCacheModeCount OBJECT-TYPE 
+	 SYNTAX Counter64
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The count in cache mode."
+	 ::= { axGslbZoneServiceStatsEntry 10 } 
+ 
+    axGslbZoneServiceServerModeCount OBJECT-TYPE 
+	 SYNTAX Counter64
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The count in server mode."
+	 ::= { axGslbZoneServiceStatsEntry 11 } 
+ 
+    axGslbZoneServiceStickyModeCount OBJECT-TYPE 
+	 SYNTAX Counter64
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The count in sticky mode."
+	 ::= { axGslbZoneServiceStatsEntry 12 } 
+ 
+    axGslbZoneServiceBackupModeCount OBJECT-TYPE 
+	 SYNTAX Counter64
+	 MAX-ACCESS read-only
+	 STATUS current
+	 DESCRIPTION
+	  "The count in backup mode."
+	 ::= { axGslbZoneServiceStatsEntry 13 } 
+ 
+--==================================================================
+-- axGslbSites
+--==================================================================
+ 
+    axGslbSiteCount OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The total number of sites."
+	::= { axGslbSites 1 } 
+
+    axGslbSiteStatsTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF AxGslbSiteStatsEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+	"A table has information of GSLB sites"
+	::= { axGslbSites 2 } 
+
+    axGslbSiteStatsEntry OBJECT-TYPE
+	SYNTAX  AxGslbSiteStatsEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+	"Columns in the axGslbSiteStats Table"
+	INDEX {
+	axGslbSiteName
+	}
+	::= { axGslbSiteStatsTable 1 } 
+ 
+    AxGslbSiteStatsEntry ::= 
+	SEQUENCE {
+	 axGslbSiteName              DisplayString,
+	 axGslbSiteAdminState        INTEGER,
+	 axGslbSiteOperState	     INTEGER,
+	 axGslbSiteHitCount          Counter64
+	}
+ 
+    axGslbSiteName OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The name of the site entry."
+	::= { axGslbSiteStatsEntry 1 } 
+  
+    axGslbSiteAdminState OBJECT-TYPE 
+	SYNTAX INTEGER {
+		disabled(0),
+		enable(1)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The site administrative state." 
+	::= { axGslbSiteStatsEntry 2 } 
+
+    axGslbSiteOperState OBJECT-TYPE 
+	SYNTAX INTEGER {
+		up(1),
+		down(2),
+		unknown(3)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The site operational state."
+	::= { axGslbSiteStatsEntry 3 } 
+ 
+    axGslbSiteHitCount OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The hit count of the site."
+	::= { axGslbSiteStatsEntry 4 } 
+
+    axGslbSiteDeviceStatsTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF AxGslbSiteDeviceStatsEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+	"A table has information of GSLB site devices"
+	::= { axGslbSites 3 } 
+
+    axGslbSiteDeviceStatsEntry OBJECT-TYPE
+	SYNTAX  AxGslbSiteDeviceStatsEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+	"Columns in the axGslbSiteDevicesStats Table"
+	INDEX {
+	axGslbSiteNameInDeviceEntry, axGslbSiteSlbDeviceIpAddr, axGslbSiteServiceIpAddr, axGslbSiteServiceIpPortNum
+	}
+	::= { axGslbSiteDeviceStatsTable 1 } 
+ 
+    AxGslbSiteDeviceStatsEntry ::= 
+	SEQUENCE {
+	 axGslbSiteNameInDeviceEntry          DisplayString,
+	 axGslbSiteSlbDeviceIpAddr            DisplayString,
+	 axGslbSiteServiceIpAddr              DisplayString,
+	 axGslbSiteServiceIpPortNum           INTEGER,
+	 axGslbSiteSlbDeviceName              DisplayString,
+	 axGslbSiteServiceIpName              DisplayString,
+	 axGslbSiteServiceIpAdminState        INTEGER,
+	 axGslbSiteServiceIpOperState	      INTEGER,
+	 axGslbSiteServiceIpHitCount          Counter64
+	}
+ 
+    axGslbSiteNameInDeviceEntry  OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The name of the site."
+	::= { axGslbSiteDeviceStatsEntry 1 } 
+ 
+    axGslbSiteSlbDeviceIpAddr OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The IP address of the SLB device in the site entry."
+	::= { axGslbSiteDeviceStatsEntry 2 } 
+ 
+    axGslbSiteServiceIpAddr OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The IP address of the service-ip in the site device entry."
+	::= { axGslbSiteDeviceStatsEntry 3 } 
+ 
+    axGslbSiteServiceIpPortNum OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The port number of the service-ip in the site device entry."
+	::= { axGslbSiteDeviceStatsEntry 4 } 
+ 
+    axGslbSiteSlbDeviceName OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The SLB device name in the site device entry."
+	::= { axGslbSiteDeviceStatsEntry 5 } 
+ 
+    axGslbSiteServiceIpName OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The service-ip name in the site device entry."
+	::= { axGslbSiteDeviceStatsEntry 6 } 
+ 
+    axGslbSiteServiceIpAdminState OBJECT-TYPE 
+	SYNTAX INTEGER {
+		disabled(0),
+		enable(1)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The service-ip administrative state." 
+	::= { axGslbSiteDeviceStatsEntry 7 } 
+
+    axGslbSiteServiceIpOperState OBJECT-TYPE 
+	SYNTAX INTEGER {
+		up(1),
+		down(2)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The service-ip operational state."
+
+	::= { axGslbSiteDeviceStatsEntry 8 } 
+ 
+    axGslbSiteServiceIpHitCount OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The hit count of the service-ip name in the site device entry."
+	::= { axGslbSiteDeviceStatsEntry 9 } 
+ 
+--==================================================================
+-- axGslbServiceIPs
+--==================================================================
+ 
+    axGslbServiceIPCount OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The number of axGslbServiceIPTable entries in the table."
+	::= { axGslbServiceIPs 1 } 
+
+    axGslbServiceIPTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF AxGslbServiceIPEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+	"A table has information of GSLB service IPs"
+	::= { axGslbServiceIPs 2 } 
+ 
+    axGslbServiceIPEntry OBJECT-TYPE
+	SYNTAX  AxGslbServiceIPEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+	"Columns in the axGslbServiceIPs Table"
+	INDEX {
+	   axGslbServiceIpAddr
+	}
+	::= { axGslbServiceIPTable 1 } 
+ 
+    AxGslbServiceIPEntry ::= 
+	SEQUENCE {
+         axGslbServiceIpAddr                  DisplayString,
+         axGslbServiceIpName                  DisplayString,
+         axGslbServiceIpSiteName              DisplayString,
+         axGslbServiceIpAdminState            INTEGER,
+	 axGslbServiceIpOperState             INTEGER,
+         axGslbServiceIpIsVirtualServerFlag   INTEGER,
+         axGslbServiceIpProtocolFlag          INTEGER,
+         axGslbServiceIpServicePortCount      Counter32,
+         axGslbServiceIpHitCount              Counter64
+	}
+ 
+    axGslbServiceIpAddr OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The IP address of the service-ip entry."
+	::= { axGslbServiceIPEntry 1 } 
+ 
+    axGslbServiceIpName OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The name of the service-ip entry."
+	::= { axGslbServiceIPEntry 2 } 
+ 
+    axGslbServiceIpSiteName OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The site name has the service-ip entry."
+	::= { axGslbServiceIPEntry 3 } 
+ 
+    axGslbServiceIpAdminState OBJECT-TYPE 
+	SYNTAX INTEGER {
+	   disabled(0),
+	   enable(1)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The service-ip administrative state." 
+	::= { axGslbServiceIPEntry 4 } 
+
+    axGslbServiceIpOperState OBJECT-TYPE 
+	SYNTAX INTEGER {
+	   up(1),
+	   down(2)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The service-ip operational state." 
+	::= { axGslbServiceIPEntry 5 } 
+ 
+    axGslbServiceIpIsVirtualServerFlag OBJECT-TYPE 
+	SYNTAX INTEGER {
+	  isVirtualServer(1),
+	  other(2)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The flag of virtual server."
+	::= { axGslbServiceIPEntry 6 } 
+ 
+    axGslbServiceIpProtocolFlag OBJECT-TYPE 
+	SYNTAX INTEGER {
+	  gslbProtocol(1),
+	  localProtocol(2),
+	  unknown(0)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The service-ip with the GSLB protocol or local protocol."
+	::= { axGslbServiceIPEntry 7 } 
+ 
+    axGslbServiceIpServicePortCount OBJECT-TYPE 
+	SYNTAX Counter32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The number of ports for the service-ip entry."
+	::= { axGslbServiceIPEntry 8 } 
+ 
+    axGslbServiceIpHitCount OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The hit count of the service-ip entry."
+	::= { axGslbServiceIPEntry 9 } 
+ 
+--==================================================================
+-- axGslbServiceIpPorts
+--==================================================================
+ 
+    axGslbServiceIpPortTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF AxGslbServiceIpPortEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+	"A table has information of GSLB service ports"
+	::= { axGslbServiceIpPorts 1 } 
+ 
+    axGslbServiceIpPortEntry OBJECT-TYPE
+	SYNTAX  AxGslbServiceIpPortEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+	"Columns in the axGslbServicePorts Table"
+	INDEX {
+	axGslbServiceIpPortAddr, axGslbServiceIpPortNum
+	}
+	::= { axGslbServiceIpPortTable 1 } 
+ 
+    AxGslbServiceIpPortEntry ::= 
+	SEQUENCE {
+         axGslbServiceIpPortAddr                  DisplayString,
+         axGslbServiceIpPortNum                   INTEGER,
+	 axGslbServiceIpPortOperState             INTEGER,
+         axGslbServiceIpPortProtocolFlag          INTEGER,
+         axGslbServiceIpPortActiveServerCount     Counter32,
+         axGslbServiceIpPortCurrConns             Counter64
+	}
+ 
+    axGslbServiceIpPortAddr OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The IP address of the service-ip entry."
+	::= { axGslbServiceIpPortEntry 1 } 
+ 
+    axGslbServiceIpPortNum OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The port number of the service-ip port entry"
+	::= { axGslbServiceIpPortEntry 2 } 
+ 
+    axGslbServiceIpPortOperState OBJECT-TYPE 
+	SYNTAX INTEGER {
+		up(1),
+		down(2)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The service-ip port operational state." 
+	::= { axGslbServiceIpPortEntry 3} 
+ 
+    axGslbServiceIpPortProtocolFlag OBJECT-TYPE 
+	SYNTAX INTEGER {
+		gslbProtocol(1),
+		localProtocol(2),
+		unknown(0)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The service-ip port with the GSLB protocol or local protocol."
+	::= { axGslbServiceIpPortEntry 4 } 
+ 
+    axGslbServiceIpPortActiveServerCount OBJECT-TYPE 
+	SYNTAX Counter32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The number of the active real servers."
+	::= { axGslbServiceIpPortEntry 5 } 
+ 
+    axGslbServiceIpPortCurrConns OBJECT-TYPE 
+	SYNTAX Counter64
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The number of the current connections."
+	::= { axGslbServiceIpPortEntry 6 } 
+ 
+--==================================================================
+-- axGslbSiteSlbDevices
+--==================================================================
+ 
+    axGslbSiteSlbDeviceTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF AxGslbSiteSlbDeviceEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+	"A table has information of GSLB service ports"
+	::= { axGslbSiteSlbDevices 1 } 
+ 
+    axGslbSiteSlbDeviceEntry OBJECT-TYPE
+	SYNTAX  AxGslbSiteSlbDeviceEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+	"Columns in the axGslbSiteSlbDevices Table"
+	INDEX {
+	axGslbSiteSlbDeviceSiteName, axGslbSiteSlbForDeviceIpAddr
+	}
+	::= { axGslbSiteSlbDeviceTable 1 } 
+ 
+    AxGslbSiteSlbDeviceEntry ::= 
+	SEQUENCE {
+         axGslbSiteSlbDeviceSiteName              DisplayString,
+         axGslbSiteSlbForDeviceIpAddr             DisplayString,
+         axGslbSiteForSlbDeviceName               DisplayString,
+         axGslbSiteSlbDeviceProtocolFlag          INTEGER,
+         axGslbSiteSlbDeviceAdminPreference       INTEGER,
+         axGslbSiteSlbDeviceSessionUtilization    INTEGER,
+         axGslbSiteSlbDeviceAvailSessionCount     Counter32,
+         axGslbSiteSlbDeviceServicIpCount         Counter32
+	}
+ 
+    axGslbSiteSlbDeviceSiteName OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The site name of the slb-device entry."
+	::= { axGslbSiteSlbDeviceEntry 1 } 
+ 
+    axGslbSiteSlbForDeviceIpAddr OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The IP address of the slb-device entry."
+	::= { axGslbSiteSlbDeviceEntry 2 } 
+ 
+    axGslbSiteForSlbDeviceName OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The name of the slb-device entry."
+	::= { axGslbSiteSlbDeviceEntry 3 } 
+ 
+    axGslbSiteSlbDeviceProtocolFlag OBJECT-TYPE 
+	SYNTAX INTEGER {
+		gslbProtocol(1),
+		localProtocol(2),
+		unknown(0)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The SLB device with the GSLB protocol or local protocol."
+	::= { axGslbSiteSlbDeviceEntry 4 } 
+ 
+    axGslbSiteSlbDeviceAdminPreference OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The administrative preference of the SLB device entry."
+	::= { axGslbSiteSlbDeviceEntry 5 } 
+ 
+    axGslbSiteSlbDeviceSessionUtilization OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The session utilization of the SLB device entry in percentage."
+	::= { axGslbSiteSlbDeviceEntry 6 } 
+ 
+    axGslbSiteSlbDeviceAvailSessionCount OBJECT-TYPE 
+	SYNTAX Counter32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The number of the available sessions in the SLB device entry."
+	::= { axGslbSiteSlbDeviceEntry 7 } 
+ 
+    axGslbSiteSlbDeviceServicIpCount OBJECT-TYPE 
+	SYNTAX Counter32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The number of the service-ip entries."
+	::= { axGslbSiteSlbDeviceEntry 8 } 
+
+--==================================================================
+-- axGslbGroups
+--==================================================================
+ 
+    axGslbGroupTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF AxGslbGroupEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+	"A table has information on GSLB groups."
+	::= { axGslbGroups 1 } 
+ 
+    axGslbGroupEntry OBJECT-TYPE
+	SYNTAX  AxGslbGroupEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+	"Columns in the axGslbGroup Table"
+	INDEX {
+	axGslbGroupName, axGslbGroupMember, axGslbGroupAddress
+	}
+	::= { axGslbGroupTable 1 } 
+ 
+    AxGslbGroupEntry ::= 
+	SEQUENCE {
+         axGslbGroupName                  DisplayString,
+		 axGslbGroupMember				  DisplayString,
+         axGslbGroupSysID             	  DisplayString,
+         axGslbGroupPriority              INTEGER,
+         axGslbGroupAttribute 	          BITS,
+         axGslbGroupStatus 			      INTEGER,
+         axGslbGroupAddress         	  DisplayString
+	}
+
+    axGslbGroupName OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The name of the axGslbGroupTable entry."
+	::= { axGslbGroupEntry 1 } 
+
+    axGslbGroupMember OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The member of the group in the axGslbGroupTable entry."
+	::= { axGslbGroupEntry 2 } 
+
+    axGslbGroupSysID OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The sys id of the member in the axGslbGroupTable entry."
+	::= { axGslbGroupEntry 3 } 
+ 
+    axGslbGroupPriority OBJECT-TYPE 
+	SYNTAX INTEGER
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The priority of the member in the axGslbGroupTable entry."
+	::= { axGslbGroupEntry 4 } 
+ 
+    axGslbGroupAttribute OBJECT-TYPE 
+	SYNTAX BITS {
+		master(1),
+		disabled(2),
+		learn(3),
+		passive(4),
+		bridge(5),
+		super(6)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The attribute of the member in the axGslbGroupTable entry."
+	::= { axGslbGroupEntry 5 } 
+
+    axGslbGroupStatus OBJECT-TYPE 
+	SYNTAX INTEGER {
+		ok(1),
+		idle(2),
+		connect(3),
+		active(4),
+		openSent(5),
+		openConfirm(6),
+		established(7),
+		unknown(8),
+		ready(9),
+	    masterSync(10),
+		fullSync(11),
+		synced(12),
+		stopped(13),
+		waitSync(14),
+		vcs(15),
+		ha(16),
+		auto(17)
+	}
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The status of the member in the axGslbGroupTable entry."
+	::= { axGslbGroupEntry 6 } 
+
+    axGslbGroupAddress OBJECT-TYPE 
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+	"The ip address of the member in the axGslbGroupTable entry."
+	::= { axGslbGroupEntry 7 } 
 
 END
 

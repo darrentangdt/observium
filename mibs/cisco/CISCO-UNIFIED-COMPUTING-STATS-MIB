@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- STATS management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -65,11 +65,12 @@ IMPORTS
     CucsStatsThr64ValuePropType,
     CucsStatsThrFloatDefinitionPropType,
     CucsStatsThrFloatValuePropType,
+    CucsStatsThresholdDefinitionAutoRecovery,
     CucsStatsThresholdDirection
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsStatsObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -679,7 +680,10 @@ CucsStatsThr32DefinitionEntry ::= SEQUENCE {
     cucsStatsThr32DefinitionPropId                                   SnmpAdminString,
     cucsStatsThr32DefinitionPropType                                 CucsStatsThr32DefinitionPropType,
     cucsStatsThr32DefinitionPolicyLevel                              Gauge32,
-    cucsStatsThr32DefinitionPolicyOwner                              CucsPolicyPolicyOwner
+    cucsStatsThr32DefinitionPolicyOwner                              CucsPolicyPolicyOwner,
+    cucsStatsThr32DefinitionAutoRecovery                             CucsStatsThresholdDefinitionAutoRecovery,
+    cucsStatsThr32DefinitionAutoRecoveryTime                         Gauge32,
+    cucsStatsThr32DefinitionErrorDisableFiPort                       TruthValue
 }
 
 cucsStatsThr32DefinitionInstanceId OBJECT-TYPE
@@ -772,6 +776,33 @@ cucsStatsThr32DefinitionPolicyOwner OBJECT-TYPE
         "Cisco UCS stats:Thr32Definition:policyOwner managed
         object property"
     ::= { cucsStatsThr32DefinitionEntry 11 }
+
+cucsStatsThr32DefinitionAutoRecovery OBJECT-TYPE
+    SYNTAX       CucsStatsThresholdDefinitionAutoRecovery
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS stats:Thr32Definition:autoRecovery managed
+        object property"
+    ::= { cucsStatsThr32DefinitionEntry 12 }
+
+cucsStatsThr32DefinitionAutoRecoveryTime OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS stats:Thr32Definition:autoRecoveryTime
+        managed object property"
+    ::= { cucsStatsThr32DefinitionEntry 13 }
+
+cucsStatsThr32DefinitionErrorDisableFiPort OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS stats:Thr32Definition:errorDisableFiPort
+        managed object property"
+    ::= { cucsStatsThr32DefinitionEntry 14 }
 
 cucsStatsThr32ValueTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsStatsThr32ValueEntry
@@ -938,7 +969,10 @@ CucsStatsThr64DefinitionEntry ::= SEQUENCE {
     cucsStatsThr64DefinitionPropId                                   SnmpAdminString,
     cucsStatsThr64DefinitionPropType                                 CucsStatsThr64DefinitionPropType,
     cucsStatsThr64DefinitionPolicyLevel                              Gauge32,
-    cucsStatsThr64DefinitionPolicyOwner                              CucsPolicyPolicyOwner
+    cucsStatsThr64DefinitionPolicyOwner                              CucsPolicyPolicyOwner,
+    cucsStatsThr64DefinitionAutoRecovery                             CucsStatsThresholdDefinitionAutoRecovery,
+    cucsStatsThr64DefinitionAutoRecoveryTime                         Gauge32,
+    cucsStatsThr64DefinitionErrorDisableFiPort                       TruthValue
 }
 
 cucsStatsThr64DefinitionInstanceId OBJECT-TYPE
@@ -1031,6 +1065,33 @@ cucsStatsThr64DefinitionPolicyOwner OBJECT-TYPE
         "Cisco UCS stats:Thr64Definition:policyOwner managed
         object property"
     ::= { cucsStatsThr64DefinitionEntry 11 }
+
+cucsStatsThr64DefinitionAutoRecovery OBJECT-TYPE
+    SYNTAX       CucsStatsThresholdDefinitionAutoRecovery
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS stats:Thr64Definition:autoRecovery managed
+        object property"
+    ::= { cucsStatsThr64DefinitionEntry 12 }
+
+cucsStatsThr64DefinitionAutoRecoveryTime OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS stats:Thr64Definition:autoRecoveryTime
+        managed object property"
+    ::= { cucsStatsThr64DefinitionEntry 13 }
+
+cucsStatsThr64DefinitionErrorDisableFiPort OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS stats:Thr64Definition:errorDisableFiPort
+        managed object property"
+    ::= { cucsStatsThr64DefinitionEntry 14 }
 
 cucsStatsThr64ValueTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsStatsThr64ValueEntry
@@ -1197,7 +1258,10 @@ CucsStatsThrFloatDefinitionEntry ::= SEQUENCE {
     cucsStatsThrFloatDefinitionPropId                                SnmpAdminString,
     cucsStatsThrFloatDefinitionPropType                              CucsStatsThrFloatDefinitionPropType,
     cucsStatsThrFloatDefinitionPolicyLevel                           Gauge32,
-    cucsStatsThrFloatDefinitionPolicyOwner                           CucsPolicyPolicyOwner
+    cucsStatsThrFloatDefinitionPolicyOwner                           CucsPolicyPolicyOwner,
+    cucsStatsThrFloatDefinitionAutoRecovery                          CucsStatsThresholdDefinitionAutoRecovery,
+    cucsStatsThrFloatDefinitionAutoRecoveryTime                      Gauge32,
+    cucsStatsThrFloatDefinitionErrorDisableFiPort                    TruthValue
 }
 
 cucsStatsThrFloatDefinitionInstanceId OBJECT-TYPE
@@ -1292,6 +1356,33 @@ cucsStatsThrFloatDefinitionPolicyOwner OBJECT-TYPE
         "Cisco UCS stats:ThrFloatDefinition:policyOwner
         managed object property"
     ::= { cucsStatsThrFloatDefinitionEntry 11 }
+
+cucsStatsThrFloatDefinitionAutoRecovery OBJECT-TYPE
+    SYNTAX       CucsStatsThresholdDefinitionAutoRecovery
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS stats:ThrFloatDefinition:autoRecovery
+        managed object property"
+    ::= { cucsStatsThrFloatDefinitionEntry 12 }
+
+cucsStatsThrFloatDefinitionAutoRecoveryTime OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS stats:ThrFloatDefinition:autoRecoveryTime
+        managed object property"
+    ::= { cucsStatsThrFloatDefinitionEntry 13 }
+
+cucsStatsThrFloatDefinitionErrorDisableFiPort OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS stats:ThrFloatDefinition:errorDisableFiPort
+        managed object property"
+    ::= { cucsStatsThrFloatDefinitionEntry 14 }
 
 cucsStatsThrFloatValueTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsStatsThrFloatValueEntry
@@ -1562,7 +1653,8 @@ CucsStatsThresholdPolicyEntry ::= SEQUENCE {
     cucsStatsThresholdPolicyIntId                                    SnmpAdminString,
     cucsStatsThresholdPolicyName                                     SnmpAdminString,
     cucsStatsThresholdPolicyPolicyLevel                              Gauge32,
-    cucsStatsThresholdPolicyPolicyOwner                              CucsPolicyPolicyOwner
+    cucsStatsThresholdPolicyPolicyOwner                              CucsPolicyPolicyOwner,
+    cucsStatsThresholdPolicyDefaultThresholdsAdded                   TruthValue
 }
 
 cucsStatsThresholdPolicyInstanceId OBJECT-TYPE
@@ -1630,5 +1722,14 @@ cucsStatsThresholdPolicyPolicyOwner OBJECT-TYPE
         "Cisco UCS stats:ThresholdPolicy:policyOwner managed
         object property"
     ::= { cucsStatsThresholdPolicyEntry 8 }
+
+cucsStatsThresholdPolicyDefaultThresholdsAdded OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS stats:ThresholdPolicy:defaultThresholdsAdded
+        managed object property"
+    ::= { cucsStatsThresholdPolicyEntry 9 }
 
 END

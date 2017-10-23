@@ -127,8 +127,9 @@ function print_inventory($vars)
     }
     elseif ($entry['entPhysicalClass'] == "sensor")
     {
-      $sensor = dbFetchRow("SELECT * FROM `sensors` LEFT JOIN `sensors-state` USING(`sensor_id`)
+      $sensor = dbFetchRow("SELECT * FROM `sensors` 
                             WHERE `device_id` = ? AND (`entPhysicalIndex` = ? OR `sensor_index` = ?)", array($entry['device_id'], $entry['entPhysicalIndex'], $entry['entPhysicalIndex']));
+// LEFT JOIN `sensors-state` USING(`sensor_id`)
       //$ent_text .= ' ('.$sensor['sensor_value'] .' '. $sensor['sensor_class'].')';
       $entry['entPhysicalName'] = generate_entity_link('sensor', $sensor);
     }
@@ -184,6 +185,7 @@ function print_inventory($vars)
 function print_ent_physical($entPhysicalContainedIn, $level, $class)
 {
   global $device;
+  global $config;
 
   $ents = dbFetchRows("SELECT * FROM `entPhysical` WHERE `device_id` = ? AND `entPhysicalContainedIn` = ? ORDER BY `entPhysicalContainedIn`, `entPhysicalIndex`", array($device['device_id'], $entPhysicalContainedIn));
   foreach ($ents as $ent)
@@ -205,48 +207,53 @@ relay
     switch ($ent['entPhysicalClass'])
     {
       case 'chassis':
+        $icon = $config['icon']['device'];
+        break;
       case 'board':
-        $icon = 'oicon-database';
+        $icon = $config['icon']['linecard'];
         break;
       case 'module':
       case 'portInterfaceCard':
-        $icon = 'oicon-drive';
+        $icon = $config['icon']['linecard'];
         break;
       case 'port':
-        $icon = 'oicon-network-ethernet';
+        $icon = $config['icon']['port'];
         break;
       case 'container':
       case 'flexiblePicConcentrator':
-        $icon = 'oicon-box-zipper';
+        $icon = $config['icon']['package'];
         break;
       case 'stack':
-        $icon = 'icon-databases';
+        $icon = $config['icon']['database'];
         break;
       case 'fan':
       case 'airflowSensor':
-        $icon = 'oicon-weather-wind';
+        $icon = $config['icon']['fanspeed'];
         break;
       case 'powerSupply':
       case 'powerEntryModule':
-        $icon = 'oicon-plug';
+        $icon = $config['icon']['power'];
         break;
       case 'backplane':
-        $icon = 'oicon-zones';
+        $icon = $config['icon']['package'];
         break;
       case 'sensor':
-        $sensor = dbFetchRow("SELECT * FROM `sensors` LEFT JOIN `sensors-state` USING(`sensor_id`)
-                             WHERE `device_id` = ? AND (`entPhysicalIndex` = ? OR `sensor_index` = ?)", array($device['device_id'], $ent['entPhysicalIndex'], $ent['entPhysicalIndex']));
+        $sensor = dbFetchRow("SELECT * FROM `sensors` WHERE `device_id` = ? AND (`entPhysicalIndex` = ? OR `sensor_index` = ?)", array($device['device_id'], $ent['entPhysicalIndex'], $ent['entPhysicalIndex']));
         if ($sensor['sensor_class'])
         {
           $icon = $GLOBALS['config']['sensor_types'][$sensor['sensor_class']]['icon'];
         } else {
-          $icon = 'oicon-asterisk';
+          $icon = $config['icon']['sensor'];
         }
         break;
       default:
-        $icon = 'oicon-chain';
+        $icon = $config['icon']['bgp'];
     }
-    
+    if ($ent['deleted'] !== NULL)
+    {
+      $icon = $config['icon']['minus'];
+    }
+
     $text .= '<i class="'.$icon.'"></i> ';
     if ($ent['entPhysicalParentRelPos'] > '-1') { $text .= '<strong>'.$ent['entPhysicalParentRelPos'].'.</strong> '; }
 
@@ -287,6 +294,10 @@ relay
     if ($ent['entPhysicalSerialNum'])
     {
       $text .= ' <span class="text-info">[Serial: '.$ent['entPhysicalSerialNum'].']</span> ';
+    }
+    if ($ent['deleted'] !== NULL)
+    {
+      $text .= ' <span class="text-info">[Deleted: '.$ent['deleted'].']</span> ';
     }
 
     $text .= "</div>";

@@ -72,7 +72,6 @@ if (count($cache_discovery['host-resources-mib']))
     if (strstr($descr, "procfs") || strstr($descr, "/proc")) { $deny = TRUE;  } // Ignore ProcFS
     if ($descr == "Cached memory" || $descr == "Shared memory" || $descr == "Physical memory") { $deny = TRUE;  }   // Ignore worthless data on Unix hosts
 
-
     if (!$deny && is_numeric($entry['hrStorageSize']) && $total)
     {
       discover_mempool($valid['mempool'], $device, $index, $mib, $descr, $units, $total, $used);

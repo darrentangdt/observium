@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- LICENSE management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -73,7 +73,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsLicenseObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -2634,7 +2634,8 @@ CucsLicenseTargetEntry ::= SEQUENCE {
     cucsLicenseTargetRn                                              SnmpAdminString,
     cucsLicenseTargetPortId                                          Gauge32,
     cucsLicenseTargetSlotId                                          Gauge32,
-    cucsLicenseTargetIsRackPresent                                   TruthValue
+    cucsLicenseTargetIsRackPresent                                   TruthValue,
+    cucsLicenseTargetAggrPortId                                      Gauge32
 }
 
 cucsLicenseTargetInstanceId OBJECT-TYPE
@@ -2684,5 +2685,13 @@ cucsLicenseTargetIsRackPresent OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS license:Target:isRackPresent managed object property"
     ::= { cucsLicenseTargetEntry 6 }
+
+cucsLicenseTargetAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS license:Target:aggrPortId managed object property"
+    ::= { cucsLicenseTargetEntry 7 }
 
 END

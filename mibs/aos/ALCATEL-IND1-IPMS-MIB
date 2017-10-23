@@ -508,7 +508,7 @@ alaIpmsStaticNeighborIGMPVersion OBJECT-TYPE
 	      igmpv2(2),
               igmpv3(3)
        }
-    MAX-ACCESS read-write
+    MAX-ACCESS read-create
     STATUS     current
     DESCRIPTION
             "The version used for proxy IGMP membership reports
@@ -517,7 +517,7 @@ alaIpmsStaticNeighborIGMPVersion OBJECT-TYPE
 
 alaIpmsStaticNeighborRowStatus OBJECT-TYPE
     SYNTAX     RowStatus
-    MAX-ACCESS read-write
+    MAX-ACCESS read-create
     STATUS     current
     DESCRIPTION
             "Used in accordance to installation and removal conventions for
@@ -684,7 +684,7 @@ alaIpmsStaticQuerierIGMPVersion OBJECT-TYPE
 	         igmpv2(2),
 	         igmpv3(3)
        }
-    MAX-ACCESS read-write
+    MAX-ACCESS read-create
     STATUS     current
     DESCRIPTION
             "The version used for proxy IGMP membership reports
@@ -693,7 +693,7 @@ alaIpmsStaticQuerierIGMPVersion OBJECT-TYPE
 
 alaIpmsStaticQuerierRowStatus OBJECT-TYPE
     SYNTAX     RowStatus
-    MAX-ACCESS read-write
+    MAX-ACCESS read-create
     STATUS     current
     DESCRIPTION
             "Used in accordance to installation and removal conventions for
@@ -1179,7 +1179,7 @@ alaIpmsStaticMemberEntry OBJECT-TYPE
 
 IPMSStaticMemberEntry ::= SEQUENCE {
 	    alaIpmsStaticMemberGroupAddr IpAddress,
-	    alaIpmsStaticMemberIGMPVersion INTEGER,
+            alaIpmsStaticMemberIGMPVersion INTEGER,	
             alaIpmsStaticMemberVlan      INTEGER,
             alaIpmsStaticMemberIfIndex   InterfaceIndex,
             alaIpmsStaticMemberVci       Unsigned32,
@@ -1195,17 +1195,16 @@ alaIpmsStaticMemberGroupAddr OBJECT-TYPE
 	        static client subscribes to."
     ::= { alaIpmsStaticMemberEntry 1 }
 
--- Unused - should be Commented out - In the middle of indexes, RGovil
  alaIpmsStaticMemberIGMPVersion OBJECT-TYPE
     SYNTAX     INTEGER {
-	      igmpv2(2),
-              igmpv3(3)
-       }
+                    igmpv2(2),
+                    igmpv3(3)
+           }
     MAX-ACCESS not-accessible
     STATUS     current
     DESCRIPTION
-            "The version used for proxy IGMP membership reports
-            to this static Member."
+              "The version used for proxy IGMP membership reports
+               to this static Member."
     ::= { alaIpmsStaticMemberEntry 2 }
 
 alaIpmsStaticMemberVlan OBJECT-TYPE
@@ -1245,6 +1244,7 @@ alaIpmsStaticMemberRowStatus OBJECT-TYPE
                   destroy - The row will be destroyed."
     ::= { alaIpmsStaticMemberEntry 6 }
 
+
 -- ************************************************************************
 --  IPMS Conformance Table
 -- ************************************************************************
@@ -1263,18 +1263,16 @@ alaIpmsCompliance MODULE-COMPLIANCE
             "The compliance statement for switches running IPMS and
             implementing ALCATEL-IND1-IPMS-MIB."
     MODULE
-    MANDATORY-GROUPS { alaIpmsConfigGroup, alaIpmsGroupGroup, alaIpmsNeighborGroup,
-		       alaIpmsStaticNeighborGroup, alaIpmsQuerierGroup,
-                       alaIpmsStaticQuerierGroup, alaIpmsSourceGroup, alaIpmsForwardGroup,
-                       alaIpmsPolicyGroup,alaIpmsStaticMemberGroup }
+    MANDATORY-GROUPS { alaIpmsConfig, alaIpmsGroup, alaIpmsNeighbor,
+		       alaIpmsStaticNeighbor, alaIpmsQuerier,
+                       alaIpmsStaticQuerier, alaIpmsSource, alaIpmsForward,
+                       alaIpmsPolicy,alaIpmsStaticMember }
     ::= { alcatelIND1IPMSMIBCompliances 1 }
 
 alaIpmsConfigGroup OBJECT-GROUP
     OBJECTS  { alaIpmsStatus, alaIpmsLeaveTimeout, alaIpmsQueryInterval,
                alaIpmsNeighborTimer, alaIpmsQuerierTimer,
-               alaIpmsMembershipTimer, alaIpmsOtherQuerierTimer ,
-               alaIpmsGroupIGMPVersion,alaIpmsGroupIGMPv3SrcType ,alaIpmsHardwareRoute,
-               alaIpmsIGMPMembershipProxyVersion,alaIpmsMaxBandwidth ,alaIpmsPriority   }
+               alaIpmsMembershipTimer, alaIpmsOtherQuerierTimer }
     STATUS     current
     DESCRIPTION
             "A collection of objects to support management of configuration
@@ -1299,7 +1297,7 @@ alaIpmsNeighborGroup OBJECT-GROUP
     ::= { alcatelIND1IPMSMIBGroups 3 }
 
 alaIpmsStaticNeighborGroup OBJECT-GROUP
-    OBJECTS  { alaIpmsStaticNeighborRowStatus,alaIpmsStaticNeighborIGMPVersion  }
+    OBJECTS  { alaIpmsStaticNeighborRowStatus }
     STATUS     current
     DESCRIPTION
             "A collection of objects to support IPMS static neighbor tables."
@@ -1314,7 +1312,7 @@ alaIpmsQuerierGroup OBJECT-GROUP
     ::= { alcatelIND1IPMSMIBGroups 5 }
 
 alaIpmsStaticQuerierGroup OBJECT-GROUP
-    OBJECTS  { alaIpmsStaticQuerierRowStatus ,alaIpmsStaticQuerierIGMPVersion }
+    OBJECTS  { alaIpmsStaticQuerierRowStatus }
     STATUS     current
     DESCRIPTION
             "A collection of objects to support IPMS static querier tables."

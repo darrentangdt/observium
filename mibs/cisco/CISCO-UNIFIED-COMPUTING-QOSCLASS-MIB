@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- QOSCLASS management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -67,7 +67,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsQosclassObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -120,7 +120,9 @@ CucsQosclassDefinitionEntry ::= SEQUENCE {
     cucsQosclassDefinitionIntId                                      SnmpAdminString,
     cucsQosclassDefinitionName                                       SnmpAdminString,
     cucsQosclassDefinitionPolicyLevel                                Gauge32,
-    cucsQosclassDefinitionPolicyOwner                                CucsPolicyPolicyOwner
+    cucsQosclassDefinitionPolicyOwner                                CucsPolicyPolicyOwner,
+    cucsQosclassDefinitionMmuPercent                                 Gauge32,
+    cucsQosclassDefinitionNumBreakoutPort                            Gauge32
 }
 
 cucsQosclassDefinitionInstanceId OBJECT-TYPE
@@ -272,6 +274,23 @@ cucsQosclassDefinitionPolicyOwner OBJECT-TYPE
         "Cisco UCS qosclass:Definition:policyOwner managed
         object property"
     ::= { cucsQosclassDefinitionEntry 18 }
+
+cucsQosclassDefinitionMmuPercent OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS qosclass:Definition:mmuPercent managed object property"
+    ::= { cucsQosclassDefinitionEntry 19 }
+
+cucsQosclassDefinitionNumBreakoutPort OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS qosclass:Definition:numBreakoutPort
+        managed object property"
+    ::= { cucsQosclassDefinitionEntry 20 }
 
 cucsQosclassDefinitionFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsQosclassDefinitionFsmEntry

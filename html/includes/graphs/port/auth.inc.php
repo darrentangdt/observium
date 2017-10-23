@@ -62,7 +62,7 @@ if (is_numeric($vars['id']) && ($auth || port_permitted($vars['id'])))
   $title_array   = array();
   $title_array[] = array('text' => $device['hostname'], 'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'])));
   $title_array[] = array('text' => 'Ports', 'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'ports')));
-  $title_array[] = array('text' => rewrite_ifname($port['port_label']), 'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'port', 'port' => $port['port_id'])));
+  $title_array[] = array('text' => rewrite_ifname($port['port_label']) . (strlen($port['ifAlias']) ? " (".$port['ifAlias'].")" : ''), 'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'port', 'port' => $port['port_id'])));
 
   $graph_title = short_hostname($device['hostname']) . " :: " . strtolower(short_ifname($port['ifDescr'], NULL, FALSE));
   $rrd_filename = get_port_rrdfilename($port, NULL, TRUE);

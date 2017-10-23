@@ -11,10 +11,8 @@
  *
  */
 
-// DELL-NETWORKING-CHASSIS-MIB
-
-//DELL-NETWORKING-CHASSIS-MIB::dellNetCpuUtilMemUsage.stack.1.1 = Gauge32: 41 percent
-//DELL-NETWORKING-CHASSIS-MIB::dellNetProcessorMemSize.stack.1.1 = INTEGER: 2029
+// DELL-NETWORKING-CHASSIS-MIB::dellNetCpuUtilMemUsage.stack.1.1 = Gauge32: 41 percent
+// DELL-NETWORKING-CHASSIS-MIB::dellNetProcessorMemSize.stack.1.1 = INTEGER: 2029
 
 $mempool_array = snmpwalk_cache_threepart_oid($device, 'dellNetCpuUtilMemUsage', array(), $mib, NULL, OBS_SNMP_ALL_NUMERIC_INDEX);
 if (is_array($mempool_array))

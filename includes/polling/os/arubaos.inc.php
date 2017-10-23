@@ -7,15 +7,17 @@
  *
  * @package    observium
  * @subpackage poller
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
 // ArubaOS (MODEL: Aruba3600), Version 6.1.2.2 (29541)
 // ArubaOS Version 6.1.2.3-2.1.0.0 // - AP135
 
-$badchars = array('(', ')', ',');
-list(,,$hardware,,$version,) = str_replace($badchars, '', explode (' ', $poll_device['sysDescr']));
+//$badchars = array('(', ')', ',');
+//list(,,$hardware,,$version,) = str_replace($badchars, '', explode (' ', $poll_device['sysDescr']));
+
+$hardware = rewrite_definition_hardware($device, $poll_device['sysObjectID']);
 
 // Stuff about the controller
 $aruba_info = snmpwalk_cache_oid($device, 'wlsxSwitchRole', array(), 'WLSX-SWITCH-MIB');

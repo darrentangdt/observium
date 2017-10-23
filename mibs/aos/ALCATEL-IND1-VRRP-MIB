@@ -131,7 +131,7 @@ alaVRRPDefaultInterval OBJECT-TYPE
      MAX-ACCESS   read-write
      STATUS       current
      DESCRIPTION
-         "The VRRP Router default time interval, in seconds, between
+         "The VRRP Router default time interval, in seconds, between 
          sending advertisement messages."
      DEFVAL       { 1 }
      ::= { alaVRRPv2Config 1 }
@@ -152,7 +152,7 @@ alaVRRPDefaultPreemptMode OBJECT-TYPE
      MAX-ACCESS   read-write
      STATUS       current
      DESCRIPTION
-         "The VRRP Router default preempt mode. Controls whether a higher
+         "The VRRP Router default preempt mode. Controls whether a higher 
           priority virtual router will preempt a lower priority master."
      DEFVAL       { true }
      ::= { alaVRRPv2Config 3 }
@@ -170,10 +170,10 @@ alaVRRPAdminState OBJECT-TYPE
          of virtual routers in the vrrpOperTable.  Setting a value of allEnable will
          cause the vrrpOperAdminState of each entry in the table to be set to up.
          Setting a value of enable will set the vrrpOperAdminState to up but
-         only for the set of virtual routers whose vrrpOperAdminState was down
-         by default (as occurs when the virtual router instance is created) or due
+         only for the set of virtual routers whose vrrpOperAdminState was down 
+         by default (as occurs when the virtual router instance is created) or due 
          to a previous set command of the alaVRRPAdminState to disable.
-         Setting a value of disable will cause the vrrpOperAdminState of each
+         Setting a value of disable will cause the vrrpOperAdminState of each 
          entry in the table to be set to down.
 
          This object is of little value when read but will return the last value
@@ -192,13 +192,13 @@ alaVRRPSetParam OBJECT-TYPE
      STATUS       current
      DESCRIPTION
          "This object is used to force the virtual routers in the vrrpOperTable
-         to revert to the default parameter values specified in
-         alaVRRPDefaultInterval,  alaVRRPDefaultPriority, and
+         to revert to the default parameter values specified in 
+         alaVRRPDefaultInterval,  alaVRRPDefaultPriority, and 
          alaVRRPDefaultPreemptMode.  Unless alaVRRPOverride is set to true only
-         virtual routers previously configured with default parameter values
-         are modified.  Parameters can be modified individually with the
-         interval, priority, and preempt values, or collectively with the all
-         value.
+         virtual routers previously configured with default parameter values 
+         are modified.  Parameters can be modified individually with the 
+         interval, priority, and preempt values, or collectively with the all 
+         value.  
 
          This object is of little value when read but will return the last value
          to which it was set."
@@ -209,8 +209,8 @@ alaVRRPOverride OBJECT-TYPE
      MAX-ACCESS   read-write
      STATUS       current
      DESCRIPTION
-         "This object is used in combination with the alaVRRPSetParam object
-         to force all virtual routers in the vrrpOperTable to revert to the default
+         "This object is used in combination with the alaVRRPSetParam object 
+         to force all virtual routers in the vrrpOperTable to revert to the default 
          values specified in alaVRRPDefaultInterval,  alaVRRPDefaultPriority,
          and alaVRRPDefaultPreemptMode.
 
@@ -278,7 +278,7 @@ alaVRRPOverride OBJECT-TYPE
          alaVrrpTrackEntityIpAddr
              InetAddress,
 		 alaVrrpTrackBfdStatus
-			 INTEGER			
+			 INTEGER			 
  }
 
  alaVrrpTrackId OBJECT-TYPE
@@ -305,7 +305,7 @@ alaVrrpTrackState OBJECT-TYPE
          enable(1),
          disable(2)
      }
-     MAX-ACCESS   read-write
+     MAX-ACCESS   read-create
      STATUS       current
      DESCRIPTION
          "This object will enable/disable the tracking policy function."
@@ -323,56 +323,56 @@ alaVrrpTrackEntityType OBJECT-TYPE
      MAX-ACCESS   read-only
      STATUS       current
      DESCRIPTION
-         "This object specifies the tracking policy entity type
+         "This object specifies the tracking policy entity type 
           currently in use."
      ::= { alaVrrpTrackEntry 4 }
 
 alaVrrpTrackEntityVlan OBJECT-TYPE
      SYNTAX       INTEGER (0..4094)
-     MAX-ACCESS   read-write
+     MAX-ACCESS   read-create
      STATUS       deprecated
      DESCRIPTION
-         "This object contains the Tracking Policy Entity. A vlan id.
+         "This object contains the Tracking Policy Entity. A vlan id. 
 
          The alaVrrpTrackEntityVlan, alaVrrpTrackEntityPort,
-         alaVrrpTrackEntityIpAddress, alaVrrpTrackEntityInterface,
+         alaVrrpTrackEntityIpAddress, alaVrrpTrackEntityInterface, 
          alaVrrpTrackEntityIpv6Interface, and alaVrrpTrackEntityIpAddr
-         are mutually exclusive of one another. The last one set is the
+         are mutually exclusive of one another. The last one set is the 
          valid one and identifies the entity type."
      ::= { alaVrrpTrackEntry 5 }
 
 alaVrrpTrackEntityPort OBJECT-TYPE
      SYNTAX       InterfaceIndexOrZero
-     MAX-ACCESS   read-write
+     MAX-ACCESS   read-create
      STATUS       current
      DESCRIPTION
-         "This object contains the Tracking Policy Entity. A port
-         ifIndex or 0 if not significant.
+         "This object contains the Tracking Policy Entity. A port 
+         ifIndex or 0 if not significant.  
 
          The alaVrrpTrackEntityVlan, alaVrrpTrackEntityPort,
-         alaVrrpTrackEntityIpAddress, alaVrrpTrackEntityInterface,
+         alaVrrpTrackEntityIpAddress, alaVrrpTrackEntityInterface, 
          alaVrrpTrackEntityIpv6Interface, and alaVrrpTrackEntityIpAddr
-         are mutually exclusive of one another. The last one set is the
+         are mutually exclusive of one another. The last one set is the 
          valid one and identifies the entity type."
      ::= { alaVrrpTrackEntry 6 }
 
 alaVrrpTrackEntityIpAddress OBJECT-TYPE
      SYNTAX       IpAddress
-     MAX-ACCESS   read-write
+     MAX-ACCESS   read-create
      STATUS       deprecated
      DESCRIPTION
          "This object contains the Tracking Policy Entity. IP Address.
 
          The alaVrrpTrackEntityVlan, alaVrrpTrackEntityPort,
-         alaVrrpTrackEntityIpAddress, alaVrrpTrackEntityInterface,
+         alaVrrpTrackEntityIpAddress, alaVrrpTrackEntityInterface, 
          alaVrrpTrackEntityIpv6Interface, and alaVrrpTrackEntityIpAddr
-         are mutually exclusive of one another. The last one set is the
+         are mutually exclusive of one another. The last one set is the 
          valid one and identifies the entity type."
      ::= { alaVrrpTrackEntry 7 }
 
 alaVrrpTrackPriority OBJECT-TYPE
      SYNTAX       Integer32 (1..255)
-     MAX-ACCESS   read-write
+     MAX-ACCESS   read-create
      STATUS       current
      DESCRIPTION
 	"This object specifies the value by which the priority of virtual
@@ -385,7 +385,7 @@ alaVrrpTrackPriority OBJECT-TYPE
 
 alaVrrpTrackRowStatus OBJECT-TYPE
      SYNTAX       RowStatus
-     MAX-ACCESS   read-write
+     MAX-ACCESS   read-create
      STATUS       current
      DESCRIPTION
 	 "The row status variable, used in accordance to installation
@@ -399,45 +399,45 @@ alaVrrpTrackRowStatus OBJECT-TYPE
 
          In particular, a newly created row cannot be made active(1)
          until (minimally) the corresponding instances of `vrrpTrackId',
-         and either one of : alaVrrpTrackEntityVlan,
-         alaVrrpTrackEntityPort, alaVrrpTrackEntityIpAddress, or
+         and either one of : alaVrrpTrackEntityVlan, 
+         alaVrrpTrackEntityPort, alaVrrpTrackEntityIpAddress, or 
          alaVrrpTrackEntityInterface have been set."
      ::= { alaVrrpTrackEntry 9 }
 
 alaVrrpTrackEntityInterface OBJECT-TYPE
      SYNTAX       InterfaceIndexOrZero
-     MAX-ACCESS   read-write
+     MAX-ACCESS   read-create
      STATUS       current
      DESCRIPTION
-         "This object contains the Tracking Policy Entity. An interface.
+         "This object contains the Tracking Policy Entity. An interface. 
 
          The alaVrrpTrackEntityVlan, alaVrrpTrackEntityPort,
-         alaVrrpTrackEntityIpAddress, alaVrrpTrackEntityInterface,
+         alaVrrpTrackEntityIpAddress, alaVrrpTrackEntityInterface, 
          alaVrrpTrackEntityIpv6Interface, and alaVrrpTrackEntityIpAddr
-         are mutually exclusive of one another. The last one set is the
+         are mutually exclusive of one another. The last one set is the 
          valid one and identifies the entity type."
      ::= { alaVrrpTrackEntry 10 }
 
 
 alaVrrpTrackEntityIpv6Interface OBJECT-TYPE
      SYNTAX       InterfaceIndexOrZero
-     MAX-ACCESS   read-write
+     MAX-ACCESS   read-create
      STATUS       current
      DESCRIPTION
-         "This object contains the Tracking Policy Entity. An Ipv6
-         interface.
+         "This object contains the Tracking Policy Entity. An Ipv6 
+         interface. 
 
          The alaVrrpTrackEntityVlan, alaVrrpTrackEntityPort,
-         alaVrrpTrackEntityIpAddress, alaVrrpTrackEntityInterface,
+         alaVrrpTrackEntityIpAddress, alaVrrpTrackEntityInterface, 
          alaVrrpTrackEntityIpv6Interface, and alaVrrpTrackEntityIpAddr
-         are mutually exclusive of one another. The last one set is the
+         are mutually exclusive of one another. The last one set is the 
          valid one and identifies the entity type."
      ::= { alaVrrpTrackEntry 11 }
 
 
 alaVrrpTrackEntityIpAddrType OBJECT-TYPE
      SYNTAX       InetAddressType
-     MAX-ACCESS   read-write
+     MAX-ACCESS   read-create
      STATUS       current
      DESCRIPTION
          "This object contains the Tracking Policy Entity IP Address
@@ -446,22 +446,22 @@ alaVrrpTrackEntityIpAddrType OBJECT-TYPE
 
 alaVrrpTrackEntityIpAddr OBJECT-TYPE
      SYNTAX       InetAddress
-     MAX-ACCESS   read-write
+     MAX-ACCESS   read-create
      STATUS       current
      DESCRIPTION
-         "This object contains the Tracking Policy Entity. An
+         "This object contains the Tracking Policy Entity. An 
          IPv4 for or IPv6 Address based on alaVrrpTrackEntityIpAddrType.
 
          The alaVrrpTrackEntityVlan, alaVrrpTrackEntityPort,
-         alaVrrpTrackEntityIpAddress, alaVrrpTrackEntityInterface,
+         alaVrrpTrackEntityIpAddress, alaVrrpTrackEntityInterface, 
          alaVrrpTrackEntityIpv6Interface, and alaVrrpTrackEntityIpAddr
-         are mutually exclusive of one another. The last one set is the
+         are mutually exclusive of one another. The last one set is the 
          valid one and identifies the entity type."
      ::= { alaVrrpTrackEntry 13 }
 
  alaVrrpTrackBfdStatus 	OBJECT-TYPE	
 	SYNTAX		INTEGER
-	MAX-ACCESS   read-write
+	MAX-ACCESS   read-create
 	STATUS       current
 	DESCRIPTION
 		"Enables BFD for a VRRP track."
@@ -512,7 +512,7 @@ alaVrrpTrackEntityIpAddr OBJECT-TYPE
 
  alaVrrpAssoTrackRowStatus OBJECT-TYPE
      SYNTAX       RowStatus
-     MAX-ACCESS   read-write
+     MAX-ACCESS   read-create
      STATUS       current
      DESCRIPTION
          "The row status variable, used according to installation
@@ -533,7 +533,7 @@ alaVrrpTrackEntityIpAddr OBJECT-TYPE
      MAX-ACCESS   not-accessible
      STATUS       current
      DESCRIPTION
-	"VRRP Group table, which consists of a sequence (i.e., one
+	"VRRP Group table, which consists of a sequence (i.e., one 
             or more conceptual rows) of 'vrrpGroupEntry' items."
      ::= { alaVrrpGroup 1 }
 
@@ -542,7 +542,7 @@ alaVrrpTrackEntityIpAddr OBJECT-TYPE
      MAX-ACCESS   not-accessible
      STATUS       current
      DESCRIPTION
-         "An entry in the vrrpGroupTable containing the
+         "An entry in the vrrpGroupTable containing the 
           characteristics of a VRRP group."
      INDEX    { alaVrrpGroupId }
      ::= { alaVrrpGroupTable 1 }
@@ -581,7 +581,7 @@ alaVrrpGroupInterval OBJECT-TYPE
      MAX-ACCESS   read-create
      STATUS       current
      DESCRIPTION
-         "The VRRP Group time interval, in seconds, between
+         "The VRRP Group time interval, in seconds, between 
          sending advertisement messages."
      DEFVAL       { 1 }
      ::= { alaVrrpGroupEntry 2 }
@@ -602,7 +602,7 @@ alaVrrpGroupPreemptMode OBJECT-TYPE
      MAX-ACCESS   read-create
      STATUS       current
      DESCRIPTION
-         "The VRRP Group preempt mode. Controls whether a higher
+         "The VRRP Group preempt mode. Controls whether a higher 
           priority virtual router will preempt a lower priority master."
      DEFVAL       { true }
      ::= { alaVrrpGroupEntry 4 }
@@ -621,7 +621,7 @@ alaVrrpGroupAdminState OBJECT-TYPE
          entry.  Setting a value of allEnable will cause the vrrpOperAdminState
          of each vrrpOperEntry to be set to up.  Setting a value of enable will
          set the vrrpOperAdminState to up but only for the set of virtual routers
-         in the group whose vrrpOperAdminState was down by default (as
+         in the group whose vrrpOperAdminState was down by default (as 
          occurs when the virtual router instance is created) or due to a previous
          set command of the alaVrrpGroupAdminState or alaVRRPAdminState
          to disable.  Setting a value of disable will cause the vrrpOperAdminState
@@ -643,13 +643,13 @@ alaVrrpGroupSetParam OBJECT-TYPE
      STATUS       current
      DESCRIPTION
          "This object is used to force the virtual routers in the corresponding
-         alaVRRPAssoGroupTable to revert to the group parameter values
+         alaVRRPAssoGroupTable to revert to the group parameter values 
          specified in alaVrrpGroupInterval,  alaVrrpGroupPriority,
          and alaVrrpGroupPreemptMode.  Unless alaVrrpGroupOverride is set to
-         true only virtual routers previously configured with default
-         or group parameter values are modified.  Parameters can be modified
-         individually with the interval, priority, and preempt values, or
-         collectively with the all value.
+         true only virtual routers previously configured with default 
+         or group parameter values are modified.  Parameters can be modified 
+         individually with the interval, priority, and preempt values, or 
+         collectively with the all value.  
 
          This object is of little value when read but will return the last value
          to which it was set."
@@ -660,7 +660,7 @@ alaVrrpGroupOverride OBJECT-TYPE
      MAX-ACCESS   read-create
      STATUS       current
      DESCRIPTION
-         "This object is used in combination with the alaVrrpGroupSetParam object
+         "This object is used in combination with the alaVrrpGroupSetParam object 
          to force all virtual routers in the corresponding alaVrrpAssoGroupTable
          to revert to the group parameter values specified in alaVrrpGroupInterval,
          alaVrrpGroupPriority, and alaVrrpGroupPreemptMode.
@@ -960,8 +960,7 @@ alaVRRPConfigGroup OBJECT-GROUP
  		   alaVrrpAssoTrackRowStatus ,
  		   alaVrrpCurrentPriority ,
                    alaVrrpTrackCount ,
- 		   alaVrrpGroupIdent
- 		
+ 		   alaVrrpGroupIdent 
 		}
     STATUS     current
     DESCRIPTION

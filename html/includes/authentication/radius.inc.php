@@ -300,7 +300,7 @@ function radius_auth_user_level($username)
 function radius_auth_user_id($username)
 {
   //return -1;
-  return string_to_id('radius|' . $string);
+  return string_to_id('radius|' . $username);
 }
 
 /**

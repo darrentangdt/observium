@@ -11,18 +11,22 @@
  *
  */
 
-if (preg_match('/^Meraki ([A-Z\-_0-9]+) (.*)/', $poll_device['sysDescr'], $regexp_result))
+if (preg_match('/^Meraki ([A-Z\-_0-9]+) (.*)/', $poll_device['sysDescr'], $matches))
 {
-  $hardware = $regexp_result[1];
-  $platform = $regexp_result[2];
-}
+  $hardware = $matches[1];
+  $platform = $matches[2];
 
-if (($device['type'] == 'network' || $device['type'] == '') && strpos($platform, 'AP'))
-{
-  // Set type to wireless for APs
-  $type = 'wireless';
-  //$update_array['type'] = 'wireless';
-  //log_event('type -> wireless', $device, 'device');
+  if (str_contains($platform, 'AP') || str_starts($hardware, 'MR'))
+  {
+    // Meraki MR34 Cloud Managed AP
+    $type = 'wireless';
+  }
+  else if (str_contains($platform, 'Security') || str_starts($hardware, 'MX'))
+  {
+    // Meraki MX100 Cloud Managed Security Appliance
+    $type = 'firewall';
+  }
+  // else keep network for switches MS
 }
 
 // EOF

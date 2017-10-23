@@ -420,7 +420,9 @@ nbsOsaTrapPortRxPowerTooLow  NOTIFICATION-TYPE
         DESCRIPTION
                 "Sent when RxPower is lower than nbsOsaChannelRxPowerMin.
 
-                 This Notification should be of Severity ERROR."
+                 This Notification should be of Severity ERROR.
+
+                 Note: mdBm"
         ::= { nbsOsaTraps 3 }
 
 nbsOsaTrapPortRxPowerOK  NOTIFICATION-TYPE
@@ -434,7 +436,9 @@ nbsOsaTrapPortRxPowerOK  NOTIFICATION-TYPE
                 "Sent when RxPower returns to a level between
                  nbsOsaChannelRxPowerMin and nbsOsaChannelRxPowerMax.
 
-                 This Notification should be of Severity ERROR."
+                 This Notification should be of Severity ERROR.
+
+                 Note: mdBm"
         ::= { nbsOsaTraps 4 }
 
 nbsOsaTrapPortRxPowerTooHigh  NOTIFICATION-TYPE
@@ -448,7 +452,9 @@ nbsOsaTrapPortRxPowerTooHigh  NOTIFICATION-TYPE
         DESCRIPTION
                 "Sent when RxPower is higher than nbsOsaChannelRxPowerMax.
 
-                 This Notification should be of Severity ERROR."
+                 This Notification should be of Severity ERROR.
+
+                 Note: mdBm"
         ::= { nbsOsaTraps 5 }
 
 nbsOsaTrapPortOSNRTooLow  NOTIFICATION-TYPE

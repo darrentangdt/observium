@@ -200,7 +200,7 @@ function print_alert_table($vars)
       echo '      <th style="width: 95px;">Alerted</th>';
     }
 
-    echo '    <th style="width: 45px;"></th>
+    echo '    <th style="width: 70px;"></th>
     </tr>
   </thead>';
   }
@@ -232,7 +232,7 @@ function print_alert_table($vars)
     // If we know the device, don't show the device
     if ($list['device_id'])
     {
-      echo('<td><span class="entity-title">'.generate_device_link($device).'</span></td>');
+      echo('<td><span class="entity-title">'.generate_device_link($device, short_hostname($device['hostname'])).'</span></td>');
     }
 
     // If we're showing all entity types, print the entity type here
@@ -289,6 +289,40 @@ function print_alert_table($vars)
     echo(overlib_link("", '<i class="icon-info-sign text-primary"></i>', $alert['state_popup'], NULL));
 
     echo('&nbsp;&nbsp;<a href="'.generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'alert', 'alert_entry' => $alert['alert_table_id'])).'"><i class="icon-cog text-muted"></i></a>');
+    //echo '&nbsp;&nbsp;<a onclick="alert_ignore_until_ok('.$alert['alert_table_id'].')"><i class="icon-pause text-warning"></i></a>';
+
+    echo '&nbsp;&nbsp;';
+
+        $form = array('type'       => 'simple',
+                      //'userlevel'  => 10,          // Minimum user level for display form
+                      'id'         => 'alert_entry_ignore_until_ok_'.$alert['alert_table_id'],
+                      'style'      => 'display:inline;',
+                     );
+
+        $form['row'][0]['form_alert_table_id'] = array(
+                                        'type'        => 'hidden',
+                                        'value'       => $alert['alert_table_id']);
+
+        $form['row'][99]['action'] = array(
+                                        'type'        => 'submit',
+                                        'icon_only'   => TRUE, // hide button styles
+                                        'name'        => '',
+                                        'icon'        => 'icon-ok icon-primary',
+                                        // confirmation dialog
+                                        'attribs'     => array('data-toggle'            => 'confirm', // Enable confirmation dialog
+                                                               'data-confirm-placement' => 'left',
+                                                               'data-confirm-content'   => 'Ignore until ok?',
+                                                               //'data-confirm-content' => '<div class="alert alert-warning"><h4 class="alert-heading"><i class="icon-warning-sign"></i> Warning!</h4>
+                                                               //                           This association will be deleted!</div>'),
+                                                              ),
+                                        'value'       => 'alert_entry_ignore_until_ok');
+
+        print_form($form);
+        unset($form);
+
+
+
+
     echo('</td>');
     echo('</tr>');
 

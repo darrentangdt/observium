@@ -4,8 +4,11 @@ ALCATEL-IND1-CONFIG-MGR-MIB DEFINITIONS ::= BEGIN
 	IMPORTS
 		OBJECT-TYPE,
 		MODULE-IDENTITY,
+		NOTIFICATION-TYPE,
 		OBJECT-IDENTITY		FROM SNMPv2-SMI
 		DisplayString		FROM SNMPv2-TC
+		SnmpAdminString		FROM SNMP-FRAMEWORK-MIB
+		NOTIFICATION-GROUP,
 		MODULE-COMPLIANCE,
 		OBJECT-GROUP		FROM SNMPv2-CONF
 		softentIND1Confmgr	FROM ALCATEL-IND1-BASE
@@ -671,9 +674,9 @@ ALCATEL-IND1-CONFIG-MGR-MIB DEFINITIONS ::= BEGIN
                                            techSupportL3RIPng(12),
                                            techSupportL3OSPF3(13),
                                            techSupportL3Isis(14),
-                                           techSupportL3Pim6(15),
-                                           techSupportL3IPsec(16),
-                                           techSupportL3Bfd(17)
+                                           techSupportL3Pim6(15)
+                                        -- techSupportL3IPsec(16),
+                                        -- techSupportL3Bfd(17)
 
 				}
 		MAX-ACCESS		read-write
@@ -822,7 +825,7 @@ ALCATEL-IND1-CONFIG-MGR-MIB DEFINITIONS ::= BEGIN
 		DEFVAL  { 0 }
 		::= { configManager 53 }
 
-
+      
 	configWriteMemoryStatus	OBJECT-TYPE
 		SYNTAX		INTEGER {
 					noneAvail(1),
@@ -911,7 +914,6 @@ ALCATEL-IND1-CONFIG-MGR-MIB DEFINITIONS ::= BEGIN
                          by the device."
                 DEFVAL  { 0 }
                 ::= { configManager 60 }
-
 	configSnapshotBFDSelect        OBJECT-TYPE
                 SYNTAX                  INTEGER (0..1)
                 MAX-ACCESS              read-write
@@ -924,19 +926,19 @@ ALCATEL-IND1-CONFIG-MGR-MIB DEFINITIONS ::= BEGIN
                 DEFVAL  { 0 }
                 ::= { configManager 61 }
 
-        configSnapshotErpSelect        OBJECT-TYPE
-                SYNTAX                  INTEGER (0..1)
-                MAX-ACCESS              read-write
-                STATUS                  current
-                DESCRIPTION
-                        "A set of this object causes
-                         ERP configuration data to
-                         be included in the snap-shot file generated
-                         by the device."
-                DEFVAL  { 0 }
-                ::= { configManager 62 }
+	configSnapshotErpSelect        OBJECT-TYPE
+		SYNTAX                  INTEGER (0..1)
+		MAX-ACCESS              read-write
+		STATUS                  current
+		DESCRIPTION
+			"A set of this object causes
+			 ERP configuration data to
+			 be included in the snap-shot file generated
+			 by the device."
+		DEFVAL  { 0 }
+	::= { configManager 62 }
 
-	configSnapshotMPLSSelect        OBJECT-TYPE
+		configSnapshotMPLSSelect        OBJECT-TYPE
                 SYNTAX                  INTEGER (0..1)
                 MAX-ACCESS              read-write
                 STATUS                  current
@@ -960,17 +962,17 @@ ALCATEL-IND1-CONFIG-MGR-MIB DEFINITIONS ::= BEGIN
                 DEFVAL  { 0 }
                 ::= { configManager 64 }
 
-        configSnapshotLBDSelect        OBJECT-TYPE
-                SYNTAX                  INTEGER (0..1)
-                MAX-ACCESS              read-write
-                STATUS                  current
-                DESCRIPTION
-                        "A set of this object causes
-                        Loop Back Detection configuration data to
-                        be included in the snap-shot file generated
-                        by the device."
-                DEFVAL  { 0 }
-                ::= { configManager 65 }
+	configSnapshotLBDSelect        OBJECT-TYPE
+		SYNTAX                  INTEGER (0..1)
+		MAX-ACCESS              read-write
+		STATUS                  current
+		DESCRIPTION
+			"A set of this object causes
+			Loop Back Detection configuration data to
+			be included in the snap-shot file generated
+			by the device."
+		DEFVAL  { 0 }
+		::= { configManager 65 }
 
         configSnapshotSAASelect        OBJECT-TYPE
                 SYNTAX                  INTEGER (0..1)
@@ -997,16 +999,16 @@ ALCATEL-IND1-CONFIG-MGR-MIB DEFINITIONS ::= BEGIN
                 ::= { configManager 67 }
 
 	configSnapshotLLDPSelect OBJECT-TYPE
-                SYNTAX                  INTEGER (0..1)
-                MAX-ACCESS              read-write
-                STATUS                  current
-                DESCRIPTION
-                        "A set of this object causes
-			LLDP configuration data to
-			be included in the snap-shot file generated
+                 SYNTAX                  INTEGER (0..1)
+                 MAX-ACCESS              read-write
+                 STATUS                  current
+                 DESCRIPTION
+                         "A set of this object causes
+ 			LLDP configuration data to
+ 			be included in the snap-shot file generated
                          by the device."
-                DEFVAL  { 0 }
-                ::= { configManager 68 }
+                 DEFVAL  { 0 }
+                 ::= { configManager 68 }
 
 	configSnapshotLFPSelect OBJECT-TYPE
                 SYNTAX                  INTEGER (0..1)
@@ -1031,7 +1033,8 @@ ALCATEL-IND1-CONFIG-MGR-MIB DEFINITIONS ::= BEGIN
                          by the device."
                 DEFVAL  { 0 }
                 ::= { configManager 70 }
-	configSnapshotWccpSelect OBJECT-TYPE
+
+		configSnapshotWccpSelect OBJECT-TYPE
                 SYNTAX                  INTEGER (0..1)
                 MAX-ACCESS              read-write
                 STATUS                  current
@@ -1043,8 +1046,147 @@ ALCATEL-IND1-CONFIG-MGR-MIB DEFINITIONS ::= BEGIN
                 DEFVAL  { 0 }
                 ::= { configManager 71 }
 
+        configSnapshotPPPOEIASelect     OBJECT-TYPE
+                SYNTAX                  INTEGER (0..1)
+                MAX-ACCESS              read-write
+                STATUS                  current
+                DESCRIPTION
+                        "A set of this object causes
+                         PPPoE-IA configuration data to
+                         be included in the snap-shot file generated
+                         by the device."
+                DEFVAL  { 0 }
+                ::= { configManager 72 }
+
+	configSnapshotTESTOAMSelect     OBJECT-TYPE
+                SYNTAX                  INTEGER (0..1)
+                MAX-ACCESS              read-write
+                STATUS                  current
+                DESCRIPTION
+                        "A set of this object causes
+                         TESTOAM configuration data to
+                         be included in the snap-shot file generated
+                         by the device."
+                DEFVAL  { 0 }
+                ::= { configManager 73 }
+
+        configSnapshotSIPSelect OBJECT-TYPE   
+
+                SYNTAX                  INTEGER (0..1)   
+                 MAX-ACCESS              read-write   
+                 STATUS                  current   
+                 DESCRIPTION   
+                         "A set of this object causes   
+                         SIP configuration data to   
+                         be included in the snap-shot file generated   
+                          by the device."   
+                 DEFVAL  { 0 }   
+                 ::= { configManager 74 }
+ 
+	configSnapshotUNPSelect     OBJECT-TYPE
+                 SYNTAX                  INTEGER (0..1)
+                 MAX-ACCESS              read-write
+                 STATUS                  current
+                 DESCRIPTION
+                         "A set of this object causes
+                          vNP configuration data to
+                          be included in the snap-shot file generated
+                          by the device."
+                 DEFVAL  { 0 }
+                 ::= { configManager 75 }
+	configSnapshotMultiChassisSelect OBJECT-TYPE
+                SYNTAX                  INTEGER (0..1)
+                MAX-ACCESS              read-write
+                STATUS                  current
+                DESCRIPTION
+                        "A set of this object causes
+                        Multi-Chassis configuration data to
+                        be included in the snap-shot file generated
+                         by the device."
+                DEFVAL  { 0 }
+                ::= { configManager 76 }
+	
+	configSnapshotDhcpv6Select OBJECT-TYPE
+                SYNTAX                  INTEGER (0..1)
+                MAX-ACCESS              read-write
+                STATUS                  current
+                DESCRIPTION
+                        "A set of this object causes
+                        Dhcpv6 configuration data to
+                        be included in the snap-shot file generated
+                         by the device."
+                DEFVAL  { 0 }
+                ::= { configManager 77 }
 
 
+        configSnapshotSspHelperSelect OBJECT-TYPE
+                SYNTAX                  INTEGER (0..1)
+                 MAX-ACCESS              read-write
+                 STATUS                  current
+                 DESCRIPTION
+                         "A set of this object causes
+                         Stack Split-Protection Helper configuration data to
+                         be included in the snap-shot file generated
+                          by the device."
+                 DEFVAL  { 0 }
+                 ::= { configManager 78 }
+
+        configSnapshotOpenflowSelect    OBJECT-TYPE
+                SYNTAX                  INTEGER (0..1)
+                MAX-ACCESS              read-write
+                STATUS                  current
+                DESCRIPTION
+                        "A set of this object causes
+                         Openflow configuration data to be included
+                         in the snap-shot file generated by the
+                         the device."
+                DEFVAL  { 0 }
+                ::= { configManager 79 }
+
+        configSnapshotTwampSelect    OBJECT-TYPE
+               SYNTAX                  INTEGER (0..1)
+               MAX-ACCESS              read-write
+               STATUS                  current
+               DESCRIPTION
+                          "A set of this object causes
+                          Twamp configuration data to be included
+                          in the snap-shot file generated by the
+                          the device."
+               DEFVAL  { 0 }
+               ::= { configManager 80 }
+
+--
+-- Trap description
+--
+ 
+   	alcatelIND1ConfigMgrTraps  OBJECT-IDENTITY
+         	STATUS  current
+         	DESCRIPTION
+             	    "Branch For Configuration Manager Subsystem Trap Information."
+         ::= { alcatelIND1ConfigMgrMIB 3 }
+
+        alcatelIND1ConfigMgrTrapsRoot OBJECT IDENTIFIER   ::= { alcatelIND1ConfigMgrTraps 0 }
+        alcatelIND1ConfigMgrTrapsObj  OBJECT IDENTIFIER   ::= { alcatelIND1ConfigMgrTraps 1 }
+        configSaveSucceededTrap  NOTIFICATION-TYPE
+                 OBJECTS {
+                  configSaveSucceededTrapReason
+                         }
+                 STATUS  current
+                 DESCRIPTION
+                         "The save config succeeded event is generated when the saving of 
+                          configuration finishes without errors."
+                 ::= {alcatelIND1ConfigMgrTrapsRoot 1} 
+
+
+-- Object used in the trap	
+	
+    configSaveSucceededTrapReason  OBJECT-TYPE
+	    SYNTAX  SnmpAdminString 
+	    MAX-ACCESS  accessible-for-notify
+	    STATUS  current
+	    DESCRIPTION
+	        "The reason of trap for successful execution of write memory command"
+	    ::= { alcatelIND1ConfigMgrTrapsObj 1 }	
 --
 -- Compliance Statements
 --
@@ -1061,7 +1203,9 @@ ALCATEL-IND1-CONFIG-MGR-MIB DEFINITIONS ::= BEGIN
 			configTimerFileGroup,
 			configSnapshotGroup,
 			configTechSupportLogGroup,
-			configWriteMemoryGroup
+			configWriteMemoryGroup,
+                        configMgrTrapsGroup,
+			configMgrTrapReasonGroup
 		    }
 
 		::= { alcatelIND1ConfigMgrMIBCompliances  1 }
@@ -1139,8 +1283,8 @@ ALCATEL-IND1-CONFIG-MGR-MIB DEFINITIONS ::= BEGIN
 		  configSnapshotIPv6Select,
 		  configSnapshotOSPF3Select,
 		  configSnapshotStackSelect,
-          configWriteMemoryStatus,
-          configSnapshotISISSelect,
+                  configWriteMemoryStatus,
+                  configSnapshotISISSelect,
 		  configSnapshotEOAMSelect,
 		  configSnapshotUDLDSelect,
 		  configSnapshotNETSECSelect,
@@ -1150,20 +1294,24 @@ ALCATEL-IND1-CONFIG-MGR-MIB DEFINITIONS ::= BEGIN
 		  configSnapshotEFMOAMSelect,
 		  configSnapshotLBDSelect,
 		  configSnapshotSAASelect,
-		  configSnapshotLLDPSelect,
 		  configSnapshotLFPSelect,
-
-		  configSnapshotDHLSelect,		
-          configSnapshotWccpSelect,
-          configSnapshotFileName,
-          configSnapshotAction,
-          configSnapshotAtmSelect,
-          configSnapshotDhcpSrvSelect,
-          configSnapshotMPLSSelect ,
-          configSnapshotNTPSelect,
-          configSnapshotPortMappingSelect,
-          configSnapshotRIPngSelect ,
-          configSnapshotSonetSelect
+                  configSnapshotDHLSelect,
+		  configSnapshotWccpSelect,
+                  configSnapshotPPPOEIASelect,
+		  configSnapshotTESTOAMSelect,
+		  configSnapshotFileName,
+		  configSnapshotAction,
+		  configSnapshotAtmSelect,
+		  configSnapshotDhcpSrvSelect,
+		  configSnapshotMPLSSelect ,
+		  configSnapshotNTPSelect,
+		  configSnapshotPortMappingSelect,
+		  configSnapshotRIPngSelect ,
+		  configSnapshotSonetSelect,
+		  configSnapshotSIPSelect,
+		  configSnapshotUNPSelect,
+                  configSnapshotDhcpv6Select,
+		  configSnapshotOpenflowSelect
            	}
 		STATUS  current
 		DESCRIPTION
@@ -1192,6 +1340,25 @@ ALCATEL-IND1-CONFIG-MGR-MIB DEFINITIONS ::= BEGIN
 		    "Collection of objects for write memory."
 		::= { alcatelIND1ConfigMgrMIBGroups  5}
 
+        configMgrTrapsGroup NOTIFICATION-GROUP
+        NOTIFICATIONS 
+        {
+            configSaveSucceededTrap
+        }
+        STATUS  current
+        DESCRIPTION
+             "Collection of Traps for Configuration Manager."
+        ::= { alcatelIND1ConfigMgrMIBGroups 6 }
 
+
+       configMgrTrapReasonGroup OBJECT-GROUP
+ 	      OBJECTS 
+	      {
+ 	         configSaveSucceededTrapReason
+ 	      }
+              STATUS  current
+              DESCRIPTION
+                   "Configurations are saved successfully by write memory command."
+              ::= { alcatelIND1ConfigMgrMIBGroups 7 }
 
 END

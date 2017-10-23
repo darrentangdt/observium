@@ -31,9 +31,5 @@ if (preg_match('/^(MyPower [A-Z0-9-]*) (V[0-9\.]*)/i', $somemaipustr, $matches))
 }
 
 $serial   = snmp_get($device, '.1.3.6.1.4.1.5651.1.2.1.1.2.19.0', '-OQv');
-//if (preg_match('/^([0-9]*)/i', $poll_device['.1.3.6.1.4.1.5651.1.2.1.1.2.19.0'], $smatches));
-//{
-//  $serial = trim($smatches[1]);
-//}
 
 // EOF

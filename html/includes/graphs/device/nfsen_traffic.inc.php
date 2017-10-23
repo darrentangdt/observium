@@ -11,7 +11,7 @@
  *
  */
 
-$dsdescr = "Byts/s ";
+$dsdescr = "Bytes/s ";
 $dsprefix = "traffic_";
 
 include("nfsen_common.inc.php");

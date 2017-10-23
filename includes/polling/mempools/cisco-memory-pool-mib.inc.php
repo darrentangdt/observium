@@ -7,7 +7,7 @@
  *
  * @package    observium
  * @subpackage poller
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -17,7 +17,7 @@ $oids = array('used' => 'ciscoMemoryPoolUsed',
 
 if (!is_array($cache_storage[$mib]))
 {
-  foreach ($oids as $oid)
+  foreach ($oids as $param => $oid)
   {
     $cache_mempool = snmpwalk_cache_multi_oid($device, $oid, $cache_mempool, $mib);
   }

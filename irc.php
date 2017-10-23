@@ -282,8 +282,8 @@ class observiumbot
   }
 }
 
-$bot = &new observiumbot();
-$irc = &new Net_SmartIRC();
+$bot = new observiumbot();
+$irc = new Net_SmartIRC();
 
 if (OBS_DEBUG) $irc->setDebug(SMARTIRC_DEBUG_ALL);
 

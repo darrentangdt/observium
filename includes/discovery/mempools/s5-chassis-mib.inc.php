@@ -11,8 +11,8 @@
  *
  */
 
-//S5-CHASSIS-MIB::s5ChasUtilMemoryTotalMB.3.10.0 = Gauge32: 128 MegaBytes
-//S5-CHASSIS-MIB::s5ChasUtilMemoryAvailableMB.3.10.0 = Gauge32: 65 MegaBytes
+// S5-CHASSIS-MIB::s5ChasUtilMemoryTotalMB.3.10.0 = Gauge32: 128 MegaBytes
+// S5-CHASSIS-MIB::s5ChasUtilMemoryAvailableMB.3.10.0 = Gauge32: 65 MegaBytes
 
 $mempool_array = snmpwalk_cache_oid($device, 's5ChasUtilEntry', array(), $mib);
 //$mempool_array = snmpwalk_cache_oid($device, 's5ChasComTable', $mempool_array, 'S5-CHASSIS-MIB:S5-REG-MIB');

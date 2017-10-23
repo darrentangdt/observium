@@ -208,7 +208,9 @@ switch ($vars['entity_type'])
 
       if ($response)
       {
+        @session_start();
         $_SESSION['cache']['response_' . $vars['entity_type'] . '_' . $ip] = '<pre class="small">' . $response . '</pre>';
+        session_commit();
         echo $_SESSION['cache']['response_' . $vars['entity_type'] . '_' . $ip];
       } else {
         echo 'Not Found';

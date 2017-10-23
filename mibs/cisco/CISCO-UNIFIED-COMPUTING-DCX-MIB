@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- DCX management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -66,13 +66,14 @@ IMPORTS
     CucsNetworkTransport,
     CucsNwctrlAdminState,
     CucsNwctrlLinkFailAction,
+    CucsNwctrlLldpAdminStateBitmask,
     CucsNwctrlRegistrationMode,
     CucsQosHostControl,
     CucsVnicInstantiation
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsDcxObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -586,7 +587,10 @@ CucsDcxVcEntry ::= SEQUENCE {
     cucsDcxVcPeerId                                                  Gauge32,
     cucsDcxVcQosPolicyDn                                             SnmpAdminString,
     cucsDcxVcMacRegisterMode                                         CucsNwctrlRegistrationMode,
-    cucsDcxVcBorderVfcId                                             Gauge32
+    cucsDcxVcBorderVfcId                                             Gauge32,
+    cucsDcxVcLldp                                                    CucsNwctrlLldpAdminStateBitmask,
+    cucsDcxVcBorderAggrPortId                                        Gauge32,
+    cucsDcxVcOperBorderAggrPortId                                    Gauge32
 }
 
 cucsDcxVcInstanceId OBJECT-TYPE
@@ -900,6 +904,30 @@ cucsDcxVcBorderVfcId OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS dcx:Vc:borderVfcId managed object property"
     ::= { cucsDcxVcEntry 41 }
+
+cucsDcxVcLldp OBJECT-TYPE
+    SYNTAX       CucsNwctrlLldpAdminStateBitmask
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS dcx:Vc:lldp managed object property"
+    ::= { cucsDcxVcEntry 42 }
+
+cucsDcxVcBorderAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS dcx:Vc:borderAggrPortId managed object property"
+    ::= { cucsDcxVcEntry 43 }
+
+cucsDcxVcOperBorderAggrPortId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS dcx:Vc:operBorderAggrPortId managed object property"
+    ::= { cucsDcxVcEntry 44 }
 
 cucsDcxVifEpTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsDcxVifEpEntry

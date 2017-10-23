@@ -27,7 +27,7 @@ foreach ($printing_tabs as $type)
 
 }
 
-if (dbFetchCell('SELECT COUNT(*) FROM `sensors` WHERE device_id = ? AND `measured_class` = ?', array($device['device_id'], 'printersupply')) > 0)
+if (dbFetchCell('SELECT COUNT(*) FROM `sensors` WHERE `device_id` = ? AND `sensor_class` = ? AND `sensor_descr` LIKE ?', array($device['device_id'], 'counter', '%print%')) > 0)
 {
   $navbar['options']['pagecount']['url'] = generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'printing', 'supply' => 'pagecount'));
   $navbar['options']['pagecount']['text'] = 'Printed counters';
@@ -50,6 +50,8 @@ switch ($vars['supply'])
 
     echo('</table>');
     echo generate_box_close();
+
+    print_sensor_table(array('device_id' => $device['device_id'], 'metric' => 'counter', 'sensor_descr' => 'print', 'page' => 'device'));
     break;
   default:
     echo generate_box_open();

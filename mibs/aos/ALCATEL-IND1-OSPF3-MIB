@@ -1,8 +1,10 @@
 ALCATEL-IND1-OSPF3-MIB DEFINITIONS ::= BEGIN
 
 IMPORTS
-    MODULE-IDENTITY, OBJECT-TYPE, Unsigned32
+    MODULE-IDENTITY, OBJECT-TYPE
 				FROM SNMPv2-SMI
+    Unsigned32
+        FROM SNMPv2-SMI
     MODULE-COMPLIANCE, OBJECT-GROUP
         FROM SNMPv2-CONF
     routingIND1Ospf3
@@ -164,7 +166,7 @@ alcatelIND1OSPF3MIBCompliance MODULE-COMPLIANCE
 -- units of conformance
 
 alaOSPF3ConfigMIBGroup OBJECT-GROUP
-    OBJECTS {
+    OBJECTS {        
 			alaOspf3OrigRouteTag,
 			alaOspf3TimerSpfDelay,
 			alaOspf3TimerSpfHold,

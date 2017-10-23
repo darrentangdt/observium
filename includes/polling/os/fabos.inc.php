@@ -11,7 +11,6 @@
  *
  */
 
-$version  = snmp_get($device, 'swFirmwareVersion.0', '-Ovq', 'SW-MIB');
 if (!$version)
 {
   //FCMGMT-MIB::connUnitRevsRevId.'................'.1 = STRING: "73.6"
@@ -20,8 +19,6 @@ if (!$version)
 }
 $version = ltrim($version, 'v');
 
-//$hardware = trim(snmp_get($device, 'entPhysicalDescr.1', '-Ovq', 'ENTITY-MIB'),'"');
-//$serial   = trim(snmp_get($device, 'entPhysicalSerialNum.1', '-Ovq', 'ENTITY-MIB'),'"');
 if ($entPhysical['entPhysicalDescr'])
 {
   $hardware = $entPhysical['entPhysicalDescr'];

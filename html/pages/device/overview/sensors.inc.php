@@ -16,8 +16,8 @@ $sensor_types = array_keys($config['sensor_types']);
 foreach ($sensor_types as $sensor_type)
 {
   $sql  = "SELECT * FROM `sensors`";
-  $sql .= " LEFT JOIN `sensors-state` USING(`sensor_id`)";
-  $sql .= " WHERE `sensor_class` = ? AND `device_id` = ? ORDER BY `sensor_type`, `sensor_descr`";
+  //$sql .= " LEFT JOIN `sensors-state` USING(`sensor_id`)";
+  $sql .= " WHERE `sensor_class` = ? AND `device_id` = ? AND `sensor_deleted` = 0 ORDER BY `sensor_type`, `entPhysicalIndex` * 1, `sensor_descr`"; // order numerically by entPhysicalIndex for ports
 
   // Cache all sensors
   foreach (dbFetchRows($sql, array($sensor_type, $device['device_id'])) as $entry)
@@ -39,9 +39,10 @@ if (isset($sensors_db['measured']))
 {
   foreach ($sensors_db['measured'] as $measured_class => $measured_entity)
   {
-    $box_args = array('title' => nicecase($measured_class).' sensors', 
-                      'icon' => 'oicon-node',
-                      ); 
+    $box_args = array('title' => nicecase($measured_class).' sensors',
+                      'url'   => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => $measured_class.'s', 'view' => 'sensors')),
+                      'icon'  => $config['icon']['sensor']
+                      );
     echo generate_box_open($box_args);
 
     echo' <table class="table table-condensed table-striped">';
@@ -87,9 +88,9 @@ foreach ($sensors_db as $sensor_type => $sensors)
   if (count($sensors))
   {
     $box_args = array('title' => nicecase($sensor_type), 
-                    'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => $sensor_type)), 
-                    'icon' => $config['sensor_types'][$sensor_type]['icon'],
-                    ); 
+                      'url'   => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => $sensor_type)), 
+                      'icon'  => $config['sensor_types'][$sensor_type]['icon'],
+                      ); 
     echo generate_box_open($box_args);
 
     echo('<table class="table table-condensed table-striped">');

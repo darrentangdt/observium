@@ -22,6 +22,7 @@ if ($data)
   $data = current($data);
   $hardware = 'Unifi ' . $data['dot11manufacturerProductName'];
   list(,$version) = preg_split('/\.v/', $data['dot11manufacturerProductVersion']);
+  $version = implode('.', array_slice(explode('.', $version), 0, 4)); // Leave only first 4 numbers: 3.7.18.5368.161005.1224 -> 3.7.18.5368
 }
 
 // EOF

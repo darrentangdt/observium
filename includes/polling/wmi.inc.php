@@ -12,6 +12,7 @@
  */
 
 include_once($GLOBALS['config']['install_dir'] . "/includes/wmi.inc.php");
+include_once($GLOBALS['config']['install_dir'] . "/includes/discovery/functions.inc.php");
 
 if ($device['os'] == "windows")
 {
@@ -80,6 +81,10 @@ if ($device['os'] == "windows")
 
 // Logical Disks
 
+/*
+
+  Disabled because it breaks alerting (it updates stuff itself and doesn't use our storage code, derp.
+
   if ($wmi_attribs['wmi_poll_storage'])
   {
     $wql = "SELECT * FROM Win32_LogicalDisk WHERE Description='Local Fixed Disk'";
@@ -90,6 +95,7 @@ if ($device['os'] == "windows")
       include($GLOBALS['config']['install_dir'] . "/includes/polling/storage/wmi.inc.php");
     }
   }
+*/
 
 // Microsoft Exchange
 

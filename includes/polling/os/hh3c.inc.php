@@ -13,12 +13,12 @@
 
 if ($entPhysical['entPhysicalDescr'] && $entPhysical['entPhysicalName'] && $entPhysical['entPhysicalSoftwareRev'])
 {
-  $hardware = $entPhysical['entPhysicalDescr'] . ' ' . $entPhysical['entPhysicalName'];
-  if (preg_match('/Version ([0-9\.]+)/', $entPhysical['entPhysicalSoftwareRev'], $matches))
+  $hardware = $entPhysical['entPhysicalName'];
+  if (preg_match('/([0-9\.]+)/', $entPhysical['entPhysicalSoftwareRev'], $matches))
   {
     $version = $matches[1];
   }
-  $serial   = $entPhysical['entPhysicalSerialNum'];
+  $serial = $entPhysical['entPhysicalSerialNum'];
   return;
 }
 
@@ -46,7 +46,5 @@ else if (count($lines) == 3)
   $version = rtrim($version, ',') . ' ' . $release;
   $hardware = $lines[1];
 }
-
-$serial = snmp_get($device, 'hh3cEntityExtManuSerialNum.1', '-Oqv', 'HH3C-ENTITY-EXT-MIB');
 
 // EOF

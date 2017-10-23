@@ -7,7 +7,7 @@
  *
  * @package    observium
  * @subpackage discovery
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -22,7 +22,7 @@ foreach ($ns_sensor_array as $descr => $data)
 {
   $value = $data['sysHealthCounterValue'];
 
-  $oid = ".1.3.6.1.4.1.5951.4.1.1.41.7.1.2." . string_to_oid($descr);
+  $oid = ".1.3.6.1.4.1.5951.4.1.1.41.7.1.2." . snmp_string_to_oid($descr);
 
   if     (strpos($descr, "Temp") !== FALSE) { $scale = 1;     $type = "temperature"; }
   elseif (strpos($descr, "Fan")  !== FALSE) { $scale = 1;     $type = "fanspeed"; }
@@ -33,10 +33,12 @@ foreach ($ns_sensor_array as $descr => $data)
 
   if ($type == 'state')
   {
+    // FIXME, when will converted to definition-based, note that here used "named" index instead numeric
     discover_sensor($valid['sensor'], $type, $device, $oid, $descr, 'netscaler-state',  $descr, NULL, $value, array('entPhysicalClass' => $physical));
   }
   else if (is_numeric($value) && $value !== '0')
   {
+    // FIXME, when will converted to definition-based, note that here used "named" index instead numeric
     discover_sensor($valid['sensor'], $type, $device, $oid, $descr, 'netscaler-health', $descr, $scale, $value);
   }
 }

@@ -35,19 +35,19 @@ function process_port_etherlike(&$this_port, $device)
   { // Check to make sure Port data is cached.
 
     rrdtool_update_ng($device, 'port-dot3', array(
-      'dot3StatsAlignmentErrors'           => $this_port['dot3StatsAlignmentErrors'],
-      'dot3StatsFCSErrors'                 => $this_port['dot3StatsFCSErrors'],
-      'dot3StatsSingleCollisionFrames'     => $this_port['dot3StatsSingleCollisionFrames'],
-      'dot3StatsMultipleCollisionFrames'   => $this_port['dot3StatsMultipleCollisionFrames'],
-      'dot3StatsSQETestErrors'             => $this_port['dot3StatsSQETestErrors'],
-      'dot3StatsDeferredTransmissions'     => $this_port['dot3StatsDeferredTransmissions'],
-      'dot3StatsLateCollisions'            => $this_port['dot3StatsLateCollisions'],
-      'dot3StatsExcessiveCollisions'       => $this_port['dot3StatsExcessiveCollisions'],
-      'dot3StatsInternalMacTransmitErrors' => $this_port['dot3StatsInternalMacTransmitErrors'],
-      'dot3StatsCarrierSenseErrors'        => $this_port['dot3StatsCarrierSenseErrors'],
-      'dot3StatsFrameTooLongs'             => $this_port['dot3StatsFrameTooLongs'],
-      'dot3StatsInternalMacReceiveErrors'  => $this_port['dot3StatsInternalMacReceiveErrors'],
-      'dot3StatsSymbolErrors'              => $this_port['dot3StatsSymbolErrors'],
+      'AlignmentErrors'           => $this_port['dot3StatsAlignmentErrors'],
+      'FCSErrors'                 => $this_port['dot3StatsFCSErrors'],
+      'SingleCollisionFram'     => $this_port['dot3StatsSingleCollisionFrames'],
+      'MultipleCollisionFr'   => $this_port['dot3StatsMultipleCollisionFrames'],
+      'SQETestErrors'             => $this_port['dot3StatsSQETestErrors'],
+      'DeferredTransmissio'     => $this_port['dot3StatsDeferredTransmissions'],
+      'LateCollisions'            => $this_port['dot3StatsLateCollisions'],
+      'ExcessiveCollisions'       => $this_port['dot3StatsExcessiveCollisions'],
+      'InternalMacTransmit' => $this_port['dot3StatsInternalMacTransmitErrors'],
+      'CarrierSenseErrors'        => $this_port['dot3StatsCarrierSenseErrors'],
+      'FrameTooLongs'             => $this_port['dot3StatsFrameTooLongs'],
+      'InternalMacReceiveE'  => $this_port['dot3StatsInternalMacReceiveErrors'],
+      'SymbolErrors'              => $this_port['dot3StatsSymbolErrors'],
     ), get_port_rrdindex($this_port));
 
     if ($GLOBALS['config']['statsd']['enable'] == TRUE)

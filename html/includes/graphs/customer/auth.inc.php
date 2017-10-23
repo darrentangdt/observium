@@ -18,6 +18,11 @@ if ($_SESSION['userlevel'] >= "5" || $auth)
   $id = $vars['id'];
   $title = "Customer :: ". escape_html($vars['id']);
   $auth = TRUE;
+
+  $title_array   = array();
+  $title_array[] = array('text' => 'Customer Ports', 'url' => generate_url(array('page' => 'customers')));
+  $title_array[] = array('text' => escape_html($vars['id']), 'url' => generate_url(array('page' => 'customers')));
+
 }
 
 // EOF

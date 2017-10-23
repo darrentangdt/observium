@@ -27,6 +27,8 @@ $cli = TRUE;
 
 $poller_start = utime();
 
+// get_versions();
+
 if (isset($options['V']))
 {
   print_message(OBSERVIUM_PRODUCT." ".OBSERVIUM_VERSION);

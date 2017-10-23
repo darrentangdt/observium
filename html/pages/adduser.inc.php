@@ -24,7 +24,7 @@ include($config['html_dir']."/pages/usermenu.inc.php");
 
   if (auth_usermanagement())
   {
-    if ($vars['submit'] == 'add_user')
+    if ($vars['submit'] == 'add_user' && request_token_valid($vars))
     {
       if ($vars['new_username'])
       {
@@ -58,16 +58,15 @@ include($config['html_dir']."/pages/usermenu.inc.php");
                     'id'        => 'add_user',
                     //'space'     => '20px',
                     //'title'     => 'Add User',
-                    //'icon'      => 'oicon-gear',
                     );
       // top row div
       $form['fieldset']['user']    = array('div'   => 'top',
                                            'title' => 'User Properties',
-                                           'icon'  => 'oicon-user--pencil',
+                                           'icon'  => $config['icon']['user-edit'],
                                            'class' => 'col-md-6');
       $form['fieldset']['info']    = array('div'   => 'top',
                                            'title' => 'Optional Information',
-                                           'icon'  => 'oicon-information',
+                                           'icon'  => $config['icon']['info'],
                                            //'right' => TRUE,
                                            'class' => 'col-md-6 col-md-pull-0');
       // bottom row div

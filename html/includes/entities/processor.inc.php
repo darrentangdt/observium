@@ -6,14 +6,18 @@
  *
  * @package    observium
  * @subpackage web
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
 function generate_processor_query($vars)
 {
   $sql  = "SELECT * FROM `processors`";
-  $sql .= " LEFT JOIN `processors-state` USING(`processor_id`)";
+  //$sql .= " LEFT JOIN `processors-state` USING(`processor_id`)";
+  if(!isset($vars['sort']) || $vars['sort'] == 'hostname' || $vars['sort'] == 'device' || $vars['sort'] == 'device_id')
+  {
+    $sql .= ' LEFT JOIN `devices` USING(`device_id`)';
+  }
   $sql .= ' WHERE 1' . generate_query_permitted(array('device'));
 
   // Build query
@@ -31,6 +35,33 @@ function generate_processor_query($vars)
         $sql .= generate_query_values($value, 'device_id');
         break;
     }
+  }
+
+  switch ($vars['sort_order'])
+  {
+    case 'descr':
+      $sort_order = 'DESC';
+      $sort_neg   = 'ASC';
+      break;
+    case 'reset':
+      unset($vars['sort'], $vars['sort_order']);
+      // no break here
+    default:
+      $sort_order = 'ASC';
+      $sort_neg   = 'DESC';
+  }
+
+  switch($vars['sort'])
+  {
+    case 'usage':
+      $sql .= ' ORDER BY `processor_usage` '.$sort_neg;
+      break;
+    case 'descr':
+      $sql .= ' ORDER BY `processor_descr` '.$sort_order;
+      break;
+    default:
+      $sql .= ' ORDER BY `hostname` '.$sort_order.', `processor_descr` '.$sort_order;
+      break;
   }
 
   return $sql;
@@ -52,31 +83,6 @@ function print_processor_table($vars)
       $proc['html_row_class'] = $cache['devices']['id'][$proc['device_id']]['html_row_class'];
       $processors[] = $proc;
     }
-  }
-
-  // Sorting
-  // FIXME. Sorting can be as function, but in must before print_table_header and after get table from db
-  switch ($vars['sort_order'])
-  {
-    case 'desc':
-      $sort_order = SORT_DESC;
-      $sort_neg   = SORT_ASC;
-      break;
-    case 'reset':
-      unset($vars['sort'], $vars['sort_order']);
-      // no break here
-    default:
-      $sort_order = SORT_ASC;
-      $sort_neg   = SORT_DESC;
-  }
-  switch($vars['sort'])
-  {
-    case 'usage':
-      $processors = array_sort_by($processors, 'processor_usage', $sort_neg, SORT_NUMERIC);
-      break;
-    default:
-      $processors = array_sort_by($processors, 'hostname', $sort_order, SORT_STRING, 'processor_descr', $sort_order, SORT_STRING);
-      break;
   }
 
   $processors_count = count($processors);
@@ -196,9 +202,11 @@ function generate_processor_row($processor, $vars)
     </tr>
    ';
 
-  if ($vars['view'] == "graphs") { $vars['graph'] = "usage"; }
-  if ($vars['graph'])
+  if ($vars['view'] == "graphs" || $vars['processor_id'] == $processor['processor_id'])
   {
+
+      $vars['graph'] = "usage";
+
     $row .= '<tr class="' . $processor['html_row_class'] . '">';
     $row .= '<td class="state-marker"></td>';
     $row .= '<td colspan='.$table_cols.'>';
@@ -208,7 +216,7 @@ function generate_processor_row($processor, $vars)
     $graph_array['id']     = $processor['processor_id'];
     $graph_array['type']   = 'processor_'.$vars['graph'];
 
-    print_graph_row($graph_array, TRUE);
+    $row .= generate_graph_row($graph_array, TRUE);
 
     $row .= '</td></tr>';
   } # endif graphs

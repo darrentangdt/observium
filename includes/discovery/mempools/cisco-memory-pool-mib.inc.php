@@ -12,7 +12,7 @@
  */
 
 // Ignore this discovery module if we have already discovered things in CISCO-ENHANCED-MEMPOOL-MIB. Dirty duplication.
-if (!isset($valid['mempool']['cisco-enhanced-mempool-mib']))
+if (!isset($valid['mempool']['cisco-enhanced-mempool-mib']) && !isset($valid['mempool']['CISCO-ENHANCED-MEMPOOL-MIB']))
 {
   $mempool_array = snmpwalk_cache_oid($device, 'ciscoMemoryPool', array(), $mib);
   if (is_array($mempool_array))

@@ -93,7 +93,7 @@ ruckusWLANEntry OBJECT-TYPE
 
 
 RuckusWLANEntry ::= SEQUENCE {
-    ruckusWLANIfIndex		     Unsigned32,
+	ruckusWLANIfIndex	   			 Unsigned32,
     ruckusWLANSSID                   RuckusSSID,
     ruckusWLANBSSID                  MacAddress,
     ruckusWLANBSSType                INTEGER,
@@ -111,13 +111,7 @@ RuckusWLANEntry ::= SEQUENCE {
     ruckusWLANName                   DisplayString,
     ruckusWLANSSIDBcastDisable       TruthValue,
     ruckusWLANVlanID                 INTEGER,
-    ruckusWLANIGMPSnooping           INTEGER,
-    ruckusWLANOption82        	     INTEGER,
-    ruckusWLANOption82Subopt1        INTEGER,
-    ruckusWLANOption82Subopt2        INTEGER,
-    ruckusWLANOption82Subopt150      INTEGER,
-    ruckusWLANOption82Subopt151      INTEGER
-    }
+    ruckusWLANIGMPSnooping           INTEGER }
 
 ruckusWLANIfIndex OBJECT-TYPE
     SYNTAX  Unsigned32 
@@ -208,7 +202,7 @@ ruckusWLANDTIMPeriod OBJECT-TYPE
 
 
 ruckusWLANRTSThreshold OBJECT-TYPE
-    SYNTAX  INTEGER (1..65535)
+    SYNTAX  INTEGER (256..2346)
     MAX-ACCESS read-write
     STATUS current
     DESCRIPTION
@@ -350,64 +344,6 @@ ruckusWLANIGMPSnooping OBJECT-TYPE
     DESCRIPTION
         "Configure the IGMPSnooping for this WLAN. "
     ::= { ruckusWLANEntry 25 }
-
-ruckusWLANOption82 OBJECT-TYPE
-    SYNTAX INTEGER {disabled(0), enabled(1)}
-    MAX-ACCESS read-write
-    STATUS current
-    DESCRIPTION
-        "Enabled/Disabled option82"
-    ::= { ruckusWLANEntry 50 }
-
-ruckusWLANOption82Subopt1 OBJECT-TYPE
-    SYNTAX INTEGER {IF-Name_VLAN-ID_ESSID_AP-Model_AP-Name_AP-MAC(1),
-            		AP-MAC-hex(2),
-            		AP-MAC-hex-ESSID(3),
-            		ESSID(4)}
-    MAX-ACCESS read-write
-    STATUS current
-    DESCRIPTION
-        "Subopt-1 with format:
-         1: IF-Name:VLAN-ID:ESSID:AP-Model:AP-Name:AP-MAC;
-         2: AP-MAC-hex;
-         3: AP-MAC-hex ESSID;
-         4: ESSID."
-    ::= { ruckusWLANEntry 51 }
-
-ruckusWLANOption82Subopt2 OBJECT-TYPE
-    SYNTAX INTEGER {Client-MAC-hex(1),
-            		Client-MAC-hex_ESSID(2),
-            		AP-MAC-hex(3),
-            		AP-MAC-hex_ESSID(4),
-            		AP-MAC(5)}
-    MAX-ACCESS read-write
-    STATUS current
-    DESCRIPTION
-        "Subopt-2 with format:
-         1: Client-MAC-hex;
-         2: Client-MAC-hex ESSID;
-         3: AP-MAC-hex;
-         4: AP-MAC-hex ESSID;
-         5: AP-MAC."
-    ::= { ruckusWLANEntry 52 }
-
-ruckusWLANOption82Subopt150 OBJECT-TYPE
-    SYNTAX INTEGER {disabled(0), enabled(1)}
-    MAX-ACCESS read-write
-    STATUS current
-    DESCRIPTION
-        "Subopt-150 with VLAN-ID."
-    ::= { ruckusWLANEntry 53 }
-
-ruckusWLANOption82Subopt151 OBJECT-TYPE
-    SYNTAX INTEGER {Area-Name(1), ESSID(2)}
-    MAX-ACCESS read-write
-    STATUS current
-    DESCRIPTION
-        "Subopt-151 with format:
-         1: Area-Name;
-         2: ESSID."
-    ::= { ruckusWLANEntry 54 }
 
 -- WLAN Suported Transmit Rates
 --
@@ -1289,111 +1225,6 @@ ruckusWLANStaRksTxRssi OBJECT-TYPE
         "Rssi for ack'ed packets."
     ::= { ruckusWLANStaRksEntry 10 }
 
---********************************************************************************
---* ruckusWLANRogueInfo
---********************************************************************************
-ruckusWLANRogueTable OBJECT-TYPE
-    SYNTAX SEQUENCE OF RuckusWLANRogueEntry
-    MAX-ACCESS not-accessible
-    STATUS current
-    DESCRIPTION
-        "WLAN rogue device table."
-    ::= { ruckusWLANStaInfo 5 }
-
-ruckusWLANRogueEntry OBJECT-TYPE
-    SYNTAX RuckusWLANRogueEntry
-    MAX-ACCESS not-accessible
-    STATUS current
-    DESCRIPTION
-        "Specifies each WLAN rogue device entry."
-    INDEX { ruckusWLANRogueIndex  }
-    ::= { ruckusWLANRogueTable 1 }
-
-RuckusWLANRogueEntry ::= SEQUENCE {
-  ruckusWLANRogueSSID                 	RuckusSSID,
-  ruckusWLANRogueMacAddr		OCTET STRING,
-  ruckusWLANRogueRadioType            	INTEGER,
-  ruckusWLANRogueChannel              	Unsigned32,
-  ruckusWLANRogueRSSI                 	Integer32,
-  ruckusWLANRogueType                 	INTEGER,
-  ruckusWLANRogueEncrypted            	INTEGER,
-  ruckusWLANRogueSNR                  	Integer32,
-  ruckusWLANRogueSignalStrength       	Integer32
-}
-
-ruckusWLANRogueSSID OBJECT-TYPE
-    SYNTAX  RuckusSSID 
-    MAX-ACCESS read-only
-    STATUS current
-    DESCRIPTION
-        "SSID."
-    ::= { ruckusWLANRogueEntry 1 }
-
-ruckusWLANRogueMacAddr OBJECT-TYPE
-    SYNTAX  OCTET STRING 
-    MAX-ACCESS read-only
-    STATUS current
-    DESCRIPTION
-        "Rogue device's MAC Address."
-    ::= { ruckusWLANRogueEntry 2 }
-
-ruckusWLANRogueRadioType OBJECT-TYPE
-    SYNTAX  INTEGER  { radio11bg (0), radio11a (1), radio11ng(2), radio11na(3) }
-    MAX-ACCESS read-only
-    STATUS current
-    DESCRIPTION
-        "Radio type."
-    ::= { ruckusWLANRogueEntry 3 }
-
-ruckusWLANRogueChannel OBJECT-TYPE
-    SYNTAX  Unsigned32 
-    MAX-ACCESS read-only
-    STATUS current
-    DESCRIPTION
-        "Radio channel."
-    ::= { ruckusWLANRogueEntry 4 }
-
-ruckusWLANRogueRSSI OBJECT-TYPE
-    SYNTAX  Integer32 
-    MAX-ACCESS read-only
-    STATUS current
-    DESCRIPTION
-        "RSSI."
-    ::= { ruckusWLANRogueEntry 5 }
-
-ruckusWLANRogueType OBJECT-TYPE
-    SYNTAX  INTEGER  { ap (0), ad-hoc (1) }
-    MAX-ACCESS read-only
-    STATUS current
-    DESCRIPTION
-        "The type of the rogue device."
-    ::= { ruckusWLANRogueEntry 6 }
-
-ruckusWLANRogueEncrypted OBJECT-TYPE
-    SYNTAX  INTEGER  { open (0), encrypted (1) }
-    MAX-ACCESS read-only
-    STATUS current
-    DESCRIPTION
-        "Encryption mode."
-    ::= { ruckusWLANRogueEntry 7 }
-
-ruckusWLANRogueSNR OBJECT-TYPE
-    SYNTAX  Integer32 
-    MAX-ACCESS read-only
-    STATUS current
-    DESCRIPTION
-        "Signal to Noise Ratio"
-    ::= { ruckusWLANRogueEntry 8 }
-    
-ruckusWLANRogueSignalStrength OBJECT-TYPE
-    SYNTAX  Integer32 
-    UNITS
-        "dBm"
-    MAX-ACCESS read-only
-    STATUS current
-    DESCRIPTION
-        "Signal strength"
-    ::= { ruckusWLANRogueEntry 9 }
 
 -- WLAN Security Information Group
 -- WLAN Security Settings

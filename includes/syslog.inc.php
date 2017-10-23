@@ -7,7 +7,7 @@
  * @package    observium
  * @subpackage syslog
  * @author     Adam Armstrong <adama@observium.org>
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -289,6 +289,8 @@ function process_syslog($entry, $update)
       {
         $entry['program'] = $entry['facility'];
       }
+      // 1.1.1.1||5||3||3||rsyslogd-2039:||2016-10-06 23:03:27|| Could no open output pipe '/dev/xconsole': No such file or directory [try http://www.rsyslog.com/e/2039 ]||rsyslogd-2039
+      $entry['program'] = preg_replace('/\-\d+$/', '', $entry['program']);
       unset($matches);
     }
     else if ($os == 'ftos')
@@ -387,16 +389,16 @@ function process_syslog($entry, $update)
                                    'message'   => $entry['msg_orig'],
                                    'notified'  => $notified), 'syslog_alerts');
 
-          // Get contacts for $la_id
-          $transports = get_alert_contacts($entry['device_id'], $la_id, $notification_type);
           // Add notification to queue
-          if ($notified !='-1' && !empty($transports))
+          if ($notified !='-1')
           {
             $device = device_by_id_cache($entry['device_id']);
             $message_tags = array(
                 'ALERT_STATE'     => "SYSLOG",
-                'ALERT_URL'       => generate_url(array('page' => 'device', 'device' => $device['device_id'],
-                                                        'tab' => 'alert', 'entity_type' => 'syslog')),
+                'ALERT_URL'       => generate_url(array('page'        => 'device',
+                                                        'device'      => $device['device_id'],
+                                                        'tab'         => 'alert',
+                                                        'entity_type' => 'syslog')),
                 'ALERT_ID'        => $la_id,
                 'ALERT_MESSAGE'   => $rule['la_descr'],
                 'CONDITIONS'      => $rule['la_rule'],
@@ -414,24 +416,29 @@ function process_syslog($entry, $update)
             );
             $message_tags['TITLE'] = alert_generate_subject($device, 'SYSLOG', $message_tags);
 
-            $notification = array(
-              'device_id'             => $entry['device_id'],
-              'log_id'                => $log_id,
-              'aca_type'              => $notification_type,
-              'severity'              => $entry['priority'],
-              'endpoints'             => json_encode($transports),
-              //'message_graphs'        => $message_tags['ENTITY_GRAPHS_ARRAY'],
-              'notification_added'    => time(),
-              'notification_lifetime' => 300,                   // Lifetime in seconds
-              'notification_entry'    => json_encode($entry),   // Store full alert entry for use later if required (not sure that this needed)
-            );
-            //unset($message_tags['ENTITY_GRAPHS_ARRAY']);
-            $notification['message_tags'] = json_encode($message_tags);
-            $notification_id              = dbInsert($notification, 'notifications_queue');
-          }
+              // Get contacts for $la_id
+              $contacts = get_alert_contacts($entry['device_id'], $la_id, $notification_type);
 
-        }
-      }
+              foreach($contacts AS $contact) {
+
+                $notification = array(
+                    'device_id'             => $entry['device_id'],
+                    'log_id'                => $log_id,
+                    'aca_type'              => $notification_type,
+                    'severity'              => $entry['priority'],
+                    'endpoints'             => json_encode($contact),
+                    //'message_graphs'        => $message_tags['ENTITY_GRAPHS_ARRAY'],
+                    'notification_added'    => time(),
+                    'notification_lifetime' => 300,                   // Lifetime in seconds
+                    'notification_entry'    => json_encode($entry),   // Store full alert entry for use later if required (not sure that this needed)
+                );
+                //unset($message_tags['ENTITY_GRAPHS_ARRAY']);
+                $notification['message_tags'] = json_encode($message_tags);
+                $notification_id = dbInsert($notification, 'notifications_queue');
+            } // End foreach($contacts)
+          } // End if($notified)
+        }  // End if syslog rule matches
+      } // End foreach($rules)
 
     unset($os);
   }

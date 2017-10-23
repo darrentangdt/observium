@@ -17,8 +17,9 @@ $pseudowires_db_count   = 0;
 $pseudowires_snmp_count = 0;
 
 // WARNING. Discovered all Pseudowires, but polled only 'active'
-$sql = "SELECT * FROM `pseudowires` LEFT JOIN `pseudowires-state` USING (`pseudowire_id`) WHERE `device_id` = ?;"; // AND `pwRowStatus` = 'active';";
+$sql = "SELECT * FROM `pseudowires` WHERE `device_id` = ?;"; // AND `pwRowStatus` = 'active';";
 //$sql = "SELECT * FROM `pseudowires` WHERE `device_id` = ? AND `pwRowStatus` = 'active';";
+
 foreach (dbFetchRows($sql, array($device['device_id'])) as $entry)
 {
   $pseudowires_db_count++; // Fetch all entries for correct counting, but skip inactive/deleted
@@ -140,13 +141,13 @@ foreach (array_keys($pseudowires_db) as $mib)
       check_entity('pseudowire', $pw, $metrics);
 
       // Update SQL State
-      if (is_numeric($pw['pwUptime']))
-      {
-        dbUpdate($metrics, 'pseudowires-state', '`pseudowire_id` = ?', array($pw['pseudowire_id']));
-      } else {
-        $metrics['pseudowire_id'] = $pw['pseudowire_id'];
-        dbInsert($metrics, 'pseudowires-state');
-      }
+      //if (is_numeric($pw['pwUptime']))
+      //{
+      dbUpdate($metrics, 'pseudowires', '`pseudowire_id` = ?', array($pw['pseudowire_id']));
+      //} else {
+      //  $metrics['pseudowire_id'] = $pw['pseudowire_id'];
+      //  dbInsert($metrics, 'pseudowires-state');
+      //}
 
       // Add table row
       $table_row = array();

@@ -11,61 +11,58 @@
  *
  */
 
-//$port      = (int)$vars['id'];
-$sort      = $vars['sort'];
-if ($vars['stat'])             { $stat = $vars['stat']; } else { $stat = "bits"; }
-if (is_numeric($vars['topn']) && $vars['topn'] > 0) { $topn = $vars['topn']; } else { $topn = '10'; }
+if (!isset($vars['stat'])) { $vars['stat'] = "bits"; }
+if (is_numeric($vars['topn']) && $vars['topn'] > 0 && $vars['topn'] < 1024) { $topn = $vars['topn']; } else { $topn = '10'; }
 
 include_once($config['html_dir']."/includes/graphs/common.inc.php");
 
-if ($stat == "pkts")
+switch($vars['stat'])
 {
-  $units = 'pps';
-  $unit = 'p';
-  $multiplier = '1';
-  $colours_in  = 'purples';
-  $colours_out = 'oranges';
-  $prefix = "P";
-  if ($sort == "in")
-  {
-    $sort = "pkts_input_rate";
-  }
-  else if ($sort == "out")
-  {
-    $sort = "pkts_output_rate";
-  } else {
-    $sort = "bps";
-  }
-}
-else if ($stat == "bits")
-{
-  $units = 'bps';
-  $unit = 'B';
-  $multiplier = '8';
-  $colours_in  = 'greens';
-  $colours_out = 'blues';
-  if ($sort == "in")
-  {
-    $sort = "bytes_input_rate";
-  } elseif ($sort == "out") {
-    $sort = "bytes_output_rate";
-  } else {
-    $sort = "bps";
-  }
+  case "pkts":
+    $units = 'pps';
+    $unit = 'p';
+    $multiplier = '1';
+    $colours_in  = 'purples';
+    $colours_out = 'oranges';
+    $prefix = "P";
+    if ($vars['sort'] == "in")
+    {
+      $sort = "pkts_input_rate";
+    }
+    else if ($vars['sort'] == "out")
+    {
+      $sort = "pkts_output_rate";
+    } else {
+      $sort = "pps";
+    }
+    break;
+  case "bits":
+    $units = 'bps';
+    $unit = 'B';
+    $multiplier = '8';
+    $colours_in  = 'greens';
+    $colours_out = 'blues';
+    if ($vars['sort'] == "in")
+    {
+      $sort = "bytes_input_rate";
+    } elseif ($vars['sort'] == "out") {
+      $sort = "bytes_output_rate";
+    } else {
+      $sort = "bps";
+    }
+    break;
 }
 
-// Already populated in auth?
-//$port   = get_port_by_id($vars['id']);
-//$device = device_by_id_cache($port['device_id']);
-
-$mas = dbFetchRows("SELECT *, (bytes_input_rate + bytes_output_rate) AS bps,
-                              (pkts_input_rate + pkts_output_rate) AS pps
+if(isset($sort))
+{
+  $query = "SELECT *, (bytes_input_rate + bytes_output_rate) AS bps,
+                    (pkts_input_rate + pkts_output_rate) AS pps
                     FROM `mac_accounting`
-                    LEFT JOIN  `mac_accounting-state` USING(`ma_id`)
                     WHERE `mac_accounting`.port_id = ?
-                    ORDER BY ? DESC LIMIT 0, ?", array($port['port_id'], $sort, $topn));
+                    ORDER BY ".$sort." DESC LIMIT 0, ".$topn;
 
-
+  $mas = dbFetchRows($query, array($port['port_id'], $sort, $topn));
+}
 
 $pluses = "";
 $iter = '0';
@@ -121,13 +118,13 @@ foreach ($mas as $ma)
     $rrd_options .= " VDEF:totout".$this_id."=outB".$this_id."temp,TOTAL";
     $rrd_options .= " VDEF:tot".$this_id."=octets".$this_id.",TOTAL";
     $rrd_options .= " AREA:inB".$this_id."#" . $colour_in . ":'" . $descr . "':STACK";
-    if ($rrd_optionsb) { $stack="STACK"; }
-    $rrd_optionsb .= " AREA:outB".$this_id."#" . $colour_out . "::$stack";
+    if ($rrd_optionsb) { $stack=":STACK"; }
+    $rrd_optionsb .= " AREA:outB".$this_id."#" . $colour_out . ":$stack";
     $rrd_options .= " GPRINT:inB".$this_id.":LAST:%6.2lf%s$units";
     $rrd_options .= " GPRINT:inB".$this_id.":MAX:%6.2lf%s$units";
     $rrd_options .= " GPRINT:totin".$this_id.":%6.2lf%s$unit";
     $rrd_options .= " COMMENT:' '";
-    $rrd_options .= "  HRULE:999999999999999#" . $colour_out . ":' ':";
+    $rrd_options .= "  HRULE:999999999999999#" . $colour_out . ":' '";
     $rrd_options .= " GPRINT:outB".$this_id."temp:LAST:%6.2lf%s$units";
     $rrd_options .= " GPRINT:outB".$this_id."temp:MAX:%6.2lf%s$units";
     $rrd_options .= " GPRINT:totout".$this_id.":%6.2lf%s$unit\\n";

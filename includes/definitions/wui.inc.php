@@ -61,13 +61,209 @@ $config['wui']['refresh_disabled'][]  = array('page' => 'settings');
 $config['wui']['refresh_disabled'][]  = array('page' => 'preferences');
 $config['wui']['refresh_disabled'][]  = array('page' => 'logout');
 $config['wui']['refresh_disabled'][]  = array('page' => 'customoids');
+$config['wui']['refresh_disabled'][]  = array('page' => 'log');
 
 // Search modules used by the ajax search, in order.
-$config['wui']['search_modules'] = array('devices', 'ports', 'sensors', 'status', 'accesspoints', 'ip-addresses');
+$config['wui']['search_modules'] = array('devices', 'ports', 'sensors', 'status', 'accesspoints', 'ip-addresses', 'inventory');
 
 // Default groups list (on status page and default panel)
 //$config['wui']['groups_list'] = array('device', 'port', 'processor', 'mempool', 'sensor', 'bgp_peer');
 $config['wui']['groups_list'] = array('device', 'port', 'processor', 'mempool', 'sensor');
+
+// Define Icons used by the user interface
+
+$config['icon']['globe']             = "sprite-globe-light";
+$config['icon']['overview']          = "sprite-overview";
+
+$config['icon']['settings-change']   = "sprite-sliders-2";
+$config['icon']['config']            = "sprite-config";
+$config['icon']['logout']            = "sprite-logout";
+
+$config['icon']['plus']              = "sprite-plus";
+$config['icon']['minus']             = "sprite-minus";
+$config['icon']['success']           = "sprite-success";
+$config['icon']['error']             = "sprite-error";
+
+$config['icon']['stop']              = "sprite-cancel";
+$config['icon']['cancel']            = "sprite-cancel";
+$config['icon']['help']              = "sprite-support";
+$config['icon']['info']              = "sprite-info";
+$config['icon']['ignore']            = "sprite-shutdown";
+$config['icon']['exclamation']       = "sprite-exclamation-mark";
+
+$config['icon']['flag']              = "sprite-flag";
+$config['icon']['plus']              = "sprite-plus";
+$config['icon']['export']            = "sprite-export";
+$config['icon']['minus']             = "sprite-minus";
+$config['icon']['filter']            = "sprite-funnel";
+$config['icon']['question']          = "sprite-question";
+$config['icon']['checked']           = "sprite-checked";
+$config['icon']['ok']                = "sprite-ok";
+$config['icon']['return']            = "sprite-return";
+$config['icon']['sort']              = "sprite-sort";
+$config['icon']['network']           = "sprite-network";
+$config['icon']['up']                = $config['icon']['checked'];
+$config['icon']['down']              = $config['icon']['minus'];
+$config['icon']['shutdown']          = "sprite-ignore";
+
+$config['icon']['or-gate']           = "sprite-logic-or";
+$config['icon']['and-gate']          = "sprite-logic-and";
+
+$config['icon']['ipv4']              = "sprite-ipv4";
+$config['icon']['ipv6']              = "sprite-ipv6";
+
+$config['icon']['connected']         = "sprite-connected";
+$config['icon']['cross-connect']     = "sprite-cross-connect";
+$config['icon']['merge']             = "sprite-merge";
+$config['icon']['split']             = "sprite-split";
+
+$config['icon']['group']             = "sprite-groups";
+
+$config['icon']['alert']             = "sprite-alert";
+$config['icon']['alert-log']         = "sprite-alert-log";
+$config['icon']['alert-rules']       = "sprite-alert-rules";
+$config['icon']['alert-rule-add']    = $config['icon']['plus'];
+
+$config['icon']['scheduled-maintenance']     = "sprite-scheduled-maintenance";
+$config['icon']['scheduled-maintenance-add'] = $config['icon']['plus'];
+
+$config['icon']['syslog']            = "sprite-syslog";
+$config['icon']['syslog-alerts']     = "sprite-syslog-alerts";
+$config['icon']['syslog-rules']      = "sprite-syslog-rules";
+$config['icon']['syslog-rule-add']   = $config['icon']['plus'];
+
+$config['icon']['eventlog']          = "sprite-eventlog";
+
+$config['icon']['pollerlog']         = "sprite-performance";
+
+$config['icon']['processes']         = "sprite-processes";
+
+$config['icon']['netmap']            = "sprite-netmap";
+$config['icon']['contacts']          = "sprite-mail";
+$config['icon']['contact-add']       = $config['icon']['plus'];
+
+$config['icon']['customoid']         = "sprite-customoid";
+$config['icon']['customoid-add']     = $config['icon']['plus'];
+
+$config['icon']['inventory']         = "sprite-inventory";
+
+$config['icon']['package']           = "sprite-package";
+$config['icon']['packages']          = "sprite-package";
+
+$config['icon']['search']            = "sprite-search";
+
+$config['icon']['devices']           = "sprite-devices";
+$config['icon']['device']            = "sprite-device";
+$config['icon']['device-delete']     = $config['icon']['minus'];
+
+$config['icon']['location']          = "sprite-building";
+$config['icon']['locations']         = $config['icon']['location'];
+$config['icon']['port']              = "sprite-ethernet";
+$config['icon']['port-core']         = "sprite-hub";
+$config['icon']['port-customer']     = "sprite-user-self";
+$config['icon']['port-transit']      = "sprite-globe-light";
+$config['icon']['port-peering']      = "sprite-peers";
+$config['icon']['port-peering-transit'] = "sprite-netmap";
+
+$config['icon']['health']            = "sprite-health";
+$config['icon']['processor']         = "sprite-processor";
+$config['icon']['mempool']           = "sprite-mempool";
+$config['icon']['storage']           = "sprite-database";
+$config['icon']['diskio']            = "sprite-storage-io";
+$config['icon']['printersupply']     = "sprite-printer-supplies";
+$config['icon']['status']            = "sprite-status";
+$config['icon']['sensor']            = "sprite-performance";
+$config['icon']['sla']               = "sprite-sla";
+$config['icon']['pseudowire']        = "sprite-cross-connect";
+$config['icon']['virtual-machine']   = "sprite-virtual-machine";
+$config['icon']['p2pradio']          = "sprite-antenna";
+$config['icon']['billing']           = "sprite-accounting";
+$config['icon']['neighbours']        = "sprite-neighbours";
+$config['icon']['cbqos']             = "sprite-qos";
+$config['icon']['voltage']           = "sprite-voltage";
+$config['icon']['pressure']          = "sprite-pressure";
+$config['icon']['frequency']         = "sprite-frequency";
+$config['icon']['dbm']               = "sprite-laser";
+$config['icon']['counter']           = "sprite-counter";
+$config['icon']['fanspeed']          = "sprite-fanspeed";
+$config['icon']['current']           = "sprite-amps";
+$config['icon']['power']             = "sprite-watts";
+$config['icon']['illuminance']       = "sprite-lightbulb";
+$config['icon']['load']              = "sprite-asterisk";
+$config['icon']['temperature']       = "sprite-temperature";
+$config['icon']['humidity']          = "sprite-humidity";
+$config['icon']['airflow']           = "sprite-airflow";
+$config['icon']['current']           = "sprite-amps";
+$config['icon']['apower']            = "sprite-voltamps";
+$config['icon']['rpower']            = "sprite-voltampreactive";
+$config['icon']['crestfactor']       = "sprite-lightning";
+$config['icon']['powerfactor']       = "sprite-lightning";
+$config['icon']['impedance']         = "sprite-ohms-2";
+$config['icon']['resistance']        = "sprite-ohms";
+$config['icon']['velocity']          = "sprite-performance";
+$config['icon']['waterflow']         = "sprite-flowrate";
+$config['icon']['volume']            = "sprite-volume";
+$config['icon']['lflux']             = "sprite-lightbulb";
+
+$config['icon']['service']           = "sprite-service";
+$config['icon']['servicegroup']      = $config['icon']['service'];
+$config['icon']['vserver']           = "sprite-device";
+
+$config['icon']['runtime']           = "sprite-runtime";
+$config['icon']['apps']              = "sprite-applications";
+$config['icon']['capacity']          = "sprite-capacity";
+$config['icon']['collectd']          = "sprite-collectd";
+$config['icon']['munin']             = "sprite-munin";
+$config['icon']['smokeping']         = "sprite-paper-plane";
+$config['icon']['wifi']              = "sprite-wifi";
+$config['icon']['logs']              = "sprite-logs";
+$config['icon']['loadbalancer']      = "sprite-loadbalancer-2";
+$config['icon']['routing']           = "sprite-routing";
+$config['icon']['vrf']               = "sprite-vrf";
+$config['icon']['cef']               = "sprite-cef";
+$config['icon']['ospf']              = "sprite-ospf";
+$config['icon']['vlan']              = "sprite-vlan";
+$config['icon']['switching']         = "sprite-switching";
+$config['icon']['crossbar']          = $config['icon']['switching'];
+
+$config['icon']['database']          = "sprite-storage-test2";
+
+$config['icon']['nfsen']             = "sprite-funnel";
+$config['icon']['device-data']       = "sprite-data";
+
+$config['icon']['device-poller']     = "sprite-performance";
+$config['icon']['techsupport']       = "sprite-support";
+$config['icon']['tools']             = "sprite-tools";
+
+$config['icon']['linecard']          = "sprite-nic";
+
+$config['icon']['settings']          = "sprite-settings";
+$config['icon']['refresh']           = "sprite-refresh";
+$config['icon']['rebuild']           = $config['icon']['refresh'];
+
+$config['icon']['graphs']            = "sprite-graphs";
+$config['icon']['graphs-line']       = "sprite-graphs-line";
+$config['icon']['graphs-stacked']    = "sprite-graphs-stacked";
+$config['icon']['graphs-small']      = "sprite-graphs-small";
+$config['icon']['graphs-large']      = "sprite-graphs-large";
+
+$config['icon']['bgp']               = "sprite-bgp";
+$config['icon']['bgp-internal']      = "sprite-bgp-internal";
+$config['icon']['bgp-external']      = "sprite-bgp-external";
+$config['icon']['bgp-alert']         = "sprite-bgp-alerts";
+
+$config['icon']['users']             = "sprite-users";
+$config['icon']['user-self']         = "sprite-user-self";
+$config['icon']['user-add']          = "sprite-user-add";
+$config['icon']['user-delete']       = "sprite-user-delete";
+$config['icon']['user-edit']         = "sprite-user-edit";
+$config['icon']['user-log']          = "sprite-user-log";
+$config['icon']['lock']              = "sprite-lock";
+
+$config['icon']['databases']         = "sprite-databases";
+$config['icon']['database']          = "sprite-database";
+
+$config['icon']['mibs']          = "sprite-map-2";
 
 
 // EOF

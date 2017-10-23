@@ -64,6 +64,14 @@ if (is_file($rrdfile))
   print_graph_row_port($graph_array, $port);
   echo('</td></tr>');
 
+  echo('<tr><td>');
+  echo("<h3>Discards</h3>");
+  $graph_array['type'] = "port_discards";
+
+  print_graph_row_port($graph_array, $port);
+  echo('</td></tr>');
+
+
   if (is_file($device, get_port_rrdfilename($port, "dot3", TRUE)))
   {
     echo('<tr><td>');

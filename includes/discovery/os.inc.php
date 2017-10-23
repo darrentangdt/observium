@@ -166,7 +166,7 @@ if ($config['snmp']['snmp_sysorid'])
     }
     unset($use_fastpath_new); // See above
 
-    foreach(array_diff($advertised_mibs, $found_mibs) as $entry)
+    foreach (array_diff($advertised_mibs, $found_mibs) as $entry)
     {
       $table_rows[] = array($entry, $capabilities_unused[$entry], 'MIB unused');
     }
@@ -182,7 +182,7 @@ if ($config['snmp']['snmp_sysorid'])
       $tmp_diff = array_unique(array_merge($prev_diff, $tmp_diff));
       sort($tmp_diff);
       set_obs_attrib('sysOROID_unused', json_encode($tmp_diff));
-      foreach($tmp_diff as $entry)
+      foreach ($tmp_diff as $entry)
       {
         $tmp_rows[] = array($entry, 'MIB unused');
       }

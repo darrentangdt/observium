@@ -37,6 +37,8 @@ IMPORTS
 	Counter64,
 	TimeTicks
 		FROM SNMPv2-SMI
+	Ipv6Address
+		FROM IPV6-TC
 	OBJECT-GROUP,
 	NOTIFICATION-GROUP
 		FROM SNMPv2-CONF;
@@ -116,26 +118,8 @@ VideoRxPowerConv ::= TEXTUAL-CONVENTION
 		noVideoSignal(32767)
 	}
 	
-VidWithTerminalVLANs ::= TEXTUAL-CONVENTION
-	STATUS		current
-	DESCRIPTION "Used in cross-connect profile"
-	SYNTAX  INTEGER {
-					terminalVlan0(-100),
-					terminalVlan1(-101),
-					terminalVlan2(-102),
-					terminalVlan3(-103),
-					auto(65535)}
+ltp4x OBJECT IDENTIFIER ::= { elHardware 70 }
 
-COSWithTerminalVLANs ::= TEXTUAL-CONVENTION
-	STATUS		current
-	DESCRIPTION "Used in cross-connect profile"				
-	SYNTAX  INTEGER {
-					terminalCos0(100),
-					terminalCos1(101),
-					terminalCos2(102),
-					terminalCos3(103),
-					unused(255)}
-	
 ltp8xPONChannels OBJECT IDENTIFIER 	::= { ltp8x 2 }
 
 		ltp8xPONChannelStateTable OBJECT-TYPE
@@ -168,7 +152,8 @@ ltp8xPONChannels OBJECT IDENTIFIER 	::= { ltp8x 2 }
 				ltp8xPONChannelSFPTemperature	Integer32,
 				ltp8xPONChannelSFPVoltage		Integer32,
 				ltp8xPONChannelSFPTxBiasCurrent	Integer32,
-				ltp8xPONChannelReconfigure		Unsigned32
+				ltp8xPONChannelReconfigure		Unsigned32,
+				ltp8xPONChannelResetCounters	Unsigned32
 		}
 		
 					ltp8xPONChannelSlot OBJECT-TYPE
@@ -270,6 +255,208 @@ ltp8xPONChannels OBJECT IDENTIFIER 	::= { ltp8x 2 }
 						STATUS  current
 						DESCRIPTION "Set this to 1 to reconfigure OLT channel"
 						::= { ltp8xPONChannelStateEntry 20 }
+						
+					ltp8xPONChannelResetCounters OBJECT-TYPE
+						SYNTAX  Unsigned32
+						MAX-ACCESS read-write
+						STATUS  current
+						DESCRIPTION "Set this to 1 to reset channel counters"
+						::= { ltp8xPONChannelStateEntry 21 }
+						
+		ltp8xPONChannelActModeTable OBJECT-TYPE
+			SYNTAX                SEQUENCE OF Ltp8xPONChannelActModeEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					" "
+			::= { ltp8xPONChannels 2 }
+
+			ltp8xPONChannelActModeEntry OBJECT-TYPE
+				SYNTAX                Ltp8xPONChannelActModeEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xPONChannelActModeSlot, ltp8xPONChannelActModeChannel }
+				::= { ltp8xPONChannelActModeTable 1 }
+
+			Ltp8xPONChannelActModeEntry ::= SEQUENCE {
+					ltp8xPONChannelActModeSlot				Unsigned32,
+					ltp8xPONChannelActModeChannel			Unsigned32,
+					ltp8xPONChannelActModeHostControlledLumpedSN	TruthValue
+			}
+						
+						ltp8xPONChannelActModeSlot OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xPONChannelActModeEntry 1 }
+						
+						ltp8xPONChannelActModeChannel OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xPONChannelActModeEntry 2 }
+						
+						ltp8xPONChannelActModeHostControlledLumpedSN OBJECT-TYPE
+							SYNTAX  TruthValue
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xPONChannelActModeEntry 3 }
+							
+		ltp8xPONChannelAddressTable OBJECT-TYPE
+				SYNTAX                SEQUENCE OF Ltp8xPONChannelAddressEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						" "
+				::= { ltp8xPONChannels 3 }
+			
+			ltp8xPONChannelAddressEntry OBJECT-TYPE
+				SYNTAX                Ltp8xPONChannelAddressEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xPONChannelAddressSlot,
+								ltp8xPONChannelAddressChannel,
+								ltp8xPONChannelAddressEntryID }
+				::= { ltp8xPONChannelAddressTable 1 }
+			
+			Ltp8xPONChannelAddressEntry ::= SEQUENCE {
+					ltp8xPONChannelAddressSlot					Unsigned32,
+					ltp8xPONChannelAddressChannel				Unsigned32,
+					ltp8xPONChannelAddressEntryID				Unsigned32,
+					ltp8xPONChannelAddressONTSerial				ONTSerial,
+					ltp8xPONChannelAddressONTID					Unsigned32,
+					ltp8xPONChannelAddressPriority				Integer32,
+					ltp8xPONChannelAddressCVID					Integer32,
+					ltp8xPONChannelAddressSVID					Integer32,
+					ltp8xPONChannelAddressMacAddress			MacAddress,
+					ltp8xPONChannelAddressCPUDestined			TruthValue,
+					ltp8xPONChannelAddressDatapathForwarding	TruthValue,
+					ltp8xPONChannelAddressUniPort				Unsigned32,
+					ltp8xPONChannelAddressEntryType				AddressEntryType,
+					ltp8xPONChannelAddressAge					Unsigned32,
+					ltp8xPONChannelAddressGEMPortId				Unsigned32,
+					ltp8xPONChannelAddressUVID					Integer32
+			}
+			
+				
+						ltp8xPONChannelAddressSlot OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xPONChannelAddressEntry 1 }
+							
+						ltp8xPONChannelAddressChannel OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xPONChannelAddressEntry 2 }
+							
+						ltp8xPONChannelAddressEntryID OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xPONChannelAddressEntry 3 }
+							
+						ltp8xPONChannelAddressONTSerial OBJECT-TYPE
+							SYNTAX  ONTSerial
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xPONChannelAddressEntry 4 }
+							
+						ltp8xPONChannelAddressONTID OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xPONChannelAddressEntry 5 }
+							
+						ltp8xPONChannelAddressPriority		OBJECT-TYPE
+							SYNTAX  Integer32
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION "Priority of the packets"
+							::= { ltp8xPONChannelAddressEntry 6 }	
+							
+						ltp8xPONChannelAddressCVID OBJECT-TYPE
+							SYNTAX  Integer32
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION "C-VLAN ID of the packet"
+							::= { ltp8xPONChannelAddressEntry 7 }
+							
+						ltp8xPONChannelAddressSVID OBJECT-TYPE
+							SYNTAX  Integer32
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION "S-VLAN ID of the packet"
+							::= { ltp8xPONChannelAddressEntry 8 }
+							
+						ltp8xPONChannelAddressMacAddress OBJECT-TYPE
+							SYNTAX  MacAddress
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION "MAC address"
+							::= { ltp8xPONChannelAddressEntry 9 }
+							
+						ltp8xPONChannelAddressCPUDestined OBJECT-TYPE
+							SYNTAX  TruthValue
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION "Whether packet should be forwarded to CPU"
+							::= { ltp8xPONChannelAddressEntry 10 }
+							
+						ltp8xPONChannelAddressDatapathForwarding OBJECT-TYPE
+							SYNTAX  TruthValue
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION "Whether packet should be forwarded to Datapath"
+							::= { ltp8xPONChannelAddressEntry 11 }
+							
+						ltp8xPONChannelAddressUniPort OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xPONChannelAddressEntry 12 }
+							
+						ltp8xPONChannelAddressEntryType OBJECT-TYPE
+							SYNTAX  AddressEntryType
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xPONChannelAddressEntry 13 }
+							
+						ltp8xPONChannelAddressAge OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION "The age of the entry"
+							::= { ltp8xPONChannelAddressEntry 14 }
+							
+						ltp8xPONChannelAddressGEMPortId OBJECT-TYPE		
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION "GEM Port-ID from which packet has come"
+							::= { ltp8xPONChannelAddressEntry 15 }
+							
+						ltp8xPONChannelAddressUVID OBJECT-TYPE		
+							SYNTAX  Integer32
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION "U-VLAN ID of the packet"
+							::= { ltp8xPONChannelAddressEntry 16 }	
 
 ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 
@@ -308,10 +495,14 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 				ltp8xONTStateTemperature		Integer32,
 				ltp8xONTStateVideoRxPower		Integer32,
 				ltp8xONTStateVersion			DisplayString,
+				ltp8xONTStateHWVersion			DisplayString,
 				ltp8xONTStateReconfigure		Unsigned32,
 				ltp8xONTStateUpdateFirmware		Unsigned32,
 				ltp8xONTStateReset				Unsigned32,
-				ltp8xONTStateResetToDefaults	Unsigned32
+				ltp8xONTStateResetToDefaults	Unsigned32,
+				ltp8xONTStateRFPortOn			TruthValue,
+				ltp8xONTStateLaserVoltage		INTEGER,
+				ltp8xONTStateLaserBiasCurrent	Unsigned32
 		}
 		
 					ltp8xONTSlot OBJECT-TYPE
@@ -434,6 +625,13 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 						DESCRIPTION ""
 						::= { ltp8xONTStateEntry 17 }
 						
+					ltp8xONTStateHWVersion OBJECT-TYPE
+						SYNTAX  DisplayString
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xONTStateEntry 18 }
+						
 					ltp8xONTStateReconfigure OBJECT-TYPE
 						SYNTAX  Unsigned32
 						MAX-ACCESS read-write
@@ -461,6 +659,27 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 						STATUS  current
 						DESCRIPTION "Set to 1 to reset ONT to defaults via OMCI"
 						::= { ltp8xONTStateEntry 23 }
+						
+					ltp8xONTStateRFPortOn OBJECT-TYPE
+						SYNTAX	TruthValue
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xONTStateEntry 24 }
+						
+					ltp8xONTStateLaserVoltage OBJECT-TYPE
+						SYNTAX	INTEGER
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xONTStateEntry 25 }
+						
+					ltp8xONTStateLaserBiasCurrent OBJECT-TYPE
+						SYNTAX	Unsigned32
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xONTStateEntry 26 }
 						
 	ltp8xONTUNIPortsStateTable OBJECT-TYPE
 			SYNTAX                SEQUENCE OF Ltp8xONTUNIPortsStateEntry
@@ -1528,6 +1747,144 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							DESCRIPTION ""
 							::= { ltp8xONTServiceUSEntry 6 }
 							
+		ltp8xONTEthFrameExtendedPerformMonitoringDSTable OBJECT-TYPE
+				SYNTAX                SEQUENCE OF Ltp8xONTEthFrameExtendedPerformMonitoringDSEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						" "
+				::= { ltp8xONTStatistics 14 }
+			
+			ltp8xONTEthFrameExtendedPerformMonitoringDSEntry OBJECT-TYPE
+				SYNTAX                Ltp8xONTEthFrameExtendedPerformMonitoringDSEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xONTEthFrameExtendedPerformMonitoringDSSlot, ltp8xONTEthFrameExtendedPerformMonitoringDSSerial, 
+								ltp8xONTEthFrameExtendedPerformMonitoringDSPort, ltp8xONTEthFrameExtendedPerformMonitoringDSCounterID}
+				::= { ltp8xONTEthFrameExtendedPerformMonitoringDSTable 1 }
+			
+			Ltp8xONTEthFrameExtendedPerformMonitoringDSEntry ::= SEQUENCE {
+					ltp8xONTEthFrameExtendedPerformMonitoringDSSlot					Unsigned32,
+					ltp8xONTEthFrameExtendedPerformMonitoringDSSerial					ONTSerial,
+					ltp8xONTEthFrameExtendedPerformMonitoringDSPort						Unsigned32,
+					ltp8xONTEthFrameExtendedPerformMonitoringDSCounterID				Unsigned32,
+					ltp8xONTEthFrameExtendedPerformMonitoringDSCounterName				DisplayString,
+					ltp8xONTEthFrameExtendedPerformMonitoringDSCounterValue	 		Unsigned32
+			}
+			
+						ltp8xONTEthFrameExtendedPerformMonitoringDSSlot OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION "Board's slot number when works within MA4000. For LTP-8X - always 1"
+							::= { ltp8xONTEthFrameExtendedPerformMonitoringDSEntry 1 }
+						
+						ltp8xONTEthFrameExtendedPerformMonitoringDSSerial OBJECT-TYPE
+							SYNTAX  ONTSerial
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTEthFrameExtendedPerformMonitoringDSEntry 2 }
+						
+						ltp8xONTEthFrameExtendedPerformMonitoringDSPort OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTEthFrameExtendedPerformMonitoringDSEntry 3 }
+							
+						ltp8xONTEthFrameExtendedPerformMonitoringDSCounterID OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTEthFrameExtendedPerformMonitoringDSEntry 4 }
+							
+						ltp8xONTEthFrameExtendedPerformMonitoringDSCounterName OBJECT-TYPE
+							SYNTAX  DisplayString
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTEthFrameExtendedPerformMonitoringDSEntry 5 }
+							
+						ltp8xONTEthFrameExtendedPerformMonitoringDSCounterValue OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTEthFrameExtendedPerformMonitoringDSEntry 6 }
+							
+		ltp8xONTEthFrameExtendedPerformMonitoringUSTable OBJECT-TYPE
+				SYNTAX                SEQUENCE OF Ltp8xONTEthFrameExtendedPerformMonitoringUSEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						" "
+				::= { ltp8xONTStatistics 15 }
+			
+			ltp8xONTEthFrameExtendedPerformMonitoringUSEntry OBJECT-TYPE
+				SYNTAX                Ltp8xONTEthFrameExtendedPerformMonitoringUSEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xONTEthFrameExtendedPerformMonitoringUSSlot, ltp8xONTEthFrameExtendedPerformMonitoringUSSerial, 
+								ltp8xONTEthFrameExtendedPerformMonitoringUSPort, ltp8xONTEthFrameExtendedPerformMonitoringUSCounterID}
+				::= { ltp8xONTEthFrameExtendedPerformMonitoringUSTable 1 }
+			
+			Ltp8xONTEthFrameExtendedPerformMonitoringUSEntry ::= SEQUENCE {
+					ltp8xONTEthFrameExtendedPerformMonitoringUSSlot					Unsigned32,
+					ltp8xONTEthFrameExtendedPerformMonitoringUSSerial					ONTSerial,
+					ltp8xONTEthFrameExtendedPerformMonitoringUSPort						Unsigned32,
+					ltp8xONTEthFrameExtendedPerformMonitoringUSCounterID				Unsigned32,
+					ltp8xONTEthFrameExtendedPerformMonitoringUSCounterName				DisplayString,
+					ltp8xONTEthFrameExtendedPerformMonitoringUSCounterValue	 		Unsigned32
+			}
+			
+						ltp8xONTEthFrameExtendedPerformMonitoringUSSlot OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION "Board's slot number when works within MA4000. For LTP-8X - always 1"
+							::= { ltp8xONTEthFrameExtendedPerformMonitoringUSEntry 1 }
+						
+						ltp8xONTEthFrameExtendedPerformMonitoringUSSerial OBJECT-TYPE
+							SYNTAX  ONTSerial
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTEthFrameExtendedPerformMonitoringUSEntry 2 }
+						
+						ltp8xONTEthFrameExtendedPerformMonitoringUSPort OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTEthFrameExtendedPerformMonitoringUSEntry 3 }
+							
+						ltp8xONTEthFrameExtendedPerformMonitoringUSCounterID OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTEthFrameExtendedPerformMonitoringUSEntry 4 }
+							
+						ltp8xONTEthFrameExtendedPerformMonitoringUSCounterName OBJECT-TYPE
+							SYNTAX  DisplayString
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTEthFrameExtendedPerformMonitoringUSEntry 5 }
+							
+						ltp8xONTEthFrameExtendedPerformMonitoringUSCounterValue OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTEthFrameExtendedPerformMonitoringUSEntry 6 }
+							
 		ltp8xONTResetCountersTable OBJECT-TYPE
 				SYNTAX                SEQUENCE OF Ltp8xONTResetCountersEntry
 				MAX-ACCESS        not-accessible
@@ -2236,6 +2593,7 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 					ltp8xONTCrossConnectMacTableEntryLimit					INTEGER,
 					ltp8xONTCrossConnectType								INTEGER,
 					ltp8xONTCrossConnectIphostEid							Integer32,
+					ltp8xONTCrossConnectPriorityQueue						Unsigned32,
 					ltp8xONTCrossConnectRowStatus							RowStatus
 			}
 			
@@ -2289,38 +2647,38 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							::= { ltp8xONTCrossConnectProfileEntry 6 }
 							
 						ltp8xONTCrossConnectOuterVID OBJECT-TYPE
-							SYNTAX  VidWithTerminalVLANs
+							SYNTAX  INTEGER { auto(65535) }
 							MAX-ACCESS read-write
 							STATUS  current
-							DESCRIPTION " "
+							DESCRIPTION "Values from -100 to -131 specify usage of terminal-vid. -100 - terminal-vid-0, -131 - terminal-vid-31"
 							::= { ltp8xONTCrossConnectProfileEntry 7 }
 							
 						ltp8xONTCrossConnectOuterCOS OBJECT-TYPE
-							SYNTAX  COSWithTerminalVLANs
+							SYNTAX  INTEGER { unused(255) }
 							MAX-ACCESS read-write
 							STATUS  current
-							DESCRIPTION " "
+							DESCRIPTION "Values from 100 to 131 specify usage of terminal-vid. 100 - terminal-vid-0, 131 - terminal-vid-31"
 							::= { ltp8xONTCrossConnectProfileEntry 8 }
 							
 						ltp8xONTCrossConnectInnerVID OBJECT-TYPE
-							SYNTAX  VidWithTerminalVLANs
+							SYNTAX  INTEGER { auto(65535) }
 							MAX-ACCESS read-write
 							STATUS  current
-							DESCRIPTION " "
+							DESCRIPTION "Values from -100 to -131 specify usage of terminal-vid. -100 - terminal-vid-0, -131 - terminal-vid-31"
 							::= { ltp8xONTCrossConnectProfileEntry 9 }
 							
 						ltp8xONTCrossConnectUVID OBJECT-TYPE
-							SYNTAX  VidWithTerminalVLANs
+							SYNTAX  INTEGER { auto(65535) }
 							MAX-ACCESS read-write
 							STATUS  current
-							DESCRIPTION " "
+							DESCRIPTION "Values from -100 to -131 specify usage of terminal-vid. -100 - terminal-vid-0, -131 - terminal-vid-31"
 							::= { ltp8xONTCrossConnectProfileEntry 10 }
 							
 						ltp8xONTCrossConnectUCOS OBJECT-TYPE
-							SYNTAX  COSWithTerminalVLANs
+							SYNTAX  INTEGER { unused(255) }
 							MAX-ACCESS read-write
 							STATUS  current
-							DESCRIPTION " "
+							DESCRIPTION "Values from 100 to 131 specify usage of terminal-vid. 100 - terminal-vid-0, 131 - terminal-vid-31"
 							::= { ltp8xONTCrossConnectProfileEntry 11 }
 							
 						ltp8xONTCrossConnectMacTableEntryLimit OBJECT-TYPE
@@ -2350,6 +2708,13 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							STATUS  current
 							DESCRIPTION " "
 							::= { ltp8xONTCrossConnectProfileEntry 14 }
+							
+						ltp8xONTCrossConnectPriorityQueue OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION "Priority queue for upstream traffic. 0-7"
+							::= { ltp8xONTCrossConnectProfileEntry 15 }
 							
 						ltp8xONTCrossConnectRowStatus OBJECT-TYPE
 							SYNTAX  RowStatus
@@ -2515,7 +2880,8 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 					ltp8xONTAddressUniPort				Unsigned32,
 					ltp8xONTAddressEntryType			AddressEntryType,
 					ltp8xONTAddressAge					Unsigned32,
-					ltp8xONTAddressGEMPortId			Unsigned32
+					ltp8xONTAddressGEMPortId			Unsigned32,
+					ltp8xONTAddressUVID					Integer32
 			}
 			
 				
@@ -2610,6 +2976,13 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							DESCRIPTION "GEM Port-ID from which packet has come"
 							::= { ltp8xONTAddressEntry 13 }
 							
+						ltp8xONTAddressUVID OBJECT-TYPE
+							SYNTAX  Integer32
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION "U-VLAN ID of the packet"
+							::= { ltp8xONTAddressEntry 14 }
+							
 			ltp8xONTMassUpdateFirmwareTable OBJECT-TYPE
 			SYNTAX                SEQUENCE OF Ltp8xONTMassUpdateFirmwareEntry
 			MAX-ACCESS        not-accessible
@@ -2671,7 +3044,8 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 				ltp8xONTCustomCrossConnectID								Unsigned32,
 				ltp8xONTCustomCrossConnectEnabled							TruthValue,
 				ltp8xONTCustomCrossConnectVID								Integer32,
-				ltp8xONTCustomCrossConnectCOS								INTEGER 
+				ltp8xONTCustomCrossConnectCOS								INTEGER,
+				ltp8xONTCustomCrossConnectSVID								Integer32
 		}
 		
 					ltp8xONTCustomCrossConnectSlot OBJECT-TYPE
@@ -2717,6 +3091,13 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 						STATUS  current
 						DESCRIPTION " "
 						::= { ltp8xONTCustomCrossConnectEntry 6 }
+						
+					ltp8xONTCustomCrossConnectSVID OBJECT-TYPE
+						SYNTAX  Integer32
+						MAX-ACCESS read-write
+						STATUS  current
+						DESCRIPTION "-1 - unused"
+						::= { ltp8xONTCustomCrossConnectEntry 7 }
 						
 							
 		
@@ -3981,6 +4362,227 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							STATUS  current
 							DESCRIPTION "Continue configuration after OMCI errors."
 							::= { ltp8xONTTemplateOverridesEntry 39 }
+							
+							
+			ltp8xONTTemplateServicesValuesTable OBJECT-TYPE
+			SYNTAX                SEQUENCE OF Ltp8xONTTemplateServicesValuesEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					" "
+			::= { ltp8xONTTemplates 10 }
+		
+			ltp8xONTTemplateServicesValuesEntry OBJECT-TYPE
+				SYNTAX                Ltp8xONTTemplateServicesValuesEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xONTTemplateValuesID,
+								ltp8xONTTemplateServicesValuesServiceID }
+				::= { ltp8xONTTemplateServicesValuesTable 1 }
+			
+			Ltp8xONTTemplateServicesValuesEntry ::= SEQUENCE {
+					ltp8xONTTemplateServicesValuesServiceID				Unsigned32,
+					ltp8xONTTemplateServicesValuesCrossConnectProfile	Unsigned32,
+					ltp8xONTTemplateServicesValuesDBAProfile			Unsigned32
+					
+			}
+							
+						ltp8xONTTemplateServicesValuesServiceID OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTTemplateServicesValuesEntry 1 }
+							
+						ltp8xONTTemplateServicesValuesCrossConnectProfile OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTTemplateServicesValuesEntry 2 }
+							
+						ltp8xONTTemplateServicesValuesDBAProfile			OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTTemplateServicesValuesEntry 3 }
+							
+			ltp8xONTTemplateServicesOverridesTable OBJECT-TYPE
+			SYNTAX                SEQUENCE OF Ltp8xONTTemplateServicesOverridesEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					" "
+			::= { ltp8xONTTemplates 11 }
+		
+			ltp8xONTTemplateServicesOverridesEntry OBJECT-TYPE
+				SYNTAX                Ltp8xONTTemplateServicesOverridesEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xONTTemplateValuesID,
+								ltp8xONTTemplateServicesOverridesServiceID }
+				::= { ltp8xONTTemplateServicesOverridesTable 1 }
+			
+			Ltp8xONTTemplateServicesOverridesEntry ::= SEQUENCE {
+					ltp8xONTTemplateServicesOverridesServiceID				Unsigned32,
+					ltp8xONTTemplateServicesOverridesCrossConnectProfile	TruthValue,
+					ltp8xONTTemplateServicesOverridesDBAProfile			TruthValue
+					
+			}
+							
+						ltp8xONTTemplateServicesOverridesServiceID OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTTemplateServicesOverridesEntry 1 }
+							
+						ltp8xONTTemplateServicesOverridesCrossConnectProfile OBJECT-TYPE
+							SYNTAX  TruthValue
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTTemplateServicesOverridesEntry 2 }
+							
+						ltp8xONTTemplateServicesOverridesDBAProfile			OBJECT-TYPE
+							SYNTAX  TruthValue
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTTemplateServicesOverridesEntry 3 }
+							
+							
+		ltp8xONTFullServicesConfigTable OBJECT-TYPE
+			SYNTAX                SEQUENCE OF Ltp8xONTFullServicesConfigEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					" "
+			::= { ltp8xONT 25 }
+		
+			ltp8xONTFullServicesConfigEntry OBJECT-TYPE
+				SYNTAX                Ltp8xONTFullServicesConfigEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xONTFullServicesConfigSlot,
+								ltp8xONTFullServicesConfigSerial,
+								ltp8xONTFullServicesConfigServiceID }
+				::= { ltp8xONTFullServicesConfigTable 1 }
+			
+			Ltp8xONTFullServicesConfigEntry ::= SEQUENCE {
+					ltp8xONTFullServicesConfigSlot					Unsigned32,
+					ltp8xONTFullServicesConfigSerial				ONTSerial,
+					ltp8xONTFullServicesConfigServiceID				Unsigned32,
+					ltp8xONTFullServicesConfigCrossConnectProfile	Unsigned32,
+					ltp8xONTFullServicesConfigDBAProfile			Unsigned32
+					
+			}
+			
+						ltp8xONTFullServicesConfigSlot OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION "Slot index, for LTP - always 1"
+							::= { ltp8xONTFullServicesConfigEntry 1 }
+							
+						ltp8xONTFullServicesConfigSerial OBJECT-TYPE
+							SYNTAX  ONTSerial
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTFullServicesConfigEntry 2 }
+							
+						ltp8xONTFullServicesConfigServiceID OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTFullServicesConfigEntry 3 }
+							
+						ltp8xONTFullServicesConfigCrossConnectProfile OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTFullServicesConfigEntry 4 }
+							
+						ltp8xONTFullServicesConfigDBAProfile OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTFullServicesConfigEntry 5 }
+							
+		ltp8xONTSelectiveTunnelTable OBJECT-TYPE
+			SYNTAX                SEQUENCE OF Ltp8xONTSelectiveTunnelEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					" "
+			::= { ltp8xONT 26 }
+		
+			ltp8xONTSelectiveTunnelEntry OBJECT-TYPE
+				SYNTAX                Ltp8xONTSelectiveTunnelEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xONTSelectiveTunnelSlot,
+								ltp8xONTSelectiveTunnelSerial,
+								ltp8xONTSelectiveTunnelServiceID,
+								ltp8xONTSelectiveTunnelUVIDIndex }
+				::= { ltp8xONTSelectiveTunnelTable 1 }
+			
+			Ltp8xONTSelectiveTunnelEntry ::= SEQUENCE {
+					ltp8xONTSelectiveTunnelSlot					Unsigned32,
+					ltp8xONTSelectiveTunnelSerial				ONTSerial,
+					ltp8xONTSelectiveTunnelServiceID			Unsigned32,
+					ltp8xONTSelectiveTunnelUVIDIndex			Unsigned32,
+					ltp8xONTSelectiveTunnelUVID					Integer32
+					
+			}
+			
+						ltp8xONTSelectiveTunnelSlot OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION "Slot index, for LTP - always 1"
+							::= { ltp8xONTSelectiveTunnelEntry 1 }
+							
+						ltp8xONTSelectiveTunnelSerial OBJECT-TYPE
+							SYNTAX  ONTSerial
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTSelectiveTunnelEntry 2 }
+							
+						ltp8xONTSelectiveTunnelServiceID OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTSelectiveTunnelEntry 3 }
+							
+						ltp8xONTSelectiveTunnelUVIDIndex OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTSelectiveTunnelEntry 4 }
+							
+						ltp8xONTSelectiveTunnelUVID OBJECT-TYPE
+							SYNTAX  Integer32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION "-1 - means that uvid not specified"
+							::= { ltp8xONTSelectiveTunnelEntry 5 }
 
 			
 		ltp8xONTFirmwares OBJECT IDENTIFIER 	::= { ltp8xONT 30 }
@@ -4334,6 +4936,23 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 				DESCRIPTION ""
 				::= { ltp8xONTFirmwaresDownload 4 }
 				
+			ltp8xONTFirmwaresDownloadProtocol OBJECT-TYPE
+				SYNTAX  INTEGER {
+					tftp(1),
+					http(2)
+				}
+				MAX-ACCESS read-write
+				STATUS  current
+				DESCRIPTION ""
+				::= { ltp8xONTFirmwaresDownload 5 }
+				
+			ltp8xONTFirmwaresDownloadPort OBJECT-TYPE
+				SYNTAX  Unsigned32
+				MAX-ACCESS read-write
+				STATUS  current
+				DESCRIPTION " "
+				::= { ltp8xONTFirmwaresDownload 6 }
+				
 		ltp8xONTFirmwareUpdateViaOMCI OBJECT IDENTIFIER 	::= { ltp8xONTFirmwares 11 }
 		
 			ltp8xONTFirmwareUpdateViaOMCISlot OBJECT-TYPE
@@ -4392,6 +5011,9 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 					ltp8xONTFWUpdateSchedulerTaskState							INTEGER,
 					ltp8xONTFWUpdateSchedulerFilename							DisplayString,
 					ltp8xONTFWUpdateSchedulerTries								Unsigned32,
+					ltp8xONTFWUpdateSchedulerONTChannel							Unsigned32,
+					ltp8xONTFWUpdateSchedulerONTId								Unsigned32,
+					ltp8xONTFWUpdateSchedulerUseSerial							TruthValue,
 					ltp8xONTFWUpdateSchedulerRowStatus							RowStatus
 			}
 			
@@ -4443,6 +5065,27 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							DESCRIPTION " "
 							::= { ltp8xONTFWUpdateSchedulerEntry 6 }
 							
+						ltp8xONTFWUpdateSchedulerONTChannel	OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xONTFWUpdateSchedulerEntry 7 }
+							
+						ltp8xONTFWUpdateSchedulerONTId	OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xONTFWUpdateSchedulerEntry 8 }
+							
+						ltp8xONTFWUpdateSchedulerUseSerial	OBJECT-TYPE
+							SYNTAX  TruthValue
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xONTFWUpdateSchedulerEntry 9 }
+							
 						ltp8xONTFWUpdateSchedulerRowStatus OBJECT-TYPE
 							SYNTAX  RowStatus
 							MAX-ACCESS read-write
@@ -4473,6 +5116,9 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 					ltp8xONTAutoUpdateEquipmentID						DisplayString,
 					ltp8xONTAutoUpdateFirmwareVersion					DisplayString,
 					ltp8xONTAutoUpdateFilename							DisplayString,
+					ltp8xONTAutoUpdateMode								INTEGER,
+                    ltp8xONTAutoUpdateFirmwareVersionMatches			TruthValue,
+                    ltp8xONTAutoUpdateDowngrade             			TruthValue,
 					ltp8xONTAutoUpdateRowStatus							RowStatus
 			}
 							
@@ -4504,6 +5150,32 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							DESCRIPTION " "
 							::= { ltp8xONTAutoUpdateEntry 4 }
 							
+						ltp8xONTAutoUpdateMode OBJECT-TYPE
+							SYNTAX  INTEGER {
+								disable(0),   
+								immediate(1),
+								postpone(2),
+								global(3)
+							}
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xONTAutoUpdateEntry 5 }
+                            
+                        ltp8xONTAutoUpdateFirmwareVersionMatches OBJECT-TYPE
+							SYNTAX  TruthValue
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTAutoUpdateEntry 6 }
+                            
+                        ltp8xONTAutoUpdateDowngrade OBJECT-TYPE
+							SYNTAX  TruthValue
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xONTAutoUpdateEntry 7 }
+							
 						ltp8xONTAutoUpdateRowStatus OBJECT-TYPE
 							SYNTAX  RowStatus
 							MAX-ACCESS read-write
@@ -4513,7 +5185,10 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							
 							
 			ltp8xONTAutoUpdateEnabled OBJECT-TYPE
-				SYNTAX  TruthValue
+				SYNTAX  INTEGER {
+					disabled(0),
+					immediate(1),
+					postpone(2) }
 				MAX-ACCESS read-write
 				STATUS  current
 				DESCRIPTION " "
@@ -4678,7 +5353,20 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 					ltp8xONTPortsRowStatus							RowStatus,
 					ltp8xONTPortsVEIPIGMPDownstreamVID				Unsigned32,
 					ltp8xONTPortsVEIPIGMPDownstreamPriority			Unsigned32,
-					ltp8xONTPortsVEIPIGMPDownstreamTagControl		INTEGER
+					ltp8xONTPortsVEIPIGMPDownstreamTagControl		INTEGER,
+					
+					ltp8xONTPortsMulticastIPVersion					INTEGER,
+									
+					ltp8xONTPortsMLDVersion							Unsigned32,
+					ltp8xONTPortsMLDUpstreamMode					INTEGER,
+					ltp8xONTPortsMLDImmediateLeave					TruthValue,
+					ltp8xONTPortsMLDRobustness						Unsigned32,
+					ltp8xONTPortsMLDQuerierIP						Ipv6Address,
+					ltp8xONTPortsMLDQueryInterval					Unsigned32,
+					ltp8xONTPortsMLDQueryMaxResponseTime			Unsigned32,
+					ltp8xONTPortsMLDLastMemberQueryInterval			Unsigned32
+					
+					
 			}
 			
 				
@@ -4707,7 +5395,7 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							SYNTAX  Unsigned32
 							MAX-ACCESS read-write
 							STATUS  current
-							DESCRIPTION ""
+							DESCRIPTION "Values : 1,2,3. 0 means that MLD is active"
 							::= { ltp8xONTPortsProfileEntry 4 }
 							
 						ltp8xONTPortsIGMPUpstreamMode OBJECT-TYPE
@@ -4846,6 +5534,76 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							STATUS  current
 							DESCRIPTION ""
 							::= { ltp8xONTPortsProfileEntry 23 }
+						
+						ltp8xONTPortsMulticastIPVersion OBJECT-TYPE
+							SYNTAX  INTEGER {
+								ipv4(0),
+								ipv6(1)
+							}
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTPortsProfileEntry 30 }
+							
+						ltp8xONTPortsMLDVersion OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION "Values : 1,2,3"
+							::= { ltp8xONTPortsProfileEntry 31 }
+							
+						ltp8xONTPortsMLDUpstreamMode OBJECT-TYPE
+							SYNTAX  INTEGER {
+								snooping(0),
+								spr(1),
+								proxy(2)
+							}
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTPortsProfileEntry 32 }
+							
+						ltp8xONTPortsMLDImmediateLeave OBJECT-TYPE
+							SYNTAX  TruthValue
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTPortsProfileEntry 33 }
+							
+						ltp8xONTPortsMLDRobustness OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTPortsProfileEntry 34 }
+							
+						ltp8xONTPortsMLDQuerierIP OBJECT-TYPE
+							SYNTAX  Ipv6Address
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTPortsProfileEntry 35 }
+							
+						ltp8xONTPortsMLDQueryInterval OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTPortsProfileEntry 36 }
+							
+						ltp8xONTPortsMLDQueryMaxResponseTime OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTPortsProfileEntry 37 }
+							
+						ltp8xONTPortsMLDLastMemberQueryInterval OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTPortsProfileEntry 38 }
 							
 							
 			ltp8xONTPortsProfileUNITable OBJECT-TYPE
@@ -5226,6 +5984,90 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							DESCRIPTION ""
 							::= { ltp8xONTPortsProfileMCDynamicEntriesEntry 4 }
 							
+		ltp8xONTPortsProfileMLDDynamicEntriesTable OBJECT-TYPE
+				SYNTAX                SEQUENCE OF Ltp8xONTPortsProfileMLDDynamicEntriesEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						" "
+				::= { ltp8xONT 47 }
+			
+			ltp8xONTPortsProfileMLDDynamicEntriesEntry OBJECT-TYPE
+				SYNTAX                Ltp8xONTPortsProfileMLDDynamicEntriesEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xONTPortsID, ltp8xONTPortsMLDEntryID}
+				::= { ltp8xONTPortsProfileMLDDynamicEntriesTable 1 }
+			
+			Ltp8xONTPortsProfileMLDDynamicEntriesEntry ::= SEQUENCE {
+					ltp8xONTPortsMLDEntryID							Unsigned32,
+					ltp8xONTPortsMLDVLANID							Unsigned32,
+					ltp8xONTPortsMLDMCFirstGroupIP					Ipv6Address,
+					ltp8xONTPortsMLDMCLastGroupIP					Ipv6Address,
+					ltp8xONTPortsMLDMCPreviewLength					Unsigned32,
+					ltp8xONTPortsMLDMCPreviewRepeatTime				Unsigned32,
+					ltp8xONTPortsMLDMCPreviewRepeatCount			Unsigned32,
+					ltp8xONTPortsMLDMCPreviewResetTime				Unsigned32
+			}
+			
+						ltp8xONTPortsMLDEntryID OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xONTPortsProfileMLDDynamicEntriesEntry 1 }	
+							
+						ltp8xONTPortsMLDVLANID OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xONTPortsProfileMLDDynamicEntriesEntry 2 }
+							
+						ltp8xONTPortsMLDMCFirstGroupIP OBJECT-TYPE
+							SYNTAX  Ipv6Address
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xONTPortsProfileMLDDynamicEntriesEntry 5 }
+							
+						ltp8xONTPortsMLDMCLastGroupIP OBJECT-TYPE
+							SYNTAX  Ipv6Address
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTPortsProfileMLDDynamicEntriesEntry 6 }
+							
+						ltp8xONTPortsMLDMCPreviewLength OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION "0-65535, seconds"
+							::= { ltp8xONTPortsProfileMLDDynamicEntriesEntry 7 }
+							
+						ltp8xONTPortsMLDMCPreviewRepeatTime OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION "0-65535, seconds"
+							::= { ltp8xONTPortsProfileMLDDynamicEntriesEntry 8 }
+							
+						ltp8xONTPortsMLDMCPreviewRepeatCount OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION "0-65535"
+							::= { ltp8xONTPortsProfileMLDDynamicEntriesEntry 9 }
+							
+						ltp8xONTPortsMLDMCPreviewResetTime OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION "Reset hour. 0-24"
+							::= { ltp8xONTPortsProfileMLDDynamicEntriesEntry 10 }
+							
 		ltp8xONTMulticastStatsTable OBJECT-TYPE
 			SYNTAX                SEQUENCE OF Ltp8xONTMulticastStatsEntry
 			MAX-ACCESS        not-accessible
@@ -5505,6 +6347,58 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							STATUS  current
 							DESCRIPTION ""
 							::= { ltp8xONTConnectionLogEntry 3 }
+							
+		ltp8xONTConfigFreenessTable OBJECT-TYPE
+			SYNTAX                SEQUENCE OF Ltp8xONTConfigFreenessEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					" "
+			::= { ltp8xONT 80 }
+		
+			ltp8xONTConfigFreenessEntry OBJECT-TYPE
+				SYNTAX                Ltp8xONTConfigFreenessEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xONTConfigFreenessSlot,
+									ltp8xONTConfigFreenessChannel, ltp8xONTConfigFreenessID }
+				::= { ltp8xONTConfigFreenessTable 1 }
+			
+			Ltp8xONTConfigFreenessEntry ::= SEQUENCE {
+					ltp8xONTConfigFreenessSlot					Unsigned32,
+					ltp8xONTConfigFreenessChannel				Unsigned32,
+					ltp8xONTConfigFreenessID					Unsigned32,
+					ltp8xONTConfigFreenessSerial				ONTSerial
+			}
+						ltp8xONTConfigFreenessSlot OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTConfigFreenessEntry 1 }
+						
+						ltp8xONTConfigFreenessChannel OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTConfigFreenessEntry 2 }
+							
+						ltp8xONTConfigFreenessID OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTConfigFreenessEntry 3 }
+							
+						ltp8xONTConfigFreenessSerial OBJECT-TYPE
+							SYNTAX  ONTSerial
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xONTConfigFreenessEntry 4 }
 							
 							
 		ltp8xONTDisable OBJECT IDENTIFIER 	::= { ltp8xONT 30000 }
@@ -6553,8 +7447,10 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 			Ltp8xOLTTerminalVLANsEntry ::= SEQUENCE {
 					ltp8xOLTTerminalVLANsSlot					Unsigned32,
 					ltp8xOLTTerminalVLANsID						Unsigned32,
+					ltp8xOLTTerminalVLANsName					DisplayString,
 					ltp8xOLTTerminalVLANsVID					Unsigned32,
-					ltp8xOLTTerminalVLANsCOS					INTEGER
+					ltp8xOLTTerminalVLANsCOS					INTEGER,
+					ltp8xOLTTerminalVLANsRowStatus				RowStatus
 			}
 			
 						ltp8xOLTTerminalVLANsSlot OBJECT-TYPE
@@ -6571,12 +7467,19 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							DESCRIPTION "Record index"
 							::= { ltp8xOLTTerminalVLANsEntry 2 }
 							
+						ltp8xOLTTerminalVLANsName OBJECT-TYPE
+							SYNTAX  DisplayString
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION "Terminal VLAN name"
+							::= { ltp8xOLTTerminalVLANsEntry 3 }
+							
 						ltp8xOLTTerminalVLANsVID OBJECT-TYPE
 							SYNTAX  Unsigned32
 							MAX-ACCESS read-write
 							STATUS  current
 							DESCRIPTION ""
-							::= { ltp8xOLTTerminalVLANsEntry 3 }
+							::= { ltp8xOLTTerminalVLANsEntry 4 }
 							
 						ltp8xOLTTerminalVLANsCOS OBJECT-TYPE
 							SYNTAX  INTEGER {
@@ -6585,7 +7488,58 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							MAX-ACCESS read-write
 							STATUS  current
 							DESCRIPTION ""
-							::= { ltp8xOLTTerminalVLANsEntry 4 }
+							::= { ltp8xOLTTerminalVLANsEntry 5 }
+							
+						ltp8xOLTTerminalVLANsRowStatus OBJECT-TYPE
+							SYNTAX  RowStatus
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xOLTTerminalVLANsEntry 10 }
+							
+			ltp8xOLTTerminalVLANsNamesTable OBJECT-TYPE
+				SYNTAX                SEQUENCE OF Ltp8xOLTTerminalVLANsNamesEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						" "
+				::= { ltp8xOLT 52 }
+			
+			ltp8xOLTTerminalVLANsNamesEntry OBJECT-TYPE
+				SYNTAX                Ltp8xOLTTerminalVLANsNamesEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xOLTTerminalVLANsNamesID }
+				::= { ltp8xOLTTerminalVLANsNamesTable 1 }
+			
+			Ltp8xOLTTerminalVLANsNamesEntry ::= SEQUENCE {
+					ltp8xOLTTerminalVLANsNamesID					Unsigned32,
+					ltp8xOLTTerminalVLANsNamesName					DisplayString,					
+					ltp8xOLTTerminalVLANsNamesRowStatus				RowStatus
+			}
+						
+						ltp8xOLTTerminalVLANsNamesID OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION "Record index"
+							::= { ltp8xOLTTerminalVLANsNamesEntry 2 }
+							
+						ltp8xOLTTerminalVLANsNamesName OBJECT-TYPE
+							SYNTAX  DisplayString
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION "Terminal VLAN name"
+							::= { ltp8xOLTTerminalVLANsNamesEntry 3 }
+							
+						ltp8xOLTTerminalVLANsNamesRowStatus OBJECT-TYPE
+							SYNTAX  RowStatus
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xOLTTerminalVLANsNamesEntry 10 }
 							
 							
 							
@@ -6655,7 +7609,9 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 					ltp8xSwitchVLANUntaggedPorts				PortList,
 					ltp8xSwitchVLANRowStatus					RowStatus,
 					ltp8xSwitchVLANIGMPSnoopingEnabled			TruthValue,
-					ltp8xSwitchVLANIGMPSnoopingQuerierEnabled	TruthValue
+					ltp8xSwitchVLANIGMPSnoopingQuerierEnabled	TruthValue,
+					ltp8xSwitchVLANMLDSnoopingEnabled			TruthValue,
+					ltp8xSwitchVLANMLDSnoopingQuerierEnabled	TruthValue
 			}
 			
 						ltp8xSwitchVLANSlot OBJECT-TYPE
@@ -6714,6 +7670,20 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							DESCRIPTION ""
 							::= { ltp8xSwitchVLANEntry 11 }
 							
+						ltp8xSwitchVLANMLDSnoopingEnabled OBJECT-TYPE
+							SYNTAX  TruthValue
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xSwitchVLANEntry 20 }
+							
+						ltp8xSwitchVLANMLDSnoopingQuerierEnabled OBJECT-TYPE
+							SYNTAX  TruthValue
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xSwitchVLANEntry 21 }
+							
 			ltp8xSwitchIGMPSnoopingTable OBJECT-TYPE
 				SYNTAX                SEQUENCE OF Ltp8xSwitchIGMPSnoopingEntry
 				MAX-ACCESS        not-accessible
@@ -6733,7 +7703,8 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 			
 			Ltp8xSwitchIGMPSnoopingEntry ::= SEQUENCE {
 					ltp8xSwitchIGMPSnoopingSlot							Unsigned32,
-					ltp8xSwitchIGMPSnoopingEnabled						TruthValue
+					ltp8xSwitchIGMPSnoopingEnabled						TruthValue,
+					ltp8xSwitchMLDSnoopingEnabled						TruthValue
 			}
 			
 						ltp8xSwitchIGMPSnoopingSlot OBJECT-TYPE
@@ -6749,6 +7720,13 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							STATUS  current
 							DESCRIPTION ""
 							::= { ltp8xSwitchIGMPSnoopingEntry 2 }
+							
+						ltp8xSwitchMLDSnoopingEnabled OBJECT-TYPE
+							SYNTAX  TruthValue
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xSwitchIGMPSnoopingEntry 3 }
 							
 		ltp8xSwitchOperationalVLANTable OBJECT-TYPE
 				SYNTAX                SEQUENCE OF Ltp8xSwitchOperationalVLANEntry
@@ -6810,6 +7788,477 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							STATUS  current
 							DESCRIPTION ""
 							::= { ltp8xSwitchOperationalVLANEntry 5 }
+							
+		ltp8xSwitchPortCountersTable OBJECT-TYPE
+			SYNTAX                SEQUENCE OF Ltp8xSwitchPortCountersEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					" "
+			::= { ltp8xSwitch 5 }
+		
+		ltp8xSwitchPortCountersEntry OBJECT-TYPE
+			SYNTAX                Ltp8xSwitchPortCountersEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					""
+			INDEX         { ltp8xSwitchPortCountersSlot, ltp8xSwitchPortCountersPortID }
+			::= { ltp8xSwitchPortCountersTable 1 }
+		
+		Ltp8xSwitchPortCountersEntry ::= SEQUENCE {
+				ltp8xSwitchPortCountersSlot				Unsigned32,
+				ltp8xSwitchPortCountersPortID			Unsigned32,
+				ltp8xSwitchPortGoodOctetsRcv			Counter64,
+				ltp8xSwitchPortBadOctetsRcv				Counter64,
+				ltp8xSwitchPortMacTransmitErr			Counter64,
+				ltp8xSwitchPortGoodPktsRcv				Counter64,
+				ltp8xSwitchPortBadPktsRcv				Counter64,
+				ltp8xSwitchPortBrdcPktsRcv				Counter64,
+				ltp8xSwitchPortMcPktsRcv				Counter64,
+				ltp8xSwitchPortPkts64Octets				Counter64,
+				ltp8xSwitchPortPkts65to127Octets		Counter64,
+				ltp8xSwitchPortPkts128to255Octets		Counter64,
+				ltp8xSwitchPortPkts256to511Octets		Counter64,
+				ltp8xSwitchPortPkts512to1023Octets		Counter64,
+				ltp8xSwitchPortPkts1024tomaxOctets		Counter64,
+				ltp8xSwitchPortGoodOctetsSent			Counter64,
+				ltp8xSwitchPortGoodPktsSent				Counter64,
+				ltp8xSwitchPortExcessiveCollisions		Counter64,
+				ltp8xSwitchPortMcPktsSent				Counter64,
+				ltp8xSwitchPortBrdcPktsSent				Counter64,
+				ltp8xSwitchPortUnrecogMacCntrRcv		Counter64,
+				ltp8xSwitchPortFcSent					Counter64,
+				ltp8xSwitchPortGoodFcRcv				Counter64,
+				ltp8xSwitchPortDropEvents				Counter64,
+				ltp8xSwitchPortUndersizePkts			Counter64,
+				ltp8xSwitchPortFragmentsPkts			Counter64,
+				ltp8xSwitchPortOversizePkts				Counter64,
+				ltp8xSwitchPortJabberPkts				Counter64,
+				ltp8xSwitchPortMacRcvError				Counter64,
+				ltp8xSwitchPortBadCrc					Counter64,
+				ltp8xSwitchPortCollisions				Counter64,
+				ltp8xSwitchPortLateCollisions			Counter64,
+				ltp8xSwitchPortBadFcRcv					Counter64,
+				ltp8xSwitchPortCountersReset			Unsigned32
+		}
+		
+					ltp8xSwitchPortCountersSlot OBJECT-TYPE
+						SYNTAX  Unsigned32
+						MAX-ACCESS not-accessible
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xSwitchPortCountersEntry 1 }
+					
+					ltp8xSwitchPortCountersPortID OBJECT-TYPE
+						SYNTAX  Unsigned32
+						MAX-ACCESS not-accessible
+						STATUS  current
+						DESCRIPTION " "
+						::= { ltp8xSwitchPortCountersEntry 2 }
+						
+					ltp8xSwitchPortGoodOctetsRcv OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Number of ethernet frames received that are neither bad ethernet frames nor MAC Control pkts. This includes Bridge Control packets (LCAP, BPDU)"
+						::= { ltp8xSwitchPortCountersEntry 3 }
+						
+					ltp8xSwitchPortBadOctetsRcv OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION " "
+						::= { ltp8xSwitchPortCountersEntry 4 }
+						
+					ltp8xSwitchPortMacTransmitErr OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Number of frames not transmitted correctly or dropped due to internal MAC Tx error"
+						::= { ltp8xSwitchPortCountersEntry 5 }
+						
+					ltp8xSwitchPortGoodPktsRcv OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Number of ethernet frames received at this MAC."
+						::= { ltp8xSwitchPortCountersEntry 6 }
+						
+					ltp8xSwitchPortBadPktsRcv OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Number of bad ethernet frames received"
+						::= { ltp8xSwitchPortCountersEntry 7 }
+						
+					ltp8xSwitchPortBrdcPktsRcv OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Total number of good packets received that were directed to the broadcast address"
+						::= { ltp8xSwitchPortCountersEntry 8 }
+						
+					ltp8xSwitchPortMcPktsRcv OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Total number of good packets received that were directed to a multicast address"
+						::= { ltp8xSwitchPortCountersEntry 9 }
+						
+					ltp8xSwitchPortPkts64Octets OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Total bytes of received and transmitted Good and Bad frames which are 64 bytes in size. This does not include MAC Control Frames."
+						::= { ltp8xSwitchPortCountersEntry 10 }
+						
+					ltp8xSwitchPortPkts65to127Octets OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Total bytes of received and transmitted Good and Bad frames which are 65 to 127 bytes in size. This does not include MAC Control Frames."
+						::= { ltp8xSwitchPortCountersEntry 11 }
+						
+					ltp8xSwitchPortPkts128to255Octets OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Total bytes of received and transmitted Good and Bad frames which are 128 to 255 bytes in size. This does not include MAC Control Frames."
+						::= { ltp8xSwitchPortCountersEntry 12 }
+						
+					ltp8xSwitchPortPkts256to511Octets OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Total bytes of received and transmitted Good and Bad frames which are 256 to 511 bytes in size. This does not include MAC Control Frames."
+						::= { ltp8xSwitchPortCountersEntry 13 }
+						
+					ltp8xSwitchPortPkts512to1023Octets OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Total bytes of received and transmitted Good and Bad frames which are 512 to 1023 bytes in size. This does not include MAC Control Frames."
+						::= { ltp8xSwitchPortCountersEntry 14 }
+						
+					ltp8xSwitchPortPkts1024tomaxOctets OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Total bytes of received and transmitted Good and Bad frames which are more than 1024 bytes in size. This does not include MAC Control Frames."
+						::= { ltp8xSwitchPortCountersEntry 15 }
+						
+					ltp8xSwitchPortGoodOctetsSent OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Sum of lengths of all good ethernet frames sent from this MAC. This does not include 802.3 Flow Control packets, packets dropped due to excessive collision or packets with a Tx Error."
+						::= { ltp8xSwitchPortCountersEntry 16 }
+						
+					ltp8xSwitchPortGoodPktsSent OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Number of ethernet frames sent from this MAC. This does not include 802.3 Flow Control packets, packets dropped due to excessive collision or packets with a Tx Error."
+						::= { ltp8xSwitchPortCountersEntry 17 }
+						
+					ltp8xSwitchPortExcessiveCollisions OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Number of frames dropped in the transmit MAC due to excessive collisions. This is applicable for Half Duplex mode only."
+						::= { ltp8xSwitchPortCountersEntry 18 }
+						
+					ltp8xSwitchPortMcPktsSent OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Total number of good packets sent that have a multicast destination MAC address. This does not include 802.3 Flow Control packets, packets dropped due to excessive collision or packets with a Tx Error."
+						::= { ltp8xSwitchPortCountersEntry 19 }
+						
+					ltp8xSwitchPortBrdcPktsSent OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Total number of good packets sent that have a broadcast destination MAC address. This does not include 802.3 Flow Control packets, packets dropped due to excessive collision or packets with a Tx Error."
+						::= { ltp8xSwitchPortCountersEntry 20 }
+						
+					ltp8xSwitchPortUnrecogMacCntrRcv OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Number of received MAC Control frames that have an opcode different from 00 01."
+						::= { ltp8xSwitchPortCountersEntry 21 }
+						
+					ltp8xSwitchPortFcSent OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Number of Flow Control frames sent."
+						::= { ltp8xSwitchPortCountersEntry 22 }
+						
+					ltp8xSwitchPortGoodFcRcv OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Number of good Flow Control frames received"
+						::= { ltp8xSwitchPortCountersEntry 23 }
+						
+					ltp8xSwitchPortDropEvents OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Number of instances that the port was unable to receive packets due to insufficient bandwidth to one of the PP internal resources, such as the DRAM or buffer allocation."
+						::= { ltp8xSwitchPortCountersEntry 24 }
+						
+					ltp8xSwitchPortUndersizePkts OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Number of undersize packets received."
+						::= { ltp8xSwitchPortCountersEntry 25 }
+						
+					ltp8xSwitchPortFragmentsPkts OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Number of fragments received."
+						::= { ltp8xSwitchPortCountersEntry 26 }
+						
+					ltp8xSwitchPortOversizePkts OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Number of oversize packets received."
+						::= { ltp8xSwitchPortCountersEntry 27 }
+						
+					ltp8xSwitchPortJabberPkts OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Number of jabber packets received."
+						::= { ltp8xSwitchPortCountersEntry 28 }
+						
+					ltp8xSwitchPortMacRcvError OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Number of Rx Error events seen by the receive side of the MAC"
+						::= { ltp8xSwitchPortCountersEntry 29 }
+						
+					ltp8xSwitchPortBadCrc OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Number of CRC error events."
+						::= { ltp8xSwitchPortCountersEntry 30 }
+						
+					ltp8xSwitchPortCollisions OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Total number of collisions seen by the MAC"
+						::= { ltp8xSwitchPortCountersEntry 31 }
+						
+					ltp8xSwitchPortLateCollisions OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Total number of late collisions seen by the MAC"
+						::= { ltp8xSwitchPortCountersEntry 32 }
+						
+					ltp8xSwitchPortBadFcRcv OBJECT-TYPE
+						SYNTAX  Counter64
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Number of bad Flow Control frames received."
+						::= { ltp8xSwitchPortCountersEntry 33 }
+						
+					ltp8xSwitchPortCountersReset OBJECT-TYPE
+						SYNTAX  Unsigned32
+						MAX-ACCESS read-write
+						STATUS  current
+						DESCRIPTION "Set this to 1 to reset this port counters."
+						::= { ltp8xSwitchPortCountersEntry 50 }
+						
+		ltp8xSwitchMacListTable OBJECT-TYPE
+			SYNTAX                SEQUENCE OF Ltp8xSwitchMacListEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					" "
+			::= { ltp8xSwitch 6 }
+		
+		ltp8xSwitchMacListEntry OBJECT-TYPE
+			SYNTAX                Ltp8xSwitchMacListEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					""
+			INDEX         { ltp8xSwitchMacListSlot, ltp8xSwitchMacListVID,
+								ltp8xSwitchMacListMacAddress }
+			::= { ltp8xSwitchMacListTable 1 }
+		
+		Ltp8xSwitchMacListEntry ::= SEQUENCE {
+				ltp8xSwitchMacListSlot				Unsigned32,
+				ltp8xSwitchMacListVID				Unsigned32,
+				ltp8xSwitchMacListMacAddress		MacAddress,
+				ltp8xSwitchMacListInterface			Unsigned32,				
+				ltp8xSwitchMacListStatic			TruthValue,
+				ltp8xSwitchMacListMacAddressString	DisplayString
+				
+		}
+		
+					ltp8xSwitchMacListSlot OBJECT-TYPE
+						SYNTAX  Unsigned32
+						MAX-ACCESS not-accessible
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xSwitchMacListEntry 1 }
+					
+					ltp8xSwitchMacListVID OBJECT-TYPE
+						SYNTAX  Unsigned32
+						MAX-ACCESS not-accessible
+						STATUS  current
+						DESCRIPTION " "
+						::= { ltp8xSwitchMacListEntry 2 }
+						
+					ltp8xSwitchMacListMacAddress OBJECT-TYPE
+						SYNTAX  MacAddress
+						MAX-ACCESS not-accessible
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xSwitchMacListEntry 3 }
+						
+					ltp8xSwitchMacListInterface OBJECT-TYPE
+						SYNTAX  Unsigned32
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION "Interface index. Corresponds with ltp8xSwitchPortsTable"
+						::= { ltp8xSwitchMacListEntry 4 }
+						
+					ltp8xSwitchMacListStatic OBJECT-TYPE
+						SYNTAX  TruthValue
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xSwitchMacListEntry 5 }
+						
+					ltp8xSwitchMacListMacAddressString OBJECT-TYPE
+						SYNTAX  DisplayString
+						MAX-ACCESS read-only
+						STATUS  current
+						DESCRIPTION ""
+						::= { ltp8xSwitchMacListEntry 6 }
+						
+		ltp8xSwitchPortsUtilization OBJECT IDENTIFIER 	::= { ltp8xSwitch 8 }
+		
+			ltp8xPortsUtilizationInterval OBJECT-TYPE
+					SYNTAX     Unsigned32
+					MAX-ACCESS read-write
+					STATUS     current
+					DESCRIPTION " "
+					::= { ltp8xSwitchPortsUtilization 1 }
+		
+			ltp8xPortsUtilizationTable OBJECT-TYPE
+			SYNTAX		SEQUENCE OF Ltp8xPortsUtilizationEntry
+			MAX-ACCESS	not-accessible
+			STATUS		current
+			DESCRIPTION	""
+				::= { ltp8xSwitchPortsUtilization 2 }
+
+			ltp8xPortsUtilizationEntry OBJECT-TYPE
+				SYNTAX		Ltp8xPortsUtilizationEntry
+				MAX-ACCESS	not-accessible
+				STATUS		current
+				DESCRIPTION ""
+				INDEX	{ ltp8xPortsUtilizationSlot, ltp8xPortsUtilizationPortID }
+				::= { ltp8xPortsUtilizationTable 1 }
+
+				Ltp8xPortsUtilizationEntry ::= SEQUENCE {
+					ltp8xPortsUtilizationSlot				Unsigned32,
+					ltp8xPortsUtilizationPortID				Unsigned32,
+					ltp8xPortsUtilizationLastKbitsSent		Counter64,
+					ltp8xPortsUtilizationLastKbitsRecv		Counter64,
+					ltp8xPortsUtilizationLastFramesSent		Counter64,
+					ltp8xPortsUtilizationLastFramesRecv		Counter64,
+					ltp8xPortsUtilizationAverageKbitsSent	Counter64,
+					ltp8xPortsUtilizationAverageKbitsRecv	Counter64,
+					ltp8xPortsUtilizationAverageFramesSent	Counter64,
+					ltp8xPortsUtilizationAverageFramesRecv	Counter64
+				}
+			
+				ltp8xPortsUtilizationSlot OBJECT-TYPE
+					SYNTAX     Unsigned32
+					MAX-ACCESS not-accessible
+					STATUS     current
+					DESCRIPTION " "
+					::= { ltp8xPortsUtilizationEntry 1 }
+				
+				ltp8xPortsUtilizationPortID OBJECT-TYPE
+					SYNTAX     Unsigned32
+					MAX-ACCESS not-accessible
+					STATUS     current
+					DESCRIPTION " "
+					::= { ltp8xPortsUtilizationEntry 2 }
+			
+				ltp8xPortsUtilizationLastKbitsSent OBJECT-TYPE
+					SYNTAX     Counter64
+					MAX-ACCESS read-only
+					STATUS     current
+					DESCRIPTION " "
+					::= { ltp8xPortsUtilizationEntry 3 }
+			
+				ltp8xPortsUtilizationLastKbitsRecv OBJECT-TYPE
+					SYNTAX     Counter64
+					MAX-ACCESS read-only
+					STATUS     current
+					DESCRIPTION " "
+					::= { ltp8xPortsUtilizationEntry 4 }
+					
+				ltp8xPortsUtilizationLastFramesSent OBJECT-TYPE
+					SYNTAX     Counter64
+					MAX-ACCESS read-only
+					STATUS     current
+					DESCRIPTION " "
+					::= { ltp8xPortsUtilizationEntry 5 }
+					
+				ltp8xPortsUtilizationLastFramesRecv OBJECT-TYPE
+					SYNTAX     Counter64
+					MAX-ACCESS read-only
+					STATUS     current
+					DESCRIPTION " "
+					::= { ltp8xPortsUtilizationEntry 6 }
+					
+				ltp8xPortsUtilizationAverageKbitsSent OBJECT-TYPE
+					SYNTAX     Counter64
+					MAX-ACCESS read-only
+					STATUS     current
+					DESCRIPTION " "
+					::= { ltp8xPortsUtilizationEntry 7 }
+					
+				ltp8xPortsUtilizationAverageKbitsRecv OBJECT-TYPE
+					SYNTAX     Counter64
+					MAX-ACCESS read-only
+					STATUS     current
+					DESCRIPTION " "
+					::= { ltp8xPortsUtilizationEntry 8 }
+					
+				ltp8xPortsUtilizationAverageFramesSent OBJECT-TYPE
+					SYNTAX     Counter64
+					MAX-ACCESS read-only
+					STATUS     current
+					DESCRIPTION " "
+					::= { ltp8xPortsUtilizationEntry 9 }
+					
+				ltp8xPortsUtilizationAverageFramesRecv OBJECT-TYPE
+					SYNTAX     Counter64
+					MAX-ACCESS read-only
+					STATUS     current
+					DESCRIPTION " "
+					::= { ltp8xPortsUtilizationEntry 10 }
+						
+					
 							
 		ltp8xQOSConfig OBJECT IDENTIFIER ::= { ltp8xSwitch 10 }
 			
@@ -7169,6 +8618,342 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 								STATUS     current
 								DESCRIPTION " "
 								::= { ltp8xACLFiltersEntry 10 }
+								
+		ltp8xIGMPProxyReportTable OBJECT-TYPE
+				SYNTAX                SEQUENCE OF Ltp8xIGMPProxyReportEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						" "
+				::= { ltp8xSwitch 20 }
+			
+				ltp8xIGMPProxyReportEntry OBJECT-TYPE
+					SYNTAX                Ltp8xIGMPProxyReportEntry
+					MAX-ACCESS        not-accessible
+					STATUS                current
+					DESCRIPTION
+							""
+					INDEX         { ltp8xIGMPProxyReportSlot }
+					::= { ltp8xIGMPProxyReportTable 1 }
+				
+				Ltp8xIGMPProxyReportEntry ::= SEQUENCE {
+						ltp8xIGMPProxyReportSlot		Unsigned32,
+						ltp8xIGMPProxyReportEnabled		TruthValue,
+						ltp8xMLDProxyReportEnabled		TruthValue
+				}
+				
+							ltp8xIGMPProxyReportSlot OBJECT-TYPE
+								SYNTAX  Unsigned32
+								MAX-ACCESS not-accessible
+								STATUS  current
+								DESCRIPTION "Board's slot number when works within MA4000. For LTP-8X - always 1"
+								::= { ltp8xIGMPProxyReportEntry 1 }
+							
+							ltp8xIGMPProxyReportEnabled OBJECT-TYPE
+								SYNTAX  TruthValue
+								MAX-ACCESS read-write
+								STATUS  current
+								DESCRIPTION ""
+								::= { ltp8xIGMPProxyReportEntry 2 }
+								
+							ltp8xMLDProxyReportEnabled OBJECT-TYPE
+								SYNTAX  TruthValue
+								MAX-ACCESS read-write
+								STATUS  current
+								DESCRIPTION ""
+								::= { ltp8xIGMPProxyReportEntry 3 }
+				
+		ltp8xIGMPProxyReportRangesTable OBJECT-TYPE
+			SYNTAX                SEQUENCE OF Ltp8xIGMPProxyReportRangesEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					""
+			::= { ltp8xSwitch 21 }
+		
+				ltp8xIGMPProxyReportRangesEntry OBJECT-TYPE
+				SYNTAX                Ltp8xIGMPProxyReportRangesEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xIGMPProxyReportRangesSlot, ltp8xIGMPProxyReportRangesID }
+				::= { ltp8xIGMPProxyReportRangesTable 1 }
+	
+				Ltp8xIGMPProxyReportRangesEntry ::= SEQUENCE {
+						ltp8xIGMPProxyReportRangesSlot	Unsigned32,
+						ltp8xIGMPProxyReportRangesID	Unsigned32,
+						ltp8xIGMPProxyReportRangesStart	IpAddress,
+						ltp8xIGMPProxyReportRangesEnd		IpAddress,
+						ltp8xIGMPProxyReportRangesFromVLAN	INTEGER,
+						ltp8xIGMPProxyReportRangesToVLAN 	Integer32,
+						ltp8xIGMPProxyRowStatus				RowStatus
+				}
+				
+							ltp8xIGMPProxyReportRangesSlot  OBJECT-TYPE
+								SYNTAX     Unsigned32
+								MAX-ACCESS not-accessible
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xIGMPProxyReportRangesEntry 1 }
+							
+							ltp8xIGMPProxyReportRangesID  OBJECT-TYPE
+								SYNTAX     Unsigned32
+								MAX-ACCESS not-accessible
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xIGMPProxyReportRangesEntry 2 }
+								
+							ltp8xIGMPProxyReportRangesStart  OBJECT-TYPE
+								SYNTAX     IpAddress
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xIGMPProxyReportRangesEntry 3 }
+								
+							ltp8xIGMPProxyReportRangesEnd  OBJECT-TYPE
+								SYNTAX     IpAddress
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xIGMPProxyReportRangesEntry 4 }
+								
+							ltp8xIGMPProxyReportRangesFromVLAN  OBJECT-TYPE
+								SYNTAX     INTEGER {
+									all(65535) }
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xIGMPProxyReportRangesEntry 5 }
+								
+							ltp8xIGMPProxyReportRangesToVLAN  OBJECT-TYPE
+								SYNTAX     Integer32
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xIGMPProxyReportRangesEntry 6 }
+								
+							ltp8xIGMPProxyRowStatus  OBJECT-TYPE
+								SYNTAX     RowStatus
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xIGMPProxyReportRangesEntry 10 }
+								
+		ltp8xIGMPProxyReportRangesGlobalTable OBJECT-TYPE
+			SYNTAX                SEQUENCE OF Ltp8xIGMPProxyReportRangesGlobalEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					""
+			::= { ltp8xSwitch 22 }
+		
+				ltp8xIGMPProxyReportRangesGlobalEntry OBJECT-TYPE
+				SYNTAX                Ltp8xIGMPProxyReportRangesGlobalEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xIGMPProxyReportRangesGlobalID }
+				::= { ltp8xIGMPProxyReportRangesGlobalTable 1 }
+	
+				Ltp8xIGMPProxyReportRangesGlobalEntry ::= SEQUENCE {
+						ltp8xIGMPProxyReportRangesGlobalID	Unsigned32,
+						ltp8xIGMPProxyReportRangesGlobalStart	IpAddress,
+						ltp8xIGMPProxyReportRangesGlobalEnd		IpAddress,
+						ltp8xIGMPProxyReportRangesGlobalFromVLAN	INTEGER,
+						ltp8xIGMPProxyReportRangesGlobalToVLAN 	Integer32,
+						ltp8xIGMPProxyGlobalRowStatus				RowStatus
+				}
+											
+							ltp8xIGMPProxyReportRangesGlobalID  OBJECT-TYPE
+								SYNTAX     Unsigned32
+								MAX-ACCESS not-accessible
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xIGMPProxyReportRangesGlobalEntry 1 }
+								
+							ltp8xIGMPProxyReportRangesGlobalStart  OBJECT-TYPE
+								SYNTAX     IpAddress
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xIGMPProxyReportRangesGlobalEntry 2 }
+								
+							ltp8xIGMPProxyReportRangesGlobalEnd  OBJECT-TYPE
+								SYNTAX     IpAddress
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xIGMPProxyReportRangesGlobalEntry 3 }
+								
+							ltp8xIGMPProxyReportRangesGlobalFromVLAN  OBJECT-TYPE
+								SYNTAX     INTEGER {
+									all(65535) }
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xIGMPProxyReportRangesGlobalEntry 4 }
+								
+							ltp8xIGMPProxyReportRangesGlobalToVLAN  OBJECT-TYPE
+								SYNTAX     Integer32
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xIGMPProxyReportRangesGlobalEntry 5 }
+								
+							ltp8xIGMPProxyGlobalRowStatus  OBJECT-TYPE
+								SYNTAX     RowStatus
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xIGMPProxyReportRangesGlobalEntry 10 }
+								
+			ltp8xMLDProxyReportRangesTable OBJECT-TYPE
+			SYNTAX                SEQUENCE OF Ltp8xMLDProxyReportRangesEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					""
+			::= { ltp8xSwitch 23 }
+		
+				ltp8xMLDProxyReportRangesEntry OBJECT-TYPE
+				SYNTAX                Ltp8xMLDProxyReportRangesEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xMLDProxyReportRangesSlot, ltp8xMLDProxyReportRangesID }
+				::= { ltp8xMLDProxyReportRangesTable 1 }
+	
+				Ltp8xMLDProxyReportRangesEntry ::= SEQUENCE {
+						ltp8xMLDProxyReportRangesSlot	Unsigned32,
+						ltp8xMLDProxyReportRangesID	Unsigned32,
+						ltp8xMLDProxyReportRangesStart	Ipv6Address,
+						ltp8xMLDProxyReportRangesEnd		Ipv6Address,
+						ltp8xMLDProxyReportRangesFromVLAN	INTEGER,
+						ltp8xMLDProxyReportRangesToVLAN 	Integer32,
+						ltp8xMLDProxyRowStatus				RowStatus
+				}
+				
+							ltp8xMLDProxyReportRangesSlot  OBJECT-TYPE
+								SYNTAX     Unsigned32
+								MAX-ACCESS not-accessible
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xMLDProxyReportRangesEntry 1 }
+							
+							ltp8xMLDProxyReportRangesID  OBJECT-TYPE
+								SYNTAX     Unsigned32
+								MAX-ACCESS not-accessible
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xMLDProxyReportRangesEntry 2 }
+								
+							ltp8xMLDProxyReportRangesStart  OBJECT-TYPE
+								SYNTAX     Ipv6Address
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xMLDProxyReportRangesEntry 3 }
+								
+							ltp8xMLDProxyReportRangesEnd  OBJECT-TYPE
+								SYNTAX     Ipv6Address
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xMLDProxyReportRangesEntry 4 }
+								
+							ltp8xMLDProxyReportRangesFromVLAN  OBJECT-TYPE
+								SYNTAX     INTEGER {
+									all(65535) }
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xMLDProxyReportRangesEntry 5 }
+								
+							ltp8xMLDProxyReportRangesToVLAN  OBJECT-TYPE
+								SYNTAX     Integer32
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xMLDProxyReportRangesEntry 6 }
+								
+							ltp8xMLDProxyRowStatus  OBJECT-TYPE
+								SYNTAX     RowStatus
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xMLDProxyReportRangesEntry 10 }
+								
+		ltp8xMLDProxyReportRangesGlobalTable OBJECT-TYPE
+			SYNTAX                SEQUENCE OF Ltp8xMLDProxyReportRangesGlobalEntry
+			MAX-ACCESS        not-accessible
+			STATUS                current
+			DESCRIPTION
+					""
+			::= { ltp8xSwitch 24 }
+		
+				ltp8xMLDProxyReportRangesGlobalEntry OBJECT-TYPE
+				SYNTAX                Ltp8xMLDProxyReportRangesGlobalEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xMLDProxyReportRangesGlobalID }
+				::= { ltp8xMLDProxyReportRangesGlobalTable 1 }
+	
+				Ltp8xMLDProxyReportRangesGlobalEntry ::= SEQUENCE {
+						ltp8xMLDProxyReportRangesGlobalID	Unsigned32,
+						ltp8xMLDProxyReportRangesGlobalStart	Ipv6Address,
+						ltp8xMLDProxyReportRangesGlobalEnd		Ipv6Address,
+						ltp8xMLDProxyReportRangesGlobalFromVLAN	INTEGER,
+						ltp8xMLDProxyReportRangesGlobalToVLAN 	Integer32,
+						ltp8xMLDProxyGlobalRowStatus				RowStatus
+				}
+											
+							ltp8xMLDProxyReportRangesGlobalID  OBJECT-TYPE
+								SYNTAX     Unsigned32
+								MAX-ACCESS not-accessible
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xMLDProxyReportRangesGlobalEntry 1 }
+								
+							ltp8xMLDProxyReportRangesGlobalStart  OBJECT-TYPE
+								SYNTAX     Ipv6Address
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xMLDProxyReportRangesGlobalEntry 2 }
+								
+							ltp8xMLDProxyReportRangesGlobalEnd  OBJECT-TYPE
+								SYNTAX     Ipv6Address
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xMLDProxyReportRangesGlobalEntry 3 }
+								
+							ltp8xMLDProxyReportRangesGlobalFromVLAN  OBJECT-TYPE
+								SYNTAX     INTEGER {
+									all(65535) }
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xMLDProxyReportRangesGlobalEntry 4 }
+								
+							ltp8xMLDProxyReportRangesGlobalToVLAN  OBJECT-TYPE
+								SYNTAX     Integer32
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xMLDProxyReportRangesGlobalEntry 5 }
+								
+							ltp8xMLDProxyGlobalRowStatus  OBJECT-TYPE
+								SYNTAX     RowStatus
+								MAX-ACCESS read-write
+								STATUS     current
+								DESCRIPTION " "
+								::= { ltp8xMLDProxyReportRangesGlobalEntry 10 }
 						
 	ltp8xP2PTable OBJECT-TYPE
 			SYNTAX                SEQUENCE OF Ltp8xP2PEntry
@@ -7240,7 +9025,9 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 					ltp8xPLCBoardStateModuleVersion			DisplayString,
 					ltp8xPLCBoardStateBuildTime				DisplayString,
 					ltp8xPLCBoardStateBuildRevision			Unsigned32,
-					ltp8xPLCBoardStateHardwareVesion		Unsigned32
+					ltp8xPLCBoardStateHardwareVesion		Unsigned32,
+					ltp8xPLCBoardStateSensor1TemperatureExt	INTEGER,
+					ltp8xPLCBoardStateSensor2TemperatureExt	INTEGER
 			}
 			
 						ltp8xPLCBoardStateSlot OBJECT-TYPE
@@ -7348,6 +9135,22 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							DESCRIPTION ""
 							::= { ltp8xPLCBoardStateEntry 15 }
 							
+						ltp8xPLCBoardStateSensor1TemperatureExt OBJECT-TYPE
+							SYNTAX  INTEGER
+								{ notValid(65535) }
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xPLCBoardStateEntry 16 }
+							
+						ltp8xPLCBoardStateSensor2TemperatureExt OBJECT-TYPE
+							SYNTAX  INTEGER
+								{ notValid(65535) }
+							MAX-ACCESS read-only
+							STATUS  current
+							DESCRIPTION ""
+							::= { ltp8xPLCBoardStateEntry 17 }
+							
 		ltp8xSyncCounters OBJECT IDENTIFIER 	::= { ltp8x 15 }
 	
 			ltp8xSyncCountersTable OBJECT-TYPE
@@ -7393,6 +9196,96 @@ ltp8xONT OBJECT IDENTIFIER 	::= { ltp8x 3 }
 							STATUS  current
 							DESCRIPTION ""
 							::= { ltp8xSyncCountersEntry 3 }
+							
+		ltp8xRawData OBJECT IDENTIFIER 	::= { ltp8x 90 }
+							
+			ltp8xRawMacTable OBJECT-TYPE
+				SYNTAX                SEQUENCE OF Ltp8xRawMacEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						" "
+				::= { ltp8xRawData 1 }
+			
+			ltp8xRawMacEntry OBJECT-TYPE
+				SYNTAX                Ltp8xRawMacEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xRawMacSlot, ltp8xRawMacChunkID }
+				::= { ltp8xRawMacTable 1 }
+			
+			Ltp8xRawMacEntry ::= SEQUENCE {
+					ltp8xRawMacSlot								Unsigned32,
+					ltp8xRawMacChunkID							Unsigned32,
+					ltp8xRawMacText								OCTET STRING
+			}
+			
+						ltp8xRawMacSlot OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xRawMacEntry 1 }	
+						
+						ltp8xRawMacChunkID OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xRawMacEntry 2 }	
+							
+						ltp8xRawMacText OBJECT-TYPE
+							SYNTAX  OCTET STRING (SIZE(0..65535))
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xRawMacEntry 3 }
+							
+		ltp8xRawSwitchMacTable OBJECT-TYPE
+				SYNTAX                SEQUENCE OF Ltp8xRawSwitchMacEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						" "
+				::= { ltp8xRawData 2 }
+			
+			ltp8xRawSwitchMacEntry OBJECT-TYPE
+				SYNTAX                Ltp8xRawSwitchMacEntry
+				MAX-ACCESS        not-accessible
+				STATUS                current
+				DESCRIPTION
+						""
+				INDEX         { ltp8xRawSwitchMacSlot, ltp8xRawSwitchMacChunkID }
+				::= { ltp8xRawSwitchMacTable 1 }
+			
+			Ltp8xRawSwitchMacEntry ::= SEQUENCE {
+					ltp8xRawSwitchMacSlot								Unsigned32,
+					ltp8xRawSwitchMacChunkID							Unsigned32,
+					ltp8xRawSwitchMacText								OCTET STRING
+			}
+			
+						ltp8xRawSwitchMacSlot OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xRawSwitchMacEntry 1 }	
+						
+						ltp8xRawSwitchMacChunkID OBJECT-TYPE
+							SYNTAX  Unsigned32
+							MAX-ACCESS not-accessible
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xRawSwitchMacEntry 2 }	
+							
+						ltp8xRawSwitchMacText OBJECT-TYPE
+							SYNTAX  OCTET STRING (SIZE(0..65535))
+							MAX-ACCESS read-write
+							STATUS  current
+							DESCRIPTION " "
+							::= { ltp8xRawSwitchMacEntry 3 }
 						
 ltp8xMIBBoundary OBJECT-TYPE
 	SYNTAX  Unsigned32
@@ -7743,6 +9636,19 @@ ltp8xTraps OBJECT IDENTIFIER 	::= { ltp8x 100 }
 			DESCRIPTION
 			"ONTn/m (ELTX00000000) low RX level (XX)"
 			::= { ltp8xAlarmTraps 28 }
+			
+		ltp8xPowerSupplyAlarmTrap NOTIFICATION-TYPE
+			OBJECTS {
+				mcTrapExState,
+				mcTrapLParam1,
+				mcTrapLParam2,
+				mcTrapLParam3,
+				mcTrapID,
+				mcTrapDescr}
+			STATUS  current
+			DESCRIPTION
+			"Power supply[X] is offline"
+			::= { ltp8xAlarmTraps 30 }
 				
 			
 		ltp8xRedundancyMasterChannelFailTrap NOTIFICATION-TYPE
@@ -7835,6 +9741,32 @@ ltp8xTraps OBJECT IDENTIFIER 	::= { ltp8x 100 }
 			DESCRIPTION
 			"Param1 - Channel id (n), Descr - ONUs count"
 			::= { ltp8xAlarmTraps 220 }
+			
+		ltp8xConfigRereadAlarmTrap NOTIFICATION-TYPE
+			OBJECTS {
+				mcTrapExState,
+				mcTrapLParam1,
+				mcTrapLParam2,
+				mcTrapLParam3,
+				mcTrapID,
+				mcTrapDescr}
+			STATUS  current
+			DESCRIPTION
+			"Config reread error."
+			::= { ltp8xAlarmTraps 225 }
+			
+		ltp8xConfigBrokenAlarmTrap NOTIFICATION-TYPE
+			OBJECTS {
+				mcTrapExState,
+				mcTrapLParam1,
+				mcTrapLParam2,
+				mcTrapLParam3,
+				mcTrapID,
+				mcTrapDescr}
+			STATUS  current
+			DESCRIPTION
+			"Boot configuration broken. System configuration inconsistent."
+			::= { ltp8xAlarmTraps 227 }
 			
 	ltp8xOkTraps  OBJECT IDENTIFIER   ::= {ltp8xTraps 2}
 
@@ -8176,6 +10108,19 @@ ltp8xTraps OBJECT IDENTIFIER 	::= { ltp8x 100 }
 			"ONTn/m (ELTX00000000) RX level (XX)"
 			::= { ltp8xOkTraps 28 }
 			
+		ltp8xPowerSupplyOkTrap NOTIFICATION-TYPE
+			OBJECTS {
+				mcTrapExState,
+				mcTrapLParam1,
+				mcTrapLParam2,
+				mcTrapLParam3,
+				mcTrapID,
+				mcTrapDescr}
+			STATUS  current
+			DESCRIPTION
+			"Power supply[X] is online"
+			::= { ltp8xOkTraps 30 }
+			
 		ltp8xLogoutTrap NOTIFICATION-TYPE
 			OBJECTS {
 				mcTrapExState,
@@ -8331,6 +10276,32 @@ ltp8xTraps OBJECT IDENTIFIER 	::= { ltp8x 100 }
 			DESCRIPTION
 			"Param1 - Channel id (n), Descr - ONUs count"
 			::= { ltp8xOkTraps 220 }
+			
+		ltp8xConfigRereadOkTrap NOTIFICATION-TYPE
+			OBJECTS {
+				mcTrapExState,
+				mcTrapLParam1,
+				mcTrapLParam2,
+				mcTrapLParam3,
+				mcTrapID,
+				mcTrapDescr}
+			STATUS  current
+			DESCRIPTION
+			"Config reread success."
+			::= { ltp8xOkTraps 225 }
+			
+		ltp8xRSSIUpdateTrap NOTIFICATION-TYPE
+			OBJECTS {
+				mcTrapExState,
+				mcTrapLParam1,
+				mcTrapLParam2,
+				mcTrapLParam3,
+				mcTrapID,
+				mcTrapDescr}
+			STATUS  current
+			DESCRIPTION
+			"RSSI value change notification."
+			::= { ltp8xOkTraps 226 }
 
 	plc8AlarmTraps  OBJECT IDENTIFIER   ::= {ltp8xTraps 3}
 
@@ -8619,7 +10590,7 @@ ltp8xTraps OBJECT IDENTIFIER 	::= { ltp8x 100 }
 			DESCRIPTION
 			"Param1 - master channel id, Param2 - slave channel id, descr = Master channel fail at hostname. Switch from channel n to m"
 			::= { plc8AlarmTraps 105 }
-			
+
 		plc8PonAlarmChannelTrap NOTIFICATION-TYPE
 			OBJECTS {
 				mcTrapExState,
@@ -9117,6 +11088,19 @@ ltp8xTraps OBJECT IDENTIFIER 	::= { ltp8x 100 }
 			DESCRIPTION
 			"Param1 - Channel id (n), Descr - ONUs count"
 			::= { plc8OkTraps 220 }
+			
+		plc8RSSIUpdateTrap NOTIFICATION-TYPE
+			OBJECTS {
+				mcTrapExState,
+				mcTrapLParam1,
+				mcTrapLParam2,
+				mcTrapLParam3,
+				mcTrapID,
+				mcTrapDescr}
+			STATUS  current
+			DESCRIPTION
+			"RSSI value change notification."
+			::= { plc8OkTraps 226 }
 
 ltp8xObjectGroup OBJECT-GROUP
 			OBJECTS 

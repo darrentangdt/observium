@@ -96,3 +96,9 @@ span.twitter-typeahead .tt-suggestion:focus {
 .input-group.input-group-lg span.twitter-typeahead .tt-dropdown-menu {
   top: 46px !important;
 }
+
+/* Added by Observium developers
+   see: https://stackoverflow.com/questions/17957513/extending-the-width-of-bootstrap-typeahead-to-match-input-field */
+.twitter-typeahead, .tt-hint, .tt-input, .tt-menu {
+  width: 100%;
+}

@@ -7,11 +7,25 @@
  *
  * @package    observium
  * @subpackage discovery
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
 $oids = snmpwalk_cache_multi_oid($device, "rttMonCtrl", array(), 'CISCO-RTTMON-MIB');
+
+// Add extended source/target info
+//CISCO-RTTMON-IP-EXT-MIB::crttMonIPEchoAdminTargetAddrType.44 = INTEGER: ipv4(1)
+//CISCO-RTTMON-IP-EXT-MIB::crttMonIPEchoAdminTargetAddrType.66 = INTEGER: ipv6(2)
+//CISCO-RTTMON-IP-EXT-MIB::crttMonIPEchoAdminTargetAddress.44 = Hex-STRING: 55 72 03 FC
+//CISCO-RTTMON-IP-EXT-MIB::crttMonIPEchoAdminTargetAddress.66 = Hex-STRING: 2A 02 04 08 77 22 00 41 00 00 00 00 00 00 01 50
+//CISCO-RTTMON-IP-EXT-MIB::crttMonIPEchoAdminSourceAddrType.44 = INTEGER: ipv4(1)
+//CISCO-RTTMON-IP-EXT-MIB::crttMonIPEchoAdminSourceAddrType.66 = INTEGER: ipv6(2)
+//CISCO-RTTMON-IP-EXT-MIB::crttMonIPEchoAdminSourceAddress.44 = Hex-STRING: D9 4F 06 9C
+//CISCO-RTTMON-IP-EXT-MIB::crttMonIPEchoAdminSourceAddress.66 = ""
+//$oids = snmpwalk_cache_multi_oid($device, "crttMonIPEchoAdminTargetAddrType", $oids, 'CISCO-RTTMON-IP-EXT-MIB');
+$oids = snmpwalk_cache_multi_oid($device, "crttMonIPEchoAdminTargetAddress",  $oids, 'CISCO-RTTMON-IP-EXT-MIB');
+//$oids = snmpwalk_cache_multi_oid($device, "crttMonIPEchoAdminSourceAddrType", $oids, 'CISCO-RTTMON-IP-EXT-MIB');
+//$oids = snmpwalk_cache_multi_oid($device, "crttMonIPEchoAdminSourceAddress",  $oids, 'CISCO-RTTMON-IP-EXT-MIB');
 
 foreach ($oids as $sla_index => $entry)
 {
@@ -38,24 +52,33 @@ foreach ($oids as $sla_index => $entry)
     $data['sla_graph'] = 'echo';
   }
 
+  // Target
+  switch ($data['rtt_type'])
+  {
+    case 'http':
+    case 'ftp':
+      $data['sla_target'] = $entry['rttMonEchoAdminURL'];
+      break;
+    case 'dns':
+      $data['sla_target'] = $entry['rttMonEchoAdminTargetAddressString'];
+      break;
+    case 'echo':
+    case 'jitter':
+    case 'icmpjitter':
+    default:
+      if (!empty($entry['crttMonIPEchoAdminTargetAddress']))
+      {
+        $data['sla_target'] = hex2ip($entry['crttMonIPEchoAdminTargetAddress']);
+      } else {
+        $data['sla_target'] = hex2ip($entry['rttMonEchoAdminTargetAddress']);
+      }
+      break;
+  }
+
   // Some fallbacks for when the tag is empty
   if (!$data['sla_tag'])
   {
-    switch ($data['rtt_type'])
-    {
-      case 'http':
-      case 'ftp':
-        $data['sla_tag'] = $entry['rttMonEchoAdminURL'];
-        break;
-      case 'dns':
-        $data['sla_tag'] = $entry['rttMonEchoAdminTargetAddressString'];
-        break;
-      case 'echo':
-      case 'jitter':
-      case 'icmpjitter':
-        $data['sla_tag'] = hex2ip($entry['rttMonEchoAdminTargetAddress']);
-        break;
-    }
+    $data['sla_tag'] = $data['sla_target'];
   }
 
   // Limits

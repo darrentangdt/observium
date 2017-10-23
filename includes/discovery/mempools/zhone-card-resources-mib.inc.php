@@ -11,11 +11,11 @@
  *
  */
 
-//ZHONE-CARD-RESOURCES-MIB::cardRuntimeTable
-//ZHONE-CARD-RESOURCES-MIB::cardPeakMemUsage.1.1 = INTEGER: 80762
-//ZHONE-CARD-RESOURCES-MIB::cardAvailMem.1.1 = INTEGER: 145131
-//ZHONE-CARD-RESOURCES-MIB::cardTotalMem.1.1 = INTEGER: 225421
-//ZHONE-CARD-RESOURCES-MIB::cardMemStatus.1.1 = INTEGER: ramMemOK(1)
+// ZHONE-CARD-RESOURCES-MIB::cardRuntimeTable
+// ZHONE-CARD-RESOURCES-MIB::cardPeakMemUsage.1.1 = INTEGER: 80762
+// ZHONE-CARD-RESOURCES-MIB::cardAvailMem.1.1 = INTEGER: 145131
+// ZHONE-CARD-RESOURCES-MIB::cardTotalMem.1.1 = INTEGER: 225421
+// ZHONE-CARD-RESOURCES-MIB::cardMemStatus.1.1 = INTEGER: ramMemOK(1)
 
 $mempool_array = snmpwalk_cache_oid($device, "cardAvailMem", array(), $mib);
 $mempool_array = snmpwalk_cache_oid($device, "cardTotalMem", $mempool_array, $mib);

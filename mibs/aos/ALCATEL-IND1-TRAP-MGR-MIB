@@ -195,7 +195,7 @@ trapStationIP  OBJECT-TYPE
 
 trapStationPort  OBJECT-TYPE
 	SYNTAX  Unsigned32
-	MAX-ACCESS  read-write
+	MAX-ACCESS  read-create
 	STATUS  current
 	DESCRIPTION
 		"The UDP port used by this management entity.
@@ -205,7 +205,7 @@ trapStationPort  OBJECT-TYPE
 
 trapStationRowStatus  OBJECT-TYPE
 	SYNTAX  RowStatus
-	MAX-ACCESS  read-write
+	MAX-ACCESS  read-create
 	STATUS  current
 	DESCRIPTION
 		"Reading or writting values :
@@ -224,7 +224,7 @@ trapStationProtocol  OBJECT-TYPE
 		v1 (1),
 		v2 (2),
 		v3 (3) }
-	MAX-ACCESS  read-write
+	MAX-ACCESS  read-create
 	STATUS  current
 	DESCRIPTION
 		"The type of protocol used to send the traps
@@ -238,7 +238,7 @@ trapStationProtocol  OBJECT-TYPE
 
 trapStationUser  OBJECT-TYPE
 	SYNTAX  DisplayString (SIZE (1..32))
-	MAX-ACCESS  read-write
+	MAX-ACCESS  read-create
 	STATUS  current
 	DESCRIPTION
 		"User name used to send the trap to the station.
@@ -248,7 +248,7 @@ trapStationUser  OBJECT-TYPE
 
 trapStationReplay  OBJECT-TYPE
 	SYNTAX  Unsigned32
-	MAX-ACCESS  read-write
+	MAX-ACCESS  read-create
 	STATUS  current
 	DESCRIPTION
 		"The replay value. The switch is required

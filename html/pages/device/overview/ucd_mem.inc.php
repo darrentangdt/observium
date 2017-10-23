@@ -13,7 +13,7 @@
 
 $box_args = array('title' => 'Memory',
                   'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'health', 'metric' => 'mempool')),
-                  'icon' => 'oicon-memory',
+                  'icon' => $config['icon']['mempool'],
                   );
 
 echo generate_box_open($box_args);

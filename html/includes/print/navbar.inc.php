@@ -79,7 +79,8 @@ function print_navbar($navbar)
 
   <?php
 
-  if (isset($navbar['brand'])) { echo ' <a class="brand">'.$navbar['brand'].'</a>'; }
+  if (isset($navbar['brand'])) { echo ' <a class="brand '.(isset($navbar['brand-class']) ? $navbar['brand-class'] : '' ).'">'.$navbar['brand'].'</a>'; }
+
   echo('<div class="nav-collapse" id="nav-'.$id.'">');
 
   //rewrite navbar (for class pull-right)

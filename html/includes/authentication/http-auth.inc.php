@@ -27,8 +27,8 @@ if (!$_SESSION['authenticated'] && !is_cli())
   {
     http_auth_require_login();
   } else {
-    $_SESSION['username'] = $username;
-    $_SESSION['password'] = $password;
+    session_set_var('username', $username);
+    session_set_var('password', $password);
   }
 }
 

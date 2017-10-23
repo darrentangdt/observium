@@ -12,9 +12,7 @@
  */
 
 // ISPRO-MIB::isIdentManufacturer.0 = STRING: "Jacarta"
-// ISPRO-MIB::isIdentModel.0 = STRING: "interSeptor Pro"
 // ISPRO-MIB::isIdentAgentSoftwareVersion.0 = STRING: "interSeptor Pro v1.07"
-$hardware = snmp_get($device, 'isIdentModel.0', '-OQv', 'ISPRO-MIB');
 list(,$version) = preg_split("/\ v/", snmp_get($device, 'isIdentAgentSoftwareVersion.0', '-OQv', 'ISPRO-MIB'));
 
 // EOF

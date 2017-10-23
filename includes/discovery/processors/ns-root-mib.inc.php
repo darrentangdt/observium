@@ -7,7 +7,7 @@
  *
  * @package    observium
  * @subpackage discovery
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -26,9 +26,10 @@ foreach ($nsarray as $descr => $data)
 
   $current = $data['nsCPUusage'];
 
-  $oid = '.1.3.6.1.4.1.5951.4.1.1.41.6.1.2.' . string_to_oid($descr);
+  $oid = '.1.3.6.1.4.1.5951.4.1.1.41.6.1.2.' . snmp_string_to_oid($descr);
   $descr = $data['nsCPUname'];
 
+  // FIXME, when will converted to definition-based, note that here used "named" index instead numeric
   discover_processor($valid['processor'], $device, $oid, $descr, 'netscaler', $descr, 1, $current);
 }
 

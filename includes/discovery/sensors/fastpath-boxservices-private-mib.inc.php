@@ -129,20 +129,38 @@ $oids = snmpwalk_cache_multi_oid($device, 'boxServicesFansTable', array(), 'FAST
 
 foreach ($oids as $index => $entry)
 {
-  $descr = 'Fan'; if (count($oids) > 1) { $descr .= ' ' . ($index+1); }
-  $oid   = ".1.3.6.1.4.1.4413.1.1.43.1.6.1.3.$index";
-  $value = $entry['boxServicesFanItemState'];
+  if ($entry['boxServicesFanItemState'] == 'notpresent') { continue; }
 
-  if ($entry['boxServicesFanItemState'] != 'notpresent')
+  $descr = 'Fan';
+  if (count($oids) > 1)
   {
-    // FIXME should be a state sensor. subtype fanspeed. (or fanspeed sensor, subtype state)
-    discover_sensor($valid['sensor'], 'fanspeed', $device, $oid, "boxServicesFanItemState.$index", 'boxServicesItemState', $descr, 1, $value, array('entPhysicalClass' => 'fan'));
+    $descr .= ' ' . ($index + 1);
+  }
 
-    if ($entry['boxServicesFanSpeed'] != 0)
-    {
-      // FIXME - could add a fan speed sensor here, but none of my devices have non-zero values.
-      // duty level is most likely a percentage?
-    }
+  $oid_name = 'boxServicesFanItemState';
+  $oid_num  = '.1.3.6.1.4.1.4413.1.1.43.1.6.1.3.'.$index;
+  $type     = 'boxServicesItemState';
+  $value    = $entry[$oid_name];
+
+  discover_status($device, $oid_num, $oid_name.'.'.$index, $type, $descr, $value, array('entPhysicalClass' => 'fan'));
+
+  $scale    = 1;
+  $oid_name = 'boxServicesFanSpeed';
+  $oid_num  = '.1.3.6.1.4.1.4413.1.1.43.1.6.1.4.' . $index;
+  $type     = $mib . '-' . $oid_name;
+  $value    = $entry[$oid_name];
+
+  if ($value > 0)
+  {
+    discover_sensor($valid['sensor'], 'fanspeed', $device, $oid_num, $index, $type, $descr, $scale, $value);
+
+    $scale    = 1;
+    $oid_name = 'boxServicesFanDutyLevel';
+    $oid_num  = '.1.3.6.1.4.1.4413.1.1.43.1.6.1.5.' . $index;
+    $type     = $mib . '-' . $oid_name;
+    $value    = $entry[$oid_name];
+
+    discover_sensor($valid['sensor'], 'load', $device, $oid_num, $index, $type, $descr, $scale, $value);
   }
 }
 

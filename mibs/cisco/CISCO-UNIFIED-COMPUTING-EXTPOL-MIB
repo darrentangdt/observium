@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- EXTPOL management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -69,7 +69,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsExtpolObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -2236,7 +2236,8 @@ CucsExtpolSystemContextEntry ::= SEQUENCE {
     cucsExtpolSystemContextSite                                      SnmpAdminString,
     cucsExtpolSystemContextType                                      CucsExtpolConnType,
     cucsExtpolSystemContextVersion                                   SnmpAdminString,
-    cucsExtpolSystemContextIpv6addr                                  InetAddressIPv6
+    cucsExtpolSystemContextIpv6addr                                  InetAddressIPv6,
+    cucsExtpolSystemContextModel                                     SnmpAdminString
 }
 
 cucsExtpolSystemContextInstanceId OBJECT-TYPE
@@ -2359,5 +2360,13 @@ cucsExtpolSystemContextIpv6addr OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS extpol:SystemContext:ipv6addr managed object property"
     ::= { cucsExtpolSystemContextEntry 15 }
+
+cucsExtpolSystemContextModel OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS extpol:SystemContext:model managed object property"
+    ::= { cucsExtpolSystemContextEntry 16 }
 
 END

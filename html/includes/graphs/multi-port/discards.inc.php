@@ -13,7 +13,7 @@
 
 
 $units = '';
-$unit_text = 'Packets/sec';
+$unit_text = 'Discards/sec';
 $total_units = '';
 $colours_in = 'purples';
 $multiplier = "1";

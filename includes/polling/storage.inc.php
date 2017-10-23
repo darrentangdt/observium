@@ -7,7 +7,7 @@
  *
  * @package    observium
  * @subpackage poller
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -15,15 +15,14 @@ $table_rows = array();
 
 if (!isset($cache_storage)) { $cache_storage = array(); } // This cache used also in mempool module
 
-$sql  = "SELECT `storage`.*, `storage-state`.storage_polled";
+$sql  = "SELECT `storage`.*";
 $sql .= " FROM  `storage`";
-$sql .= " LEFT JOIN `storage-state` ON `storage`.storage_id = `storage-state`.storage_id";
+//$sql .= " LEFT JOIN `storage-state` ON `storage`.storage_id = `storage-state`.storage_id";
 $sql .= " WHERE `device_id` = ?";
 
 foreach (dbFetchRows($sql, array($device['device_id'])) as $storage)
 {
   $storage_size = $storage['storage_size']; // Memo old size
-
   $file = $config['install_dir']."/includes/polling/storage/".$storage['storage_mib'].".inc.php";
   if (is_file($file))
   {
@@ -53,27 +52,28 @@ foreach (dbFetchRows($sql, array($device['device_id'])) as $storage)
   // Update RRD
   rrdtool_update_ng($device, 'storage', array('used' => $storage['used'], 'free' => $storage['free']), $storage['storage_mib'] . "-" . $storage['storage_descr']);
 
-  if (!is_numeric($storage['storage_polled']))
-  {
-    dbInsert(array('storage_id'     => $storage['storage_id'],
-                   'storage_polled' => time(),
-                   'storage_used'   => $storage['used'],
-                   'storage_free'   => $storage['free'],
-                   'storage_size'   => $storage['size'],
-                   'storage_units'  => $storage['units'],
-                   'storage_perc'   => $percent), 'storage-state');
-  } else {
+  //if (!is_numeric($storage['storage_polled']))
+  //{
+  //  dbInsert(array('storage_id'     => $storage['storage_id'],
+  //                 'storage_polled' => time(),
+  //                 'storage_used'   => $storage['used'],
+  //                 'storage_free'   => $storage['free'],
+  //                 'storage_size'   => $storage['size'],
+  //                 'storage_units'  => $storage['units'],
+  //                 'storage_perc'   => $percent), 'storage-state');
+  //} else {
     $update = dbUpdate(array('storage_polled' => time(),
                              'storage_used'   => $storage['used'],
                              'storage_free'   => $storage['free'],
                              'storage_size'   => $storage['size'],
                              'storage_units'  => $storage['units'],
-                             'storage_perc'   => $percent), 'storage-state', '`storage_id` = ?', array($storage['storage_id']));
-    if ($storage_size != $storage['storage_size'])
+                             'storage_perc'   => $percent), 'storage', '`storage_id` = ?', array($storage['storage_id']));
+    if ($storage_size != $storage['size'] &&
+        (abs($storage_size - $storage['size']) / max($storage_size, $storage['size'])) > 0.0001 ) // Log only if size diff more than 0.01%
     {
-      log_event('Storage size changed: '.formatStorage($storage_size).' -> '.formatStorage($storage['storage_size']).' ('.$storage['storage_descr'].')', $device, 'storage', $storage['storage_id']);
+      log_event('Storage size changed: '.formatStorage($storage_size).' -> '.formatStorage($storage['size']).' ('.$storage['storage_descr'].')', $device, 'storage', $storage['storage_id']);
     }
-  }
+  //}
   $graphs['storage'] = TRUE;
 
   // Check alerts

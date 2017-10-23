@@ -1,4 +1,4 @@
--- ArubaOS 6.4.2.3-4.1.1.2_48114
+-- ArubaOS 6.5.1.3_58402
    AI-AP-MIB DEFINITIONS ::= BEGIN
 
    IMPORTS
@@ -2811,14 +2811,14 @@ ArubaAPUplinkChangeReason ::= TEXTUAL-CONVENTION
     ::= {aiTrapObjectsGroup 133 }
 
 	wlsxTrapAPManagedModeConfigFailure OBJECT-TYPE
-        SYNTAX      DisplayString 
+        SYNTAX      DisplayString(SIZE(0..64))
         MAX-ACCESS  accessible-for-notify
         STATUS      current
         DESCRIPTION
             "
-            This object indicatats the error string for failure of config apply.
+            This object indicates the error for the failure of config apply on IAP.
                     "
-    ::= {aiTrapObjectsGroup 134 }
+    ::= {aiTrapObjectsGroup 138 }
 
     wlsxTrapAuthServerAddress OBJECT-TYPE 
         SYNTAX      IpAddress
@@ -2829,7 +2829,7 @@ ArubaAPUplinkChangeReason ::= TEXTUAL-CONVENTION
             This object is used in the traps to indicate the
             Authentication Server IP used for Authentication.
                     "
-    ::= {aiTrapObjectsGroup 135 }
+    ::= {aiTrapObjectsGroup 139 }
 
        
 -- Definition of traps
@@ -4705,6 +4705,18 @@ ArubaAPUplinkChangeReason ::= TEXTUAL-CONVENTION
             "
               Indicated failure in applying config.
             "
-    ::= {aiTrapDefinitionsGroup 1253 }
+    ::= {aiTrapDefinitionsGroup 1255 }
+
+    wlsxNAuthServerAcctTimedOut NOTIFICATION-TYPE
+		OBJECTS {wlsxTrapTime, wlsxTrapUserName,wlsxTrapUserIpAddress,
+				wlsxTrapUserPhyAddress,wlsxTrapAuthServerName,
+				wlsxTrapAuthServerAddress,wlsxTrapAPBSSID,
+				wlsxTrapAPName}
+		STATUS		current
+		DESCRIPTION
+			"			
+         This trap indicates that the authentication server accounting timed out.
+        	"
+	::= {aiTrapDefinitionsGroup 1256 }
 
 END

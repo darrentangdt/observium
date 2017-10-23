@@ -21,10 +21,10 @@ if ($GLOBALS['snmp_status'])
     $entity_array = snmpwalk_cache_multi_oid($device, $oid, $entity_array, 'ENTITY-MIB:ENTITY-SENSOR-MIB');
   }
 
-  if (is_array($GLOBALS['cache']['entity-mib']))
+  if (is_array($GLOBALS['cache']['snmp'][$mib][$device['device_id']]))
   {
     // If this already received in inventory module, skip walking
-    foreach ($GLOBALS['cache']['entity-mib'] as $index => $entry)
+    foreach ($GLOBALS['cache']['snmp'][$mib][$device['device_id']] as $index => $entry)
     {
       if (isset($entity_array[$index]))
       {
@@ -46,6 +46,7 @@ if ($GLOBALS['snmp_status'])
       if (!$GLOBALS['snmp_status']) { break; }
     }
     $entity_array = snmpwalk_cache_twopart_oid($device, 'entAliasMappingIdentifier', $entity_array, 'ENTITY-MIB:IF-MIB');
+    $GLOBALS['cache']['snmp']['ENTITY-MIB'][$device['device_id']] = $entity_array;
   }
 
   if (is_device_mib($device, 'ARISTA-ENTITY-SENSOR-MIB'))
@@ -126,6 +127,18 @@ if ($GLOBALS['snmp_status'])
       // Now try to search port bounded with sensor by ENTITY-MIB
       if ($ok && in_array($type, array('temperature', 'voltage', 'current', 'dbm', 'power')))
       {
+        $port    = get_port_by_ent_index($device, $index);
+        $options['entPhysicalIndex'] = $index;
+        if (is_array($port))
+        {
+          $entry['ifDescr']            = $port['ifDescr'];
+          $options['measured_class']   = 'port';
+          $options['measured_entity']  = $port['port_id'];
+          $options['entPhysicalIndex_measured'] = $port['ifIndex'];
+        }
+
+        // FIXME, remove at r8500 if errors not found, this code moved to get_port_by_ent_index()
+        /*
         $sensor_index = $index; // Initial ifIndex
         do
         {
@@ -176,6 +189,8 @@ if ($GLOBALS['snmp_status'])
             $sensor_index = $sensor_port['entPhysicalContainedIn']; // Next ifIndex
           }
         } while ($sensor_port['entPhysicalClass'] !== 'port' && $sensor_port['entPhysicalContainedIn'] > 0 && ($sensor_port['entPhysicalParentRelPos'] > 0 || $device['os'] == 'arista_eos'));
+        */
+
       }
 
       // Set thresholds for numeric sensors

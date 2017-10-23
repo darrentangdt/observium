@@ -96,15 +96,15 @@ foreach ($oids as $index => $entry)
   if ($value != 0)
   {
     discover_sensor($valid['sensor'], 'fanspeed', $device, $oid_num, $index, $type, $descr, $scale, $value);
+
+    $oid_name = 'boxServicesFanDutyLevel';
+    $oid_num  = ".1.3.6.1.4.1.4413.1.1.43.1.6.1.5.{$index}";
+    $type     = $mib . '-' . $oid_name;
+    $scale    = 1;
+    $value    = $entry[$oid_name];
+
+    discover_sensor($valid['sensor'], 'load', $device, $oid_num, $index, $type, $descr, $scale, $value);
   }
-
-  $oid_name = 'boxServicesFanDutyLevel';
-  $oid_num  = ".1.3.6.1.4.1.4413.1.1.43.1.6.1.5.{$index}";
-  $type     = $mib . '-' . $oid_name;
-  $scale    = 1;
-  $value    = $entry[$oid_name];
-
-  discover_sensor($valid['sensor'], 'load', $device, $oid_num, $index, $type, $descr, $scale, $value);
 
   $oid_name = 'boxServicesFanItemState';
   $oid_num  = ".1.3.6.1.4.1.4413.1.1.43.1.6.1.3.{$index}";
@@ -122,6 +122,8 @@ $oids = snmpwalk_cache_multi_oid($device, 'boxServicesPowSuppliesTable', array()
 
 foreach ($oids as $index => $entry)
 {
+  if ($entry['boxServicesPowSupplyItemType'] == 0 && $entry['boxServicesPowSupplyItemState'] == 'failed') { continue; } // This sensor not really exist
+
   $descr = ucfirst($entry['boxServicesPowSupplyItemType'] . ' Power Supply ' ) . $index;
   $oid   = ".1.3.6.1.4.1.4413.1.1.43.1.7.1.3.$index";
   $value = $entry['boxServicesPowSupplyItemState'];

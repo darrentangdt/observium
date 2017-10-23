@@ -33,7 +33,7 @@ print_cli(PHP_EOL);
 
 // End Building SNMP Cache Array
 
-if (OBS_DEBUG && count($port_stats)) { print_vars($port_stats); }
+print_debug_vars($port_stats, 1);
 
 // Build array of ports in the database
 

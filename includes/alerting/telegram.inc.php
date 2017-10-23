@@ -11,7 +11,7 @@
  *
  */
 
-$message['text'] = simple_template($method . '_text', $message_tags, array('is_file' => TRUE));
+$message['text'] = simple_template($endpoint['contact_method'] . '_text', $message_tags, array('is_file' => TRUE));
 
 $url = 'https://api.telegram.org/bot' . $endpoint['bot_hash'] . '/sendMessage';
 

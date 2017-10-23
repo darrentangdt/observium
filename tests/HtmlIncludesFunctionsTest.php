@@ -7,7 +7,7 @@ include(dirname(__FILE__) . '/../includes/sql-config.inc.php'); // Here required
 //include(dirname(__FILE__) . '/../includes/functions.inc.php');
 include(dirname(__FILE__) . '/../html/includes/functions.inc.php');
 
-class HtmlIncludesFunctionsTest extends PHPUnit_Framework_TestCase
+class HtmlIncludesFunctionsTest extends \PHPUnit\Framework\TestCase
 {
   /**
   * @dataProvider providerNiceCase
@@ -202,48 +202,6 @@ class HtmlIncludesFunctionsTest extends PHPUnit_Framework_TestCase
       $result[] = array($string, $key);
     }
     return $result;
-  }
-
-  /**
-   * @dataProvider providerGenerateQueryValues
-   * @group sql
-   */
-  public function testGenerateQueryValues($value, $column, $condition, $result)
-  {
-    $this->assertSame($result, generate_query_values($value, $column, $condition));
-  }
-
-  public function providerGenerateQueryValues()
-  {
-    return array(
-      // Basic values
-      array(0,                            'test', FALSE, " AND `test` = '0'"),
-      array('1,sf,98u8',                '`test`', FALSE, " AND `test` = '1,sf,98u8'"),
-      array(array('1,sf,98u8'),         'I.test', FALSE, " AND `I`.`test` = '1,sf,98u8'"),
-      array(array('1,sf','98u8', ''), '`I`.`test`', FALSE, " AND (`I`.`test` IN ('1,sf','98u8','') OR `I`.`test` IS NULL)"),
-      array(OBS_VAR_UNSET,              '`test`', FALSE, " AND (`test` = '' OR `test` IS NULL)"),
-      array('"*%F@W)b\'_u<[`R1/#F"',      'test', FALSE, " AND `test` = '\\\"*%F@W)b\'_u<[`R1/#F\\\"'"),
-      // Negative
-      array(array('1,sf,98u8'),         'I.test', 'NOT', " AND `I`.`test` != '1,sf,98u8'"),
-      array(array('1,sf,98u8'),         'I.test',  '!=', " AND `I`.`test` != '1,sf,98u8'"),
-      array(array('1,sf,98u8', ''), '`I`.`test`',  '!=', " AND (`I`.`test` NOT IN ('1,sf,98u8','') AND `I`.`test` IS NOT NULL)"),
-      // LIKE conditions
-      array(0,                            'test',  '%LIKE', " AND (`test` LIKE '%0')"),
-      array('1,sf,98u8',                '`test`',  'LIKE%', " AND (`test` LIKE '1,sf,98u8%')"),
-      array(array('1,sf,98u8'),         'I.test', '%LIKE%', " AND (`I`.`test` LIKE '%1,sf,98u8%')"),
-      array(array('1,sf,98u8', ''), '`I`.`test`',   'LIKE', " AND (`I`.`test` LIKE '1,sf,98u8' OR ISNULL(`I`.`test`, '') LIKE '')"),
-      array(OBS_VAR_UNSET,              '`test`',   'LIKE', " AND (`test` LIKE '".OBS_VAR_UNSET."')"),
-      array('"*%F@W)b\'_u<[`R1/#F"',      'test',   'LIKE', " AND (`test` LIKE '\\\"%\%F@W)b\'\_u<[`R1/#F\\\"')"),
-      // Negative LIKE
-      array('1,sf,98u8',                '`test`', 'NOT LIKE%', " AND (`test` NOT LIKE '1,sf,98u8%')"),
-      array(array('1,sf,98u8', ''), '`I`.`test`',  'NOT LIKE', " AND (`I`.`test` NOT LIKE '1,sf,98u8' AND ISNULL(`I`.`test`, '') NOT LIKE '')"),
-      // Duplicates
-      array(array('1','sf','1','1','98u8',''), '`I`.`test`', FALSE, " AND (`I`.`test` IN ('1','sf','98u8','') OR `I`.`test` IS NULL)"),
-      array(array('1','sf','98u8','1','sf',''), 'I.test', '%LIKE%', " AND (`I`.`test` LIKE '%1%' OR `I`.`test` LIKE '%sf%' OR `I`.`test` LIKE '%98u8%' OR ISNULL(`I`.`test`, '') LIKE '')"),
-      // Wrong conditions
-      array('"*%F@W)b\'_u<[`R1/#F"',      'test',    'wtf', " AND `test` = '\\\"*%F@W)b\'_u<[`R1/#F\\\"'"),
-      array('ssdf',                     '`test`',     TRUE, " AND (`test` LIKE 'ssdf')"),
-    );
   }
 
   /**

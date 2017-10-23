@@ -209,6 +209,16 @@ function dbErrorNo($connection = NULL)
   }
 }
 
+function dbPing($connection = NULL)
+{
+  if (is_resource($connection))
+  {
+    return mysql_ping($connection);
+  } else {
+    return mysql_ping();
+  }
+}
+
 function dbAffectedRows($connection = NULL)
 {
   if (is_resource($connection))

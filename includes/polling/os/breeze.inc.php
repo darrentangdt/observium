@@ -16,15 +16,6 @@
 // ALVARION-DOT11-WLAN-MIB::brzaccVLUnitType.0 = INTEGER: auSA(2)
 // ALVARION-DOT11-WLAN-TST-MIB::brzLighteOemProjectNameString.0 = STRING: "BreezeACCESS VL"
 
-if (preg_match('/Alvarion\ -\ (?<hardware>[\w\ ]+),\ Version:\ (?<version>[\d\.]+)/i', $poll_device['sysDescr'], $matches))
-{
-  $hardware = trim($matches['hardware']);
-  $version  = $matches['version'];
-} else {
-  $hardware = trim(snmp_get($device, 'brzLighteOemProjectNameString.0', '-OQv', 'ALVARION-DOT11-WLAN-TST-MIB'),'" ');
-  $version  = trim(snmp_get($device, 'brzaccVLMainVersionNumber.0',     '-OQv', 'ALVARION-DOT11-WLAN-MIB'    ),'" ');
-}
-
 $unit_type = snmp_get($device, 'brzaccVLUnitType.0', '-OQv', 'ALVARION-DOT11-WLAN-MIB');
 $features  = rewrite_breeze_type($unit_type);
 

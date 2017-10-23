@@ -11,15 +11,6 @@
  *
  */
 
-// Parse CIMC version number from sysDescr
-if (preg_match('/Firmware Version ([^,]+) Copyright/', $poll_device['sysDescr'], $matches))
-{
-  $version = $matches[1];
-}
-
-$serial   = snmp_get($device, 'cucsComputeBoardSerial.1',  '-Oqv', 'CISCO-UNIFIED-COMPUTING-COMPUTE-MIB');
-$hardware = snmp_get($device, 'cucsComputeRackUnitName.1', '-Oqv', 'CISCO-UNIFIED-COMPUTING-COMPUTE-MIB');
-
 $cimc_separate   = array();
 $cimc_separate[] = ".1.3.6.1.4.1.9.1.1634"; // ciscoE160DP
 $cimc_separate[] = ".1.3.6.1.4.1.9.1.1635"; // ciscoE160D

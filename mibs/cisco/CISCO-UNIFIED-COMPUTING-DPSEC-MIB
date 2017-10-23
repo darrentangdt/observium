@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- DPSEC management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -52,7 +52,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsDpsecObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -96,7 +96,8 @@ CucsDpsecMacEntry ::= SEQUENCE {
     cucsDpsecMacIntId                                                SnmpAdminString,
     cucsDpsecMacName                                                 SnmpAdminString,
     cucsDpsecMacPolicyLevel                                          Gauge32,
-    cucsDpsecMacPolicyOwner                                          CucsPolicyPolicyOwner
+    cucsDpsecMacPolicyOwner                                          CucsPolicyPolicyOwner,
+    cucsDpsecMacPropAcl                                              Unsigned64
 }
 
 cucsDpsecMacInstanceId OBJECT-TYPE
@@ -170,5 +171,13 @@ cucsDpsecMacPolicyOwner OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS dpsec:Mac:policyOwner managed object property"
     ::= { cucsDpsecMacEntry 9 }
+
+cucsDpsecMacPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS dpsec:Mac:propAcl managed object property"
+    ::= { cucsDpsecMacEntry 10 }
 
 END

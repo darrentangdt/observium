@@ -306,6 +306,6 @@ if ($user_data['permission_access'] && !$user_data['permission_read'])
 <?php
 
 
-if($config['debug_user_perms']) { r($_SESSION); r($permissions); }
+if(isset($config['debug_user_perms']) && $config['debug_user_perms'] == TRUE) { r($_SESSION); r($permissions); }
 
 // EOF

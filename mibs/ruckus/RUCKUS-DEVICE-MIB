@@ -127,20 +127,12 @@ ruckusDeviceLocation OBJECT-TYPE
     ::= { ruckusDeviceInfo 10 }
 
 ruckusDeviceMacAddr OBJECT-TYPE
-    SYNTAX  MacAddress
-    MAX-ACCESS read-only
+	SYNTAX  MacAddress
+	MAX-ACCESS read-only
     STATUS current
     DESCRIPTION
     	"MAC Address"
     ::= { ruckusDeviceInfo 11 }
-
-ruckusDeviceIPAddr OBJECT-TYPE
-    SYNTAX  IpAddress
-    MAX-ACCESS read-only
-    STATUS current
-    DESCRIPTION
-    	"IP Address"
-    ::= { ruckusDeviceInfo 12 }
 
 -- SNMP Trap Receiver
 --
@@ -160,70 +152,6 @@ ruckusDeviceTrapDestination2 OBJECT-TYPE
     DESCRIPTION
         "Specifies secondary trap destination IPv6 or IPv4 address."
     ::= { ruckusDeviceTrapInfo 2 }
-
-ruckusDeviceTrapDestination3 OBJECT-TYPE
-    SYNTAX  OCTET STRING  (SIZE (2..40))
-    MAX-ACCESS read-write
-    STATUS current
-    DESCRIPTION
-        "Specifies Third trap destination IPv6 or IPv4 address."
-    ::= { ruckusDeviceTrapInfo 3 }
-
-ruckusDeviceTrapDestination4 OBJECT-TYPE
-    SYNTAX  OCTET STRING  (SIZE (2..40))
-    MAX-ACCESS read-write
-    STATUS current
-    DESCRIPTION
-        "Specifies forth trap destination IPv6 or IPv4 address."
-    ::= { ruckusDeviceTrapInfo 4 }
-
-ruckusDeviceTrapDestination5 OBJECT-TYPE
-    SYNTAX  OCTET STRING  (SIZE (2..40))
-    MAX-ACCESS read-write
-    STATUS current
-    DESCRIPTION
-        "Specifies fifth trap destination IPv6 or IPv4 address."
-    ::= { ruckusDeviceTrapInfo 5 }
-
-ruckusDeviceTrapDestination6 OBJECT-TYPE
-    SYNTAX  OCTET STRING  (SIZE (2..40))
-    MAX-ACCESS read-write
-    STATUS current
-    DESCRIPTION
-        "Specifies sixth trap destination IPv6 or IPv4 address."
-    ::= { ruckusDeviceTrapInfo 6 }
-
-ruckusDeviceTrapDestination7 OBJECT-TYPE
-    SYNTAX  OCTET STRING  (SIZE (2..40))
-    MAX-ACCESS read-write
-    STATUS current
-    DESCRIPTION
-        "Specifies seventh trap destination IPv6 or IPv4 address."
-    ::= { ruckusDeviceTrapInfo 7 }
-
-ruckusDeviceTrapDestination8 OBJECT-TYPE
-    SYNTAX  OCTET STRING  (SIZE (2..40))
-    MAX-ACCESS read-write
-    STATUS current
-    DESCRIPTION
-        "Specifies eighth trap destination IPv6 or IPv4 address."
-    ::= { ruckusDeviceTrapInfo 8 }
-
-ruckusDeviceTrapDestination9 OBJECT-TYPE
-    SYNTAX  OCTET STRING  (SIZE (2..40))
-    MAX-ACCESS read-write
-    STATUS current
-    DESCRIPTION
-        "Specifies ninth trap destination IPv6 or IPv4 address."
-    ::= { ruckusDeviceTrapInfo 9 }
-
-ruckusDeviceTrapDestination10 OBJECT-TYPE
-    SYNTAX  OCTET STRING  (SIZE (2..40))
-    MAX-ACCESS read-write
-    STATUS current
-    DESCRIPTION
-        "Specifies tenth trap destination IPv6 or IPv4 address."
-    ::= { ruckusDeviceTrapInfo 10 }
 
 -- Device Misc IP Configuration
 --

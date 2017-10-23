@@ -11,14 +11,13 @@
  *
  */
 
-print_cli_data_field("Discovering IP Addresses", 3);
-
 $ip_data = array('ipv4' => array(),
                  'ipv6' => array());
 $valid['ip-addresses'] = array();
 
 $include_dir   = 'includes/discovery/ip-addresses';
 $include_order = 'default'; // Use MIBs from default os definitions by first!
+
 include($config['install_dir']."/includes/include-dir-mib.inc.php");
 
 // Process IP Addresses
@@ -189,8 +188,6 @@ foreach (array('ipv4', 'ipv6') as $ip_version)
     }
   }
 }
-
-echo(PHP_EOL);
 
 $table_headers = array('%WifIndex%n', '%WifDescr%n', '%WIP: Version%n', '%WAddress%n', '%WNetwork%n', '%WOrigin%n');
 print_cli_table($table_rows, $table_headers);

@@ -7,13 +7,16 @@
  *
  * @package    observium
  * @subpackage functions
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
 // Notifications and alerts in bottom navbar
 $notifications = array();
 $alerts        = array();
+
+// Enable caching, currently only for WUI
+include_once($config['install_dir'] .'/includes/cache.inc.php');
 
 include_once($config['html_dir'].'/includes/graphs/functions.inc.php');
 
@@ -91,7 +94,7 @@ function html_callback($buffer)
   if (!is_array($GLOBALS['cache_html']['title']))
   {
     // Title not set by any page, fall back to nicecase'd page name:
-    if ($GLOBALS['vars']['page'])
+    if ($GLOBALS['vars']['page'] && $_SESSION['authenticated'])
     {
       $GLOBALS['cache_html']['title'] = array(nicecase($GLOBALS['vars']['page']));
     } else {
@@ -110,10 +113,13 @@ function html_callback($buffer)
   $title = implode($config['page_title_separator'], $GLOBALS['cache_html']['title']);
 
   // Replace title placeholder by actual title
-  $buffer = str_replace('##TITLE##', $title, $buffer);
+  $buffer = str_replace('##TITLE##', escape_html($title), $buffer);
 
   // Page panel
   $buffer = str_replace('##PAGE_PANEL##', $GLOBALS['cache_html']['page_panel'], $buffer);
+
+  // UI Alerts
+  $buffer = str_replace('##UI_ALERTS##', $GLOBALS['ui_alerts'], $buffer);
 
   // Return modified HTML page source
   return $buffer;
@@ -171,9 +177,9 @@ function get_vars($vars_order = array(), $auth = FALSE)
         foreach ($segments as $pos => $segment)
         {
           //$segment = urldecode($segment);
-          if ($pos == "0" && strpos($segment, '=') === FALSE)
+          if ($pos == "0" && !str_contains($segment, '='))
           {
-            $segment = urldecode($segment);
+            $segment      = urldecode($segment);
             $vars['page'] = $segment;
           } else {
             list($name, $value) = explode('=', $segment, 2);
@@ -239,7 +245,7 @@ function get_vars($vars_order = array(), $auth = FALSE)
             if (strpos($vars[$name], '%1F') !== FALSE)
             {
               $vars[$name] = str_replace('%1F', ',', $vars[$name]); // %1F (US, unit separator) - not defined in HTML 4 standard
-            }            
+            }
           }
         }
         break;
@@ -267,22 +273,72 @@ function get_vars($vars_order = array(), $auth = FALSE)
     }
   }
 
-  //r($vars);
+  //print_vars($vars);
   return($vars);
 }
 
-// Detect if current URI is link to graph
+/**
+ * Validate requests by compare session and request tokens.
+ * This prevents a CSRF attacks
+ *
+ * @param string|array $token Passed from request token or array with 'requesttoken' param inside.
+ * @return boolean TRUE if session requesttoken same as passed from request
+ */
+function request_token_valid($token = NULL)
+{
+  if (is_array($token))
+  {
+    // If $vars array passed, fetch our default 'requesttoken' param
+    $token = $token['requesttoken'];
+  }
+
+  //print_vars($_SESSION['requesttoken']);
+  //print_vars($token);
+
+  // See: https://stackoverflow.com/questions/6287903/how-to-properly-add-csrf-token-using-php
+  // Session token generated after valid user auth in html/includes/authenticate.inc.php
+  if (empty($_SESSION['requesttoken']))
+  {
+    // User not authenticated
+    //print_warning("Request passed by unauthorized user.");
+    return FALSE;
+  }
+  else if (empty($token))
+  {
+    // Token not passed, WARNING seems as CSRF attack
+    print_error("WARNING. Possible CSRF attack with EMPTY request token.");
+    ///FIXME. need an user actions log
+    return FALSE;
+  }
+  else if (hash_equals($_SESSION['requesttoken'], $token))
+  {
+    // Correct session and request tokens, all good
+    return TRUE;
+  } else {
+    // Passed incorrect request token,
+    // WARNING seems as CSRF attack
+    print_error("WARNING. Possible CSRF attack with INCORRECT request token.");
+    ///FIXME. need an user actions log
+    return FALSE;
+  }
+}
+
+/**
+ * Detect if current URI is link to graph
+ *
+ * @return boolean TRUE if current script is graph
+ */
 // TESTME needs unit testing
-// DOCME needs phpdoc block
 function is_graph()
 {
-  //if (OBS_DEBUG)
-  //{
-  //  print_vars(realpath($_SERVER['SCRIPT_FILENAME']));
-  //  print_vars(realpath($GLOBALS['config']['html_dir'].'/graph.php'));
-  //  print_vars(realpath($_SERVER['SCRIPT_FILENAME']) === realpath($GLOBALS['config']['html_dir'].'/graph.php'));
-  //}
-  return (realpath($_SERVER['SCRIPT_FILENAME']) === realpath($GLOBALS['config']['html_dir'].'/graph.php'));
+  if (!defined('OBS_GRAPH'))
+  {
+    // defined in html/graph.php
+    define('OBS_GRAPH', FALSE);
+  }
+
+  return OBS_GRAPH;
+  //return (realpath($_SERVER['SCRIPT_FILENAME']) === realpath($GLOBALS['config']['html_dir'].'/graph.php'));
 }
 
 // TESTME needs unit testing
@@ -463,7 +519,12 @@ function detect_browser($user_agent = NULL)
   }
 
   // Detect Browser name, version and platform
-  $ua_info = parse_user_agent($user_agent);
+  if (!empty($user_agent))
+  {
+    $ua_info = parse_user_agent($user_agent);
+  } else {
+    $ua_info = array();
+  }
 
   $detect_browser = array('user_agent' => $user_agent,
                           'type'       => $type,
@@ -645,11 +706,11 @@ function pagination(&$vars, $total, $return_vars = FALSE)
     {
       if ($vars['pagesize'] != $GLOBALS['config']['web_pagesize'])
       {
-        $_SESSION['pagesize'] = $per_page; // Store pagesize in session only if changed default
+        session_set_var('pagesize', $per_page); // Store pagesize in session only if changed default
       }
       else if (isset($_SESSION['pagesize']))
       {
-        unset($_SESSION['pagesize']);      // Reset pagesize from session
+        session_unset_var('pagesize');          // Reset pagesize from session
       }
     }
   }
@@ -792,6 +853,7 @@ function pagination(&$vars, $total, $return_vars = FALSE)
       $values[$value] = array('name' => $name, 'class' => 'text-center');
     }
     $element = array('type'     => 'select',
+                     'class'    => 'pagination',
                      'id'       => 'pagesize',
                      'name'     => '# '.$per_page,
                      'width'    => '90px',
@@ -802,7 +864,7 @@ function pagination(&$vars, $total, $return_vars = FALSE)
 
     $pagination.= '
        <div class="col-lg-1 col-md-2 col-sm-2">
-       <form class="pull-right" action="#">';
+       <form class="pull-right pagination" action="#">';
 
     $pagination .= generate_form_element($element);
 
@@ -896,7 +958,7 @@ function generate_feed_url($vars)
 
     $baseurl = implode('&amp;', $param);
 
-    $url = '<link href="'.$baseurl.'" rel="alternate" title="'.$title.'" type="application/'.$feed_type.'+xml" />';
+    $url = '<link href="'.$baseurl.'" rel="alternate" title="'.escape_html($title).'" type="application/'.$feed_type.'+xml" />';
   }
 
   return $url;
@@ -1222,6 +1284,10 @@ function permissions_cache($user_id)
  */
 function permissions_cache_session()
 {
+  if (!$_SESSION['authenticated']) { return; }
+
+  @session_start(); // Re-enable write to session
+
   // Store device IDs in SESSION var for use to check permissions with ajax queries
   foreach (array('permitted', 'disabled', 'ignored') as $key)
   {
@@ -1233,6 +1299,8 @@ function permissions_cache_session()
   {
     $_SESSION['cache']['ports'][$key] = $GLOBALS['cache']['ports'][$key];
   }
+
+  session_commit(); // Write and close session
 }
 
 // TESTME needs unit testing
@@ -2366,6 +2434,66 @@ function register_html_title($title)
 function register_html_panel($html = '')
 {
   $GLOBALS['cache_html']['page_panel'] = $html;
+}
+
+function generate_colour_gradient($start_colour, $end_colour, $steps) {
+
+  if($steps < 4) { $steps = 4; }
+
+  $FromRGB['r'] = hexdec(substr($start_colour, 0, 2));
+  $FromRGB['g'] = hexdec(substr($start_colour, 2, 2));
+  $FromRGB['b'] = hexdec(substr($start_colour, 4, 2));
+
+  $ToRGB['r'] = hexdec(substr($end_colour, 0, 2));
+  $ToRGB['g'] = hexdec(substr($end_colour, 2, 2));
+  $ToRGB['b'] = hexdec(substr($end_colour, 4, 2));
+
+  $StepRGB['r'] = ($FromRGB['r'] - $ToRGB['r']) / ($steps - 1);
+  $StepRGB['g'] = ($FromRGB['g'] - $ToRGB['g']) / ($steps - 1);
+  $StepRGB['b'] = ($FromRGB['b'] - $ToRGB['b']) / ($steps - 1);
+
+  $GradientColors = array();
+
+  for($i = 0; $i < $steps; $i++) {
+    $RGB['r'] = floor($FromRGB['r'] - ($StepRGB['r'] * $i));
+    $RGB['g'] = floor($FromRGB['g'] - ($StepRGB['g'] * $i));
+    $RGB['b'] = floor($FromRGB['b'] - ($StepRGB['b'] * $i));
+
+    $HexRGB['r'] = sprintf('%02x', ($RGB['r']));
+    $HexRGB['g'] = sprintf('%02x', ($RGB['g']));
+    $HexRGB['b'] = sprintf('%02x', ($RGB['b']));
+
+    $GradientColors[] = implode(NULL, $HexRGB);
+  }
+  $GradientColors = array_filter($GradientColors, "c_len");
+  return $GradientColors;
+}
+
+function c_len($val){
+  return (strlen($val) == 6 ? true : false );
+}
+
+function adjust_colour_brightness($hex, $steps) {
+    // Steps should be between -255 and 255. Negative = darker, positive = lighter
+    $steps = max(-255, min(255, $steps));
+
+    // Normalize into a six character long hex string
+    $hex = str_replace('#', '', $hex);
+    if (strlen($hex) == 3) {
+        $hex = str_repeat(substr($hex,0,1), 2).str_repeat(substr($hex,1,1), 2).str_repeat(substr($hex,2,1), 2);
+    }
+
+    // Split into three parts: R, G and B
+    $color_parts = str_split($hex, 2);
+
+    $return ='';
+    foreach ($color_parts as $color) {
+        $color   = hexdec($color); // Convert to decimal
+        $color   = max(0,min(255,$color + $steps)); // Adjust color
+        $return  .= str_pad(dechex($color), 2, '0', STR_PAD_LEFT); // Make two char hex code
+    }
+
+    return $return;
 }
 
 // EOF

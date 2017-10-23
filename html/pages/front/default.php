@@ -80,11 +80,7 @@ foreach ($config['frontpage']['order'] as $module)
       show_micrographs($config);
       break;
     case "portpercent":
-      $div_class = "col-md-12"; // Class for each block
-      echo '<div class="box box-solid">' . PHP_EOL;
-      echo '<div class="box-header"><a href="/alerts/"><h3 class="box-title">Traffic Summary</h3></a></div>';
       include($config['html_dir']."/includes/status-portpercent.inc.php");
-      echo('</div>' . PHP_EOL);
       break;
   }
 }

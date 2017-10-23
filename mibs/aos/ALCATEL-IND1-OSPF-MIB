@@ -263,7 +263,7 @@ ALCATEL-IND1-OSPF-MIB DEFINITIONS ::= BEGIN
         STATUS  deprecated
         DESCRIPTION
             "The routing mechanism via which the routes, to be redistributed
-             using OSPF, are learned. This object has been deprecated. Use the
+             using OSPF, are learned. This object has been deprecated. Use the 
              alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
         DEFVAL      { other }
         ::= { alaOspfRedistProtoEntry 1 }
@@ -275,11 +275,11 @@ ALCATEL-IND1-OSPF-MIB DEFINITIONS ::= BEGIN
                          enable(1),  -- redistribute subnets
                         disable(2)   -- redistribute only network
                     }
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      deprecated
         DESCRIPTION
             "Enable/disable the reditribution of subnet routes.
-             Default value is enable. This object has been deprecated. Use the
+             Default value is enable. This object has been deprecated. Use the 
              alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
         DEFVAL      { enable }
         ::= { alaOspfRedistProtoEntry 2 }
@@ -291,10 +291,10 @@ ALCATEL-IND1-OSPF-MIB DEFINITIONS ::= BEGIN
                         type1(1),  -- comparable cost
                         type2(2)   -- non-comparable cost
                     }
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      deprecated
         DESCRIPTION
-            "Type of metric to be used for redistribution. This object has been deprecated.
+            "Type of metric to be used for redistribution. This object has been deprecated. 
              Use the alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
         DEFVAL      { type1 }
         ::= { alaOspfRedistProtoEntry 3 }
@@ -302,11 +302,11 @@ ALCATEL-IND1-OSPF-MIB DEFINITIONS ::= BEGIN
 
     alaOspfRedistProtoMetric OBJECT-TYPE
         SYNTAX      INTEGER ( 0 .. 65535 )
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      deprecated
         DESCRIPTION
             "Default metric to be used for redistributing routes
-             using type1 metric type. This object has been deprecated. Use the
+             using type1 metric type. This object has been deprecated. Use the 
              alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
         DEFVAL      { 0 }
         ::= { alaOspfRedistProtoEntry 4 }
@@ -314,10 +314,10 @@ ALCATEL-IND1-OSPF-MIB DEFINITIONS ::= BEGIN
 
     alaOspfRedistProtoStatus OBJECT-TYPE
         SYNTAX      RowStatus
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      deprecated
         DESCRIPTION
-            "Row status of this entry. This object has been deprecated. Use the
+            "Row status of this entry. This object has been deprecated. Use the 
              alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
         DEFVAL      { notInService }
         ::= { alaOspfRedistProtoEntry 5 }
@@ -1119,7 +1119,7 @@ alaOspfDebugHelper OBJECT-TYPE
         MAX-ACCESS  read-only
         STATUS      deprecated
         DESCRIPTION
-           "The destination IP address of this route. This object has been deprecated.
+           "The destination IP address of this route. This object has been deprecated. 
             Use the alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
         DEFVAL      { '00000000'H }
         ::= { alaOspfRedistRouteEntry 2 }
@@ -1130,7 +1130,7 @@ alaOspfDebugHelper OBJECT-TYPE
         MAX-ACCESS  read-only
         STATUS      deprecated
         DESCRIPTION
-           "The network mask for this route. This object has been deprecated. Use the
+           "The network mask for this route. This object has been deprecated. Use the 
             alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
         DEFVAL      { '00000000'H }
         ::= { alaOspfRedistRouteEntry 3 }
@@ -1138,10 +1138,10 @@ alaOspfDebugHelper OBJECT-TYPE
 
     alaOspfRedistRouteMetric OBJECT-TYPE
         SYNTAX      INTEGER ( 0 .. 65535 )
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      deprecated
         DESCRIPTION
-           "The metric to be used for the redistributed route. This object has been deprecated.
+           "The metric to be used for the redistributed route. This object has been deprecated. 
             Use the alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
         DEFVAL      { 0 }
         ::= { alaOspfRedistRouteEntry 4 }
@@ -1154,14 +1154,14 @@ alaOspfDebugHelper OBJECT-TYPE
                          redistributeAsAggregate(2),
                          redistributeExactMatch(3)
                     }
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      deprecated
         DESCRIPTION
            "Specifies how routes matching this entry are to be redistributed
             into OSPF. The different mechanisms possible are to redistribute all
             the subnet routes, redistribute an aggregated route if there are
             one or more actual routes which match this entry or redistribute
-            only an exactly matching route. This object has been deprecated. Use
+            only an exactly matching route. This object has been deprecated. Use 
             the alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
         DEFVAL      { redistributeAllSubnets }
         ::= { alaOspfRedistRouteEntry 5 }
@@ -1169,7 +1169,7 @@ alaOspfDebugHelper OBJECT-TYPE
 
     alaOspfRedistRouteTagMatch OBJECT-TYPE
         SYNTAX      INTEGER ( 0 .. 2147483647 )
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      deprecated
         DESCRIPTION
            "Redistribute the route only when the route tag matches with this
@@ -1185,11 +1185,11 @@ alaOspfDebugHelper OBJECT-TYPE
                              redistribute(1),
                         doNotRedistribute(2)
                     }
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      deprecated
         DESCRIPTION
             "Specifies whether the redistribution of routes in this range
-             is allowed or denied. This object has been deprecated. Use the
+             is allowed or denied. This object has been deprecated. Use the 
              alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
         DEFVAL      { redistribute }
         ::= { alaOspfRedistRouteEntry 7 }
@@ -1197,11 +1197,11 @@ alaOspfDebugHelper OBJECT-TYPE
 
     alaOspfRedistRouteStatus OBJECT-TYPE
         SYNTAX      RowStatus
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      deprecated
         DESCRIPTION
             "The row status variable, used according to
-             row installation and removal conventions. This object has been deprecated.
+             row installation and removal conventions. This object has been deprecated. 
              Use the alaRouteMapRedistProtoEntry objects of AlcatelIND1RouteMap.mib."
         DEFVAL      { notInService }
         ::= { alaOspfRedistRouteEntry 8 }
@@ -1239,6 +1239,8 @@ alaOspfDebugHelper OBJECT-TYPE
                 INTEGER,
             alaOspfIfMd5Key
                 OCTET STRING,
+            alaOspfIfMd5EncryptKey
+                AlaAuthenticationEncryptKey,
             alaOspfIfMd5KeyStartAccept
                 TimeTicks,
             alaOspfIfMd5KeyStopAccept
@@ -1248,9 +1250,7 @@ alaOspfDebugHelper OBJECT-TYPE
             alaOspfIfMd5KeyStopGenerate
                 TimeTicks,
             alaOspfIfMd5RowStatus
-                RowStatus,
-            alaOspfIfMd5EncryptKey
-                AlaAuthenticationEncryptKey
+                RowStatus
         }
 
 
@@ -1277,7 +1277,7 @@ alaOspfDebugHelper OBJECT-TYPE
 
     alaOspfIfMd5Key OBJECT-TYPE
         SYNTAX      OCTET STRING ( SIZE( 0 .. 16 ) )
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      current
         DESCRIPTION
            "The MD5 message digest key."
@@ -1287,7 +1287,7 @@ alaOspfDebugHelper OBJECT-TYPE
 
     alaOspfIfMd5KeyStartAccept OBJECT-TYPE
         SYNTAX      TimeTicks
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      current
         DESCRIPTION
            "The time that OSPF router will start accepting packets
@@ -1298,7 +1298,7 @@ alaOspfDebugHelper OBJECT-TYPE
 
     alaOspfIfMd5KeyStopAccept OBJECT-TYPE
         SYNTAX      TimeTicks
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      current
         DESCRIPTION
            "The time that OSPF router will stop accepting packets
@@ -1309,7 +1309,7 @@ alaOspfDebugHelper OBJECT-TYPE
 
     alaOspfIfMd5KeyStartGenerate OBJECT-TYPE
         SYNTAX      TimeTicks
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      current
         DESCRIPTION
            "The time that OSPF router will start using this key for
@@ -1320,7 +1320,7 @@ alaOspfDebugHelper OBJECT-TYPE
 
     alaOspfIfMd5KeyStopGenerate OBJECT-TYPE
         SYNTAX      TimeTicks
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      current
         DESCRIPTION
            "The time that OSPF router will stop using this key for
@@ -1331,7 +1331,7 @@ alaOspfDebugHelper OBJECT-TYPE
 
     alaOspfIfMd5RowStatus  OBJECT-TYPE
         SYNTAX      RowStatus
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      current
         DESCRIPTION
             "Row status of this entry."
@@ -1341,11 +1341,11 @@ alaOspfDebugHelper OBJECT-TYPE
 
     alaOspfIfMd5EncryptKey OBJECT-TYPE
         SYNTAX		AlaAuthenticationEncryptKey
-        MAX-ACCESS  read-write
+        MAX-ACCESS  read-create
         STATUS      current
         DESCRIPTION
            "The MD5 message digest Encrypted key."
-        DEFVAL      { '00000000000000000000000000000000'h }
+        DEFVAL      { "" }
         ::= { alaOspfIfMd5Entry 9 }
 
 
@@ -1384,8 +1384,8 @@ alaOspfDebugHelper OBJECT-TYPE
 			alaOspfIfOperStatus     INTEGER,
 			alaOspfIfIntfName       DisplayString,
     		alaOspfIf2WayNbrs 		Counter32,
-			alaOspfIfBfdStatus 		INTEGER,
-			alaOspfIfBfdDrsOnly		INTEGER	
+		alaOspfIfBfdStatus 		INTEGER,
+		alaOspfIfBfdDrsOnly		INTEGER
 		}
 
 	alaOspfIfEncryptKey OBJECT-TYPE
@@ -1473,7 +1473,7 @@ alaOspfDebugHelper OBJECT-TYPE
 
 	alaOspfIfOperStatus OBJECT-TYPE
         SYNTAX       INTEGER {
-			   			down (0),
+			   			down (0), 
 						up (1)
 					}	
         MAX-ACCESS   read-only
@@ -1509,7 +1509,6 @@ alaOspfDebugHelper OBJECT-TYPE
 		DESCRIPTION
 			"Enables/Disables OSPF for a BFD interface"
 		::= { alaOspfIfAugEntry 14}
-
 	alaOspfIfBfdDrsOnly OBJECT-TYPE
 		SYNTAX		INTEGER
 		{
@@ -1546,7 +1545,7 @@ alaOspfDebugHelper OBJECT-TYPE
 	AlaOspfVirtIfAugEntry ::=
 		SEQUENCE {
 			alaOspfVirtIfEncryptKey AlaAuthenticationEncryptKey,
-			alaOspfVirtIfOperStatus INTEGER
+			alaOspfVirtIfOperStatus INTEGER 
 		}
 
 	alaOspfVirtIfEncryptKey OBJECT-TYPE
@@ -1560,7 +1559,7 @@ alaOspfDebugHelper OBJECT-TYPE
 
 	alaOspfVirtIfOperStatus OBJECT-TYPE
         SYNTAX       INTEGER {
-			   			down (0),
+			   			down (0), 
 						up (1)
 					}	
         MAX-ACCESS   read-only
@@ -2275,10 +2274,10 @@ alaOspfDebugHelper OBJECT-TYPE
         MAX-ACCESS   read-only
         STATUS   current
         DESCRIPTION
-           "Specifies whether or not an NSSA border router will unconditionally translate
-            Type-7 LSAs into Type-5 LSAs. When set to always, an NSSA border router always
+           "Specifies whether or not an NSSA border router will unconditionally translate 
+            Type-7 LSAs into Type-5 LSAs. When set to always, an NSSA border router always 
             translates Type-7 LSAs into Type-5 LSAs regardless of the translator state of
-            other NSSA border routers. When set to candidate, an NSSA border router participates
+            other NSSA border routers. When set to candidate, an NSSA border router participates 
             in the translator election process. For non-NSSA border routers, this value is none."
         DEFVAL      { candidate }
        ::= { alaOspfAreaAugEntry 11 }
@@ -2288,8 +2287,8 @@ alaOspfDebugHelper OBJECT-TYPE
         MAX-ACCESS   read-only
         STATUS   current
         DESCRIPTION
-           "Defines the length of time (in seconds) an elected Type-7 translator will continue
-            to perform its translator duties once it has determined that its translator status
+           "Defines the length of time (in seconds) an elected Type-7 translator will continue 
+            to perform its translator duties once it has determined that its translator status 
             has been deposed by another NSSA border router translator. For non-NSSA border routers,
             this value is not defined and will be 0."
         DEFVAL      { 40 }
@@ -2320,7 +2319,7 @@ alaOspfDebugHelper OBJECT-TYPE
         MAX-ACCESS   read-only
         STATUS   current
         DESCRIPTION
-           "The state of the NSSA Translator, for NSSA border routers. For non-NSSA border
+           "The state of the NSSA Translator, for NSSA border routers. For non-NSSA border 
             routers, the state is none."
        ::= { alaOspfAreaAugEntry 14 }
 
@@ -2395,7 +2394,7 @@ alaOspfDebugHelper OBJECT-TYPE
         STATUS   current
         DESCRIPTION
            "The address to which data traffic for the advertised destination is to be forwarded.
-            If the Forwarding address is set to 0.0.0.0, data traffic is to be forwarded to the
+            If the Forwarding address is set to 0.0.0.0, data traffic is to be forwarded to the 
             LSA's originator."
        ::= { alaOspfExtLsdbAugEntry 3 }
 
@@ -2437,7 +2436,7 @@ alaOspfDebugHelper OBJECT-TYPE
 
 
 -- ************************************************************************
--- Area Interface Table
+-- Area Interface Table 
 -- ************************************************************************
     alaOspfAreaInterfaceTable OBJECT-TYPE
         SYNTAX   SEQUENCE OF AlaOspfAreaInterfaceEntry
@@ -2471,7 +2470,7 @@ alaOspfDebugHelper OBJECT-TYPE
        ::= { alaOspfAreaInterfaceEntry 1 }
 
     alaOspfAddressLessIf OBJECT-TYPE
-        SYNTAX   Integer32 (0..2147483647)
+        SYNTAX   Integer32(0..2147483647)
         MAX-ACCESS   read-only
         STATUS   obsolete
         DESCRIPTION
@@ -2481,10 +2480,10 @@ alaOspfDebugHelper OBJECT-TYPE
            IP  Addresses,  and  the corresponding value of
            ifIndex for interfaces having no IP Address."
        ::= { alaOspfAreaInterfaceEntry 2 }
-	
+	   
 
 -- ************************************************************************
--- Expansion to ospfAreaAggregateTable
+-- Expansion to ospfAreaAggregateTable 
 -- ************************************************************************
     alaOspfAreaAggregateAugTable OBJECT-TYPE
         SYNTAX   SEQUENCE OF AlaOspfAreaAggregateAugEntry
@@ -2500,7 +2499,7 @@ alaOspfDebugHelper OBJECT-TYPE
         STATUS   current
         DESCRIPTION
            "Additions to the area aggregate table"
-      	AUGMENTS { ospfAreaAggregateEntry }
+      	AUGMENTS { ospfAreaAggregateEntry } 
       	::= { alaOspfAreaAggregateAugTable 1 }
 
 	AlaOspfAreaAggregateAugEntry ::=
@@ -2513,8 +2512,8 @@ alaOspfDebugHelper OBJECT-TYPE
         MAX-ACCESS   read-write
         STATUS   current
         DESCRIPTION
-           "If set, this value is used as the metric for the area aggregate route,
-		    overriding the calculated metric"
+           "If set, this value is used as the metric for the area aggregate route, 
+		    overriding the calculated metric"  
 		DEFVAL   { 0 }
 		::= { alaOspfAreaAggregateAugEntry 1 }
 
@@ -2528,12 +2527,12 @@ alaOspfDebugHelper OBJECT-TYPE
         MAX-ACCESS   read-write
         STATUS       current
         DESCRIPTION
-           "Indicates whether this ASBR router originates the default route
-            into the OSPF normal area(s).  If set to 'only', the default route
-            is advertised into the OSPF normal area, provided the ASBR has
-            a route to 0.0.0.0/0 in its routing table. Alternatively, if set
-            to 'always', a default route is advertised into the OSPF domain
-            regardless of whether the ASBR has a route to 0.0.0.0/0. A value of
+           "Indicates whether this ASBR router originates the default route 
+            into the OSPF normal area(s).  If set to 'only', the default route 
+            is advertised into the OSPF normal area, provided the ASBR has 
+            a route to 0.0.0.0/0 in its routing table. Alternatively, if set 
+            to 'always', a default route is advertised into the OSPF domain 
+            regardless of whether the ASBR has a route to 0.0.0.0/0. A value of 
             'none' has the effect of not originating the default route."
         DEFVAL  { none }
        ::= { alaProtocolOspf 39 }
@@ -2558,7 +2557,7 @@ alaOspfDebugHelper OBJECT-TYPE
         DEFVAL  { 1 }
        ::= { alaProtocolOspf 41 }
 
-	 alaOspfBfdStatus      OBJECT-TYPE
+    alaOspfBfdStatus      OBJECT-TYPE
 		SYNTAX      INTEGER
     	{
                  enable(1),
@@ -2570,7 +2569,6 @@ alaOspfDebugHelper OBJECT-TYPE
 		"Enables or disables bfd  for OSPF protocol"
 		DEFVAL      { disable }
 		::= { alaProtocolOspf 42}
-
     alaOspfBfdAllInterfaceStatus  OBJECT-TYPE
 		SYNTAX      INTEGER
         {
@@ -2583,10 +2581,18 @@ alaOspfDebugHelper OBJECT-TYPE
 	    "Enables or disables bfd for all OSPF interfaces"
 		DEFVAL      { disable }
 		::= { alaProtocolOspf 43}
-
-
-
-
+    alaOspfOpaqueTransitCapability  OBJECT-TYPE
+		SYNTAX      INTEGER
+		{
+			 enable(1),
+			 disable(2)
+		}
+		MAX-ACCESS  read-write
+		STATUS  current
+		DESCRIPTION
+		"Enables or disables opaque LSA accept and retransmit capability for OSPF"
+		DEFVAL      { enable }
+		::= { alaProtocolOspf 44}
 
 --
 -- Compliance Statements
@@ -2608,13 +2614,13 @@ alaOspfDebugHelper OBJECT-TYPE
                 alaOspfBdrRouterGroup,
                 alaOspfRedistRouteGroup,
                 alaOspfIfMd5Group,
-				alaOspfGeneralGroup,
-				alaOspfAreaInterfaceGroup,
-				alaOspfAreaAggregateAugGroup,
-				alaOspfAreaAugGroup,
-				alaOspfExtLsdbAugGroup,
-				alaOspfIfAugGroup,
-				alaOspfNbrAugEntryGroup
+		alaOspfGeneralGroup,
+		alaOspfAreaInterfaceGroup,
+		alaOspfAreaAggregateAugGroup,
+		alaOspfAreaAugGroup,
+		alaOspfExtLsdbAugGroup,
+		alaOspfIfAugGroup,
+		alaOspfNbrAugEntryGroup
             }
 
         ::= { alcatelIND1OSPFMIBCompliances 1 }
@@ -2633,17 +2639,19 @@ alaOspfDebugHelper OBJECT-TYPE
             alaOspfTimerSpfHold,
             alaOspfRouteNumber,
             alaOspfMTUCheck,
-		    alaOspfBfdStatus,
-		    alaOspfBfdAllInterfaceStatus,
-		    alaOspfAsBdrRtr,
-		    alaOspfDefaultOriginate,
-			alaOspfDefaultOriginateMetric,
-			alaOspfDefaultOriginateMetricType
+            alaOspfBfdStatus,
+            alaOspfBfdAllInterfaceStatus,
+            alaOspfAsBdrRtr,
+            alaOspfDefaultOriginate,
+            alaOspfDefaultOriginateMetric,
+            alaOspfDefaultOriginateMetricType,
+            alaOspfOpaqueTransitCapability
         }
         STATUS  current
         DESCRIPTION
             "Collection of Miscellaneous objects for management of OSPF."
-	::= { alcatelIND1OSPFMIBGroups 1 }
+        ::= { alcatelIND1OSPFMIBGroups 1 }
+
 
     alaOspfRedistProtoGroup OBJECT-GROUP
         OBJECTS
@@ -2753,7 +2761,7 @@ alaOspfDebugHelper OBJECT-TYPE
         STATUS  deprecated
         DESCRIPTION
             "Collection of objects for management of
-             Route Redistribution configuration. These objects have been deprecated,
+             Route Redistribution configuration. These objects have been deprecated, 
              and the group is no longer mandatory."
         ::= { alcatelIND1OSPFMIBGroups 6 }
 
@@ -2794,8 +2802,8 @@ alaOspfDebugHelper OBJECT-TYPE
         DESCRIPTION
             "Collection of objects for management of Interface MD5 configuration."
         ::= { alcatelIND1OSPFMIBGroups 9 }
-
-     alaOspfAreaInterfaceGroup  OBJECT-GROUP
+ 
+         alaOspfAreaInterfaceGroup  OBJECT-GROUP
         OBJECTS
         {
     		alaOspfAddressLessIf,
@@ -2808,7 +2816,6 @@ alaOspfDebugHelper OBJECT-TYPE
         DESCRIPTION
             "all interfaces attached to a specific area."
         ::= { alcatelIND1OSPFMIBGroups 7 }
-
         alaOspfAreaAggregateAugGroup  OBJECT-GROUP
         OBJECTS
         {
@@ -2818,7 +2825,6 @@ alaOspfDebugHelper OBJECT-TYPE
         DESCRIPTION
             "Additions to the area aggregate table."
         ::= { alcatelIND1OSPFMIBGroups 10 }
-
         alaOspfAreaAugGroup  OBJECT-GROUP
         OBJECTS
         {
@@ -2840,7 +2846,6 @@ alaOspfDebugHelper OBJECT-TYPE
         DESCRIPTION
             "Area table additions."
         ::= { alcatelIND1OSPFMIBGroups 11 }
-
         alaOspfExtLsdbAugGroup  OBJECT-GROUP
         OBJECTS
         {
@@ -2856,7 +2861,6 @@ alaOspfDebugHelper OBJECT-TYPE
         DESCRIPTION
             "External Link state database additions."
         ::= { alcatelIND1OSPFMIBGroups 12 }
-
         alaOspfIfAugGroup  OBJECT-GROUP
         OBJECTS
         {
@@ -2880,8 +2884,6 @@ alaOspfDebugHelper OBJECT-TYPE
         DESCRIPTION
             ""
         ::= { alcatelIND1OSPFMIBGroups 13 }
-
-
         alaOspfNbrAugEntryGroup  OBJECT-GROUP
         OBJECTS
         {
@@ -2904,7 +2906,6 @@ alaOspfDebugHelper OBJECT-TYPE
         DESCRIPTION
             ""
         ::= { alcatelIND1OSPFMIBGroups 14 }
-
         alaProtocolOspfGroup OBJECT-GROUP
         OBJECTS
         {
@@ -2930,7 +2931,6 @@ alaOspfDebugHelper OBJECT-TYPE
         DESCRIPTION
             ""
         ::= { alcatelIND1OSPFMIBGroups 15 }
-
         alaOspfVirtNbrAugGroup  OBJECT-GROUP
         OBJECTS
         {
@@ -2949,5 +2949,6 @@ alaOspfDebugHelper OBJECT-TYPE
         DESCRIPTION
             ""
         ::= { alcatelIND1OSPFMIBGroups 16 }
+
 END
 

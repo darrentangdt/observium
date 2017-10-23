@@ -34,6 +34,10 @@ function build_devices_where_array($vars)
           $values = get_group_entities($value);
           $where_array[$var] = generate_query_values($values, 'device_id');
           break;
+        case 'device':
+        case 'device_id':
+          $where_array[$var] = generate_query_values($value, 'device_id');
+          break;
         case 'hostname':
         case 'sysname':
           $where_array[$var] = generate_query_values($value, $var, '%LIKE%');
@@ -160,7 +164,8 @@ function print_device_header($device, $args = array())
     {
       $graphs = $config['os'][$device['os_group']]['graphs'];
     } else {
-      $graphs = $config['os']['default']['graphs'];
+      // Default group
+      $graphs = $config['os_group']['default']['graphs'];
     }
 
     $graph_array = array();
@@ -258,12 +263,12 @@ function print_device_row($device, $vars = array('view' => 'basic'), $link_vars 
     <td class="text-nowrap" style="width: 55px;">';
       if ($tags['ports_count'])
       {
-        $hostbox .= '<i class="oicon-network-ethernet"></i> <span class="label">'.$tags['ports_count'].'</span>';
+        $hostbox .= '<i class="'.$config['icon']['port'].'"></i> <span class="label">'.$tags['ports_count'].'</span>';
       }
       $hostbox .= '<br />';
       if ($tags['sensors_count'])
       {
-        $hostbox .= '<i class="oicon-dashboard"></i> <span class="label">'.$tags['sensors_count'].'</span>';
+        $hostbox .= '<i class="'.$config['icon']['sensor'].'"></i> <span class="label">'.$tags['sensors_count'].'</span>';
       }
       $hostbox .= '</td>
     <td>'.$tags['os_text'].' '.$tags['version']. (!empty($tags['features']) ? ' ('.$tags['features'].')' : '').'<br />
@@ -319,7 +324,8 @@ function print_device_row($device, $vars = array('view' => 'basic'), $link_vars 
       {
         $graphs = $config['os'][$device['os_group']]['graphs'];
       } else {
-        $graphs = $config['os']['default']['graphs'];
+        // Default group
+        $graphs = $config['os_group']['default']['graphs'];
       }
 
       // Preprocess device graphs array
@@ -330,16 +336,18 @@ function print_device_row($device, $vars = array('view' => 'basic'), $link_vars 
 
       foreach ($graphs as $entry)
       {
+        list(,$graph_subtype) = explode("_", $entry, 2);
+
         if ($entry && in_array(str_replace("device_", "", $entry), $graphs_enabled))
         {
           $graph_array['type'] = $entry;
-          if(isset($config['graph_types']['device'][$entry]['name']))
+          if(isset($config['graph_types']['device'][$graph_subtype]))
           {
-            $graph_array['popup_title'] = $config['graph_types']['device'][$entry]['name'];
+            $title = $config['graph_types']['device'][$graph_subtype]['descr'];
           } else {
-            $graph_array['popup_title'] = nicecase(str_replace("_", " ", str_replace("device_", "", $entry)));
+            $title = nicecase(str_replace("_", " ", $graph_subtype));
           }
-          $tags['graphs'][] = '<div class="pull-right" style="margin: 5px; margin-bottom: 0px;">'. generate_graph_popup($graph_array) .'<br /><div style="text-align: center; padding: 0px; font-size: 7pt; font-weight: bold;">'.$graph_array['popup_title'].'</div></div>';
+          $tags['graphs'][] = '<div class="pull-right" style="margin: 5px; margin-bottom: 0px;">'. generate_graph_popup($graph_array) .'<br /><div style="text-align: center; padding: 0px; font-size: 7pt; font-weight: bold;">'.$title.'</div></div>';
         }
       }
 
@@ -533,10 +541,9 @@ function generate_device_popup($device, $vars = array(), $start = NULL, $end = N
   elseif (isset($device['os_group']) && isset($config['os'][$device['os_group']]['graphs']))
   {
     $graphs = $config['os'][$device['os_group']]['graphs'];
-  }
-  else
-  {
-    $graphs = $config['os']['default']['graphs'];
+  } else {
+    // Default group
+    $graphs = $config['os_group']['default']['graphs'];
   }
 
   // Preprocess device graphs array
@@ -633,25 +640,38 @@ function generate_device_link($device, $text = NULL, $vars = array(), $escape = 
   return '<a href="' . $url . '" class="entity-popup ' . $class . '" data-eid="' . $device['device_id'] . '" data-etype="device">' . $text . '</a>';
 }
 
-function generate_device_form_values($form_filter = FALSE, $column = 'device_id')
+function generate_device_form_values($form_filter = FALSE, $column = 'device_id', $options = array())
 {
   global $cache;
 
   $form_items = array();
   foreach ($cache['devices']['hostname'] as $hostname => $device_id)
   {
-    if ($cache['devices']['id'][$device_id]['disabled'] && !$GLOBALS['config']['web_show_disabled']) { continue; }
-    else if (is_array($form_filter) && !in_array($device_id, $form_filter)) { continue; } // Devices only with entries
-  
-    $form_items[$device_id] = array('name' => $hostname, 'group' => 'UP');
+
+    if (is_array($form_filter) && !in_array($device_id, $form_filter)) { continue; } // Devices only with entries
+
     if ($cache['devices']['id'][$device_id]['disabled'] === '1')
     {
+      if (isset($options['disabled']))
+      {
+        // Force display disabled devices
+        if (!$options['disabled']) { continue; }
+      }
+      else if ($cache['devices']['id'][$device_id]['disabled'] && !$GLOBALS['config']['web_show_disabled']) { continue; }
+
       $form_items[$device_id]['group'] = 'DISABLED';
     }
     else if ($cache['devices']['id'][$device_id]['status'] === '0')
     {
+      if (isset($options['down']) && !$options['down']) { continue; } // Skip down
+
       $form_items[$device_id]['group'] = 'DOWN';
+    } else {
+      if (isset($options['up']) && !$options['up']) { continue; } // Skip up
+      $form_items[$device_id]['group'] = 'UP';
     }
+    $form_items[$device_id]['name'] = $hostname;
+
     if (isset($cache['devices']['id'][$device_id]['row_class'][0]))
     {
       // Set background color for non empty row_class (disabled/down/ignored)

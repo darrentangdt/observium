@@ -17,7 +17,7 @@ if(device_permitted($device))
   // Only show aggregate graph if we have access to the entire device.
 
   $graph_title = nicecase($vars['metric']);
-  $graph_array['type'] = "device_".$vars['metric'];
+  $graph_array['type'] = "device_diskio_bits";
   $graph_array['device'] = $device['device_id'];
   $graph_array['legend'] = no;
 
@@ -27,6 +27,9 @@ if(device_permitted($device))
 
   echo generate_box_open($box_args);
 
+  print_graph_row($graph_array);
+
+  $graph_array['type'] = "device_diskio_ops";
   print_graph_row($graph_array);
 
   echo generate_box_close();

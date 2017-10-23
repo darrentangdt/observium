@@ -32,6 +32,7 @@ $oids  = snmpwalk_cache_multi_oid($device, "prtMarkerEntry", array(), $mib);
 $prt_supplies = snmpwalk_cache_oid($device, 'prtMarkerSuppliesDescription', array(), $mib);
 //print_vars($oids);
 $count = count($oids);
+$total_printed_allow = TRUE;
 
 foreach ($oids as $index => $entry)
 {
@@ -48,7 +49,7 @@ foreach ($oids as $index => $entry)
   $oid      = '.1.3.6.1.2.1.43.10.2.1.4.' . $index;
   $value    = $entry[$oid_name];
 
-  if (isset($entry[$oid_name]))
+  if (isset($entry[$oid_name]) && $total_printed_allow)
   {
     // CLEANME. Compatibility, remove in r8500, but not before CE 0.16.8
     // Rename olf rrd filename and old ds name
@@ -60,6 +61,7 @@ foreach ($oids as $index => $entry)
     }
 
     discover_sensor($valid['sensor'], 'counter', $device, $oid, $index, $mib .'-'. $oid_name, $descr, 1, $value, $options);
+    $total_printed_allow = FALSE; // Discover only first "Total Printed", all other always same
   }
 
   // PowerOn counter

@@ -65,7 +65,7 @@ function print_alert_log($vars)
       if ($list['entity'])        { $cols['entity']        = 'Entity'; }
       $cols[]         = 'Message';
       $cols['status'] = 'Status';
-      $cols['notified'] = array('Notified', 'style="width: 40px"');
+      //$cols['notified'] = array('Notified', 'style="width: 40px"');
       $string .= get_table_header($cols); // , $vars); // Actually sorting is disabled now
     }
     $string   .= '  <tbody>' . PHP_EOL;
@@ -139,7 +139,18 @@ function print_alert_log($vars)
       if (!$vars['short'])
       {
         $string .= '<td>' . escape_html($entry['log_type']) . '</td>' . PHP_EOL;
-        $string .= '<td style="text-align: right">'. ($entry['notified'] ? '<span class="label label-success">YES</span>' : '<span class="label">NO</span>') . '</td>' . PHP_EOL;
+        /*
+        $string .= '<td class="text-right">';
+        if ($entry['notified'])
+        {
+          $string .= '<span class="label label-success">OK</span>';
+        } else if (!stristr($entry['log_type'], 'notify')) {
+          $string .= '<span class="label">SKIP</span>';
+        } else {
+          $string .= '<span class="label label-warning">NO</span>';
+        }
+        $string .= '</td>' . PHP_EOL;
+        */
       }
 
       $string .= '  </tr>' . PHP_EOL;
@@ -206,6 +217,9 @@ function get_alert_log($vars)
     {
       switch ($var)
       {
+//        case 'alert_entry':
+//          $where .= generate_query_values($value, 'alert_table_id');
+//          break;
         case 'log_type':
           $where .= generate_query_values($value, 'log_type');
           break;

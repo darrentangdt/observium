@@ -14,9 +14,9 @@
 $where  = ' WHERE `device_id` = ? AND `deleted` != ?';
 $params = array($device['device_id'], '1');
 $ports['total']    = dbFetchCell("SELECT COUNT(*) FROM `ports` $where", $params);
-$ports['up']       = dbFetchCell("SELECT COUNT(*) FROM `ports` $where AND `ifAdminStatus` = 'up' AND (`ifOperStatus` = 'up' OR `ifOperStatus` = 'monitoring')", $params);
-$ports['down']     = dbFetchCell("SELECT COUNT(*) FROM `ports` $where AND `ifAdminStatus` = 'up' AND (`ifOperStatus` = 'lowerLayerDown' OR `ifOperStatus` = 'down')", $params);
-$ports['disabled'] = dbFetchCell("SELECT COUNT(*) FROM `ports` $where AND `ifAdminStatus` = 'down'", $params);
+$ports['up']       = dbFetchCell("SELECT COUNT(*) FROM `ports` $where AND `ifAdminStatus` = 'up' AND `ifOperStatus` IN ('up', 'testing', 'monitoring')", $params);
+$ports['down']     = dbFetchCell("SELECT COUNT(*) FROM `ports` $where AND `ifAdminStatus` = 'up' AND `ifOperStatus` IN ('lowerLayerDown', 'down')", $params);
+$ports['shutdown'] = dbFetchCell("SELECT COUNT(*) FROM `ports` $where AND `ifAdminStatus` = 'down'", $params);
 $ports['deleted']  = dbFetchCell("SELECT COUNT(*) FROM `ports` WHERE `device_id` = ? AND `deleted` = ?", $params);
 
 if ($ports['down']) { $ports_colour = $warn_colour_a; } else { $ports_colour = $list_colour_a; }
@@ -24,7 +24,7 @@ if ($ports['down']) { $ports_colour = $warn_colour_a; } else { $ports_colour = $
 if ($ports['total'])
 {
   echo generate_box_open(array('title' => 'Ports',
-                               'icon'  => 'oicon-network-ethernet',
+                               'icon'  => $config['icon']['port'],
                                'url'   => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'ports'))));
 
   $graph_array['height'] = "100";
@@ -53,10 +53,10 @@ if ($ports['total'])
 
   echo('</td></tr>
     <tr style="background-color: ' . $ports_colour . '; align: center;">
-      <td style="width: 25%; text-align: center;"><i class="oicon-node-select-all" title="Total Ports"></i> ' . $ports['total'] . '</td>
-      <td style="width: 25%; text-align: center;" class="green"><i class="oicon-network-status" title="Up Ports"></i> ' . $ports['up'] . '</td>
-      <td style="width: 25%; text-align: center;" class="red"><i class="oicon-network-status-busy" title="Down Ports"></i> ' . $ports['down'] . '</td>
-      <td style="width: 25%; text-align: center;" class="grey"><i class="oicon-network-status-offline" title="Disabled Ports"></i> ' . $ports['disabled'] . '</td>
+      <td style="width: 25%; text-align: center;"><i class="'.$config['icon']['port'].'" title="Total Ports"></i> ' . $ports['total'] . '</td>
+      <td style="width: 25%; text-align: center;" class="green"><i class="'.$config['icon']['up'].'" title="Up Ports"></i> ' . $ports['up'] . '</td>
+      <td style="width: 25%; text-align: center;" class="red">  <i class="'.$config['icon']['down'].'" title="Down Ports"></i> ' . $ports['down'] . '</td>
+      <td style="width: 25%; text-align: center;" class="grey"> <i class="'.$config['icon']['shutdown'].'" title="Shutdown Ports"></i> ' . $ports['shutdown'] . '</td>
     </tr>');
 
   echo('<tr><td colspan=4 style="padding-left: 10px; font-size: 11px; font-weight: bold;">');

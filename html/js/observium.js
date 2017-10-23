@@ -107,7 +107,7 @@ function toggleAttrib(attrib, form_id) {
 
 // Hide/show div by id or alert class (default)
 function showDiv(checked, id) {
-  id = typeof id !== 'undefined' ? '#' + id : '.alert';
+  id = typeof id !== 'undefined' ? '[id=' + id + ']' : '.alert';
   //console.log($(id));
   if (checked) {
     $(id).hide();

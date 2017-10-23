@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- AAA management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -97,7 +97,7 @@ IMPORTS
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsAaaObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -862,7 +862,9 @@ CucsAaaDefaultAuthEntry ::= SEQUENCE {
     cucsAaaDefaultAuthSessionTimeout                                 Gauge32,
     cucsAaaDefaultAuthOperProviderGroup                              SnmpAdminString,
     cucsAaaDefaultAuthOperRealm                                      CucsAaaRealm,
-    cucsAaaDefaultAuthUse2Factor                                     TruthValue
+    cucsAaaDefaultAuthUse2Factor                                     TruthValue,
+    cucsAaaDefaultAuthConfigState                                    CucsAaaConfigState,
+    cucsAaaDefaultAuthConfigStatusMessage                            SnmpAdminString
 }
 
 cucsAaaDefaultAuthInstanceId OBJECT-TYPE
@@ -962,6 +964,23 @@ cucsAaaDefaultAuthUse2Factor OBJECT-TYPE
         "Cisco UCS aaa:DefaultAuth:use2Factor managed object property"
     ::= { cucsAaaDefaultAuthEntry 13 }
 
+cucsAaaDefaultAuthConfigState OBJECT-TYPE
+    SYNTAX       CucsAaaConfigState
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS aaa:DefaultAuth:configState managed object property"
+    ::= { cucsAaaDefaultAuthEntry 14 }
+
+cucsAaaDefaultAuthConfigStatusMessage OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS aaa:DefaultAuth:configStatusMessage
+        managed object property"
+    ::= { cucsAaaDefaultAuthEntry 15 }
+
 cucsAaaDomainTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsAaaDomainEntry
     MAX-ACCESS       not-accessible
@@ -986,7 +1005,9 @@ CucsAaaDomainEntry ::= SEQUENCE {
     cucsAaaDomainDescr                                               SnmpAdminString,
     cucsAaaDomainName                                                SnmpAdminString,
     cucsAaaDomainRefreshPeriod                                       Gauge32,
-    cucsAaaDomainSessionTimeout                                      Gauge32
+    cucsAaaDomainSessionTimeout                                      Gauge32,
+    cucsAaaDomainConfigState                                         CucsAaaConfigState,
+    cucsAaaDomainConfigStatusMessage                                 SnmpAdminString
 }
 
 cucsAaaDomainInstanceId OBJECT-TYPE
@@ -1044,6 +1065,22 @@ cucsAaaDomainSessionTimeout OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS aaa:Domain:sessionTimeout managed object property"
     ::= { cucsAaaDomainEntry 8 }
+
+cucsAaaDomainConfigState OBJECT-TYPE
+    SYNTAX       CucsAaaConfigState
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS aaa:Domain:configState managed object property"
+    ::= { cucsAaaDomainEntry 9 }
+
+cucsAaaDomainConfigStatusMessage OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS aaa:Domain:configStatusMessage managed object property"
+    ::= { cucsAaaDomainEntry 10 }
 
 cucsAaaDomainAuthTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsAaaDomainAuthEntry
@@ -1724,7 +1761,8 @@ CucsAaaEpUserEntry ::= SEQUENCE {
     cucsAaaEpUserPwd                                                 SnmpAdminString,
     cucsAaaEpUserPwdSet                                              TruthValue,
     cucsAaaEpUserConfigState                                         CucsAaaConfigState,
-    cucsAaaEpUserConfigStatusMessage                                 SnmpAdminString
+    cucsAaaEpUserConfigStatusMessage                                 SnmpAdminString,
+    cucsAaaEpUserIsPwdEnc                                            TruthValue
 }
 
 cucsAaaEpUserInstanceId OBJECT-TYPE
@@ -1806,6 +1844,14 @@ cucsAaaEpUserConfigStatusMessage OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS aaa:EpUser:configStatusMessage managed object property"
     ::= { cucsAaaEpUserEntry 11 }
+
+cucsAaaEpUserIsPwdEnc OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS aaa:EpUser:isPwdEnc managed object property"
+    ::= { cucsAaaEpUserEntry 14 }
 
 cucsAaaExtMgmtCutThruTknTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsAaaExtMgmtCutThruTknEntry
@@ -3520,7 +3566,8 @@ CucsAaaPwdProfileEntry ::= SEQUENCE {
     cucsAaaPwdProfileName                                            SnmpAdminString,
     cucsAaaPwdProfileNoChangeInterval                                Gauge32,
     cucsAaaPwdProfilePolicyLevel                                     Gauge32,
-    cucsAaaPwdProfilePolicyOwner                                     CucsPolicyPolicyOwner
+    cucsAaaPwdProfilePolicyOwner                                     CucsPolicyPolicyOwner,
+    cucsAaaPwdProfileMinPassphraseLen                                Gauge32
 }
 
 cucsAaaPwdProfileInstanceId OBJECT-TYPE
@@ -3637,6 +3684,15 @@ cucsAaaPwdProfilePolicyOwner OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS aaa:PwdProfile:policyOwner managed object property"
     ::= { cucsAaaPwdProfileEntry 14 }
+
+cucsAaaPwdProfileMinPassphraseLen OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS aaa:PwdProfile:minPassphraseLen managed
+        object property"
+    ::= { cucsAaaPwdProfileEntry 16 }
 
 cucsAaaRadiusEpTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsAaaRadiusEpEntry

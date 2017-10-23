@@ -43,6 +43,7 @@ $config['db']['debug']      = TRUE;        // If TRUE store errors in DB queries
 #$config['log_file']      = $config['install_dir'] . "/observium.log";
 #$config['log_dir']       = $config['install_dir'] . "/logs";
 #$config['temp_dir']      = "/tmp";
+#$config['cache_dir']     = $config['temp_dir']    . "/observium_cache";
 
 // What is my own hostname (used so observium can identify its host in its own database)
 #$config['own_hostname'] = "localhost"; // By default equals `hostname -f`
@@ -60,7 +61,6 @@ $config['snmptranslate']  = "/usr/bin/snmptranslate";
 $config['whois']          = "/usr/bin/whois";
 $config['mtr']            = "/usr/bin/mtr";
 $config['nmap']           = "/usr/bin/nmap";
-$config['nagios_plugins'] = "/usr/lib/nagios/plugins";
 $config['ipmitool']       = "/usr/bin/ipmitool";
 $config['virsh']          = "/usr/bin/virsh";
 $config['dot']            = "/usr/bin/dot";
@@ -71,6 +71,13 @@ $config['svn']            = "/usr/bin/svn";
 $config['git']            = "/usr/bin/git"; // Used in show device config feature for git-enabled repos and rancid >= 3.2
 $config['wmic']           = "/bin/wmic";
 $config['file']           = "/usr/bin/file";
+$config['wc']             = "/usr/bin/wc";
+$config['sudo']           = "/usr/bin/sudo";
+$config['tail']           = "/usr/bin/tail";
+$config['cut']            = "/usr/bin/cut";
+$config['tr']             = "/usr/bin/tr";
+
+
 
 // RRD Format Settings
 
@@ -87,6 +94,8 @@ $config['rrd']['step'] = 300;
 $config['rrd']['rra']  = "RRA:AVERAGE:0.5:1:2016  RRA:AVERAGE:0.5:6:2976  RRA:AVERAGE:0.5:24:1440  RRA:AVERAGE:0.5:288:1440 ";
 $config['rrd']['rra'] .= "                        RRA:MIN:0.5:6:1440      RRA:MIN:0.5:96:360       RRA:MIN:0.5:288:1440 ";
 $config['rrd']['rra'] .= "                        RRA:MAX:0.5:6:1440      RRA:MAX:0.5:96:360       RRA:MAX:0.5:288:1440 ";
+
+$config['rrd']['no_local'] = FALSE;
 
 // RRDCacheD - Make sure it can write to your RRD dir!
 
@@ -233,7 +242,9 @@ $config['alerts']['suppress']              = FALSE;     // Suppress all notifica
 $config['alerts']['disable']['all']        = FALSE;     // Disable all notifications.
 
 // Poller wrapper settings
-#$config['poller-wrapper']['threads']       = 16;       // The number of poller threads that should run simultaneously. Default: CPU count x 2
+#$config['poller-wrapper']['threads']       = 0;         // The number of poller threads that should run simultaneously. Default: CPU count x 2
+$config['poller-wrapper']['max_running']   = 4;         // The number of maximum allowed simultaneously running wrapper processes. This prevents race and too high LA on server
+$config['poller-wrapper']['max_la']        = 10;        // Maximum allowed server Load Average for run wrapper processes. This prevents race and too high LA on server
 $config['poller-wrapper']['alerter']       = TRUE;      // Execute alerter.php after poller.php
 $config['poller-wrapper']['stats']         = TRUE;      // Enable poller wrapper statistics in RRD (can be seen at page http://your_observium/pollerlog/)
 
@@ -250,6 +261,11 @@ $config['uptime_warning']                  = "86400";   // Time in seconds to di
 $config['statsd']['enable']                = FALSE;
 $config['statsd']['host']                  = '127.0.0.1';
 $config['statsd']['port']                  = '8125';
+
+// Data caching
+$config['cache']['enable']                 = FALSE;     // Can enable/disable caching (currently only in WUI)
+$config['cache']['ttl']                    = 300;       // Default time to live for cache objects (5 min)
+$config['cache']['driver']                 = 'auto';    // Driver for use caching (auto, zendshm, apcu, xcache, sqlite, files)
 
 // amqp Configuration
 // This is very alpha, please do not use it unless you want it to eat your children
@@ -303,6 +319,7 @@ $config['location']['menu']['nested_max_depth'] = 4; // maximum levels in nested
 //$config['location']['map_regexp']['/Under the Sink/'] = "Under The Sink, The Office, London, UK";
 //$config['location']['map_regexp']['/^$/']             = "Some Empty Location Rewrite";
 
+
 // Cosmetics
 
 $config['rrdgraph_def_text']  = "-c BACK#EEEEEE00 -c SHADEA#EEEEEE00 -c SHADEB#EEEEEE00 -c FONT#000000 -c CANVAS#FFFFFF00 -c GRID#a5a5a5";
@@ -334,7 +351,9 @@ $config['graph_colours']['mixed-5']   = array('1f78b4', '33a02c', 'e31a1c', 'ff7
 $config['graph_colours']['mixed-6']   = array('1f78b4', '33a02c', 'e31a1c', 'ff7f00', '6a3d9a', 'b15928');
 $config['graph_colours']['mixed-q12'] = array('8DD3C7','FFFFB3','BEBADA','FB8072','80B1D3','FDB462','B3DE69','FCCDE5','D9D9D9','BC80BD','CCEBC5','FFED6F');
 
-$config['graph_colours']['mixed']     = $config['graph_colours']['mixed-10c'];
+$config['graph_colours']['mixed-18']  = array('365C81', 'D8929F', 'A99DCB', '6CA4D5', '8BA15F', 'E9CA5D', 'DF9933', 'D33627', '881C45', 'C74379', '9B2F82', '345AA8', '88C3C9', '519466', 'A7C662', 'BA723D', '864A23', '253371');
+
+$config['graph_colours']['mixed']     = $config['graph_colours']['mixed-18'];
 
 $config['graph_colours']['oranges'] = array('FFC344', 'FCB53D', 'F9A836', 'F69A2F', 'F48D28', 'F17F22', 'EE721B', 'EC6414', 'E9570D', 'E64906', 'E43C00');
 $config['graph_colours']['greens']  = array('B6D14B', 'A4C445', '92B73F', '80AA39', '6E9D33', '5C902E', '4A8328', '387622', '26691C', '145C16', '034F11');
@@ -345,6 +364,14 @@ $config['graph_colours']['purples'] = array('CC7CCC', 'BD6FBD', 'AF63AF', 'A156A
 $config['graph_colours']['peach']   = array('FC998C', 'F38E81', 'EA8476', 'E1796B', 'D86F61', 'CF6456', 'C65A4B', 'BD4F41', 'B44536', 'AB3A2B', 'A23021');
 $config['graph_colours']['yellow']  = array('FFD683', 'FACF79', 'F5C970', 'F0C267', 'EBBC5D', 'E6B554', 'E1AF4B', 'DCA841', 'D7A238', 'D29B2F', 'CD9526');
 $config['graph_colours']['red2']    = array('FD627A', 'F05870', 'E34E66', 'D7455C', 'CA3B52', 'BE3248', 'B1283E', 'A41E34', '98152A', '8B0B20', '7F0216');
+$config['graph_colours']['bluegrey']= array('CFD8DC','B0BEC5', '90A4AE', '78909C', '607D8B', '546E7A', '455A64', '37474F', '263238');
+$config['graph_colours']['lgreen']  = array('C5E1A5', '33691E');
+
+
+$config['group_colours'][] = array('in' => 'blues',  'out' => 'purples');
+$config['group_colours'][] = array('in' => 'greens', 'out' => 'greens');
+$config['group_colours'][] = array('in' => 'reds',   'out' => 'oranges');
+
 
 $config['graph_colours']['reds_8']  = array('fee0d2','fcbba1','fc9272','fb6a4a','ef3b2c','cb181d','a50f15','67000d');
 
@@ -375,6 +402,10 @@ $config['frontpage']['map']['height']              = 400;          // Default Go
 $config['frontpage']['map']['clouds']              = false;         // Enable the clouds layer
 // Options for carto and other leaflet map api providers.
 $config['frontpage']['map']['tiles']               = 'carto-base-light';
+
+$config['frontpage']['map']['okmarkersize']             = 24;           // Set the dotsize you want
+$config['frontpage']['map']['alertmarkersize']          = 32;           // Set the dotsize you want
+
 
 // Device status settings
 // Show the status messages you want
@@ -440,13 +471,16 @@ $config['enable_pseudowires']           = 1; // Enable Pseudowires
 
 // Ports extension modules
 
-$config['port_descr_parser']            = "includes/port-descr-parser.inc.php"; // Parse port descriptions into fields
-$config['enable_ports_etherlike']       = 0; // Enable Polling EtherLike-MIB (doubles interface processing time)
-$config['enable_ports_junoseatmvp']     = 0; // Enable JunOSe ATM VC Discovery/Poller
-$config['enable_ports_adsl']            = 1; // Enable ADSL-LINE-MIB
-$config['enable_ports_poe']             = 0; // Enable PoE stats collection
-$config['enable_ports_fdbcount']        = 0; // Enable count of FDB per-port.
-$config['enable_ports_separate_walk']   = 0; // NOT ENABLED, do not use this! Walk separate IF-MIB tables instead global ifEntry, ifXEntry
+$config['port_descr_parser']               = "includes/port-descr-parser.inc.php"; // Parse port descriptions into fields
+$config['enable_ports_etherlike']          = 0; // Enable Polling EtherLike-MIB (doubles interface processing time)
+$config['enable_ports_junoseatmvp']        = 0; // Enable JunOSe ATM VC Discovery/Poller
+$config['enable_ports_adsl']               = 1; // Enable ADSL-LINE-MIB
+$config['enable_ports_poe']                = 0; // Enable PoE stats collection
+$config['enable_ports_fdbcount']           = 0; // Enable count of FDB per-port.
+$config['enable_ports_jnx_cos_qstat']      = 1; // Enable graphing of CoS queues per-port.
+$config['enable_ports_sros_egress_qstat']  = 1; // Enable graphing of egress queues per-port.
+$config['enable_ports_sros_ingress_qstat'] = 1; // Enable graphing of ingress queues per-port.
+$config['enable_ports_separate_walk']      = 0; // NOT ENABLED, do not use this! Walk separate IF-MIB tables instead global ifEntry, ifXEntry
 
 // Billing System Configuration
 
@@ -550,6 +584,7 @@ $config['ignore_mount'][] = "/kern";
 $config['ignore_mount'][] = "/mnt/cdrom";
 $config['ignore_mount'][] = "/proc";
 $config['ignore_mount'][] = "/dev";
+$config['ignore_mount'][] = "/dev/shm";
 $config['ignore_mount'][] = "/run";
 
 $config['ignore_mount_string'][] = "packages";
@@ -572,6 +607,8 @@ $config['ignore_mount_regexp'][] = '!/\.snapshot!';         // Netapp: dfFileSys
 $config['ignore_mount_regexp'][] = '/dfc#\d+\-bootflash/';  // Cisco DFC bootflash is used for the crash files, always free
 $config['ignore_mount_regexp'][] = '/^DFC/';
 $config['ignore_mount_regexp'][] = '/^\/run\//';
+$config['ignore_mount_regexp'][] = '/^\/sys\//';
+
 
 // Mempools ignore
 #$config['ignore_mempool'][] = 'EXAMPLE';
@@ -649,8 +686,8 @@ $config['auth']['remote_user'] = FALSE;        // Trust Apache server to authent
 
 $config['auth_ldap_version'] = 3;                     // LDAP client version (2 or 3)
 $config['auth_ldap_referrals'] = 0;                   // Follow LDAP referrals
-$config['auth_ldap_server'] = "ldap.yourserver.com";  // LDAP server name, or array of LDAP server names tried in order.
-#$config['auth_ldap_ad_domain'] = "ad.yourcorp.com";   // AD domain name (fqdn form), used to determine DCs if server list is unset
+$config['auth_ldap_server'] = "ldap.yourserver";      // LDAP server name, or array of LDAP server names tried in order.
+#$config['auth_ldap_ad_domain'] = "ad.yourcorp";      // AD domain name (fqdn form), used to determine DCs if server list is unset
 $config['auth_ldap_port']   = 389;                    // LDAP server port
 $config['auth_ldap_starttls'] = 'no';                 // Use STARTTLS ('no', 'optional' or 'require')
 $config['auth_ldap_recursive'] = TRUE;                      // Active Directory recursive lookup for nested groups
@@ -733,9 +770,10 @@ $config['housekeeping']['syslog']['age'] = '1M';         // Maximum age of syslo
 $config['housekeeping']['eventlog']['age'] = '6M';       // Maximum age of event log entries; 0 to disable
 $config['housekeeping']['alertlog']['age'] = '6M';       // Maximum age of alert log entries; 0 to disable
 $config['housekeeping']['authlog']['age'] = '1Y';        // Maximum age of authlog entries; 0 to disable
+$config['housekeeping']['inventory']['age'] = '1M';      // Maximum age of deleted inventory entries; 0 to disable
 $config['housekeeping']['deleted_ports']['age'] = '1M';  // Maximum age of deleted ports before automatically purging; 0 to disable
 $config['housekeeping']['rrd']['age'] = '3M';            // Maximum age of unused rrd files before automatically purging; 0 to disable
-$config['housekeeping']['rrd']['invalid'] = TRUE;     // Delete .rrd files that are not valid RRD files (eg created with a full disk)
+$config['housekeeping']['rrd']['invalid'] = TRUE;        // Delete .rrd files that are not valid RRD files (eg created with a full disk)
 $config['housekeeping']['timing']['age'] = '1M';         // Maximum age of timing (discovery and poll time) entries; 0 to disable
 
 // Virtualization
@@ -768,8 +806,8 @@ $config['astext'][65333] = "Cymru Bogon Feed";
 // considered for execution.
 // NOTE. Modules 'os', 'system' is base and run always.
 
-#$config['poller_modules']['system']                       = 1;
-#$config['poller_modules']['os']                           = 1;
+$config['poller_modules']['system']                       = 1;
+$config['poller_modules']['os']                           = 1;
 $config['poller_modules']['unix-agent']                   = 0;
 $config['poller_modules']['ipmi']                         = 1;
 $config['poller_modules']['sensors']                      = 1;
@@ -800,7 +838,7 @@ $config['poller_modules']['cipsec-tunnels']               = 1;
 $config['poller_modules']['loadbalancer']                 = 1;
 $config['poller_modules']['cisco-cbqos']                  = 1;
 $config['poller_modules']['cisco-eigrp']                  = 1;
-$config['poller_modules']['netscaler-vsvr']               = 1;
+//$config['poller_modules']['netscaler-vsvr']               = 1;
 $config['poller_modules']['aruba-controller']             = 1;
 $config['poller_modules']['entity-physical']              = 1;
 $config['poller_modules']['applications']                 = 1;
@@ -817,6 +855,7 @@ $config['discovery_modules']['os']                        = 1;
 $config['discovery_modules']['ports']                     = 1;
 $config['discovery_modules']['ports-stack']               = 1;
 $config['discovery_modules']['vlans']                     = 1;
+$config['discovery_modules']['oids']                      = 1;
 $config['discovery_modules']['ip-addresses']              = 1;
 $config['discovery_modules']['processors']                = 1;
 $config['discovery_modules']['mempools']                  = 1;
@@ -842,14 +881,15 @@ $config['discovery_modules']['graphs']                    = 1;
 $config['discovery_modules']['services']                  = 0;
 $config['discovery_modules']['raid']                      = 0;
 
-// Simple Observium API Settings
+// Observium WIP API Settings
 
-$config['api']['enabled']                        = 0;        // Enable or disable the API
-$config['api']['module']['inventory']            = 0;        // Enable or disable the inventory module for the API
-$config['api']['module']['billing']              = 0;        // Enable or disable the billing module for the API
-$config['api']['module']['packages']             = 0;        // Enable or disable the packages module for the API
-$config['api']['module']['encryption']           = 0;        // Enable encryption of data (be aware that this can be very slow and cpu intensive!!!)
-$config['api']['encryption']['key']              = "I_Need_To_Change_This_Key";        // Set a random encryption/decryption key
+$config['api']['enable']                        = FALSE;        // Enable or disable the API
+
+//$config['api']['module']['inventory']            = 0;        // Enable or disable the inventory module for the API
+//$config['api']['module']['billing']              = 0;        // Enable or disable the billing module for the API
+//$config['api']['module']['packages']             = 0;        // Enable or disable the packages module for the API
+//$config['api']['module']['encryption']           = 0;        // Enable encryption of data (be aware that this can be very slow and cpu intensive!!!)
+//$config['api']['encryption']['key']              = "I_Need_To_Change_This_Key";        // Set a random encryption/decryption key
 
 // Unsupported settings
 

@@ -17,6 +17,12 @@
 // APC Web/SNMP Management Card (MB:v3.9.2 PF:v3.7.3 PN:apc_hw02_aos_373.bin AF1:v3.7.2 AN1:apc_hw02_sumx_372.bin MN:AP9617 HR:A10 SN: JA0412054242 MD:03/21/2004) (Embedded PowerNet SNMP Agent SW v2.2 compatible)
 // APC Embedded PowerNet SNMP Agent (FW v3.0.0 SW v2.2.0.a, HW B2, MOD: AP9605, Mfg: 09/10/1997, SN: WA0711004586)
 
+if (str_starts($device['sysObjectID'], '.1.3.6.1.4.1.5528'))
+{
+  // Exclude old netbotz
+  return;
+}
+
 $apc_pattern = '/^APC .*\(MB:.* PF:(.*) PN:.* AF1:(.*) AN1:.* MN:(.*) HR:(.*) SN:(.*) MD:.*/';
 if (preg_match($apc_pattern, $poll_device['sysDescr'], $matches) && !str_icontains($poll_device['sysDescr'], 'Embedded'))
 {
@@ -26,17 +32,17 @@ if (preg_match($apc_pattern, $poll_device['sysDescr'], $matches) && !str_icontai
   $serial   = trim($matches[5]);
 } else {
   $apc_oids = array(
-    'ups'     => array('serial' => 'upsAdvIdentSerialNumber',        'model' => 'upsBasicIdentModel',            'hwrev' => 'upsAdvIdentFirmwareRevision',       'fwrev' => 'upsAdvIdentFirmwareRevision'),      # UPS
-    'ats'     => array('serial' => 'atsIdentSerialNumber',           'model' => 'atsIdentModelNumber',           'hwrev' => 'atsIdentHardwareRev',               'fwrev' => 'atsIdentFirmwareRev'),              # ATS
-    'rPDU'    => array('serial' => 'rPDUIdentSerialNumber',          'model' => 'rPDUIdentModelNumber',          'hwrev' => 'rPDUIdentHardwareRev',              'fwrev' => 'rPDUIdentFirmwareRev'),             # PDU
-    'rPDU2'   => array('serial' => 'rPDU2IdentSerialNumber',         'model' => 'rPDU2IdentModelNumber',         'hwrev' => 'rPDU2IdentHardwareRev',             'fwrev' => 'rPDU2IdentFirmwareRev'),            # PDU
-    'sPDU'    => array('serial' => 'sPDUIdentSerialNumber',          'model' => 'sPDUIdentModelNumber',          'hwrev' => 'sPDUIdentHardwareRev',              'fwrev' => 'sPDUIdentFirmwareRev'),             # Masterswitch/AP9606
-    'ems'     => array('serial' => 'emsIdentSerialNumber',           'model' => 'emsIdentProductNumber',         'hwrev' => 'emsIdentHardwareRev',               'fwrev' => 'emsIdentFirmwareRev'),              # NetBotz 200
-    'airIRRC' => array('serial' => 'airIRRCUnitIdentSerialNumber',   'model' => 'airIRRCUnitIdentModelNumber',   'hwrev' => 'airIRRCUnitIdentHardwareRevision',  'fwrev' => 'airIRRCUnitIdentFirmwareRevision'), # In-Row Chiller
-    'airPA'   => array('serial' => 'airPASerialNumber',              'model' => 'airPAModelNumber',              'hwrev' => 'airPAHardwareRevision',             'fwrev' => 'airPAFirmwareRevision'),            # A/C
-    'xPDU'    => array('serial' => 'xPDUIdentSerialNumber',          'model' => 'xPDUIdentModelNumber',          'hwrev' => 'xPDUIdentHardwareRev',              'fwrev' => 'xPDUIdentFirmwareAppRev'),          # PDU
-    'xATS'    => array('serial' => 'xATSIdentSerialNumber',          'model' => 'xATSIdentModelNumber',          'hwrev' => 'xATSIdentHardwareRev',              'fwrev' => 'xATSIdentFirmwareAppRev'),          # ATS
-    'isx'     => array('serial' => 'isxModularPduIdentSerialNumber', 'model' => 'isxModularPduIdentModelNumber', 'hwrev' => 'isxModularPduIdentMonitorCardHardwareRev', 'fwrev' => 'isxModularPduIdentMonitorCardFirmwareAppRev'), # Modular PDU
+    'ups'     => array('model' => 'upsBasicIdentModel',            'hwrev' => 'upsAdvIdentFirmwareRevision',       'fwrev' => 'upsAdvIdentFirmwareRevision'),      # UPS
+    'ats'     => array('model' => 'atsIdentModelNumber',           'hwrev' => 'atsIdentHardwareRev',               'fwrev' => 'atsIdentFirmwareRev'),              # ATS
+    'rPDU'    => array('model' => 'rPDUIdentModelNumber',          'hwrev' => 'rPDUIdentHardwareRev',              'fwrev' => 'rPDUIdentFirmwareRev'),             # PDU
+    'rPDU2'   => array('model' => 'rPDU2IdentModelNumber',         'hwrev' => 'rPDU2IdentHardwareRev',             'fwrev' => 'rPDU2IdentFirmwareRev'),            # PDU
+    'sPDU'    => array('model' => 'sPDUIdentModelNumber',          'hwrev' => 'sPDUIdentHardwareRev',              'fwrev' => 'sPDUIdentFirmwareRev'),             # Masterswitch/AP9606
+    'ems'     => array('model' => 'emsIdentProductNumber',         'hwrev' => 'emsIdentHardwareRev',               'fwrev' => 'emsIdentFirmwareRev'),              # NetBotz 200
+    'airIRRC' => array('model' => 'airIRRCUnitIdentModelNumber',   'hwrev' => 'airIRRCUnitIdentHardwareRevision',  'fwrev' => 'airIRRCUnitIdentFirmwareRevision'), # In-Row Chiller
+    'airPA'   => array('model' => 'airPAModelNumber',              'hwrev' => 'airPAHardwareRevision',             'fwrev' => 'airPAFirmwareRevision'),            # A/C
+    'xPDU'    => array('model' => 'xPDUIdentModelNumber',          'hwrev' => 'xPDUIdentHardwareRev',              'fwrev' => 'xPDUIdentFirmwareAppRev'),          # PDU
+    'xATS'    => array('model' => 'xATSIdentModelNumber',          'hwrev' => 'xATSIdentHardwareRev',              'fwrev' => 'xATSIdentFirmwareAppRev'),          # ATS
+    'isx'     => array('model' => 'isxModularPduIdentModelNumber', 'hwrev' => 'isxModularPduIdentMonitorCardHardwareRev', 'fwrev' => 'isxModularPduIdentMonitorCardFirmwareAppRev'), # Modular PDU
   );
 
   // These oids are in APC's "experimental" tree, but there is no "real" UPS equivalent for the firmware versions.
@@ -50,12 +56,8 @@ if (preg_match($apc_pattern, $poll_device['sysDescr'], $matches) && !str_icontai
 
   foreach ($apc_oids as $oid_list)
   {
-    $serial = snmp_get($device, $oid_list['serial'] . '.0', '-OQv', 'PowerNet-MIB');
-
-    if ($serial)
+    if (!$hardware)
     {
-      // If we can find the serial, we'll get the rest of the data too.
-
       $hardware = trim(snmp_get($device, $oid_list['model'] . '.0', '-OQv', 'PowerNet-MIB') . ' ' .
                        snmp_get($device, $oid_list['hwrev'] . '.0', '-OQv', 'PowerNet-MIB'));
       if ($hardware == ' ') { unset($hardware); }

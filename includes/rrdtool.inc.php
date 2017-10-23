@@ -52,15 +52,22 @@ function get_rrd_path($device, $filename)
  * @param array $device
  * @param string $old_rrd Base filename for old rrd file
  * @param string $new_rrd Base filename for new rrd file
+ * @param boolean $overwrite Force overwrite new rrd file if already exist
  * @return bool TRUE if renamed
  */
-function rename_rrd($device, $old_rrd, $new_rrd)
+function rename_rrd($device, $old_rrd, $new_rrd, $overwrite = FALSE)
 {
   $old_rrd = get_rrd_path($device, $old_rrd);
   $new_rrd = get_rrd_path($device, $new_rrd);
   if (is_file($old_rrd))
   {
-    $renamed = rename($old_rrd, $new_rrd);
+    if (!$overwrite && is_file($new_rrd))
+    {
+      // If not forced overwrite file, return false
+      $renamed = FALSE;
+    } else {
+      $renamed = rename($old_rrd, $new_rrd);
+    }
   } else {
     $renamed = FALSE;
   }
@@ -70,6 +77,57 @@ function rename_rrd($device, $old_rrd, $new_rrd)
   }
 
   return $renamed;
+}
+
+/**
+ * Rename rrd file for device (same as in rename_rrd()),
+ * but rrd filename detected by common entity params
+ *
+ * @param array $device
+ * @param string $entity Entity type (sensor, status, etc..)
+ * @param array $old Old entity params, based on discovery entity
+ * @param array $new New entity params, based on discovery entity
+ * @param boolean $overwrite Force overwrite new rrd file if already exist
+ * @return bool TRUE if renamed
+ */
+function rename_rrd_entity($device, $entity, $old, $new, $overwrite = FALSE)
+{
+  switch ($entity)
+  {
+    case 'sensor':
+      $old_sensor = array('poller_type'  => $old['poller_type'],
+                          'sensor_descr' => $old['descr'],
+                          'sensor_class' => $old['class'],
+                          'sensor_type'  => $old['type'],
+                          'sensor_index' => $old['index']);
+      $new_sensor = array('poller_type'  => $new['poller_type'],
+                          'sensor_descr' => $new['descr'],
+                          'sensor_class' => $new['class'],
+                          'sensor_type'  => $new['type'],
+                          'sensor_index' => $new['index']);
+
+      $old_rrd = get_sensor_rrd($device, $old_sensor);
+      $new_rrd = get_sensor_rrd($device, $new_sensor);
+      break;
+    case 'status':
+      $old_status = array('poller_type'  => $old['poller_type'],
+                          'status_descr' => $old['descr'],
+                          'status_type'  => $old['type'],
+                          'status_index' => $old['index']);
+      $new_status = array('poller_type'  => $new['poller_type'],
+                          'status_descr' => $new['descr'],
+                          'status_type'  => $new['type'],
+                          'status_index' => $new['index']);
+
+      $old_rrd = get_status_rrd($device, $old_status);
+      $new_rrd = get_status_rrd($device, $new_status);
+      break;
+    default:
+      print_debug("skipped unknown entity for rename rrd");
+      return FALSE;
+  }
+
+  return rename_rrd($device, $old_rrd, $new_rrd, $overwrite);
 }
 
 /**
@@ -186,6 +244,7 @@ function rrdtool_graph($graph_file, $options)
   // Note, always use pipes, because standard command line has limits!
   if ($config['rrdcached'])
   {
+    $options = str_replace($config['rrd_dir'].'/', '', $options);
     $cmd = 'graph --daemon ' . $config['rrdcached'] . " $graph_file $options";
   } else {
     $cmd = "graph $graph_file $options";
@@ -281,8 +340,14 @@ function rrdtool($command, $filename, $options)
 {
   global $config, $rrd_pipes;
 
+  // We now require rrdcached 1.5.5
+  if($config['rrdcached'] && ($config['rrd']['no_local'] == TRUE || $command != 'create'))
+  {
+    $filename = str_replace($config['rrd_dir'].'/', '', $filename);
+  }
+
   $cmd = "$command $filename $options";
-  if ($command != 'create' && $config['rrdcached'])
+  if ($config['rrdcached'] && ($config['rrd']['no_local'] == TRUE || $command != 'create'))
   {
     $cmd .= ' --daemon ' . $config['rrdcached'];
   }
@@ -361,7 +426,7 @@ function rrdtool_create($device, $filename, $ds, $options = '')
 
   $fsfilename = get_rrd_path($device, $filename);
 
-  if (is_file($fsfilename))
+  if (rrd_exists($device, $filename))
   {
     if (OBS_DEBUG > 1)
     {
@@ -382,9 +447,45 @@ function rrdtool_create($device, $filename, $ds, $options = '')
     print_message("[%rRRD Disabled - create $fsfilename%n]", 'color');
     return NULL;
   } else {
-    $command = $config['rrdtool'] . " create $fsfilename $ds $step $options";
-    return external_exec($command);
+    //$command = $config['rrdtool'] . " create $fsfilename $ds $step $options";
+    //return external_exec($command);
+
+    // Clean up old ds strings. This is kinda nasty.
+    $ds = str_replace("\
+", '', $ds);
+    return rrdtool('create', $fsfilename, $ds . " $step $options");
   }
+}
+
+/**
+ * Generates RRD filename from templated string.
+ *
+ * @param string filename       Original filename, using %index% (or %custom% %keys%) as placeholder for indexes
+ * @param string/array index    Index, if RRD type is indexed (or array of multiple indexes)
+ */ 
+// TESTME needs unit testing
+function rrdtool_generate_filename($filename, $index)
+{
+  // Generate warning for indexed filenames containing %index% - does not help if you use custom field names for indexing
+  if (strstr($filename, '%index%') !== FALSE)
+  {
+    if ($index === NULL)
+    {
+      print_warning("RRD filename generation error: filename contains %index%, but \$index is NULL!");
+    }
+  }
+
+  // Convert to single element array if not an array.
+  // This will automatically use %index% as the field to replace (see below).
+  if (!is_array($index)) { $index = array('index' => $index); }
+
+  // Replace %index% by $index['index'], %foo% by $index['foo'] etc. 
+  foreach ($index as $key => $value)
+  {
+    $filename = str_replace('%' . $key . '%', $value, $filename);
+  }
+
+  return $filename;
 }
 
 /**
@@ -394,7 +495,7 @@ function rrdtool_create($device, $filename, $ds, $options = '')
  *
  * @param array        device   Device array
  * @param string/array type     rrd file type from $config['rrd_types'] or actual config array
- * @param string       index    Index, if RRD type is indexed
+ * @param string/array index    Index, if RRD type is indexed (or array of multiple indexes)
  * @param string       options  RRA options to pass (defaults to $config['rrd']['rra'])
  */
 // TESTME needs unit testing
@@ -415,22 +516,11 @@ function rrdtool_create_ng($device, $type, $index = NULL, $options = NULL)
     $definition = $type;
   }
 
-  $filename = $definition['file'];
-
-  if (strstr($filename, '%index%') !== FALSE)
-  {
-    if ($index === NULL)
-    {
-      print_warning("Cannot create RRD for type $type - filename is indexed, but \$index is NULL!");
-      return FALSE;
-    } else {
-      $filename = str_replace('%index%', $index, $filename);
-    }
-  }
+  $filename = rrdtool_generate_filename($definition['file'], $index);
 
   $fsfilename = get_rrd_path($device, $filename);
 
-  if (is_file($fsfilename))
+  if (rrd_exists($device, $filename))
   {
     print_debug("RRD $fsfilename already exists - no need to create.");
     return FALSE; // Bail out if the file exists already
@@ -470,18 +560,47 @@ function rrdtool_create_ng($device, $type, $index = NULL, $options = NULL)
 }
 
 /**
+ * Checks if an RRD database at $filename for $device exists
+ * Checks via rrdcached if configured, else via is_exists
+ *
+ * @param array  device
+ * @param string filename
+**/
+function rrd_exists($device, $filename)
+{
+
+  global $config;
+
+  $fsfilename = get_rrd_path($device, $filename);
+
+  if ($config['rrdcached'] && ($config['rrd']['no_local'] == TRUE))
+  {
+    $last = rrdtool_last($fsfilename);
+    return $GLOBALS['rrd_status'];
+  } else {
+    if(is_file($fsfilename))
+    {
+      return TRUE;
+    } else {
+      return FALSE;
+    }
+  }
+
+}
+
+/**
  * Updates an rrd database at $filename using $options
  * Where $options is an array, each entry which is not a number is replaced with "U"
  *
  * @param array        device  Device array
  * @param string/array type    RRD file type from $config['rrd_types'] or actual config array
  * @param array        ds      DS data (key/value)
- * @param string       index   Index, if RRD type is indexed
+ * @param string/array index   Index, if RRD type is indexed (or array of multiple indexes)
  * @param bool         create  Create RRD file if it does not exist
  * @param string       options Options to pass to create function if file does not exist
  */
 // TESTME needs unit testing
-function rrdtool_update_ng($device, $type, $ds, $index, $create = TRUE)
+function rrdtool_update_ng($device, $type, $ds, $index = NULL, $create = TRUE)
 {
   global $config;
 
@@ -498,22 +617,11 @@ function rrdtool_update_ng($device, $type, $ds, $index, $create = TRUE)
     $definition = $type;
   }
 
-  $filename = $definition['file'];
-
-  if (strstr($filename, '%index%') !== FALSE)
-  {
-    if ($index === NULL)
-    {
-      print_warning("Cannot update RRD for type $type - filename is indexed, but \$index is NULL!");
-      return FALSE;
-    } else {
-      $filename = str_replace('%index%', $index, $filename);
-    }
-  }
+  $filename = rrdtool_generate_filename($definition['file'], $index);
 
   $fsfilename = get_rrd_path($device, $filename);
 
-  // Create the file if missing, if we're allowed to create it
+  // Create the file if missing (if we have permission to create it)
   if ($create)
   {
     rrdtool_create_ng($device, $type, $index, $options);

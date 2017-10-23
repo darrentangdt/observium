@@ -15,7 +15,7 @@
                         'no_empty_message' => TRUE,
                         'short' => TRUE, 'pagesize' => 7,
                         'header' => array('title' => 'Alert Log',
-                                          'icon' => 'oicon-bell--exclamation',
+                                          'icon' => $config['icon']['alert-log'],
                                           'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'logs', 'section' => 'alertlog'))
                                     )
                  ));

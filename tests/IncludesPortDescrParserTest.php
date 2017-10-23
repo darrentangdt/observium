@@ -7,7 +7,7 @@ include(dirname(__FILE__) . '/../includes/definitions.inc.php');
 include(dirname(__FILE__) . '/../includes/functions.inc.php');
 include(dirname(__FILE__) . '/../includes/port-descr-parser.inc.php');
 
-class IncludesPortDescrParserTest extends PHPUnit_Framework_TestCase
+class IncludesPortDescrParserTest extends \PHPUnit\Framework\TestCase
 {
   /**
   * @dataProvider providerParser
@@ -103,6 +103,15 @@ class IncludesPortDescrParserTest extends PHPUnit_Framework_TestCase
                   'circuit' => 'CIRCUIT',
                   'speed'   => 'SPEED',
                   'notes'   => 'NOTE',
+            )
+      ),
+      // website example
+      array('Cust: Example Customer [10Mbit] (T1 Telco Y CCID129031) {EXAMP0001}',
+            array('type'    => 'cust',
+                  'descr'   => 'Example Customer',
+                  'circuit' => 'EXAMP0001',
+                  'speed'   => '10Mbit',
+                  'notes'   => 'T1 Telco Y CCID129031',
             )
       ),
 

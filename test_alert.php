@@ -43,6 +43,7 @@ if ($options['a'])
     print_warning("All alert notifications disabled in config \$config['alerts']['disable']['all'], ignore it for testing!");
     $config['alerts']['disable']['all'] = FALSE;
   }
+
   $alert_rules = cache_alert_rules();
   $alert_assoc = cache_alert_assoc();
 
@@ -51,9 +52,14 @@ if ($options['a'])
 
   $entry = dbFetchRow($sql, array($options['a']));
 
-  //print_r($entry);
+  // print_r($entry);
 
+  // Generate alerts and insert them into the queue
   alert_notifier($entry);
+
+  // Sent alert notifications which were just inserted into the queue
+  process_notifications();
+
 
 } else {
 

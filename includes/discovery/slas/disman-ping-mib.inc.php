@@ -7,7 +7,7 @@
  *
  * @package    observium
  * @subpackage discovery
- * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2016 Observium Limited
+ * @copyright  (C) 2006-2013 Adam Armstrong, (C) 2013-2017 Observium Limited
  *
  */
 
@@ -60,7 +60,7 @@ foreach ($oids as $sla_owner => $entry2)
       'sla_mib'    => $mib,
       'sla_index'  => $sla_name, // FIXME. Here must be $sla_index, but migrate too hard
       'sla_owner'  => $sla_owner,
-      'sla_tag'    => $entry['pingCtlTargetAddress'],
+      'sla_target' => $entry['pingCtlTargetAddress'],
       //'rtt_type'   => $entry['pingCtlType'],
       'sla_status' => $entry['pingCtlRowStatus'], // Possible: active, notInService, notReady, createAndGo, createAndWait, destroy
       'sla_graph'  => 'jitter', // Seems as all of this types support jitter graphs
@@ -83,8 +83,9 @@ foreach ($oids as $sla_owner => $entry2)
     if (isHexString($entry['pingCtlTargetAddress']) ||
         stripos($data['rtt_type'], 'Echo') !== FALSE)
     {
-      $data['sla_tag'] = hex2ip($data['sla_tag']);
+      $data['sla_target'] = hex2ip($data['sla_tag']);
     }
+    $data['sla_tag'] = $data['sla_target']; // FIXME. Here must be $sla_name, but migrate too hard
 
     // Limits
     $data['sla_limit_high']      = ($entry['pingCtlTimeOut'] > 0 ? $entry['pingCtlTimeOut'] * 1000 : 5000);

@@ -174,7 +174,8 @@ if ($_SESSION['userlevel'] >= 7)
       $comments_pattern = $config['os'][$device['os']]['comments'];
     } else {
       // Default pattern
-      $comments_pattern = '/^\s*#/';
+      $comments_pattern = $config['os_group']['default']['comments'];
+      //$comments_pattern = '/^\s*#/';
     }
     $lines = explode(PHP_EOL, $device_config);
     foreach ($lines as $i => $line)

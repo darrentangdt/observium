@@ -19,7 +19,7 @@ IMPORTS
 -- =============================================================================
 
 liebertGlobalProductsFlexibleModule MODULE-IDENTITY
-  LAST-UPDATED "201001040000Z"
+  LAST-UPDATED "201305140000Z"
   ORGANIZATION "Emerson Network Power/Liebert Corporation"
   CONTACT-INFO
       "Contact:   Technical Support
@@ -41,7 +41,7 @@ liebertGlobalProductsFlexibleModule MODULE-IDENTITY
    DESCRIPTION
       "The MIB module used to register Liebert Flexible related SNMP OIDs.
 
-      Copyright 2009 Liebert Corporation. All rights reserved.
+      Copyright 2013 Liebert Corporation. All rights reserved.
       Reproduction of this document is authorized on the condition
       that the forgoing copyright notice is included.
 
@@ -49,7 +49,7 @@ liebertGlobalProductsFlexibleModule MODULE-IDENTITY
       makes no warranty, either express or implied, as to the use,
       operation, condition, or performance of the Specification."
 
-   REVISION "201001040000Z"
+   REVISION "201305140000Z"
    DESCRIPTION
     "Initial Version"
 
@@ -352,7 +352,44 @@ lgpFlexibleExtendedTable OBJECT-TYPE
             ohms(4138),
             kiloOhms(4139),
             megaOhms(4140),
-            bars(4141)
+            bars(4141),
+            rpm(4142),
+            bytes(4143),
+            kilobytes(4144),
+            megabytes(4145),
+            gigabytes(4146),
+            terabytes(4147),
+            voltAmpHours(4148),
+            kiloVoltAmpHours(4149),
+            vaReactiveHours(4150),
+            kVAReactiveHours(4151),
+            meter(4152),
+            feet(4153),
+            cms(4154),
+            cmh(4155),
+            cfs(4156),
+            cfm(4157),
+            lpm(4158),
+            gpmUk(4159),
+            gpmUs(4160),
+            absoluteHumidity(4161),
+            kilograms(4162),
+            cubicMeters(4163),
+            btu(4164),
+            torrs(4165),
+            millitorrs(4166),
+            pounds(4167),
+            mps(4168),
+            fpm(4169),
+            liter(4170),
+            gallonUs(4171),
+            gallonUk(4172),
+            lps(4173),
+			mho(4174),
+			siemensCm(4175),
+			weeks(4176),
+			inWC(4177),
+			btuHours(4178)
         }
         MAX-ACCESS  read-only
         STATUS      current

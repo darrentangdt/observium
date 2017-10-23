@@ -9,7 +9,7 @@ IMPORTS
 		FROM IP-MIB
 	ipCidrRouteEntry
 		FROM IP-FORWARD-MIB
-        MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+        MODULE-COMPLIANCE, OBJECT-GROUP,NOTIFICATION-GROUP
 		FROM SNMPv2-CONF
 	softentIND1Ip, trafficEventTraps
 		FROM ALCATEL-IND1-BASE
@@ -61,7 +61,8 @@ alcatelIND1IPMIB MODULE-IDENTITY
                      Copyright (C) 1995-2006 Alcatel-Lucent
                          ALL RIGHTS RESERVED WORLDWIDE"
 
-    REVISION	  "200909120000Z"
+    REVISION          "200909120000Z"
+
     DESCRIPTION
 	"Added alaIpManagedIntfTable."
 
@@ -74,26 +75,27 @@ alcatelIND1IPMIB MODULE-IDENTITY
 
 alcatelIND1IPMIBObjects OBJECT IDENTIFIER ::= { alcatelIND1IPMIB 1 }
 
-AlaIpManagedIntfAppIndex ::= TEXTUAL-CONVENTION
-    STATUS   current
-    DESCRIPTION
-	"The application index for the managed interface table entry."
-    SYNTAX   INTEGER
-          	{
-			tacacs(1),
-			sflow(2),
-			ntp(3),
-			syslog(4),
-			dns(5),
-			telnet(6),			
-			ssh(7),
-			tftp(8),
-			ldap(9),
-			radius(10),
-			snmp(11),
-			ftp(12),
-			all(13)
-                }
+AlaIpManagedIntfAppIndex ::= TEXTUAL-CONVENTION 
+  STATUS   current 
+  DESCRIPTION 
+      "The application index for the managed interface table entry." 
+  SYNTAX   INTEGER 
+                { 
+                      tacacs(1), 
+                      sflow(2), 
+                      ntp(3), 
+                      syslog(4), 
+                      dns(5), 
+                      telnet(6),                         
+                      ssh(7), 
+                      tftp(8), 
+                      ldap(9),    
+                      radius(10),  
+                      snmp(11),    
+                      ftp(12),     
+                      all(13)  
+              } 
+
 
 --
 -- Alcatel IP stack configuration
@@ -144,6 +146,28 @@ alaIpClearArpFilter OBJECT-TYPE
             "Clear ARP filters entries."
     DEFVAL     { clear }
     ::= { alaIpConfig 4 }
+
+alaIpDualHashMode OBJECT-TYPE
+    SYNTAX	INTEGER {
+                    enabled(1), -- Turn on dual hashing
+                    disabled(2), -- Turn off dual hashing
+                    enabledRebootRequired(3), -- dual hash enabled but reboot reqd. to take effect
+                    disabledRebootRequired(4) -- dual hash disabled but reboot reqd. to take effect
+               }
+    MAX-ACCESS	read-write
+    STATUS	current
+    DESCRIPTION
+            "Administratively enable/disable dual hashing on the system.
+             The values enabledRebootRequired(disabledRebootRequired) indicate that
+             dual hash is enabled(disabled) but the system has not been re-booted.
+             In order for the configuration to take effect, system must be reloaded.
+             It is possible that the user sets value 1 or 2, but a get request returns
+             value 3 or 4 depending on reboot required condition. If reboot not required
+             value 1 or 2 will be returned. The values 3 and 4 are for information 
+             purpose only. The user can only set values 1 and 2. If set request with
+             value 3 or 4 is received, then error will be returned."
+    DEFVAL     { disabled }
+    ::= { alaIpConfig 5 }
 
 --
 -- proprietary alcatel ipNetToMediaTable, only ARP entries
@@ -254,7 +278,7 @@ AlaDoSEntry ::= SEQUENCE {
 	alaDoSSlot		Integer32,
 	alaDoSPort    Integer32,
 	alaDoSStatus  INTEGER,
-	alaDoSDetectedCounter   Counter32
+ 	alaDoSDetectedCounter	Counter32	
 	}
 
 alaDoSType OBJECT-TYPE
@@ -334,7 +358,7 @@ alaDoSStatus OBJECT-TYPE
 
 alaDoSDetectedCounter OBJECT-TYPE
     SYNTAX      Counter32
-    MAX-ACCESS  read-only
+    MAX-ACCESS  read-only 
     STATUS      current
     DESCRIPTION
         "Number of attacks detected"
@@ -428,7 +452,7 @@ alaDoSARPRate OBJECT-TYPE
     MAX-ACCESS	read-write
     STATUS	current
     DESCRIPTION
-      "Rate of ARP Requests, which if exceeded, an ARP Flood
+      "Rate of ARP Requests, which if exceeded, an ARP Flood 
        attack is detected."
 	  DEFVAL { 500 }
 	  ::= { alaDoSConfig 9 }
@@ -438,7 +462,7 @@ alaDoSPingRate OBJECT-TYPE
     MAX-ACCESS	read-write
     STATUS	current
     DESCRIPTION
-      "Rate of ICMP Requests, which if exceeded, a Ping Overload
+      "Rate of ICMP Requests, which if exceeded, a Ping Overload 
        attack is detected."
 	  DEFVAL { 100 }
 	  ::= { alaDoSConfig 10 }
@@ -456,6 +480,153 @@ alaDoSArpPoisonTable OBJECT-TYPE
 	 and from which if an ARP Packet is received, an ARP Poison Attack is detected."
 	::= { alaDoSConfig 11 }
 
+alaDoSIpAntiSpoof  OBJECT-TYPE         
+   SYNTAX INTEGER {         
+   enabled(1),         
+   disabled(2)         
+   }         
+   MAX-ACCESS  read-write         
+   STATUS  current         
+   DESCRIPTION         
+   "Enable/Disable Spoof Detection."         
+   DEFVAL { enabled }         
+   ::= { alaDoSConfig 12 }        
+ 
+alaDoSArpAntiSpoof  OBJECT-TYPE         
+   SYNTAX INTEGER {         
+   enabled(1),         
+   disabled(2)         
+   }         
+   MAX-ACCESS  read-write         
+   STATUS  current         
+   DESCRIPTION         
+   "Enable/Disable ARP-only Spoof Detection."         
+   DEFVAL { disabled }         
+   ::= { alaDoSConfig 13 }         
+          
+alaDosAntiGlobalSpoofCountReset OBJECT-TYPE         
+   SYNTAX INTEGER {         
+   default(0),    
+   reset(1)         
+   }         
+   MAX-ACCESS   read-write         
+   STATUS       current         
+   DESCRIPTION         
+   "Reset Anti-spoof counter value for each IP/VRRP Interface."         
+   ::= { alaDoSConfig 14 }       
+      
+alaDoSAntiSpoofTable OBJECT-TYPE      
+    SYNTAX      SEQUENCE OF AlaDoSAntiSpoofEntry      
+    MAX-ACCESS  not-accessible      
+    STATUS      current      
+    DESCRIPTION      
+          "A list of IP addresses for which Anti Spoofing needs to be configured "      
+    ::= { alaDoSConfig 15 }      
+       
+alaDoSAntiSpoofEntry OBJECT-TYPE      
+    SYNTAX AlaDoSAntiSpoofEntry      
+    MAX-ACCESS not-accessible      
+    STATUS current      
+    DESCRIPTION      
+           " An entry in the alaDoSAntiSpoofTable."      
+    INDEX { alaDoSAntiSpoofIpAddrType,
+            alaDoSAntiSpoofIpAddr }      
+    ::= { alaDoSAntiSpoofTable 1 }      
+       
+ AlaDoSAntiSpoofEntry ::= SEQUENCE {     
+    alaDoSAntiSpoofIpAddrType   InetAddressType,
+    alaDoSAntiSpoofIpAddr       InetAddress,
+    alaDoSAntiSpoofVlan         Integer32,      
+    alaDoSAntiSpoofStatus       INTEGER,      
+    alaDosAntiSpoofArpOnly      INTEGER,      
+    alaDosAntiSpoofCountReset   INTEGER,      
+    alaDosAntiSpoofMac          MacAddress,      
+    alaDosAntiSpoofSlot         Integer32,      
+    alaDosAntiSpoofPort         Integer32      
+    }     
+ alaDoSAntiSpoofIpAddrType  OBJECT-TYPE
+    SYNTAX          InetAddressType
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION
+    "The address type of this entry"
+    ::= { alaDoSAntiSpoofEntry 1 }
+    
+ alaDoSAntiSpoofIpAddr   OBJECT-TYPE      
+    SYNTAX       InetAddress
+    MAX-ACCESS   read-only     
+    STATUS       current      
+    DESCRIPTION      
+    "The IP address for which spoofing needs to be configured."      
+    ::= { alaDoSAntiSpoofEntry 2 }      
+       
+ alaDoSAntiSpoofVlan      OBJECT-TYPE      
+    SYNTAX      Integer32      
+    MAX-ACCESS  read-only      
+    STATUS      current      
+    DESCRIPTION      
+    "The VLAN to which the interface is bound; 0 if unbound."      
+    DEFVAL { 0 }      
+    ::= { alaDoSAntiSpoofEntry 3 }      
+       
+ alaDoSAntiSpoofStatus   OBJECT-TYPE      
+    SYNTAX INTEGER {      
+    enabled(1),      
+    disabled(2)      
+    }      
+    MAX-ACCESS  read-write      
+    STATUS      current      
+    DESCRIPTION      
+    "enable/disable IP Anti Spoofing for eachIP/VRRP Interface."      
+    DEFVAL { enabled }      
+    ::= { alaDoSAntiSpoofEntry 4 }      
+       
+ alaDosAntiSpoofArpOnly  OBJECT-TYPE      
+    SYNTAX INTEGER {      
+    enabled(1),      
+    disabled(2)      
+    }      
+    MAX-ACCESS  read-write      
+    STATUS  current      
+    DESCRIPTION      
+    " Enable/Disable ARP-only spoof Detection for eachIP/VRRP Interface."      
+    DEFVAL { disabled }      
+    ::= { alaDoSAntiSpoofEntry 5 }      
+       
+ alaDosAntiSpoofCountReset  OBJECT-TYPE      
+    SYNTAX       INTEGER {      
+    default(0),       
+    reset(1)      
+    }      
+    MAX-ACCESS   read-write      
+    STATUS       current      
+    DESCRIPTION      
+    "To Reset the counter values for eachIP/VRRP Interface."      
+    ::= { alaDoSAntiSpoofEntry 6 }      
+      
+alaDosAntiSpoofMac OBJECT-TYPE      
+    SYNTAX MacAddress      
+    MAX-ACCESS read-only      
+    STATUS current      
+    DESCRIPTION      
+    " MAC address of attacked Ip."      
+    ::= { alaDoSAntiSpoofEntry 7 }      
+      
+alaDosAntiSpoofSlot OBJECT-TYPE      
+    SYNTAX Integer32      
+    MAX-ACCESS read-only      
+    STATUS current      
+    DESCRIPTION      
+    "Slot on which Spoof attack happens."      
+    ::= { alaDoSAntiSpoofEntry 8  }      
+      
+alaDosAntiSpoofPort OBJECT-TYPE      
+    SYNTAX Integer32      
+    MAX-ACCESS read-only      
+    STATUS current      
+    DESCRIPTION      
+    "Port on which Spoof attack happens."      
+    ::= { alaDoSAntiSpoofEntry 9  }  
 alaDoSArpPoisonEntry OBJECT-TYPE
 	SYNTAX AlaDoSArpPoisonEntry
 	MAX-ACCESS not-accessible
@@ -607,7 +778,13 @@ pktDropType OBJECT-TYPE
 		bgpTriggeredUserPortDisable(5),
 		ospfTriggeredUserPortDisable(6),
 		ripTriggeredUserPortDisable(7),
-		vrrpTriggeredUserPortDisable(8)
+		vrrpTriggeredUserPortDisable(8),
+                dhcpserverTriggeredUserPortDisable(9),
+                pimTriggeredUserPortDisable(10),
+                dvmrpTriggeredUserPortDisable(11),
+                isisTriggeredUserPortDisable(12), 
+                dns-replyTriggeredUserPortDisable(13)
+	
 	}
 	MAX-ACCESS	accessible-for-notify
 	STATUS	current
@@ -837,8 +1014,8 @@ AlaIpArpFilterEntry ::= SEQUENCE {
 	alaIpArpFilterIpAddr	IpAddress,
 	alaIpArpFilterIpMask	IpAddress,
 	alaIpArpFilterVlan  	INTEGER,
-	alaIpArpFilterType  	INTEGER,
-	alaIpArpFilterMode  	INTEGER,
+	alaIpArpFilterType	INTEGER,
+	alaIpArpFilterMode	INTEGER,
 	alaIpArpFilterRowStatus	RowStatus
 	}
 
@@ -864,7 +1041,7 @@ alaIpArpFilterVlan  OBJECT-TYPE
     MAX-ACCESS	read-only
     STATUS	current
     DESCRIPTION
-	"Vlan for filter. 0 disables"
+	"Vlan for filter. 0 disables."
     DEFVAL { 0 }
     ::= { alaIpArpFilterEntry 3 }
 
@@ -1063,11 +1240,16 @@ AlaIpInterfaceEntry ::= SEQUENCE {
         alaIpInterfaceDhcpIpRelease INTEGER,
         alaIpInterfaceDhcpIpRenew INTEGER,
         alaIpInterfaceDhcpOption60String  DisplayString,
-	alaIpInterfaceLocalHostDirectedBroadcast INTEGER
+        alaIpInterfaceLocalHostDirectedBroadcast INTEGER,
+        alaIpInterfaceRtrPortIfIndex Unsigned32,
+        alaIpInterfaceRtrPortType INTEGER,
+        alaIpInterfaceVipAddress IpAddress,
+        alaIpInterfaceDhcpVsiAcceptFilterString  DisplayString,
+	alaIpInterfaceCVlanID INTEGER
 }
 
 alaIpInterfaceName  OBJECT-TYPE
-	SYNTAX  DisplayString (SIZE (1..20))
+	SYNTAX  DisplayString (SIZE (1..32))
 	MAX-ACCESS  read-only
 	STATUS  current
 	DESCRIPTION
@@ -1076,7 +1258,7 @@ alaIpInterfaceName  OBJECT-TYPE
 
 alaIpInterfaceAddress OBJECT-TYPE
 	SYNTAX  IpAddress
-	MAX-ACCESS  read-write
+	MAX-ACCESS read-write 
 	STATUS  current
 	DESCRIPTION
 		"IP address for this interface."
@@ -1085,7 +1267,7 @@ alaIpInterfaceAddress OBJECT-TYPE
 
 alaIpInterfaceMask OBJECT-TYPE
 	SYNTAX  IpAddress
-	MAX-ACCESS  read-write
+	MAX-ACCESS read-write 
 	STATUS  current
 	DESCRIPTION
 		"IP mask for this IP interface."
@@ -1113,6 +1295,7 @@ alaIpInterfaceDeviceType  OBJECT-TYPE
 		loopback (3),
 		greTunnel (4),
 		ipipTunnel (5)
+                -- rtrPort(6)
 	}
 	MAX-ACCESS read-write
 	STATUS  current
@@ -1211,6 +1394,7 @@ alaIpInterfaceOperReason OBJECT-TYPE
 		noRouterMac(5),
 		tunnelSrcInvalid(6),
 		tunnelDstUnreachable(7)
+		-- noVipAddress(8)
 	}
 	MAX-ACCESS read-only
 	STATUS current
@@ -1294,7 +1478,7 @@ alaIpInterfaceDhcpStatus OBJECT-TYPE
                 timeout (3)
         }
         MAX-ACCESS read-write
-        STATUS  current
+	STATUS  current
         DESCRIPTION
                 "DHCP status of the DHCP Client IP interface"
         DEFVAL { discovery }
@@ -1306,7 +1490,7 @@ alaIpInterfaceDhcpIpRelease OBJECT-TYPE
                 disabled(2)
         }
         MAX-ACCESS read-write
-        STATUS      current
+	STATUS      current
         DESCRIPTION
                 "To do an IP address release if dynamically assigned address"
         DEFVAL { disabled }
@@ -1318,7 +1502,7 @@ alaIpInterfaceDhcpIpRenew OBJECT-TYPE
                 disabled(2)
         }
         MAX-ACCESS read-write
-        STATUS      current
+	STATUS      current
         DESCRIPTION
                 "To do an IP address renew if dynamically assigned address"
         DEFVAL { disabled }
@@ -1327,7 +1511,7 @@ alaIpInterfaceDhcpIpRenew OBJECT-TYPE
  alaIpInterfaceDhcpOption60String OBJECT-TYPE
         SYNTAX      DisplayString (SIZE (0..63))
         MAX-ACCESS read-write
-        STATUS current
+	STATUS current
         DESCRIPTION
                "The value of option-60 filed that should be inserted in
                DHCP discover/request packet if configured."
@@ -1346,6 +1530,55 @@ alaIpInterfaceLocalHostDirectedBroadcast OBJECT-TYPE
              directed broadcasts address"
     DEFVAL     { disabled }
         ::= { alaIpInterfaceEntry 26 }
+
+
+alaIpInterfaceRtrPortIfIndex  OBJECT-TYPE
+	SYNTAX  Unsigned32 (1001..4294967295)
+	MAX-ACCESS  read-create
+	STATUS  current
+	DESCRIPTION
+	"The physical interface index associated with the RTR-PORT IP interface."
+	::= { alaIpInterfaceEntry 27 }
+
+alaIpInterfaceRtrPortType OBJECT-TYPE
+    SYNTAX      INTEGER {
+                    untagged(1),
+                    tagged(2)
+               }
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+            "The type of frames tagged or untagged to support for the RTR-PORT IP interface"
+    DEFVAL     { untagged }
+        ::= { alaIpInterfaceEntry 28 }
+
+alaIpInterfaceVipAddress OBJECT-TYPE
+	SYNTAX  IpAddress
+	MAX-ACCESS  read-write
+	STATUS  current
+	DESCRIPTION
+	"Virtual IP address for this interface when part of a
+	multi-chass configuration."
+	DEFVAL { '00000000'h }
+	::= { alaIpInterfaceEntry 29 }
+
+ alaIpInterfaceDhcpVsiAcceptFilterString OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (0..63))
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION
+               "The value of vsi-filter to prefer the OXO-Server. 
+               On the basis of this value DHCP-Ack will be accepted."
+        ::= { alaIpInterfaceEntry 30 }
+
+alaIpInterfaceCVlanID  OBJECT-TYPE
+     		 SYNTAX INTEGER (0..4094)
+          	 MAX-ACCESS  read-write
+          	 STATUS  current
+          	  DESCRIPTION
+                "The CVLAN to which the interface is bound; 0 if unbound."
+   		 DEFVAL { 0 }
+          ::= { alaIpInterfaceEntry 31}
 
 alaIpItfConfigTable OBJECT-TYPE
 	SYNTAX SEQUENCE OF AlaIpItfConfigEntry
@@ -1371,7 +1604,7 @@ AlaIpItfConfigEntry ::= SEQUENCE {
 }
 
 alaIpItfConfigName OBJECT-TYPE
-	SYNTAX  DisplayString (SIZE (1..20))
+	SYNTAX  DisplayString (SIZE (1..32))
 	MAX-ACCESS  read-only
 	STATUS  current
 	DESCRIPTION
@@ -1463,17 +1696,17 @@ alaIpCompliance MODULE-COMPLIANCE
             "The compliance statement for switches with Alcatel IP stack and
             implementing ALCATEL-IND1-IP-MIB."
     MODULE
-    MANDATORY-GROUPS { alaIpConfigGroup, alaIpDoSGroup,
-    				alaIpNetToMediaDpGroup, alaIpDhcpHostIdentifierGroup,alaIcmpGroup,
-    				alaIpArpFilterGroup,alaIpInterfaceGroup,alaIpItfConfigGroup,alaIpManagedIntfGroup,
-    				alaIpPortServiceGroup,alaIpRouteSumGroup,alaIpMiscGroup }
+     MANDATORY-GROUPS {alaIpConfigGroup, alaIpDoSGroup,
+                       alaIpNetToMediaDpGroup, alaIpDhcpHostIdentifierGroup,alaIcmpGroup,
+                       alaIpArpFilterGroup,alaIpInterfaceGroup,alaIpItfConfigGroup,alaIpManagedIntfGroup,
+                       alaIpPortServiceGroup,alaIpRouteSumGroup,alaIpMiscGroup } 
     ::= { alcatelIND1IPMIBCompliances 1 }
 --
 -- units of conformance
 --
 alaIpConfigGroup OBJECT-GROUP
     OBJECTS  { alaIpClearArpCache, alaIpArpTimeout, alaIpDirectedBroadcast,
-               alaIpClearArpFilter }
+               alaIpClearArpFilter, alaIpDualHashMode }
     STATUS     current
     DESCRIPTION
             "A collection of objects to support management of configuration
@@ -1485,12 +1718,14 @@ alaIpDoSGroup OBJECT-GROUP
 	       alaDoSStatus, alaDoSDetectedCounter,alaDoSARPRate, alaDoSArpPoisonDetected,
 	       alaDoSArpPoisonRowStatus,alaDoSPingRate,alaDoSPortScanClosePortPenalty ,alaDoSPortScanDecay,
 	       alaDoSPortScanTcpOpenPortPenalty,alaDoSPortScanThreshold,alaDoSPortScanTotalPenalty ,
-	       alaDoSPortScanUdpOpenPortPenalty, alaDoSTrapCntl ,alaDoSType   }
+	       alaDoSPortScanUdpOpenPortPenalty, alaDoSTrapCntl ,alaDoSType,alaDoSIpAntiSpoof,
+               alaDoSArpAntiSpoof, alaDosAntiGlobalSpoofCountReset ,alaDoSAntiSpoofIpAddr,
+               alaDoSAntiSpoofVlan, alaDoSAntiSpoofStatus,alaDosAntiSpoofArpOnly,alaDosAntiSpoofCountReset,
+               alaDosAntiSpoofMac,alaDosAntiSpoofSlot,alaDosAntiSpoofPort   }
     STATUS     current
     DESCRIPTION
 	       "A collection of objects to support DoS (denial of service)."
     ::= { alcatelIND1IPMIBGroups 2 }
-
 alaIpNetToMediaDpGroup OBJECT-GROUP
    OBJECTS  { alaIpNetToMediaDpaPhysAddress,
               alaIpNetToMediaDpaIpType,
@@ -1502,7 +1737,6 @@ alaIpNetToMediaDpGroup OBJECT-GROUP
               alaIpNetToMediaPhysAddress ,
               alaIpNetToMediaProxy ,
               alaIpNetToMediaVrrp
-
               }
    STATUS     current
    DESCRIPTION
@@ -1536,7 +1770,6 @@ alaIcmpGroup OBJECT-GROUP
    DESCRIPTION
             "Object to turn on/off all ICMP control messages."
     ::= { alcatelIND1IPMIBGroups 5 }
-
  alaIpArpFilterGroup OBJECT-GROUP
    OBJECTS
    {
@@ -1551,45 +1784,23 @@ alaIcmpGroup OBJECT-GROUP
             "A list of IP addresses for ARP to ignore."
     ::= { alcatelIND1IPMIBGroups 6 }
 
-
- alaIpInterfaceGroup OBJECT-GROUP
-   OBJECTS
-   {
-  		alaIpInterfaceAddress , 	
-		alaIpInterfaceAdminState,
-		alaIpInterfaceBcastAddr,
-		alaIpInterfaceDeviceType ,
-		alaIpInterfaceDhcpIpRelease,
-		alaIpInterfaceDhcpIpRenew,
-		alaIpInterfaceDhcpOption60String,
-		alaIpInterfaceDhcpStatus,
-		alaIpInterfaceEncap,
-		alaIpInterfaceIpForward,
-		alaIpInterfaceLocalHostDirectedBroadcast,
-		alaIpInterfaceLocalProxyArp,
-		alaIpInterfaceMask,
-		alaIpInterfaceMtu,
-		alaIpInterfaceName,
-		alaIpInterfaceOperReason,
-		alaIpInterfaceOperState,
-		alaIpInterfacePrimAct,
-		alaIpInterfacePrimCfg ,
-		alaIpInterfaceRemoteAddr ,
-		alaIpInterfaceRouterMac,
-		alaIpInterfaceTunnelDst ,
-		alaIpInterfaceTunnelDstAddressType,
-		alaIpInterfaceTunnelSrc ,
-		alaIpInterfaceTunnelSrcAddressType,
-		alaIpInterfaceVlanID
-		
-    }
-   STATUS     current
-   DESCRIPTION
-            "A list of IP addresses for ARP to ignore."
+alaIpInterfaceGroup OBJECT-GROUP
+    OBJECTS  {  alaIpInterfaceName, alaIpInterfaceAddress, alaIpInterfaceMask,
+		alaIpInterfaceAdminState, alaIpInterfaceDeviceType, alaIpInterfaceVlanID,
+		alaIpInterfaceIpForward, alaIpInterfaceEncap, alaIpInterfaceMtu,
+		alaIpInterfaceLocalProxyArp, alaIpInterfacePrimCfg, alaIpInterfaceOperState,
+		alaIpInterfaceOperReason, alaIpInterfaceRouterMac, alaIpInterfaceBcastAddr,
+		alaIpInterfacePrimAct, alaIpInterfaceRemoteAddr, alaIpInterfaceTunnelSrcAddressType,
+		alaIpInterfaceTunnelSrc, alaIpInterfaceTunnelDstAddressType, alaIpInterfaceTunnelDst,
+		alaIpInterfaceDhcpStatus, alaIpInterfaceDhcpIpRelease, alaIpInterfaceDhcpIpRenew,
+		alaIpInterfaceDhcpOption60String, alaIpInterfaceLocalHostDirectedBroadcast, alaIpInterfaceDhcpVsiAcceptFilterString, alaIpInterfaceCVlanID }
+    STATUS     current
+    DESCRIPTION
+            "A collection of objects to support management of intefcae 
+            parameters of Alcatel IP stack."
     ::= { alcatelIND1IPMIBGroups 7 }
 
-
- alaIpInterfaceTrapsGroup NOTIFICATION-GROUP
+alaIpInterfaceTrapsGroup NOTIFICATION-GROUP
    NOTIFICATIONS
    {
   		alaDoSTrap , 	
@@ -1601,20 +1812,15 @@ alaIcmpGroup OBJECT-GROUP
             "A list of IP Interface Notifications."
     ::= { alcatelIND1IPMIBGroups 8 }
 
- alaIpItfConfigGroup OBJECT-GROUP
-   OBJECTS
-   {
-  	 alaIpItfConfigIfIndex,
-  	 alaIpItfConfigName,
-  	 alaIpItfConfigRowStatus
-	
-    }
-   STATUS     current
-   DESCRIPTION
-            "Table used to configure a new IP interface with an IP address."
+alaIpItfConfigGroup OBJECT-GROUP
+    OBJECTS  {alaIpItfConfigRowStatus, alaIpItfConfigIfIndex, alaIpItfConfigName }
+    STATUS     current
+    DESCRIPTION
+            "A collection of objects to support management of interface configuration
+            parameters of Alcatel IP stack."
     ::= { alcatelIND1IPMIBGroups 9 }
 
-   alaIpManagedIntfGroup OBJECT-GROUP
+alaIpManagedIntfGroup OBJECT-GROUP
    OBJECTS
    {
   	 alaIpManagedIntfName,
@@ -1639,7 +1845,6 @@ alaIcmpGroup OBJECT-GROUP
    DESCRIPTION
             "An entry in alaIpPortServiceTable."
     ::= { alcatelIND1IPMIBGroups 11 }
-
 	alaIpRouteSumGroup OBJECT-GROUP
    OBJECTS
    {
@@ -1652,7 +1857,6 @@ alaIcmpGroup OBJECT-GROUP
    DESCRIPTION
             "An entry in alaIpPortServiceTable."
     ::= { alcatelIND1IPMIBGroups 12 }
-
     alaIpMiscGroup OBJECT-GROUP
    OBJECTS
    {
@@ -1670,6 +1874,7 @@ alaIcmpGroup OBJECT-GROUP
    DESCRIPTION
             "An entry in other tables."
     ::= { alcatelIND1IPMIBGroups 13 }
+
 
 --
 -- Traps in case if Maximum hardware table entries is reached
@@ -1690,126 +1895,128 @@ arpMaxLimitReached NOTIFICATION-TYPE
 --
 
 alaIpNetToMediaDpaTable OBJECT-TYPE
-    SYNTAX      SEQUENCE OF AlaIpNetToMediaDpaEntry
-    MAX-ACCESS  not-accessible
-    STATUS      current
-    DESCRIPTION
-        "A table of dynamic proxy ARPs for the router IPs"
-    ::= { alcatelIND1IPMIBObjects 17 }
+SYNTAX      SEQUENCE OF AlaIpNetToMediaDpaEntry
+MAX-ACCESS  not-accessible
+STATUS      current
+DESCRIPTION
+"A table of dynamic proxy ARPs for the router IPs"
+::= { alcatelIND1IPMIBObjects 17 }
 
 alaIpNetToMediaDpaEntry OBJECT-TYPE
-    SYNTAX      AlaIpNetToMediaDpaEntry
-    MAX-ACCESS  not-accessible
-    STATUS      current
-    DESCRIPTION
-        "An entry in alaIpToMediaDpaTable."
-    INDEX  { alaIpNetToMediaDpaVlan}
-    ::= { alaIpNetToMediaDpaTable 1 }
+SYNTAX      AlaIpNetToMediaDpaEntry
+MAX-ACCESS  not-accessible
+STATUS      current
+DESCRIPTION
+"An entry in alaIpToMediaDpaTable."
+INDEX  { alaIpNetToMediaDpaVlan}
+::= { alaIpNetToMediaDpaTable 1 }
 
 AlaIpNetToMediaDpaEntry ::= SEQUENCE {
-        alaIpNetToMediaDpaVlan          Integer32,
-        alaIpNetToMediaDpaPhysAddress   PhysAddress,
-        alaIpNetToMediaDpaIpType        InetAddressType,
-        alaIpNetToMediaDpaIp            InetAddress,
-        alaIpNetToMediaDpaSlot          Integer32,
-        alaIpNetToMediaDpaPort          Integer32
+alaIpNetToMediaDpaVlan          Integer32,
+alaIpNetToMediaDpaPhysAddress   PhysAddress,
+alaIpNetToMediaDpaIpType        InetAddressType,
+alaIpNetToMediaDpaIp            InetAddress,
+alaIpNetToMediaDpaSlot          Integer32,
+alaIpNetToMediaDpaPort          Integer32
 }
 
 alaIpNetToMediaDpaVlan OBJECT-TYPE
-    SYNTAX      Integer32(0..4094)
-    MAX-ACCESS  not-accessible
-    STATUS      current
-    DESCRIPTION
-            "Vlan to which the router IP belongs to."
-    ::= { alaIpNetToMediaDpaEntry 1  }
+SYNTAX      Integer32
+MAX-ACCESS  not-accessible
+STATUS      current
+DESCRIPTION
+"Vlan to which the router IP belongs to."
+::= { alaIpNetToMediaDpaEntry 1  }
 
 alaIpNetToMediaDpaPhysAddress OBJECT-TYPE
-    SYNTAX      PhysAddress
-    MAX-ACCESS  read-only
-    STATUS      current
-    DESCRIPTION
-            "The media-dependent `physical' address of the head end router."
-    ::= { alaIpNetToMediaDpaEntry 2 }
+SYNTAX      PhysAddress
+MAX-ACCESS  read-only
+STATUS      current
+DESCRIPTION
+"The media-dependent `physical' address of the head end router."
+::= { alaIpNetToMediaDpaEntry 2 }
 
 alaIpNetToMediaDpaIpType OBJECT-TYPE
-    SYNTAX      InetAddressType(1)
-    MAX-ACCESS  read-only
-    STATUS      current
-    DESCRIPTION
-            "Router IP address type(IPV4) of the VLAN."
-    ::= { alaIpNetToMediaDpaEntry 3  }
+SYNTAX      InetAddressType(1)
+MAX-ACCESS  read-only
+STATUS      current
+DESCRIPTION
+"Router IP address type(IPV4) of the VLAN."
+::= { alaIpNetToMediaDpaEntry 3  }
 
 alaIpNetToMediaDpaIp OBJECT-TYPE
-    SYNTAX      InetAddress
-    MAX-ACCESS  read-only
-    STATUS      current
-    DESCRIPTION
-            "Router IP address of the VLAN"
-    ::= { alaIpNetToMediaDpaEntry 4  }
+SYNTAX      InetAddress
+MAX-ACCESS  read-only
+STATUS      current
+DESCRIPTION
+"Router IP address of the VLAN"
+::= { alaIpNetToMediaDpaEntry 4  }
 
 alaIpNetToMediaDpaSlot OBJECT-TYPE
-    SYNTAX      Integer32
-    MAX-ACCESS  read-only
-    STATUS      current
-    DESCRIPTION
-            "Slot on which the ARP is learnt"
-    ::= { alaIpNetToMediaDpaEntry 5  }
+SYNTAX      Integer32
+MAX-ACCESS  read-only
+STATUS      current
+DESCRIPTION
+"Slot on which the ARP is learnt"
+::= { alaIpNetToMediaDpaEntry 5  }
 
 
 alaIpNetToMediaDpaPort OBJECT-TYPE
-    SYNTAX      Integer32
-    MAX-ACCESS  read-only
-    STATUS      current
-    DESCRIPTION
-            "Port on which the ARP is learnt"
-    ::= { alaIpNetToMediaDpaEntry 6  }
+SYNTAX      Integer32
+MAX-ACCESS  read-only
+STATUS      current
+DESCRIPTION
+"Port on which the ARP is learnt"
+::= { alaIpNetToMediaDpaEntry 6  }
+
 
 alaIpManagedIntfTable OBJECT-TYPE
-    SYNTAX      SEQUENCE OF AlaIpManagedIntfEntry
-    MAX-ACCESS  not-accessible
-    STATUS      current
-    DESCRIPTION
-        "A table of managed interface for various applications"
-    ::= { alcatelIND1IPMIBObjects 18 }
+   SYNTAX      SEQUENCE OF AlaIpManagedIntfEntry
+   MAX-ACCESS  not-accessible
+   STATUS      current
+   DESCRIPTION
+	"A table of managed interface for various applications"
+::= { alcatelIND1IPMIBObjects 18 }
 
 alaIpManagedIntfEntry OBJECT-TYPE
-    SYNTAX      AlaIpManagedIntfEntry
-    MAX-ACCESS  not-accessible
-    STATUS      current
-    DESCRIPTION
-        "An entry in alaIpManagedIntfTable."
-    INDEX  { alaIpManagedIntfAppIndex }
-    ::= { alaIpManagedIntfTable  1 }
+   SYNTAX      AlaIpManagedIntfEntry
+   MAX-ACCESS  not-accessible
+   STATUS      current
+   DESCRIPTION
+	"An entry in alaIpManagedIntfTable."
+	INDEX  { alaIpManagedIntfAppIndex }
+::= { alaIpManagedIntfTable  1 }
 
 AlaIpManagedIntfEntry ::= SEQUENCE {
-        alaIpManagedIntfAppIndex	AlaIpManagedIntfAppIndex,
-        alaIpManagedIntfName		DisplayString,
-	alaIpManagedRowStatus		RowStatus
+	alaIpManagedIntfAppIndex        AlaIpManagedIntfAppIndex,
+	alaIpManagedIntfName                DisplayString,
+	alaIpManagedRowStatus                RowStatus
 }
 
 alaIpManagedIntfAppIndex  OBJECT-TYPE
-    SYNTAX      AlaIpManagedIntfAppIndex
-    MAX-ACCESS  not-accessible
-    STATUS      current
-    DESCRIPTION
+   SYNTAX      AlaIpManagedIntfAppIndex
+   MAX-ACCESS  not-accessible
+   STATUS      current
+   DESCRIPTION
 	"Managed interface index for a specified application"
-    ::= { alaIpManagedIntfEntry 1 }
+::= { alaIpManagedIntfEntry 1 }
 
-alaIpManagedIntfName	OBJECT-TYPE
-    SYNTAX      DisplayString(SIZE(1..32))
-    MAX-ACCESS  read-create
-    STATUS      current
-    DESCRIPTION
-	"Managed interface name for the specified application"
-    ::= { alaIpManagedIntfEntry 2 }
+alaIpManagedIntfName        OBJECT-TYPE
+   SYNTAX      DisplayString(SIZE(1..32)) 
+   MAX-ACCESS  read-create
+   STATUS      current
+   DESCRIPTION
+	 "Managed interface name for the specified application"
+::= { alaIpManagedIntfEntry 2 }
 
-alaIpManagedRowStatus	OBJECT-TYPE
-    SYNTAX      RowStatus
-    MAX-ACCESS  read-create
-    STATUS      current
-    DESCRIPTION
-	"Row Status for the specified entry"
-    ::= { alaIpManagedIntfEntry 3 }		
+
+alaIpManagedRowStatus        OBJECT-TYPE
+   SYNTAX      RowStatus 
+   MAX-ACCESS  read-create
+   STATUS      current
+   DESCRIPTION
+	 "Row Status for the specified entry"
+::= { alaIpManagedIntfEntry 3 } 
 
 END
 

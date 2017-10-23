@@ -25,10 +25,55 @@ $graph_array = array('type'   => 'device_poller_perf',
 
 
 <?php
+
 echo generate_box_open(array('title' => 'Poller Performance'));
 print_graph_row($graph_array);
 echo generate_box_close();
 
+$navbar = array('brand' => "Performance", 'class' => "navbar-narrow");
+
+$navbar['options']['overview']['text']       = 'Overview';
+$navbar['options']['poller']['text']         = 'Poller Modules';
+
+foreach ($navbar['options'] as $option => $array)
+{
+  if (!isset($vars['view'])) { $vars['view'] = "overview"; }
+  if ($vars['view'] == $option) { $navbar['options'][$option]['class'] .= " active"; }
+  $navbar['options'][$option]['url'] = generate_url($vars, array('view' => $option));
+}
+
+print_navbar($navbar);
+unset($navbar);
+
+arsort($device['state']['poller_mod_perf']);
+
+
+if($vars['view'] == poller)
+{
+
+  echo generate_box_open();
+  echo '<table class="' .OBS_CLASS_TABLE_STRIPED_TWO.' table-hover">' . PHP_EOL;
+
+  foreach ($device['state']['poller_mod_perf'] as $module => $time)
+  {
+
+    echo '<tr><td><h3>'.$module.'</h3></td><td width=40>'.$time.'s</td></tr>';
+    echo '<tr><td colspan=2>';
+
+    $graph = array('type'   => 'device_pollermodule_perf',
+                   'device' => $device['device_id'],
+                   'module' => $module);
+
+    print_graph_row($graph);
+
+    echo '</td></tr>';
+
+  }
+
+  echo '</tbody></table>';
+  echo generate_box_close();
+
+} else {
 
 ?>
 
@@ -52,8 +97,6 @@ echo generate_box_close();
           </thead>
           <tbody>
 <?php
-
-arsort($device['state']['poller_mod_perf']);
 
 foreach ($device['state']['poller_mod_perf'] as $module => $time)
 {
@@ -143,5 +186,7 @@ foreach ($times as $time)
     </div>
   </div>
 <?php
+
+}
 
 // EOF

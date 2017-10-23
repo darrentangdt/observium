@@ -52,7 +52,7 @@ foreach ($oids as $meter => $entry1)
       case 'l':
         $sensor_type = 'volume';
         break;
-      /* FIXME. Wh should be counters, disabled for now 
+      /* FIXME. Wh should be counters, disabled for now
       case 'kwh':
         $scale       = si_to_scale($entry['mtvalExp'] + 3); // Convert to Wh
         // not break here

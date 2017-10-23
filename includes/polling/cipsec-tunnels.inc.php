@@ -101,7 +101,7 @@ if (!is_device_mib($device, 'CISCO-IPSEC-FLOW-MONITOR-MIB'))
     $cikePeerCorrLocalValue  = implode('.', $str_parts);
     if ($cikePeerCorrLocalType == 'ipAddrPeer')
     {
-      $str_ip = snmp_indexstring($cikePeerCorrLocalValue);
+      $str_ip = snmp_oid_to_string($str_len.'.'.$cikePeerCorrLocalValue);
       if (get_ip_version($str_ip))
       {
         $cikePeerCorrLocalValue  = $str_ip;
@@ -112,7 +112,7 @@ if (!is_device_mib($device, 'CISCO-IPSEC-FLOW-MONITOR-MIB'))
       }
     } else {
       // display string
-      $cikePeerCorrLocalValue = snmp_indexstring($cikePeerCorrLocalValue);
+      $cikePeerCorrLocalValue = snmp_oid_to_string($str_len.'.'.$cikePeerCorrLocalValue);
     }
     // Remote
     $cikePeerCorrRemoteType  = array_shift($index_parts) == 1 ? 'ipAddrPeer' : 'namePeer';
@@ -121,7 +121,7 @@ if (!is_device_mib($device, 'CISCO-IPSEC-FLOW-MONITOR-MIB'))
     $cikePeerCorrRemoteValue  = implode('.', $str_parts);
     if ($cikePeerCorrRemoteType == 'ipAddrPeer')
     {
-      $str_ip = snmp_indexstring($cikePeerCorrRemoteValue);
+      $str_ip = snmp_oid_to_string($str_len.'.'.$cikePeerCorrRemoteValue);
       if (get_ip_version($str_ip))
       {
         $cikePeerCorrRemoteValue = $str_ip;
@@ -132,7 +132,7 @@ if (!is_device_mib($device, 'CISCO-IPSEC-FLOW-MONITOR-MIB'))
       }
     } else {
       // display string
-      $cikePeerCorrRemoteValue = snmp_indexstring($cikePeerCorrRemoteValue);
+      $cikePeerCorrRemoteValue = snmp_oid_to_string($str_len.'.'.$cikePeerCorrRemoteValue);
     }
     // Index & Seq
     $cikePeerCorrIntIndex    = array_shift($index_parts);

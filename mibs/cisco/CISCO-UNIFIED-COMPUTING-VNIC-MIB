@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- VNIC management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -47,6 +47,7 @@ IMPORTS
     CucsManagedObjectId,
     CucsManagedObjectDn
         FROM CISCO-UNIFIED-COMPUTING-MIB
+    CucsAdaptorPurpose,
     CucsConditionRemoteInvRslt,
     CucsDpsecForgedTransmit,
     CucsFabricHostPortId,
@@ -55,22 +56,27 @@ IMPORTS
     CucsFsmFlags,
     CucsFsmFsmStageStatus,
     CucsLsConfigState,
+    CucsLsOwner,
     CucsNetworkSwitchId,
     CucsNwctrlAdminState,
     CucsNwctrlLinkFailAction,
+    CucsNwctrlLldpAdminStateBitmask,
     CucsNwctrlRegistrationMode,
     CucsPolicyPolicyOwner,
     CucsVmMgmtPlane,
     CucsVnicAEtherIfType,
+    CucsVnicAFcIfSwitchId,
     CucsVnicAFcIfType,
     CucsVnicAIpcIfType,
     CucsVnicAScsiIfType,
+    CucsVnicCdnSource,
     CucsVnicConfigIssues,
     CucsVnicConnectionOwner,
     CucsVnicConnectionType,
     CucsVnicDefBehType,
     CucsVnicDefaultAction,
     CucsVnicDynamicConReqProtection,
+    CucsVnicEtherBaseIfSwitchId,
     CucsVnicEtherBaseSwitchId,
     CucsVnicEtherType,
     CucsVnicExternalMgmtIPMode,
@@ -83,8 +89,8 @@ IMPORTS
     CucsVnicIScsiNodeOwner,
     CucsVnicIfOperState,
     CucsVnicInstantiation,
+    CucsVnicIpPoolType,
     CucsVnicIpcType,
-    CucsVnicL2IfSwitchId,
     CucsVnicLanConnTemplSwitchId,
     CucsVnicLunId,
     CucsVnicPortProfileType,
@@ -98,13 +104,14 @@ IMPORTS
     CucsVnicTemplateType,
     CucsVnicVhbaBehPolicyType,
     CucsVnicVirtualizationPreferenceType,
+    CucsVnicVlanGroupUpdate,
     CucsVnicVnicBehPolicyType,
     CucsVnicVnicBootDev,
     CucsVnicVnicOperHostPort
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsVnicObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -313,7 +320,8 @@ CucsVnicConnDefEntry ::= SEQUENCE {
     cucsVnicConnDefLanConnPolicyName                                 SnmpAdminString,
     cucsVnicConnDefOperLanConnPolicyName                             SnmpAdminString,
     cucsVnicConnDefOperSanConnPolicyName                             SnmpAdminString,
-    cucsVnicConnDefSanConnPolicyName                                 SnmpAdminString
+    cucsVnicConnDefSanConnPolicyName                                 SnmpAdminString,
+    cucsVnicConnDefPropAcl                                           Unsigned64
 }
 
 cucsVnicConnDefInstanceId OBJECT-TYPE
@@ -381,6 +389,14 @@ cucsVnicConnDefSanConnPolicyName OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS vnic:ConnDef:sanConnPolicyName managed object property"
     ::= { cucsVnicConnDefEntry 8 }
+
+cucsVnicConnDefPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:ConnDef:propAcl managed object property"
+    ::= { cucsVnicConnDefEntry 9 }
 
 cucsVnicDefBehTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicDefBehEntry
@@ -1084,6 +1100,130 @@ cucsVnicDynamicProviderEpSwitchId OBJECT-TYPE
         object property"
     ::= { cucsVnicDynamicProviderEpEntry 7 }
 
+cucsVnicEthConfigTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsVnicEthConfigEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS vnic:EthConfig managed object table"
+    ::= { cucsVnicObjects 74 }
+
+cucsVnicEthConfigEntry OBJECT-TYPE
+    SYNTAX           CucsVnicEthConfigEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsVnicEthConfigTable table."
+    INDEX { cucsVnicEthConfigInstanceId }
+    ::= { cucsVnicEthConfigTable 1 }
+
+CucsVnicEthConfigEntry ::= SEQUENCE {
+    cucsVnicEthConfigInstanceId                                      CucsManagedObjectId,
+    cucsVnicEthConfigDn                                              CucsManagedObjectDn,
+    cucsVnicEthConfigRn                                              SnmpAdminString,
+    cucsVnicEthConfigAdaptorProfileName                              SnmpAdminString,
+    cucsVnicEthConfigMacPoolName                                     SnmpAdminString,
+    cucsVnicEthConfigNwCtrlPolicyName                                SnmpAdminString,
+    cucsVnicEthConfigOperAdaptorProfileName                          SnmpAdminString,
+    cucsVnicEthConfigOperMacPoolName                                 SnmpAdminString,
+    cucsVnicEthConfigOperNwCtrlPolicyName                            SnmpAdminString,
+    cucsVnicEthConfigOperStatsPolicyName                             SnmpAdminString,
+    cucsVnicEthConfigStatsPolicyName                                 SnmpAdminString
+}
+
+cucsVnicEthConfigInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsVnicEthConfigEntry 1 }
+
+cucsVnicEthConfigDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:EthConfig:dn managed object property"
+    ::= { cucsVnicEthConfigEntry 2 }
+
+cucsVnicEthConfigRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:EthConfig:rn managed object property"
+    ::= { cucsVnicEthConfigEntry 3 }
+
+cucsVnicEthConfigAdaptorProfileName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:EthConfig:adaptorProfileName managed
+        object property"
+    ::= { cucsVnicEthConfigEntry 4 }
+
+cucsVnicEthConfigMacPoolName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:EthConfig:macPoolName managed object property"
+    ::= { cucsVnicEthConfigEntry 5 }
+
+cucsVnicEthConfigNwCtrlPolicyName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:EthConfig:nwCtrlPolicyName managed
+        object property"
+    ::= { cucsVnicEthConfigEntry 6 }
+
+cucsVnicEthConfigOperAdaptorProfileName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:EthConfig:operAdaptorProfileName
+        managed object property"
+    ::= { cucsVnicEthConfigEntry 7 }
+
+cucsVnicEthConfigOperMacPoolName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:EthConfig:operMacPoolName managed object property"
+    ::= { cucsVnicEthConfigEntry 8 }
+
+cucsVnicEthConfigOperNwCtrlPolicyName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:EthConfig:operNwCtrlPolicyName
+        managed object property"
+    ::= { cucsVnicEthConfigEntry 9 }
+
+cucsVnicEthConfigOperStatsPolicyName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:EthConfig:operStatsPolicyName managed
+        object property"
+    ::= { cucsVnicEthConfigEntry 10 }
+
+cucsVnicEthConfigStatsPolicyName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:EthConfig:statsPolicyName managed object property"
+    ::= { cucsVnicEthConfigEntry 11 }
+
 cucsVnicEthLifTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicEthLifEntry
     MAX-ACCESS       not-accessible
@@ -1250,7 +1390,13 @@ CucsVnicEtherEntry ::= SEQUENCE {
     cucsVnicEtherPfDn                                                SnmpAdminString,
     cucsVnicEtherVirtualizationPreference                            CucsVnicVirtualizationPreferenceType,
     cucsVnicEtherAdminHostPort                                       CucsFabricHostPortId,
-    cucsVnicEtherOperHostPort                                        CucsVnicVnicOperHostPort
+    cucsVnicEtherOperHostPort                                        CucsVnicVnicOperHostPort,
+    cucsVnicEtherPropAcl                                             Unsigned64,
+    cucsVnicEtherPurpose                                             CucsAdaptorPurpose,
+    cucsVnicEtherAdminCdnName                                        SnmpAdminString,
+    cucsVnicEtherOperCdnName                                         SnmpAdminString,
+    cucsVnicEtherCdnSource                                           CucsVnicCdnSource,
+    cucsVnicEtherCdnPropInSync                                       TruthValue
 }
 
 cucsVnicEtherInstanceId OBJECT-TYPE
@@ -1568,6 +1714,54 @@ cucsVnicEtherOperHostPort OBJECT-TYPE
         "Cisco UCS vnic:Ether:operHostPort managed object property"
     ::= { cucsVnicEtherEntry 40 }
 
+cucsVnicEtherPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Ether:propAcl managed object property"
+    ::= { cucsVnicEtherEntry 41 }
+
+cucsVnicEtherPurpose OBJECT-TYPE
+    SYNTAX       CucsAdaptorPurpose
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Ether:purpose managed object property"
+    ::= { cucsVnicEtherEntry 42 }
+
+cucsVnicEtherAdminCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Ether:adminCdnName managed object property"
+    ::= { cucsVnicEtherEntry 43 }
+
+cucsVnicEtherOperCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Ether:operCdnName managed object property"
+    ::= { cucsVnicEtherEntry 44 }
+
+cucsVnicEtherCdnSource OBJECT-TYPE
+    SYNTAX       CucsVnicCdnSource
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Ether:cdnSource managed object property"
+    ::= { cucsVnicEtherEntry 45 }
+
+cucsVnicEtherCdnPropInSync OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Ether:cdnPropInSync managed object property"
+    ::= { cucsVnicEtherEntry 46 }
+
 cucsVnicEtherIfTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicEtherIfEntry
     MAX-ACCESS       not-accessible
@@ -1594,7 +1788,7 @@ CucsVnicEtherIfEntry ::= SEQUENCE {
     cucsVnicEtherIfName                                              SnmpAdminString,
     cucsVnicEtherIfOperState                                         CucsVnicIfOperState,
     cucsVnicEtherIfOwner                                             CucsVnicConnectionOwner,
-    cucsVnicEtherIfSwitchId                                          CucsVnicL2IfSwitchId,
+    cucsVnicEtherIfSwitchId                                          CucsVnicEtherBaseIfSwitchId,
     cucsVnicEtherIfType                                              CucsVnicAEtherIfType,
     cucsVnicEtherIfVnet                                              Gauge32,
     cucsVnicEtherIfOperVnetDn                                        SnmpAdminString,
@@ -1602,7 +1796,10 @@ CucsVnicEtherIfEntry ::= SEQUENCE {
     cucsVnicEtherIfConfigQualifier                                   CucsVnicConfigIssues,
     cucsVnicEtherIfFltAggr                                           Unsigned64,
     cucsVnicEtherIfPubNwId                                           Gauge32,
-    cucsVnicEtherIfSharing                                           CucsFabricVlanSharingType
+    cucsVnicEtherIfSharing                                           CucsFabricVlanSharingType,
+    cucsVnicEtherIfPropAcl                                           Unsigned64,
+    cucsVnicEtherIfOperPrimaryVnetDn                                 SnmpAdminString,
+    cucsVnicEtherIfOperPrimaryVnetName                               SnmpAdminString
 }
 
 cucsVnicEtherIfInstanceId OBJECT-TYPE
@@ -1670,7 +1867,7 @@ cucsVnicEtherIfOwner OBJECT-TYPE
     ::= { cucsVnicEtherIfEntry 8 }
 
 cucsVnicEtherIfSwitchId OBJECT-TYPE
-    SYNTAX       CucsVnicL2IfSwitchId
+    SYNTAX       CucsVnicEtherBaseIfSwitchId
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
@@ -1741,6 +1938,31 @@ cucsVnicEtherIfSharing OBJECT-TYPE
         "Cisco UCS vnic:EtherIf:sharing managed object property"
     ::= { cucsVnicEtherIfEntry 18 }
 
+cucsVnicEtherIfPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:EtherIf:propAcl managed object property"
+    ::= { cucsVnicEtherIfEntry 19 }
+
+cucsVnicEtherIfOperPrimaryVnetDn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:EtherIf:operPrimaryVnetDn managed object property"
+    ::= { cucsVnicEtherIfEntry 20 }
+
+cucsVnicEtherIfOperPrimaryVnetName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:EtherIf:operPrimaryVnetName managed
+        object property"
+    ::= { cucsVnicEtherIfEntry 21 }
+
 cucsVnicFcTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicFcEntry
     MAX-ACCESS       not-accessible
@@ -1795,7 +2017,11 @@ CucsVnicFcEntry ::= SEQUENCE {
     cucsVnicFcOperPinToGroupName                                     SnmpAdminString,
     cucsVnicFcConfigQualifier                                        CucsVnicConfigIssues,
     cucsVnicFcAdminHostPort                                          CucsFabricHostPortId,
-    cucsVnicFcOperHostPort                                           CucsVnicVnicOperHostPort
+    cucsVnicFcOperHostPort                                           CucsVnicVnicOperHostPort,
+    cucsVnicFcAdminCdnName                                           SnmpAdminString,
+    cucsVnicFcOperCdnName                                            SnmpAdminString,
+    cucsVnicFcCdnSource                                              CucsVnicCdnSource,
+    cucsVnicFcCdnPropInSync                                          TruthValue
 }
 
 cucsVnicFcInstanceId OBJECT-TYPE
@@ -2093,6 +2319,38 @@ cucsVnicFcOperHostPort OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS vnic:Fc:operHostPort managed object property"
     ::= { cucsVnicFcEntry 38 }
+
+cucsVnicFcAdminCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Fc:adminCdnName managed object property"
+    ::= { cucsVnicFcEntry 39 }
+
+cucsVnicFcOperCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Fc:operCdnName managed object property"
+    ::= { cucsVnicFcEntry 40 }
+
+cucsVnicFcCdnSource OBJECT-TYPE
+    SYNTAX       CucsVnicCdnSource
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Fc:cdnSource managed object property"
+    ::= { cucsVnicFcEntry 41 }
+
+cucsVnicFcCdnPropInSync OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Fc:cdnPropInSync managed object property"
+    ::= { cucsVnicFcEntry 42 }
 
 cucsVnicFcGroupDefTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicFcGroupDefEntry
@@ -2488,14 +2746,16 @@ CucsVnicFcIfEntry ::= SEQUENCE {
     cucsVnicFcIfName                                                 SnmpAdminString,
     cucsVnicFcIfOperState                                            CucsVnicIfOperState,
     cucsVnicFcIfOwner                                                CucsVnicConnectionOwner,
-    cucsVnicFcIfSwitchId                                             CucsVnicL2IfSwitchId,
+    cucsVnicFcIfSwitchId                                             CucsVnicAFcIfSwitchId,
     cucsVnicFcIfType                                                 CucsVnicAFcIfType,
     cucsVnicFcIfVnet                                                 Gauge32,
     cucsVnicFcIfOperVnetDn                                           SnmpAdminString,
     cucsVnicFcIfOperVnetName                                         SnmpAdminString,
     cucsVnicFcIfConfigQualifier                                      CucsVnicConfigIssues,
     cucsVnicFcIfPubNwId                                              Gauge32,
-    cucsVnicFcIfSharing                                              CucsFabricVlanSharingType
+    cucsVnicFcIfSharing                                              CucsFabricVlanSharingType,
+    cucsVnicFcIfOperPrimaryVnetDn                                    SnmpAdminString,
+    cucsVnicFcIfOperPrimaryVnetName                                  SnmpAdminString
 }
 
 cucsVnicFcIfInstanceId OBJECT-TYPE
@@ -2555,7 +2815,7 @@ cucsVnicFcIfOwner OBJECT-TYPE
     ::= { cucsVnicFcIfEntry 7 }
 
 cucsVnicFcIfSwitchId OBJECT-TYPE
-    SYNTAX       CucsVnicL2IfSwitchId
+    SYNTAX       CucsVnicAFcIfSwitchId
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
@@ -2617,6 +2877,22 @@ cucsVnicFcIfSharing OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS vnic:FcIf:sharing managed object property"
     ::= { cucsVnicFcIfEntry 16 }
+
+cucsVnicFcIfOperPrimaryVnetDn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:FcIf:operPrimaryVnetDn managed object property"
+    ::= { cucsVnicFcIfEntry 17 }
+
+cucsVnicFcIfOperPrimaryVnetName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:FcIf:operPrimaryVnetName managed object property"
+    ::= { cucsVnicFcIfEntry 18 }
 
 cucsVnicFcLifTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicFcLifEntry
@@ -2854,14 +3130,16 @@ CucsVnicFcOEIfEntry ::= SEQUENCE {
     cucsVnicFcOEIfName                                               SnmpAdminString,
     cucsVnicFcOEIfOperState                                          CucsVnicIfOperState,
     cucsVnicFcOEIfOwner                                              CucsVnicConnectionOwner,
-    cucsVnicFcOEIfSwitchId                                           CucsVnicL2IfSwitchId,
+    cucsVnicFcOEIfSwitchId                                           CucsVnicAFcIfSwitchId,
     cucsVnicFcOEIfType                                               CucsVnicAFcIfType,
     cucsVnicFcOEIfVnet                                               Gauge32,
     cucsVnicFcOEIfConfigQualifier                                    CucsVnicConfigIssues,
     cucsVnicFcOEIfOperVnetDn                                         SnmpAdminString,
     cucsVnicFcOEIfOperVnetName                                       SnmpAdminString,
     cucsVnicFcOEIfPubNwId                                            Gauge32,
-    cucsVnicFcOEIfSharing                                            CucsFabricVlanSharingType
+    cucsVnicFcOEIfSharing                                            CucsFabricVlanSharingType,
+    cucsVnicFcOEIfOperPrimaryVnetDn                                  SnmpAdminString,
+    cucsVnicFcOEIfOperPrimaryVnetName                                SnmpAdminString
 }
 
 cucsVnicFcOEIfInstanceId OBJECT-TYPE
@@ -2921,7 +3199,7 @@ cucsVnicFcOEIfOwner OBJECT-TYPE
     ::= { cucsVnicFcOEIfEntry 7 }
 
 cucsVnicFcOEIfSwitchId OBJECT-TYPE
-    SYNTAX       CucsVnicL2IfSwitchId
+    SYNTAX       CucsVnicAFcIfSwitchId
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
@@ -2983,6 +3261,23 @@ cucsVnicFcOEIfSharing OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS vnic:FcOEIf:sharing managed object property"
     ::= { cucsVnicFcOEIfEntry 16 }
+
+cucsVnicFcOEIfOperPrimaryVnetDn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:FcOEIf:operPrimaryVnetDn managed object property"
+    ::= { cucsVnicFcOEIfEntry 17 }
+
+cucsVnicFcOEIfOperPrimaryVnetName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:FcOEIf:operPrimaryVnetName managed
+        object property"
+    ::= { cucsVnicFcOEIfEntry 18 }
 
 cucsVnicIPv4DhcpTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicIPv4DhcpEntry
@@ -3173,7 +3468,10 @@ CucsVnicIPv4IfEntry ::= SEQUENCE {
     cucsVnicIPv4IfOperVnetDn                                         SnmpAdminString,
     cucsVnicIPv4IfOperVnetName                                       SnmpAdminString,
     cucsVnicIPv4IfPubNwId                                            Gauge32,
-    cucsVnicIPv4IfSharing                                            CucsFabricVlanSharingType
+    cucsVnicIPv4IfSharing                                            CucsFabricVlanSharingType,
+    cucsVnicIPv4IfPropAcl                                            Unsigned64,
+    cucsVnicIPv4IfOperPrimaryVnetDn                                  SnmpAdminString,
+    cucsVnicIPv4IfOperPrimaryVnetName                                SnmpAdminString
 }
 
 cucsVnicIPv4IfInstanceId OBJECT-TYPE
@@ -3295,6 +3593,31 @@ cucsVnicIPv4IfSharing OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS vnic:IPv4If:sharing managed object property"
     ::= { cucsVnicIPv4IfEntry 16 }
+
+cucsVnicIPv4IfPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv4If:propAcl managed object property"
+    ::= { cucsVnicIPv4IfEntry 17 }
+
+cucsVnicIPv4IfOperPrimaryVnetDn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv4If:operPrimaryVnetDn managed object property"
+    ::= { cucsVnicIPv4IfEntry 18 }
+
+cucsVnicIPv4IfOperPrimaryVnetName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv4If:operPrimaryVnetName managed
+        object property"
+    ::= { cucsVnicIPv4IfEntry 19 }
 
 cucsVnicIPv4IscsiAddrTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicIPv4IscsiAddrEntry
@@ -3595,6 +3918,180 @@ cucsVnicIPv4StaticRouteSubnet OBJECT-TYPE
         "Cisco UCS vnic:IPv4StaticRoute:subnet managed object property"
     ::= { cucsVnicIPv4StaticRouteEntry 8 }
 
+cucsVnicIPv6IfTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsVnicIPv6IfEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv6If managed object table"
+    ::= { cucsVnicObjects 75 }
+
+cucsVnicIPv6IfEntry OBJECT-TYPE
+    SYNTAX           CucsVnicIPv6IfEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsVnicIPv6IfTable table."
+    INDEX { cucsVnicIPv6IfInstanceId }
+    ::= { cucsVnicIPv6IfTable 1 }
+
+CucsVnicIPv6IfEntry ::= SEQUENCE {
+    cucsVnicIPv6IfInstanceId                                         CucsManagedObjectId,
+    cucsVnicIPv6IfDn                                                 CucsManagedObjectDn,
+    cucsVnicIPv6IfRn                                                 SnmpAdminString,
+    cucsVnicIPv6IfAddr                                               InetAddressIPv6,
+    cucsVnicIPv6IfConfigQualifier                                    CucsVnicConfigIssues,
+    cucsVnicIPv6IfName                                               SnmpAdminString,
+    cucsVnicIPv6IfOperState                                          CucsVnicIfOperState,
+    cucsVnicIPv6IfOperVnetDn                                         SnmpAdminString,
+    cucsVnicIPv6IfOperVnetName                                       SnmpAdminString,
+    cucsVnicIPv6IfOwner                                              CucsVnicConnectionOwner,
+    cucsVnicIPv6IfPubNwId                                            Gauge32,
+    cucsVnicIPv6IfSharing                                            CucsFabricVlanSharingType,
+    cucsVnicIPv6IfSwitchId                                           CucsNetworkSwitchId,
+    cucsVnicIPv6IfType                                               CucsVnicConnectionType,
+    cucsVnicIPv6IfVnet                                               Gauge32,
+    cucsVnicIPv6IfOperPrimaryVnetDn                                  SnmpAdminString,
+    cucsVnicIPv6IfOperPrimaryVnetName                                SnmpAdminString
+}
+
+cucsVnicIPv6IfInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsVnicIPv6IfEntry 1 }
+
+cucsVnicIPv6IfDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv6If:dn managed object property"
+    ::= { cucsVnicIPv6IfEntry 2 }
+
+cucsVnicIPv6IfRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv6If:rn managed object property"
+    ::= { cucsVnicIPv6IfEntry 3 }
+
+cucsVnicIPv6IfAddr OBJECT-TYPE
+    SYNTAX       InetAddressIPv6
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv6If:addr managed object property"
+    ::= { cucsVnicIPv6IfEntry 4 }
+
+cucsVnicIPv6IfConfigQualifier OBJECT-TYPE
+    SYNTAX       CucsVnicConfigIssues
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv6If:configQualifier managed object property"
+    ::= { cucsVnicIPv6IfEntry 5 }
+
+cucsVnicIPv6IfName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv6If:name managed object property"
+    ::= { cucsVnicIPv6IfEntry 6 }
+
+cucsVnicIPv6IfOperState OBJECT-TYPE
+    SYNTAX       CucsVnicIfOperState
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv6If:operState managed object property"
+    ::= { cucsVnicIPv6IfEntry 7 }
+
+cucsVnicIPv6IfOperVnetDn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv6If:operVnetDn managed object property"
+    ::= { cucsVnicIPv6IfEntry 8 }
+
+cucsVnicIPv6IfOperVnetName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv6If:operVnetName managed object property"
+    ::= { cucsVnicIPv6IfEntry 9 }
+
+cucsVnicIPv6IfOwner OBJECT-TYPE
+    SYNTAX       CucsVnicConnectionOwner
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv6If:owner managed object property"
+    ::= { cucsVnicIPv6IfEntry 10 }
+
+cucsVnicIPv6IfPubNwId OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv6If:pubNwId managed object property"
+    ::= { cucsVnicIPv6IfEntry 11 }
+
+cucsVnicIPv6IfSharing OBJECT-TYPE
+    SYNTAX       CucsFabricVlanSharingType
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv6If:sharing managed object property"
+    ::= { cucsVnicIPv6IfEntry 12 }
+
+cucsVnicIPv6IfSwitchId OBJECT-TYPE
+    SYNTAX       CucsNetworkSwitchId
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv6If:switchId managed object property"
+    ::= { cucsVnicIPv6IfEntry 13 }
+
+cucsVnicIPv6IfType OBJECT-TYPE
+    SYNTAX       CucsVnicConnectionType
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv6If:type managed object property"
+    ::= { cucsVnicIPv6IfEntry 14 }
+
+cucsVnicIPv6IfVnet OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv6If:vnet managed object property"
+    ::= { cucsVnicIPv6IfEntry 15 }
+
+cucsVnicIPv6IfOperPrimaryVnetDn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv6If:operPrimaryVnetDn managed object property"
+    ::= { cucsVnicIPv6IfEntry 16 }
+
+cucsVnicIPv6IfOperPrimaryVnetName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IPv6If:operPrimaryVnetName managed
+        object property"
+    ::= { cucsVnicIPv6IfEntry 17 }
+
 cucsVnicIScsiTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicIScsiEntry
     MAX-ACCESS       not-accessible
@@ -3652,7 +4149,12 @@ CucsVnicIScsiEntry ::= SEQUENCE {
     cucsVnicIScsiInitNameSuffix                                      SnmpAdminString,
     cucsVnicIScsiOperIdentPoolName                                   SnmpAdminString,
     cucsVnicIScsiAdminHostPort                                       CucsFabricHostPortId,
-    cucsVnicIScsiOperHostPort                                        CucsVnicVnicOperHostPort
+    cucsVnicIScsiOperHostPort                                        CucsVnicVnicOperHostPort,
+    cucsVnicIScsiPropAcl                                             Unsigned64,
+    cucsVnicIScsiAdminCdnName                                        SnmpAdminString,
+    cucsVnicIScsiOperCdnName                                         SnmpAdminString,
+    cucsVnicIScsiCdnSource                                           CucsVnicCdnSource,
+    cucsVnicIScsiCdnPropInSync                                       TruthValue
 }
 
 cucsVnicIScsiInstanceId OBJECT-TYPE
@@ -3977,6 +4479,46 @@ cucsVnicIScsiOperHostPort OBJECT-TYPE
         "Cisco UCS vnic:IScsi:operHostPort managed object property"
     ::= { cucsVnicIScsiEntry 44 }
 
+cucsVnicIScsiPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsi:propAcl managed object property"
+    ::= { cucsVnicIScsiEntry 45 }
+
+cucsVnicIScsiAdminCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsi:adminCdnName managed object property"
+    ::= { cucsVnicIScsiEntry 47 }
+
+cucsVnicIScsiOperCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsi:operCdnName managed object property"
+    ::= { cucsVnicIScsiEntry 48 }
+
+cucsVnicIScsiCdnSource OBJECT-TYPE
+    SYNTAX       CucsVnicCdnSource
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsi:cdnSource managed object property"
+    ::= { cucsVnicIScsiEntry 49 }
+
+cucsVnicIScsiCdnPropInSync OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsi:cdnPropInSync managed object property"
+    ::= { cucsVnicIScsiEntry 50 }
+
 cucsVnicIScsiAutoTargetIfTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicIScsiAutoTargetIfEntry
     MAX-ACCESS       not-accessible
@@ -4059,7 +4601,9 @@ CucsVnicIScsiBootParamsEntry ::= SEQUENCE {
     cucsVnicIScsiBootParamsIntId                                     SnmpAdminString,
     cucsVnicIScsiBootParamsName                                      SnmpAdminString,
     cucsVnicIScsiBootParamsPolicyLevel                               Gauge32,
-    cucsVnicIScsiBootParamsPolicyOwner                               CucsPolicyPolicyOwner
+    cucsVnicIScsiBootParamsPolicyOwner                               CucsPolicyPolicyOwner,
+    cucsVnicIScsiBootParamsOwner                                     CucsLsOwner,
+    cucsVnicIScsiBootParamsPropAcl                                   Unsigned64
 }
 
 cucsVnicIScsiBootParamsInstanceId OBJECT-TYPE
@@ -4127,6 +4671,22 @@ cucsVnicIScsiBootParamsPolicyOwner OBJECT-TYPE
         "Cisco UCS vnic:IScsiBootParams:policyOwner managed
         object property"
     ::= { cucsVnicIScsiBootParamsEntry 8 }
+
+cucsVnicIScsiBootParamsOwner OBJECT-TYPE
+    SYNTAX       CucsLsOwner
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiBootParams:owner managed object property"
+    ::= { cucsVnicIScsiBootParamsEntry 9 }
+
+cucsVnicIScsiBootParamsPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiBootParams:propAcl managed object property"
+    ::= { cucsVnicIScsiBootParamsEntry 10 }
 
 cucsVnicIScsiBootVnicTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicIScsiBootVnicEntry
@@ -4270,6 +4830,249 @@ cucsVnicIScsiBootVnicPolicyOwner OBJECT-TYPE
         "Cisco UCS vnic:IScsiBootVnic:policyOwner managed object property"
     ::= { cucsVnicIScsiBootVnicEntry 13 }
 
+cucsVnicIScsiConfigTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsVnicIScsiConfigEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiConfig managed object table"
+    ::= { cucsVnicObjects 76 }
+
+cucsVnicIScsiConfigEntry OBJECT-TYPE
+    SYNTAX           CucsVnicIScsiConfigEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsVnicIScsiConfigTable table."
+    INDEX { cucsVnicIScsiConfigInstanceId }
+    ::= { cucsVnicIScsiConfigTable 1 }
+
+CucsVnicIScsiConfigEntry ::= SEQUENCE {
+    cucsVnicIScsiConfigInstanceId                                    CucsManagedObjectId,
+    cucsVnicIScsiConfigDn                                            CucsManagedObjectDn,
+    cucsVnicIScsiConfigRn                                            SnmpAdminString,
+    cucsVnicIScsiConfigAdaptorProfileName                            SnmpAdminString,
+    cucsVnicIScsiConfigIpPoolName                                    SnmpAdminString,
+    cucsVnicIScsiConfigIpPoolNameFabricB                             SnmpAdminString,
+    cucsVnicIScsiConfigIpPoolType                                    CucsVnicIpPoolType,
+    cucsVnicIScsiConfigIqnPoolName                                   SnmpAdminString,
+    cucsVnicIScsiConfigOperAdaptorProfileName                        SnmpAdminString,
+    cucsVnicIScsiConfigOperIpPoolName                                SnmpAdminString,
+    cucsVnicIScsiConfigOperIpPoolNameFabricB                         SnmpAdminString,
+    cucsVnicIScsiConfigOperIqnPoolName                               SnmpAdminString
+}
+
+cucsVnicIScsiConfigInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsVnicIScsiConfigEntry 1 }
+
+cucsVnicIScsiConfigDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiConfig:dn managed object property"
+    ::= { cucsVnicIScsiConfigEntry 2 }
+
+cucsVnicIScsiConfigRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiConfig:rn managed object property"
+    ::= { cucsVnicIScsiConfigEntry 3 }
+
+cucsVnicIScsiConfigAdaptorProfileName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiConfig:adaptorProfileName
+        managed object property"
+    ::= { cucsVnicIScsiConfigEntry 4 }
+
+cucsVnicIScsiConfigIpPoolName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiConfig:ipPoolName managed object property"
+    ::= { cucsVnicIScsiConfigEntry 5 }
+
+cucsVnicIScsiConfigIpPoolNameFabricB OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiConfig:ipPoolNameFabricB managed
+        object property"
+    ::= { cucsVnicIScsiConfigEntry 6 }
+
+cucsVnicIScsiConfigIpPoolType OBJECT-TYPE
+    SYNTAX       CucsVnicIpPoolType
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiConfig:ipPoolType managed object property"
+    ::= { cucsVnicIScsiConfigEntry 7 }
+
+cucsVnicIScsiConfigIqnPoolName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiConfig:iqnPoolName managed object property"
+    ::= { cucsVnicIScsiConfigEntry 8 }
+
+cucsVnicIScsiConfigOperAdaptorProfileName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiConfig:operAdaptorProfileName
+        managed object property"
+    ::= { cucsVnicIScsiConfigEntry 9 }
+
+cucsVnicIScsiConfigOperIpPoolName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiConfig:operIpPoolName managed
+        object property"
+    ::= { cucsVnicIScsiConfigEntry 10 }
+
+cucsVnicIScsiConfigOperIpPoolNameFabricB OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiConfig:operIpPoolNameFabricB
+        managed object property"
+    ::= { cucsVnicIScsiConfigEntry 11 }
+
+cucsVnicIScsiConfigOperIqnPoolName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiConfig:operIqnPoolName managed
+        object property"
+    ::= { cucsVnicIScsiConfigEntry 12 }
+
+cucsVnicIScsiInitAutoConfigPolicyTable OBJECT-TYPE
+    SYNTAX           SEQUENCE OF CucsVnicIScsiInitAutoConfigPolicyEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiInitAutoConfigPolicy managed object table"
+    ::= { cucsVnicObjects 77 }
+
+cucsVnicIScsiInitAutoConfigPolicyEntry OBJECT-TYPE
+    SYNTAX           CucsVnicIScsiInitAutoConfigPolicyEntry
+    MAX-ACCESS       not-accessible
+    STATUS           current
+    DESCRIPTION
+        "Entry for the cucsVnicIScsiInitAutoConfigPolicyTable table."
+    INDEX { cucsVnicIScsiInitAutoConfigPolicyInstanceId }
+    ::= { cucsVnicIScsiInitAutoConfigPolicyTable 1 }
+
+CucsVnicIScsiInitAutoConfigPolicyEntry ::= SEQUENCE {
+    cucsVnicIScsiInitAutoConfigPolicyInstanceId                      CucsManagedObjectId,
+    cucsVnicIScsiInitAutoConfigPolicyDn                              CucsManagedObjectDn,
+    cucsVnicIScsiInitAutoConfigPolicyRn                              SnmpAdminString,
+    cucsVnicIScsiInitAutoConfigPolicyDescr                           SnmpAdminString,
+    cucsVnicIScsiInitAutoConfigPolicyFabricPath                      SnmpAdminString,
+    cucsVnicIScsiInitAutoConfigPolicyIntId                           SnmpAdminString,
+    cucsVnicIScsiInitAutoConfigPolicyName                            SnmpAdminString,
+    cucsVnicIScsiInitAutoConfigPolicyPolicyLevel                     Gauge32,
+    cucsVnicIScsiInitAutoConfigPolicyPolicyOwner                     CucsPolicyPolicyOwner
+}
+
+cucsVnicIScsiInitAutoConfigPolicyInstanceId OBJECT-TYPE
+    SYNTAX       CucsManagedObjectId
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "Instance identifier of the managed object."
+    ::= { cucsVnicIScsiInitAutoConfigPolicyEntry 1 }
+
+cucsVnicIScsiInitAutoConfigPolicyDn OBJECT-TYPE
+    SYNTAX       CucsManagedObjectDn
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiInitAutoConfigPolicy:dn managed
+        object property"
+    ::= { cucsVnicIScsiInitAutoConfigPolicyEntry 2 }
+
+cucsVnicIScsiInitAutoConfigPolicyRn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiInitAutoConfigPolicy:rn managed
+        object property"
+    ::= { cucsVnicIScsiInitAutoConfigPolicyEntry 3 }
+
+cucsVnicIScsiInitAutoConfigPolicyDescr OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiInitAutoConfigPolicy:descr
+        managed object property"
+    ::= { cucsVnicIScsiInitAutoConfigPolicyEntry 4 }
+
+cucsVnicIScsiInitAutoConfigPolicyFabricPath OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiInitAutoConfigPolicy:fabricPath
+        managed object property"
+    ::= { cucsVnicIScsiInitAutoConfigPolicyEntry 5 }
+
+cucsVnicIScsiInitAutoConfigPolicyIntId OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiInitAutoConfigPolicy:intId
+        managed object property"
+    ::= { cucsVnicIScsiInitAutoConfigPolicyEntry 6 }
+
+cucsVnicIScsiInitAutoConfigPolicyName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiInitAutoConfigPolicy:name
+        managed object property"
+    ::= { cucsVnicIScsiInitAutoConfigPolicyEntry 7 }
+
+cucsVnicIScsiInitAutoConfigPolicyPolicyLevel OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiInitAutoConfigPolicy:policyLevel
+        managed object property"
+    ::= { cucsVnicIScsiInitAutoConfigPolicyEntry 8 }
+
+cucsVnicIScsiInitAutoConfigPolicyPolicyOwner OBJECT-TYPE
+    SYNTAX       CucsPolicyPolicyOwner
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiInitAutoConfigPolicy:policyOwner
+        managed object property"
+    ::= { cucsVnicIScsiInitAutoConfigPolicyEntry 9 }
+
 cucsVnicIScsiLCPTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicIScsiLCPEntry
     MAX-ACCESS       not-accessible
@@ -4318,7 +5121,11 @@ CucsVnicIScsiLCPEntry ::= SEQUENCE {
     cucsVnicIScsiLCPType                                             CucsVnicConnectionType,
     cucsVnicIScsiLCPVnicName                                         SnmpAdminString,
     cucsVnicIScsiLCPAdminHostPort                                    CucsFabricHostPortId,
-    cucsVnicIScsiLCPOperHostPort                                     CucsVnicVnicOperHostPort
+    cucsVnicIScsiLCPOperHostPort                                     CucsVnicVnicOperHostPort,
+    cucsVnicIScsiLCPAdminCdnName                                     SnmpAdminString,
+    cucsVnicIScsiLCPOperCdnName                                      SnmpAdminString,
+    cucsVnicIScsiLCPCdnSource                                        CucsVnicCdnSource,
+    cucsVnicIScsiLCPCdnPropInSync                                    TruthValue
 }
 
 cucsVnicIScsiLCPInstanceId OBJECT-TYPE
@@ -4573,6 +5380,38 @@ cucsVnicIScsiLCPOperHostPort OBJECT-TYPE
         "Cisco UCS vnic:IScsiLCP:operHostPort managed object property"
     ::= { cucsVnicIScsiLCPEntry 32 }
 
+cucsVnicIScsiLCPAdminCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiLCP:adminCdnName managed object property"
+    ::= { cucsVnicIScsiLCPEntry 33 }
+
+cucsVnicIScsiLCPOperCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiLCP:operCdnName managed object property"
+    ::= { cucsVnicIScsiLCPEntry 34 }
+
+cucsVnicIScsiLCPCdnSource OBJECT-TYPE
+    SYNTAX       CucsVnicCdnSource
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiLCP:cdnSource managed object property"
+    ::= { cucsVnicIScsiLCPEntry 35 }
+
+cucsVnicIScsiLCPCdnPropInSync OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiLCP:cdnPropInSync managed object property"
+    ::= { cucsVnicIScsiLCPEntry 36 }
+
 cucsVnicIScsiNodeTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicIScsiNodeEntry
     MAX-ACCESS       not-accessible
@@ -4599,7 +5438,10 @@ CucsVnicIScsiNodeEntry ::= SEQUENCE {
     cucsVnicIScsiNodeOwner                                           CucsVnicIScsiNodeOwner,
     cucsVnicIScsiNodeInitNameSuffix                                  SnmpAdminString,
     cucsVnicIScsiNodeIqnIdentPoolName                                SnmpAdminString,
-    cucsVnicIScsiNodeOperIqnIdentPoolName                            SnmpAdminString
+    cucsVnicIScsiNodeOperIqnIdentPoolName                            SnmpAdminString,
+    cucsVnicIScsiNodeInitiatorPolicyName                             SnmpAdminString,
+    cucsVnicIScsiNodeOperInitiatorPolicyName                         SnmpAdminString,
+    cucsVnicIScsiNodePropAcl                                         Unsigned64
 }
 
 cucsVnicIScsiNodeInstanceId OBJECT-TYPE
@@ -4676,6 +5518,32 @@ cucsVnicIScsiNodeOperIqnIdentPoolName OBJECT-TYPE
         managed object property"
     ::= { cucsVnicIScsiNodeEntry 9 }
 
+cucsVnicIScsiNodeInitiatorPolicyName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiNode:initiatorPolicyName managed
+        object property"
+    ::= { cucsVnicIScsiNodeEntry 10 }
+
+cucsVnicIScsiNodeOperInitiatorPolicyName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiNode:operInitiatorPolicyName
+        managed object property"
+    ::= { cucsVnicIScsiNodeEntry 11 }
+
+cucsVnicIScsiNodePropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiNode:propAcl managed object property"
+    ::= { cucsVnicIScsiNodeEntry 12 }
+
 cucsVnicIScsiStaticTargetIfTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicIScsiStaticTargetIfEntry
     MAX-ACCESS       not-accessible
@@ -4702,7 +5570,8 @@ CucsVnicIScsiStaticTargetIfEntry ::= SEQUENCE {
     cucsVnicIScsiStaticTargetIfName                                  SnmpAdminString,
     cucsVnicIScsiStaticTargetIfOperAuthProfileName                   SnmpAdminString,
     cucsVnicIScsiStaticTargetIfPort                                  Gauge32,
-    cucsVnicIScsiStaticTargetIfPriority                              Gauge32
+    cucsVnicIScsiStaticTargetIfPriority                              Gauge32,
+    cucsVnicIScsiStaticTargetIfPropAcl                               Unsigned64
 }
 
 cucsVnicIScsiStaticTargetIfInstanceId OBJECT-TYPE
@@ -4780,6 +5649,15 @@ cucsVnicIScsiStaticTargetIfPriority OBJECT-TYPE
         "Cisco UCS vnic:IScsiStaticTargetIf:priority managed
         object property"
     ::= { cucsVnicIScsiStaticTargetIfEntry 9 }
+
+cucsVnicIScsiStaticTargetIfPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IScsiStaticTargetIf:propAcl managed
+        object property"
+    ::= { cucsVnicIScsiStaticTargetIfEntry 11 }
 
 cucsVnicInternalProfileTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicInternalProfileEntry
@@ -5641,7 +6519,12 @@ CucsVnicIpcEntry ::= SEQUENCE {
     cucsVnicIpcOperPinToGroupName                                    SnmpAdminString,
     cucsVnicIpcConfigQualifier                                       CucsVnicConfigIssues,
     cucsVnicIpcAdminHostPort                                         CucsFabricHostPortId,
-    cucsVnicIpcOperHostPort                                          CucsVnicVnicOperHostPort
+    cucsVnicIpcOperHostPort                                          CucsVnicVnicOperHostPort,
+    cucsVnicIpcPurpose                                               CucsAdaptorPurpose,
+    cucsVnicIpcAdminCdnName                                          SnmpAdminString,
+    cucsVnicIpcOperCdnName                                           SnmpAdminString,
+    cucsVnicIpcCdnPropInSync                                         TruthValue,
+    cucsVnicIpcCdnSource                                             CucsVnicCdnSource
 }
 
 cucsVnicIpcInstanceId OBJECT-TYPE
@@ -5925,6 +6808,46 @@ cucsVnicIpcOperHostPort OBJECT-TYPE
         "Cisco UCS vnic:Ipc:operHostPort managed object property"
     ::= { cucsVnicIpcEntry 36 }
 
+cucsVnicIpcPurpose OBJECT-TYPE
+    SYNTAX       CucsAdaptorPurpose
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Ipc:purpose managed object property"
+    ::= { cucsVnicIpcEntry 37 }
+
+cucsVnicIpcAdminCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Ipc:adminCdnName managed object property"
+    ::= { cucsVnicIpcEntry 38 }
+
+cucsVnicIpcOperCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Ipc:operCdnName managed object property"
+    ::= { cucsVnicIpcEntry 39 }
+
+cucsVnicIpcCdnPropInSync OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Ipc:cdnPropInSync managed object property"
+    ::= { cucsVnicIpcEntry 40 }
+
+cucsVnicIpcCdnSource OBJECT-TYPE
+    SYNTAX       CucsVnicCdnSource
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Ipc:cdnSource managed object property"
+    ::= { cucsVnicIpcEntry 41 }
+
 cucsVnicIpcIfTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicIpcIfEntry
     MAX-ACCESS       not-accessible
@@ -5951,14 +6874,16 @@ CucsVnicIpcIfEntry ::= SEQUENCE {
     cucsVnicIpcIfName                                                SnmpAdminString,
     cucsVnicIpcIfOperState                                           CucsVnicIfOperState,
     cucsVnicIpcIfOwner                                               CucsVnicConnectionOwner,
-    cucsVnicIpcIfSwitchId                                            CucsVnicL2IfSwitchId,
+    cucsVnicIpcIfSwitchId                                            CucsVnicEtherBaseIfSwitchId,
     cucsVnicIpcIfType                                                CucsVnicAIpcIfType,
     cucsVnicIpcIfVnet                                                Gauge32,
     cucsVnicIpcIfConfigQualifier                                     CucsVnicConfigIssues,
     cucsVnicIpcIfOperVnetDn                                          SnmpAdminString,
     cucsVnicIpcIfOperVnetName                                        SnmpAdminString,
     cucsVnicIpcIfPubNwId                                             Gauge32,
-    cucsVnicIpcIfSharing                                             CucsFabricVlanSharingType
+    cucsVnicIpcIfSharing                                             CucsFabricVlanSharingType,
+    cucsVnicIpcIfOperPrimaryVnetDn                                   SnmpAdminString,
+    cucsVnicIpcIfOperPrimaryVnetName                                 SnmpAdminString
 }
 
 cucsVnicIpcIfInstanceId OBJECT-TYPE
@@ -6026,7 +6951,7 @@ cucsVnicIpcIfOwner OBJECT-TYPE
     ::= { cucsVnicIpcIfEntry 8 }
 
 cucsVnicIpcIfSwitchId OBJECT-TYPE
-    SYNTAX       CucsVnicL2IfSwitchId
+    SYNTAX       CucsVnicEtherBaseIfSwitchId
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
@@ -6088,6 +7013,22 @@ cucsVnicIpcIfSharing OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS vnic:IpcIf:sharing managed object property"
     ::= { cucsVnicIpcIfEntry 17 }
+
+cucsVnicIpcIfOperPrimaryVnetDn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IpcIf:operPrimaryVnetDn managed object property"
+    ::= { cucsVnicIpcIfEntry 18 }
+
+cucsVnicIpcIfOperPrimaryVnetName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:IpcIf:operPrimaryVnetName managed object property"
+    ::= { cucsVnicIpcIfEntry 19 }
 
 cucsVnicIqnHistoryTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicIqnHistoryEntry
@@ -6285,7 +7226,9 @@ CucsVnicLanConnTemplEntry ::= SEQUENCE {
     cucsVnicLanConnTemplTarget                                       CucsVnicTemplateTarget,
     cucsVnicLanConnTemplTemplType                                    CucsVnicTemplateType,
     cucsVnicLanConnTemplPolicyLevel                                  Gauge32,
-    cucsVnicLanConnTemplPolicyOwner                                  CucsPolicyPolicyOwner
+    cucsVnicLanConnTemplPolicyOwner                                  CucsPolicyPolicyOwner,
+    cucsVnicLanConnTemplAdminCdnName                                 SnmpAdminString,
+    cucsVnicLanConnTemplCdnSource                                    CucsVnicCdnSource
 }
 
 cucsVnicLanConnTemplInstanceId OBJECT-TYPE
@@ -6465,6 +7408,22 @@ cucsVnicLanConnTemplPolicyOwner OBJECT-TYPE
         "Cisco UCS vnic:LanConnTempl:policyOwner managed object property"
     ::= { cucsVnicLanConnTemplEntry 21 }
 
+cucsVnicLanConnTemplAdminCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:LanConnTempl:adminCdnName managed object property"
+    ::= { cucsVnicLanConnTemplEntry 22 }
+
+cucsVnicLanConnTemplCdnSource OBJECT-TYPE
+    SYNTAX       CucsVnicCdnSource
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:LanConnTempl:cdnSource managed object property"
+    ::= { cucsVnicLanConnTemplEntry 23 }
+
 cucsVnicLifVlanTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicLifVlanEntry
     MAX-ACCESS       not-accessible
@@ -6491,14 +7450,17 @@ CucsVnicLifVlanEntry ::= SEQUENCE {
     cucsVnicLifVlanName                                              SnmpAdminString,
     cucsVnicLifVlanOperState                                         CucsVnicIfOperState,
     cucsVnicLifVlanOwner                                             CucsVnicConnectionOwner,
-    cucsVnicLifVlanSwitchId                                          CucsVnicL2IfSwitchId,
+    cucsVnicLifVlanSwitchId                                          CucsVnicEtherBaseIfSwitchId,
     cucsVnicLifVlanType                                              CucsVnicAEtherIfType,
     cucsVnicLifVlanVnet                                              Gauge32,
     cucsVnicLifVlanConfigQualifier                                   CucsVnicConfigIssues,
     cucsVnicLifVlanOperVnetDn                                        SnmpAdminString,
     cucsVnicLifVlanOperVnetName                                      SnmpAdminString,
     cucsVnicLifVlanPubNwId                                           Gauge32,
-    cucsVnicLifVlanSharing                                           CucsFabricVlanSharingType
+    cucsVnicLifVlanSharing                                           CucsFabricVlanSharingType,
+    cucsVnicLifVlanPropAcl                                           Unsigned64,
+    cucsVnicLifVlanOperPrimaryVnetDn                                 SnmpAdminString,
+    cucsVnicLifVlanOperPrimaryVnetName                               SnmpAdminString
 }
 
 cucsVnicLifVlanInstanceId OBJECT-TYPE
@@ -6566,7 +7528,7 @@ cucsVnicLifVlanOwner OBJECT-TYPE
     ::= { cucsVnicLifVlanEntry 8 }
 
 cucsVnicLifVlanSwitchId OBJECT-TYPE
-    SYNTAX       CucsVnicL2IfSwitchId
+    SYNTAX       CucsVnicEtherBaseIfSwitchId
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
@@ -6629,6 +7591,31 @@ cucsVnicLifVlanSharing OBJECT-TYPE
         "Cisco UCS vnic:LifVlan:sharing managed object property"
     ::= { cucsVnicLifVlanEntry 17 }
 
+cucsVnicLifVlanPropAcl OBJECT-TYPE
+    SYNTAX       Unsigned64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:LifVlan:propAcl managed object property"
+    ::= { cucsVnicLifVlanEntry 18 }
+
+cucsVnicLifVlanOperPrimaryVnetDn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:LifVlan:operPrimaryVnetDn managed object property"
+    ::= { cucsVnicLifVlanEntry 19 }
+
+cucsVnicLifVlanOperPrimaryVnetName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:LifVlan:operPrimaryVnetName managed
+        object property"
+    ::= { cucsVnicLifVlanEntry 20 }
+
 cucsVnicLifVsanTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicLifVsanEntry
     MAX-ACCESS       not-accessible
@@ -6654,14 +7641,16 @@ CucsVnicLifVsanEntry ::= SEQUENCE {
     cucsVnicLifVsanName                                              SnmpAdminString,
     cucsVnicLifVsanOperState                                         CucsVnicIfOperState,
     cucsVnicLifVsanOwner                                             CucsVnicConnectionOwner,
-    cucsVnicLifVsanSwitchId                                          CucsVnicL2IfSwitchId,
+    cucsVnicLifVsanSwitchId                                          CucsVnicAFcIfSwitchId,
     cucsVnicLifVsanType                                              CucsVnicAFcIfType,
     cucsVnicLifVsanVnet                                              Gauge32,
     cucsVnicLifVsanConfigQualifier                                   CucsVnicConfigIssues,
     cucsVnicLifVsanOperVnetDn                                        SnmpAdminString,
     cucsVnicLifVsanOperVnetName                                      SnmpAdminString,
     cucsVnicLifVsanPubNwId                                           Gauge32,
-    cucsVnicLifVsanSharing                                           CucsFabricVlanSharingType
+    cucsVnicLifVsanSharing                                           CucsFabricVlanSharingType,
+    cucsVnicLifVsanOperPrimaryVnetDn                                 SnmpAdminString,
+    cucsVnicLifVsanOperPrimaryVnetName                               SnmpAdminString
 }
 
 cucsVnicLifVsanInstanceId OBJECT-TYPE
@@ -6721,7 +7710,7 @@ cucsVnicLifVsanOwner OBJECT-TYPE
     ::= { cucsVnicLifVsanEntry 7 }
 
 cucsVnicLifVsanSwitchId OBJECT-TYPE
-    SYNTAX       CucsVnicL2IfSwitchId
+    SYNTAX       CucsVnicAFcIfSwitchId
     MAX-ACCESS   read-only
     STATUS       current
     DESCRIPTION
@@ -6783,6 +7772,23 @@ cucsVnicLifVsanSharing OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS vnic:LifVsan:sharing managed object property"
     ::= { cucsVnicLifVsanEntry 16 }
+
+cucsVnicLifVsanOperPrimaryVnetDn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:LifVsan:operPrimaryVnetDn managed object property"
+    ::= { cucsVnicLifVsanEntry 17 }
+
+cucsVnicLifVsanOperPrimaryVnetName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:LifVsan:operPrimaryVnetName managed
+        object property"
+    ::= { cucsVnicLifVsanEntry 18 }
 
 cucsVnicLunTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicLunEntry
@@ -7035,7 +8041,10 @@ CucsVnicProfileEntry ::= SEQUENCE {
     cucsVnicProfilePolicyLevel                                       Gauge32,
     cucsVnicProfilePolicyOwner                                       CucsPolicyPolicyOwner,
     cucsVnicProfilePortProfileUuid                                   SnmpAdminString,
-    cucsVnicProfileType                                              CucsVnicPortProfileType
+    cucsVnicProfileType                                              CucsVnicPortProfileType,
+    cucsVnicProfileSwABorderAggrPort                                 Gauge32,
+    cucsVnicProfileSwBBorderAggrPort                                 Gauge32,
+    cucsVnicProfileLldp                                              CucsNwctrlLldpAdminStateBitmask
 }
 
 cucsVnicProfileInstanceId OBJECT-TYPE
@@ -7279,6 +8288,30 @@ cucsVnicProfileType OBJECT-TYPE
         "Cisco UCS vnic:Profile:type managed object property"
     ::= { cucsVnicProfileEntry 32 }
 
+cucsVnicProfileSwABorderAggrPort OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Profile:swABorderAggrPort managed object property"
+    ::= { cucsVnicProfileEntry 33 }
+
+cucsVnicProfileSwBBorderAggrPort OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Profile:swBBorderAggrPort managed object property"
+    ::= { cucsVnicProfileEntry 34 }
+
+cucsVnicProfileLldp OBJECT-TYPE
+    SYNTAX       CucsNwctrlLldpAdminStateBitmask
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Profile:lldp managed object property"
+    ::= { cucsVnicProfileEntry 35 }
+
 cucsVnicProfileAliasTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicProfileAliasEntry
     MAX-ACCESS       not-accessible
@@ -7441,7 +8474,8 @@ CucsVnicProfileSetEntry ::= SEQUENCE {
     cucsVnicProfileSetFsmStatus                                      SnmpAdminString,
     cucsVnicProfileSetFsmTry                                         Gauge32,
     cucsVnicProfileSetFltAggr                                        Unsigned64,
-    cucsVnicProfileSetGenNum                                         Gauge32
+    cucsVnicProfileSetGenNum                                         Gauge32,
+    cucsVnicProfileSetVlanGroupUpdate                                CucsVnicVlanGroupUpdate
 }
 
 cucsVnicProfileSetInstanceId OBJECT-TYPE
@@ -7565,6 +8599,15 @@ cucsVnicProfileSetGenNum OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS vnic:ProfileSet:genNum managed object property"
     ::= { cucsVnicProfileSetEntry 15 }
+
+cucsVnicProfileSetVlanGroupUpdate OBJECT-TYPE
+    SYNTAX       CucsVnicVlanGroupUpdate
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:ProfileSet:vlanGroupUpdate managed
+        object property"
+    ::= { cucsVnicProfileSetEntry 16 }
 
 cucsVnicProfileSetFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicProfileSetFsmEntry
@@ -8335,7 +9378,11 @@ CucsVnicScsiEntry ::= SEQUENCE {
     cucsVnicScsiType                                                 CucsVnicScsiType,
     cucsVnicScsiConfigQualifier                                      CucsVnicConfigIssues,
     cucsVnicScsiAdminHostPort                                        CucsFabricHostPortId,
-    cucsVnicScsiOperHostPort                                         CucsVnicVnicOperHostPort
+    cucsVnicScsiOperHostPort                                         CucsVnicVnicOperHostPort,
+    cucsVnicScsiAdminCdnName                                         SnmpAdminString,
+    cucsVnicScsiOperCdnName                                          SnmpAdminString,
+    cucsVnicScsiCdnPropInSync                                        TruthValue,
+    cucsVnicScsiCdnSource                                            CucsVnicCdnSource
 }
 
 cucsVnicScsiInstanceId OBJECT-TYPE
@@ -8546,6 +9593,38 @@ cucsVnicScsiOperHostPort OBJECT-TYPE
         "Cisco UCS vnic:Scsi:operHostPort managed object property"
     ::= { cucsVnicScsiEntry 28 }
 
+cucsVnicScsiAdminCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Scsi:adminCdnName managed object property"
+    ::= { cucsVnicScsiEntry 29 }
+
+cucsVnicScsiOperCdnName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Scsi:operCdnName managed object property"
+    ::= { cucsVnicScsiEntry 30 }
+
+cucsVnicScsiCdnPropInSync OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Scsi:cdnPropInSync managed object property"
+    ::= { cucsVnicScsiEntry 31 }
+
+cucsVnicScsiCdnSource OBJECT-TYPE
+    SYNTAX       CucsVnicCdnSource
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Scsi:cdnSource managed object property"
+    ::= { cucsVnicScsiEntry 32 }
+
 cucsVnicScsiIfTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicScsiIfEntry
     MAX-ACCESS       not-accessible
@@ -8578,7 +9657,9 @@ CucsVnicScsiIfEntry ::= SEQUENCE {
     cucsVnicScsiIfOperVnetDn                                         SnmpAdminString,
     cucsVnicScsiIfOperVnetName                                       SnmpAdminString,
     cucsVnicScsiIfPubNwId                                            Gauge32,
-    cucsVnicScsiIfSharing                                            CucsFabricVlanSharingType
+    cucsVnicScsiIfSharing                                            CucsFabricVlanSharingType,
+    cucsVnicScsiIfOperPrimaryVnetDn                                  SnmpAdminString,
+    cucsVnicScsiIfOperPrimaryVnetName                                SnmpAdminString
 }
 
 cucsVnicScsiIfInstanceId OBJECT-TYPE
@@ -8700,6 +9781,23 @@ cucsVnicScsiIfSharing OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS vnic:ScsiIf:sharing managed object property"
     ::= { cucsVnicScsiIfEntry 16 }
+
+cucsVnicScsiIfOperPrimaryVnetDn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:ScsiIf:operPrimaryVnetDn managed object property"
+    ::= { cucsVnicScsiIfEntry 17 }
+
+cucsVnicScsiIfOperPrimaryVnetName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:ScsiIf:operPrimaryVnetName managed
+        object property"
+    ::= { cucsVnicScsiIfEntry 18 }
 
 cucsVnicUsnicConPolicyTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicUsnicConPolicyEntry
@@ -9033,7 +10131,9 @@ CucsVnicVlanEntry ::= SEQUENCE {
     cucsVnicVlanOperVnetDn                                           SnmpAdminString,
     cucsVnicVlanOperVnetName                                         SnmpAdminString,
     cucsVnicVlanPubNwId                                              Gauge32,
-    cucsVnicVlanSharing                                              CucsFabricVlanSharingType
+    cucsVnicVlanSharing                                              CucsFabricVlanSharingType,
+    cucsVnicVlanOperPrimaryVnetDn                                    SnmpAdminString,
+    cucsVnicVlanOperPrimaryVnetName                                  SnmpAdminString
 }
 
 cucsVnicVlanInstanceId OBJECT-TYPE
@@ -9163,6 +10263,22 @@ cucsVnicVlanSharing OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS vnic:Vlan:sharing managed object property"
     ::= { cucsVnicVlanEntry 17 }
+
+cucsVnicVlanOperPrimaryVnetDn OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Vlan:operPrimaryVnetDn managed object property"
+    ::= { cucsVnicVlanEntry 18 }
+
+cucsVnicVlanOperPrimaryVnetName OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS vnic:Vlan:operPrimaryVnetName managed object property"
+    ::= { cucsVnicVlanEntry 19 }
 
 cucsVnicVmqConPolicyTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsVnicVmqConPolicyEntry

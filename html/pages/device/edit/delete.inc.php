@@ -21,7 +21,6 @@ if ($_SESSION['userlevel'] < 10)
                     'id'        => 'delete_host',
                     //'space'     => '20px',
                     'title'     => 'Delete device',
-                    'icon'      => 'oicon-server--minus',
                     //'class'     => 'box box-solid',
                     'url'       => 'delhost/'
                     );

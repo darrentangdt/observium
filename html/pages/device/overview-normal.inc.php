@@ -42,7 +42,7 @@ if ($services['total'])
 ?>
 
 <div class="box box-solid">
-    <div class="title"><i class="oicon-network-ethernet"></i> Services</div>
+    <div class="title"><i class="<?php echo $config['icon']['service']; ?>"></i> Services</div>
     <div class="content">
 
 <?php

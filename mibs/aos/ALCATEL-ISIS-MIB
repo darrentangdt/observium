@@ -278,7 +278,9 @@ VRtrIsisEntry ::=
             vRtrIsisPsnpAuthentication      TruthValue,
             vRtrIsisGRRestartDuration       Unsigned32,
             vRtrIsisGRHelperMode            TruthValue,
-            vRtrIsisStrictAdjacencyCheck    TruthValue
+            vRtrIsisStrictAdjacencyCheck    TruthValue,
+            vRtrIsisActivateIPv4            TruthValue,
+	    vRtrIsisActivateIPv6            TruthValue 
          }
 
 vRtrIsisLastEnabledTime    OBJECT-TYPE
@@ -634,6 +636,25 @@ vRtrIsisStrictAdjacencyCheck    OBJECT-TYPE
          common IP version running is enough to form an adjacency."
     DEFVAL { false }
     ::= { vRtrIsisEntry 30}
+
+vRtrIsisActivateIPv4    OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The value of vRtrIsisActivateIPv4 activates the IPv4 routing in
+	 ISIS. This will be enabled by default."
+    DEFVAL { true }
+    ::= { vRtrIsisEntry 31}
+vRtrIsisActivateIPv6    OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The value of vRtrIsisActivateIPv6 activates the IPv6 routing in
+	 ISIS. This will be enabled by default."
+    DEFVAL { true }
+    ::= { vRtrIsisEntry 32}
 
 --
 --  vRtrIsisLevelTable
@@ -1621,7 +1642,8 @@ VRtrIsisIfEntry ::=
             vRtrIsisIfLspPacingInterval     Unsigned32,
             vRtrIsisIfCircIndex             Integer32,
             vRtrIsisIfRetransmitInterval    Unsigned32,
-            vRtrIsisIfTypeDefault           TruthValue
+            vRtrIsisIfTypeDefault           TruthValue,
+            vRtrIsisIfAddressFamily         INTEGER
             
         }
 
@@ -1789,6 +1811,22 @@ vRtrIsisIfTypeDefault       OBJECT-TYPE
         DEFVAL { true }     
         ::= { vRtrIsisIfEntry 12 }
 
+vRtrIsisIfAddressFamily       OBJECT-TYPE
+        SYNTAX      INTEGER {
+	               v4(1),
+		       v6(2),
+		       v4v6(3),
+	               nov4(5),
+		       nov6(6),
+		       nov4v6(7)
+		    }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The value of vRtrIsisIfAddressFamily enables the address-families
+	     on a particular ISIS circuit" 
+        DEFVAL { nov4v6 }
+        ::= { vRtrIsisIfEntry 13 }
 --
 --  vRtrIsisIfLevelTable  IS-IS Interfaces Level Table
 --

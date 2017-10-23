@@ -1,12 +1,20 @@
 <?php
 
+//define('OBS_DEBUG', 1);
+
 include(dirname(__FILE__) . '/../includes/defaults.inc.php');
 //include(dirname(__FILE__) . '/../config.php'); // Do not include user editable config here
 include(dirname(__FILE__) . '/../includes/definitions.inc.php');
 include(dirname(__FILE__) . '/data/test_definitions.inc.php'); // Fake definitions for testing
 include(dirname(__FILE__) . '/../includes/functions.inc.php');
 
-class IncludesCommonTest extends PHPUnit_Framework_TestCase
+// Notes about JSON precision:
+// php 7.0 and earlier use precision for floats in json_encode()
+ini_set('precision',           14);
+ini_set('serialize_precision', 17);
+//var_dump(OBS_JSON_DECODE); exit;
+
+class IncludesCommonTest extends \PHPUnit\Framework\TestCase
 {
   /**
    * @dataProvider providerAgeToSeconds
@@ -55,26 +63,37 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
    */
   public function testExternalExec($cmd, $timeout, $result)
   {
+    //var_dump($_SERVER['SHELL']);
     $test = external_exec($cmd, $timeout);
-    unset($GLOBALS['exec_status']['runtime'], $GLOBALS['exec_status']['exitdelay']);
-    $this->assertSame($result, $GLOBALS['exec_status']);
+    $exec_status = $GLOBALS['exec_status'];
+    unset($exec_status['endtime'], $exec_status['runtime'], $exec_status['exitdelay']);
+    if ($exec_status['exitcode'] == 127)
+    {
+      // Fix shell specific output for tests
+      $exec_status['stderr'] = str_replace(array('sh: 1:', 'not found'),
+                                           array('sh:',    'No such file or directory'),
+                                           $exec_status['stderr']);
+    }
+    $this->assertSame($result, $exec_status);
   }
 
   public function providerExternalExec()
   {
+    // CentOS 6 use different place for which
+    $cmd_which = is_executable('/bin/which') ? '/bin/which' : '/usr/bin/which';
     return array(
       // normal stdout
-      array('/bin/which true',
+      array($cmd_which.' true',
             NULL,
-            array('command'  => '/bin/which true',
+            array('command'  => $cmd_which.' true',
                   'exitcode' => 0,
                   'stderr'   => '',
                   'stdout'   => '/bin/true')
             ),
       // here generate stderr
-      array('/bin/which true >&2',
+      array($cmd_which.' true >&2',
             NULL,
-            array('command'  => '/bin/which true >&2',
+            array('command'  => $cmd_which.' true >&2',
                   'exitcode' => 0,
                   'stderr'   => '/bin/true',
                   'stdout'   => '')
@@ -92,7 +111,8 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
             NULL,
             array('command'  => '/bin/jasdhksdhka',
                   'exitcode' => 127,
-                  'stderr'   => 'sh: 1: /bin/jasdhksdhka: not found',
+                  //'stderr'   => 'sh: 1: /bin/jasdhksdhka: not found', // this stderror is shell env specific for dash
+                  'stderr'   => 'sh: /bin/jasdhksdhka: No such file or directory', // this stderror is shell env specific for bash
                   'stdout'   => '')
             ),
       // normal stdout with special chars (tabs, eol in eof)
@@ -130,6 +150,23 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
                   'stderr'   => '',
                   'stdout'   => '')
             ),
+
+      // Empty
+      array('',
+            NULL,
+            array('command'  => '',
+                  'exitcode' => -1,
+                  'stderr'   => 'Empty command passed',
+                  'stdout'   => '')
+            ),
+      array(FALSE,
+            NULL,
+            array('command'  => '',
+                  'exitcode' => -1,
+                  'stderr'   => 'Empty command passed',
+                  'stdout'   => '')
+            ),
+
     );
   }
 
@@ -435,6 +472,33 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
       // Fake MAC to IPv4 (for 6to4 tunnels)
       array('ff:fe:56:78:9a:bc',    '86.120.154.188'),
       array('ff:fe:00:00:9a:bc',       '154.188.X.X'),
+    );
+  }
+
+  /**
+   * @dataProvider providerMacZeropad
+   * @group values
+   */
+  public function testMacZeropad($value, $result)
+  {
+    $this->assertSame($result, mac_zeropad($value));
+  }
+
+  public function providerMacZeropad()
+  {
+    return array(
+      array(     '123456789ABC', '123456789abc'),
+      array(   '1234.5678.9abc', '123456789abc'),
+      array('12:34:56:78:9a:BC', '123456789abc'),
+      array( '66:c:9b:1b:62:7e', '660c9b1b627e'),
+      array(      '0:0:0:0:0:0', '000000000000'),
+      array(   '0x123456789ABC', '123456789abc'),
+
+      // incorrect
+      array( '66:Z:9b:1b:62:7e',           NULL),
+      array('66:c:c:b:1b:62:7e',           NULL),
+      array(      'ff:fe:56:78',           NULL),
+      array(                  0,           NULL),
     );
   }
 
@@ -1006,6 +1070,27 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($result, $mibs);
   }
 
+  /**
+   * @dataProvider providerGetDeviceMibs
+   * @group mibs
+   */
+  public function testGetDeviceMibs2($device, $result)
+  {
+    $device['device_id'] = 13;
+
+    // Empty sysORID MIBs
+    $GLOBALS['cache']['devices']['mibs_sysORID'][$device['device_id']] = array();
+    $mibs = array_values(get_device_mibs($device, TRUE)); // Use array_values for reset keys
+    $this->assertEquals($result, $mibs);
+
+    // Any sysORID MIBs
+    $GLOBALS['cache']['devices']['mibs_sysORID'][$device['device_id']] = array('SOME-MIB', 'SOME2-MIB');
+    $mibs = array_values(get_device_mibs($device, TRUE)); // Use array_values for reset keys
+    $result[] = 'SOME-MIB';
+    $result[] = 'SOME2-MIB';
+    $this->assertEquals($result, $mibs);
+  }
+
   public function providerGetDeviceMibs()
   {
     return array(
@@ -1275,12 +1360,36 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
   }
 
   /**
+   * @dataProvider providerStringToId
+   * @group string
+   */
+  public function testStringToId($string, $result)
+  {
+    $this->assertSame($result, string_to_id($string));
+  }
+
+  public function providerStringToId()
+  {
+    $array = array();
+
+    // Basic data types
+    $array[] = array('ldap|apisarkov',      374080493);
+    $array[] = array('ldap|aananieva',      987883996);
+    $array[] = array('apisarkov',           3896301514);
+    $array[] = array('aananieva',           3297852923);
+
+    return $array;
+  }
+
+  /**
    * @dataProvider providerVarEncode
    * @group vars
    */
   public function testVarEncode($var, $method, $result)
   {
+    ini_set('precision',           17);
     $this->assertSame($result, var_encode($var, $method));
+    ini_set('precision',           14);
   }
 
   /**
@@ -1289,8 +1398,10 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
    */
   public function testVarDecode($result, $method, $string)
   {
+    ini_set('precision',           17);
     //$this->assertSame($result, var_decode($string, $method));
     $this->assertEquals($result, var_decode($string, $method));
+    ini_set('precision',           14);
   }
 
   /**
@@ -1320,6 +1431,7 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
     $array[] = array('',      'json',      'IiI=');
     $array[] = array(0,       'json',      'MA==');
     $array[] = array(1,       'json',      'MQ==');
+    $array[] = array(81,      'json',      'ODE=');
     $array[] = array(9.8172397123457E-14,      'json', 'OS44MTcyMzk3MTIzNDU3ZS0xNA==');
     $array[] = array(NULL,    'serialize', 'Tjs=');
     $array[] = array(array(), 'serialize', 'YTowOnt9');
@@ -1331,6 +1443,7 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
     $array[] = array('',      'serialize', 'czowOiIiOw==');
     $array[] = array(0,       'serialize', 'aTowOw==');
     $array[] = array(1,       'serialize', 'aToxOw==');
+    $array[] = array(81,      'serialize', 'aTo4MTs=');
     $array[] = array(9.8172397123457E-14, 'serialize', 'ZDo5LjgxNzIzOTcxMjM0NTdFLTE0Ow==');
 
     // Basic string encode
@@ -1354,7 +1467,8 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
     $array[] = array('Оркестр Клуба Одиноких Сердец Сержанта Пеппера', 'serialize', 'czo4Nzoi0J7RgNC60LXRgdGC0YAg0JrQu9GD0LHQsCDQntC00LjQvdC+0LrQuNGFINCh0LXRgNC00LXRhiDQodC10YDQttCw0L3RgtCwINCf0LXQv9C/0LXRgNCwIjs=');
 
     // Basic array
-    $array[] = array(array(3.14, '0', 'Yellow Submarine', TRUE), 'json',      'WzMuMTQsIjAiLCJZZWxsb3cgU3VibWFyaW5lIix0cnVlXQ==');
+    //$array[] = array(array(3.14, '0', 'Yellow Submarine', TRUE), 'json',      'WzMuMTQsIjAiLCJZZWxsb3cgU3VibWFyaW5lIix0cnVlXQ==');
+    $array[] = array(array(3.14, '0', 'Yellow Submarine', TRUE), 'json',      'WzMuMTQwMDAwMDAwMDAwMDAwMSwiMCIsIlllbGxvdyBTdWJtYXJpbmUiLHRydWVd');
     $array[] = array(array(3.14, '0', 'Yellow Submarine', TRUE), 'serialize', 'YTo0OntpOjA7ZDozLjE0MDAwMDAwMDAwMDAwMDE7aToxO3M6MToiMCI7aToyO3M6MTY6IlllbGxvdyBTdWJtYXJpbmUiO2k6MztiOjE7fQ==');
 
     // Complex array
@@ -1368,7 +1482,8 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
         'number' => 98172397.123456,
         NULL
       ),
-      'json',      'eyIwIjp7InRlbXBIdW1pZFNlbnNvcklEIjoiQTEiLCJ0ZW1wSHVtaWRTZW5zb3JOYW1lIjoiVGVtcF9IdW1pZF9TZW5zb3JfQTEifSwiMS4yIjp7InRlbXBIdW1pZFNlbnNvcklEIjoiQTIiLCJ0ZW1wSHVtaWRTZW5zb3JOYW1lIjoiVGVtcF9IdW1pZF9TZW5zb3JfQTIifSwiRnJvZG8iOiJCYWdnaW5zIiwiYmluYXJ5Ijp0cnVlLCJudW1iZXIiOjk4MTcyMzk3LjEyMzQ1NiwiMSI6bnVsbH0='
+      //'json',      'eyIwIjp7InRlbXBIdW1pZFNlbnNvcklEIjoiQTEiLCJ0ZW1wSHVtaWRTZW5zb3JOYW1lIjoiVGVtcF9IdW1pZF9TZW5zb3JfQTEifSwiMS4yIjp7InRlbXBIdW1pZFNlbnNvcklEIjoiQTIiLCJ0ZW1wSHVtaWRTZW5zb3JOYW1lIjoiVGVtcF9IdW1pZF9TZW5zb3JfQTIifSwiRnJvZG8iOiJCYWdnaW5zIiwiYmluYXJ5Ijp0cnVlLCJudW1iZXIiOjk4MTcyMzk3LjEyMzQ1NiwiMSI6bnVsbH0='
+      'json',      'eyIwIjp7InRlbXBIdW1pZFNlbnNvcklEIjoiQTEiLCJ0ZW1wSHVtaWRTZW5zb3JOYW1lIjoiVGVtcF9IdW1pZF9TZW5zb3JfQTEifSwiMS4yIjp7InRlbXBIdW1pZFNlbnNvcklEIjoiQTIiLCJ0ZW1wSHVtaWRTZW5zb3JOYW1lIjoiVGVtcF9IdW1pZF9TZW5zb3JfQTIifSwiRnJvZG8iOiJCYWdnaW5zIiwiYmluYXJ5Ijp0cnVlLCJudW1iZXIiOjk4MTcyMzk3LjEyMzQ1NjAwMSwiMSI6bnVsbH0='
     );
     $array[] = array(
       array(
@@ -1391,7 +1506,8 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
       0, 1, 9.8E-14, TRUE, FALSE, NULL, '', array(), array('Yellow Submarine'),
       'WWVsbG93IFN1Ym1hcmluZQ==',          // base64
       '["Yellow Submarine"]',              // json
-      'a:1:{i:0;s:16:"Yellow Submarine";}' // serialize
+      'a:1:{i:0;s:16:"Yellow Submarine";}', // serialize
+      'ODE',
     );
     foreach (array('json', 'serialize') as $method)
     {
@@ -1431,7 +1547,7 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
    * @dataProvider providerStrContains
    * @group string
    */
-  public function testStrContains($result, $incase, $string, $needle, $encoding)
+  public function testStrContains($result, $incase, $string, $needle, $encoding = FALSE)
   {
     if ($incase)
     {
@@ -1495,6 +1611,7 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
       // Not strings
       array(FALSE,  TRUE, $test_string1, array('fs', array('Observium is a '))),
       array(FALSE, FALSE, $test_string1, NULL),
+      array(FALSE, FALSE, $test_string1, array()),
     );
   }
 
@@ -1502,7 +1619,7 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
    * @dataProvider providerStrStarts
    * @group string
    */
-  public function testStrStarts($result, $incase, $string, $needle, $encoding)
+  public function testStrStarts($result, $incase, $string, $needle, $encoding = FALSE)
   {
     if ($incase)
     {
@@ -1566,6 +1683,7 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
       // Not strings
       array(FALSE,  TRUE, $test_string1, array('fs', array('Observium is a '))),
       array(FALSE, FALSE, $test_string1, NULL),
+      array(FALSE, FALSE, $test_string1, array()),
     );
   }
 
@@ -1573,7 +1691,7 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
    * @dataProvider providerStrEnds
    * @group string
    */
-  public function testStrEnds($result, $incase, $string, $needle, $encoding)
+  public function testStrEnds($result, $incase, $string, $needle, $encoding = FALSE)
   {
     if ($incase)
     {
@@ -1637,6 +1755,7 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
       // Not strings
       array(FALSE,  TRUE, $test_string1, array('fs', array('monitoring platforM.'))),
       array(FALSE, FALSE, $test_string1, NULL),
+      array(FALSE, FALSE, $test_string1, array()),
     );
   }
 
@@ -1648,6 +1767,7 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
   {
     $this->expectOutputString($result);
     $GLOBALS['cache']['is_cli'] = $cli; // Override actual is_cli test
+    //define('OBS_CLI', $cli);
     print_message($text, $type, $strip);
   }
 
@@ -1829,6 +1949,34 @@ class IncludesCommonTest extends PHPUnit_Framework_TestCase
       array('02/14/1995', '1995-02-14'),
       array('Banana',     'Banana'),
       array('Ob-servium', 'Ob-servium'),
+    );
+  }
+
+  /**
+   * @dataProvider providerGetHttpRequest
+   * @group http
+   */
+  public function testGetHttpRequest($url, $result, $status, $code)
+  {
+    $test = get_http_request($url);
+    if (is_string($result))
+    {
+      $this->assertContains($result, $test);
+    } else {
+      // This for wrong url, return FALSE
+      $this->assertSame($result, $test);
+    }
+    $this->assertSame($status, get_http_last_status());
+    $this->assertSame($code,   get_http_last_code());
+  }
+
+  public function providerGetHttpRequest()
+  {
+    return array(
+      array('http://observium.org',   '<html',  TRUE, 200), // OK, http
+      array('https://observium.org',  '<html',  TRUE, 200), // OK, https
+      array('http://somewrong.test',    FALSE, FALSE, 408), // Unknown host
+      array('http://observium.org/404', FALSE, FALSE, 404), // OK, not found
     );
   }
 }

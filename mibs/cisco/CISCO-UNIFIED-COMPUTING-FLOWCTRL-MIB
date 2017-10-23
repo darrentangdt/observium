@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- FLOWCTRL management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -47,13 +47,14 @@ IMPORTS
     CucsManagedObjectId,
     CucsManagedObjectDn
         FROM CISCO-UNIFIED-COMPUTING-MIB
+    CucsFlowctrlConfig,
     CucsFlowctrlFlowControl,
     CucsFlowctrlPriorityPause,
     CucsPolicyPolicyOwner
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsFlowctrlObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -189,7 +190,8 @@ CucsFlowctrlItemEntry ::= SEQUENCE {
     cucsFlowctrlItemName                                             SnmpAdminString,
     cucsFlowctrlItemPrio                                             CucsFlowctrlPriorityPause,
     cucsFlowctrlItemRcv                                              CucsFlowctrlFlowControl,
-    cucsFlowctrlItemSnd                                              CucsFlowctrlFlowControl
+    cucsFlowctrlItemSnd                                              CucsFlowctrlFlowControl,
+    cucsFlowctrlItemConfig                                           CucsFlowctrlConfig
 }
 
 cucsFlowctrlItemInstanceId OBJECT-TYPE
@@ -247,5 +249,13 @@ cucsFlowctrlItemSnd OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS flowctrl:Item:snd managed object property"
     ::= { cucsFlowctrlItemEntry 7 }
+
+cucsFlowctrlItemConfig OBJECT-TYPE
+    SYNTAX       CucsFlowctrlConfig
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS flowctrl:Item:config managed object property"
+    ::= { cucsFlowctrlItemEntry 8 }
 
 END

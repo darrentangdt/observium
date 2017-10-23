@@ -113,7 +113,7 @@ if (!$auth)
       {
         while (false !== ($file = readdir($handle)))
         {
-          if ($file != "." && $file != ".." && $file != "auth.inc.php" && $file != "graph.inc.php" && strstr($file, ".inc.php"))
+          if ($file != "." && $file != ".." && $file != "auth.inc.php" && $file != "graph.inc.php" && $file != ".auth.swp" && strstr($file, ".inc.php"))
           {
             $types[] = str_replace(".inc.php", "", $file);
           }
@@ -137,7 +137,7 @@ if (!$auth)
           $navbar['options']['graph']['suboptions'][$avail_type]['class'] = 'active';
           $navbar['options']['graph']['text'] .= ' ('.$avail_type.')';
         }
-        $navbar['options']['graph']['suboptions'][$avail_type]['text'] = $avail_type;
+        $navbar['options']['graph']['suboptions'][$avail_type]['text'] = nicecase($avail_type);
         $navbar['options']['graph']['suboptions'][$avail_type]['url'] = generate_url($vars, array('type' => $type."_".$avail_type, 'page' => "graphs"));
       }
   }
@@ -275,7 +275,10 @@ $navbar['class'] = "navbar-narrow";
 
 $navbar['options']['legend']   =  array('text' => 'Show Legend', 'inverse' => TRUE);
 $navbar['options']['previous'] =  array('text' => 'Graph Previous');
-$navbar['options']['trend']    =  array('text' => 'Graph Trend');
+if(in_array('trend', $graph_return['valid_options']))
+{
+  $navbar['options']['trend']    =  array('text' => 'Graph Trend');
+}
 $navbar['options']['max']      =  array('text' => 'Graph Maximum');
 
 $navbar['options_right']['showcommand'] =  array('text' => 'RRD Command');

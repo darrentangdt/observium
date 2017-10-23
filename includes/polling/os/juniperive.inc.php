@@ -11,13 +11,12 @@
  *
  */
 
-$version = trim(snmp_get($device, 'productVersion.0', '-OQv', 'JUNIPER-IVE-MIB'),'"');
-$hardware = 'Juniper ' . trim(snmp_get($device, 'productName.0', '-OQv', 'JUNIPER-IVE-MIB'),'"');
+// FIXME move below to poller graphs definitions
 
 // Users
 
-$clusterusers = snmp_get($device, 'clusterConcurrentUsers.0', '-OQv', 'JUNIPER-IVE-MIB');
-$iveusers     = snmp_get($device, 'iveConcurrentUsers.0', '-OQv', 'JUNIPER-IVE-MIB');
+$clusterusers = snmp_get($device, 'clusterConcurrentUsers.0', '-OQv', 'PULSESECURE-PSG-MIB');
+$iveusers     = snmp_get($device, 'iveConcurrentUsers.0', '-OQv', 'PULSESECURE-PSG-MIB');
 
 if (!is_null($clusterusers) and !is_null($iveusers))
 {
@@ -31,8 +30,8 @@ if (!is_null($clusterusers) and !is_null($iveusers))
 
 // Meetings
 
-$meetingusers = snmp_get($device, 'meetingUserCount.0', '-OQv', 'JUNIPER-IVE-MIB');
-$meetings     = snmp_get($device, 'meetingCount.0', '-OQv', 'JUNIPER-IVE-MIB');
+$meetingusers = snmp_get($device, 'meetingUserCount.0', '-OQv', 'PULSESECURE-PSG-MIB');
+$meetings     = snmp_get($device, 'meetingCount.0', '-OQv', 'PULSESECURE-PSG-MIB');
 
 if (is_numeric($meetingusers) and is_numeric($meetings))
 {
@@ -40,14 +39,14 @@ if (is_numeric($meetingusers) and is_numeric($meetings))
     'meetingusers' => $meetingusers,
     'meetings'     => $meetings,
   ));
-            
+
   $graphs['juniperive_meetings'] = TRUE;
 }
 
 // Connections
 
-$webusers  = snmp_get($device, 'signedInWebUsers.0', '-OQv', 'JUNIPER-IVE-MIB');
-$mailusers = snmp_get($device, 'signedInMailUsers.0', '-OQv', 'JUNIPER-IVE-MIB');
+$webusers  = snmp_get($device, 'signedInWebUsers.0', '-OQv', 'PULSESECURE-PSG-MIB');
+$mailusers = snmp_get($device, 'signedInMailUsers.0', '-OQv', 'PULSESECURE-PSG-MIB');
 
 if (!is_null($webusers) and !is_null($mailusers))
 {
@@ -61,8 +60,8 @@ if (!is_null($webusers) and !is_null($mailusers))
 
 // Storage
 
-$diskpercent = snmp_get($device, 'diskFullPercent.0', '-OQv', 'JUNIPER-IVE-MIB');
-$logpercent = snmp_get($device, 'logFullPercent.0', '-OQv', 'JUNIPER-IVE-MIB');
+$diskpercent = snmp_get($device, 'diskFullPercent.0', '-OQv', 'PULSESECURE-PSG-MIB');
+$logpercent = snmp_get($device, 'logFullPercent.0', '-OQv', 'PULSESECURE-PSG-MIB');
 
 if (!is_null($diskpercent) and !is_null($logpercent))
 {

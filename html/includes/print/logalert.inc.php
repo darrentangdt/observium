@@ -53,7 +53,7 @@ function print_logalert_log($vars)
       }
       $cols[]         = array('Program',     'style="width: 80px"');
       $cols[]         = 'Message';
-      $cols[]         = array('Notified',    'style="width: 40px"');
+      //$cols[]         = array('Notified',    'style="width: 40px"');
       $string .= get_table_header($cols); // , $vars); // Actually sorting is disabled now
     }
     $string   .= '  <tbody>' . PHP_EOL;
@@ -91,7 +91,7 @@ function print_logalert_log($vars)
       if(!$vars['short'])
       {
         //$string .= '<td>' . escape_html($entry['log_type']) . '</td>' . PHP_EOL;
-        $string .= '<td style="text-align: right">'. ($entry['notified'] == '1' ? '<span class="label label-success">YES</span>' : ($entry['notified'] == '-1' ? '<span class="label label-suppressed">NO</span>' : '<span class="label">NO</span>')) . '</td>' . PHP_EOL;
+        //$string .= '<td style="text-align: right">'. ($entry['notified'] == '1' ? '<span class="label label-success">YES</span>' : ($entry['notified'] == '-1' ? '<span class="label">SKIP</span>' : '<span class="label label-warning">NO</span>')) . '</td>' . PHP_EOL;
       }
 
       $string .= '  </tr>' . PHP_EOL;

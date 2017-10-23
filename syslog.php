@@ -50,7 +50,17 @@ while ($line = fgets($s))
 
   // Update syslog ruleset if they've changed. (this query should be cheap).
   $new_rules = get_obs_attrib('syslog_rules_changed');
-  if($new_rules > $cur_rules)
+  // Also detect if MySQL server has gone away
+  if (empty($new_rules))
+  {
+    if (dbErrorNo() === 2006 && function_exists('dbPing') && dbPing() === FALSE)
+    {
+      // MySQL server has gone away
+      print_error('MySQL server has gone away. Need restart for script syslog.php');
+      exit(1);
+    }
+  }
+  if ($new_rules > $cur_rules)
   {
     $cur_rules = $new_rules;
     $rules = cache_syslog_rules();

@@ -37,8 +37,6 @@ if (count($cache_discovery['gpfs-mib']))
        )
   */
 
-  
-
   foreach ($cache_discovery['gpfs-mib'] as $index => $storage)
   {
     $fstype = "gpfs";

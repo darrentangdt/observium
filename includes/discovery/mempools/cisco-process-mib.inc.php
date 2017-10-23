@@ -12,7 +12,8 @@
  */
 
 // Ignore this discovery module if we have already discovered things in CISCO-ENHANCED-MEMPOOL-MIB. Dirty duplication.
-if (!isset($valid['mempool']['cisco-enhanced-mempool-mib']) && !isset($valid['mempool']['cisco-memory-pool-mib']))
+if (!isset($valid['mempool']['cisco-enhanced-mempool-mib']) && !isset($valid['mempool']['CISCO-ENHANCED-MEMPOOL-MIB']) &&
+    !isset($valid['mempool']['cisco-memory-pool-mib'])      && !isset($valid['mempool']['CISCO-MEMORY-POOL-MIB']))
 {
   $mempool_array = snmpwalk_cache_oid($device, 'cpmCPUMemoryUsed', array(), $mib);
   $mempool_array = snmpwalk_cache_oid($device, 'cpmCPUMemoryFree', $mempool_array, $mib);

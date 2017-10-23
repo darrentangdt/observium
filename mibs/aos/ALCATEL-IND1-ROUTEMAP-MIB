@@ -89,6 +89,8 @@ AlaRouteMapType ::= TEXTUAL-CONVENTION
         matchIpv6Interface(11),
         matchMetric(12),
         matchRouteType(13),
+     -- matchRoutName(14),
+     -- matchProtocol(15),
         setMetric(129),
         setMetricType(130),
         setTag(131),
@@ -169,6 +171,7 @@ alaRouteMapRedistSrcProtoId OBJECT-TYPE
                  bgp6(9),    -- Border Gateway Protocol IPv6
                  isis(10),   -- ISIS IPv4
                  isis6(11)   -- ISIS IPv6
+              -- import(12) 
                 }
     MAX-ACCESS  not-accessible
     STATUS  current
@@ -630,7 +633,6 @@ alaRouteMapConfigMIBGroup OBJECT-GROUP
             "A collection of objects to support management of global
             configuration parameters of the Route Map Module."
     ::= { alcatelIND1RouteMapMIBGroups 1 }
-
 
 alaRouteMapRedistProtoGroup OBJECT-GROUP
     OBJECTS 

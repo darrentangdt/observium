@@ -37,12 +37,10 @@ if (strstr($hardware, 'E7'))
     E7-Calix-MIB::e7SystemDnsPrimary.0 = IpAddress: 192.168.1.2
     E7-Calix-MIB::e7SystemDnsSecondary.0 = IpAddress: 192.168.2.2
     E7-Calix-MIB::e7SystemTimezone.0 = STRING: "US/Pacific"
-    E7-Calix-MIB::e7SystemChassisSerialNumber.0 = Wrong Type (should be OCTET STRING): Counter64: 71308303059
     E7-Calix-MIB::e7SystemChassisMacAddress.0 = STRING: 0:2:35:9e:46:af
     E7-Calix-MIB::e7SystemTime.0 = STRING:  04:00:23
     E7-Calix-MIB::e7SystemDate.0 = STRING: 2013-12-07
    */
-  $serial  = snmp_get($device, '.1.3.6.1.4.1.6321.1.2.2.2.1.7.10.0', '-Oqvn');     // e7SystemChassisSerialNumber.0
   $version = snmp_get($device, '.1.3.6.1.4.1.6321.1.2.2.2.1.6.1.1.7.1.1', '-Oqv'); // e7CardSoftwareVersion.1.1
 
   // Here definition override for ifDescr, because Calix switch ifDescr <> ifName since fw 2.2

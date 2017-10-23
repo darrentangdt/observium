@@ -41,6 +41,7 @@ $cstack = '';
 $bstack = '';
 foreach ($rrd_list as $rrd)
 {
+
   if ($rrd['colour'])
   {
     $colour = $rrd['colour'];
@@ -68,15 +69,37 @@ foreach ($rrd_list as $rrd)
     $rrd_options .= " DEF:".$id."max=$filename:$ds:MAX";
   }
 
+  if (is_numeric($multiplier))
+  {
+    $g_defname = $rrd['ds'] . "_cdef";
+    $rrd_options .= " CDEF:" . $id . "c=" . $id . "," . $multiplier . ",*";
+    $rrd_options .= " CDEF:" . $id . "cmin=" . $id . "min," . $multiplier . ",*";
+    $rrd_options .= " CDEF:" . $id . "cmax=" . $id . "max," . $multiplier . ",*";
+
+    $id = $id.'c';
+
+  // If we've been passed a divider (divisor!) we make a CDEF for it.
+  } elseif (is_numeric($divider))
+  {
+    $g_defname = $rrd['ds'] . "_cdef";
+    $rrd_options .= " CDEF:" . $id . "c=" . $id . "," . $divider . ",/";
+    $rrd_options .= " CDEF:" . $id . "cmin=" . $id . "min," . $divider . ",/";
+    $rrd_options .= " CDEF:" . $id . "cmax=" . $id . "max," . $divider . ",/";
+
+    $id = $id.'c';
+
+  }
+
+
   if ($rrd['invert'])
   {
     $rrd_options .= " CDEF:".$id."i=".$id.",-1,*";
-    $rrd_optionsc .= " AREA:".$id."i#".$colour.":'$descr'".$cstack;
+    $rrd_optionsc .= " AREA:".$id."i#".$colour.":'$descr'".($rrd['stack'] === FALSE ? '' : $cstack);
     $rrd_optionsc .= " GPRINT:".$id.":LAST:%5.1lf%s GPRINT:".$id."min:MIN:%5.1lf%s";
     $rrd_optionsc .= " GPRINT:".$id."max:MAX:%5.1lf%s GPRINT:".$id.":AVERAGE:'%5.1lf%s\\n'";
     $cstack = ":STACK";
   } else {
-    $rrd_optionsb .= " AREA:".$id."#".$colour.":'$descr'".$bstack;
+    $rrd_optionsb .= " AREA:".$id."#".$colour.":'$descr'".($rrd['stack'] === FALSE ? '' : $bstack);
     $rrd_optionsb .= " GPRINT:".$id.":LAST:%5.1lf%s GPRINT:".$id."min:MIN:%5.1lf%s";
     $rrd_optionsb .= " GPRINT:".$id."max:MAX:%5.1lf%s GPRINT:".$id.":AVERAGE:'%5.1lf%s\\n'";
     $bstack = ":STACK";

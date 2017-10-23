@@ -358,7 +358,7 @@ MvrpPortVlanRestrictBitmap  ::= TEXTUAL-CONVENTION
 	    
 	    
 	alaMvrpPortConfigJoinTimer OBJECT-TYPE
-		SYNTAX	Integer32 (250 .. 2147483647) 
+		SYNTAX	Integer32 (250 .. 1073741773) 
 		UNITS	"milliseconds"
 		MAX-ACCESS	read-write
 		STATUS		current

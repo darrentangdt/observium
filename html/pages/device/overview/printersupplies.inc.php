@@ -20,7 +20,7 @@ if (count($supplies))
 {
   $box_args = array('title' => 'Printer Supplies',
                     'url' => generate_url(array('page' => 'device', 'device' => $device['device_id'], 'tab' => 'printing')),
-                    'icon' => 'oicon-contrast',
+                    'icon' => $config['icon']['printersupply'],
                     );
 
   echo generate_box_open($box_args);

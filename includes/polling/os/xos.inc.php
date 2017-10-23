@@ -11,7 +11,7 @@
  *
  */
 
-$data = snmp_get_multi($device, 'extremeImageBooted.0 extremePrimarySoftwareRev.0 extremeSecondarySoftwareRev.0 extremeSystemID.0 sysObjectID.0 extremeImageSshCapability.cur extremeImageUAACapability.cur', '-OUQs', 'EXTREME-SYSTEM-MIB');
+$data = snmp_get_multi($device, 'extremeImageBooted.0 extremePrimarySoftwareRev.0 extremeSecondarySoftwareRev.0 sysObjectID.0 extremeImageSshCapability.cur extremeImageUAACapability.cur', '-OUQs', 'EXTREME-SYSTEM-MIB');
 
 // hardware platform
 $hardware = $data[0]['sysObjectID'];
@@ -30,9 +30,6 @@ switch ($data[0]['extremeImageBooted'])
     $version = 'UNKNOWN';
 }
 
-// serial number
-$serial = $data[0]['extremeSystemID'];
-
 // features
 $features = '';
 if ($data['cur']['extremeImageSshCapability'] <> 'unknown' && trim($data['cur']['extremeImageSshCapability'] <> ''))
@@ -44,7 +41,5 @@ if ($data['cur']['extremeImageUAACapability'] <> 'unknown' && trim($data['cur'][
 {
   $features .= ' ' . $data['cur']['extremeImageUAACapability'];
 }
-
-//echo sprintf("Extreme Networks: Hardware: %s, Serial: %s, Version: %s, Features: %s", $hardware, $serial, $version, $features);
 
 // EOF

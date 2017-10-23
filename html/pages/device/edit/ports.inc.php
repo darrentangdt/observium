@@ -35,7 +35,7 @@ if ($vars['ignoreport'])
 
 <div class="box box-solid">
   <div class="box-header with-border">
-   <h3 class="box-title">Port Properties</h3>
+    <h3 class="box-title">Port Properties</h3>
   </div>
 <div class="box-body no-padding">
 <?php
@@ -61,22 +61,24 @@ if ($vars['ignoreport'])
       <!-- <th style="width: 110px;">% Threshold</th>   -->
       <!-- <th style="width: 110px;">BPS Threshold</th> -->
       <!-- <th style="width: 110px;">PPS Threshold</th> -->
-      <th style="width: 110px;">ifSpeed</th>
-      <th style="width: 80px;">64bit</th>
+      <th style="width: 90px;">ifSpeed</th>
+      <th style="width: 45px;"></th>
+      <th style="width: 70px;">64bit</th>
     </tr>
   </thead>
     <tr>
       <td style="padding: 0;"></td>
       <td></td>
-      <td><!-- <button class="btn btn-small btn-danger" type="submit" value="Reset" id="form-reset" title="Reset form to previously-saved settings"><i class="oicon-remove oicon-white"></i> Reset</button> --></td>
-      <td><button class="btn btn-small" type="submit" value="Alerted"  id="alerted-toggle" title="Toggle alerting on all currently-alerted ports">Enabled & Down</button>
-          <button class="btn btn-small" type="submit" value="Disabled" id="down-select"    title="Disable alerting on all currently-down ports">Disabled</button></td>
-      <td><button class="btn btn-small" type="submit" value="Toggle"   id="disable-toggle" title="Toggle polling for all ports">Toggle</button>
-          <button class="btn btn-small" type="submit" value="Select"   id="disable-select" title="Disable polling on all ports">All</button></td>
-      <td><button class="btn btn-small" type="submit" value="Toggle"   id="ignore-toggle"  title="Toggle alerting for all ports">Toggle</button>
-          <button class="btn btn-small" type="submit" value="Select"   id="ignore-select"  title="Disable alerting on all ports">All</button></td>
+      <td><!-- <button class="btn btn-xs btn-danger" type="submit" value="Reset" id="form-reset" title="Reset form to previously-saved settings"><i class="icon-remove icon-white"></i> Reset</button> --></td>
+      <td><button class="btn btn-xs btn-danger" style="margin: 3px;" type="submit" value="Alerted"  id="alerted-toggle" title="Toggle alerting on all currently-alerted ports">Enabled & Down</button>
+          <button class="btn btn-xs" type="submit" value="Disabled" id="down-select"    title="Disable alerting on all currently-down ports">Disabled</button></td>
+      <td><button class="btn btn-xs btn-primary" type="submit" value="Toggle"   id="disable-toggle" title="Toggle polling for all ports">Toggle</button>
+          <button class="btn btn-xs btn-default" type="submit" value="Select"   id="disable-select" title="Disable polling on all ports">All</button></td>
+      <td><button class="btn btn-xs btn-primary" type="submit" value="Toggle"   id="ignore-toggle"  title="Toggle alerting for all ports">Toggle</button>
+          <button class="btn btn-xs btn-default" type="submit" value="Select"   id="ignore-select"  title="Disable alerting on all ports">All</button></td>
       <td></td>
-      <td><button class="btn btn-small btn-primary" type="submit" value="Save" title="Save current port disable/ignore settings"><i class="icon-ok icon-white"></i> Save</button></td>
+      <td></td>
+      <td><button class="btn btn-xs btn-primary" type="submit" value="Save" title="Save current port disable/ignore settings"><i class="icon-ok icon-white"></i> Save</button></td>
 
 <!--      <th></th>
       <th></th>
@@ -102,7 +104,7 @@ foreach (dbFetchRows("SELECT * FROM `ports` WHERE `deleted` = '0' AND `device_id
   echo('<td style="vertical-align: top;"><span class="entity">'.generate_entity_link('port', $port).'</span><br />'.escape_html($port['ifAlias']).'</td>');
   echo("<td>".$port['human_type']."<br />");
 
-  echo('<span>'.escape_html($port['admin_status']).'</span> / <span data-name="operstatus_'.$port['port_id'].'" class="'.$port['row_class'].'">'. escape_html($port['ifOperStatus']) .'</span></td>');
+  echo(($port['admin_status'] == enabled ? : '<span class="">'.$port['admin_status'].'</span>').' / <span data-name="operstatus_'.$port['port_id'].'" class="'.$port['row_class'].'">'. escape_html($port['ifOperStatus']) .'</span></td>');
 
   echo('<td>');
   $item = array('id'          => 'port[]',
@@ -140,25 +142,33 @@ foreach (dbFetchRows("SELECT * FROM `ports` WHERE `deleted` = '0' AND `device_id
 #  echo('<br /><input class="input-mini" name="threshold_pps_out-'.$port['port_id'].'" size="3" value="'.$port['threshold_pps_out'].'"></input></td>');
 
   // Custom port speed
-  echo('<td class="text-nowrap">');
+  echo '<td class="text-nowrap">';
   $ifSpeed_custom_bool = isset($port['ifSpeed_custom']);
   $ifSpeed = $ifSpeed_custom_bool ? $port['ifSpeed_custom'] : $port['ifSpeed'];
   $item = array('id'          => 'ifSpeed_custom_'.$port['port_id'],
                 //'name'        => 'Group name',
                 'placeholder' => formatRates($port['ifSpeed'], 4, 4),
                 'disabled'    => !$ifSpeed_custom_bool,
-                'width'       => '80px',
+                'width'       => '75px',
                 'readonly'    => $readonly,
                 'ajax'        => TRUE,
                 'ajax_vars'   => array('field' => 'ifspeed'),
                 'value'       => formatRates($ifSpeed, 4, 4));
   echo(generate_form_element($item, 'text'));
-  $item = array('id'          => 'ifSpeed_custom_bool_'.$port['port_id'],
-                'title'       => 'Use custom ifSpeed',
-                'onchange'    => "toggleAttrib('disabled', 'ifSpeed_custom_".$port['port_id']."')",
-                'readonly'    => $readonly,
-                'value'       => $ifSpeed_custom_bool);
-  echo(generate_form_element($item, 'checkbox'));
+  echo('</td>');
+
+  echo '<td>';
+  // Custom port speed toggle switch
+  $item = array('id'       => 'ifSpeed_custom_bool_'.$port['port_id'],
+                        'size'     => 'large',
+                        'view'     => $locked ? 'lock' : 'square', // note this is data-tt-type, but 'type' key reserved for element type
+                        'onchange' => "toggleAttrib('disabled', obj.attr('data-onchange-id'));",
+                        'onchange-id' => "ifSpeed_custom_".$port['port_id'], // target id for onchange, set attrib: data-onchange-id
+                        'value' => (bool)$ifSpeed_custom_bool);
+          echo(generate_form_element($item, 'toggle'));
+
+  echo '</span>';
+
   echo('</td>');
 
   echo '<td>';
@@ -196,7 +206,7 @@ foreach (dbFetchRows("SELECT * FROM `ports` WHERE `deleted` = '0' AND `device_id
 </form>
 
 <script type="text/javascript">
-$(document).ready(function() {
+
   $('#disable-toggle').click(function(event) {
     // invert selection on all disable buttons
     event.preventDefault();
@@ -263,7 +273,7 @@ $(document).ready(function() {
     event.preventDefault();
     $('#ignoreport')[0].reset();
   });
-});
+
 </script>
 
 <?php

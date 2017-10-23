@@ -58,20 +58,6 @@ switch ($device['os'])
       }
     }
 
-    // Use agent virt-what data if available
-    if (isset($agent_data['virt']['what']))
-    {
-      // We cycle through every line here, the previous one is overwritten.
-      // This is OK, as virt-what prints general-to-specific order and we want most specific.
-      foreach (explode("\n", $agent_data['virt']['what']) as $virtwhat)
-      {
-        if (isset($config['virt-what'][$virtwhat]))
-        {
-          $hw = $config['virt-what'][$virtwhat];
-        }
-      }
-    }
-
     if (is_array($entPhysical) && !$hw)
     {
       $hw = $entPhysical['entPhysicalDescr'];
@@ -80,31 +66,11 @@ switch ($device['os'])
         $serial = $entPhysical['entPhysicalSerialNum'];
       }
     }
-
-    if (!$hw)
+    
+    if (!$hardware)
     {
-      // Detect Dell hardware via OpenManage SNMP
-      $hw = snmp_get($device, 'chassisModelName.1', '-Oqv', 'MIB-Dell-10892');
-
-      if ($hw)
-      {
-        $hw        = 'Dell ' . $hw;
-        $serial    = snmp_get($device, 'chassisServiceTagName.1', '-Oqv', 'MIB-Dell-10892');
-        $asset_tag = snmp_get($device, 'chassisAssetTagName.1', '-Oqv', 'MIB-Dell-10892');
-      } else {
-        // Detect HP hardware via hp-snmp-agents
-        $hw = snmp_get($device, 'cpqSiProductName.0', '-Oqv', 'CPQSINFO-MIB');
-
-        if ($hw)
-        {
-          $hw        = 'HP ' . $hw;
-          $serial    = snmp_get($device, 'cpqSiSysSerialNum.0', '-Oqv', 'CPQSINFO-MIB');
-          $asset_tag = snmp_get($device, 'cpqSiAssetTag.0', '-Oqv', 'CPQSINFO-MIB');
-        }
-      }
+      $hardware = rewrite_unix_hardware($poll_device['sysDescr'], $hw);
     }
-
-    $hardware = rewrite_unix_hardware($poll_device['sysDescr'], $hw);
     break;
 
   case 'aix':
@@ -118,11 +84,9 @@ switch ($device['os'])
     $hardware_model = snmp_get($device, 'aixSeMachineType.0', '-Oqv', 'IBM-AIX-MIB');
     if ($hardware_model)
     {
-      $hardware_model = trim(str_replace('"', '', $hardware_model));
       list(,$hardware_model) = explode(',', $hardware_model);
 
       $serial = snmp_get($device, 'aixSeSerialNumber.0', '-Oqv', 'IBM-AIX-MIB');
-      $serial = trim(str_replace('"', '', $serial));
       list(,$serial) = explode(',', $serial);
 
       $hardware .= " ($hardware_model)";
@@ -189,11 +153,10 @@ switch ($device['os'])
       $version = $matches[1];
     }
 
-    $data = snmp_get_multi($device, 'ipsoChassisMBType.0 ipsoChassisMBRevNumber.0 ipsoChassisSerialNumber.0', '-OQUs', 'NOKIA-IPSO-SYSTEM-MIB');
+    $data = snmp_get_multi($device, 'ipsoChassisMBType.0 ipsoChassisMBRevNumber.0', '-OQUs', 'NOKIA-IPSO-SYSTEM-MIB');
     if (isset($data[0]))
     {
       $hw = $data[0]['ipsoChassisMBType'] . ' rev ' . $data[0]['ipsoChassisMBRevNumber'];
-      $serial = $data[0]['ipsoChassisSerialNumber'];
     }
     $hardware = rewrite_unix_hardware($poll_device['sysDescr'], $hw);
     break;
@@ -206,9 +169,9 @@ switch ($device['os'])
     $data = snmp_get_multi($device, 'swHardwareVersion.0 swHardwareType.0 swLicenseProductName.0 swFirmwareRunning.0', '-OQUs', 'EMBEDDED-NGX-MIB');
     if (isset($data[0]))
     {
-      list($hw) = explode(',', trim($data[0]['swLicenseProductName'], '" '));
-      $hardware = $hw . ' ' . trim($data[0]['swHardwareType'], '" ') . ' ' . trim($data[0]['swHardwareVersion'], '" ');
-      $version  = trim($data[0]['swFirmwareRunning'], '" ');
+      list($hw) = explode(',', $data[0]['swLicenseProductName']);
+      $hardware = $hw . ' ' . $data[0]['swHardwareType'] . ' ' . $data[0]['swHardwareVersion'];
+      $version  = $data[0]['swFirmwareRunning'];
     }
     break;
 }
@@ -217,17 +180,27 @@ switch ($device['os'])
 if (isset($agent_data['distro']) && isset($agent_data['distro']['SCRIPTVER']))
 {
   $distro     = $agent_data['distro']['DISTRO'];
-  $distro_ver = $agent_data['distro']['DISTROVER'];
+  // Older version of the script used DISTROVER, newer ones use VERSION :-(
+  $distro_ver = (isset($agent_data['distro']['DISTROVER']) ? $agent_data['distro']['DISTROVER'] : $agent_data['distro']['VERSION']);
   $kernel     = $agent_data['distro']['KERNEL'];
   $arch       = $agent_data['distro']['ARCH'];
+  $virt       = $agent_data['distro']['VIRT'];
 } else {
 
   // Distro "extend" support
-  $os_data = trim(snmp_get($device, '.1.3.6.1.4.1.2021.7890.1.3.1.1.6.100.105.115.116.114.111', '-Oqv', 'UCD-SNMP-MIB'),'" ');
-
-  if (!$os_data) // No "extend" support, try "exec" support
+  //if (is_device_mib($device, 'NET-SNMP-EXTEND-MIB'))
+  //{
+  //  //NET-SNMP-EXTEND-MIB::nsExtendOutput1Line."distro" = STRING: Linux|4.4.0-77-generic|amd64|Ubuntu|16.04|kvm
+  //  $os_data = snmp_get_oid($device, '.1.3.6.1.4.1.8072.1.3.2.3.1.1.6.100.105.115.116.114.111', 'NET-SNMP-EXTEND-MIB');
+  //}
+  if (!$os_data && is_device_mib($device, 'UCD-SNMP-MIB'))
   {
-    $os_data = trim(snmp_get($device, '.1.3.6.1.4.1.2021.7890.1.101.1', '-Oqv', 'UCD-SNMP-MIB'),'" ');
+    $os_data = snmp_get_oid($device, '.1.3.6.1.4.1.2021.7890.1.3.1.1.6.100.105.115.116.114.111', 'UCD-SNMP-MIB');
+
+    if (!$os_data) // No "extend" support, try "exec" support
+    {
+      $os_data = snmp_get_oid($device, '.1.3.6.1.4.1.2021.7890.1.101.1', 'UCD-SNMP-MIB');
+    }
   }
 
   // Disregard data if we're just getting an error.
@@ -235,13 +208,34 @@ if (isset($agent_data['distro']) && isset($agent_data['distro']['SCRIPTVER']))
   {
     unset($os_data);
   }
-  else if (strpos($os_data, '|'))
+  else if (str_contains($os_data, '|'))
   {
-    // "Linux|3.2.0-4-amd64|amd64|Debian|7.5"
-    list($osname,$kernel,$arch,$distro,$distro_ver) = explode('|', $os_data, 5);
+    // distro version less than 1.2: "Linux|3.2.0-4-amd64|amd64|Debian|7.5"
+    // distro version 1.2 and above: "Linux|4.4.0-53-generic|amd64|Ubuntu|16.04|kvm"
+    list($osname, $kernel, $arch, $distro, $distro_ver, $virt) = explode('|', $os_data);
   } else {
     // Old distro, not supported now: "Ubuntu 12.04"
     list($distro, $distro_ver) = explode(' ', $os_data);
+  }
+}
+
+// Use 'os' script virt output, if virt-what agent is not used
+if (!isset($agent_data['virt']['what']) && isset($virt))
+{
+  $agent_data['virt']['what'] = $virt;
+}
+
+// Use agent virt-what data if available
+if (isset($agent_data['virt']['what']))
+{
+  // We cycle through every line here, the previous one is overwritten.
+  // This is OK, as virt-what prints general-to-specific order and we want most specific.
+  foreach (explode("\n", $agent_data['virt']['what']) as $virtwhat)
+  {
+    if (isset($config['virt-what'][$virtwhat]))
+    {
+      $hardware = $config['virt-what'][$virtwhat];
+    }
   }
 }
 

@@ -24,6 +24,8 @@ foreach ($devices as $device)
 
       $graph_array           = array();
 
+      // FIXME -- definitions and use grid
+
       if ($_SESSION['widescreen'])
       {
         if ($_SESSION['big_graphs'])
@@ -46,8 +48,8 @@ foreach ($devices as $device)
           $height = 159;
           $height_div = 218;
         } else {
-          $width_div=294;
-          $width=219;
+          $width_div = 300;
+          $width = 225;
           $height = 100;
           $height_div = 158;
         }

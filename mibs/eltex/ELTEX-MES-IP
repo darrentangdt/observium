@@ -58,6 +58,8 @@ eltIpIcmpPacketUnreachableSendEnable OBJECT-TYPE
     "ICMP Destination Unreachable packets sending is enabled or not on this interface."
   ::= { eltIpIcmpPacketEntry 2 }
 
+eltMesArpSpec OBJECT IDENTIFIER ::=  { eltMesIpSpec 3 }
+-- see eltArpInterfaceTable.mib
 
 END
 

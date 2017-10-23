@@ -12,9 +12,11 @@
  *
  */
 
-unset($poll_device, $cache['devices']['uptime'][$device['device_id']]);
+unset($cache['devices']['uptime'][$device['device_id']]);
 
-$snmpdata = snmp_get_multi($device, 'sysUpTime.0 sysLocation.0 sysContact.0 sysName.0', '-OQUs', 'SNMPv2-MIB');
+$poll_device = array();
+/*
+$snmpdata = snmp_get_multi($device, 'sysUpTime.0 sysLocation.0 sysContact.0 sysName.0', '-OQUs', 'snmpv2-mib');
 $polled = time();
 $poll_device = $snmpdata[0];
 
@@ -28,22 +30,80 @@ if (strlen($poll_device['sysObjectID']) && $poll_device['sysObjectID'][0] != '.'
 }
 $poll_device['snmpEngineID'] = snmp_cache_snmpEngineID($device);
 $poll_device['sysName'] = strtolower($poll_device['sysName']);
+*/
+
+$include_order = 'default'; // Default MIBs first (not sure, need more use cases)
+$include_dir = "includes/polling/system";
+include("includes/include-dir-mib.inc.php");
+
+// Find MIB-specific SNMP data via OID fetch: sysDescr, sysLocation, sysContact, sysName, sysUpTime
+$system_metatypes = array('sysDescr', 'sysLocation', 'sysContact', 'sysName', 'sysUpTime'); // 'snmpEngineID');
+foreach ($system_metatypes as $metatype)
+{
+  if (!isset($poll_device[$metatype]) ) // Skip search if already set
+  {
+    $param = strtolower($metatype);
+    foreach (get_device_mibs($device, TRUE) as $mib) // Check every MIB supported by the device, in order
+    {
+      if (isset($config['mibs'][$mib][$param]))
+      {
+        foreach ($config['mibs'][$mib][$param] as $entry)
+        {
+          if (isset($entry['oid_num'])) // Use numeric OID if set, otherwise fetch text based string
+          {
+            $value = trim_quotes(snmp_hexstring(snmp_get($device, $entry['oid_num'], '-Oqv')));
+          } else {
+            $value = trim_quotes(snmp_hexstring(snmp_get($device, $entry['oid'], '-Oqv', $mib)));
+          }
+
+          if ($GLOBALS['snmp_status'] && $value != '')
+          {
+            $polled = round($GLOBALS['exec_status']['endtime']);
+
+            // Field found (no SNMP error), perform optional transformations.
+            $poll_device[$metatype] = string_transform($value, $entry['transformations']);
+
+            print_debug("Added System param from SNMP definition walk: '$metatype' = '$value'");
+
+            // Exit both foreach loops and move on to the next field.
+            break 2;
+          }
+        }
+      }
+    }
+  }
+}
+$poll_device['sysName'] = strtolower($poll_device['sysName']);
+print_debug_vars($poll_device);
+
+// If polled time not set by MIB include, set to unixtime
+if (!isset($polled))
+{
+  $polled = time();
+}
 
 // Uptime data and reboot triggers
 
-// SNMPv2-MIB::sysUpTime.0 = Timeticks: (2542831) 7:03:48.31
-$uptimes = array('sysUpTime' => timeticks_to_sec($poll_device['sysUpTime']));
+$uptimes = array('sysUpTime' => $poll_device['sysUpTime']);
 
 if (isset($agent_data['uptime']))
 {
   list($agent_data['uptime']) = explode(' ', $agent_data['uptime']);
   $uptimes['unix-agent'] = round($agent_data['uptime']);
 }
+
 if (is_numeric($agent_data['uptime']) && $agent_data['uptime'] > 0)
 {
   // Unix-agent uptime is highest priority
   $uptimes['use']     = 'unix-agent';
   $uptimes['message'] = 'Using UNIX Agent Uptime';
+}
+else if (isset($poll_device['device_uptime']) && is_numeric($poll_device['device_uptime']) && $poll_device['device_uptime'] > 0)
+{
+  // Get uptime by some custom way in device os poller, see example in wowza-engine os poller
+  $uptimes['device_uptime'] = round($poll_device['device_uptime']);
+  $uptimes['use']           = 'device_uptime';
+  $uptimes['message']       = 'Using device MIB poller Uptime';
 } else {
   if ($device['os'] != 'windows' && $device['snmp_version'] != 'v1' && is_device_mib($device, 'HOST-RESOURCES-MIB'))
   {
@@ -65,7 +125,7 @@ if (is_numeric($agent_data['uptime']) && $agent_data['uptime'] > 0)
     $uptimes['use']   = 'sysUpTime';
 
     // Last check snmpEngineTime
-    if ($device['snmp_version'] != 'v1') // snmpEngineTime allowed only in v2c/v3
+    if ($device['snmp_version'] != 'v1' && is_device_mib($device, 'SNMP-FRAMEWORK-MIB')) // snmpEngineTime allowed only in v2c/v3
     {
       // SNMP-FRAMEWORK-MIB::snmpEngineTime.0 = INTEGER: 72393514 seconds
       $snmpEngineTime = snmp_get($device, 'snmpEngineTime.0', '-OUqv', 'SNMP-FRAMEWORK-MIB');
@@ -190,7 +250,7 @@ if (is_numeric($uptime) && $uptime > 0) // it really is very impossible case for
 } else {
   print_warning('Device does not have any uptime counter or uptime equals zero.');
 }
-if (OBS_DEBUG) { print_vars($uptimes); }
+print_debug_vars($uptimes, 1);
 
 // Rewrite sysLocation if there is a mapping array or DB override
 $poll_device['sysLocation'] = snmp_fix_string($poll_device['sysLocation']);
@@ -202,6 +262,8 @@ if ($poll_device['sysContact'] == 'not set')
 {
   $poll_device['sysContact'] = '';
 }
+
+print_debug_vars($poll_device);
 
 // Check if snmpEngineID changed
 if (strlen($poll_device['snmpEngineID'] . $device['snmpEngineID']) && $poll_device['snmpEngineID'] != $device['snmpEngineID'])
@@ -268,7 +330,7 @@ if ($config['geocoding']['enable'])
     }
   } else {
     $geo_db = dbFetchRow('SELECT * FROM `devices_locations` WHERE `device_id` = ?', array($device['device_id']));
-    if (OBS_DEBUG > 1 && count($geo_db)) { print_vars($geo_db); }
+    print_debug_vars($geo_db);
   }
   $geo_db['hostname'] = $device['hostname']; // Hostname required for detect by DNS
 
@@ -293,7 +355,7 @@ if ($config['geocoding']['enable'])
     $update_geo = get_geolocation($poll_device['sysLocation'], $geo_db, $dns_only);
     if ($update_geo)
     {
-      if (OBS_DEBUG && count($update_geo)) { print_vars($update_geo); }
+      print_debug_vars($update_geo, 1);
       if (is_numeric($update_geo['location_lat']) && is_numeric($update_geo['location_lon']) && $update_geo['location_country'] != 'Unknown')
       {
         $geo_msg  = 'Geolocation ('.strtoupper($update_geo['location_geoapi']).') -> ';

@@ -19,8 +19,7 @@ if (!is_array($vars['idc'])) { $vars['idc'] = array($vars['idc']); }
 
 if ($vars['legend']) { $legend = $vars['legend']; }
 
-$rrd_options = " --alt-autoscale-max -E --start $from --end " . ($to - 150) . " --width $width --height $height ";
-$rrd_options .= $config['rrdgraph_def_text'];
+include($config['html_dir']."/includes/graphs/common.inc.php");
 
 if ($height < "99") { $rrd_options .= " --only-graph"; }
 $i = 1;
@@ -133,40 +132,40 @@ if ($legend == "no")
   $rrd_options .= " LINE1:doutbitsb#000099:";
   $rrd_options .= " LINE0.5:nothing#555555:";
 } else {
-  $rrd_options .= " COMMENT:bps\ \ \ \ \ \ \ \ \ \ \ \ Current\ \ \ Average\ \ \ \ \ \ Min\ \ \ \ \ \ Max\\n";
-  $rrd_options .= " AREA:inbits_tot#cdeb8b:ATM\ \ In\ ";
+  $rrd_options .= " COMMENT:'bps            Current   Average      Min      Max\\n'";
+  $rrd_options .= " AREA:inbits_tot#cdeb8b:'ATM  In '";
   $rrd_options .= " GPRINT:inbits:LAST:%6.2lf%s";
   $rrd_options .= " GPRINT:inbits:AVERAGE:%6.2lf%s";
   $rrd_options .= " GPRINT:inbits:MIN:%6.2lf%s";
   $rrd_options .= " GPRINT:inbits:MAX:%6.2lf%s\\l";
   $rrd_options .= " AREA:doutbits_tot#cdeb8b:";
-  $rrd_options .= " COMMENT:\ \ \ \ \ \ \ Out";
+  $rrd_options .= " COMMENT:'       Out'";
   $rrd_options .= " GPRINT:outbits:LAST:%6.2lf%s";
   $rrd_options .= " GPRINT:outbits:AVERAGE:%6.2lf%s";
   $rrd_options .= " GPRINT:outbits:MIN:%6.2lf%s";
   $rrd_options .= " GPRINT:outbits:MAX:%6.2lf%s\\l";
   $rrd_options .= " LINE1.25:inbits_tot#aacc77:";
   $rrd_options .= " LINE1.25:doutbits_tot#aacc88:";
-  $rrd_options .= " AREA:inbits_stot#c3d9ff:NGN\ \ In\ ";
+  $rrd_options .= " AREA:inbits_stot#c3d9ff:'NGN  In '";
   $rrd_options .= " GPRINT:inbitsb:LAST:%6.2lf%s";
   $rrd_options .= " GPRINT:inbitsb:AVERAGE:%6.2lf%s";
   $rrd_options .= " GPRINT:inbitsb:MIN:%6.2lf%s";
   $rrd_options .= " GPRINT:inbitsb:MAX:%6.2lf%s\\l";
   $rrd_options .= " AREA:doutbits_stot#c3d9ff:";
-  $rrd_options .= " COMMENT:\ \ \ \ \ \ \ Out";
+  $rrd_options .= " COMMENT:'       Out'";
   $rrd_options .= " GPRINT:outbitsb:LAST:%6.2lf%s";
   $rrd_options .= " GPRINT:outbitsb:AVERAGE:%6.2lf%s";
   $rrd_options .= " GPRINT:outbitsb:MIN:%6.2lf%s";
   $rrd_options .= " GPRINT:outbitsb:MAX:%6.2lf%s\\l";
   $rrd_options .= " LINE1:inbits_stot#b3a9cf:";
   $rrd_options .= " LINE1:doutbits_stot#b3a9cf:";
-  $rrd_options .= " AREA:inbitsc#ffcc99:Wave\ In\ ";
+  $rrd_options .= " AREA:inbitsc#ffcc99:'Wave In '";
   $rrd_options .= " GPRINT:inbitsc:LAST:%6.2lf%s";
   $rrd_options .= " GPRINT:inbitsc:AVERAGE:%6.2lf%s";
   $rrd_options .= " GPRINT:inbitsc:MIN:%6.2lf%s";
   $rrd_options .= " GPRINT:inbitsc:MAX:%6.2lf%s\\l";
   $rrd_options .= " AREA:doutbitsc#ffcc99:";
-  $rrd_options .= " COMMENT:\ \ \ \ \ \ \ Out";
+  $rrd_options .= " COMMENT:'       Out'";
   $rrd_options .= " GPRINT:outbitsc:LAST:%6.2lf%s";
   $rrd_options .= " GPRINT:outbitsc:AVERAGE:%6.2lf%s";
   $rrd_options .= " GPRINT:outbitsc:MIN:%6.2lf%s";
@@ -179,19 +178,18 @@ if ($legend == "no")
   $rrd_options .= " LINE1:doutbitsb#000099:";
   $rrd_options .= " LINE0.5:nothing#555555:";
 
-  $rrd_options .= " COMMENT:Total\ \ In\ ";
+  $rrd_options .= " COMMENT:'Total  In '";
   $rrd_options .= " GPRINT:inbits_tot:LAST:%6.2lf%s";
   $rrd_options .= " GPRINT:inbits_tot:AVERAGE:%6.2lf%s";
   $rrd_options .= " GPRINT:inbits_tot:MIN:%6.2lf%s";
   $rrd_options .= " GPRINT:inbits_tot:MAX:%6.2lf%s\\l";
-  $rrd_options .= " COMMENT:\ \ \ \ \ \ \ Out";
+  $rrd_options .= " COMMENT:'       Out'";
   $rrd_options .= " GPRINT:outbits_tot:LAST:%6.2lf%s";
   $rrd_options .= " GPRINT:outbits_tot:AVERAGE:%6.2lf%s";
   $rrd_options .= " GPRINT:outbits_tot:MIN:%6.2lf%s";
   $rrd_options .= " GPRINT:outbits_tot:MAX:%6.2lf%s\\l";
 }
 
-if ($width <= "300") { $rrd_options .= " --font LEGEND:7:".$config['mono_font']." --font AXIS:6:".$config['mono_font']." --font-render-mode normal"; }
 
 // Clean
 unset($rrd_multi, $in_thing, $out_thing, $pluses, $in_thingb, $out_thingb, $plusesb, $in_thingc, $out_thingc, $plusesc);

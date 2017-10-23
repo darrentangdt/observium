@@ -24,7 +24,6 @@ include("includes/sql-config.inc.php");
 print_message("%g".OBSERVIUM_PRODUCT." ".OBSERVIUM_VERSION."\n%WRename Device%n\n", 'color');
 if (OBS_DEBUG) { print_versions(); }
 
-$options = array();
 if (isset($options['p']))
 {
   $options['ping_skip'] = 1;

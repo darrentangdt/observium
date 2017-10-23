@@ -22,6 +22,8 @@ if ($permit_tabs['ports'])
 
   $port = dbFetchRow($sql, array($vars['port']));
 
+  $port_attribs = get_entity_attribs('port', $port['port_id']);
+
   $port_details = 1;
 
   if ($port['ifPhysAddress']) { $mac = (string)$port['ifPhysAddress']; }
@@ -77,6 +79,16 @@ if ($permit_tabs['ports'])
     $navbar['options']['cbqos']['text']    = 'CBQoS';
   }
 
+  if (isset($port_attribs['jnx_cos_queues']))
+  {
+    $navbar['options']['jnx_cos_queues']['text']    = 'CoS Queues';
+  }
+
+  if (isset($port_attribs['sros_egress_queues']) || isset($port_attribs['sros_ingress_queues']))
+  {
+    $navbar['options']['sros_queues']['text']    = 'CoS Queues';
+  }
+
   $navbar['options']['events']['text']   = 'Eventlog';
 
   if (dbFetchCell("SELECT COUNT(*) FROM `ports_adsl` WHERE `port_id` = ?", array($port['port_id'])))
@@ -118,14 +130,13 @@ if ($permit_tabs['ports'])
 
   if (OBSERVIUM_EDITION != 'community' && $_SESSION['userlevel'] == '10' && $config['enable_billing'])
   {
-    $navbar['options_right']['bills'] = array('text' => 'Create Bill', 'icon' => 'oicon-money-coin', 'url' => generate_url(array('page' => 'bills', 'view' => 'add', 'port' => $port['port_id'])));
+    $navbar['options_right']['bills'] = array('text' => 'Create Bill', 'icon' => $config['icon']['billing'], 'url' => generate_url(array('page' => 'bills', 'view' => 'add', 'port' => $port['port_id'])));
   }
 
   if ($_SESSION['userlevel'] == '10' )
   {
-    // This doesn't exist yet.
     $navbar['options_right']['data']['text'] = 'Data';
-    $navbar['options_right']['data']['icon'] = 'oicon-application-list';
+    $navbar['options_right']['data']['icon'] = $config['icon']['config'];
     $navbar['options_right']['data']['url'] = generate_url($link_array,array('view'=>'data'));
   }
 

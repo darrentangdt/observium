@@ -4,9 +4,9 @@
 -- MIB representation of the Cisco Unified Computing System
 -- GMETA management information model package
 -- 
--- Created June 2015 by Charles Bullis
+-- Created January 2016 by Charles Bullis
 -- 
--- Copyright (c) 2005-2015 Cisco Systems, Inc. All rights reserved.
+-- Copyright (c) 2005-2016 Cisco Systems, Inc. All rights reserved.
 -- 
 -- *********************************************************************
 
@@ -58,11 +58,12 @@ IMPORTS
     CucsGmetaHolderFsmTaskItem,
     CucsGmetaInventoryStatus,
     CucsGmetaPollInterval,
+    CucsGmetaVersion,
     CucsMoMoClassId
         FROM CISCO-UNIFIED-COMPUTING-TC-MIB;
 
 cucsGmetaObjects MODULE-IDENTITY
-    LAST-UPDATED    "201506290000Z"
+    LAST-UPDATED    "201601180000Z"
     ORGANIZATION    "Cisco Systems Inc."
     CONTACT-INFO
         "Cisco Systems
@@ -254,7 +255,9 @@ CucsGmetaHolderEntry ::= SEQUENCE {
     cucsGmetaHolderFsmTry                                            Gauge32,
     cucsGmetaHolderInventoryStatus                                   CucsGmetaInventoryStatus,
     cucsGmetaHolderPollInterval                                      CucsGmetaPollInterval,
-    cucsGmetaHolderProvider                                          CucsExtpolConnType
+    cucsGmetaHolderProvider                                          CucsExtpolConnType,
+    cucsGmetaHolderInventoryVersion                                  CucsGmetaVersion,
+    cucsGmetaHolderGenNum                                            Gauge32
 }
 
 cucsGmetaHolderInstanceId OBJECT-TYPE
@@ -400,6 +403,22 @@ cucsGmetaHolderProvider OBJECT-TYPE
     DESCRIPTION
         "Cisco UCS gmeta:Holder:provider managed object property"
     ::= { cucsGmetaHolderEntry 18 }
+
+cucsGmetaHolderInventoryVersion OBJECT-TYPE
+    SYNTAX       CucsGmetaVersion
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS gmeta:Holder:inventoryVersion managed object property"
+    ::= { cucsGmetaHolderEntry 19 }
+
+cucsGmetaHolderGenNum OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+        "Cisco UCS gmeta:Holder:genNum managed object property"
+    ::= { cucsGmetaHolderEntry 20 }
 
 cucsGmetaHolderFsmTable OBJECT-TYPE
     SYNTAX           SEQUENCE OF CucsGmetaHolderFsmEntry

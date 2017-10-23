@@ -185,6 +185,62 @@ lgpAgentDnsLookupFailure NOTIFICATION-TYPE
     ::= { lgpAgentEventNotifications 8 }
 
 -- =============================================================================
+-- lgpAgentEventNotificationsLegacy - Liebert Legacy Agent Notifications Group
+-- =============================================================================
+
+lgpAgentEventNotificationsLegacy OBJECT-IDENTITY
+    STATUS current
+    DESCRIPTION
+        "This branch contains copies of the notifications registered directly
+         below lgpAgentEventNotifications. These are here to provide support 
+         for some legacy devices which send out lgpAgentEventNotifications 
+         as the SNMPv1 enterprise trap parameter instead of 
+         lgpAgentNotifications, which causes problems with some SNMP clients 
+         when converting from V1 to V2 notifications (RFC3584 Section 3)."
+    ::= { lgpAgentEventNotifications 0 }
+
+lgpAgentDeviceCommunicationLostLegacy NOTIFICATION-TYPE
+    OBJECTS     { sysUpTime }
+    STATUS      current
+    DESCRIPTION "The agent has lost communications with a managed device."
+    ::= { lgpAgentEventNotificationsLegacy 1 }
+
+lgpAgentFirmwareUpdateSuccessfulLegacy NOTIFICATION-TYPE
+    OBJECTS     { sysUpTime }
+    STATUS      current
+    DESCRIPTION
+        "The firmware update to the agent card has completed successfully."
+    ::= { lgpAgentEventNotificationsLegacy 5 }
+
+lgpAgentFirmwareCorruptLegacy NOTIFICATION-TYPE
+    OBJECTS     { sysUpTime }
+    STATUS      current
+    DESCRIPTION
+        "The firmware update to the agent card has failed and the firmware is
+        now corrupt."
+    ::= { lgpAgentEventNotificationsLegacy 6 }
+
+lgpAgentHeartbeatLegacy NOTIFICATION-TYPE
+    OBJECTS     { sysUpTime, lgpConditionsPresent,
+                lgpAgentConnectedDeviceCount }
+    STATUS      current
+    DESCRIPTION
+        "The agent card is alive."
+    ::= { lgpAgentEventNotificationsLegacy 7 }
+
+lgpAgentDnsLookupFailureLegacy NOTIFICATION-TYPE
+    OBJECTS     { sysUpTime, lgpNetworkName }
+    STATUS      current
+    DESCRIPTION
+        "A Domain Name System (DNS) lookup of a network name failed to
+        resolve.  This may result in one or more of the following:
+           1. failure to notify a target address of an important condition
+           2. failure allow access for monitoring purposes
+        This issue should be resolved as soon as possible with a
+        network or system administrator."
+    ::= { lgpAgentEventNotificationsLegacy 8 }
+
+-- =============================================================================
 -- lgpAgentDevice - Liebert Agent Managed Device Group
 -- =============================================================================
 

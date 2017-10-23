@@ -46,8 +46,9 @@ foreach (get_device_mibs($device, TRUE, $include_order) as $mib)
   {
     if (is_file($inc_file))
     {
-      echo("$mib ");
+      print_cli_data_field("$mib ");
       include($inc_file);
+      echo(PHP_EOL);
 
       if ($include_lib && is_file($inc_dir . '.lib.php'))
       {
@@ -62,7 +63,9 @@ foreach (get_device_mibs($device, TRUE, $include_order) as $mib)
       {
         if (is_file($dir_file))
         {
+          print_cli_data_field("$mib ");
           include($dir_file);
+          echo(PHP_EOL);
         }
       }
       if ($include_lib && is_file($inc_dir . '.lib.php'))

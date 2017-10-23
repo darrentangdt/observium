@@ -21,7 +21,7 @@ echo('<div style="margin: 10px;">');
 
 if (auth_usermanagement())
 {
-  if ($vars['action'] == "deleteuser")
+  if ($vars['action'] == "deleteuser" && request_token_valid($vars))
   {
     $delete_username = dbFetchCell("SELECT `username` FROM `users` WHERE `user_id` = ?", array($vars['user_id']));
 

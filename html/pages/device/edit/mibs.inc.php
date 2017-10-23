@@ -71,7 +71,7 @@ print_warning("This page allows you to disable certain MIBs to be polled for a d
     <div class="box box-solid">
 
       <div class="box-header with-border">
-        <!-- <i class="oicon-gear"></i> --><h3 class="box-title">Device MIBs</h3>
+        <h3 class="box-title">Device MIBs</h3>
       </div>
       <div class="box-body no-padding">
 
@@ -138,7 +138,7 @@ foreach ($mibs as $mib => $count)
     <div class="box box-solid">
 
       <div class="box-header with-border">
-        <!-- <i class="oicon-exclamation"></i> --><h3 class="box-title">SNMP errors</h3>
+        <h3 class="box-title">SNMP errors</h3>
       </div>
       <div class="box-body no-padding">
 
